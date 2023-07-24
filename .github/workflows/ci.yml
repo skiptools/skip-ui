@@ -18,7 +18,15 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v2
+      - name: Build (Debug)
+        run: |
+            xcodebuild test \
+              -configuration Build \
+              -scheme "SwiftUI" \
+              -sdk "iphonesimulator" \
+              -destination "platform=iOS Simulator,name=iPhone 14"
       - name: Test (Debug)
+        if: false
         run: |
             xcodebuild test \
               -configuration Debug \
