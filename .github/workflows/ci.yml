@@ -6,7 +6,7 @@ on:
   pull_request:
     branches:
       - '*'
-  schedule:
+  #schedule:
     # run at 9AM & 9PM UTC
     #- cron:  '0 9,21 * * *'
 
@@ -22,8 +22,7 @@ jobs:
         run: |
             xcodebuild test \
               -configuration Debug \
-              -scheme "SkipUI" \
+              -scheme "SwiftUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
-
 

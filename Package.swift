@@ -1,24 +1,30 @@
 // swift-tools-version: 5.8
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
-    name: "SkipUI",
+    name: "SwiftUI",
     platforms: [.macOS("13"), .iOS("17")],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
-        .library(
-            name: "SkipUI",
-            targets: ["SkipUI"]),
+        .library(name: "SwiftUI", targets: ["SwiftUI"]),
+        .library(name: "SwiftUIKt", targets: ["SwiftUIKt"]),
     ],
+    dependencies: [ 
+        .package(url: "https://skip.tools/skiptools/skip.git", from: "0.5.13"),
+        .package(url: "https://github.com/skiptools/skiphub.git", from: "0.4.10"),
+    ],  
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
-        .target(
-            name: "SkipUI"),
-        .testTarget(
-            name: "SkipUITests",
-            dependencies: ["SkipUI"]),
+        .target(name: "SwiftUI",
+            plugins: [.plugin(name: "preflight", package: "skip")]),
+        .testTarget(name: "SwiftUITests", dependencies: ["SwiftUI"],
+            plugins: [.plugin(name: "preflight", package: "skip")]),
+
+        .target(name: "SwiftUIKt",
+            dependencies: [ "SwiftUI", .product(name: "SkipFoundationKt", package: "skiphub", moduleAliases: ["SwiftUI": "SwiftUIOld"]) ],
+            resources: [.process("Skip")],
+            plugins: [.plugin(name: "transpile", package: "skip")]),
+        .testTarget(name: "SwiftUIKtTests",
+            dependencies: ["SwiftUIKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
+            .plugin(name: "transpile", package: "skip")
+        ]),
     ]
 )
