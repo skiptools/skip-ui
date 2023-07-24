@@ -1,6 +1,3 @@
-xcodebuild -skipPackagePluginValidation -configuration "Debug" -scheme "SkipUI" -sdk "iphonesimulator" -destination "platform=iOS Simulator,name=iPhone 14" test
-
-
 name: SkipUI CI
 
 on:
