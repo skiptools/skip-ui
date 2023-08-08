@@ -10,6 +10,8 @@ import CoreTransferable
 import Foundation
 import Observation
 import UniformTypeIdentifiers
+import Accessibility
+
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -82091,19 +82093,27 @@ public struct ViewAlignedScrollTargetBehavior : ScrollTargetBehavior {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @resultBuilder public struct ViewBuilder {
 
-    /// Builds an expression within the builder.
-    public static func buildExpression<Content>(_ content: Content) -> Content where Content : View { fatalError() }
-
     /// Builds an empty view from a block containing no statements.
-    public static func buildBlock() -> EmptyView { fatalError() }
+    public static func buildBlock() -> EmptyView {
+        fatalError()
+    }
+
+    /// Builds an expression within the builder.
+    public static func buildExpression<Content : View>(_ content: Content) -> Content {
+        fatalError()
+    }
 
     /// Passes a single view written as a child view through unmodified.
     ///
     /// An example of a single view written as a child view is
     /// `{ Text("Hello") }`.
-    public static func buildBlock<Content>(_ content: Content) -> Content where Content : View { fatalError() }
+    public static func buildBlock<Content: View >(_ content: Content) -> Content{
+        fatalError()
+    }
 
-    public static func buildBlock<each Content>(_ content: repeat each Content) -> TupleView<(repeat each Content)> where repeat each Content : View { fatalError() }
+//    public static func buildBlock<each Content>(_ content: repeat each Content) -> TupleView<(repeat each Content)> where repeat each Content : View {
+//        fatalError()
+//    }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

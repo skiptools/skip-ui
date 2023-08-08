@@ -1,21 +1,57 @@
 {
   "pins" : [
     {
-      "identity" : "skip",
+      "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
-      "location" : "https://skip.tools/skiptools/skip.git",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
-        "revision" : "8fe58162cc7c00fc1c114e549bcfff36a19557c7",
-        "version" : "0.5.23"
+        "revision" : "fee6933f37fde9a5e12a1e4aeaa93fe60116ff2a",
+        "version" : "1.2.2"
       }
     },
     {
-      "identity" : "skiphub",
+      "identity" : "swift-crypto",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/skiptools/skiphub.git",
+      "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "02675532c19d9dc27d737402d6a9033bcfc60054",
-        "version" : "0.4.15"
+        "revision" : "60f13f60c4d093691934dc6cfdf5f508ada1f894",
+        "version" : "2.6.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "b061ee570ea90113b0204c56778c1990ae9be136"
+      }
+    },
+    {
+      "identity" : "swift-system",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-system.git",
+      "state" : {
+        "revision" : "836bc4557b74fe6d2660218d56e3ce96aff76574",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-tools-support-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-tools-support-core.git",
+      "state" : {
+        "revision" : "93784c59434dbca8e8a9e4b700d0d6d94551da6a",
+        "version" : "0.5.2"
+      }
+    },
+    {
+      "identity" : "universal",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/marcprux/universal.git",
+      "state" : {
+        "revision" : "13421e9299fa1ad95aeecb8fe8472caae0f9d4c7",
+        "version" : "5.2.1"
       }
     }
   ],

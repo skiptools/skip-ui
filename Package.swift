@@ -2,29 +2,40 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftUI",
+    name: "SkipUI",
     platforms: [.macOS("13"), .iOS("17")],
     products: [
-        .library(name: "SwiftUI", targets: ["SwiftUI"]),
-        .library(name: "SwiftUIKt", targets: ["SwiftUIKt"]),
+        .library(name: "SkipUI", targets: ["SkipUI"]),
+        .library(name: "SkipUIKt", targets: ["SkipUIKt"]),
     ],
     dependencies: [ 
-        .package(url: "https://skip.tools/skiptools/skip.git", from: "0.5.13"),
-        .package(url: "https://github.com/skiptools/skiphub.git", from: "0.4.10"),
-    ],  
+        .package(url: "https://skip.tools/skiptools/skip.git", from: "0.0.0"),
+        .package(url: "https://skip.tools/skiptools/skiphub.git", from: "0.0.0"),
+    ],
     targets: [
-        .target(name: "SwiftUI",
-            plugins: [.plugin(name: "preflight", package: "skip")]),
-        .testTarget(name: "SwiftUITests", dependencies: ["SwiftUI"],
-            plugins: [.plugin(name: "preflight", package: "skip")]),
+        .target(name: "SkipUI"),
+        .testTarget(name: "SkipUITests", dependencies: ["SkipUI"]),
 
-        .target(name: "SwiftUIKt",
-            dependencies: [ "SwiftUI", .product(name: "SkipFoundationKt", package: "skiphub", moduleAliases: ["SwiftUI": "SwiftUIOld"]) ],
+//        .target(name: "SkipUI",
+//            plugins: [.plugin(name: "preflight", package: "skip")]),
+//        .testTarget(name: "SkipUITests", dependencies: ["SkipUI"],
+//            plugins: [.plugin(name: "preflight", package: "skip")]),
+
+        .target(name: "SkipUIKt",
+            dependencies: [ "SkipUI", .product(name: "SkipFoundationKt", package: "skiphub") ],
             resources: [.process("Skip")],
             plugins: [.plugin(name: "transpile", package: "skip")]),
-        .testTarget(name: "SwiftUIKtTests",
-            dependencies: ["SwiftUIKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
+        .testTarget(name: "SkipUIKtTests",
+            dependencies: ["SkipUIKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
             .plugin(name: "transpile", package: "skip")
         ]),
     ]
 )
+
+import class Foundation.ProcessInfo
+
+// For Skip library development in peer directories, run: SKIPLOCAL=.. xed Package.swift
+if let localPath = ProcessInfo.processInfo.environment["SKIPLOCAL"] {
+    package.dependencies[0] = .package(path: localPath + "/skip")
+    package.dependencies[1] = .package(path: localPath + "/skiphub")
+}

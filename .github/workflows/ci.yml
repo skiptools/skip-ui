@@ -22,7 +22,7 @@ jobs:
         run: |
             xcodebuild build \
               -configuration Build \
-              -scheme "SwiftUI" \
+              -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
       - name: Test (Debug)
@@ -30,7 +30,7 @@ jobs:
         run: |
             xcodebuild test \
               -configuration Debug \
-              -scheme "SwiftUI" \
+              -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
 
