@@ -10,7 +10,6 @@ import struct Foundation.KeyPathComparator
 import struct Foundation.Date
 import struct Foundation.UUID
 import struct Foundation.SortDescriptor
-import struct CoreGraphics.CGFloat
 #if canImport(UIKit)
 import class UIKit.NSItemProvider
 #endif
