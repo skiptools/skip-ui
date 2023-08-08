@@ -9,14 +9,24 @@ import SkipUI
 final class SkipUITests: XCTestCase {
     func testExample() throws {
         if ({ false }()) {
-            _ = SkipUI.VStack {
-                SkipUI.Text("Hello")
+            _ = VStack {
+                Text("Hello")
                     .foregroundStyle(.primary)
                     .font(.title)
-                SkipUI.Text("Hello")
+                Text("Hello")
                     .opacity(0.5)
                     .font(.title2)
             }
+        }
+    }
+}
+
+
+struct DemoViw : View {
+    @ViewBuilder var body: some View {
+        VStack {
+            Text("Hello")
+            Text("Hello")
         }
     }
 }

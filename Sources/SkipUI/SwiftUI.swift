@@ -347,7 +347,7 @@ public struct AccessibilityCustomContentKey {
     ///   is contained in this additional information entry. For example:
     ///   "orientation".
     /// - Parameter id: String used to identify the additional information entry
-    ///   to SwiftUI. Adding an entry will replace any previous value with the
+    ///   to SkipUI. Adding an entry will replace any previous value with the
     ///   same identifier.
     public init(_ label: Text, id: String) { fatalError() }
 
@@ -358,7 +358,7 @@ public struct AccessibilityCustomContentKey {
     ///   is contained in this additional information entry. For example:
     ///   "orientation".
     /// - Parameter id: String used to identify the additional
-    ///   information entry to SwiftUI. Adding an entry will replace any previous
+    ///   information entry to SkipUI. Adding an entry will replace any previous
     ///   value with the same identifier.
     public init(_ labelKey: LocalizedStringKey, id: String) { fatalError() }
 
@@ -437,7 +437,7 @@ public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
     public typealias Element = AccessibilityDirectTouchOptions
 }
 
-/// A property wrapper type that can read and write a value that SwiftUI updates
+/// A property wrapper type that can read and write a value that SkipUI updates
 /// as the focus of any active accessibility technology, such as VoiceOver,
 /// changes.
 ///
@@ -449,7 +449,7 @@ public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
 /// wrapper to identify accessibility elements for which you want to get
 /// or set accessibility focus. When accessibility focus enters the modified accessibility element,
 /// the framework updates the wrapped value of this property to match a given
-/// prototype value. When accessibility focus leaves, SwiftUI resets the wrapped value
+/// prototype value. When accessibility focus leaves, SkipUI resets the wrapped value
 /// of an optional property to `nil` or the wrapped value of a Boolean property to `false`.
 /// Setting the property's value programmatically has the reverse effect, causing
 /// accessibility focus to move to whichever accessibility element is associated with the updated value.
@@ -491,7 +491,7 @@ public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
 /// Some initializers of `AccessibilityFocusState` also allow specifying
 /// accessibility technologies, determining to which types of accessibility
 /// focus this binding applies. If you specify no accessibility technologies,
-/// SwiftUI uses an aggregate of any and all active accessibility technologies.
+/// SkipUI uses an aggregate of any and all active accessibility technologies.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 @propertyWrapper @frozen public struct AccessibilityFocusState<Value> : DynamicProperty where Value : Hashable {
 
@@ -518,7 +518,7 @@ public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
     /// and accessibility focus placement.
     ///
     /// Use `projectedValue` in conjunction with
-    /// ``SwiftUI/View/accessibilityFocused(_:equals:)`` to establish
+    /// ``SkipUI/View/accessibilityFocused(_:equals:)`` to establish
     /// bindings between view content and accessibility focus placement.
     public var projectedValue: AccessibilityFocusState<Value>.Binding { get { fatalError() } }
 
@@ -907,7 +907,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///     either label or accessibility value of the associated element.
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
-    ///     bring the UI element on-screen if it isn't already, and SwiftUI
+    ///     bring the UI element on-screen if it isn't already, and SkipUI
     ///     is not able to automatically scroll to it.
     public init(_ label: Text, id: ID, textRange: Range<String.Index>? = nil, prepare: @escaping (() -> Void) = {}) { fatalError() }
 
@@ -942,7 +942,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
     ///     bring the UI element or text on-screen if it isn't already,
-    ///     and SwiftUI not able to automatically scroll to it.
+    ///     and SkipUI not able to automatically scroll to it.
     public init(_ label: Text? = nil, textRange: Range<String.Index>, prepare: @escaping (() -> Void) = {}) where ID == Never { fatalError() }
 
     /// Create a Rotor entry with a specific label and identifier, with an
@@ -959,7 +959,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///     element.
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
-    ///     bring the UI element on-screen if it isn't already, and SwiftUI
+    ///     bring the UI element on-screen if it isn't already, and SkipUI
     ///     is not able to automatically scroll to it.
     public init(_ labelKey: LocalizedStringKey, id: ID, textRange: Range<String.Index>? = nil, prepare: @escaping (() -> Void) = {}) { fatalError() }
 
@@ -977,7 +977,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///     element.
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
-    ///     bring the UI element on-screen if it isn't already, and SwiftUI
+    ///     bring the UI element on-screen if it isn't already, and SkipUI
     ///     is not able to automatically scroll to it.
     public init<L>(_ label: L, id: ID, textRange: Range<String.Index>? = nil, prepare: @escaping (() -> Void) = {}) where L : StringProtocol { fatalError() }
 
@@ -1032,7 +1032,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
     ///     bring the UI element or text on-screen if it isn't already,
-    ///     and SwiftUI not able to automatically scroll to it.
+    ///     and SkipUI not able to automatically scroll to it.
     public init(_ labelKey: LocalizedStringKey, textRange: Range<String.Index>, prepare: @escaping (() -> Void) = {}) { fatalError() }
 
     /// Create a Rotor entry with a specific label and range. This Rotor entry
@@ -1046,7 +1046,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
     ///   - prepare: Optional closure to run before a Rotor entry
     ///     is navigated to, to prepare the UI as needed. This can be used to
     ///     bring the UI element or text on-screen if it isn't already,
-    ///     and SwiftUI not able to automatically scroll to it.
+    ///     and SkipUI not able to automatically scroll to it.
     public init<L>(_ label: L, textRange: Range<String.Index>, prepare: @escaping (() -> Void) = {}) where ID == Never, L : StringProtocol { fatalError() }
 }
 
@@ -1934,7 +1934,7 @@ public struct AccessoryLinearGaugeStyle : GaugeStyle {
 /// the text, three buttons: a destructive Overwrite Current Workout button in
 /// red, a default-styled Overwrite Current Workout button, and a Cancel button,
 /// farther below and set off in its own button
-/// group.](SwiftUI-ActionSheet-cancel-and-destructive.png)
+/// group.](SkipUI-ActionSheet-cancel-and-destructive.png)
 @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use `View.confirmationDialog(title:isPresented:titleVisibility:presenting::actions:)`instead.")
 @available(macOS, unavailable)
 @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `View.confirmationDialog(title:isPresented:titleVisibility:presenting:actions:)`instead.")
@@ -1985,7 +1985,7 @@ public struct ActionSheet {
 ///
 /// ![A default alert dialog with the title Current Location Not Available in bold
 /// text, the message your current location can’t be determined at this time in
-/// smaller text, and a default OK button.](SwiftUI-Alert-OK.png)
+/// smaller text, and a default OK button.](SkipUI-Alert-OK.png)
 ///
 /// To customize the alert, add instances of the ``Alert/Button`` type, which
 /// provides standardized buttons for common tasks like canceling and performing
@@ -2017,7 +2017,7 @@ public struct ActionSheet {
 /// ![An alert dialog with the title, Unable to Save Workout Data in bold text, and
 /// the message, The connection to the server was lost, in smaller text. Below
 /// the text, two buttons: a default button with Try Again in blue text, and a
-/// button with Delete in red text.](SwiftUI-Alert-default-and-destructive.png)
+/// button with Delete in red text.](SkipUI-Alert-default-and-destructive.png)
 ///
 /// The alert handles its own dismissal when the user taps one of the buttons in the alert, by setting
 /// the bound `isPresented` value back to `false`.
@@ -2093,10 +2093,10 @@ public struct Alert {
 /// ``ZStack``, or layer a view in front of or behind another view using
 /// ``View/overlay(alignment:content:)`` or
 /// ``View/background(alignment:content:)``, respectively. During layout,
-/// SwiftUI brings the specified guides of the affected views together,
+/// SkipUI brings the specified guides of the affected views together,
 /// aligning the views.
 ///
-/// SwiftUI provides a set of built-in alignments that represent common
+/// SkipUI provides a set of built-in alignments that represent common
 /// combinations of the built-in horizontal and vertical alignment guides.
 /// The blue boxes in the following diagram demonstrate the alignment named
 /// by each box's label, relative to the background view:
@@ -2164,7 +2164,7 @@ public struct Alert {
 /// ``VerticalAlignment``.
 ///
 /// In a left-to-right language like English, the leading and trailing
-/// alignments appear on the left and right edges, respectively. SwiftUI
+/// alignments appear on the left and right edges, respectively. SkipUI
 /// reverses these in right-to-left language environments. For more
 /// information, see ``HorizontalAlignment``.
 ///
@@ -2209,7 +2209,7 @@ public struct Alert {
     /// Creates a custom alignment value with the specified horizontal
     /// and vertical alignment guides.
     ///
-    /// SwiftUI provides a variety of built-in alignments that combine built-in
+    /// SkipUI provides a variety of built-in alignments that combine built-in
     /// ``HorizontalAlignment`` and ``VerticalAlignment`` guides. Use this
     /// initializer to create a custom alignment that makes use
     /// of a custom horizontal or vertical guide, or both.
@@ -2576,7 +2576,7 @@ public protocol AlignmentID {
     ///
     /// Implement this method when you create a type that conforms to the
     /// ``AlignmentID`` protocol. Use the method to calculate the default
-    /// offset of the corresponding alignment guide. SwiftUI interprets the
+    /// offset of the corresponding alignment guide. SkipUI interprets the
     /// value that you return as an offset in the coordinate space of the
     /// view that's being laid out. For example, you can use the context to
     /// return a value that's one-third of the height of the view:
@@ -2614,7 +2614,7 @@ public protocol AlignmentID {
     /// A type-erased geometry value that produces an anchored value of a given
     /// type.
     ///
-    /// SwiftUI passes anchored geometry values around the view tree via
+    /// SkipUI passes anchored geometry values around the view tree via
     /// preference keys. It then converts them back into the local coordinate
     /// space using a ``GeometryProxy`` value.
     @frozen public struct Source {
@@ -2863,1799 +2863,6 @@ extension Angle : Sendable {
     public typealias Resolved = Never
 }
 
-/// A type that describes how to animate a property of a view.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol Animatable {
-
-    /// The type defining the data to animate.
-    associatedtype AnimatableData : VectorArithmetic
-
-    /// The data to animate.
-    var animatableData: Self.AnimatableData { get set }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animatable where Self : VectorArithmetic {
-
-    /// The data to animate.
-    public var animatableData: Self { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animatable where Self.AnimatableData == EmptyAnimatableData {
-
-    /// The data to animate.
-    public var animatableData: EmptyAnimatableData { get { fatalError() } }
-}
-
-/// A modifier that can create another modifier with animation.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use Animatable directly")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use Animatable directly")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use Animatable directly")
-@available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use Animatable directly")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use Animatable directly")
-public protocol AnimatableModifier : Animatable, ViewModifier {
-}
-
-/// A pair of animatable values, which is itself animatable.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct AnimatablePair<First, Second> : VectorArithmetic where First : VectorArithmetic, Second : VectorArithmetic {
-
-    /// The first value.
-    public var first: First { get { fatalError() } }
-
-    /// The second value.
-    public var second: Second { get { fatalError() } }
-
-    /// Creates an animated pair with the provided values.
-    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
-
-    /// The zero value.
-    ///
-    /// Zero is the identity element for addition. For any value,
-    /// `x + .zero == x` and `.zero + x == x`.
-    public static var zero: AnimatablePair<First, Second> { get { fatalError() } }
-
-    /// Adds two values and stores the result in the left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    public static func += (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
-
-    /// Subtracts the second value from the first and stores the difference in the
-    /// left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    public static func -= (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
-
-    /// Adds two values and produces their sum.
-    ///
-    /// The addition operator (`+`) calculates the sum of its two arguments. For
-    /// example:
-    ///
-    ///     1 + 2                   // 3
-    ///     -10 + 15                // 5
-    ///     -15 + -5                // -20
-    ///     21.5 + 3.25             // 24.75
-    ///
-    /// You cannot use `+` with arguments of different types. To add values of
-    /// different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: Int8 = 21
-    ///     let y: Int = 1000000
-    ///     Int(x) + y              // 1000021
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    public static func + (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
-
-    /// Subtracts one value from another and produces their difference.
-    ///
-    /// The subtraction operator (`-`) calculates the difference of its two
-    /// arguments. For example:
-    ///
-    ///     8 - 3                   // 5
-    ///     -10 - 5                 // -15
-    ///     100 - -5                // 105
-    ///     10.5 - 100.0            // -89.5
-    ///
-    /// You cannot use `-` with arguments of different types. To subtract values
-    /// of different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: UInt8 = 21
-    ///     let y: UInt = 1000000
-    ///     y - UInt(x)             // 999979
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    public static func - (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
-
-    /// Multiplies each component of this value by the given value.
-    public mutating func scale(by rhs: Double) { fatalError() }
-
-    /// The dot-product of this animated pair with itself.
-    public var magnitudeSquared: Double { get { fatalError() } }
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: AnimatablePair<First, Second>, b: AnimatablePair<First, Second>) -> Bool { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension AnimatablePair : Sendable where First : Sendable, Second : Sendable {
-}
-
-/// The way a view changes over time to create a smooth visual transition from
-/// one state to another.
-///
-/// An `Animation` provides a visual transition of a view when a state value
-/// changes from one value to another. The characteristics of this transition
-/// vary according to the animation type. For instance, a ``linear`` animation
-/// provides a mechanical feel to the animation because its speed is consistent
-/// from start to finish. In contrast, an animation that uses easing, like
-/// ``easeOut``, offers a more natural feel by varying the acceleration
-/// of the animation.
-///
-/// To apply an animation to a view, add the ``View/animation(_:value:)``
-/// modifier, and specify both an animation type and the value to animate. For
-/// instance, the ``Circle`` view in the following code performs an
-/// ``easeIn`` animation each time the state variable `scale` changes:
-///
-///     struct ContentView: View {
-///         @State private var scale = 0.5
-///
-///         var body: some View {
-///             VStack {
-///                 Circle()
-///                     .scaleEffect(scale)
-///                     .animation(.easeIn, value: scale)
-///                 HStack {
-///                     Button("+") { scale += 0.1 }
-///                     Button("-") { scale -= 0.1 }
-///                 }
-///             }
-///             .padding()
-///         }
-///
-/// @Video(source: "animation-01-overview-easein.mp4", poster: "animation-01-overview-easein.png", alt: "A video that shows a circle enlarging then shrinking to its original size using an ease-in animation.")
-///
-/// When the value of `scale` changes, the modifier
-/// ``View/scaleEffect(_:anchor:)-pmi7`` resizes ``Circle`` according to the
-/// new value. SwiftUI can animate the transition between sizes because
-/// ``Circle`` conforms to the ``Shape`` protocol. Shapes in SwiftUI conform to
-/// the ``Animatable`` protocol, which describes how to animate a property of a
-/// view.
-///
-/// In addition to adding an animation to a view, you can also configure the
-/// animation by applying animation modifiers to the animation type. For
-/// example, you can:
-///
-/// - Delay the start of the animation by using the ``delay(_:)`` modifier.
-/// - Repeat the animation by using the ``repeatCount(_:autoreverses:)`` or
-/// ``repeatForever(autoreverses:)`` modifiers.
-/// - Change the speed of the animation by using the ``speed(_:)`` modifier.
-///
-/// For example, the ``Circle`` view in the following code repeats
-/// the ``easeIn`` animation three times by using the
-/// ``repeatCount(_:autoreverses:)`` modifier:
-///
-///     struct ContentView: View {
-///         @State private var scale = 0.5
-///
-///         var body: some View {
-///             VStack {
-///                 Circle()
-///                     .scaleEffect(scale)
-///                     .animation(.easeIn.repeatCount(3), value: scale)
-///                 HStack {
-///                     Button("+") { scale += 0.1 }
-///                     Button("-") { scale -= 0.1 }
-///                 }
-///             }
-///             .padding()
-///         }
-///     }
-///
-/// @Video(source: "animation-02-overview-easein-repeat.mp4", poster: "animation-02-overview-easein-repeat.png", alt: "A video that shows a circle that repeats the ease-in animation three times: enlarging, then shrinking, then enlarging again. The animation reverses causing the circle to shrink, then enlarge, then shrink to its original size.")
-///
-/// A view can also perform an animation when a binding value changes. To
-/// specify the animation type on a binding, call its ``Binding/animation(_:)``
-/// method. For example, the view in the following code performs a
-/// ``linear`` animation, moving the box truck between the leading and trailing
-/// edges of the view. The truck moves each time a person clicks the ``Toggle``
-/// control, which changes the value of the `$isTrailing` binding.
-///
-///     struct ContentView: View {
-///         @State private var isTrailing = false
-///
-///         var body: some View {
-///            VStack(alignment: isTrailing ? .trailing : .leading) {
-///                 Image(systemName: "box.truck")
-///                     .font(.system(size: 64))
-///
-///                 Toggle("Move to trailing edge",
-///                        isOn: $isTrailing.animation(.linear))
-///             }
-///         }
-///     }
-///
-/// @Video(source: "animation-03-overview-binding.mp4", poster: "animation-03-overview-binding.png", alt: "A video that shows a box truck that moves from the leading edge of a view to the trailing edge. The box truck then returns to the view's leading edge.")
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Animation : Equatable, Sendable {
-
-    /// Create an `Animation` that contains the specified custom animation.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public init<A>(_ base: A) where A : CustomAnimation { fatalError() }
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (lhs: Animation, rhs: Animation) -> Bool { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// duration values between springs over a time period.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - bounce: How bouncy the spring should be. A value of 0 indicates
-    ///     no bounces (a critically damped spring), positive values indicate
-    ///     increasing amounts of bounciness up to a maximum of 1.0
-    ///     (corresponding to undamped oscillation), and negative values
-    ///     indicate overdamped springs with a minimum value of -1.0.
-    ///   - blendDuration: The duration in seconds over which to
-    ///     interpolate changes to the duration.
-    /// - Returns: a spring animation.
-    public static func spring(duration: TimeInterval = 0.5, bounce: Double = 0.0, blendDuration: Double = 0) -> Animation { fatalError() }
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// response values between springs over a time period.
-    ///
-    /// - Parameters:
-    ///   - response: The stiffness of the spring, defined as an
-    ///     approximate duration in seconds. A value of zero requests
-    ///     an infinitely-stiff spring, suitable for driving
-    ///     interactive animations.
-    ///   - dampingFraction: The amount of drag applied to the value
-    ///     being animated, as a fraction of an estimate of amount
-    ///     needed to produce critical damping.
-    ///   - blendDuration: The duration in seconds over which to
-    ///     interpolate changes to the response value of the spring.
-    /// - Returns: a spring animation.
-    public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: TimeInterval = 0) -> Animation { fatalError() }
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// response values between springs over a time period.
-    ///
-    /// This uses the default parameter values.
-    public static var spring: Animation { get { fatalError() } }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `response` value, intended for driving interactive animations.
-    public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation { fatalError() }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `duration` value, intended for driving interactive animations.
-    ///
-    /// This uses the default parameter values.
-    public static var interactiveSpring: Animation { get { fatalError() } }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `response` value, intended for driving interactive animations.
-    public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation { fatalError() }
-
-    /// A smooth spring animation with a predefined duration and no bounce.
-    public static var smooth: Animation { get { fatalError() } }
-
-    /// A smooth spring animation with a predefined duration and no bounce
-    /// that can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-
-    /// A spring animation with a predefined duration and small amount of
-    /// bounce that feels more snappy.
-    public static var snappy: Animation { get { fatalError() } }
-
-    /// A spring animation with a predefined duration and small amount of
-    /// bounce that feels more snappy and can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.15.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-
-    /// A spring animation with a predefined duration and higher amount of
-    /// bounce.
-    public static var bouncy: Animation { get { fatalError() } }
-
-    /// A spring animation with a predefined duration and higher amount of
-    /// bounce that can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.3.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation {
-
-    /// A persistent spring animation.
-    ///
-    /// When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// duration values between springs over a time period.
-    public static func spring(_ spring: Spring, blendDuration: TimeInterval = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range of one to zero.
-    ///
-    /// These vales are used to interpolate within the `[from, to]` range
-    /// of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation {
-
-    /// Creates a new animation with speed controlled by the given curve.
-    ///
-    /// - Parameters:
-    ///   - timingCurve: A curve that describes the speed of the
-    ///     animation over its duration.
-    ///   - duration: The duration of the animation, in seconds.
-    public static func timingCurve(_ curve: UnitCurve, duration: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// A default animation instance.
-    ///
-    /// The `default` animation is ``spring(response:dampingFraction:blendDuration:)``
-    /// with:
-    ///
-    /// - `response` equal to `0.55`
-    /// - `dampingFraction` equal to `1.0`
-    /// - `blendDuration` equal to `0.0`
-    ///
-    /// Prior to iOS 17, macOS 14, tvOS 17, and watchOS 10, the `default`
-    /// animation is ``easeInOut``.
-    ///
-    /// The global function
-    /// ``withAnimation(_:_:)`` uses the default animation if you don't
-    /// provide one. For instance, the following code listing shows
-    /// an example of using the `default` animation to flip the text "Hello"
-    /// each time someone clicks the Animate button.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var degrees = Double.zero
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Spacer()
-    ///                 Text("Hello")
-    ///                     .font(.largeTitle)
-    ///                     .rotation3DEffect(.degrees(degrees), axis: (x: 0, y: 1, z: 0))
-    ///
-    ///                 Spacer()
-    ///                 Button("Animate") {
-    ///                     withAnimation {
-    ///                         degrees = (degrees == .zero) ? 180 : .zero
-    ///                     }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-04-default-flip.mp4", poster: "animation-04-default-flip.png", alt: "A video that shows the word Hello flip horizontally so that its letters appear backwards. Then it flips in reverse so that the word Hello appears correctly.")
-    ///
-    /// To use the `default` animation when adding the ``View/animation(_:value:)``
-    /// view modifier, specify it explicitly as the animation type. For
-    /// instance, the following code shows an example of the `default`
-    /// animation to spin the text "Hello" each time someone clicks the Animate
-    /// button.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var degrees = Double.zero
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Spacer()
-    ///                 Text("Hello")
-    ///                     .font(.largeTitle)
-    ///                     .rotationEffect(.degrees(degrees))
-    ///                     .animation(.default, value: degrees)
-    ///
-    ///                 Spacer()
-    ///                 Button("Animate") {
-    ///                     degrees = (degrees == .zero) ? 360 : .zero
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-05-default-spin.mp4", poster: "animation-05-default-spin.png", alt: "A video that shows the word Hello spinning clockwise for one full rotation, that is, 360 degrees. Then Hello spins counterclockwise for one full rotation.")
-    ///
-    /// A `default` animation instance is only equal to other `default`
-    /// animation instances (using `==`), and not equal to other animation
-    /// instances even when the animations are identical. For example, if you
-    /// create an animation using the ``spring(response:dampingFraction:blendDuration:)``
-    /// modifier with the same parameter values that `default` uses, the
-    /// animation isn't equal to `default`. This behavior lets you
-    /// differentiate between animations that you intentionally choose and
-    /// those that use the `default` animation.
-    public static let `default`: Animation = { fatalError() }()
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// An animation with a specified duration that combines the behaviors of
-    /// in and out easing animations.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. An ease in and out animation
-    /// starts slowly, increasing its speed towards the halfway point, and
-    /// finally decreasing the speed towards the end of the animation.
-    ///
-    /// Use `easeInOut(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeInOut`` to perform
-    /// the animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease in and out animation with a duration of
-    /// one second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeInOut(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-13-easeineaseout-duration.mp4", poster: "animation-13-easeineaseout-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in ease-out animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-in ease-out animation with a specified duration.
-    public static func easeInOut(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that combines the behaviors of in and out easing
-    /// animations.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. An ease in and out animation
-    /// starts slowly, increasing its speed towards the halfway point, and
-    /// finally decreasing the speed towards the end of the animation.
-    ///
-    /// The `easeInOut` animation has a default duration of 0.35 seconds. To
-    /// specify the duration, use the ``easeInOut(duration:)`` method.
-    ///
-    /// The following code shows an example of animating the size changes of a
-    /// ``Circle`` using an ease in and out animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeInOut, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-12-easeineaseout.mp4", poster: "animation-12-easeineaseout.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-in ease-out animation.")
-    ///
-    /// - Returns: An ease-in ease-out animation with the default duration.
-    public static var easeInOut: Animation { get { fatalError() } }
-
-    /// An animation with a specified duration that starts slowly and then
-    /// increases speed towards the end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease in animation, the
-    /// motion starts slowly and increases its speed towards the end.
-    ///
-    /// Use `easeIn(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeIn`` to perform the
-    /// animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease in animation with a duration of one
-    /// second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeIn(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-09-easein-duration.mp4", poster: "animation-09-easein-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-in animation with a specified duration.
-    public static func easeIn(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that starts slowly and then increases speed towards the
-    /// end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease in animation, the
-    /// motion starts slowly and increases its speed towards the end.
-    ///
-    /// The `easeIn` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``easeIn(duration:)``.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using the ease in animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeIn, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-08-easein.mp4", poster: "animation-08-easein.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-in animation.")
-    ///
-    /// - Returns: An ease-in animation with the default duration.
-    public static var easeIn: Animation { get { fatalError() } }
-
-    /// An animation with a specified duration that starts quickly and then
-    /// slows towards the end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease out animation, the
-    /// motion starts quickly and decreases its speed towards the end.
-    ///
-    /// Use `easeOut(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeOut`` to perform
-    /// the animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease out animation with a duration of one
-    /// second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeOut(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-09-easein-duration.mp4", poster: "animation-09-easein-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-out animation with a specified duration.
-    public static func easeOut(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that starts quickly and then slows towards the end of the
-    /// movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease out animation, the
-    /// motion starts quickly and decreases its speed towards the end.
-    ///
-    /// The `easeOut` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``easeOut(duration:)``.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease out animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeOut, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-10-easeout.mp4", poster: "animation-10-easeout.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-out animation.")
-    ///
-    /// - Returns: An ease-out animation with the default duration.
-    public static var easeOut: Animation { get { fatalError() } }
-
-    /// An animation that moves at a constant speed during a specified
-    /// duration.
-    ///
-    /// A linear animation provides a mechanical feel to the motion because its
-    /// speed is consistent from start to finish of the animation. This
-    /// constant speed makes a linear animation ideal for animating the
-    /// movement of objects where changes in the speed might feel awkward, such
-    /// as with an activity indicator.
-    ///
-    /// Use `linear(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``linear`` to perform the
-    /// animation for a default length of time.
-    ///
-    /// The following code shows an example of using linear animation with a
-    /// duration of two seconds to animate the movement of a circle as it moves
-    /// between the leading and trailing edges of the view. The color of the
-    /// circle also animates from red to blue as it moves across the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var isActive = false
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: isActive ? .trailing : .leading) {
-    ///                 Circle()
-    ///                     .fill(isActive ? Color.red : Color.blue)
-    ///                     .frame(width: 50, height: 50)
-    ///
-    ///                 Button("Animate") {
-    ///                     withAnimation(.linear(duration: 2.0)) {
-    ///                         isActive.toggle()
-    ///                     }
-    ///                 }
-    ///                 .frame(maxWidth: .infinity)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-07-linear-duration.mp4", poster: "animation-07-linear-duration.png", alt: "A video that shows a circle moving from the leading edge of the view to the trailing edge. The color of the circle also changes from red to blue as it moves across the view. Then the circle moves from the trailing edge back to the leading edge while also changing colors from blue to red.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: A linear animation with a specified duration.
-    public static func linear(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that moves at a constant speed.
-    ///
-    /// A linear animation provides a mechanical feel to the motion because its
-    /// speed is consistent from start to finish of the animation. This
-    /// constant speed makes a linear animation ideal for animating the
-    /// movement of objects where changes in the speed might feel awkward, such
-    /// as with an activity indicator.
-    ///
-    /// The following code shows an example of using linear animation to
-    /// animate the movement of a circle as it moves between the leading and
-    /// trailing edges of the view. The circle also animates its color change
-    /// as it moves across the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var isActive = false
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: isActive ? .trailing : .leading) {
-    ///                 Circle()
-    ///                     .fill(isActive ? Color.red : Color.blue)
-    ///                     .frame(width: 50, height: 50)
-    ///
-    ///                 Button("Animate") {
-    ///                     withAnimation(.linear) {
-    ///                         isActive.toggle()
-    ///                     }
-    ///                 }
-    ///                 .frame(maxWidth: .infinity)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-06-linear.mp4", poster: "animation-06-linear.png", alt: "A video that shows a circle moving from the leading edge of the view to the trailing edge. The color of the circle also changes from red to blue as it moves across the view. Then the circle moves from the trailing edge back to the leading edge while also changing colors from blue to red.")
-    ///
-    /// The `linear` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``linear(duration:)``.
-    ///
-    /// - Returns: A linear animation with the default duration.
-    public static var linear: Animation { get { fatalError() } }
-
-    /// An animation created from a cubic Bézier timing curve.
-    ///
-    /// Use this method to create a timing curve based on the control points of
-    /// a cubic Bézier curve. A cubic Bézier timing curve consists of a line
-    /// whose starting point is `(0, 0)` and whose end point is `(1, 1)`. Two
-    /// additional control points, `(p1x, p1y)` and `(p2x, p2y)`, define the
-    /// shape of the curve.
-    ///
-    /// The slope of the line defines the speed of the animation at that point
-    /// in time. A steep slopes causes the animation to appear to run faster,
-    /// while a shallower slope appears to run slower. The following
-    /// illustration shows a timing curve where the animation starts and
-    /// finishes fast, but appears slower through the middle section of the
-    /// animation.
-    ///
-    /// ![An illustration of an XY graph that shows the path of a Bézier timing curve that an animation frame follows over time. The horizontal x-axis has a label with the text Time, and a label with the text Frame appears along the vertical y-axis. The path begins at the graph's origin, labeled as (0.0, 0.0). The path moves upwards, forming a concave down shape. At the point of inflection, the path continues upwards, forming a concave up shape. A label with the text First control point (p1x, p1y) appears above the path. Extending from the label is a dotted line pointing to the position (0.1, 0.75) on the graph. Another label with the text Second control point (p2x, p2y) appears below the path. A dotted line extends from the label to the (0.85, 0.35) position on the graph.](Animation-timingCurve-1)
-    ///
-    /// The following code uses the timing curve from the previous
-    /// illustration to animate a ``Circle`` as its size changes.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 1.0
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scaleEffect(scale)
-    ///                     .animation(
-    ///                         .timingCurve(0.1, 0.75, 0.85, 0.35, duration: 2.0),
-    ///                         value: scale)
-    ///
-    ///                 Button("Animate") {
-    ///                     if scale == 1.0 {
-    ///                         scale = 0.25
-    ///                     } else {
-    ///                         scale = 1.0
-    ///                     }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-14-timing-curve.mp4", poster: "animation-14-timing-curve.png", alt: "A video that shows a circle shrinking then growing to its original size using a timing curve animation. The first control point of the time curve is (0.1, 0.75) and the second is (0.85, 0.35).")
-    ///
-    /// - Parameters:
-    ///   - p1x: The x-coordinate of the first control point of the cubic
-    ///     Bézier curve.
-    ///   - p1y: The y-coordinate of the first control point of the cubic
-    ///     Bézier curve.
-    ///   - p2x: The x-coordinate of the second control point of the cubic
-    ///     Bézier curve.
-    ///   - p2y: The y-coordinate of the second control point of the cubic
-    ///     Bézier curve.
-    ///   - duration: The length of time, expressed in seconds, the animation
-    ///     takes to complete.
-    /// - Returns: A cubic Bézier timing curve animation.
-    public static func timingCurve(_ p1x: Double, _ p1y: Double, _ p2x: Double, _ p2y: Double, duration: TimeInterval = 0.35) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// - Parameters:
-    ///   - mass: The mass of the object attached to the spring.
-    ///   - stiffness: The stiffness of the spring.
-    ///   - damping: The spring damping value.
-    ///   - initialVelocity: the initial velocity of the spring, as
-    ///     a value in the range [0, 1] representing the magnitude of
-    ///     the value being animated.
-    /// - Returns: a spring animation.
-    public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - bounce: How bouncy the spring should be. A value of 0 indicates
-    ///     no bounces (a critically damped spring), positive values indicate
-    ///     increasing amounts of bounciness up to a maximum of 1.0
-    ///     (corresponding to undamped oscillation), and negative values
-    ///     indicate overdamped springs with a minimum value of -1.0.
-    ///   - initialVelocity: the initial velocity of the spring, as
-    ///     a value in the range [0, 1] representing the magnitude of
-    ///     the value being animated.
-    /// - Returns: a spring animation.
-    public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// This uses the default parameter values.
-    public static var interpolatingSpring: Animation { get { fatalError() } }
-}
-
-extension Animation {
-
-    /// Causes the animation to report logical completion after the specified
-    /// duration, if it has not already logically completed.
-    ///
-    /// Note that the indicated duration will not cause the animation to
-    /// continue running after the base animation has fully completed.
-    ///
-    /// If the animation is removed before the given duration is reached,
-    /// logical completion will be reported immediately.
-    ///
-    /// - Parameters:
-    ///   - duration: The duration after which the animation should  report
-    ///     that it is logically complete.
-    /// - Returns: An animation that reports logical completion after the
-    ///   given duration.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func logicallyComplete(after duration: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Delays the start of the animation by the specified number of seconds.
-    ///
-    /// Use this method to delay the start of an animation. For example, the
-    /// following code animates the height change of two capsules.
-    /// Animation of the first ``Capsule`` begins immediately. However,
-    /// animation of the second one doesn't begin until a half second later.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                         .animation(.easeInOut, value: adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                         .animation(.easeInOut.delay(0.5), value: adjustBy)
-    ///                 }
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-15-delay.mp4", poster: "animation-15-delay.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the capsule on the right is tall. As they animate, the short capsule grows upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. Then the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// - Parameter delay: The number of seconds to delay the start of the
-    /// animation.
-    /// - Returns: An animation with a delayed start.
-    public func delay(_ delay: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Changes the duration of an animation by adjusting its speed.
-    ///
-    /// Setting the speed of an animation changes the duration of the animation
-    /// by a factor of `speed`. A higher speed value causes a faster animation
-    /// sequence due to a shorter duration. For example, a one-second animation
-    /// with a speed of `2.0` completes in half the time (half a second).
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         private var oneSecondAnimation: Animation {
-    ///            .easeInOut(duration: 1.0)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                 }
-    ///                 .animation(oneSecondAnimation.speed(2.0), value: adjustBy)
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-18-speed.mp4", poster: "animation-18-speed.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the capsule on the right is tall. They animate for half a second with the short capsule growing upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. For another half second, the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// Setting `speed` to a lower number slows the animation, extending its
-    /// duration. For example, a one-second animation with a speed of `0.25`
-    /// takes four seconds to complete.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         private var oneSecondAnimation: Animation {
-    ///            .easeInOut(duration: 1.0)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                 }
-    ///                 .animation(oneSecondAnimation.speed(0.25), value: adjustBy)
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-19-speed-slow.mp4", poster: "animation-19-speed-slow.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the right-side capsule is tall. They animate for four seconds with the short capsule growing upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. For another four seconds, the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// - Parameter speed: The speed at which SwiftUI performs the animation.
-    /// - Returns: An animation with the adjusted speed.
-    public func speed(_ speed: Double) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Repeats the animation for a specific number of times.
-    ///
-    /// Use this method to repeat the animation a specific number of times. For
-    /// example, in the following code, the animation moves a truck from one
-    /// edge of the view to the other edge. It repeats this animation three
-    /// times.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var driveForward = true
-    ///
-    ///         private var driveAnimation: Animation {
-    ///             .easeInOut
-    ///             .repeatCount(3, autoreverses: true)
-    ///             .speed(0.5)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: driveForward ? .leading : .trailing, spacing: 40) {
-    ///                 Image(systemName: "box.truck")
-    ///                     .font(.system(size: 48))
-    ///                     .animation(driveAnimation, value: driveForward)
-    ///
-    ///                 HStack {
-    ///                     Spacer()
-    ///                     Button("Animate") {
-    ///                         driveForward.toggle()
-    ///                     }
-    ///                     Spacer()
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-16-repeat-count.mp4", poster: "animation-16-repeat-count.png", alt: "A video that shows a box truck moving from the leading edge of a view to the trailing edge, and back again before looping in the opposite direction.")
-    ///
-    /// The first time the animation runs, the truck moves from the leading
-    /// edge to the trailing edge of the view. The second time the animation
-    /// runs, the truck moves from the trailing edge to the leading edge
-    /// because `autoreverse` is `true`. If `autoreverse` were `false`, the
-    /// truck would jump back to leading edge before moving to the trailing
-    /// edge. The third time the animation runs, the truck moves from the
-    /// leading to the trailing edge of the view.
-    ///
-    /// - Parameters:
-    ///   - repeatCount: The number of times that the animation repeats. Each
-    ///   repeated sequence starts at the beginning when `autoreverse` is
-    ///  `false`.
-    ///   - autoreverses: A Boolean value that indicates whether the animation
-    ///   sequence plays in reverse after playing forward. Autoreverse counts
-    ///   towards the `repeatCount`. For instance, a `repeatCount` of one plays
-    ///   the animation forward once, but it doesn’t play in reverse even if
-    ///   `autoreverse` is `true`. When `autoreverse` is `true` and
-    ///   `repeatCount` is `2`, the animation moves forward, then reverses, then
-    ///   stops.
-    /// - Returns: An animation that repeats for specific number of times.
-    public func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation { fatalError() }
-
-    /// Repeats the animation for the lifespan of the view containing the
-    /// animation.
-    ///
-    /// Use this method to repeat the animation until the instance of the view
-    /// no longer exists, or the view’s explicit or structural identity
-    /// changes. For example, the following code continuously rotates a
-    /// gear symbol for the lifespan of the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var rotationDegrees = 0.0
-    ///
-    ///         private var animation: Animation {
-    ///             .linear
-    ///             .speed(0.1)
-    ///             .repeatForever(autoreverses: false)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             Image(systemName: "gear")
-    ///                 .font(.system(size: 86))
-    ///                 .rotationEffect(.degrees(rotationDegrees))
-    ///                 .onAppear {
-    ///                     withAnimation(animation) {
-    ///                         rotationDegrees = 360.0
-    ///                     }
-    ///                 }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-17-repeat-forever.mp4", poster: "animation-17-repeat-forever.png", alt: "A video that shows a gear that continuously rotates clockwise.")
-    ///
-    /// - Parameter autoreverses: A Boolean value that indicates whether the
-    /// animation sequence plays in reverse after playing forward.
-    /// - Returns: An animation that continuously repeats.
-    public func repeatForever(autoreverses: Bool = true) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation : Hashable {
-
-    /// Calculates the current value of the animation.
-    ///
-    /// - Returns: The current value of the animation, or `nil` if the animation has finished.
-    public func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
-
-    /// Calculates the current velocity of the animation.
-    ///
-    /// - Returns: The current velocity of the animation, or `nil` if the the velocity isn't available.
-    public func velocity<V>(value: V, time: TimeInterval, context: AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
-
-    /// Returns a Boolean value that indicates whether the current animation
-    /// should merge with a previous animation.
-    public func shouldMerge<V>(previous: Animation, value: V, time: TimeInterval, context: inout AnimationContext<V>) -> Bool where V : VectorArithmetic { fatalError() }
-
-//    public var base: CustomAnimation { get { fatalError() } }
-
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
-    public var hashValue: Int { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
-
-    /// A textual representation of this instance.
-    ///
-    /// Calling this property directly is discouraged. Instead, convert an
-    /// instance of any type to a string by using the `String(describing:)`
-    /// initializer. This initializer works with any type, and uses the custom
-    /// `description` property for types that conform to
-    /// `CustomStringConvertible`:
-    ///
-    ///     struct Point: CustomStringConvertible {
-    ///         let x: Int, y: Int
-    ///
-    ///         var description: String {
-    ///             return "(\(x), \(y))"
-    ///         }
-    ///     }
-    ///
-    ///     let p = Point(x: 21, y: 30)
-    ///     let s = String(describing: p)
-    ///     print(s)
-    ///     // Prints "(21, 30)"
-    ///
-    /// The conversion of `p` to a string in the assignment to `s` uses the
-    /// `Point` type's `description` property.
-    public var description: String { get { fatalError() } }
-
-    /// A textual representation of this instance, suitable for debugging.
-    ///
-    /// Calling this property directly is discouraged. Instead, convert an
-    /// instance of any type to a string by using the `String(reflecting:)`
-    /// initializer. This initializer works with any type, and uses the custom
-    /// `debugDescription` property for types that conform to
-    /// `CustomDebugStringConvertible`:
-    ///
-    ///     struct Point: CustomDebugStringConvertible {
-    ///         let x: Int, y: Int
-    ///
-    ///         var debugDescription: String {
-    ///             return "(\(x), \(y))"
-    ///         }
-    ///     }
-    ///
-    ///     let p = Point(x: 21, y: 30)
-    ///     let s = String(reflecting: p)
-    ///     print(s)
-    ///     // Prints "(21, 30)"
-    ///
-    /// The conversion of `p` to a string in the assignment to `s` uses the
-    /// `Point` type's `debugDescription` property.
-    public var debugDescription: String { get { fatalError() } }
-
-    /// The custom mirror for this instance.
-    ///
-    /// If this type has value semantics, the mirror should be unaffected by
-    /// subsequent mutations of the instance.
-    public var customMirror: Mirror { get { fatalError() } }
-}
-
-/// The criteria that determines when an animation is considered finished.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct AnimationCompletionCriteria : Hashable, Sendable {
-
-    /// The animation has logically completed, but may still be in its long
-    /// tail.
-    ///
-    /// If a subsequent change occurs that creates additional animations on
-    /// properties with `logicallyComplete` completion callbacks registered,
-    /// then those callbacks will fire when the animations from the change that
-    /// they were registered with logically complete, ignoring the new
-    /// animations.
-    public static let logicallyComplete: AnimationCompletionCriteria = { fatalError() }()
-
-    /// The entire animation is finished and will now be removed.
-    ///
-    /// If a subsequent change occurs that creates additional animations on
-    /// properties with `removed` completion callbacks registered, then those
-    /// callbacks will only fire when *all* of the created animations are
-    /// complete.
-    public static let removed: AnimationCompletionCriteria = { fatalError() }()
-
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: AnimationCompletionCriteria, b: AnimationCompletionCriteria) -> Bool { fatalError() }
-
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
-    public var hashValue: Int { get { fatalError() } }
-}
-
-/// Contextual values that a custom animation can use to manage state and
-/// access a view's environment.
-///
-/// The system provides an `AnimationContext` to a ``CustomAnimation`` instance
-/// so that the animation can store and retrieve values in an instance of
-/// ``AnimationState``. To access these values, use the context's
-/// ``AnimationContext/state`` property.
-///
-/// For more convenient access to state, create an ``AnimationStateKey`` and
-/// extend `AnimationContext` to include a computed property that gets and
-/// sets the ``AnimationState`` value. Then use this property instead of
-/// ``AnimationContext/state`` to retrieve the state of a custom animation. For
-/// example, the following code creates an animation state key named
-/// `PausableState`. Then the code extends `AnimationContext` to include the
-/// `pausableState` property:
-///
-///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-///         var paused = false
-///         var pauseTime: TimeInterval = 0.0
-///
-///         static var defaultValue: Self { .init() }
-///     }
-///
-///     extension AnimationContext {
-///         fileprivate var pausableState: PausableState<Value> {
-///             get { state[PausableState<Value>.self] }
-///             set { state[PausableState<Value>.self] = newValue }
-///         }
-///     }
-///
-/// To access the pausable state, the custom animation `PausableAnimation` uses
-/// the `pausableState` property instead of the ``AnimationContext/state``
-/// property:
-///
-///     struct PausableAnimation: CustomAnimation {
-///         let base: Animation
-///
-///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-///             let paused = context.environment.animationPaused
-///
-///             let pausableState = context.pausableState
-///             var pauseTime = pausableState.pauseTime
-///             if pausableState.paused != paused {
-///                 pauseTime = time - pauseTime
-///                 context.pausableState = PausableState(paused: paused, pauseTime: pauseTime)
-///             }
-///
-///             let effectiveTime = paused ? pauseTime : time - pauseTime
-///             let result = base.animate(value: value, time: effectiveTime, context: &context)
-///             return result
-///         }
-///     }
-///
-/// The animation can also retrieve environment values of the view that created
-/// the animation. To retrieve a view's environment value, use the context's
-/// ``AnimationContext/environment`` property. For instance, the following code
-/// creates a custom ``EnvironmentKey`` named `AnimationPausedKey`, and the
-/// view `PausableAnimationView` uses the key to store the paused state:
-///
-///     struct AnimationPausedKey: EnvironmentKey {
-///         static let defaultValue = false = { fatalError() }()
-///     }
-///
-///     extension EnvironmentValues {
-///         var animationPaused: Bool {
-///             get { self[AnimationPausedKey.self] }
-///             set { self[AnimationPausedKey.self] = newValue }
-///         }
-///     }
-///
-///     struct PausableAnimationView: View {
-///         @State private var paused = false
-///
-///         var body: some View {
-///             VStack {
-///                 ...
-///             }
-///             .environment(\.animationPaused, paused)
-///         }
-///     }
-///
-/// Then the custom animation `PausableAnimation` retrieves the paused state
-/// from the view's environment using the ``AnimationContext/environment``
-/// property:
-///
-///     struct PausableAnimation: CustomAnimation {
-///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-///             let paused = context.environment.animationPaused
-///             ...
-///         }
-///     }
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct AnimationContext<Value> where Value : VectorArithmetic {
-
-    /// The current state of a custom animation.
-    ///
-    /// An instance of ``CustomAnimation`` uses this property to read and
-    /// write state values as the animation runs.
-    ///
-    /// An alternative to using the `state` property in a custom animation is
-    /// to create an ``AnimationStateKey`` type and extend ``AnimationContext``
-    /// with a custom property that returns the state as a custom type. For
-    /// example, the following code creates a state key named `PausableState`.
-    /// It's convenient to store state values in the key type, so the
-    /// `PausableState` structure includes properties for the stored state
-    /// values `paused` and `pauseTime`.
-    ///
-    ///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-    ///         var paused = false
-    ///         var pauseTime: TimeInterval = 0.0
-    ///
-    ///         static var defaultValue: Self { .init() }
-    ///     }
-    ///
-    /// To provide access the pausable state, the following code extends
-    /// `AnimationContext` to include the `pausableState` property. This
-    /// property returns an instance of the custom `PausableState` structure
-    /// stored in ``AnimationContext/state``, and it can also store a new
-    /// `PausableState` instance in `state`.
-    ///
-    ///     extension AnimationContext {
-    ///         fileprivate var pausableState: PausableState<Value> {
-    ///             get { state[PausableState<Value>.self] }
-    ///             set { state[PausableState<Value>.self] = newValue }
-    ///         }
-    ///     }
-    ///
-    /// Now a custom animation can use the `pausableState` property instead of
-    /// the ``AnimationContext/state`` property as a convenient way to read and
-    /// write state values as the animation runs.
-    ///
-    ///     struct PausableAnimation: CustomAnimation {
-    ///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-    ///             let pausableState = context.pausableState
-    ///             var pauseTime = pausableState.pauseTime
-    ///             ...
-    ///         }
-    ///     }
-    ///
-    public var state: AnimationState<Value>
-
-    /// Set this to `true` to indicate that an animation is logically complete.
-    ///
-    /// This controls when AnimationCompletionCriteria.logicallyComplete
-    /// completion callbacks are fired. This should be set to `true` at most
-    /// once in the life of an animation, changing back to `false` later will be
-    /// ignored. If this is never set to `true`, the behavior is equivalent to
-    /// if this had been set to `true` just as the animation finished (by
-    /// returning `nil`).
-    public var isLogicallyComplete: Bool { get { fatalError() } }
-
-    /// The current environment of the view that created the custom animation.
-    ///
-    /// An instance of ``CustomAnimation`` uses this property to read
-    /// environment values from the view that created the animation. To learn
-    /// more about environment values including how to define custom
-    /// environment values, see ``EnvironmentValues``.
-    public var environment: EnvironmentValues { get { fatalError() } }
-
-    /// Creates a new context from another one with a state that you provide.
-    ///
-    /// Use this method to create a new context that contains the state that
-    /// you provide and view environment values from the original context.
-    ///
-    /// - Parameter state: The initial state for the new context.
-    /// - Returns: A new context that contains the specified state.
-    public func withState<T>(_ state: AnimationState<T>) -> AnimationContext<T> where T : VectorArithmetic { fatalError() }
-}
-
-/// A container that stores the state for a custom animation.
-///
-/// An ``AnimationContext`` uses this type to store state for a
-/// ``CustomAnimation``. To retrieve the stored state of a context, you can
-/// use the ``AnimationContext/state`` property. However, a more convenient
-/// way to access the animation state is to define an ``AnimationStateKey``
-/// and extend ``AnimationContext`` with a computed property that gets
-/// and sets the animation state, as shown in the following code:
-///
-///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-///         static var defaultValue: Self { .init() }
-///     }
-///
-///     extension AnimationContext {
-///         fileprivate var pausableState: PausableState<Value> {
-///             get { state[PausableState<Value>.self] }
-///             set { state[PausableState<Value>.self] = newValue }
-///         }
-///     }
-///
-/// When creating an ``AnimationStateKey``, it's convenient to define the
-/// state values that your custom animation needs. For example, the following
-/// code adds the properties `paused` and `pauseTime` to the `PausableState`
-/// animation state key:
-///
-///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-///         var paused = false
-///         var pauseTime: TimeInterval = 0.0
-///
-///         static var defaultValue: Self { .init() }
-///     }
-///
-/// To access the pausable state in a `PausableAnimation`, the follow code
-/// calls `pausableState` instead of using the context's
-/// ``AnimationContext/state`` property. And because the animation state key
-/// `PausableState` defines properties for state values, the custom animation
-/// can read and write those values.
-///
-///     struct PausableAnimation: CustomAnimation {
-///         let base: Animation
-///
-///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-///             let paused = context.environment.animationPaused
-///
-///             let pausableState = context.pausableState
-///             var pauseTime = pausableState.pauseTime
-///             if pausableState.paused != paused {
-///                 pauseTime = time - pauseTime
-///                 context.pausableState = PausableState(paused: paused, pauseTime: pauseTime)
-///             }
-///
-///             let effectiveTime = paused ? pauseTime : time - pauseTime
-///             let result = base.animate(value: value, time: effectiveTime, context: &context)
-///             return result
-///         }
-///     }
-///
-/// ### Storing state for secondary animations
-///
-/// A custom animation can also use `AnimationState` to store the state of a
-/// secondary animation. For example, the following code creates an
-/// ``AnimationStateKey`` that includes the property `secondaryState`, which a
-/// custom animation can use to store other state:
-///
-///     private struct TargetState<Value: VectorArithmetic>: AnimationStateKey {
-///         var timeDelta = 0.0
-///         var valueDelta = Value.zero
-///         var secondaryState: AnimationState<Value>? = .init()
-///
-///         static var defaultValue: Self { .init() }
-///     }
-///
-///     extension AnimationContext {
-///         fileprivate var targetState: TargetState<Value> {
-///             get { state[TargetState<Value>.self] }
-///             set { state[TargetState<Value>.self] = newValue }
-///         }
-///     }
-///
-/// The custom animation `TargetAnimation` uses `TargetState` to store state
-/// data in `secondaryState` for another animation that runs as part of the
-/// target animation.
-///
-///     struct TargetAnimation: CustomAnimation {
-///         var base: Animation
-///         var secondary: Animation
-///
-///         func animate<V: VectorArithmetic>(value: V, time: Double, context: inout AnimationContext<V>) -> V? {
-///             var targetValue = value
-///             if let secondaryState = context.targetState.secondaryState {
-///                 var secondaryContext = context
-///                 secondaryContext.state = secondaryState
-///                 let secondaryValue = value - context.targetState.valueDelta
-///                 let result = secondary.animate(
-///                     value: secondaryValue, time: time - context.targetState.timeDelta,
-///                     context: &secondaryContext)
-///                 if let result = result {
-///                     context.targetState.secondaryState = secondaryContext.state
-///                     targetValue = result + context.targetState.valueDelta
-///                 } else {
-///                     context.targetState.secondaryState = nil
-///                 }
-///             }
-///             let result = base.animate(value: targetValue, time: time, context: &context)
-///             if let result = result {
-///                 targetValue = result
-///             } else if context.targetState.secondaryState == nil {
-///                 return nil
-///             }
-///             return targetValue
-///     }
-///
-///         func shouldMerge<V: VectorArithmetic>(previous: Animation, value: V, time: Double, context: inout AnimationContext<V>) -> Bool {
-///             guard let previous = previous.base as? Self else { return false }
-///             var secondaryContext = context
-///             if let secondaryState = context.targetState.secondaryState {
-///                 secondaryContext.state = secondaryState
-///                 context.targetState.valueDelta = secondary.animate(
-///                     value: value, time: time - context.targetState.timeDelta,
-///                     context: &secondaryContext) ?? value
-///             } else {
-///                 context.targetState.valueDelta = value
-///             }
-///             // Reset the target each time a merge occurs.
-///             context.targetState.secondaryState = .init()
-///             context.targetState.timeDelta = time
-///             return base.shouldMerge(
-///                 previous: previous.base, value: value, time: time,
-///                 context: &context)
-///         }
-///     }
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct AnimationState<Value> where Value : VectorArithmetic {
-
-    /// Create an empty state container.
-    ///
-    /// You don't typically create an instance of ``AnimationState`` directly.
-    /// Instead, the ``AnimationContext`` provides the animation state to an
-    /// instance of ``CustomAnimation``.
-    public init() { fatalError() }
-
-    /// Accesses the state for a custom key.
-    ///
-    /// Create a custom animation state value by defining a key that conforms
-    /// to the ``AnimationStateKey`` protocol and provide the
-    /// ``AnimationStateKey/defaultValue`` for the key. Also include properties
-    /// to read and write state values that your ``CustomAnimation`` uses. For
-    /// example, the following code defines a key named `PausableState` that
-    /// has two state values, `paused` and `pauseTime`:
-    ///
-    ///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-    ///         var paused = false
-    ///         var pauseTime: TimeInterval = 0.0
-    ///
-    ///         static var defaultValue: Self { .init() }
-    ///     }
-    ///
-    /// Use that key with the subscript operator of the ``AnimationState``
-    /// structure to get and set a value for the key. For more convenient
-    /// access to the key value, extend ``AnimationContext`` with a computed
-    /// property that gets and sets the key's value.
-    ///
-    ///     extension AnimationContext {
-    ///         fileprivate var pausableState: PausableState<Value> {
-    ///             get { state[PausableState<Value>.self] }
-    ///             set { state[PausableState<Value>.self] = newValue }
-    ///         }
-    ///     }
-    ///
-    /// To access the state values in a ``CustomAnimation``, call the custom
-    /// computed property, then read and write the state values that the
-    /// custom ``AnimationStateKey`` provides.
-    ///
-    ///     struct PausableAnimation: CustomAnimation {
-    ///         let base: Animation
-    ///
-    ///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-    ///             let paused = context.environment.animationPaused
-    ///
-    ///             let pausableState = context.pausableState
-    ///             var pauseTime = pausableState.pauseTime
-    ///             if pausableState.paused != paused {
-    ///                 pauseTime = time - pauseTime
-    ///                 context.pausableState = PausableState(paused: paused, pauseTime: pauseTime)
-    ///             }
-    ///
-    ///             let effectiveTime = paused ? pauseTime : time - pauseTime
-    ///             let result = base.animate(value: value, time: effectiveTime, context: &context)
-    ///             return result
-    ///         }
-    ///     }
-    public subscript<K>(key: K.Type) -> K.Value where K : AnimationStateKey { get { fatalError() } }
-}
-
-/// A key for accessing animation state values.
-///
-/// To access animation state from an ``AnimationContext`` in a custom
-/// animation, create an `AnimationStateKey`. For example, the following
-/// code creates an animation state key named `PausableState` and sets the
-/// value for the required ``defaultValue`` property. The code also defines
-/// properties for state values that the custom animation needs when
-/// calculating animation values. Keeping the state values in the animation
-/// state key makes it more convenient to read and write those values in the
-/// implementation of a ``CustomAnimation``.
-///
-///     private struct PausableState<Value: VectorArithmetic>: AnimationStateKey {
-///         var paused = false
-///         var pauseTime: TimeInterval = 0.0
-///
-///         static var defaultValue: Self { .init() }
-///     }
-///
-/// To make accessing the value of the animation state key more convenient,
-/// define a property for it by extending ``AnimationContext``:
-///
-///     extension AnimationContext {
-///         fileprivate var pausableState: PausableState<Value> {
-///             get { state[PausableState<Value>.self] }
-///             set { state[PausableState<Value>.self] = newValue }
-///         }
-///     }
-///
-/// Then, you can read and write your state in an instance of `CustomAnimation`
-/// using the ``AnimationContext``:
-///
-///     struct PausableAnimation: CustomAnimation {
-///         let base: Animation
-///
-///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
-///             let paused = context.environment.animationPaused
-///
-///             let pausableState = context.pausableState
-///             var pauseTime = pausableState.pauseTime
-///             if pausableState.paused != paused {
-///                 pauseTime = time - pauseTime
-///                 context.pausableState = PausableState(paused: paused, pauseTime: pauseTime)
-///             }
-///
-///             let effectiveTime = paused ? pauseTime : time - pauseTime
-///             let result = base.animate(value: value, time: effectiveTime, context: &context)
-///             return result
-///         }
-///     }
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public protocol AnimationStateKey {
-
-    /// The associated type representing the type of the animation state key's
-    /// value.
-    associatedtype Value
-
-    /// The default value for the animation state key.
-    static var defaultValue: Self.Value { get }
-}
-
-/// A pausable schedule of dates updating at a frequency no more quickly than
-/// the provided interval.
-///
-/// You can also use ``TimelineSchedule/animation(minimumInterval:paused:)`` to
-/// construct this schedule.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public struct AnimationTimelineSchedule : TimelineSchedule, Sendable {
-
-    /// Create a pausable schedule of dates updating at a frequency no more
-    /// quickly than the provided interval.
-    ///
-    /// - Parameters:
-    ///     - minimumInterval: The minimum interval to update the schedule at.
-    ///     Pass nil to let the system pick an appropriate update interval.
-    ///     - paused: If the schedule should stop generating updates.
-    public init(minimumInterval: Double? = nil, paused: Bool = false) { fatalError() }
-
-    /// Returns entries at the frequency of the animation schedule.
-    ///
-    /// When in `.lowFrequency` mode, return no entries, effectively pausing the animation.
-    public func entries(from start: Date, mode: TimelineScheduleMode) -> AnimationTimelineSchedule.Entries { fatalError() }
-
-    /// The sequence of dates within a schedule.
-    ///
-    /// The ``TimelineSchedule/entries(from:mode:)`` method returns a value
-    /// of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
-    /// of dates in ascending order. A ``TimelineView`` that you create with a
-    /// schedule updates its content at the moments in time corresponding to
-    /// the dates included in the sequence.
-    public struct Entries : Sequence, IteratorProtocol, Sendable {
-
-        /// Advances to the next element and returns it, or `nil` if no next element
-        /// exists.
-        ///
-        /// Repeatedly calling this method returns, in order, all the elements of the
-        /// underlying sequence. As soon as the sequence has run out of elements, all
-        /// subsequent calls return `nil`.
-        ///
-        /// You must not call this method if any other copy of this iterator has been
-        /// advanced with a call to its `next()` method.
-        ///
-        /// The following example shows how an iterator can be used explicitly to
-        /// emulate a `for`-`in` loop. First, retrieve a sequence's iterator, and
-        /// then call the iterator's `next()` method until it returns `nil`.
-        ///
-        ///     let numbers = [2, 3, 5, 7]
-        ///     var numbersIterator = numbers.makeIterator()
-        ///
-        ///     while let num = numbersIterator.next() {
-        ///         print(num)
-        ///     }
-        ///     // Prints "2"
-        ///     // Prints "3"
-        ///     // Prints "5"
-        ///     // Prints "7"
-        ///
-        /// - Returns: The next element in the underlying sequence, if a next element
-        ///   exists; otherwise, `nil`.
-        public mutating func next() -> Date? { fatalError() }
-
-        /// A type representing the sequence's elements.
-        public typealias Element = Date
-
-        /// A type that provides the sequence's iteration interface and
-        /// encapsulates its iteration state.
-        public typealias Iterator = AnimationTimelineSchedule.Entries
-    }
-}
-
 /// A type-erased gesture.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct AnyGesture<Value> : Gesture {
@@ -4797,7 +3004,7 @@ extension AnyGradient {
     ///
     /// You can optionally use a cache to preserve calculated values across
     /// calls to a layout container's methods. Many layout types don't need
-    /// a cache, because SwiftUI automatically reuses both the results of
+    /// a cache, because SkipUI automatically reuses both the results of
     /// calls into the layout and the values that the layout reads from its
     /// subviews. Rely on the protocol's default implementation of this method
     /// if you don't need a cache.
@@ -4832,7 +3039,7 @@ extension AnyGradient {
     /// You can use any storage type that makes sense for your layout
     /// algorithm, but be sure that you only store data that you derive
     /// from the layout and its subviews (lazily, if possible). For this to
-    /// work correctly, SwiftUI needs to be able to call this method to
+    /// work correctly, SkipUI needs to be able to call this method to
     /// recreate the cache without changing the layout result.
     ///
     /// When you return a cache from this method, you implicitly define a type
@@ -4842,7 +3049,7 @@ extension AnyGradient {
     ///
     /// ### Update the cache
     ///
-    /// If the layout container or any of its subviews change, SwiftUI
+    /// If the layout container or any of its subviews change, SkipUI
     /// calls the ``updateCache(_:subviews:)-9hkj9`` method so you can
     /// modify or invalidate the contents of the
     /// cache. The default implementation of that method calls the
@@ -4863,7 +3070,7 @@ extension AnyGradient {
     /// Updates the layout's cache when something changes.
     ///
     /// If your custom layout container creates a cache by implementing the
-    /// ``makeCache(subviews:)-23agy`` method, SwiftUI calls the update method
+    /// ``makeCache(subviews:)-23agy`` method, SkipUI calls the update method
     /// when your layout or its subviews change, giving you an opportunity
     /// to modify or invalidate the contents of the cache.
     /// The method's default implementation recreates the
@@ -4979,7 +3186,7 @@ extension AnyGradient {
     /// Because this example isn't flexible, it ignores its size proposal
     /// input and always returns the same value for a given set of subviews.
     ///
-    /// SwiftUI views choose their own size, so the layout engine always
+    /// SkipUI views choose their own size, so the layout engine always
     /// uses a value that you return from this method as the actual size of the
     /// composite view. That size factors into the construction of the `bounds`
     /// input to the ``placeSubviews(in:proposal:subviews:cache:)`` method.
@@ -5003,7 +3210,7 @@ extension AnyGradient {
 
     /// Assigns positions to each of the layout's subviews.
     ///
-    /// SwiftUI calls your implementation of this method to tell your
+    /// SkipUI calls your implementation of this method to tell your
     /// custom layout container to place its subviews. From this method, call
     /// the ``LayoutSubview/place(at:anchor:proposal:)`` method on each
     /// element in `subviews` to tell the subviews where to appear in the
@@ -5412,7 +3619,7 @@ extension AnyTransition {
 /// A type that represents the structure and behavior of an app.
 ///
 /// Create an app by declaring a structure that conforms to the `App` protocol.
-/// Implement the required ``SwiftUI/App/body-swift.property`` computed property
+/// Implement the required ``SkipUI/App/body-swift.property`` computed property
 /// to define the app's content:
 ///
 ///     @main
@@ -5428,12 +3635,12 @@ extension AnyTransition {
 /// [@main](https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626)
 /// attribute to indicate that your custom `App` protocol conformer provides the
 /// entry point into your app. The protocol provides a default implementation of
-/// the ``SwiftUI/App/main()`` method that the system calls to launch your app.
+/// the ``SkipUI/App/main()`` method that the system calls to launch your app.
 /// You can have exactly one entry point among all of your app's files.
 ///
-/// Compose the app's body from instances that conform to the ``SwiftUI/Scene``
+/// Compose the app's body from instances that conform to the ``SkipUI/Scene``
 /// protocol. Each scene contains the root view of a view hierarchy and has a
-/// life cycle managed by the system. SwiftUI provides some concrete scene types
+/// life cycle managed by the system. SkipUI provides some concrete scene types
 /// to handle common scenarios, like for displaying documents or settings. You
 /// can also create custom scenes.
 ///
@@ -5450,10 +3657,10 @@ extension AnyTransition {
 ///     }
 ///
 /// You can declare state in your app to share across all of its scenes. For
-/// example, you can use the ``SwiftUI/StateObject`` attribute to initialize a
+/// example, you can use the ``SkipUI/StateObject`` attribute to initialize a
 /// data model, and then provide that model on a view input as an
-/// ``SwiftUI/ObservedObject`` or through the environment as an
-/// ``SwiftUI/EnvironmentObject`` to scenes in the app:
+/// ``SkipUI/ObservedObject`` or through the environment as an
+/// ``SkipUI/EnvironmentObject`` to scenes in the app:
 ///
 ///     @main
 ///     struct Mail: App {
@@ -5476,7 +3683,7 @@ public protocol App {
     /// The type of scene representing the content of the app.
     ///
     /// When you create a custom app, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/App/body-swift.property``
+    /// implementation of the required ``SkipUI/App/body-swift.property``
     /// property.
     associatedtype Body : Scene
 
@@ -5484,7 +3691,7 @@ public protocol App {
     ///
     /// For any app that you create, provide a computed `body` property that
     /// defines your app's scenes, which are instances that conform to the
-    /// ``SwiftUI/Scene`` protocol. For example, you can create a simple app
+    /// ``SkipUI/Scene`` protocol. For example, you can create a simple app
     /// with a single scene containing a single view:
     ///
     ///     @main
@@ -5496,7 +3703,7 @@ public protocol App {
     ///         }
     ///     }
     ///
-    /// Swift infers the app's ``SwiftUI/App/Body-swift.associatedtype``
+    /// Swift infers the app's ``SkipUI/App/Body-swift.associatedtype``
     /// associated type based on the scene provided by the `body` property.
     @SceneBuilder @MainActor var body: Self.Body { get }
 
@@ -5514,10 +3721,10 @@ extension App {
 
     /// Initializes and runs the app.
     ///
-    /// If you precede your ``SwiftUI/App`` conformer's declaration with the
+    /// If you precede your ``SkipUI/App`` conformer's declaration with the
     /// [@main](https://docs.swift.org/swift-book/ReferenceManual/Attributes.html#ID626)
     /// attribute, the system calls the conformer's `main()` method to launch
-    /// the app. SwiftUI provides a
+    /// the app. SkipUI provides a
     /// default implementation of the method that manages the launch process in
     /// a platform-appropriate way.
     //@MainActor public static func main() { fatalError() }
@@ -5854,7 +4061,7 @@ public struct AsymmetricTransition<Insertion, Removal> : Transition where Insert
 /// updates to display the image. In the example above, the icon is smaller
 /// than the frame, and so appears smaller than the placeholder.
 ///
-/// ![A diagram that shows a grey box on the left, the SwiftUI icon on the
+/// ![A diagram that shows a grey box on the left, the SkipUI icon on the
 /// right, and an arrow pointing from the first to the second. The icon
 /// is about half the size of the grey box.](AsyncImage-1)
 ///
@@ -5870,10 +4077,10 @@ public struct AsymmetricTransition<Insertion, Removal> : Transition where Insert
 ///     }
 ///     .frame(width: 50, height: 50)
 ///
-/// For this example, SwiftUI shows a ``ProgressView`` first, and then the
+/// For this example, SkipUI shows a ``ProgressView`` first, and then the
 /// image scaled to fit in the specified frame:
 ///
-/// ![A diagram that shows a progress view on the left, the SwiftUI icon on the
+/// ![A diagram that shows a progress view on the left, the SkipUI icon on the
 /// right, and an arrow pointing from the first to the second.](AsyncImage-2)
 ///
 /// > Important: You can't apply image-specific modifiers, like
@@ -5902,9 +4109,9 @@ public struct AsyncImage<Content> : View where Content : View {
 
     /// Loads and displays an image from the specified URL.
     ///
-    /// Until the image loads, SwiftUI displays a default placeholder. When
-    /// the load operation completes successfully, SwiftUI updates the
-    /// view to show the loaded image. If the operation fails, SwiftUI
+    /// Until the image loads, SkipUI displays a default placeholder. When
+    /// the load operation completes successfully, SkipUI updates the
+    /// view to show the loaded image. If the operation fails, SkipUI
     /// continues to display the placeholder. The following example loads
     /// and displays an icon from an example server:
     ///
@@ -5926,8 +4133,8 @@ public struct AsyncImage<Content> : View where Content : View {
     /// Loads and displays a modifiable image from the specified URL using
     /// a custom placeholder until the image loads.
     ///
-    /// Until the image loads, SwiftUI displays the placeholder view that
-    /// you specify. When the load operation completes successfully, SwiftUI
+    /// Until the image loads, SkipUI displays the placeholder view that
+    /// you specify. When the load operation completes successfully, SkipUI
     /// updates the view to show content that you specify, which you
     /// create using the loaded image. For example, you can show a green
     /// placeholder, followed by a tiled version of the loaded image:
@@ -5938,7 +4145,7 @@ public struct AsyncImage<Content> : View where Content : View {
     ///         Color.green
     ///     }
     ///
-    /// If the load operation fails, SwiftUI continues to display the
+    /// If the load operation fails, SkipUI continues to display the
     /// placeholder. To be able to display a different view on a load error,
     /// use the ``init(url:scale:transaction:content:)`` initializer instead.
     ///
@@ -5995,7 +4202,7 @@ public struct AsyncImage<Content> : View where Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -6019,7 +4226,7 @@ public struct AsyncImage<Content> : View where Content : View {
 ///
 /// When you create an ``AsyncImage`` instance with the
 /// ``AsyncImage/init(url:scale:transaction:content:)`` initializer, you define
-/// the appearance of the view using a `content` closure. SwiftUI calls the
+/// the appearance of the view using a `content` closure. SkipUI calls the
 /// closure with a phase value at different points during the load operation
 /// to indicate the current state. Use the phase to decide what to draw.
 /// For example, you can draw the loaded image if it exists, a view that
@@ -6096,7 +4303,7 @@ public struct AutomaticDisclosureGroupStyle : DisclosureGroupStyle {
 
     /// Creates a view that represents the body of a disclosure group.
     ///
-    /// SwiftUI calls this method for each instance of ``DisclosureGroup``
+    /// SkipUI calls this method for each instance of ``DisclosureGroup``
     /// that you create within a view hierarchy where this style is the current
     /// ``DisclosureGroupStyle``.
     ///
@@ -6175,7 +4382,7 @@ public struct AutomaticNavigationSplitViewStyle : NavigationSplitViewStyle {
 
     /// Creates a view that represents the body of a navigation split view.
     ///
-    /// SwiftUI calls this method for each instance of ``NavigationSplitView``,
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
@@ -6232,7 +4439,7 @@ public struct AutomaticTextEditorStyle : TextEditorStyle {
         ///
         /// When you implement a custom view, you must implement a computed
         /// `body` property to provide the content for your view. Return a view
-        /// that's composed of built-in views that SwiftUI provides, plus other
+        /// that's composed of built-in views that SkipUI provides, plus other
         /// composite views that you've already defined:
         ///
         ///     struct MyView: View {
@@ -6679,7 +4886,7 @@ public struct BalancedNavigationSplitViewStyle : NavigationSplitViewStyle {
 
     /// Creates a view that represents the body of a navigation split view.
     ///
-    /// SwiftUI calls this method for each instance of ``NavigationSplitView``,
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
@@ -7332,7 +5539,7 @@ public struct BorderlessButtonStyle : PrimitiveButtonStyle {
 /// ![A screenshot of a context menu that contains the three items Cut, Copy,
 /// and Paste.](Button-2)
 ///
-/// This pattern extends to most other container views in SwiftUI that have
+/// This pattern extends to most other container views in SkipUI that have
 /// customizable, interactive content, like ``Form`` instances.
 ///
 /// ### Assigning a role
@@ -7392,7 +5599,7 @@ public struct Button<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -7690,7 +5897,7 @@ public struct ButtonRole : Equatable, Sendable {
     /// Use this role for a button that deletes user data, or performs an
     /// irreversible operation. A destructive button signals by its appearance
     /// that the user should carefully consider whether to tap or click the
-    /// button. For example, SwiftUI presents a destructive button that you add
+    /// button. For example, SkipUI presents a destructive button that you add
     /// with the ``View/swipeActions(edge:allowsFullSwipe:content:)``
     /// modifier using a red background:
     ///
@@ -7838,7 +6045,7 @@ public struct ButtonToggleStyle : ToggleStyle {
 
     /// Creates a view that represents the body of a toggle button.
     ///
-    /// SwiftUI implements this required method of the ``ToggleStyle``
+    /// SkipUI implements this required method of the ``ToggleStyle``
     /// protocol to define the behavior and appearance of the
     /// ``ToggleStyle/button`` toggle style. Don't call this method
     /// directly; the system calls this method for each
@@ -7853,7 +6060,7 @@ public struct ButtonToggleStyle : ToggleStyle {
 
     /// A view that represents the appearance and interaction of a toggle.
     ///
-    /// SwiftUI infers this type automatically based on the ``View``
+    /// SkipUI infers this type automatically based on the ``View``
     /// instance that you return from your implementation of the
     /// ``makeBody(configuration:)`` method.
 //    public typealias Body = some View
@@ -7861,7 +6068,7 @@ public struct ButtonToggleStyle : ToggleStyle {
 
 /// A view type that supports immediate mode drawing.
 ///
-/// Use a canvas to draw rich and dynamic 2D graphics inside a SwiftUI view.
+/// Use a canvas to draw rich and dynamic 2D graphics inside a SkipUI view.
 /// The canvas passes a ``GraphicsContext`` to the closure that you use
 /// to perform immediate mode drawing operations. The canvas also passes a
 /// <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> value
@@ -7885,7 +6092,7 @@ public struct ButtonToggleStyle : ToggleStyle {
 /// ellipse inside a blue rectangle.](Canvas-1)
 ///
 /// In addition to outlined and filled paths, you can draw images, text, and
-/// complete SwiftUI views. To draw views, use the
+/// complete SkipUI views. To draw views, use the
 /// ``init(opaque:colorMode:rendersAsynchronously:renderer:symbols:)`` method
 /// to supply views that you can reference from inside the renderer. You can
 /// also add masks, apply filters, perform transforms, control blending, and
@@ -7933,10 +6140,10 @@ public struct Canvas<Symbols> where Symbols : View {
     ///
     /// This initializer behaves like the
     /// ``init(opaque:colorMode:rendersAsynchronously:renderer:)`` initializer,
-    /// except that you also provide a collection of SwiftUI views for the
+    /// except that you also provide a collection of SkipUI views for the
     /// renderer to use as drawing elements.
     ///
-    /// SwiftUI stores a rendered version of each child view that you specify
+    /// SkipUI stores a rendered version of each child view that you specify
     /// in the `symbols` view builder and makes these available to the canvas.
     /// Tag each child view so that you can retrieve it from within the
     /// renderer using the ``GraphicsContext/resolveSymbol(id:)`` method.
@@ -7966,20 +6173,20 @@ public struct Canvas<Symbols> where Symbols : View {
     ///         }
     ///     }
     ///
-    /// You can use any SwiftUI view for the `mark` input:
+    /// You can use any SkipUI view for the `mark` input:
     ///
     ///     ScatterPlotView(rects: rects, mark: Image(systemName: "circle"))
     ///
     /// If the `rects` input contains 50 randomly arranged
     /// <doc://com.apple.documentation/documentation/CoreGraphics/CGRect>
-    /// instances, SwiftUI draws a plot like this:
+    /// instances, SkipUI draws a plot like this:
     ///
     /// ![A screenshot of a scatter plot inside a blue rectangle, containing
     /// about fifty small circles scattered randomly throughout.](Canvas-init-1)
     ///
     /// The symbol inputs, like all other elements that you draw to the
     /// canvas, lack individual accessibility and interactivity, even if the
-    /// original SwiftUI view has these attributes. However, you can add
+    /// original SkipUI view has these attributes. However, you can add
     /// accessibility and interactivity modifers to the canvas as a whole.
     ///
     /// - Parameters:
@@ -7998,7 +6205,7 @@ public struct Canvas<Symbols> where Symbols : View {
     ///     size of the canvas --- that you can use to customize the content.
     ///     The canvas calls the renderer any time it needs to redraw the
     ///     content.
-    ///   - symbols: A ``ViewBuilder`` that you use to supply SwiftUI views to
+    ///   - symbols: A ``ViewBuilder`` that you use to supply SkipUI views to
     ///     the canvas for use during drawing. Uniquely tag each view
     ///     using the ``View/tag(_:)`` modifier, so that you can find them from
     ///     within your renderer using the ``GraphicsContext/resolveSymbol(id:)``
@@ -8036,7 +6243,7 @@ extension Canvas where Symbols == EmptyView {
     /// ellipse inside a blue rectangle.](Canvas-1)
     ///
     /// For information about using a context to draw into a canvas, see
-    /// ``GraphicsContext``. If you want to provide SwiftUI views for the
+    /// ``GraphicsContext``. If you want to provide SkipUI views for the
     /// renderer to use as drawing elements, use
     /// ``init(opaque:colorMode:rendersAsynchronously:renderer:symbols:)``
     /// instead.
@@ -8282,7 +6489,7 @@ public struct CircularProgressViewStyle : ProgressViewStyle {
 ///
 /// ![A screenshot of a green leaf.](Color-1)
 ///
-/// Because SwiftUI treats colors as ``View`` instances, you can also
+/// Because SkipUI treats colors as ``View`` instances, you can also
 /// directly add them to a view hierarchy. For example, you can layer
 /// a rectangle beneath a sun image using colors defined above:
 ///
@@ -8298,7 +6505,7 @@ public struct CircularProgressViewStyle : ProgressViewStyle {
 ///
 /// ![A screenshot of a yellow sun on a blue background.](Color-2)
 ///
-/// SwiftUI only resolves a color to a concrete value
+/// SkipUI only resolves a color to a concrete value
 /// just before using it in a given environment.
 /// This enables a context-dependent appearance for
 /// system defined colors, or those that you load from an Asset Catalog.
@@ -8320,7 +6527,7 @@ public struct CircularProgressViewStyle : ProgressViewStyle {
     ///
     /// You can get a
     /// <doc://com.apple.documentation/documentation/CoreGraphics/CGColor>
-    /// instance from a constant SwiftUI color. This includes colors you create
+    /// instance from a constant SkipUI color. This includes colors you create
     /// from a Core Graphics color, from RGB or HSB components, or from constant
     /// UIKit and AppKit colors.
     ///
@@ -8491,7 +6698,7 @@ extension Color {
         /// transform function, see the IEC 61966-2-1 specification.
         ///
         /// Standard sRGB color spaces clamp the red, green, and blue
-        /// components of a color to a range of `0` to `1`, but SwiftUI colors
+        /// components of a color to a range of `0` to `1`, but SkipUI colors
         /// use an extended sRGB color space, so you can use component values
         /// outside that range.
         case sRGB
@@ -8502,7 +6709,7 @@ extension Color {
         /// a linear transfer function.
         ///
         /// Standard sRGB color spaces clamp the red, green, and blue
-        /// components of a color to a range of `0` to `1`, but SwiftUI colors
+        /// components of a color to a range of `0` to `1`, but SkipUI colors
         /// use an extended sRGB color space, so you can use component values
         /// outside that range.
         case sRGBLinear
@@ -8560,7 +6767,7 @@ extension Color {
     /// you load from an Asset Catalog with ``init(_:bundle:)``.
     ///
     /// A standard sRGB color space clamps each color component — `red`,
-    /// `green`, and `blue` — to a range of `0` to `1`, but SwiftUI colors
+    /// `green`, and `blue` — to a range of `0` to `1`, but SkipUI colors
     /// use an extended sRGB color space, so
     /// you can use component values outside that range. This makes it
     /// possible to create colors using the ``RGBColorSpace/sRGB`` or
@@ -8586,7 +6793,7 @@ extension Color {
     /// you load from an Asset Catalog with ``init(_:bundle:)``.
     ///
     /// A standard sRGB color space clamps the `white` component
-    /// to a range of `0` to `1`, but SwiftUI colors
+    /// to a range of `0` to `1`, but SkipUI colors
     /// use an extended sRGB color space, so
     /// you can use component values outside that range. This makes it
     /// possible to create colors using the ``RGBColorSpace/sRGB`` or
@@ -8637,7 +6844,7 @@ extension Color {
     /// views and controls. You can set it at the application level by specifying
     /// an accent color in your app's asset catalog.
     ///
-    /// > Note: In macOS, SwiftUI applies customization of the accent color
+    /// > Note: In macOS, SkipUI applies customization of the accent color
     /// only if the user chooses Multicolor under General > Accent color
     /// in System Preferences.
     ///
@@ -8744,7 +6951,7 @@ extension Color {
     ///         }
     ///     }
     ///
-    /// SwiftUI renders the appropriate colors for each appearance:
+    /// SkipUI renders the appropriate colors for each appearance:
     ///
     /// ![A side by side comparison of light and dark appearance screenshots
     ///   of the same content. The light variant shows dark text on a light
@@ -8775,7 +6982,7 @@ extension Color {
 
     /// Creates a color from a UIKit color.
     ///
-    /// Use this method to create a SwiftUI color from a
+    /// Use this method to create a SkipUI color from a
     /// <doc://com.apple.documentation/documentation/UIKit/UIColor> instance.
     /// The new color preserves the adaptability of the original.
     /// For example, you can create a rectangle using
@@ -8800,7 +7007,7 @@ extension Color {
     ///
     /// > Note: Use this initializer only if you need to convert an existing
     /// <doc://com.apple.documentation/documentation/UIKit/UIColor> to a
-    /// SwiftUI color. Otherwise, create a SwiftUI ``Color`` using an
+    /// SkipUI color. Otherwise, create a SkipUI ``Color`` using an
     /// initializer like ``init(_:red:green:blue:opacity:)``, or use a system
     /// color like ``ShapeStyle/blue``.
     ///
@@ -8816,7 +7023,7 @@ extension Color {
 
     /// Creates a color from a UIKit color.
     ///
-    /// Use this method to create a SwiftUI color from a
+    /// Use this method to create a SkipUI color from a
     /// <doc://com.apple.documentation/documentation/UIKit/UIColor> instance.
     /// The new color preserves the adaptability of the original.
     /// For example, you can create a rectangle using
@@ -8841,7 +7048,7 @@ extension Color {
     ///
     /// > Note: Use this initializer only if you need to convert an existing
     /// <doc://com.apple.documentation/documentation/UIKit/UIColor> to a
-    /// SwiftUI color. Otherwise, create a SwiftUI ``Color`` using an
+    /// SkipUI color. Otherwise, create a SkipUI ``Color`` using an
     /// initializer like ``init(_:red:green:blue:opacity:)``, or use a system
     /// color like ``ShapeStyle/blue``.
     ///
@@ -8883,7 +7090,7 @@ extension Color : Transferable {
     ///
     /// Another group of colors–standard colors, like `Color.mint`,
     /// and semantic colors, like `Color.accentColor`–are rendered on screen
-    /// differently depending on the current ``SwiftUI/Environment``. For transferring,
+    /// differently depending on the current ``SkipUI/Environment``. For transferring,
     /// they are resolved against the default environment and might produce
     /// a slightly different result at the destination if the source of drag
     /// or copy uses a non-default environment.
@@ -8952,7 +7159,7 @@ extension Color.Resolved {
     /// Creates a resolved color from red, green, and blue component values.
     ///
     /// A standard sRGB color space clamps each color component — `red`,
-    /// `green`, and `blue` — to a range of `0` to `1`, but SwiftUI colors
+    /// `green`, and `blue` — to a range of `0` to `1`, but SkipUI colors
     /// use an extended sRGB color space, so
     /// you can use component values outside that range. This makes it
     /// possible to create colors using the ``RGBColorSpace/sRGB`` or
@@ -9152,7 +7359,7 @@ public struct ColorPicker<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -9326,7 +7533,7 @@ extension ColorRenderingMode : Hashable {
 ///
 /// You receive a color scheme value when you read the
 /// ``EnvironmentValues/colorScheme`` environment value. The value tells you if
-/// a light or dark appearance currently applies to the view. SwiftUI updates
+/// a light or dark appearance currently applies to the view. SkipUI updates
 /// the value whenever the appearance changes, and redraws views that
 /// depend on the value. For example, the following ``Text`` view automatically
 /// updates when the user enables Dark Mode:
@@ -9415,7 +7622,7 @@ extension ColorScheme : Hashable {
 /// You receive a contrast value when you read the
 /// ``EnvironmentValues/colorSchemeContrast`` environment value. The value
 /// tells you if a standard or increased contrast currently applies to the view.
-/// SwiftUI updates the value whenever the contrast changes, and redraws
+/// SkipUI updates the value whenever the contrast changes, and redraws
 /// views that depend on the value. For example, the following ``Text`` view
 /// automatically updates when the user enables increased contrast:
 ///
@@ -9434,11 +7641,11 @@ extension ColorScheme : Hashable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public enum ColorSchemeContrast : CaseIterable, Sendable {
 
-    /// SwiftUI displays views with standard contrast between the app's
+    /// SkipUI displays views with standard contrast between the app's
     /// foreground and background colors.
     case standard
 
-    /// SwiftUI displays views with increased contrast between the app's
+    /// SkipUI displays views with increased contrast between the app's
     /// foreground and background colors.
     case increased
 
@@ -9554,8 +7761,8 @@ public struct ColumnsFormStyle : FormStyle {
 
 /// Groups of controls that you can add to existing command menus.
 ///
-/// In macOS, SwiftUI realizes command groups as collections of menu items in a
-/// menu bar menu. In iOS, iPadOS, and tvOS, SwiftUI creates key commands for
+/// In macOS, SkipUI realizes command groups as collections of menu items in a
+/// menu bar menu. In iOS, iPadOS, and tvOS, SkipUI creates key commands for
 /// each of a group's commands that has a keyboard shortcut.
 @available(iOS 14.0, macOS 11.0, *)
 @available(tvOS, unavailable)
@@ -9578,14 +7785,14 @@ public struct CommandGroup<Content> : Commands where Content : View {
     ///
     /// For any commands that you create, provide a computed `body` property
     /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
+    /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
     public var body: Body { get { return never() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     public typealias Body = Never
 }
@@ -9746,7 +7953,7 @@ public struct CommandGroupPlacement {
 ///
 /// Command menus are realized as menu bar menus on macOS, inserted between the
 /// built-in View and Window menus in order of declaration. On iOS, iPadOS, and
-/// tvOS, SwiftUI creates key commands for each of a menu's commands that has a
+/// tvOS, SkipUI creates key commands for each of a menu's commands that has a
 /// keyboard shortcut.
 @available(iOS 14.0, macOS 11.0, *)
 @available(tvOS, unavailable)
@@ -9773,14 +7980,14 @@ public struct CommandMenu<Content> : Commands where Content : View {
     ///
     /// For any commands that you create, provide a computed `body` property
     /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
+    /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
     public var body: Body { get { return never() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     public typealias Body = Never
 }
@@ -9795,7 +8002,7 @@ public protocol Commands {
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     associatedtype Body : Commands
 
@@ -9803,7 +8010,7 @@ public protocol Commands {
     ///
     /// For any commands that you create, provide a computed `body` property
     /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
+    /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
     @CommandsBuilder var body: Self.Body { get }
 }
@@ -10526,7 +8733,7 @@ public struct ContentUnavailableView<LabelX, Description, Actions> : View where 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -10717,7 +8924,7 @@ public struct ContextMenu<MenuItems> where MenuItems : View {
 /// You can provide an optional label to this view that describes its children.
 /// This view may be used in different ways depending on the surrounding
 /// context. For example, when you place the control group in a
-/// toolbar item, SwiftUI uses the label when the group is moved to the
+/// toolbar item, SkipUI uses the label when the group is moved to the
 /// toolbar's overflow menu.
 ///
 ///     ContentView()
@@ -10747,7 +8954,7 @@ public struct ControlGroup<Content> : View where Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -11210,7 +9417,7 @@ extension CoordinateSpaceProtocol where Self == GlobalCoordinateSpace {
 
 /// A keyframe that uses a cubic curve to smoothly interpolate between values.
 ///
-/// If you don't specify a start or end velocity, SwiftUI automatically
+/// If you don't specify a start or end velocity, SkipUI automatically
 /// computes a curve that maintains smooth motion between keyframes.
 ///
 /// Adjacent cubic keyframes result in a Catmull-Rom spline.
@@ -11672,7 +9879,7 @@ extension CustomizableToolbarContent {
 ///     }
 ///
 /// ![An iOS date picker, consisting of a label that says Start Date, and a
-/// label showing the date Apr 1, 1976.](SwiftUI-DatePicker-basic.png)
+/// label showing the date Apr 1, 1976.](SkipUI-DatePicker-basic.png)
 ///
 /// You can limit the `DatePicker` to specific ranges of dates, allowing
 /// selections only before or after a certain date, or between two dates. The
@@ -11698,9 +9905,9 @@ extension CustomizableToolbarContent {
 ///         )
 ///     }
 ///
-/// ![A SwiftUI standard date picker on iOS, with the label Start Date, and
+/// ![A SkipUI standard date picker on iOS, with the label Start Date, and
 /// buttons for the time 5:15 PM and the date Jul 31,
-/// 2021.](SwiftUI-DatePicker-selectFromRange.png)
+/// 2021.](SkipUI-DatePicker-selectFromRange.png)
 ///
 /// ### Styling date pickers
 ///
@@ -11719,9 +9926,9 @@ extension CustomizableToolbarContent {
 ///         .datePickerStyle(.graphical)
 ///     }
 ///
-/// ![A SwiftUI date picker using the graphical style, with the label Start Date
+/// ![A SkipUI date picker using the graphical style, with the label Start Date
 /// and wheels for the month, day, and year, showing the selection
-/// October 22, 2021.](SwiftUI-DatePicker-graphicalStyle.png)
+/// October 22, 2021.](SkipUI-DatePicker-graphicalStyle.png)
 ///
 @available(iOS 13.0, macOS 10.15, watchOS 10.0, *)
 @available(tvOS, unavailable)
@@ -11733,7 +9940,7 @@ public struct DatePicker<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -12154,7 +10361,7 @@ public struct DefaultDateProgressLabel : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -12225,7 +10432,7 @@ public struct DefaultGroupBoxStyle : GroupBoxStyle {
 
     /// Creates a view representing the body of a group box.
     ///
-    /// SwiftUI calls this method for each instance of ``SwiftUI/GroupBox``
+    /// SkipUI calls this method for each instance of ``SkipUI/GroupBox``
     /// created within a view hierarchy where this style is the current
     /// group box style.
     ///
@@ -12356,7 +10563,7 @@ public struct DefaultShareLinkLabel : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -12416,7 +10623,7 @@ public struct DefaultToggleStyle : ToggleStyle {
 
     /// Creates a view that represents the body of a toggle.
     ///
-    /// SwiftUI implements this required method of the ``ToggleStyle``
+    /// SkipUI implements this required method of the ``ToggleStyle``
     /// protocol to define the behavior and appearance of the
     /// ``ToggleStyle/automatic`` toggle style. Don't call this method
     /// directly. Rather, the system calls this method for each
@@ -12431,7 +10638,7 @@ public struct DefaultToggleStyle : ToggleStyle {
 
     /// A view that represents the appearance and interaction of a toggle.
     ///
-    /// SwiftUI infers this type automatically based on the ``View``
+    /// SkipUI infers this type automatically based on the ``View``
     /// instance that you return from your implementation of the
     /// ``makeBody(configuration:)`` method.
 //    public typealias Body = some View
@@ -12450,7 +10657,7 @@ public struct DisabledTextSelectability : TextSelectability {
     ///
     /// Conforming types, such as ``EnabledTextSelectability`` and
     /// ``DisabledTextSelectability``, return `true` or `false` for this
-    /// property as appropriate. SwiftUI expects this value for a given
+    /// property as appropriate. SkipUI expects this value for a given
     /// selectability type to be constant, unaffected by global state.
     public static let allowsSelection: Bool = { fatalError() }()
 }
@@ -12511,7 +10718,7 @@ public struct DisclosureGroup<Label, Content> : View where Label : View, Content
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -12586,7 +10793,7 @@ extension DisclosureGroup where Label == Text {
 /// To create a custom disclosure group style, declare a type that conforms
 /// to `DisclosureGroupStyle`. Implement the
 /// ``DisclosureGroupStyle/makeBody(configuration:)`` method to return a view
-/// that composes the elements of the `configuration` that SwiftUI provides to
+/// that composes the elements of the `configuration` that SkipUI provides to
 /// your method.
 ///
 ///     struct MyDisclosureStyle: DisclosureGroupStyle {
@@ -12625,7 +10832,7 @@ public protocol DisclosureGroupStyle {
 
     /// Creates a view that represents the body of a disclosure group.
     ///
-    /// SwiftUI calls this method for each instance of ``DisclosureGroup``
+    /// SkipUI calls this method for each instance of ``DisclosureGroup``
     /// that you create within a view hierarchy where this style is the current
     /// ``DisclosureGroupStyle``.
     ///
@@ -12817,14 +11024,14 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
 /// the window instead.
 ///
 /// The dismiss action has no effect on a view that isn't currently
-/// presented. If you need to query whether SwiftUI is currently presenting
+/// presented. If you need to query whether SkipUI is currently presenting
 /// a view, read the ``EnvironmentValues/isPresented`` environment value.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public struct DismissAction {
 
     /// Dismisses the view if it is currently presented.
     ///
-    /// Don't call this method directly. SwiftUI calls it for you when you
+    /// Don't call this method directly. SkipUI calls it for you when you
     /// call the ``DismissAction`` structure that you get from the
     /// ``Environment``:
     ///
@@ -12913,7 +11120,7 @@ public struct DismissBehavior : Sendable {
 /// directly because it defines a ``DismissSearchAction/callAsFunction()``
 /// method that Swift calls when you call the instance.
 ///
-/// When you dismiss search, SwiftUI:
+/// When you dismiss search, SkipUI:
 ///
 /// * Sets ``EnvironmentValues/isSearching`` to `false`.
 /// * Clears any text from the search field.
@@ -12962,7 +11169,7 @@ public struct DismissBehavior : Sendable {
 ///     }
 ///
 /// The button becomes visible only after the user enters search text
-/// that produces a match. When the user taps the button, SwiftUI shows
+/// that produces a match. When the user taps the button, SkipUI shows
 /// a sheet that provides more information about the item, including
 /// an Add button for adding the item to a stored list of items:
 ///
@@ -12996,7 +11203,7 @@ public struct DismissBehavior : Sendable {
 ///
 /// > Important: Access the action from inside the searched view, as the
 ///   example above demonstrates, rather than from the searched view’s
-///   parent, or another hierarchy, like that of a sheet. SwiftUI sets the
+///   parent, or another hierarchy, like that of a sheet. SkipUI sets the
 ///   value in the environment of the view that you apply the searchable
 ///   modifier to, and doesn’t propagate the value up the view hierarchy.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -13004,7 +11211,7 @@ public struct DismissSearchAction {
 
     /// Dismisses the current search operation, if any.
     ///
-    /// Don't call this method directly. SwiftUI calls it for you when you
+    /// Don't call this method directly. SkipUI calls it for you when you
     /// call the ``DismissSearchAction`` structure that you get from the
     /// ``Environment``:
     ///
@@ -13065,7 +11272,7 @@ public struct DismissWindowAction {
 
     /// Dismisses the current window.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/dismissWindow`` action:
     ///
     ///     dismissWindow()
@@ -13083,7 +11290,7 @@ public struct DismissWindowAction {
     /// window associated to a `WindowGroup` scene, use
     /// ``dismissWindow(value:)`` or ``dismissWindow(id:value:)``.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/dismissWindow`` action with an identifier:
     ///
     ///     dismissWindow(id: "message")
@@ -13103,7 +11310,7 @@ public struct DismissWindowAction {
     /// dismissed. For dismissing a specific window in a specific group, use
     /// ``dismissWindow(id:value:)``.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/dismissWindow`` action with an identifier
     /// and a value:
     ///
@@ -13121,7 +11328,7 @@ public struct DismissWindowAction {
     /// Dismisses the window defined by the window group that is presenting the
     /// specified value type and that's associated with the specified identifier.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/dismissWindow`` action with an identifier
     /// and a value:
     ///
@@ -13187,13 +11394,13 @@ extension DocumentConfiguration : Sendable {
 
 /// A scene that enables support for opening, creating, and saving documents.
 ///
-/// Use a `DocumentGroup` scene to tell SwiftUI what kinds of documents your
+/// Use a `DocumentGroup` scene to tell SkipUI what kinds of documents your
 /// app can open when you declare your app using the ``App`` protocol.
 ///
 /// Initialize a document group scene by passing in the document model and a
 /// view capable of displaying the document type. The document types you supply
 /// to `DocumentGroup` must conform to ``FileDocument`` or
-/// ``ReferenceFileDocument``. SwiftUI uses the model to add document support
+/// ``ReferenceFileDocument``. SkipUI uses the model to add document support
 /// to your app. In macOS this includes document-based menu support, including
 /// the ability to open multiple documents. On iOS this includes a document
 /// browser that can navigate to the documents stored on the file system
@@ -13208,7 +11415,7 @@ extension DocumentConfiguration : Sendable {
 ///         }
 ///     }
 ///
-/// Any time the configuration changes, SwiftUI updates the contents
+/// Any time the configuration changes, SkipUI updates the contents
 /// with that new configuration, similar to other parameterized builders.
 ///
 /// ### Viewing documents
@@ -13269,7 +11476,7 @@ extension DocumentConfiguration : Sendable {
 /// The URL can be used, for example, to present the file path of the file name
 /// in the user interface.
 /// Don't access the document's contents or metadata using the URL because that
-/// can conflict with the management of the file that SwiftUI performs.
+/// can conflict with the management of the file that SkipUI performs.
 /// Instead, use the methods that ``FileDocument`` and ``ReferenceFileDocument``
 /// provide to perform read and write operations.
 @available(iOS 14.0, macOS 11.0, *)
@@ -13281,17 +11488,17 @@ public struct DocumentGroup<Document, Content> : Scene where Content : View {
     ///
     /// For any scene that you create, provide a computed `body` property that
     /// defines the scene as a composition of other scenes. You can assemble a
-    /// scene from built-in scenes that SwiftUI provides, as well as other
+    /// scene from built-in scenes that SkipUI provides, as well as other
     /// scenes that you've defined.
     ///
-    /// Swift infers the scene's ``SwiftUI/Scene/Body-swift.associatedtype``
+    /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
     /// associated type based on the contents of the `body` property.
     @MainActor public var body: Body { get { return never() } }
 
     /// The type of scene that represents the body of this scene.
     ///
     /// When you create a custom scene, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Scene/body-swift.property``
+    /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
     public typealias Body = Never
 }
@@ -13303,12 +11510,12 @@ extension DocumentGroup where Document : FileDocument {
 
     /// Creates a document group for creating and editing file documents.
     ///
-    /// Use a ``DocumentGroup`` scene to tell SwiftUI what kinds of documents
+    /// Use a ``DocumentGroup`` scene to tell SkipUI what kinds of documents
     /// your app can open when you declare your app using the ``App`` protocol.
     /// You initialize a document group scene by passing in the document model
     /// and a view capable of displaying the document's contents. The document
     /// types you supply to ``DocumentGroup`` must conform to ``FileDocument``
-    /// or ``ReferenceFileDocument``. SwiftUI uses the model to add document
+    /// or ``ReferenceFileDocument``. SkipUI uses the model to add document
     /// support to your app. In macOS this includes document-based menu support
     /// including the ability to open multiple documents. On iOS this includes
     /// a document browser that can navigate to the documents stored on the
@@ -13736,7 +11943,7 @@ public protocol DynamicProperty {
 
     /// Updates the underlying value of the stored value.
     ///
-    /// SwiftUI calls this function before rendering a view's
+    /// SkipUI calls this function before rendering a view's
     /// ``View/body-swift.property`` to ensure the view has the most recent
     /// value.
     mutating func update()
@@ -13747,7 +11954,7 @@ extension DynamicProperty {
 
     /// Updates the underlying value of the stored value.
     ///
-    /// SwiftUI calls this function before rendering a view's
+    /// SkipUI calls this function before rendering a view's
     /// ``View/body-swift.property`` to ensure the view has the most recent
     /// value.
     public mutating func update() { fatalError() }
@@ -13810,7 +12017,7 @@ extension DynamicTableRowContent {
     ///
     /// - Parameters:
     ///   - payloadType: Type of the models that are dropped.
-    ///   - action: A closure that SwiftUI invokes when elements are added to
+    ///   - action: A closure that SkipUI invokes when elements are added to
     ///     the collection of rows.
     ///     The closure takes two arguments: The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
@@ -13834,7 +12041,7 @@ extension DynamicTableRowContent {
     ///
     /// - Parameters:
     ///   - supportedContentTypes: An array of universal type identifiers types that the rows supports.
-    ///   - action: A closure that SwiftUI invokes when adding elements to
+    ///   - action: A closure that SkipUI invokes when adding elements to
     ///     the collection of rows.
     ///     The closure takes two arguments. The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
@@ -13977,8 +12184,8 @@ extension DynamicViewContent {
 
     /// Sets the deletion action for the dynamic view.
     ///
-    /// - Parameter action: The action that you want SwiftUI to perform when
-    ///   elements in the view are deleted. SwiftUI passes a set of indices to the
+    /// - Parameter action: The action that you want SkipUI to perform when
+    ///   elements in the view are deleted. SkipUI passes a set of indices to the
     ///   closure that's relative to the dynamic view's underlying collection of
     ///   data.
     ///
@@ -13994,7 +12201,7 @@ extension DynamicViewContent {
     /// Sets the move action for the dynamic view.
     ///
     /// - Parameters:
-    ///   - action: A closure that SwiftUI invokes when elements in the dynamic
+    ///   - action: A closure that SkipUI invokes when elements in the dynamic
     ///     view are moved. The closure takes two arguments that represent the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     Pass `nil` to disable the ability to move items.
@@ -14035,7 +12242,7 @@ extension DynamicViewContent {
     ///
     /// - Parameters:
     ///   - payloadType: Type of the models that are dropped.
-    ///   - action: A closure that SwiftUI invokes when elements are added to
+    ///   - action: A closure that SkipUI invokes when elements are added to
     ///     the view. The closure takes two arguments: The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     The second argument is an array of `Transferable` items that
@@ -14056,7 +12263,7 @@ extension DynamicViewContent {
     /// - Parameters:
     ///   - supportedContentTypes: An array of UTI types that the dynamic
     ///     view supports.
-    ///   - action: A closure that SwiftUI invokes when elements are added to
+    ///   - action: A closure that SkipUI invokes when elements are added to
     ///     the view. The closure takes two arguments: The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     The second argument is an array of
@@ -14074,7 +12281,7 @@ extension DynamicViewContent {
     /// - Parameters:
     ///   - acceptedTypeIdentifiers: An array of UTI types that the dynamic
     ///     view supports.
-    ///   - action: A closure that SwiftUI invokes when elements are added to
+    ///   - action: A closure that SkipUI invokes when elements are added to
     ///     the view. The closure takes two arguments: The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     The second argument is an array of `NSItemProvider` that represents
@@ -14417,7 +12624,7 @@ public struct EditButton : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -14492,7 +12699,7 @@ public enum EditMode : Sendable {
     /// The view is in a temporary edit mode.
     ///
     /// The use of this state varies by platform and for different
-    /// controls. As an example, SwiftUI might engage temporary edit mode
+    /// controls. As an example, SkipUI might engage temporary edit mode
     /// over the duration of a swipe gesture.
     ///
     /// The ``isEditing`` property is `true` in this state.
@@ -14561,7 +12768,7 @@ extension EditMode : Hashable {
 
 /// An opaque wrapper view that adds editing capabilities to a row in a list.
 ///
-/// You don't use this type directly. Instead SwiftUI creates this type on
+/// You don't use this type directly. Instead SkipUI creates this type on
 /// your behalf.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct EditableCollectionContent<Content, Data> {
@@ -14574,7 +12781,7 @@ extension EditableCollectionContent : View where Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -14855,7 +13062,7 @@ public struct EmptyCommands : Commands {
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     public typealias Body = Never
     public var body: Body { fatalError() }
@@ -14942,7 +13149,7 @@ extension EmptyTableRowContent : TableRowContent {
 /// You will rarely, if ever, need to create an `EmptyView` directly. Instead,
 /// `EmptyView` represents the absence of a view.
 ///
-/// SwiftUI uses `EmptyView` in situations where a SwiftUI view type defines one
+/// SkipUI uses `EmptyView` in situations where a SkipUI view type defines one
 /// or more child views with generic parameters, and allows the child views to
 /// be absent. When absent, the child view's type in the generic type parameter
 /// is `EmptyView`.
@@ -14975,20 +13182,6 @@ extension EmptyTableRowContent : TableRowContent {
 extension EmptyView : Sendable {
 }
 
-/// The base visual effect that you apply additional effect to.
-///
-/// `EmptyVisualEffect` does not change the appearance of the view
-/// that it is applied to.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct EmptyVisualEffect : VisualEffect {
-
-    /// Creates a new empty visual effect.
-    public init() { fatalError() }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
-}
 
 /// An empty widget configuration.
 @available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
@@ -15024,7 +13217,7 @@ public struct EnabledTextSelectability : TextSelectability {
     ///
     /// Conforming types, such as ``EnabledTextSelectability`` and
     /// ``DisabledTextSelectability``, return `true` or `false` for this
-    /// property as appropriate. SwiftUI expects this value for a given
+    /// property as appropriate. SkipUI expects this value for a given
     /// selectability type to be constant, unaffected by global state.
     public static let allowsSelection: Bool = { fatalError() }()
 }
@@ -15050,17 +13243,17 @@ public struct EnabledTextSelectability : TextSelectability {
 ///         LightContent()
 ///     }
 ///
-/// If the value changes, SwiftUI updates any parts of your view that depend on
+/// If the value changes, SkipUI updates any parts of your view that depend on
 /// the value. For example, that might happen in the above example if the user
 /// changes the Appearance settings.
 ///
 /// You can use this property wrapper to read --- but not set --- an environment
-/// value. SwiftUI updates some environment values automatically based on system
+/// value. SkipUI updates some environment values automatically based on system
 /// settings and provides reasonable defaults for others. You can override some
 /// of these, as well as set custom environment values that you define,
 /// using the ``View/environment(_:_:)`` view modifier.
 ///
-/// For the complete list of environment values provided by SwiftUI, see the
+/// For the complete list of environment values provided by SkipUI, see the
 /// properties of the ``EnvironmentValues`` structure. For information about
 /// creating custom environment values, see the ``EnvironmentKey`` protocol.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -15078,7 +13271,7 @@ public struct EnabledTextSelectability : TextSelectability {
     ///         // ...
     ///     }
     ///
-    /// SwiftUI automatically updates any parts of `MyView` that depend on
+    /// SkipUI automatically updates any parts of `MyView` that depend on
     /// the property when the associated environment value changes.
     /// You can't modify the environment value using a property like this.
     /// Instead, use the ``View/environment(_:_:)`` view modifier on a view to
@@ -15227,7 +13420,7 @@ public protocol EnvironmentKey {
 
 /// A collection of environment values propagated through a view hierarchy.
 ///
-/// SwiftUI exposes a collection of values to your app's views in an
+/// SkipUI exposes a collection of values to your app's views in an
 /// `EnvironmentValues` structure. To read a value from the structure,
 /// declare a property using the ``Environment`` property wrapper and
 /// specify the value's key path. For example, you can read the current locale:
@@ -15235,10 +13428,10 @@ public protocol EnvironmentKey {
 ///     @Environment(\.locale) var locale: Locale
 ///
 /// Use the property you declare to dynamically control a view's layout.
-/// SwiftUI automatically sets or updates many environment values, like
+/// SkipUI automatically sets or updates many environment values, like
 /// ``EnvironmentValues/pixelLength``, ``EnvironmentValues/scenePhase``, or
 /// ``EnvironmentValues/locale``, based on device characteristics, system state,
-/// or user settings. For others, like ``EnvironmentValues/lineLimit``, SwiftUI
+/// or user settings. For others, like ``EnvironmentValues/lineLimit``, SkipUI
 /// provides a reasonable default value.
 ///
 /// You can set or override some values using the ``View/environment(_:_:)``
@@ -15251,7 +13444,7 @@ public protocol EnvironmentKey {
 /// --- including its descendants in the view hierarchy --- but only up to the
 /// point where you apply a different environment modifier.
 ///
-/// SwiftUI provides dedicated view modifiers for setting some values, which
+/// SkipUI provides dedicated view modifiers for setting some values, which
 /// typically makes your code easier to read. For example, rather than setting
 /// the ``EnvironmentValues/lineLimit`` value directly, as in the previous
 /// example, you should instead use the ``View/lineLimit(_:)-513mb`` modifier:
@@ -15307,7 +13500,7 @@ public struct EnvironmentValues : CustomStringConvertible {
     /// directly. Doing so would provide access only to default values that
     /// don't update based on system settings or device characteristics.
     /// Instead, you rely on an environment values' instance
-    /// that SwiftUI manages for you when you use the ``Environment``
+    /// that SkipUI manages for you when you use the ``Environment``
     /// property wrapper and the ``View/environment(_:_:)`` view modifier.
     public init() { fatalError() }
 
@@ -15398,7 +13591,7 @@ extension EnvironmentValues {
     /// A Boolean value that determines whether the view hierarchy has
     /// auto-correction enabled.
     ///
-    /// When the value is `nil`, SwiftUI uses the system default. The default
+    /// When the value is `nil`, SkipUI uses the system default. The default
     /// value is `nil`.
     @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "autocorrectionDisabled")
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "autocorrectionDisabled")
@@ -15845,13 +14038,13 @@ extension EnvironmentValues {
     /// your app:
     ///
     /// * In macOS, this property returns `true` for any app that uses the
-    ///   SwiftUI app lifecycle.
+    ///   SkipUI app lifecycle.
     /// * In iPadOS, this property returns `true` for any app that uses the
-    ///   SwiftUI app lifecycle and has the Information Property List key
+    ///   SkipUI app lifecycle and has the Information Property List key
     /// <doc://com.apple.documentation/documentation/bundleresources/information_property_list/uiapplicationscenemanifest/uiapplicationsupportsmultiplescenes> set to `true`.
     /// * For all other platforms and configurations, the value returns `false`.
     ///
-    /// If the value is false and you try to open a window, SwiftUI
+    /// If the value is false and you try to open a window, SkipUI
     /// ignores the action and logs a runtime error.
     public var supportsMultipleWindows: Bool { get { fatalError() } }
 }
@@ -15903,7 +14096,7 @@ extension EnvironmentValues {
     ///
     ///     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     ///
-    /// SwiftUI sets this size class based on several factors, including:
+    /// SkipUI sets this size class based on several factors, including:
     ///
     /// * The current device type.
     /// * The orientation of the device.
@@ -15938,7 +14131,7 @@ extension EnvironmentValues {
     ///
     ///     @Environment(\.verticalSizeClass) private var verticalSizeClass
     ///
-    /// SwiftUI sets this size class based on several factors, including:
+    /// SkipUI sets this size class based on several factors, including:
     ///
     /// * The current device type.
     /// * The orientation of the device.
@@ -16174,7 +14367,7 @@ extension EnvironmentValues {
     ///
     /// > Important: Access the value from inside the searched view, as the
     ///   example above demonstrates, rather than from the searched view’s
-    ///   parent. SwiftUI sets the value in the environment of the view that
+    ///   parent. SkipUI sets the value in the environment of the view that
     ///   you apply the searchable modifier to, and doesn’t propagate the
     ///   value up the view hierarchy.
     public var isSearching: Bool { get { fatalError() } }
@@ -16187,7 +14380,7 @@ extension EnvironmentValues {
     /// it defines a ``DismissSearchAction/callAsFunction()`` method that Swift
     /// calls when you call the instance.
     ///
-    /// When you dismiss search, SwiftUI:
+    /// When you dismiss search, SkipUI:
     ///
     /// * Sets ``EnvironmentValues/isSearching`` to `false`.
     /// * Clears any text from the search field.
@@ -16236,7 +14429,7 @@ extension EnvironmentValues {
     ///     }
     ///
     /// The button becomes visible only after the user enters search text
-    /// that produces a match. When the user taps the button, SwiftUI shows
+    /// that produces a match. When the user taps the button, SkipUI shows
     /// a sheet that provides more information about the item, including
     /// an Add button for adding the item to a stored list of items:
     ///
@@ -16270,7 +14463,7 @@ extension EnvironmentValues {
     ///
     /// > Important: Access the action from inside the searched view, as the
     ///   example above demonstrates, rather than from the searched view’s
-    ///   parent, or another hierarchy, like that of a sheet. SwiftUI sets the
+    ///   parent, or another hierarchy, like that of a sheet. SkipUI sets the
     ///   value in the environment of the view that you apply the searchable
     ///   modifier to, and doesn’t propagate the value up the view hierarchy.
     public var dismissSearch: DismissSearchAction { get { fatalError() } }
@@ -16358,7 +14551,7 @@ extension EnvironmentValues {
     /// On iOS and iPadOS, the ``List`` in the example above offers a
     /// pull to refresh gesture because it detects the refresh action. When
     /// the user drags the list down and releases, the list calls the action's
-    /// handler. Because SwiftUI declares the handler as asynchronous, it can
+    /// handler. Because SkipUI declares the handler as asynchronous, it can
     /// safely make long-running asynchronous calls, like fetching network data.
     ///
     /// ### Refreshing custom views
@@ -16485,7 +14678,7 @@ extension EnvironmentValues {
     ///             return .handled
     ///         })
     ///
-    /// SwiftUI translates the value that your custom action's handler
+    /// SkipUI translates the value that your custom action's handler
     /// returns into an appropriate Boolean result for the action call.
     /// For example, a view that uses the action declared above
     /// receives `true` when calling the action, because the
@@ -16600,7 +14793,7 @@ extension EnvironmentValues {
     /// the window instead.
     ///
     /// The dismiss action has no effect on a view that isn't currently
-    /// presented. If you need to query whether SwiftUI is currently presenting
+    /// presented. If you need to query whether SkipUI is currently presenting
     /// a view, read the ``EnvironmentValues/isPresented`` environment value.
     public var dismiss: DismissAction { get { fatalError() } }
 
@@ -16612,8 +14805,8 @@ extension EnvironmentValues {
     ///
     ///     @Environment(\.isPresented) private var isPresented
     ///
-    /// Read the value inside a view if you need to know when SwiftUI
-    /// presents that view. For example, you can take an action when SwiftUI
+    /// Read the value inside a view if you need to know when SkipUI
+    /// presents that view. For example, you can take an action when SkipUI
     /// presents a view by using the ``View/onChange(of:perform:)``
     /// modifier:
     ///
@@ -16624,7 +14817,7 @@ extension EnvironmentValues {
     ///     }
     ///
     /// This behaves differently than ``View/onAppear(perform:)``, which
-    /// SwiftUI can call more than once for a given presentation, like
+    /// SkipUI can call more than once for a given presentation, like
     /// when you navigate back to a view that's already in the
     /// navigation hierarchy.
     ///
@@ -16693,12 +14886,12 @@ extension EnvironmentValues {
     ///     }
     ///
     /// ![A screenshot showing the effects of setting the minimumScaleFactor on
-    ///   the text in a view](SwiftUI-View-minimumScaleFactor.png)
+    ///   the text in a view](SkipUI-View-minimumScaleFactor.png)
     ///
     /// You can set the minimum scale factor to any value greater than `0` and
     /// less than or equal to `1`. The default value is `1`.
     ///
-    /// SwiftUI uses this value to shrink text that doesn't fit in a view when
+    /// SkipUI uses this value to shrink text that doesn't fit in a view when
     /// it's okay to shrink the text. For example, a label with a
     /// `minimumScaleFactor` of `0.5` draws its text in a font size as small as
     /// half the actual font if needed.
@@ -16786,7 +14979,7 @@ extension EnvironmentValues {
     /// A Boolean value that controls whether views that render content
     /// transitions use GPU-accelerated rendering.
     ///
-    /// Setting this value to `true` causes SwiftUI to wrap content transitions
+    /// Setting this value to `true` causes SkipUI to wrap content transitions
     /// with a ``View/drawingGroup(opaque:colorMode:)`` modifier.
     public var contentTransitionAddsDrawingGroup: Bool { get { fatalError() } }
 }
@@ -16834,7 +15027,7 @@ extension EnvironmentValues {
 
     /// The color scheme of this environment.
     ///
-    /// Read this environment value from within a view to find out if SwiftUI
+    /// Read this environment value from within a view to find out if SkipUI
     /// is currently displaying the view using the ``ColorScheme/light`` or
     /// ``ColorScheme/dark`` appearance. The value that you receive depends on
     /// whether the user has enabled Dark Mode, possibly superseded by
@@ -16868,7 +15061,7 @@ extension EnvironmentValues {
 
     /// The contrast associated with the color scheme of this environment.
     ///
-    /// Read this environment value from within a view to find out if SwiftUI
+    /// Read this environment value from within a view to find out if SkipUI
     /// is currently displaying the view using ``ColorSchemeContrast/standard``
     /// or ``ColorSchemeContrast/increased`` contrast. The value that you read
     /// depends entirely on user settings, and you can't change it.
@@ -16881,7 +15074,7 @@ extension EnvironmentValues {
     ///
     /// When adjusting your app's user interface to match the contrast,
     /// consider also checking the ``EnvironmentValues/colorScheme`` property
-    /// to find out if SwiftUI is displaying the view with a light or dark
+    /// to find out if SkipUI is displaying the view with a light or dark
     /// appearance. For information about using color and contrast in your app,
     /// see [Color and Contrast](https://developer.apple.com/design/human-interface-guidelines/accessibility/overview/color-and-contrast/).
     ///
@@ -16947,7 +15140,7 @@ extension EnvironmentValues {
     /// On other platforms, the value is always `.medium` and setting a
     /// different value has no effect.
     ///
-    /// SwiftUI views like `Label` automatically adapt to the sidebar row size.
+    /// SkipUI views like `Label` automatically adapt to the sidebar row size.
     public var sidebarRowSize: SidebarRowSize { get { fatalError() } }
 }
 
@@ -17273,7 +15466,7 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
 ///
 /// Use a `FetchRequest` property wrapper to declare a ``FetchedResults``
 /// property that provides a collection of Core Data managed objects to a
-/// SwiftUI view. The request infers the entity type from the `Result`
+/// SkipUI view. The request infers the entity type from the `Result`
 /// placeholder type that you specify. Condition the request with an optional
 /// predicate and sort descriptors. For example, you can create a request to
 /// list all `Quake` managed objects that the
@@ -17324,7 +15517,7 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
 
     /// The fetched results of the fetch request.
     ///
-    /// SwiftUI returns the value associated with this property
+    /// SkipUI returns the value associated with this property
     /// when you use ``FetchRequest`` as a property wrapper, and then access
     /// the wrapped property by name. For example, consider the following
     /// `quakes` property declaration that fetches a `Quake` type that the
@@ -17392,7 +15585,7 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
     /// 1. The table updates the sort descriptors through the binding.
     /// 2. The modified sort descriptors reconfigure the request.
     /// 3. The reconfigured request fetches new results.
-    /// 4. SwiftUI redraws the table in response to new results.
+    /// 4. SkipUI redraws the table in response to new results.
     ///
     /// ### Set configuration directly
     ///
@@ -17421,7 +15614,7 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
     ///     TextField("Filter", text: $query)
     ///
     /// When the user types into the text field, the predicate updates,
-    /// the request fetches new results, and SwiftUI redraws the table.
+    /// the request fetches new results, and SkipUI redraws the table.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
     public struct Configuration {
 
@@ -17455,10 +15648,10 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
 
     /// A binding to the request's mutable configuration properties.
     ///
-    /// SwiftUI returns the value associated with this property when you use
+    /// SkipUI returns the value associated with this property when you use
     /// ``FetchRequest`` as a property wrapper on a ``FetchedResults`` instance,
     /// and then access the results with a dollar sign (`$`) prefix. The value
-    /// that SwiftUI returns is a ``Binding`` to the request's
+    /// that SkipUI returns is a ``Binding`` to the request's
     /// ``FetchRequest/Configuration`` structure, which dynamically
     /// configures the request.
     ///
@@ -17492,7 +15685,7 @@ extension FetchRequest : DynamicProperty {
 
     /// Updates the fetched results.
     ///
-    /// SwiftUI calls this function before rendering a view's
+    /// SkipUI calls this function before rendering a view's
     /// ``View/body-swift.property`` to ensure the view has the most recent
     /// fetched results.
     @MainActor public mutating func update() { fatalError() }
@@ -17882,7 +16075,7 @@ extension FileDialogBrowserOptions : Sendable {
 ///   class --- use ``ReferenceFileDocument`` instead.
 ///
 /// Ensure that types that conform to this protocol are thread-safe.
-/// In particular, SwiftUI calls the protocol's methods on a background
+/// In particular, SkipUI calls the protocol's methods on a background
 /// thread. Don't use that thread to perform user interface updates.
 /// Use it only to serialize and deserialize the document data.
 @available(iOS 14.0, macOS 11.0, *)
@@ -17893,7 +16086,7 @@ public protocol FileDocument {
     /// The file and data types that the document reads from.
     ///
     /// Define this list to indicate the content types that your document can
-    /// read. By default, SwiftUI assumes that your document can also write
+    /// read. By default, SkipUI assumes that your document can also write
     /// the same set of content types. If you need to indicate a different set
     /// of types for writing files, define the ``writableContentTypes-2opfc``
     /// property in addition to this property.
@@ -17901,7 +16094,7 @@ public protocol FileDocument {
 
     /// The file types that the document supports saving or exporting to.
     ///
-    /// By default, SwiftUI assumes that your document reads and writes the
+    /// By default, SkipUI assumes that your document reads and writes the
     /// same set of content types. Only define this property if you need to
     /// indicate a different set of types for writing files. Otherwise, the
     /// default implementation of this property returns the list that you
@@ -17910,7 +16103,7 @@ public protocol FileDocument {
 
     /// Creates a document and initializes it with the contents of a file.
     ///
-    /// SwiftUI calls this initializer when someone opens a file type
+    /// SkipUI calls this initializer when someone opens a file type
     /// that matches one of those that your document type supports.
     /// Use the ``FileDocumentReadConfiguration/file`` property of the
     /// `configuration` input to get document's data. Deserialize the data,
@@ -17927,7 +16120,7 @@ public protocol FileDocument {
     /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
     /// and that you store a `model` property of that type inside your document.
     ///
-    /// > Note: SwiftUI calls this method on a background thread. Don't
+    /// > Note: SkipUI calls this method on a background thread. Don't
     ///   make user interface changes from that thread.
     ///
     /// - Parameter configuration: Information about the file that you read
@@ -17946,7 +16139,7 @@ public protocol FileDocument {
     /// Serializes a document snapshot to a file wrapper.
     ///
     /// To store a document --- for example, in response to a Save command ---
-    /// SwiftUI calls this method. Use it to serialize the document's data and
+    /// SkipUI calls this method. Use it to serialize the document's data and
     /// create or modify a file wrapper with the serialized data:
     ///
     ///     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
@@ -17954,7 +16147,7 @@ public protocol FileDocument {
     ///         return FileWrapper(regularFileWithContents: data)
     ///     }
     ///
-    /// > Note: SwiftUI calls this method on a background thread. Don't
+    /// > Note: SkipUI calls this method on a background thread. Don't
     ///   make user interface changes from that thread.
     ///
     /// - Parameters:
@@ -17984,7 +16177,7 @@ extension FileDocument {
 
     /// The file types that the document supports saving or exporting to.
     ///
-    /// By default, SwiftUI assumes that your document reads and writes the
+    /// By default, SkipUI assumes that your document reads and writes the
     /// same set of content types. Only define this property if you need to
     /// indicate a different set of types for writing files. Otherwise, the
     /// default implementation of this property returns the list that you
@@ -18224,7 +16417,7 @@ public struct FocusInteractions : OptionSet, Sendable {
     public typealias RawValue = Int
 }
 
-/// A property wrapper type that can read and write a value that SwiftUI updates
+/// A property wrapper type that can read and write a value that SkipUI updates
 /// as the placement of focus within the scene changes.
 ///
 /// Use this property wrapper in conjunction with ``View/focused(_:equals:)``
@@ -18318,8 +16511,8 @@ public struct FocusInteractions : OptionSet, Sendable {
 ///
 /// If the user moves focus to either field, the `focusedField` binding updates
 /// to `name`. However, if the app programmatically sets the value to `name`,
-/// SwiftUI chooses the first candidate, which in this case is the "Name"
-/// field. SwiftUI also emits a runtime warning in this case, since the repeated
+/// SkipUI chooses the first candidate, which in this case is the "Name"
+/// field. SkipUI also emits a runtime warning in this case, since the repeated
 /// binding is likely a programmer error.
 ///
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -18781,7 +16974,7 @@ extension Font {
 
     /// Returns a fixed-width font from the same family as the base font.
     ///
-    /// If there's no suitable font face in the same family, SwiftUI
+    /// If there's no suitable font face in the same family, SkipUI
     /// returns a default fixed-width font.
     ///
     /// The following example adds the `monospaced()` modifier to the default
@@ -18804,7 +16997,7 @@ extension Font {
     /// ![A macOS window showing the text Hello, world in a 24-point
     /// fixed-width font.](Environment-Font-monospaced-1)
     ///
-    /// SwiftUI may provide different fixed-width replacements for standard
+    /// SkipUI may provide different fixed-width replacements for standard
     /// user interface fonts (such as ``Font/title``, or a system font created
     /// with ``Font/system(_:design:)``) than for those same fonts when created
     /// by name with ``Font/custom(_:size:)``.
@@ -19152,7 +17345,7 @@ extension Font {
     /// Creates a custom font from a platform font instance.
     ///
     /// Initializing ``Font`` with platform font instance
-    /// (<doc://com.apple.documentation/documentation/CoreText/CTFont-q6r>) can bridge SwiftUI
+    /// (<doc://com.apple.documentation/documentation/CoreText/CTFont-q6r>) can bridge SkipUI
     /// ``Font`` with <doc://com.apple.documentation/documentation/AppKit/NSFont> or
     /// <doc://com.apple.documentation/documentation/UIKit/UIFont>, both of which are
     /// toll-free bridged to
@@ -19161,7 +17354,7 @@ extension Font {
     ///     // Use native Core Text API to create desired ctFont.
     ///     let ctFont = CTFontCreateUIFontForLanguage(.system, 12, nil)!
     ///
-    ///     // Create SwiftUI Text with the CTFont instance.
+    ///     // Create SkipUI Text with the CTFont instance.
     ///     let text = Text("Hello").font(Font(ctFont))
     public init(_ font: CTFont) { fatalError() }
 }
@@ -19199,7 +17392,7 @@ extension Font.Leading : Hashable {
 /// <doc://com.apple.documentation/documentation/Swift/Identifiable>, and an
 /// array of this type called `namedFonts`. A `ForEach` instance iterates
 /// over the array, producing new ``Text`` instances that display examples
-/// of each SwiftUI ``Font`` style provided in the array.
+/// of each SkipUI ``Font`` style provided in the array.
 ///
 ///     private struct NamedFont: Identifiable {
 ///         let name: String
@@ -19223,11 +17416,11 @@ extension Font.Leading : Hashable {
 ///     }
 ///
 /// ![A vertically arranged stack of labels showing various standard fonts,
-/// such as Large Title and Headline.](SwiftUI-ForEach-fonts.png)
+/// such as Large Title and Headline.](SkipUI-ForEach-fonts.png)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct ForEach<Data, ID, Content> where Data : RandomAccessCollection, ID : Hashable {
 
-    /// The collection of underlying identified data that SwiftUI uses to create
+    /// The collection of underlying identified data that SkipUI uses to create
     /// views dynamically.
     public var data: Data { get { fatalError() } }
 
@@ -19358,7 +17551,7 @@ extension ForEach where Content : AccessibilityRotorContent {
     /// `ForEach`.
     ///
     /// It's important that the `id` of a data element doesn't change, unless
-    /// SwiftUI considers the data element to have been replaced with a new data
+    /// SkipUI considers the data element to have been replaced with a new data
     /// element that has a new identity.
     ///
     /// - Parameters:
@@ -19506,7 +17699,7 @@ extension ForEach where Content : View {
     /// identifier.
     ///
     /// It's important that the `id` of a data element doesn't change, unless
-    /// SwiftUI considers the data element to have been replaced with a new data
+    /// SkipUI considers the data element to have been replaced with a new data
     /// element that has a new identity. If the `id` of a data element changes,
     /// then the content view generated from that data element will lose any
     /// current state and animations.
@@ -19587,7 +17780,7 @@ extension ForEach where Data == Range<Int>, ID == Int, Content : View {
 /// A container for grouping controls used for data entry, such as in settings
 /// or inspectors.
 ///
-/// SwiftUI applies platform-appropriate styling to views contained inside a
+/// SkipUI applies platform-appropriate styling to views contained inside a
 /// form, to group them together. Form-specific styling applies to
 /// things like buttons, toggles, labels, lists, and more. Keep in mind that
 /// these stylings may be platform-specific. For example, forms apppear as
@@ -19631,7 +17824,7 @@ extension ForEach where Data == Range<Int>, ID == Int, Content : View {
 /// the first of which is set to the on position. A second section named User
 /// Profiles has a navigation link labeled Profile Image Size and the value
 /// Medium, followed by a button labeled Clear Image
-/// Cache.](SwiftUI-Form-iOS.png)
+/// Cache.](SkipUI-Form-iOS.png)
 ///
 /// On macOS, a similar form renders as a vertical stack. To adhere to macOS
 /// platform conventions, this version doesn't use sections, and uses colons at
@@ -19671,12 +17864,12 @@ extension ForEach where Data == Range<Int>, ID == Int, Content : View {
 /// Sounds and Send Read Receipts, the first of which is set on. Below this
 /// is the label Profile Image Size with three radio buttons -- Large, Medium,
 /// and Small -- with Medium currently selected. At the bottom of the form,
-/// there is a button titled Clear Image Cache.](SwiftUI-Form-macOS.png)
+/// there is a button titled Clear Image Cache.](SkipUI-Form-macOS.png)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct Form<Content> : View where Content : View {
 
     /// Creates a form with the provided content.
-    /// - Parameter content: A ``SwiftUI/ViewBuilder`` that provides the content for the
+    /// - Parameter content: A ``SkipUI/ViewBuilder`` that provides the content for the
     /// form.
     public init(@ViewBuilder content: () -> Content) { fatalError() }
 
@@ -19684,7 +17877,7 @@ public struct Form<Content> : View where Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -19806,7 +17999,7 @@ public struct FormStyleConfiguration {
 ///     }
 ///
 /// ![A linear gauge displaying a current value set to 40 percent in a range of 0
-///  to 1.](SwiftUI-Gauge-ValueLabelLinear.png)
+///  to 1.](SkipUI-Gauge-ValueLabelLinear.png)
 ///
 /// You can make a gauge more descriptive by describing its purpose, showing
 /// its current value and its start and end values. This example shows the
@@ -19834,7 +18027,7 @@ public struct FormStyleConfiguration {
 ///
 /// ![A linear gauge describing heart-rate in beats per minute with its
 /// value set to 67 in a range of 0 to
-/// 170.](SwiftUI-Gauge-Label-CurrentValueLinear.png)
+/// 170.](SkipUI-Gauge-Label-CurrentValueLinear.png)
 ///
 /// As shown above, the default style for gauges is a linear, continuous bar
 /// with an indicator showing the current value, and optional labels describing
@@ -19845,7 +18038,7 @@ public struct FormStyleConfiguration {
 ///   the label content and you should use these labels to fully describe
 ///   the gauge for accessibility users.
 ///
-/// To change the style of a gauge, use the ``SwiftUI/Gauge/gaugeStyle(_:)``
+/// To change the style of a gauge, use the ``SkipUI/Gauge/gaugeStyle(_:)``
 /// view modifier and supply an initializer for a specific gauge style. For
 /// example, to display the same gauge in a circular style, apply the
 /// ``GaugeStyle/circular`` style to the view:
@@ -19870,7 +18063,7 @@ public struct FormStyleConfiguration {
 ///     }
 ///
 /// ![A circular gauge describing heart rate in beats per minute with its
-/// value set to 67 in a range of 0 to 170.](SwiftUI-Gauge-LabeledCircular.png)
+/// value set to 67 in a range of 0 to 170.](SkipUI-Gauge-LabeledCircular.png)
 ///
 /// To style elements of a gauge's presentation, you apply view modifiers to
 /// the elements that you want to change. In the example below, the current
@@ -19902,7 +18095,7 @@ public struct FormStyleConfiguration {
 /// ![A circular gauge describing heart rate in beats per minute with its
 /// value set to 67 on a range of 0 to 170. The style of each label is
 /// individually set showing custom label
-/// colors.](SwiftUI-Gauge-CircularStyled.png)
+/// colors.](SkipUI-Gauge-CircularStyled.png)
 ///
 /// You can further style a gauge's appearance by supplying a tint color or
 /// a gradient to the style's initializer. The following example shows the
@@ -19933,7 +18126,7 @@ public struct FormStyleConfiguration {
 ///         }
 ///     }
 /// ![A screenshot showing a circular gauge with a gradient
-///  tint.](SwiftUI-Gauge-Circular-Gradient.png)
+///  tint.](SkipUI-Gauge-Circular-Gradient.png)
 ///
 @available(iOS 16.0, macOS 13.0, watchOS 7.0, *)
 @available(tvOS, unavailable)
@@ -19959,7 +18152,7 @@ public struct Gauge<Label, CurrentValueLabel, BoundsLabel, MarkedValueLabels> : 
     ///     }
     ///
     /// ![A linear gauge that shows an indicator at 40 percent along the length
-    /// of the gauge.](SwiftUI-Gauge-ValueLabelLinear.png)
+    /// of the gauge.](SkipUI-Gauge-ValueLabelLinear.png)
     ///
     /// - Parameters:
     ///     - value: The value to show in the gauge.
@@ -19991,7 +18184,7 @@ public struct Gauge<Label, CurrentValueLabel, BoundsLabel, MarkedValueLabels> : 
     ///
     /// ![A screenshot showing a circular gauge describing heart rate in beats
     /// per minute, with the indicator and the current value label indicating a
-    /// value of 67.](SwiftUI-Gauge-LabelCurrentValueCircular.png)
+    /// value of 67.](SkipUI-Gauge-LabelCurrentValueCircular.png)
     ///
     /// - Parameters:
     ///     - value: The value to show on the gauge.
@@ -20028,7 +18221,7 @@ public struct Gauge<Label, CurrentValueLabel, BoundsLabel, MarkedValueLabels> : 
     ///
     /// ![A screenshot of a gauge, labeled BPM, that's represented by a
     /// semicircle showing its current value of 67 along a range of 0
-    /// to 170.](SwiftUI-Gauge-LabeledCircular.png)
+    /// to 170.](SkipUI-Gauge-LabeledCircular.png)
     ///
     /// - Parameters:
     ///     - value: The value to show on the gauge.
@@ -20080,7 +18273,7 @@ public struct Gauge<Label, CurrentValueLabel, BoundsLabel, MarkedValueLabels> : 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -20495,7 +18688,7 @@ extension Gesture {
     ///   new, combined gesture.
     ///
     /// - Returns: A gesture that's the result of combining two gestures where
-    ///   only one of them can succeed. SwiftUI gives precedence to the first
+    ///   only one of them can succeed. SkipUI gives precedence to the first
     ///   gesture.
     @inlinable public func exclusively<Other>(before other: Other) -> ExclusiveGesture<Self, Other> where Other : Gesture { fatalError() }
 }
@@ -20511,7 +18704,7 @@ extension Gesture {
     ///
     /// - Parameters:
     ///   - state: A binding to a view's ``GestureState`` property.
-    ///   - body: The callback that SwiftUI invokes as the gesture's value
+    ///   - body: The callback that SkipUI invokes as the gesture's value
     ///     changes. Its `currentState` parameter is the updated state of the
     ///     gesture. The `gestureState` parameter is the previous state of the
     ///     gesture, and the `transaction` is the context of the gesture.
@@ -20731,7 +18924,7 @@ extension GestureState where Value : ExpressibleByNilLiteral {
     /// - Parameters:
     ///   - base: The originating gesture.
     ///   - state: The wrapped value of a ``GestureState`` property.
-    ///   - body: The callback that SwiftUI invokes as the gesture's value
+    ///   - body: The callback that SkipUI invokes as the gesture's value
     ///     changes.
     @inlinable public init(base: Base, state: GestureState<State>, body: @escaping (GestureStateGesture<Base, State>.Value, inout State, inout Transaction) -> Void) { fatalError() }
 
@@ -20989,7 +19182,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 /// ![A screenshot of a view that shows a green ellipse.](GraphicsContext-1)
 ///
 /// In addition to outlining or filling paths, you can draw images, text,
-/// and SwiftUI views. You can also use the context to perform many common
+/// and SkipUI views. You can also use the context to perform many common
 /// graphical operations, like adding masks, applying filters and
 /// transforms, and setting a blend mode. For example you can add
 /// a mask using the ``clip(to:style:options:)`` method:
@@ -21042,7 +19235,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 ///
 /// The context has access to an ``EnvironmentValues`` instance called
 /// ``environment`` that's initially copied from the environment of its
-/// enclosing view. SwiftUI uses environment values --- like the display
+/// enclosing view. SkipUI uses environment values --- like the display
 /// resolution and color scheme --- to resolve types like ``Image`` and
 /// ``Color`` that appear in the context. You can also access values stored
 /// in the environment for your own purposes.
@@ -21327,7 +19520,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         /// * `Da` is the source background's alpha value.
         ///
         /// This XOR mode is only nominally related to the classical bitmap
-        /// XOR operation, which SwiftUI doesn't support.
+        /// XOR operation, which SkipUI doesn't support.
         @inlinable public static var xor: GraphicsContext.BlendMode { get { fatalError() } }
 
         /// A mode that adds the inverse of the color components of the source
@@ -21374,7 +19567,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
     /// The environment associated with the graphics context.
     ///
-    /// SwiftUI initially sets this to the environment of the context's
+    /// SkipUI initially sets this to the environment of the context's
     /// enclosing view. The context uses values like display
     /// resolution and the color scheme from the environment to resolve types
     /// like ``Image`` and ``Color``. You can also access values stored in the
@@ -21435,7 +19628,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
     /// Options that affect the use of clip shapes.
     ///
-    /// Use these options to affect how SwiftUI interprets a clip shape
+    /// Use these options to affect how SkipUI interprets a clip shape
     /// when you call ``clip(to:style:options:)`` to add a path to the array of
     /// clip shapes, or when you call ``clipToLayer(opacity:options:content:)``
     /// to add a clipping layer.
@@ -21478,7 +19671,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
         /// An option to invert the shape or layer alpha as the clip mask.
         ///
-        /// When you use this option, SwiftUI uses `1 - alpha` instead of
+        /// When you use this option, SkipUI uses `1 - alpha` instead of
         /// `alpha` for the given clip shape.
         @inlinable public static var inverse: GraphicsContext.ClipOptions { get { fatalError() } }
 
@@ -21513,7 +19706,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// - Parameters:
     ///   - path: A ``Path`` that defines the shape of the clipping mask.
     ///   - style: A ``FillStyle`` that defines how to rasterize the shape.
-    ///   - options: Clip options that tell SwiftUI how to interpret the `path`
+    ///   - options: Clip options that tell SkipUI how to interpret the `path`
     ///     as a clip shape. For example, you can invert the clip
     ///     shape by setting the ``ClipOptions/inverse`` option.
     public mutating func clip(to path: Path, style: FillStyle = FillStyle(), options: GraphicsContext.ClipOptions = ClipOptions()) { fatalError() }
@@ -21526,10 +19719,10 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// affect only subsequent drawing operations.
     ///
     /// - Parameters:
-    ///   - opacity: A value that SwiftUI uses to multiply the alpha channel of
+    ///   - opacity: A value that SkipUI uses to multiply the alpha channel of
     ///     the rasterized layer that you define in the `content` closure. The
     ///     alpha values that result define the clip shape.
-    ///   - options: A set of options that tell SwiftUI how to interpret the
+    ///   - options: A set of options that tell SkipUI how to interpret the
     ///     clip shape. For example, you can invert the clip
     ///     shape by setting the ``ClipOptions/inverse`` option.
     ///   - content: A closure that receives as input a new ``GraphicsContext``,
@@ -21559,7 +19752,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
         /// Returns a filter that adds a shadow.
         ///
-        /// SwiftUI produces the shadow by blurring the alpha channel of the
+        /// SkipUI produces the shadow by blurring the alpha channel of the
         /// object receiving the shadow, multiplying the result by a color,
         /// optionally translating the shadow by an amount,
         /// and then blending the resulting shadow into a new layer below the
@@ -21772,7 +19965,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         /// have a function signature matching:
         ///
         ///     [[ stitchable ]] half4 name(float2 position,
-        ///       SwiftUI::Layer layer, args...)
+        ///       SkipUI::Layer layer, args...)
         ///
         /// where `position` is the user-space coordinates of the
         /// destination pixel applied to the shader, and `layer` is a
@@ -22014,7 +20207,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
     /// Adds a filter that applies to subsequent drawing operations.
     ///
-    /// To draw with filtering, SwiftUI:
+    /// To draw with filtering, SkipUI:
     ///
     /// - Rasterizes the drawing operation to an implicit transparency layer
     ///   without blending, adjusting opacity, or applying any clipping.
@@ -22022,7 +20215,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// - Composites the layer onto the background, using the context's
     ///   current blend mode, opacity setting, and clip shapes.
     ///
-    /// When SwiftUI draws with a filter, the blend mode might apply to regions
+    /// When SkipUI draws with a filter, the blend mode might apply to regions
     /// outside the drawing operation's intrinsic shape, but inside its clip
     /// shape. That might result in unexpected behavior for certain blend
     /// modes like ``GraphicsContext/BlendMode-swift.struct/copy``, where
@@ -22156,7 +20349,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         /// - Parameters:
         ///   - gradient: A ``Gradient`` instance that defines the colors
         ///     of the gradient.
-        ///   - center: The point in the current user space on which SwiftUI
+        ///   - center: The point in the current user space on which SkipUI
         ///     centers the gradient.
         ///   - startRadius: The distance from the center where the gradient
         ///     starts.
@@ -22170,9 +20363,9 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         /// - Parameters:
         ///   - gradient: A ``Gradient`` instance that defines the colors
         ///     of the gradient.
-        ///   - center: The point in the current user space on which SwiftUI
+        ///   - center: The point in the current user space on which SkipUI
         ///     centers the gradient.
-        ///   - angle: The angle about the center that SwiftUI uses to start and
+        ///   - angle: The angle about the center that SkipUI uses to start and
         ///     finish the gradient. The gradient sweeps all the way around the
         ///     center.
         ///   - options: Options that you use to configure the gradient.
@@ -22184,7 +20377,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         ///
         /// - Parameters:
         ///   - image: An ``Image`` to use as fill.
-        ///   - origin: The point in the current user space where SwiftUI
+        ///   - origin: The point in the current user space where SkipUI
         ///     places the bottom left corner of the part of the image
         ///     defined by `sourceRect`. The image repeats as needed.
         ///   - sourceRect: A unit space subregion of the image. The default
@@ -22196,7 +20389,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
 
     /// Options that affect the rendering of color gradients.
     ///
-    /// Use these options to affect how SwiftUI manages a gradient that you
+    /// Use these options to affect how SkipUI manages a gradient that you
     /// create for a ``Shading`` instance for use in a ``GraphicsContext``.
     @frozen public struct GradientOptions : OptionSet {
 
@@ -22294,7 +20487,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     ///
     /// - Parameter context: A closure that receives a new ``GraphicsContext``
     ///   as input. This context represents a new transparency layer that you
-    ///   can draw into. When the closure returns, SwiftUI draws the new layer
+    ///   can draw into. When the closure returns, SkipUI draws the new layer
     ///   into the current context.
     public func drawLayer(content: (inout GraphicsContext) throws -> Void) rethrows { fatalError() }
 
@@ -22379,7 +20572,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// as a layout frame.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the image.
     ///
     /// - Parameters:
@@ -22395,7 +20588,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// image to a point in the context.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the image.
     ///
     /// - Parameters:
@@ -22413,7 +20606,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// as a layout frame.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the image.
     ///
     /// - Parameters:
@@ -22427,7 +20620,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// to a point in the context.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the image.
     ///
     /// - Parameters:
@@ -22486,7 +20679,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// as a layout frame.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the text.
     ///
     /// - Parameters:
@@ -22501,7 +20694,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// ideal size of the text to a point in the context.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the text.
     ///
     /// - Parameters:
@@ -22519,7 +20712,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// as a layout frame.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the text.
     ///
     /// - Parameters:
@@ -22532,7 +20725,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// of the rendered text to a point in the context.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the text.
     ///
     /// - Parameters:
@@ -22561,7 +20754,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// - Parameter id: The value that you used to tag the view when you
     ///   define it in the `symbols` parameter of the ``Canvas`` initializer
     ///   ``Canvas/init(opaque:colorMode:rendersAsynchronously:renderer:symbols:)``.
-    /// - Returns: The resolved symbol, or `nil` if SwiftUI can't find a child
+    /// - Returns: The resolved symbol, or `nil` if SkipUI can't find a child
     ///   view with the given `id`.
     public func resolveSymbol<ID>(id: ID) -> GraphicsContext.ResolvedSymbol? where ID : Hashable { fatalError() }
 
@@ -22569,7 +20762,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// as a layout frame.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the symbol.
     ///
     /// - Parameters:
@@ -22584,7 +20777,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// symbol to a point in the context.
     ///
     /// The current context state defines the full drawing operation. For
-    /// example, the current transformation and clip shapes affect how SwiftUI
+    /// example, the current transformation and clip shapes affect how SkipUI
     /// draws the symbol.
     ///
     /// - Parameters:
@@ -22814,7 +21007,7 @@ extension GraphicsContext.GradientOptions : Sendable {
 /// inside a ``ScrollView``, consider switching to a ``LazyVGrid`` or
 /// ``LazyHGrid`` instead.
 ///
-/// Lazy grids render their cells when SwiftUI needs to display
+/// Lazy grids render their cells when SkipUI needs to display
 /// them, rather than all at once. This reduces the initial cost of displaying
 /// a large scrollable grid that's never fully visible, but also reduces the
 /// grid's ability to optimally lay out cells. Switch to a lazy grid only if
@@ -23043,7 +21236,7 @@ extension GridLayout : Layout {
     ///
     /// You can optionally use a cache to preserve calculated values across
     /// calls to a layout container's methods. Many layout types don't need
-    /// a cache, because SwiftUI automatically reuses both the results of
+    /// a cache, because SkipUI automatically reuses both the results of
     /// calls into the layout and the values that the layout reads from its
     /// subviews. Rely on the protocol's default implementation of this method
     /// if you don't need a cache.
@@ -23078,7 +21271,7 @@ extension GridLayout : Layout {
     /// You can use any storage type that makes sense for your layout
     /// algorithm, but be sure that you only store data that you derive
     /// from the layout and its subviews (lazily, if possible). For this to
-    /// work correctly, SwiftUI needs to be able to call this method to
+    /// work correctly, SkipUI needs to be able to call this method to
     /// recreate the cache without changing the layout result.
     ///
     /// When you return a cache from this method, you implicitly define a type
@@ -23088,7 +21281,7 @@ extension GridLayout : Layout {
     ///
     /// ### Update the cache
     ///
-    /// If the layout container or any of its subviews change, SwiftUI
+    /// If the layout container or any of its subviews change, SkipUI
     /// calls the ``updateCache(_:subviews:)-9hkj9`` method so you can
     /// modify or invalidate the contents of the
     /// cache. The default implementation of that method calls the
@@ -23109,7 +21302,7 @@ extension GridLayout : Layout {
     /// Updates the layout's cache when something changes.
     ///
     /// If your custom layout container creates a cache by implementing the
-    /// ``makeCache(subviews:)-23agy`` method, SwiftUI calls the update method
+    /// ``makeCache(subviews:)-23agy`` method, SkipUI calls the update method
     /// when your layout or its subviews change, giving you an opportunity
     /// to modify or invalidate the contents of the cache.
     /// The method's default implementation recreates the
@@ -23225,7 +21418,7 @@ extension GridLayout : Layout {
     /// Because this example isn't flexible, it ignores its size proposal
     /// input and always returns the same value for a given set of subviews.
     ///
-    /// SwiftUI views choose their own size, so the layout engine always
+    /// SkipUI views choose their own size, so the layout engine always
     /// uses a value that you return from this method as the actual size of the
     /// composite view. That size factors into the construction of the `bounds`
     /// input to the ``placeSubviews(in:proposal:subviews:cache:)`` method.
@@ -23249,7 +21442,7 @@ extension GridLayout : Layout {
 
     /// Assigns positions to each of the layout's subviews.
     ///
-    /// SwiftUI calls your implementation of this method to tell your
+    /// SkipUI calls your implementation of this method to tell your
     /// custom layout container to place its subviews. From this method, call
     /// the ``LayoutSubview/place(at:anchor:proposal:)`` method on each
     /// element in `subviews` to tell the subviews where to appear in the
@@ -23519,7 +21712,7 @@ extension GridLayout : Sendable {
 ///
 /// If you apply a view modifier to a row, the row applies the modifier to
 /// all of the cells, similar to how a ``Group`` behaves. For example,  if
-/// you apply the ``View/border(_:width:)`` modifier to a row, SwiftUI draws
+/// you apply the ``View/border(_:width:)`` modifier to a row, SkipUI draws
 /// a border on each cell in the row rather than around the row.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 @frozen public struct GridRow<Content> where Content : View {
@@ -23599,20 +21792,20 @@ extension GridRow : View {
 /// scenes, or commands --- into a single unit.
 ///
 /// Use a group to collect multiple views into a single instance, without
-/// affecting the layout of those views, like an ``SwiftUI/HStack``,
-/// ``SwiftUI/VStack``, or ``SwiftUI/Section`` would. After creating a group,
+/// affecting the layout of those views, like an ``SkipUI/HStack``,
+/// ``SkipUI/VStack``, or ``SkipUI/Section`` would. After creating a group,
 /// any modifier you apply to the group affects all of that group's members.
-/// For example, the following code applies the ``SwiftUI/Font/headline``
+/// For example, the following code applies the ``SkipUI/Font/headline``
 /// font to three views in a group.
 ///
 ///     Group {
-///         Text("SwiftUI")
+///         Text("SkipUI")
 ///         Text("Combine")
 ///         Text("Swift System")
 ///     }
 ///     .font(.headline)
 ///
-/// Because you create a group of views with a ``SwiftUI/ViewBuilder``, you can
+/// Because you create a group of views with a ``SkipUI/ViewBuilder``, you can
 /// use the group's initializer to produce different kinds of views from a
 /// conditional, and then optionally apply modifiers to them. The following
 /// example uses a `Group` to add a navigation bar title,
@@ -23635,9 +21828,9 @@ extension GridRow : View {
 /// Because a group of views itself is a view, you can compose a group within
 /// other view builders, including nesting within other groups. This allows you
 /// to add large numbers of views to different view builder containers. The
-/// following example uses a `Group` to collect 10 ``SwiftUI/Text`` instances,
+/// following example uses a `Group` to collect 10 ``SkipUI/Text`` instances,
 /// meaning that the vertical stack's view builder returns only two views ---
-/// the group, plus an additional ``SwiftUI/Text``:
+/// the group, plus an additional ``SkipUI/Text``:
 ///
 ///     var body: some View {
 ///         VStack {
@@ -23657,10 +21850,10 @@ extension GridRow : View {
 ///         }
 ///     }
 ///
-/// You can initialize groups with several types other than ``SwiftUI/View``,
-/// such as ``SwiftUI/Scene`` and ``SwiftUI/ToolbarContent``. The closure you
+/// You can initialize groups with several types other than ``SkipUI/View``,
+/// such as ``SkipUI/Scene`` and ``SkipUI/ToolbarContent``. The closure you
 /// provide to the group initializer uses the corresponding builder type
-/// (``SwiftUI/SceneBuilder``, ``SwiftUI/ToolbarContentBuilder``, and so on),
+/// (``SkipUI/SceneBuilder``, ``SkipUI/ToolbarContentBuilder``, and so on),
 /// and the capabilities of these builders vary between types. For example,
 /// you can use groups to return large numbers of scenes or toolbar content
 /// instances, but not to return different scenes or toolbar content based
@@ -23690,7 +21883,7 @@ extension Group : AccessibilityRotorContent where Content : AccessibilityRotorCo
 extension Group : ToolbarContent where Content : ToolbarContent {
     /// Creates a group of toolbar content instances.
     ///
-    /// - Parameter content: A ``SwiftUI/ToolbarContentBuilder`` that produces
+    /// - Parameter content: A ``SkipUI/ToolbarContentBuilder`` that produces
     /// the toolbar content instances to group.
     public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
 
@@ -23703,7 +21896,7 @@ extension Group : CustomizableToolbarContent where Content : CustomizableToolbar
 
     /// Creates a group of customizable toolbar content instances.
     ///
-    /// - Parameter content: A ``SwiftUI/ToolbarContentBuilder`` that produces
+    /// - Parameter content: A ``SkipUI/ToolbarContentBuilder`` that produces
     /// the customizable toolbar content instances to group.
     public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
 }
@@ -23724,7 +21917,7 @@ extension Group : TableColumnContent where Content : TableColumnContent {
     
     /// Creates a group of table columns.
     ///
-    /// - Parameter content: A ``SwiftUI/TableColumnBuilder`` that produces the
+    /// - Parameter content: A ``SkipUI/TableColumnBuilder`` that produces the
     ///   columns to group.
     @inlinable public init<R, C>(@TableColumnBuilder<R, C> content: () -> Content) where R == Content.TableRowValue, C == Content.TableColumnSortComparator { fatalError() }
 
@@ -23738,7 +21931,7 @@ extension Group : Scene where Content : Scene {
 
     /// Creates a group of scenes.
     ///
-    /// - Parameter content: A ``SwiftUI/SceneBuilder`` that produces the scenes
+    /// - Parameter content: A ``SkipUI/SceneBuilder`` that produces the scenes
     /// to group.
     @inlinable public init(@SceneBuilder content: () -> Content) { fatalError() }
 }
@@ -23758,7 +21951,7 @@ extension Group : TableRowContent where Content : TableRowContent {
 
     /// Creates a group of table rows.
     ///
-    /// - Parameter content: A ``SwiftUI/TableRowBuilder`` that produces the
+    /// - Parameter content: A ``SkipUI/TableRowBuilder`` that produces the
     ///   rows to group.
     @inlinable public init<R>(@TableRowBuilder<R> content: () -> Content) where R == Content.TableRowValue { fatalError() }
 }
@@ -23767,7 +21960,7 @@ extension Group : TableRowContent where Content : TableRowContent {
 extension Group : View where Content : View {
 
     /// Creates a group of views.
-    /// - Parameter content: A ``SwiftUI/ViewBuilder`` that produces the views
+    /// - Parameter content: A ``SkipUI/ViewBuilder`` that produces the views
     /// to group.
     @inlinable public init(@ViewBuilder content: () -> Content) { fatalError() }
     public var body: Never { fatalError() }
@@ -23780,7 +21973,7 @@ extension Group : Commands where Content : Commands {
     
     /// Creates a group of commands.
     ///
-    /// - Parameter content: A ``SwiftUI/CommandsBuilder`` that produces the
+    /// - Parameter content: A ``SkipUI/CommandsBuilder`` that produces the
     /// commands to group.
     @inlinable public init(@CommandsBuilder content: () -> Content) { fatalError() }
 
@@ -23794,9 +21987,9 @@ extension Group : Commands where Content : Commands {
 /// user interface with an optional title for the boxed content.
 ///
 /// The following example sets up a `GroupBox` with the label "End-User
-/// Agreement", and a long `agreementText` string in a ``SwiftUI/Text`` view
-/// wrapped by a ``SwiftUI/ScrollView``. The box also contains a
-/// ``SwiftUI/Toggle`` for the user to interact with after reading the text.
+/// Agreement", and a long `agreementText` string in a ``SkipUI/Text`` view
+/// wrapped by a ``SkipUI/ScrollView``. The box also contains a
+/// ``SkipUI/Toggle`` for the user to interact with after reading the text.
 ///
 ///     var body: some View {
 ///         GroupBox(label:
@@ -23818,7 +22011,7 @@ extension Group : Commands where Content : Commands {
 /// in a large bold font with an icon of a building with columns. Below this,
 /// a scroll view with six lines of text visible. At the bottom of the gray
 /// group box region, a toggle switch with the label I agree to the above
-/// terms.](SwiftUI-GroupBox-EULA.png)
+/// terms.](SkipUI-GroupBox-EULA.png)
 ///
 @available(iOS 14.0, macOS 10.15, *)
 @available(tvOS, unavailable)
@@ -23827,9 +22020,9 @@ public struct GroupBox<Label, Content> : View where Label : View, Content : View
 
     /// Creates a group box with the provided label and view content.
     /// - Parameters:
-    ///   - content: A ``SwiftUI/ViewBuilder`` that produces the content for the
+    ///   - content: A ``SkipUI/ViewBuilder`` that produces the content for the
     ///     group box.
-    ///   - label: A ``SwiftUI/ViewBuilder`` that produces a label for the group
+    ///   - label: A ``SkipUI/ViewBuilder`` that produces a label for the group
     ///     box.
     @available(iOS 14.0, macOS 10.15, *)
     @available(tvOS, unavailable)
@@ -23840,7 +22033,7 @@ public struct GroupBox<Label, Content> : View where Label : View, Content : View
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -23891,7 +22084,7 @@ extension GroupBox where Label == EmptyView {
 
     /// Creates an unlabeled group box with the provided view content.
     /// - Parameters:
-    ///   - content: A ``SwiftUI/ViewBuilder`` that produces the content for
+    ///   - content: A ``SkipUI/ViewBuilder`` that produces the content for
     ///    the group box.
     public init(@ViewBuilder content: () -> Content) { fatalError() }
 }
@@ -23905,14 +22098,14 @@ extension GroupBox where Label == Text {
     /// - Parameters:
     ///   - titleKey: The key for the group box's title, which describes the
     ///     content of the group box.
-    ///   - content: A ``SwiftUI/ViewBuilder`` that produces the content for the
+    ///   - content: A ``SkipUI/ViewBuilder`` that produces the content for the
     ///     group box.
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> Content) { fatalError() }
 
     /// Creates a group box with the provided view content.
     /// - Parameters:
     ///   - title: A string that describes the content of the group box.
-    ///   - content: A ``SwiftUI/ViewBuilder`` that produces the content for the
+    ///   - content: A ``SkipUI/ViewBuilder`` that produces the content for the
     ///     group box.
     public init<S>(_ title: S, @ViewBuilder content: () -> Content) where S : StringProtocol { fatalError() }
 }
@@ -23943,7 +22136,7 @@ public protocol GroupBoxStyle {
 
     /// Creates a view representing the body of a group box.
     ///
-    /// SwiftUI calls this method for each instance of ``SwiftUI/GroupBox``
+    /// SkipUI calls this method for each instance of ``SkipUI/GroupBox``
     /// created within a view hierarchy where this style is the current
     /// group box style.
     ///
@@ -24075,7 +22268,7 @@ public struct GroupedListStyle : ListStyle {
 ///     }
 ///
 /// ![Five text views, named Item 1 through Item 5, arranged in a
-/// horizontal row.](SwiftUI-HStack-simple.png)
+/// horizontal row.](SkipUI-HStack-simple.png)
 ///
 /// > Note: If you need a horizontal stack that conforms to the ``Layout``
 /// protocol, like when you want to create a conditional layout using
@@ -24199,7 +22392,7 @@ extension HStackLayout : Sendable {
 
 /// An alignment position along the horizontal axis.
 ///
-/// Use horizontal alignment guides to tell SwiftUI how to position views
+/// Use horizontal alignment guides to tell SkipUI how to position views
 /// relative to one another horizontally, like when you place views vertically
 /// in an ``VStack``. The following example demonstrates common built-in
 /// horizontal alignments:
@@ -24236,8 +22429,8 @@ extension HStackLayout : Sendable {
 ///         }
 ///     }
 ///
-/// During layout, SwiftUI aligns the views inside each stack by bringing
-/// together the specified guides of the affected views. SwiftUI calculates
+/// During layout, SkipUI aligns the views inside each stack by bringing
+/// together the specified guides of the affected views. SkipUI calculates
 /// the position of a guide for a particular view based on the characteristics
 /// of the view. For example, the ``HorizontalAlignment/center`` guide appears
 /// at half the width of the view. You can override the guide calculation for a
@@ -24690,7 +22883,7 @@ public struct HoverEffect {
 ///
 /// When you use the ``View/onContinuousHover(coordinateSpace:perform:)``
 /// modifier, you can handle the hovering state using the `action` closure.
-/// SwiftUI calls the closure with a phase value to indicate the current
+/// SkipUI calls the closure with a phase value to indicate the current
 /// hovering state. The following example updates `hoverLocation` and
 /// `isHovering` based on the phase provided to the closure:
 ///
@@ -24791,7 +22984,7 @@ public struct IdentityTransition : Transition {
 
 /// A view that displays an image.
 ///
-/// Use an `Image` instance when you want to add images to your SwiftUI app.
+/// Use an `Image` instance when you want to add images to your SkipUI app.
 /// You can create images from many sources:
 ///
 /// * Image files in your app's asset library or bundle. Supported types include
@@ -24878,7 +23071,7 @@ extension Image {
     ///   - name: The name of the image resource to lookup, as well as the
     ///     localization key with which to label the image.
     ///   - bundle: The bundle to search for the image resource and localization
-    ///     content. If `nil`, SwiftUI uses the main `Bundle`. Defaults to `nil`.
+    ///     content. If `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
     public init(_ name: String, bundle: Bundle? = nil) { fatalError() }
 
     /// Creates a labeled image that you can use as content for controls, with
@@ -24887,19 +23080,19 @@ extension Image {
     /// - Parameters:
     ///   - name: The name of the image resource to lookup
     ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SwiftUI uses the main `Bundle`. Defaults to `nil`.
-    ///   - label: The label associated with the image. SwiftUI uses the label
+    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
+    ///   - label: The label associated with the image. SkipUI uses the label
     ///     for accessibility.
     public init(_ name: String, bundle: Bundle? = nil, label: Text) { fatalError() }
 
     /// Creates an unlabeled, decorative image.
     ///
-    /// SwiftUI ignores this image for accessibility purposes.
+    /// SkipUI ignores this image for accessibility purposes.
     ///
     /// - Parameters:
     ///   - name: The name of the image resource to lookup
     ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SwiftUI uses the main `Bundle`. Defaults to `nil`.
+    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
     public init(decorative name: String, bundle: Bundle? = nil) { fatalError() }
 
     /// Creates a system symbol image.
@@ -24977,7 +23170,7 @@ extension Image {
     ///     specified. If the symbol doesn't support variable values, this
     ///     parameter has no effect.
     ///   - bundle: The bundle to search for the image resource and
-    ///     localization content. If `nil`, SwiftUI uses the main
+    ///     localization content. If `nil`, SkipUI uses the main
     ///     `Bundle`. Defaults to `nil`.
     ///
     public init(_ name: String, variableValue: Double?, bundle: Bundle? = nil) { fatalError() }
@@ -25000,8 +23193,8 @@ extension Image {
     ///     specified. If the symbol doesn't support variable values, this
     ///     parameter has no effect.
     ///   - bundle: The bundle to search for the image resource. If
-    ///     `nil`, SwiftUI uses the main `Bundle`. Defaults to `nil`.
-    ///   - label: The label associated with the image. SwiftUI uses
+    ///     `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
+    ///   - label: The label associated with the image. SkipUI uses
     ///     the label for accessibility.
     ///
     public init(_ name: String, variableValue: Double?, bundle: Bundle? = nil, label: Text) { fatalError() }
@@ -25016,7 +23209,7 @@ extension Image {
     /// Symbols](https://developer.apple.com/wwdc22/10158/) for details on
     /// how to create symbols that support variable values.
     ///
-    /// SwiftUI ignores this image for accessibility purposes.
+    /// SkipUI ignores this image for accessibility purposes.
     ///
     /// - Parameters:
     ///   - name: The name of the image resource to lookup.
@@ -25025,7 +23218,7 @@ extension Image {
     ///     specified. If the symbol doesn't support variable values, this
     ///     parameter has no effect.
     ///   - bundle: The bundle to search for the image resource. If
-    ///     `nil`, SwiftUI uses the main `Bundle`. Defaults to `nil`.
+    ///     `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
     ///
     public init(decorative name: String, variableValue: Double?, bundle: Bundle? = nil) { fatalError() }
 }
@@ -25121,7 +23314,7 @@ extension Image : View {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 
-    /// Indicates whether SwiftUI renders an image as-is, or
+    /// Indicates whether SkipUI renders an image as-is, or
     /// by using a different mode.
     ///
     /// The ``TemplateRenderingMode`` enumeration has two cases:
@@ -25143,7 +23336,7 @@ extension Image {
     /// with a darker green border. The circle at the bottom is a solid color,
     /// either white on a black background, or black on a white background,
     /// depending on the system's current dark mode
-    /// setting.](SwiftUI-Image-TemplateRenderingMode-dots.png)
+    /// setting.](SkipUI-Image-TemplateRenderingMode-dots.png)
     ///
     /// You also use `renderingMode` to produce multicolored system graphics
     /// from the SF Symbols set. Use the ``TemplateRenderingMode/original``
@@ -25180,13 +23373,13 @@ extension Image {
     /// icon in a circle with a plus icon overlaid at the bottom left. Each
     /// applies a diffent set of colors based on its rendering mode, as
     /// described in the preceding
-    /// list.](SwiftUI-Image-TemplateRenderingMode-sfsymbols.png)
+    /// list.](SkipUI-Image-TemplateRenderingMode-sfsymbols.png)
     ///
     /// Use the SF Symbols app to find system images that offer the multicolor
     /// feature. Keep in mind that some multicolor symbols use both the
     /// foreground and accent colors.
     ///
-    /// - Parameter renderingMode: The mode SwiftUI uses to render images.
+    /// - Parameter renderingMode: The mode SkipUI uses to render images.
     /// - Returns: A modified ``Image``.
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> Image { fatalError() }
 }
@@ -25201,7 +23394,7 @@ extension Image {
     /// in code. Properly specifying orientation is often important both for
     /// displaying the image and for certain kinds of image processing.
     ///
-    /// In SwiftUI, you provide an orientation value when initializing an
+    /// In SkipUI, you provide an orientation value when initializing an
     /// ``Image`` from an existing
     /// <doc://com.apple.documentation/documentation/coregraphics/cgimage>.
     @frozen public enum Orientation : UInt8, CaseIterable, Hashable {
@@ -25293,7 +23486,7 @@ extension Image {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 
-    /// A type that indicates how SwiftUI renders images.
+    /// A type that indicates how SkipUI renders images.
     public enum TemplateRenderingMode : Sendable {
 
         /// A mode that renders all non-transparent pixels as the foreground
@@ -25361,7 +23554,7 @@ extension Image {
     /// The image next to the Small text is slightly smaller than the text.
     /// The image next to the Medium text matches the size of the text. The
     /// image next to the Large text is larger than the
-    /// text.](SwiftUI-EnvironmentAdditions-Image-scale.png)
+    /// text.](SkipUI-EnvironmentAdditions-Image-scale.png)
     ///
     @available(macOS 11.0, *)
     public enum Scale : Sendable {
@@ -25426,7 +23619,7 @@ extension Image {
     /// performance or image quality.
     public enum Interpolation : Sendable {
 
-        /// A value that indicates SwiftUI doesn't interpolate image data.
+        /// A value that indicates SkipUI doesn't interpolate image data.
         case none
 
         /// A value that indicates a low level of interpolation quality, which may
@@ -25489,12 +23682,12 @@ extension Image {
     /// See the article <doc:Fitting-Images-into-Available-Space> for examples
     /// of using `interpolation(_:)` when scaling an ``Image``.
     /// - Parameter interpolation: The quality level, expressed as a value of
-    /// the `Interpolation` type, that SwiftUI applies when interpolating
+    /// the `Interpolation` type, that SkipUI applies when interpolating
     /// an image.
     /// - Returns: An image with the given interpolation value set.
     public func interpolation(_ interpolation: Image.Interpolation) -> Image { fatalError() }
 
-    /// Specifies whether SwiftUI applies antialiasing when rendering
+    /// Specifies whether SkipUI applies antialiasing when rendering
     /// the image.
     /// - Parameter isAntialiased: A Boolean value that specifies whether to
     /// allow antialiasing. Pass `true` to allow antialising, `false` otherwise.
@@ -25525,14 +23718,14 @@ extension Image {
     ///     with a value like `1.0`, `2.0`, or `3.0`.
     ///   - orientation: The orientation of the image. The default is
     ///     ``Image/Orientation/up``.
-    ///   - label: The label associated with the image. SwiftUI uses the label
+    ///   - label: The label associated with the image. SkipUI uses the label
     ///     for accessibility.
     public init(_ cgImage: CGImage, scale: CGFloat, orientation: Image.Orientation = .up, label: Text) { fatalError() }
 
     /// Creates an unlabeled, decorative image based on a Core Graphics image
     /// instance.
     ///
-    /// SwiftUI ignores this image for accessibility purposes.
+    /// SkipUI ignores this image for accessibility purposes.
     ///
     /// - Parameters:
     ///   - cgImage: The base graphical image.
@@ -25547,8 +23740,8 @@ extension Image {
 @available(macOS, unavailable)
 extension Image {
 
-    /// Creates a SwiftUI image from a UIKit image instance.
-    /// - Parameter uiImage: The UIKit image to wrap with a SwiftUI ``Image``
+    /// Creates a SkipUI image from a UIKit image instance.
+    /// - Parameter uiImage: The UIKit image to wrap with a SkipUI ``Image``
     /// instance.
     public init(uiImage: UIImage) { fatalError() }
 }
@@ -25582,7 +23775,7 @@ extension Image {
     ///
     /// - Parameters:
     ///   - size: The size of the newly-created image.
-    ///   - label: The label associated with the image. SwiftUI uses the label
+    ///   - label: The label associated with the image. SkipUI uses the label
     ///     for accessibility.
     ///   - opaque: A Boolean value that indicates whether the image is fully
     ///     opaque. This may improve performance when `true`. Don't render
@@ -25597,7 +23790,7 @@ extension Image {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 
-    /// The modes that SwiftUI uses to resize an image to fit within
+    /// The modes that SkipUI uses to resize an image to fit within
     /// its containing view.
     public enum ResizingMode : Sendable {
 
@@ -25647,11 +23840,11 @@ extension Image {
         public var hashValue: Int { get { fatalError() } }
     }
 
-    /// Sets the mode by which SwiftUI resizes an image to fit its space.
+    /// Sets the mode by which SkipUI resizes an image to fit its space.
     /// - Parameters:
     ///   - capInsets: Inset values that indicate a portion of the image that
-    ///   SwiftUI doesn't resize.
-    ///   - resizingMode: The mode by which SwiftUI resizes the image.
+    ///   SkipUI doesn't resize.
+    ///   - resizingMode: The mode by which SkipUI resizes the image.
     /// - Returns: An image, with the new resizing behavior set.
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> Image { fatalError() }
 }
@@ -25732,9 +23925,9 @@ extension Image.ResizingMode : Hashable {
     public typealias Resolved = Never
 }
 
-/// An object that creates images from SwiftUI views.
+/// An object that creates images from SkipUI views.
 ///
-/// Use `ImageRenderer` to export bitmap image data from a SwiftUI view. You
+/// Use `ImageRenderer` to export bitmap image data from a SkipUI view. You
 /// initialize the renderer with a view, then render images on demand,
 /// either by calling the ``render(rasterizationScale:renderer:)`` method, or
 /// by using the renderer's properties to create a
@@ -25744,7 +23937,7 @@ extension Image.ResizingMode : Hashable {
 ///
 /// By drawing to a ``Canvas`` and exporting with an `ImageRenderer`,
 /// you can generate images from any progammatically-rendered content, like
-/// paths, shapes, gradients, and more. You can also render standard SwiftUI
+/// paths, shapes, gradients, and more. You can also render standard SkipUI
 /// views like ``Text`` views, or containers of multiple view types.
 ///
 /// The following example uses a private `createAwardView(forUser:date:)` method
@@ -25796,7 +23989,7 @@ extension Image.ResizingMode : Hashable {
 /// renderer to rasterize a new image each time the subscriber receives an
 /// update.
 ///
-/// - Important: `ImageRenderer` output only includes views that SwiftUI renders,
+/// - Important: `ImageRenderer` output only includes views that SkipUI renders,
 /// such as text, images, shapes, and composite views of these types. It
 /// does not render views provided by native platform frameworks (AppKit and
 /// UIKit) such as web views, media players, and some controls. For these views,
@@ -25980,7 +24173,7 @@ extension IndexViewStyle where Self == PageIndexViewStyle {
 /// A collection wrapper that iterates over the indices and identifiers of a
 /// collection together.
 ///
-/// You don't use this type directly. Instead SwiftUI creates this type on
+/// You don't use this type directly. Instead SkipUI creates this type on
 /// your behalf.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct IndexedIdentifierCollection<Base, ID> : Collection where Base : Collection, ID : Hashable {
@@ -26812,8 +25005,8 @@ public struct KeyframeAnimator<Value, KeyframePath, Content> : View where Value 
 
 /// A description of how a value changes over time, modeled using keyframes.
 ///
-/// Unlike other animations in SwiftUI (using ``Animation``), keyframes
-/// don't interpolate between from and to values that SwiftUI provides as
+/// Unlike other animations in SkipUI (using ``Animation``), keyframes
+/// don't interpolate between from and to values that SkipUI provides as
 /// state changes. Instead, keyframes fully define the path that a value
 /// takes over time using the tracks that make up their body.
 ///
@@ -27094,7 +25287,7 @@ public struct Label<Title, Icon> : View where Title : View, Icon : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -27375,7 +25568,7 @@ extension LabelStyleConfiguration.Icon : View {
 ///         }
 ///     }
 ///
-/// Wherever possible, SwiftUI makes this text selectable.
+/// Wherever possible, SkipUI makes this text selectable.
 ///
 /// ### Compositional elements
 ///
@@ -27452,7 +25645,7 @@ extension LabeledContent : View where Label : View, Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -27666,7 +25859,7 @@ public struct LabeledContentStyleConfiguration {
 /// A view that represents the body of a control group with a specified
 /// label.
 ///
-/// You don't create this type directly. SwiftUI creates it when you build
+/// You don't create this type directly. SkipUI creates it when you build
 /// a ``ControlGroup``.
 @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
 @available(watchOS, unavailable)
@@ -27676,7 +25869,7 @@ public struct LabeledControlGroupContent<Content, Label> : View where Content : 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -27699,7 +25892,7 @@ public struct LabeledControlGroupContent<Content, Label> : View where Content : 
 /// A view that represents the view of a toolbar item group with a specified
 /// label.
 ///
-/// You don't create this type directly. SwiftUI creates it when you build
+/// You don't create this type directly. SkipUI creates it when you build
 /// a ``ToolbarItemGroup``.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct LabeledToolbarItemGroupContent<Content, Label> : View where Content : View, Label : View {
@@ -27708,7 +25901,7 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -27923,7 +26116,7 @@ public protocol Layout : Animatable {
     ///
     /// You can optionally use a cache to preserve calculated values across
     /// calls to a layout container's methods. Many layout types don't need
-    /// a cache, because SwiftUI automatically reuses both the results of
+    /// a cache, because SkipUI automatically reuses both the results of
     /// calls into the layout and the values that the layout reads from its
     /// subviews. Rely on the protocol's default implementation of this method
     /// if you don't need a cache.
@@ -27958,7 +26151,7 @@ public protocol Layout : Animatable {
     /// You can use any storage type that makes sense for your layout
     /// algorithm, but be sure that you only store data that you derive
     /// from the layout and its subviews (lazily, if possible). For this to
-    /// work correctly, SwiftUI needs to be able to call this method to
+    /// work correctly, SkipUI needs to be able to call this method to
     /// recreate the cache without changing the layout result.
     ///
     /// When you return a cache from this method, you implicitly define a type
@@ -27968,7 +26161,7 @@ public protocol Layout : Animatable {
     ///
     /// ### Update the cache
     ///
-    /// If the layout container or any of its subviews change, SwiftUI
+    /// If the layout container or any of its subviews change, SkipUI
     /// calls the ``updateCache(_:subviews:)-9hkj9`` method so you can
     /// modify or invalidate the contents of the
     /// cache. The default implementation of that method calls the
@@ -27989,7 +26182,7 @@ public protocol Layout : Animatable {
     /// Updates the layout's cache when something changes.
     ///
     /// If your custom layout container creates a cache by implementing the
-    /// ``makeCache(subviews:)-23agy`` method, SwiftUI calls the update method
+    /// ``makeCache(subviews:)-23agy`` method, SkipUI calls the update method
     /// when your layout or its subviews change, giving you an opportunity
     /// to modify or invalidate the contents of the cache.
     /// The method's default implementation recreates the
@@ -28105,7 +26298,7 @@ public protocol Layout : Animatable {
     /// Because this example isn't flexible, it ignores its size proposal
     /// input and always returns the same value for a given set of subviews.
     ///
-    /// SwiftUI views choose their own size, so the layout engine always
+    /// SkipUI views choose their own size, so the layout engine always
     /// uses a value that you return from this method as the actual size of the
     /// composite view. That size factors into the construction of the `bounds`
     /// input to the ``placeSubviews(in:proposal:subviews:cache:)`` method.
@@ -28129,7 +26322,7 @@ public protocol Layout : Animatable {
 
     /// Assigns positions to each of the layout's subviews.
     ///
-    /// SwiftUI calls your implementation of this method to tell your
+    /// SkipUI calls your implementation of this method to tell your
     /// custom layout container to place its subviews. From this method, call
     /// the ``LayoutSubview/place(at:anchor:proposal:)`` method on each
     /// element in `subviews` to tell the subviews where to appear in the
@@ -28393,7 +26586,7 @@ extension Layout {
     /// Combines the specified views into a single composite view using
     /// the layout algorithms of the custom layout container.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// instantiate a custom layout that conforms to the ``Layout``
     /// protocol:
     ///
@@ -28415,9 +26608,9 @@ extension Layout {
 
 }
 
-/// A direction in which SwiftUI can lay out content.
+/// A direction in which SkipUI can lay out content.
 ///
-/// SwiftUI supports both left-to-right and right-to-left directions
+/// SkipUI supports both left-to-right and right-to-left directions
 /// for laying out content to support different languages and locales.
 /// The system sets the value based on the user's locale, but
 /// you can also use the ``View/environment(_:_:)`` modifier
@@ -28429,7 +26622,7 @@ extension Layout {
 /// You can also read the ``EnvironmentValues/layoutDirection`` environment
 /// value to find out which direction applies to a particular environment.
 /// However, in many cases, you don't need to take any action based on this
-/// value. SwiftUI horizontally flips the x position of each view within its
+/// value. SkipUI horizontally flips the x position of each view within its
 /// parent, so layout calculations automatically produce the desired effect
 /// for both modes without any changes.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -28708,7 +26901,7 @@ public struct LayoutSubview : Equatable {
     /// <doc://com.apple.documentation/documentation/CoreGraphics/CGSize>
     /// instance.
     ///
-    /// - Parameter proposal: A proposed size for the subview. In SwiftUI,
+    /// - Parameter proposal: A proposed size for the subview. In SkipUI,
     ///   views choose their own size, but can take a size proposal from
     ///   their parent view into account when doing so.
     ///
@@ -28738,7 +26931,7 @@ public struct LayoutSubview : Equatable {
     /// If you need only the view's height and width, you can use the
     /// ``sizeThatFits(_:)`` method instead.
     ///
-    /// - Parameter proposal: A proposed size for the subview. In SwiftUI,
+    /// - Parameter proposal: A proposed size for the subview. In SkipUI,
     ///   views choose their own size, but can take a size proposal from
     ///   their parent view into account when doing so.
     ///
@@ -28793,7 +26986,7 @@ public struct LayoutSubview : Equatable {
     ///   - anchor: The unit point on the subview that appears at `position`.
     ///     You can use a built-in point, like ``UnitPoint/center``, or
     ///     you can create a custom ``UnitPoint``.
-    ///   - proposal: A proposed size for the subview. In SwiftUI,
+    ///   - proposal: A proposed size for the subview. In SkipUI,
     ///     views choose their own size, but can take a size proposal from
     ///     their parent view into account when doing so.
     public func place(at position: CGPoint, anchor: UnitPoint = .topLeading, proposal: ProposedViewSize) { fatalError() }
@@ -28843,12 +27036,12 @@ public struct LayoutSubviews : Equatable, RandomAccessCollection, Sendable {
 
     /// The layout direction inherited by the container view.
     ///
-    /// SwiftUI supports both left-to-right and right-to-left directions.
+    /// SkipUI supports both left-to-right and right-to-left directions.
     /// Read this property within a custom layout container
     /// to find out which environment the container is in.
     ///
     /// In most cases, you don't need to take any action based on this
-    /// value. SwiftUI horizontally flips the x position of each view within its
+    /// value. SkipUI horizontally flips the x position of each view within its
     /// parent when the mode switches, so layout calculations automatically
     /// produce the desired effect for both directions.
     public var layoutDirection: LayoutDirection { get { fatalError() } }
@@ -29042,7 +27235,7 @@ public protocol LayoutValueKey {
 /// of the image, with eight columns fully visible.](LazyHGrid-1-iOS)
 ///
 /// You can achieve a similar layout using a ``Grid`` container. Unlike a lazy
-/// grid, which creates child views only when SwiftUI needs to display
+/// grid, which creates child views only when SkipUI needs to display
 /// them, a regular grid creates all of its child views right away. This
 /// enables the grid to provide better support for cell spacing and alignment.
 /// Only use a lazy grid if profiling your app shows that a ``Grid`` view
@@ -29157,7 +27350,7 @@ public struct LazyHStack<Content> : View where Content : View {
 /// visible.](LazyVGrid-1-iOS)
 ///
 /// You can achieve a similar layout using a ``Grid`` container. Unlike a lazy
-/// grid, which creates child views only when SwiftUI needs to display
+/// grid, which creates child views only when SkipUI needs to display
 /// them, a regular grid creates all of its child views right away. This
 /// enables the grid to provide better support for cell spacing and alignment.
 /// Only use a lazy grid if profiling your app shows that a ``Grid`` view
@@ -29289,7 +27482,7 @@ extension LegibilityWeight {
 
 /// A type-erased widget configuration.
 ///
-/// You don't use this type directly. Instead SwiftUI creates this type on
+/// You don't use this type directly. Instead SkipUI creates this type on
 /// your behalf.
 @available(iOS 16.1, macOS 13.0, watchOS 9.1, *)
 @available(tvOS, unavailable)
@@ -29425,7 +27618,7 @@ public struct LinearProgressViewStyle : ProgressViewStyle {
 ///           destination: URL(string: "https://www.example.com/TOS.html")!)
 ///
 /// When a user taps or clicks a `Link`, the default behavior depends on the
-/// contents of the URL. For example, SwiftUI opens a Universal Link in the
+/// contents of the URL. For example, SkipUI opens a Universal Link in the
 /// associated app if possible, or in the user's default web browser if not.
 /// Alternatively, you can override the default behavior by setting the
 /// ``EnvironmentValues/openURL`` environment value with a custom
@@ -29457,7 +27650,7 @@ public struct Link<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -29632,7 +27825,7 @@ extension Link where Label == Text {
 /// control, use the ``View/refreshable(action:)`` modifier.
 ///
 /// The following example shows how to add a standard refresh control to a list.
-/// When the user drags the top of the list downward, SwiftUI reveals the refresh
+/// When the user drags the top of the list downward, SkipUI reveals the refresh
 /// control and executes the specified action. Use an `await` expression
 /// inside the `action` closure to refresh your data. The refresh indicator remains
 /// visible for the duration of the awaited operation.
@@ -29793,7 +27986,7 @@ extension Link where Label == Text {
 ///
 /// ### Styling lists
 ///
-/// SwiftUI chooses a display style for a list based on the platform and the
+/// SkipUI chooses a display style for a list based on the platform and the
 /// view type in which it appears. Use the ``View/listStyle(_:)`` modifier to
 /// apply a different ``ListStyle`` to all lists within a view. For example,
 /// adding `.listStyle(.plain)` to the example shown in the
@@ -30619,10 +28812,10 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
 /// The key used to look up an entry in a strings file or strings dictionary
 /// file.
 ///
-/// Initializers for several SwiftUI types -- such as ``Text``, ``Toggle``,
+/// Initializers for several SkipUI types -- such as ``Text``, ``Toggle``,
 /// ``Picker`` and others --  implicitly look up a localized string when you
 /// provide a string literal. When you use the initializer `Text("Hello")`,
-/// SwiftUI creates a `LocalizedStringKey` for you and uses that to look up a
+/// SkipUI creates a `LocalizedStringKey` for you and uses that to look up a
 /// localization of the `Hello` string. This works because `LocalizedStringKey`
 /// conforms to
 /// <doc://com.apple.documentation/documentation/Swift/ExpressibleByStringLiteral>.
@@ -30640,7 +28833,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
 ///
 /// The following example shows how to create ``Text`` instances both
 /// with and without localization. The title parameter provided to the
-/// ``Section`` is a literal string, so SwiftUI creates a
+/// ``Section`` is a literal string, so SkipUI creates a
 /// `LocalizedStringKey` for it. However, the string entries in the
 /// `messageStore.today` array are `String` variables, so the ``Text`` views
 /// in the list use the string values verbatim.
@@ -30667,7 +28860,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
 /// ![A list with a single section header displayed in Japanese.
 /// The items in the list are all in English: New for Monday, Account update,
 /// and Server
-/// maintenance.](SwiftUI-LocalizedStringKey-Today-List-Japanese.png)
+/// maintenance.](SkipUI-LocalizedStringKey-Today-List-Japanese.png)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct LocalizedStringKey : Equatable, ExpressibleByStringInterpolation {
 
@@ -30687,7 +28880,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
     /// the `\()` string interpolation syntax. Swift matches the parameter
     /// types in the expression to one of the `appendInterpolation` methods
     /// in ``LocalizedStringKey/StringInterpolation``. The interpolated
-    /// types can include numeric values, Foundation types, and SwiftUI
+    /// types can include numeric values, Foundation types, and SkipUI
     /// ``Text`` and ``Image`` instances.
     ///
     /// The following example uses a string interpolation with two arguments:
@@ -31453,7 +29646,7 @@ public struct Menu<Label, Content> : View where Label : View, Content : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -31947,7 +30140,7 @@ extension ModifiedContent : View where Content : View, Modifier : ViewModifier {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -32246,10 +30439,10 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
 //    ///
 //    /// For any scene that you create, provide a computed `body` property that
 //    /// defines the scene as a composition of other scenes. You can assemble a
-//    /// scene from built-in scenes that SwiftUI provides, as well as other
+//    /// scene from built-in scenes that SkipUI provides, as well as other
 //    /// scenes that you've defined.
 //    ///
-//    /// Swift infers the scene's ``SwiftUI/Scene/Body-swift.associatedtype``
+//    /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
 //    /// associated type based on the contents of the `body` property.
 //    @MainActor public var body: ModifiedContent<Content, Modifier>.Body { get { fatalError() } }
 //}
@@ -32741,7 +30934,7 @@ public struct MultiDatePicker<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -33238,7 +31431,7 @@ public struct NavigationLink<Label, Destination> : View where Label : View, Dest
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -33308,15 +31501,15 @@ extension NavigationLink where Destination == Never {
     /// value.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33332,7 +31525,7 @@ extension NavigationLink where Destination == Never {
     ///
     /// - Parameters:
     ///   - value: An optional value to present.
-    ///     When the user selects the link, SwiftUI stores a copy of the value.
+    ///     When the user selects the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     ///   - label: A label that describes the view that this link presents.
     public init<P>(value: P?, @ViewBuilder label: () -> Label) where P : Hashable { fatalError() }
@@ -33342,15 +31535,15 @@ extension NavigationLink where Destination == Never {
     /// localized string key.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33368,7 +31561,7 @@ extension NavigationLink where Destination == Never {
     ///   - titleKey: A localized string that describes the view that this link
     ///     presents.
     ///   - value: An optional value to present.
-    ///     When the user selects the link, SwiftUI stores a copy of the value.
+    ///     When the user selects the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     public init<P>(_ titleKey: LocalizedStringKey, value: P?) where Label == Text, P : Hashable { fatalError() }
 
@@ -33377,15 +31570,15 @@ extension NavigationLink where Destination == Never {
     /// title string.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33402,7 +31595,7 @@ extension NavigationLink where Destination == Never {
     /// - Parameters:
     ///   - title: A string that describes the view that this link presents.
     ///   - value: An optional value to present.
-    ///     When the user selects the link, SwiftUI stores a copy of the value.
+    ///     When the user selects the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     public init<S, P>(_ title: S, value: P?) where Label == Text, S : StringProtocol, P : Hashable { fatalError() }
 
@@ -33410,15 +31603,15 @@ extension NavigationLink where Destination == Never {
     /// codable value.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33436,7 +31629,7 @@ extension NavigationLink where Destination == Never {
     ///
     /// - Parameters:
     ///   - value: An optional value to present.
-    ///     When the user selects the link, SwiftUI stores a copy of the value.
+    ///     When the user selects the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     ///   - label: A label that describes the view that this link presents.
     public init<P>(value: P?, @ViewBuilder label: () -> Label) where P : Decodable, P : Encodable, P : Hashable { fatalError() }
@@ -33446,15 +31639,15 @@ extension NavigationLink where Destination == Never {
     /// localized string key.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33474,7 +31667,7 @@ extension NavigationLink where Destination == Never {
     ///   - titleKey: A localized string that describes the view that this link
     ///     presents.
     ///   - value: An optional value to present. When someone
-    ///     taps or clicks the link, SwiftUI stores a copy of the value.
+    ///     taps or clicks the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     public init<P>(_ titleKey: LocalizedStringKey, value: P?) where Label == Text, P : Decodable, P : Encodable, P : Hashable { fatalError() }
 
@@ -33483,15 +31676,15 @@ extension NavigationLink where Destination == Never {
     /// title string.
     ///
     /// When someone activates the navigation link that this initializer
-    /// creates, SwiftUI looks for a nearby
+    /// creates, SkipUI looks for a nearby
     /// ``View/navigationDestination(for:destination:)`` view modifier
     /// with a `data` input parameter that matches the type of this
     /// initializer's `value` input, with one of the following outcomes:
     ///
-    /// * If SwiftUI finds a matching modifier within the view hierarchy of an
+    /// * If SkipUI finds a matching modifier within the view hierarchy of an
     ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
     ///   `destination` view onto the stack.
-    /// * If SwiftUI finds a matching modifier in the view hierarchy of a stack
+    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
     ///   that's in a later column of a ``NavigationSplitView``, it puts the
     ///   modifier's destination view as the first and only item onto the stack
     ///   while preserving the stack's root view.
@@ -33510,7 +31703,7 @@ extension NavigationLink where Destination == Never {
     /// - Parameters:
     ///   - title: A string that describes the view that this link presents.
     ///   - value: An optional value to present.
-    ///     When the user selects the link, SwiftUI stores a copy of the value.
+    ///     When the user selects the link, SkipUI stores a copy of the value.
     ///     Pass a `nil` value to disable the link.
     public init<S, P>(_ title: S, value: P?) where Label == Text, S : StringProtocol, P : Decodable, P : Encodable, P : Hashable { fatalError() }
 }
@@ -34033,12 +32226,12 @@ extension NavigationPath.CodableRepresentation : Equatable {
 /// ### Collapsed split views
 ///
 /// At narrow size classes, such as on iPhone or Apple Watch, a navigation split
-/// view collapses into a single stack. Typically SwiftUI automatically chooses
+/// view collapses into a single stack. Typically SkipUI automatically chooses
 /// the view to show on top of this single stack, based on the content of the
 /// split view's columns.
 ///
 /// For custom navigation experiences, you can provide more information to help
-/// SwiftUI choose the right column. Create a `State` value of type
+/// SkipUI choose the right column. Create a `State` value of type
 /// ``NavigationSplitViewColumn``. Then pass a `Binding` to that state to the
 /// appropriate initializer, such as
 /// ``init(preferredCompactColumn:sidebar:detail:)`` or
@@ -34118,7 +32311,7 @@ public struct NavigationSplitView<Sidebar, Content, Detail> : View where Sidebar
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -34260,7 +32453,7 @@ public protocol NavigationSplitViewStyle {
 
     /// Creates a view that represents the body of a navigation split view.
     ///
-    /// SwiftUI calls this method for each instance of ``NavigationSplitView``,
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
@@ -34495,7 +32688,7 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -34673,7 +32866,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
 /// A property wrapper type that subscribes to an observable object and
 /// invalidates a view whenever the observable object changes.
 ///
-/// Add the `@ObservedObject` attribute to a parameter of a SwiftUI ``View``
+/// Add the `@ObservedObject` attribute to a parameter of a SkipUI ``View``
 /// when the input is an
 /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
 /// and you want the view to update when the object's published properties
@@ -34705,7 +32898,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
 ///         }
 ///     }
 ///
-/// When any published property of the observable object changes, SwiftUI
+/// When any published property of the observable object changes, SkipUI
 /// updates any view that depends on the object. Subviews can
 /// also make updates to the model properties, like the ``Toggle`` in the
 /// above example, that propagate to other observers throughout the view
@@ -34770,7 +32963,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
     ///
     /// Explicitly calling the observed object initializer in `MySubView` would
     /// behave correctly, but would needlessly recreate the same observed object
-    /// instance every time SwiftUI calls the view's initializer to redraw the
+    /// instance every time SkipUI calls the view's initializer to redraw the
     /// view.
     ///
     /// - Parameter wrappedValue: An initial value for the observable object.
@@ -34780,7 +32973,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
     ///
     /// The wrapped value property provides primary access to the observed
     /// object's data. However, you don't typically access it by name. Instead,
-    /// SwiftUI accesses this property for you when you refer to the variable
+    /// SkipUI accesses this property for you when you refer to the variable
     /// that you create with the `@ObservedObject` attribute.
     ///
     ///     struct MySubView: View {
@@ -34792,7 +32985,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
     ///     }
     ///
     /// When you change a wrapped value, you can access the new value
-    /// immediately. However, SwiftUI updates views that display the value
+    /// immediately. However, SkipUI updates views that display the value
     /// asynchronously, so the interface might not update immediately.
     @MainActor public var wrappedValue: ObjectType { get { fatalError() } }
 
@@ -34835,7 +33028,7 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -34993,7 +33186,7 @@ public struct OpacityTransition : Transition {
 ///             return .handled
 ///         })
 ///
-/// SwiftUI translates the value that your custom action's handler
+/// SkipUI translates the value that your custom action's handler
 /// returns into an appropriate Boolean result for the action call.
 /// For example, a view that uses the action declared above
 /// receives `true` when calling the action, because the
@@ -35008,9 +33201,9 @@ public struct OpenURLAction {
     ///
     /// * Use ``handled`` to indicate that the handler opened the URL.
     /// * Use ``discarded`` to indicate that the handler discarded the URL.
-    /// * Use ``systemAction`` without an argument to ask SwiftUI
+    /// * Use ``systemAction`` without an argument to ask SkipUI
     ///   to open the URL with the system handler.
-    /// * Use ``systemAction(_:)`` with a URL argument to ask SwiftUI
+    /// * Use ``systemAction(_:)`` with a URL argument to ask SkipUI
     ///   to open the specified URL with the system handler.
     ///
     /// You can use the last option to transform URLs, while
@@ -35068,7 +33261,7 @@ public struct OpenURLAction {
     /// built-in ``Link`` view and ``Text`` views with markdown links, or
     /// links in attributed strings, use your action.
     ///
-    /// SwiftUI translates the value that your custom action's handler
+    /// SkipUI translates the value that your custom action's handler
     /// returns into an appropriate Boolean result for the action call.
     /// For example, a view that uses the action declared above
     /// receives `true` when calling the action, because the
@@ -35082,7 +33275,7 @@ public struct OpenURLAction {
 
     /// Opens a URL, following system conventions.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``OpenURLAction`` structure that you get from the
     /// ``Environment``, using a URL as an argument:
     ///
@@ -35110,7 +33303,7 @@ public struct OpenURLAction {
 
     /// Asynchronously opens a URL, following system conventions.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``OpenURLAction`` structure that you get from the
     /// ``Environment``, using a URL and a completion handler as arguments:
     ///
@@ -35205,7 +33398,7 @@ public struct OpenWindowAction {
     /// Opens a window defined by a window group that presents the type of
     /// the specified value.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/openWindow`` action with a value:
     ///
     ///     openWindow(value: message.id)
@@ -35220,7 +33413,7 @@ public struct OpenWindowAction {
 
     /// Opens a window that's associated with the specified identifier.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/openWindow`` action with an identifier:
     ///
     ///     openWindow(id: "message")
@@ -35236,7 +33429,7 @@ public struct OpenWindowAction {
     /// Opens a window defined by the window group that presents the specified
     /// value type and that's associated with the specified identifier.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``EnvironmentValues/openWindow`` action with an identifier
     /// and a value:
     ///
@@ -35612,7 +33805,7 @@ extension OutlineGroup : View where Parent : View, Leaf : View, Subgroup : View 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -35977,7 +34170,7 @@ public struct PaletteSelectionEffect : Sendable, Equatable {
 ///
 /// ![macOS window titled PasteButton Demo showing (from left to right) a button
 /// labeled Paste, a vertical divider, and some pasted
-/// text.](SwiftUI-PasteButton-pastedText.png)
+/// text.](SkipUI-PasteButton-pastedText.png)
 ///
 /// A paste button automatically validates and invalidates based on changes to
 /// the pasteboard on iOS, but not on macOS.
@@ -36017,7 +34210,7 @@ public struct PasteButton : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -36445,7 +34638,7 @@ extension Path {
     /// direction in which the arc is created; the actual direction of
     /// the final path is dependent on the `transform` parameter and
     /// the current transform of a context where the path is drawn.
-    /// However, because SwiftUI by default uses a vertically-flipped
+    /// However, because SkipUI by default uses a vertically-flipped
     /// coordinate system (with the origin in the top-left of the
     /// view), specifying a clockwise arc results in a counterclockwise
     /// arc after the transformation is applied.
@@ -36484,7 +34677,7 @@ extension Path {
     /// arc is created; the actual direction of the final path is
     /// dependent on the `transform` parameter and the current
     /// transform of a context where the path is drawn. However,
-    /// because SwiftUI by default uses a vertically-flipped coordinate
+    /// because SkipUI by default uses a vertically-flipped coordinate
     /// system (with the origin in the top-left of the view),
     /// specifying a clockwise arc results in a counterclockwise arc
     /// after the transformation is applied.
@@ -36863,7 +35056,7 @@ public struct PhaseAnimator<Phase, Content> : View where Phase : Equatable, Cont
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -37041,7 +35234,7 @@ public struct Picker<Label, SelectionValue, Content> : View where Label : View, 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -37557,7 +35750,7 @@ public struct PinnedScrollableViews : OptionSet, Sendable {
 /// A placeholder used to construct an inline modifier, transition, or other
 /// helper type.
 ///
-/// You don't use this type directly. Instead SwiftUI creates this type on
+/// You don't use this type directly. Instead SkipUI creates this type on
 /// your behalf.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 public struct PlaceholderContentView<Value> : View {
@@ -37658,7 +35851,7 @@ public enum PopoverAttachmentAnchor {
     case rect(Anchor<CGRect>.Source)
 
     /// The anchor point for the popover expressed as a unit point  that
-    /// describes possible alignments relative to a SwiftUI view.
+    /// describes possible alignments relative to a SkipUI view.
     case point(UnitPoint)
 }
 
@@ -37766,7 +35959,7 @@ public struct PresentationBackgroundInteraction : Sendable {
     /// People can interact with the view behind a presentation up through a
     /// specified detent.
     ///
-    /// At detents larger than the one you specify, SwiftUI disables
+    /// At detents larger than the one you specify, SkipUI disables
     /// interaction.
     ///
     /// - Parameter detent: The largest detent at which people can interact with
@@ -37911,23 +36104,23 @@ public struct PresentedWindowContent<Data, Content> : View where Data : Decodabl
     public var body: Body { fatalError() }
 }
 
-/// Creates a preview of a SwiftUI view.
+/// Creates a preview of a SkipUI view.
 ///
 /// - Parameters:
 ///   - name: Optional display name for the preview, which appears in the canvas.
 ///   - traits: Trait customizing the appearance of the preview.
 ///   - additionalTraits: Optional additional traits.
-///   - body: A closure producing a SwiftUI view.
+///   - body: A closure producing a SkipUI view.
 //@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-//@freestanding(declaration) public macro Preview(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>, _ additionalTraits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) = #externalMacro(module: "PreviewsMacros", type: "SwiftUIView")
+//@freestanding(declaration) public macro Preview(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>, _ additionalTraits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) = #externalMacro(module: "PreviewsMacros", type: "SkipUIView")
 
-/// Creates a preview of a SwiftUI view.
+/// Creates a preview of a SkipUI view.
 ///
 /// - Parameters:
 ///   - name: Optional display name for the preview, which appears in the canvas.
-///   - body: A closure producing a SwiftUI view.
+///   - body: A closure producing a SkipUI view.
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-//@freestanding(declaration) public macro Preview(_ name: String? = nil, body: @escaping () -> View) = #externalMacro(module: "PreviewsMacros", type: "SwiftUIView")
+//@freestanding(declaration) public macro Preview(_ name: String? = nil, body: @escaping () -> View) = #externalMacro(module: "PreviewsMacros", type: "SkipUIView")
 
 /// A context type for use with a preview.
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -38144,9 +36337,9 @@ extension PreviewPlatform : Hashable {
 /// iPhone in the portrait orientation.](PreviewProvider-1)
 ///
 /// When you create a new file (File > New > File)
-/// and choose the SwiftUI view template, Xcode automatically inserts a
+/// and choose the SkipUI view template, Xcode automatically inserts a
 /// preview structure at the bottom of the file that you can configure.
-/// You can also create new preview structures in an existing SwiftUI
+/// You can also create new preview structures in an existing SkipUI
 /// view file by choosing Editor > Create Preview.
 ///
 /// Customize the preview's appearance by adding view modifiers, just like you
@@ -38511,7 +36704,7 @@ public struct PrimitiveButtonStyleConfiguration {
 /// ![Two horizontal progress views, one at 25 percent complete and the other at 75 percent,
 /// each rendered with a rounded pink border.](ProgressView-4-macOS)
 ///
-/// SwiftUI provides two built-in progress view styles,
+/// SkipUI provides two built-in progress view styles,
 /// ``ProgressViewStyle/linear`` and ``ProgressViewStyle/circular``, as well as
 /// an automatic style that defaults to the most appropriate style in the
 /// current context. The following example shows a circular progress view that
@@ -38540,7 +36733,7 @@ public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -39151,7 +37344,7 @@ public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle
 
     /// Creates a view that represents the body of a navigation split view.
     ///
-    /// SwiftUI calls this method for each instance of ``NavigationSplitView``,
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
@@ -39164,7 +37357,7 @@ public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle
 
 /// A proposal for the size of a view.
 ///
-/// During layout in SwiftUI, views choose their own size, but they do that
+/// During layout in SkipUI, views choose their own size, but they do that
 /// in response to a size proposal from their parent view. When you create
 /// a custom layout using the ``Layout`` protocol, your layout container
 /// participates in this process using `ProposedViewSize` instances.
@@ -39519,7 +37712,7 @@ public struct RedactionReasons : OptionSet, Sendable {
 ///   structure --- use ``FileDocument`` instead.
 ///
 /// Ensure that types that conform to this protocol are thread-safe.
-/// In particular, SwiftUI calls the protocol's methods on a background
+/// In particular, SkipUI calls the protocol's methods on a background
 /// thread. Don't use that thread to perform user interface updates.
 /// Use it only to serialize and deserialize the document data.
 @available(iOS 14.0, macOS 11.0, *)
@@ -39530,9 +37723,9 @@ public protocol ReferenceFileDocument : ObservableObject {
     /// A type that represents the document's stored content.
     ///
     /// Define this type to represent all the data that your document stores.
-    /// When someone issues a Save command, SwiftUI asks your document for a
+    /// When someone issues a Save command, SkipUI asks your document for a
     /// value of this type by calling the document's ``snapshot(contentType:)``
-    /// method. SwiftUI sends the snapshot that you provide to the document's
+    /// method. SkipUI sends the snapshot that you provide to the document's
     /// ``fileWrapper(snapshot:configuration:)`` method, where you serialize
     /// the contents of the snapshot into a file wrapper.
     associatedtype Snapshot
@@ -39540,7 +37733,7 @@ public protocol ReferenceFileDocument : ObservableObject {
     /// The file and data types that the document reads from.
     ///
     /// Define this list to indicate the content types that your document can
-    /// read. By default, SwiftUI assumes that your document can also write
+    /// read. By default, SkipUI assumes that your document can also write
     /// the same set of content types. If you need to indicate a different set
     /// of types for writing files, define the ``writableContentTypes-6x6w9``
     /// property in addition to this property.
@@ -39548,7 +37741,7 @@ public protocol ReferenceFileDocument : ObservableObject {
 
     /// The file types that the document supports saving or exporting to.
     ///
-    /// By default, SwiftUI assumes that your document reads and writes the
+    /// By default, SkipUI assumes that your document reads and writes the
     /// same set of content types. Only define this property if you need to
     /// indicate a different set of types for writing files. Otherwise, the
     /// default implementation of this property returns the list that you
@@ -39557,7 +37750,7 @@ public protocol ReferenceFileDocument : ObservableObject {
 
     /// Creates a document and initializes it with the contents of a file.
     ///
-    /// SwiftUI calls this initializer when someone opens a file type
+    /// SkipUI calls this initializer when someone opens a file type
     /// that matches one of those that your document type supports.
     /// Use the ``FileDocumentReadConfiguration/file`` property of the
     /// `configuration` input to get document's data. Deserialize the data,
@@ -39574,7 +37767,7 @@ public protocol ReferenceFileDocument : ObservableObject {
     /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
     /// and that you store a `model` property of that type inside your document.
     ///
-    /// > Note: SwiftUI calls this method on a background thread. Don't
+    /// > Note: SkipUI calls this method on a background thread. Don't
     ///   make user interface changes from that thread.
     ///
     /// - Parameter configuration: Information about the file that you read
@@ -39593,7 +37786,7 @@ public protocol ReferenceFileDocument : ObservableObject {
     /// Creates a snapshot that represents the current state of the document.
     ///
     /// To store a document --- for example, in response to a Save command ---
-    /// SwiftUI begins by calling this method. Return a copy of the document's
+    /// SkipUI begins by calling this method. Return a copy of the document's
     /// content from your implementation of the method. For example, you might
     /// define an initializer for your document's model object that copies the
     /// contents of the document's instance, and return that:
@@ -39602,13 +37795,13 @@ public protocol ReferenceFileDocument : ObservableObject {
     ///         Model(from: model) // Creates a copy.
     ///     }
     ///
-    /// SwiftUI prevents document edits during the snapshot operation to ensure
-    /// that the model state remains coherent. After the call completes, SwiftUI
+    /// SkipUI prevents document edits during the snapshot operation to ensure
+    /// that the model state remains coherent. After the call completes, SkipUI
     /// reenables edits, and then calls the
     /// ``fileWrapper(snapshot:configuration:)`` method, where you serialize
     /// the snapshot and store it to a file.
     ///
-    /// > Note: SwiftUI calls this method on a background thread. Don't
+    /// > Note: SkipUI calls this method on a background thread. Don't
     ///   make user interface changes from that thread.
     ///
     /// - Parameter contentType: The content type that you create the
@@ -39622,8 +37815,8 @@ public protocol ReferenceFileDocument : ObservableObject {
     /// Serializes a document snapshot to a file wrapper.
     ///
     /// To store a document --- for example, in response to a Save command ---
-    /// SwiftUI begins by calling the ``snapshot(contentType:)`` method to get
-    /// a copy of the document data in its current state. Then SwiftUI passes
+    /// SkipUI begins by calling the ``snapshot(contentType:)`` method to get
+    /// a copy of the document data in its current state. Then SkipUI passes
     /// that snapshot to this method, where you serialize it and create or
     /// modify a file wrapper with the serialized data:
     ///
@@ -39632,11 +37825,11 @@ public protocol ReferenceFileDocument : ObservableObject {
     ///         return FileWrapper(regularFileWithContents: data)
     ///     }
     ///
-    /// SwiftUI disables document edits during the snapshot to ensure that the
+    /// SkipUI disables document edits during the snapshot to ensure that the
     /// document's data remains coherent, but reenables edits during the
     /// serialization operation.
     ///
-    /// > Note: SwiftUI calls this method on a background thread. Don't
+    /// > Note: SkipUI calls this method on a background thread. Don't
     ///   make user interface changes from that thread.
     ///
     /// - Parameters:
@@ -39667,7 +37860,7 @@ extension ReferenceFileDocument {
 
     /// The file types that the document supports saving or exporting to.
     ///
-    /// By default, SwiftUI assumes that your document reads and writes the
+    /// By default, SkipUI assumes that your document reads and writes the
     /// same set of content types. Only define this property if you need to
     /// indicate a different set of types for writing files. Otherwise, the
     /// default implementation of this property returns the list that you
@@ -39688,7 +37881,7 @@ extension ReferenceFileDocument {
     /// The current document model.
     ///
     /// Changes to the document dirty the document state, indicating that it
-    /// needs to be saved. SwiftUI doesn't automatically register undo actions.
+    /// needs to be saved. SkipUI doesn't automatically register undo actions.
     /// You have to manage undo operations yourself, as demonstrated in
     /// <doc://com.apple.documentation/documentation/swiftui/building_a_document-based_app_with_swiftui>.
     //@ObservedObject @MainActor public var document: Document { get { fatalError() } }
@@ -39725,7 +37918,7 @@ extension ReferenceFileDocument {
 /// On iOS and iPadOS, the ``List`` in the example above offers a
 /// pull to refresh gesture because it detects the refresh action. When
 /// the user drags the list down and releases, the list calls the action's
-/// handler. Because SwiftUI declares the handler as asynchronous, it can
+/// handler. Because SkipUI declares the handler as asynchronous, it can
 /// safely make long-running asynchronous calls, like fetching network data.
 ///
 /// ### Refreshing custom views
@@ -39769,7 +37962,7 @@ public struct RefreshAction : Sendable {
 
     /// Initiates a refresh action.
     ///
-    /// Don't call this method directly. SwiftUI calls it when you
+    /// Don't call this method directly. SkipUI calls it when you
     /// call the ``RefreshAction`` structure that you get from the
     /// ``Environment``:
     ///
@@ -39852,7 +38045,7 @@ public struct RenameButton<LabelX> : View where LabelX : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -39975,7 +38168,7 @@ public struct RotateGesture : Gesture {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -40321,7 +38514,7 @@ public struct ScaleTransition : Transition {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -40362,13 +38555,13 @@ public struct ScaleTransition : Transition {
 /// A part of an app's user interface with a life cycle managed by the
 /// system.
 ///
-/// You create an ``SwiftUI/App`` by combining one or more instances
+/// You create an ``SkipUI/App`` by combining one or more instances
 /// that conform to the `Scene` protocol in the app's
-/// ``SwiftUI/App/body-swift.property``. You can use the built-in scenes that
-/// SwiftUI provides, like ``SwiftUI/WindowGroup``, along with custom scenes
+/// ``SkipUI/App/body-swift.property``. You can use the built-in scenes that
+/// SkipUI provides, like ``SkipUI/WindowGroup``, along with custom scenes
 /// that you compose from other scenes. To create a custom scene, declare a
 /// type that conforms to the `Scene` protocol. Implement the required
-/// ``SwiftUI/Scene/body-swift.property`` computed property and provide the
+/// ``SkipUI/Scene/body-swift.property`` computed property and provide the
 /// content for your custom scene:
 ///
 ///     struct MyScene: Scene {
@@ -40387,11 +38580,11 @@ public struct ScaleTransition : Transition {
 /// `MyRootView` on platforms like macOS and iPadOS. On other platforms, the
 /// same view hierarchy might consume the entire display when active.
 ///
-/// Read the ``SwiftUI/EnvironmentValues/scenePhase`` environment
+/// Read the ``SkipUI/EnvironmentValues/scenePhase`` environment
 /// value from within a scene or one of its views to check whether a scene is
 /// active or in some other state. You can create a property that contains the
-/// scene phase, which is one of the values in the ``SwiftUI/ScenePhase``
-/// enumeration, using the ``SwiftUI/Environment`` attribute:
+/// scene phase, which is one of the values in the ``SkipUI/ScenePhase``
+/// enumeration, using the ``SkipUI/Environment`` attribute:
 ///
 ///     struct MyScene: Scene {
 ///         @Environment(\.scenePhase) private var scenePhase
@@ -40401,7 +38594,7 @@ public struct ScaleTransition : Transition {
 ///
 /// The `Scene` protocol provides scene modifiers, defined as protocol methods
 /// with default implementations, that you use to configure a scene. For
-/// example, you can use the ``SwiftUI/Scene/onChange(of:perform:)`` modifier to
+/// example, you can use the ``SkipUI/Scene/onChange(of:perform:)`` modifier to
 /// trigger an action when a value changes. The following code empties a cache
 /// when all of the scenes in the window group have moved to the background:
 ///
@@ -40426,7 +38619,7 @@ public protocol Scene {
     /// The type of scene that represents the body of this scene.
     ///
     /// When you create a custom scene, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Scene/body-swift.property``
+    /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
     associatedtype Body : Scene
 
@@ -40434,10 +38627,10 @@ public protocol Scene {
     ///
     /// For any scene that you create, provide a computed `body` property that
     /// defines the scene as a composition of other scenes. You can assemble a
-    /// scene from built-in scenes that SwiftUI provides, as well as other
+    /// scene from built-in scenes that SkipUI provides, as well as other
     /// scenes that you've defined.
     ///
-    /// Swift infers the scene's ``SwiftUI/Scene/Body-swift.associatedtype``
+    /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
     /// associated type based on the contents of the `body` property.
     @SceneBuilder @MainActor var body: Self.Body { get }
 }
@@ -40707,8 +38900,8 @@ extension Scene {
     /// Adds an action to perform when the given value changes.
     ///
     /// Use this modifier to trigger a side effect when a value changes, like
-    /// the value associated with an ``SwiftUI/Environment`` value or a
-    /// ``SwiftUI/Binding``. For example, you can clear a cache when you notice
+    /// the value associated with an ``SkipUI/Environment`` value or a
+    /// ``SkipUI/Binding``. For example, you can clear a cache when you notice
     /// that a scene moves to the background:
     ///
     ///     struct MyScene: Scene {
@@ -40791,8 +38984,8 @@ extension Scene {
     /// Adds an action to perform when the given value changes.
     ///
     /// Use this modifier to trigger a side effect when a value changes, like
-    /// the value associated with an ``SwiftUI/Environment`` key or a
-    /// ``SwiftUI/Binding``. For example, you can clear a cache when you notice
+    /// the value associated with an ``SkipUI/Environment`` key or a
+    /// ``SkipUI/Binding``. For example, you can clear a cache when you notice
     /// that a scene moves to the background:
     ///
     ///     struct MyScene: Scene {
@@ -40847,8 +39040,8 @@ extension Scene {
     /// Adds an action to perform when the given value changes.
     ///
     /// Use this modifier to trigger a side effect when a value changes, like
-    /// the value associated with an ``SwiftUI/Environment`` key or a
-    /// ``SwiftUI/Binding``. For example, you can clear a cache when you notice
+    /// the value associated with an ``SkipUI/Environment`` key or a
+    /// ``SkipUI/Binding``. For example, you can clear a cache when you notice
     /// that a scene moves to the background:
     ///
     ///     struct MyScene: Scene {
@@ -41096,7 +39289,7 @@ public struct ScenePadding : Equatable, Sendable {
 /// How you interpret the value depends on where it's read from.
 /// If you read the phase from inside a ``View`` instance, you obtain a value
 /// that reflects the phase of the scene that contains the view. The following
-/// example uses the ``SwiftUI/View/onChange(of:perform:)`` method to enable
+/// example uses the ``SkipUI/View/onChange(of:perform:)`` method to enable
 /// a timer whenever the enclosing scene enters the ``ScenePhase/active`` phase
 /// and disable the timer when entering any other phase:
 ///
@@ -41635,7 +39828,7 @@ public struct ScrollTarget {
 ///
 /// ### Paging Behavior
 ///
-/// SwiftUI offers built in scroll behaviors. One such behavior
+/// SkipUI offers built in scroll behaviors. One such behavior
 /// is the ``PagingScrollTargetBehavior`` which uses the geometry of the scroll
 /// view to decide where to allow scrolls to end.
 ///
@@ -41654,7 +39847,7 @@ public struct ScrollTarget {
 ///
 /// ### View Aligned Behavior
 ///
-/// SwiftUI also offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
+/// SkipUI also offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
 /// that will always settle on the geometry of individual views.
 ///
 ///     ScrollView(.horizontal) {
@@ -42093,7 +40286,7 @@ extension ScrollTransitionPhase : Hashable {
 /// ![A scroll view with a series of vertically arranged rows, reading
 /// Row 1, Row 2, and so on. At the right, a scrollbar indicates that
 /// this is the top of the scrollable
-/// area.](SwiftUI-ScrollView-rows-with-indicator.png)
+/// area.](SkipUI-ScrollView-rows-with-indicator.png)
 ///
 /// ### Controlling Scroll Position
 ///
@@ -42123,7 +40316,7 @@ extension ScrollTransitionPhase : Hashable {
 /// of the scroll view will no longer have any affect.
 ///
 /// The default initial anchor of a scroll view depends on the scrollable
-/// axes of that scroll view and the version of SwiftUI your app links against:
+/// axes of that scroll view and the version of SkipUI your app links against:
 /// - When linked on or after iOS 17.0, macOS 14.0, tvOS 17.0 or watchOS 10.0,
 ///   a scroll view defaults to the top leading anchor regardless
 ///   of the scrollable axes.
@@ -42276,7 +40469,7 @@ public struct ScrollViewProxy {
 /// ![A scroll view, with a button labeled "Scroll to Bottom" at top.
 /// Below this, a series of vertically aligned rows, each filled with a
 /// color, that are progressing from green to
-/// red.](SwiftUI-ScrollViewReader-scroll-to-bottom-button.png)
+/// red.](SkipUI-ScrollViewReader-scroll-to-bottom-button.png)
 ///
 /// > Important: You may not use the ``ScrollViewProxy``
 /// during execution of the `content` view builder; doing so results in a
@@ -42301,7 +40494,7 @@ public struct ScrollViewProxy {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -42335,12 +40528,12 @@ public struct ScrollViewProxy {
 ///         .searchable(text: $text, placement: .sidebar)
 ///     }
 ///
-/// Depending on the containing view hierachy, SwiftUI might not be able to
+/// Depending on the containing view hierachy, SkipUI might not be able to
 /// fulfill your request.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public struct SearchFieldPlacement : Sendable {
 
-    /// SwiftUI places the search field automatically.
+    /// SkipUI places the search field automatically.
     ///
     /// Placement of the search field depends on the platform:
     /// * In iOS, iPadOS, and macOS, the search field appears in the toolbar.
@@ -42367,7 +40560,7 @@ public struct SearchFieldPlacement : Sendable {
     /// * In macOS, the search field appears inline with the sidebar's content.
     ///
     /// If a sidebar isn't available, like when you apply the searchable
-    /// modifier to a view other than a navigation split view, SwiftUI uses
+    /// modifier to a view other than a navigation split view, SkipUI uses
     /// automatic placement instead.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
@@ -42443,9 +40636,9 @@ public struct SearchScopeActivation {
     public static var onSearchPresentation: SearchScopeActivation { get { fatalError() } }
 }
 
-/// The ways that SwiftUI displays search suggestions.
+/// The ways that SkipUI displays search suggestions.
 ///
-/// You can influence which modes SwiftUI displays search suggestions for by
+/// You can influence which modes SkipUI displays search suggestions for by
 /// using the ``View/searchSuggestions(_:for:)`` modifier:
 ///
 ///     enum FruitSuggestion: String, Identifiable {
@@ -42467,7 +40660,7 @@ public struct SearchScopeActivation {
 ///             }
 ///     }
 ///
-/// In the above example, SwiftUI only displays search suggestions in
+/// In the above example, SkipUI only displays search suggestions in
 /// a suggestions menu. You might want to do this when you want to
 /// render search suggestions in a container, like inline with
 /// your own set of search results.
@@ -42540,14 +40733,14 @@ public struct SearchSuggestionsPlacement : Equatable, Sendable {
 
 /// A structure that represents the body of a static placeholder search view.
 ///
-/// You don't create this type directly. SwiftUI creates it when you build
+/// You don't create this type directly. SkipUI creates it when you build
 /// a search``ContentUnavailableView``.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 public struct SearchUnavailableContent {
 
     /// A view that represents the label of a static placeholder search view.
     ///
-    /// You don't create this type directly. SwiftUI creates it when you build
+    /// You don't create this type directly. SkipUI creates it when you build
     /// a search``ContentUnavailableView``.
     public struct Label : View {
 
@@ -42555,7 +40748,7 @@ public struct SearchUnavailableContent {
         ///
         /// When you implement a custom view, you must implement a computed
         /// `body` property to provide the content for your view. Return a view
-        /// that's composed of built-in views that SwiftUI provides, plus other
+        /// that's composed of built-in views that SkipUI provides, plus other
         /// composite views that you've already defined:
         ///
         ///     struct MyView: View {
@@ -42577,7 +40770,7 @@ public struct SearchUnavailableContent {
 
     /// A view that represents the description of a static `ContentUnavailableView.search` view.
     ///
-    /// You don't create this type directly. SwiftUI creates it when you build
+    /// You don't create this type directly. SkipUI creates it when you build
     /// a search``ContentUnavailableView`.
     public struct Description : View {
 
@@ -42585,7 +40778,7 @@ public struct SearchUnavailableContent {
         ///
         /// When you implement a custom view, you must implement a computed
         /// `body` property to provide the content for your view. Return a view
-        /// that's composed of built-in views that SwiftUI provides, plus other
+        /// that's composed of built-in views that SkipUI provides, plus other
         /// composite views that you've already defined:
         ///
         ///     struct MyView: View {
@@ -42607,7 +40800,7 @@ public struct SearchUnavailableContent {
 
     /// A view that represents the actions of a static `ContentUnavailableView.search` view.
     ///
-    /// You don't create this type directly. SwiftUI creates it when you build
+    /// You don't create this type directly. SkipUI creates it when you build
     /// a search``ContentUnavailableView``.
     public struct Actions : View {
 
@@ -42615,7 +40808,7 @@ public struct SearchUnavailableContent {
         ///
         /// When you implement a custom view, you must implement a computed
         /// `body` property to provide the content for your view. Return a view
-        /// that's composed of built-in views that SwiftUI provides, plus other
+        /// that's composed of built-in views that SkipUI provides, plus other
         /// composite views that you've already defined:
         ///
         ///     struct MyView: View {
@@ -42871,7 +41064,7 @@ extension Section where Parent : View, Content : View, Footer == EmptyView {
 ///
 /// Use a `SectionedFetchRequest` property wrapper to declare a
 /// ``SectionedFetchResults`` property that provides a grouped collection of
-/// Core Data managed objects to a SwiftUI view. If you don't need sectioning,
+/// Core Data managed objects to a SkipUI view. If you don't need sectioning,
 /// use ``FetchRequest`` instead.
 ///
 /// Configure a sectioned fetch request with an optional predicate and sort
@@ -42930,7 +41123,7 @@ extension Section where Parent : View, Content : View, Footer == EmptyView {
     /// The fetched results of the fetch request.
     ///
     /// This property behaves like the ``FetchRequest/wrappedValue`` of a
-    /// ``FetchRequest``. In particular, SwiftUI returns the value associated
+    /// ``FetchRequest``. In particular, SkipUI returns the value associated
     /// with this property when you use ``SectionedFetchRequest`` as a property
     /// wrapper and then access the wrapped property by name. For example,
     /// consider the following `quakes` property declaration that fetches a
@@ -43031,10 +41224,10 @@ extension Section where Parent : View, Content : View, Footer == EmptyView {
     ///
     /// This property behaves like the ``FetchRequest/projectedValue``
     /// of a ``FetchRequest``. In particular,
-    /// SwiftUI returns the value associated with this property when you use
+    /// SkipUI returns the value associated with this property when you use
     /// ``SectionedFetchRequest`` as a property wrapper on a
     /// ``SectionedFetchResults`` instance and then access the results with
-    /// a dollar sign (`$`) prefix. The value that SwiftUI returns is a
+    /// a dollar sign (`$`) prefix. The value that SkipUI returns is a
     /// ``Binding`` to the request's ``SectionedFetchRequest/Configuration``
     /// structure, which dynamically configures the request.
     @MainActor public var projectedValue: Binding<SectionedFetchRequest<SectionIdentifier, Result>.Configuration> { get { fatalError() } }
@@ -43045,7 +41238,7 @@ extension SectionedFetchRequest : DynamicProperty {
 
     /// Updates the fetched results.
     ///
-    /// SwiftUI calls this function before rendering a view's
+    /// SkipUI calls this function before rendering a view's
     /// ``View/body-swift.property`` to ensure the view has the most recent
     /// fetched results.
     @MainActor public func update() { fatalError() }
@@ -43067,7 +41260,7 @@ extension SectionedFetchRequest {
     ///
     /// - Parameters:
     ///   - entity: The description of the Core Data entity to fetch.
-    ///   - sectionIdentifier: A key path that SwiftUI applies to the `Result`
+    ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
     ///     type to get an object's section identifier.
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
@@ -43123,7 +41316,7 @@ extension SectionedFetchRequest {
     ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
-    ///   - sectionIdentifier: A key path that SwiftUI applies to the `Result`
+    ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
     ///     type to get an object's section identifier.
     ///   - animation: The animation to use for user interface changes that
     ///     result from changes to the fetched results.
@@ -43141,7 +41334,7 @@ extension SectionedFetchRequest {
     ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
-    ///   - sectionIdentifier: A key path that SwiftUI applies to the `Result`
+    ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
     ///     type to get an object's section identifier.
     ///   - transaction: A transaction to use for user interface changes that
     ///     result from changes to the fetched results.
@@ -43165,7 +41358,7 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     /// ``init(sectionIdentifier:sortDescriptors:predicate:animation:)-5l7hu``.
     ///
     /// - Parameters:
-    ///   - sectionIdentifier: A key path that SwiftUI applies to the `Result`
+    ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
     ///     type to get an object's section identifier.
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
@@ -43191,7 +41384,7 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     /// ``init(sectionIdentifier:sortDescriptors:predicate:animation:)-5lpfo``.
     ///
     /// - Parameters:
-    ///   - sectionIdentifier: A key path that SwiftUI applies to the `Result`
+    ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
     ///     type to get an object's section identifier.
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
@@ -43272,7 +41465,7 @@ extension SectionedFetchRequest.Configuration where Result : NSManagedObject {
 ///         }
 ///     }
 ///
-/// Don't confuse the ``SwiftUI/Section`` view that you use to create a
+/// Don't confuse the ``SkipUI/Section`` view that you use to create a
 /// hierarchical display with the ``SectionedFetchResults/Section``
 /// instances that hold the fetched results.
 ///
@@ -43517,7 +41710,7 @@ extension SectionedFetchResults where Result : NSManagedObject {
 /// ![Two vertically arranged views, the first a text field that displays the
 /// email address mruiz2@icloud.com, the second view uses bullets in place of
 /// the characters entered by the user for their password
-/// password.](SwiftUI-SecureField-withTextField.png)
+/// password.](SkipUI-SecureField-withTextField.png)
 ///
 /// ### SecureField prompts
 ///
@@ -43545,7 +41738,7 @@ public struct SecureField<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -43884,7 +42077,7 @@ public struct SeparatorShapeStyle : ShapeStyle {
 
 /// A gesture that's a sequence of two gestures.
 ///
-/// Read <doc:Composing-SwiftUI-Gestures> to learn how you can create a sequence
+/// Read <doc:Composing-SkipUI-Gestures> to learn how you can create a sequence
 /// of two gestures.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct SequenceGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
@@ -44245,7 +42438,7 @@ public protocol Shape : Sendable, Animatable, View {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -44678,7 +42871,7 @@ extension Shape {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -44824,7 +43017,7 @@ extension Shape {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -44868,14 +43061,14 @@ extension Shape where Self == ButtonBorderShape {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public enum ShapeRole : Sendable {
 
-    /// Indicates to the shape's style that SwiftUI fills the shape.
+    /// Indicates to the shape's style that SkipUI fills the shape.
     case fill
 
-    /// Indicates to the shape's style that SwiftUI applies a stroke to
+    /// Indicates to the shape's style that SkipUI applies a stroke to
     /// the shape's path.
     case stroke
 
-    /// Indicates to the shape's style that SwiftUI uses the shape as a
+    /// Indicates to the shape's style that SkipUI uses the shape as a
     /// separator.
     case separator
 
@@ -44946,7 +43139,7 @@ extension ShapeRole : Hashable {
 ///     }
 ///
 /// In addition to creating a custom shape style, you can also use one of the
-/// concrete styles that SwiftUI defines. To indicate a specific color or
+/// concrete styles that SkipUI defines. To indicate a specific color or
 /// pattern, you can use ``Color`` or the style returned by
 /// ``ShapeStyle/image(_:sourceRect:scale:)``, or one of the gradient
 /// types, like the one returned by
@@ -45060,9 +43253,9 @@ extension ShapeStyle {
     ///         startPoint: .top,
     ///         endPoint: .bottom)
     ///
-    /// When rendering such styles, SwiftUI maps the unit space coordinates to
+    /// When rendering such styles, SkipUI maps the unit space coordinates to
     /// the absolute coordinates of the filled shape. However, you can tell
-    /// SwiftUI to use a different set of coordinates by supplying a rectangle
+    /// SkipUI to use a different set of coordinates by supplying a rectangle
     /// to the `in(_:)` method. Consider two resizable rectangles using the
     /// gradient defined above:
     ///
@@ -45091,7 +43284,7 @@ extension ShapeStyle {
     /// The second starts as red at the top and then begins to transition
     /// to yellow toward the bottom.](ShapeStyle-in-2)
     ///
-    /// SwiftUI remaps the gradient of the first rectangle to the new frame
+    /// SkipUI remaps the gradient of the first rectangle to the new frame
     /// height, so that you continue to see the full range of colors in a
     /// smaller area. For the second rectangle, the modified gradient retains
     /// a mapping to the full height, so you instead see only a small part of
@@ -45579,8 +43772,8 @@ extension ShapeStyle where Self == BackgroundStyle {
 
     /// The background style in the current context.
     ///
-    /// Access this value to get the style SwiftUI uses for the background
-    /// in the current context. The specific color that SwiftUI renders depends
+    /// Access this value to get the style SkipUI uses for the background
+    /// in the current context. The specific color that SkipUI renders depends
     /// on factors like the platform and whether the user has turned on Dark
     /// Mode.
     ///
@@ -45825,7 +44018,7 @@ extension ShapeStyle where Self == ForegroundStyle {
 
     /// The foreground style in the current context.
     ///
-    /// Access this value to get the style SwiftUI uses for foreground elements,
+    /// Access this value to get the style SkipUI uses for foreground elements,
     /// like text, symbols, and shapes, in the current context. Use the
     /// ``View/foregroundStyle(_:)`` modifier to set a new foreground style for
     /// a given view and its child views.
@@ -46046,7 +44239,7 @@ public struct ShareLink<Data, PreviewImage, PreviewIcon, Label> : View where Dat
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -46542,8 +44735,8 @@ extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == 
 ///     ShareLink(
 ///         item: URL(string: "https://developer.apple.com/xcode/swiftui/")!,
 ///         preview: SharePreview(
-///             "SwiftUI",
-///             image: Image("SwiftUI"))
+///             "SkipUI",
+///             image: Image("SkipUI"))
 ///
 /// You can provide unique previews for each item in a collection of items
 /// that a `ShareLink` links to:
@@ -46688,14 +44881,14 @@ public struct SidebarCommands : Commands {
     ///
     /// For any commands that you create, provide a computed `body` property
     /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
+    /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
     public var body: Body { get { return never() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     public typealias Body = Never
 }
@@ -46917,7 +45110,7 @@ public struct SlideTransition : Transition {
 ///
 /// ![An unlabeled slider, with its thumb about one third of the way from the
 /// minimum extreme. Below, a blue label displays the value
-/// 33.045977.](SwiftUI-Slider-simple.png)
+/// 33.045977.](SkipUI-Slider-simple.png)
 ///
 /// You can also use a `step` parameter to provide incremental steps along the
 /// path of the slider. For example, if you have a slider with a range of `0` to
@@ -46949,7 +45142,7 @@ public struct SlideTransition : Transition {
 /// ![A slider with labels show minimum and maximum values of 0 and 100,
 /// respectively, with its thumb most of the way to the maximum extreme. Below,
 /// a blue label displays the value
-/// 85.000000.](SwiftUI-Slider-withStepAndLabels.png)
+/// 85.000000.](SkipUI-Slider-withStepAndLabels.png)
 ///
 /// The slider also uses the `step` to increase or decrease the value when a
 /// VoiceOver user adjusts the slider with voice commands.
@@ -46961,7 +45154,7 @@ public struct Slider<Label, ValueLabel> : View where Label : View, ValueLabel : 
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -46992,7 +45185,7 @@ extension Slider {
     ///   - value: The selected value within `bounds`.
     ///   - bounds: The range of the valid values. Defaults to `0...1`.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///   - minimumValueLabel: A view that describes `bounds.lowerBound`.
@@ -47016,7 +45209,7 @@ extension Slider {
     ///   - bounds: The range of the valid values. Defaults to `0...1`.
     ///   - step: The distance between each valid value.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///   - minimumValueLabel: A view that describes `bounds.lowerBound`.
@@ -47044,7 +45237,7 @@ extension Slider where ValueLabel == EmptyView {
     ///   - value: The selected value within `bounds`.
     ///   - bounds: The range of the valid values. Defaults to `0...1`.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///   - onEditingChanged: A callback for when editing begins and ends.
@@ -47066,7 +45259,7 @@ extension Slider where ValueLabel == EmptyView {
     ///   - bounds: The range of the valid values. Defaults to `0...1`.
     ///   - step: The distance between each valid value.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///   - onEditingChanged: A callback for when editing begins and ends.
@@ -47134,7 +45327,7 @@ extension Slider {
     ///   - minimumValueLabel: A view that describes `bounds.lowerBound`.
     ///   - maximumValueLabel: A view that describes `bounds.lowerBound`.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///
@@ -47162,7 +45355,7 @@ extension Slider {
     ///   - minimumValueLabel: A view that describes `bounds.lowerBound`.
     ///   - maximumValueLabel: A view that describes `bounds.lowerBound`.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///
@@ -47191,7 +45384,7 @@ extension Slider where ValueLabel == EmptyView {
     ///   - bounds: The range of the valid values. Defaults to `0...1`.
     ///   - onEditingChanged: A callback for when editing begins and ends.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///
@@ -47217,7 +45410,7 @@ extension Slider where ValueLabel == EmptyView {
     ///   - step: The distance between each valid value.
     ///   - onEditingChanged: A callback for when editing begins and ends.
     ///   - label: A `View` that describes the purpose of the instance. Not all
-    ///     slider styles show the label, but even in those cases, SwiftUI
+    ///     slider styles show the label, but even in those cases, SkipUI
     ///     uses the label for accessibility. For example, VoiceOver uses the
     ///     label to identify the purpose of the slider.
     ///
@@ -47242,7 +45435,7 @@ extension Slider where ValueLabel == EmptyView {
 /// it can. For example, when placed within an ``HStack``, a spacer expands
 /// horizontally as much as the stack allows, moving sibling views out of the
 /// way, within the limits of the stack's size.
-/// SwiftUI sizes a stack that doesn't contain a spacer up to the combined
+/// SkipUI sizes a stack that doesn't contain a spacer up to the combined
 /// ideal widths of the content of the stack's child views.
 ///
 /// The following example provides a simple checklist row to illustrate how you
@@ -48243,14 +46436,14 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
     public init() { fatalError() }
 }
 
-/// A property wrapper type that can read and write a value managed by SwiftUI.
+/// A property wrapper type that can read and write a value managed by SkipUI.
 ///
 /// Use state as the single source of truth for a given value type that you
 /// store in a view hierarchy. Create a state value in an ``App``, ``Scene``,
 /// or ``View`` by applying the `@State` attribute to a property declaration
 /// and providing an initial value. Declare state as private to prevent setting
 /// it in a memberwise initializer, which can conflict with the storage
-/// management that SwiftUI provides:
+/// management that SkipUI provides:
 ///
 ///     struct PlayButton: View {
 ///         @State private var isPlaying: Bool = false // Create the state.
@@ -48262,7 +46455,7 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 ///         }
 ///     }
 ///
-/// SwiftUI manages the property's storage. When the value changes, SwiftUI
+/// SkipUI manages the property's storage. When the value changes, SkipUI
 /// updates the parts of the view hierarchy that depend on the value.
 /// To access a state's underlying value, you use its ``wrappedValue`` property.
 /// However, as a shortcut Swift enables you to access the wrapped value by
@@ -48280,7 +46473,7 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 ///
 /// ### Share state with subviews
 ///
-/// If you pass a state property to a subview, SwiftUI updates the subview
+/// If you pass a state property to a subview, SkipUI updates the subview
 /// any time the value changes in the container view, but the subview can't
 /// modify the value. To enable the subview to modify the state's stored value,
 /// pass a ``Binding`` instead. You can get a binding to a state value by
@@ -48317,7 +46510,7 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 ///
 /// Like you do for a ``StateObject``, declare ``State`` as private to prevent
 /// setting it in a memberwise initializer, which can conflict with the storage
-/// management that SwiftUI provides. Unlike a state object, always
+/// management that SkipUI provides. Unlike a state object, always
 /// initialize state by providing a default value in the state's
 /// declaration, as in the above examples. Use state only for storage that's
 /// local to a view and its subviews.
@@ -48326,7 +46519,7 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 
     /// Creates a state property that stores an initial wrapped value.
     ///
-    /// You don't call this initializer directly. Instead, SwiftUI
+    /// You don't call this initializer directly. Instead, SkipUI
     /// calls it for you when you declare a property with the `@State`
     /// attribute and provide an initial value:
     ///
@@ -48336,8 +46529,8 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
     ///         // ...
     ///     }
     ///
-    /// SwiftUI initializes the state's storage only once for each
-    /// container instance that you declare. In the above code, SwiftUI
+    /// SkipUI initializes the state's storage only once for each
+    /// container instance that you declare. In the above code, SkipUI
     /// creates `isPlaying` only the first time it initializes a particular
     /// instance of `MyView`. On the other hand, each instance of `MyView`
     /// creates a distinct instance of the state. For example, each of
@@ -48436,7 +46629,7 @@ extension State where Value : ExpressibleByNilLiteral {
 /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
 /// protocol. Declare state objects as private to prevent setting them from a
 /// memberwise initializer, which can conflict with the storage management that
-/// SwiftUI provides:
+/// SkipUI provides:
 ///
 ///     class DataModel: ObservableObject {
 ///         @Published var name = "Some Name"
@@ -48453,11 +46646,11 @@ extension State where Value : ExpressibleByNilLiteral {
 ///         }
 ///     }
 ///
-/// SwiftUI creates a new instance of the model object only once during the
+/// SkipUI creates a new instance of the model object only once during the
 /// lifetime of the container that declares the state object. For example,
-/// SwiftUI doesn't create a new instance if a view's inputs change, but does
+/// SkipUI doesn't create a new instance if a view's inputs change, but does
 /// create a new instance if the identity of a view changes. When published
-/// properties of the observable object change, SwiftUI updates any view that
+/// properties of the observable object change, SkipUI updates any view that
 /// depends on those properties, like the ``Text`` view in the above example.
 ///
 /// > Note: If you need to store a value type, like a structure, string, or
@@ -48500,7 +46693,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///         @StateObject private var model: DataModel
 ///
 ///         init(name: String) {
-///             // SwiftUI ensures that the following initialization uses the
+///             // SkipUI ensures that the following initialization uses the
 ///             // closure only once during the lifetime of the view, so
 ///             // later changes to the view's name input have no effect.
 ///             _model = StateObject(wrappedValue: DataModel(name: name))
@@ -48513,15 +46706,15 @@ extension State where Value : ExpressibleByNilLiteral {
 ///         }
 ///     }
 ///
-/// Use caution when doing this. SwiftUI only initializes a state object
+/// Use caution when doing this. SkipUI only initializes a state object
 /// the first time you call its initializer in a given view. This
 /// ensures that the object provides stable storage even as the view's
 /// inputs change. However, it might result in unexpected behavior or
 /// unwanted side effects if you explicitly initialize the state object.
 ///
 /// In the above example, if the `name` input to `MyInitializableView`
-/// changes, SwiftUI reruns the view's initializer with the new value. However,
-/// SwiftUI runs the autoclosure that you provide to the state object's
+/// changes, SkipUI reruns the view's initializer with the new value. However,
+/// SkipUI runs the autoclosure that you provide to the state object's
 /// initializer only the first time you call the state object's initializer, so
 /// the model's stored `name` value doesn't change.
 ///
@@ -48545,7 +46738,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///
 /// ### Force reinitialization by changing view identity
 ///
-/// If you want SwiftUI to reinitialize a state object when a view input
+/// If you want SkipUI to reinitialize a state object when a view input
 /// changes, make sure that the view's identity changes at the same time.
 /// One way to do this is to bind the view's identity to the value that changes
 /// using the ``View/id(_:)`` modifier. For example, you can ensure that
@@ -48580,7 +46773,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///
 /// Be mindful of the performance cost of reinitializing the state object every
 /// time the input changes. Also, changing view identity can have side
-/// effects. For example, SwiftUI doesn't automatically animate
+/// effects. For example, SkipUI doesn't automatically animate
 /// changes inside the view if the view's identity changes at the same time.
 /// Also, changing the identity resets _all_ state held by the view, including
 /// values that you manage as ``State``, ``FocusState``, ``GestureState``,
@@ -48590,7 +46783,7 @@ extension State where Value : ExpressibleByNilLiteral {
 
     /// Creates a new state object with an initial wrapped value.
     ///
-    /// You typically don’t call this initializer directly. Instead, SwiftUI
+    /// You typically don’t call this initializer directly. Instead, SkipUI
     /// calls it for you when you declare a property with the `@StateObject`
     /// attribute in an ``App``, ``Scene``, or ``View`` and provide an initial
     /// value:
@@ -48601,8 +46794,8 @@ extension State where Value : ExpressibleByNilLiteral {
     ///         // ...
     ///     }
     ///
-    /// SwiftUI creates only one instance of the state object for each
-    /// container instance that you declare. In the above code, SwiftUI
+    /// SkipUI creates only one instance of the state object for each
+    /// container instance that you declare. In the above code, SkipUI
     /// creates `model` only the first time it initializes a particular
     /// instance of `MyView`. On the other hand, each instance of `MyView`
     /// creates a distinct instance of the data model. For example, each of
@@ -48619,7 +46812,7 @@ extension State where Value : ExpressibleByNilLiteral {
     ///
     /// If the initial state of a state object depends on external data, you can
     /// call this initializer directly. However, use caution when doing this,
-    /// because SwiftUI only initializes the object once during the lifetime of
+    /// because SkipUI only initializes the object once during the lifetime of
     /// the view --- even if you call the state object initializer more than
     /// once --- which might result in unexpected behavior. For more information
     /// and an example, see ``StateObject``.
@@ -48631,7 +46824,7 @@ extension State where Value : ExpressibleByNilLiteral {
     ///
     /// The wrapped value property provides primary access to the value's data.
     /// However, you don't typically access it directly. Instead,
-    /// SwiftUI accesses this property for you when you refer to the variable
+    /// SkipUI accesses this property for you when you refer to the variable
     /// that you create with the `@StateObject` attribute:
     ///
     ///     @StateObject private var contact = Contact()
@@ -48641,7 +46834,7 @@ extension State where Value : ExpressibleByNilLiteral {
     ///     }
     ///
     /// When you change a wrapped value, you can access the new
-    /// value immediately. However, SwiftUI updates views that display the value
+    /// value immediately. However, SkipUI updates views that display the value
     /// asynchronously, so the interface might not update immediately.
     @MainActor public var wrappedValue: ObjectType { get { fatalError() } }
 
@@ -48677,9 +46870,9 @@ extension State where Value : ExpressibleByNilLiteral {
 /// The example below uses an array that holds a number of ``Color`` values,
 /// a local state variable, `value`, to set the control's background
 /// color, and title label. When the user clicks or taps on the stepper's
-/// increment or decrement buttons SwiftUI executes the relevant
+/// increment or decrement buttons SkipUI executes the relevant
 /// closure that updates `value`, wrapping the `value` to prevent overflow.
-/// SwiftUI then re-renders the view, updating the text and background
+/// SkipUI then re-renders the view, updating the text and background
 /// color to match the current index:
 ///
 ///     struct StepperView: View {
@@ -48714,7 +46907,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///   and that changes the background color of its view when incremented or
 ///   decremented. The view selects the new background color from a
 ///    predefined array of colors using the stepper's value as the
-///   index.](SwiftUI-Stepper-increment-decrement-closures.png)
+///   index.](SkipUI-Stepper-increment-decrement-closures.png)
 ///
 /// The following example shows a stepper that displays the effect of
 /// incrementing or decrementing a value with the step size of `step` with
@@ -48737,7 +46930,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///     }
 ///
 /// ![A view displaying a stepper with a step size of five, and a
-/// prescribed range of 1 though 50.](SwiftUI-Stepper-value-step-range.png)
+/// prescribed range of 1 though 50.](SkipUI-Stepper-value-step-range.png)
 @available(iOS 13.0, macOS 10.15, watchOS 9.0, *)
 @available(tvOS, unavailable)
 public struct Stepper<Label> : View where Label : View {
@@ -48752,9 +46945,9 @@ public struct Stepper<Label> : View where Label : View {
     /// The example below uses an array that holds a number of ``Color`` values,
     /// a local state variable, `value`, to set the control's background
     /// color, and title label. When the user clicks or taps on the stepper's
-    /// increment or decrement buttons SwiftUI executes the relevant
+    /// increment or decrement buttons SkipUI executes the relevant
     /// closure that updates `value`, wrapping the `value` to prevent overflow.
-    /// SwiftUI then re-renders the view, updating the text and background
+    /// SkipUI then re-renders the view, updating the text and background
     /// color to match the current index:
     ///
     ///     struct StepperView: View {
@@ -48789,7 +46982,7 @@ public struct Stepper<Label> : View where Label : View {
     ///   and that changes the background color of its view when incremented or
     ///   decremented. The view selects the new background color from a
     ///    predefined array of colors using the stepper's value as the
-    ///   index.](SwiftUI-Stepper-increment-decrement-closures.png)
+    ///   index.](SkipUI-Stepper-increment-decrement-closures.png)
     ///
     /// - Parameters:
     ///     - label: A view describing the purpose of this stepper.
@@ -48808,7 +47001,7 @@ public struct Stepper<Label> : View where Label : View {
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -48857,7 +47050,7 @@ extension Stepper {
     ///
     /// ![A view displaying a stepper that increments or decrements a value by
     ///   a specified amount each time the user clicks or taps the stepper's
-    ///   increment or decrement buttons.](SwiftUI-Stepper-value-step.png)
+    ///   increment or decrement buttons.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///   - value: The ``Binding`` to a value that you provide.
@@ -48903,7 +47096,7 @@ extension Stepper {
     ///     }
     ///
     /// ![A view displaying a stepper with a step size of five, and a
-    /// prescribed range of 1 though 50.](SwiftUI-Stepper-value-step-range.png)
+    /// prescribed range of 1 though 50.](SkipUI-Stepper-value-step-range.png)
     ///
     /// - Parameters:
     ///   - value: A ``Binding`` to a value that you provide.
@@ -48941,9 +47134,9 @@ extension Stepper where Label == Text {
     /// The example below uses an array that holds a number of ``Color`` values,
     /// a local state variable, `value`, to set the control's background
     /// color, and title label. When the user clicks or taps on the stepper's
-    /// increment or decrement buttons SwiftUI executes the relevant
+    /// increment or decrement buttons SkipUI executes the relevant
     /// closure that updates `value`, wrapping the `value` to prevent overflow.
-    /// SwiftUI then re-renders the view, updating the text and background
+    /// SkipUI then re-renders the view, updating the text and background
     /// color to match the current index:
     ///
     ///     struct StepperView: View {
@@ -48974,7 +47167,7 @@ extension Stepper where Label == Text {
     /// localized title and that changes the background color of its view
     /// when incremented or decremented selecting a color from a predefined
     /// array using the stepper value as the
-    /// index.](SwiftUI-Stepper-increment-decrement-closures.png)
+    /// index.](SkipUI-Stepper-increment-decrement-closures.png)
     ///
     /// - Parameters:
     ///     - titleKey: The key for the stepper's localized title describing
@@ -49003,9 +47196,9 @@ extension Stepper where Label == Text {
     /// The example below uses an array that holds a number of ``Color`` values,
     /// a local state variable, `value`, to set the control's background
     /// color, and title label. When the user clicks or taps on the stepper's
-    /// increment or decrement buttons SwiftUI executes the relevant
+    /// increment or decrement buttons SkipUI executes the relevant
     /// closure that updates `value`, wrapping the `value` to prevent overflow.
-    /// SwiftUI then re-renders the view, updating the text and background
+    /// SkipUI then re-renders the view, updating the text and background
     /// color to match the current index:
     ///
     ///     struct StepperView: View {
@@ -49035,7 +47228,7 @@ extension Stepper where Label == Text {
     ///   and that changes the background color of its view when incremented or
     ///   decremented selecting a color from a predefined array using the
     ///   stepper's value as the
-    ///   index.](SwiftUI-Stepper-increment-decrement-closures.png)
+    ///   index.](SkipUI-Stepper-increment-decrement-closures.png)
     ///
     /// - Parameters:
     ///     - title: A string describing the purpose of the stepper.
@@ -49077,7 +47270,7 @@ extension Stepper where Label == Text {
     ///
     /// ![A view displaying a stepper that increments or decrements by 5 each
     ///   time the user clicks or taps on the control's increment or decrement
-    ///   buttons, respectively.](SwiftUI-Stepper-value-step.png)
+    ///   buttons, respectively.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///     - titleKey: The key for the stepper's localized title describing
@@ -49119,7 +47312,7 @@ extension Stepper where Label == Text {
     ///
     /// ![A view displaying a stepper that increments or decrements by 1 each
     ///   time the control's buttons
-    ///   are pressed.](SwiftUI-Stepper-value-step.png)
+    ///   are pressed.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///     - title: A string describing the purpose of the stepper.
@@ -49161,7 +47354,7 @@ extension Stepper where Label == Text {
     ///     }
     ///
     /// ![A view displaying a stepper that increments or decrements within a
-    ///   specified range and step size.](SwiftUI-Stepper-value-step-range.png)
+    ///   specified range and step size.](SkipUI-Stepper-value-step-range.png)
     ///
     /// - Parameters:
     ///     - titleKey: The key for the stepper's localized title describing
@@ -49205,7 +47398,7 @@ extension Stepper where Label == Text {
     ///     }
     ///
     /// ![A view displaying a stepper that increments or decrements within a
-    ///   specified range and step size.](SwiftUI-Stepper-value-step-range.png)
+    ///   specified range and step size.](SkipUI-Stepper-value-step-range.png)
     ///
     /// - Parameters:
     ///     - title: A string describing the purpose of the stepper.
@@ -49257,7 +47450,7 @@ extension Stepper {
     ///
     /// ![A view displaying a stepper that increments or decrements a value by
     ///   a specified amount each time the user clicks or taps the stepper's
-    ///   increment or decrement buttons.](SwiftUI-Stepper-value-step.png)
+    ///   increment or decrement buttons.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///   - value: The ``Binding`` to a value that you provide.
@@ -49309,7 +47502,7 @@ extension Stepper {
     ///     }
     ///
     /// ![A view displaying a stepper with a step size of five, and a
-    /// prescribed range of 1 though 50.](SwiftUI-Stepper-value-step-range.png)
+    /// prescribed range of 1 though 50.](SkipUI-Stepper-value-step-range.png)
     ///
     /// - Parameters:
     ///   - value: A ``Binding`` to a value that you provide.
@@ -49364,7 +47557,7 @@ extension Stepper where Label == Text {
     ///
     /// ![A view displaying a stepper that increments or decrements by 5 each
     ///   time the user clicks or taps on the control's increment or decrement
-    ///   buttons, respectively.](SwiftUI-Stepper-value-step.png)
+    ///   buttons, respectively.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///     - titleKey: The key for the stepper's localized title describing
@@ -49539,9 +47732,9 @@ extension Stepper {
     /// The example below uses an array that holds a number of ``Color`` values,
     /// a local state variable, `value`, to set the control's background
     /// color, and title label. When the user clicks or taps on the stepper's
-    /// increment or decrement buttons SwiftUI executes the relevant
+    /// increment or decrement buttons SkipUI executes the relevant
     /// closure that updates `value`, wrapping the `value` to prevent overflow.
-    /// SwiftUI then re-renders the view, updating the text and background
+    /// SkipUI then re-renders the view, updating the text and background
     /// color to match the current index:
     ///
     ///     struct StepperView: View {
@@ -49573,7 +47766,7 @@ extension Stepper {
     ///   and that changes the background color of its view when incremented or
     ///   decremented. The view selects the new background color from a
     ///    predefined array of colors using the stepper's value as the
-    ///   index.](SwiftUI-Stepper-increment-decrement-closures.png)
+    ///   index.](SkipUI-Stepper-increment-decrement-closures.png)
     ///
     /// - Parameters:
     ///     - onIncrement: The closure to execute when the user clicks or taps
@@ -49617,7 +47810,7 @@ extension Stepper {
     ///
     /// ![A view displaying a stepper that increments or decrements a value by
     ///   a specified amount each time the user clicks or taps the stepper's
-    ///   increment or decrement buttons.](SwiftUI-Stepper-value-step.png)
+    ///   increment or decrement buttons.](SkipUI-Stepper-value-step.png)
     ///
     /// - Parameters:
     ///   - value: The ``Binding`` to a value that you provide.
@@ -49665,7 +47858,7 @@ extension Stepper {
     ///     }
     ///
     /// ![A view displaying a stepper with a step size of five, and a
-    /// prescribed range of 1 though 50.](SwiftUI-Stepper-value-step-range.png)
+    /// prescribed range of 1 though 50.](SkipUI-Stepper-value-step-range.png)
     ///
     /// - Parameters:
     ///   - value: A ``Binding`` to a value that you provide.
@@ -49981,7 +48174,7 @@ public struct SwitchToggleStyle : ToggleStyle {
 
     /// Creates a view that represents the body of a toggle switch.
     ///
-    /// SwiftUI implements this required method of the ``ToggleStyle``
+    /// SkipUI implements this required method of the ``ToggleStyle``
     /// protocol to define the behavior and appearance of the
     /// ``ToggleStyle/switch`` toggle style. Don't call this method
     /// directly. Rather, the system calls this method for each
@@ -49996,7 +48189,7 @@ public struct SwitchToggleStyle : ToggleStyle {
 
     /// A view that represents the appearance and interaction of a toggle.
     ///
-    /// SwiftUI infers this type automatically based on the ``View``
+    /// SkipUI infers this type automatically based on the ``View``
     /// instance that you return from your implementation of the
     /// ``makeBody(configuration:)`` method.
 //    public typealias Body = some View
@@ -50058,11 +48251,11 @@ public struct SymbolRenderingMode : Sendable {
     /// A mode that renders symbols as multiple layers, with different opacities
     /// applied to the foreground style.
     ///
-    /// SwiftUI fills the first layer with the foreground style, and the others
+    /// SkipUI fills the first layer with the foreground style, and the others
     /// the secondary, and tertiary variants of the foreground style. You can
     /// specify these styles explicitly using the ``View/foregroundStyle(_:_:)``
     /// and ``View/foregroundStyle(_:_:_:)`` modifiers. If you only specify
-    /// a primary foreground style, SwiftUI automatically derives
+    /// a primary foreground style, SkipUI automatically derives
     /// the others from that style. For example, you can render a filled
     /// exclamation mark triangle with purple as the tint color for the
     /// exclamation mark, and lower opacity purple for the triangle:
@@ -50075,11 +48268,11 @@ public struct SymbolRenderingMode : Sendable {
     /// A mode that renders symbols as multiple layers, with different styles
     /// applied to the layers.
     ///
-    /// In this mode SwiftUI maps each successively defined layer in the image
+    /// In this mode SkipUI maps each successively defined layer in the image
     /// to the next of the primary, secondary, and tertiary variants of the
     /// foreground style. You can specify these styles explicitly using the
     /// ``View/foregroundStyle(_:_:)`` and ``View/foregroundStyle(_:_:_:)``
-    /// modifiers. If you only specify a primary foreground style, SwiftUI
+    /// modifiers. If you only specify a primary foreground style, SkipUI
     /// automatically derives the others from that style. For example, you can
     /// render a filled exclamation mark triangle with yellow as the tint color
     /// for the exclamation mark, and fill the triangle with cyan:
@@ -50139,7 +48332,7 @@ public struct SymbolRenderingMode : Sendable {
 ///     Label("Fill", systemImage: "heart")
 ///         .environment(\.symbolVariants, .fill)
 ///
-/// SwiftUI sets a variant for you in some environments. For example, SwiftUI
+/// SkipUI sets a variant for you in some environments. For example, SkipUI
 /// automatically applies the ``SymbolVariants/fill-swift.type.property``
 /// symbol variant for items that appear in the `content` closure of the
 /// ``View/swipeActions(edge:allowsFullSwipe:content:)``
@@ -50455,7 +48648,7 @@ public struct TabView<SelectionValue, Content> : View where SelectionValue : Has
     ///
     /// When you implement a custom view, you must implement a computed
     /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
+    /// that's composed of built-in views that SkipUI provides, plus other
     /// composite views that you've already defined:
     ///
     ///     struct MyView: View {
@@ -50655,7 +48848,7 @@ extension TabViewStyle where Self == DefaultTabViewStyle {
 /// ### Styling tables
 ///
 /// Use the ``View/tableStyle(_:)`` modifier to set a ``TableStyle`` for all
-/// tables within a view. SwiftUI provides several table styles, such as
+/// tables within a view. SkipUI provides several table styles, such as
 /// ``InsetTableStyle`` and, on macOS, ``BorderedTableStyle``. The default
 /// style is ``AutomaticTableStyle``, which is available on all platforms
 /// that support `Table`.
@@ -51521,7 +49714,7 @@ extension TableColumn {
     /// Pass `nil` or leave out a constraint to indicate no change to the
     /// sizing of a column.
     ///
-    /// To create a fixed size column use ``SwiftUI/TableColumn/width(_:)``
+    /// To create a fixed size column use ``SkipUI/TableColumn/width(_:)``
     /// instead.
     ///
     /// - Parameters:
@@ -51539,8 +49732,8 @@ extension TableColumn {
 
     /// Does not change the table column's width.
     ///
-    /// Use ``SwiftUI/TableColumn/width(_:)`` or
-    /// ``SwiftUI/TableColumn/width(min:ideal:max:)`` instead.
+    /// Use ``SkipUI/TableColumn/width(_:)`` or
+    /// ``SkipUI/TableColumn/width(min:ideal:max:)`` instead.
     @available(*, deprecated, message: "Please pass one or more parameters to modify a column's width.")
     public func width() -> TableColumn<RowValue, Sort, Content, Label> { fatalError() }
 }
@@ -52987,7 +51180,7 @@ extension TableColumn where RowValue : NSObject, Sort == SortDescriptor<RowValue
 /// The `buildBlock` methods in this type create ``TableColumnContent``
 /// instances based on the number and types of sources provided as parameters.
 ///
-/// Don't use this type directly; instead, SwiftUI annotates the `columns`
+/// Don't use this type directly; instead, SkipUI annotates the `columns`
 /// parameter of the various ``Table`` initializers with the
 /// `@TableColumnBuilder` annotation, implicitly calling this builder for you.
 @available(iOS 16.0, macOS 12.0, *)
@@ -53715,7 +51908,7 @@ public struct TableRow<Value> : TableRowContent where Value : Identifiable {
 /// The `buildBlock` methods in this type create ``TableRowContent``
 /// instances based on the number and types of sources provided as parameters.
 ///
-/// Don't use this type directly; instead, SwiftUI annotates the `rows`
+/// Don't use this type directly; instead, SkipUI annotates the `rows`
 /// parameter of the various ``Table`` initializers with the
 /// `@TableRowBuilder` annotation, implicitly calling this builder for you.
 @available(iOS 16.0, macOS 12.0, *)
@@ -53858,7 +52051,7 @@ extension TableRowBuilder {
 ///
 /// This example uses an opaque result type and specifies that the
 /// primary associated type `TableRowValue` for the `tableRowBody`
-/// property is a `Person`. From this, SwiftUI can infer
+/// property is a `Person`. From this, SkipUI can infer
 /// `TableRowValue` for the `GroupOfPeopleRows` structure is also `Person`.
 @available(iOS 16.0, macOS 12.0, *)
 @available(tvOS, unavailable)
@@ -54105,3646 +52298,6 @@ public struct TapGesture : Gesture {
     public typealias Value = Void
 }
 
-/// A view that displays one or more lines of read-only text.
-///
-/// A text view draws a string in your app's user interface using a
-/// ``Font/body`` font that's appropriate for the current platform. You can
-/// choose a different standard font, like ``Font/title`` or ``Font/caption``,
-/// using the ``View/font(_:)`` view modifier.
-///
-///     Text("Hamlet")
-///         .font(.title)
-///
-/// ![A text view showing the name "Hamlet" in a title
-/// font.](SwiftUI-Text-title.png)
-///
-/// If you need finer control over the styling of the text, you can use the same
-/// modifier to configure a system font or choose a custom font. You can also
-/// apply view modifiers like ``Text/bold()`` or ``Text/italic()`` to further
-/// adjust the formatting.
-///
-///     Text("by William Shakespeare")
-///         .font(.system(size: 12, weight: .light, design: .serif))
-///         .italic()
-///
-/// ![A text view showing by William Shakespeare in a 12 point, light, italic,
-/// serif font.](SwiftUI-Text-font.png)
-///
-/// To apply styling within specific portions of the text, you can create
-/// the text view from an
-/// <doc://com.apple.documentation/documentation/Foundation/AttributedString>,
-/// which in turn allows you to use Markdown to style runs of text. You can
-/// mix string attributes and SwiftUI modifiers, with the string attributes
-/// taking priority.
-///
-///     let attributedString = try! AttributedString(
-///         markdown: "_Hamlet_ by William Shakespeare")
-///
-///     var body: some View {
-///         Text(attributedString)
-///             .font(.system(size: 12, weight: .light, design: .serif))
-///     }
-///
-/// ![A text view showing Hamlet by William Shakespeare in a 12 point, light,
-/// serif font, with the title Hamlet in italics.](SwiftUI-Text-attributed.png)
-///
-/// A text view always uses exactly the amount of space it needs to display its
-/// rendered contents, but you can affect the view's layout. For example, you
-/// can use the ``View/frame(width:height:alignment:)`` modifier to propose
-/// specific dimensions to the view. If the view accepts the proposal but the
-/// text doesn't fit into the available space, the view uses a combination of
-/// wrapping, tightening, scaling, and truncation to make it fit. With a width
-/// of `100` points but no constraint on the height, a text view might wrap a
-/// long string:
-///
-///     Text("To be, or not to be, that is the question:")
-///         .frame(width: 100)
-///
-/// ![A text view showing a quote from Hamlet split over three
-/// lines.](SwiftUI-Text-split.png)
-///
-/// Use modifiers like ``View/lineLimit(_:)-513mb``, ``View/allowsTightening(_:)``,
-/// ``View/minimumScaleFactor(_:)``, and ``View/truncationMode(_:)`` to
-/// configure how the view handles space constraints. For example, combining a
-/// fixed width and a line limit of `1` results in truncation for text that
-/// doesn't fit in that space:
-///
-///     Text("Brevity is the soul of wit.")
-///         .frame(width: 100)
-///         .lineLimit(1)
-///
-/// ![A text view showing a truncated quote from Hamlet starting Brevity is t
-/// and ending with three dots.](SwiftUI-Text-truncated.png)
-///
-/// ### Localizing strings
-///
-/// If you initialize a text view with a string literal, the view uses the
-/// ``Text/init(_:tableName:bundle:comment:)`` initializer, which interprets the
-/// string as a localization key and searches for the key in the table you
-/// specify, or in the default table if you don't specify one.
-///
-///     Text("pencil") // Searches the default table in the main bundle.
-///
-/// For an app localized in both English and Spanish, the above view displays
-/// "pencil" and "lápiz" for English and Spanish users, respectively. If the
-/// view can't perform localization, it displays the key instead. For example,
-/// if the same app lacks Danish localization, the view displays "pencil" for
-/// users in that locale. Similarly, an app that lacks any localization
-/// information displays "pencil" in any locale.
-///
-/// To explicitly bypass localization for a string literal, use the
-/// ``Text/init(verbatim:)`` initializer.
-///
-///     Text(verbatim: "pencil") // Displays the string "pencil" in any locale.
-///
-/// If you intialize a text view with a variable value, the view uses the
-/// ``Text/init(_:)-9d1g4`` initializer, which doesn't localize the string. However,
-/// you can request localization by creating a ``LocalizedStringKey`` instance
-/// first, which triggers the ``Text/init(_:tableName:bundle:comment:)``
-/// initializer instead:
-///
-///     // Don't localize a string variable...
-///     Text(writingImplement)
-///
-///     // ...unless you explicitly convert it to a localized string key.
-///     Text(LocalizedStringKey(writingImplement))
-///
-/// When localizing a string variable, you can use the default table by omitting
-/// the optional initialization parameters — as in the above example — just like
-/// you might for a string literal.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Text : Equatable, Sendable {
-
-    /// Creates a text view that displays a string literal without localization.
-    ///
-    /// Use this initializer to create a text view with a string literal without
-    /// performing localization:
-    ///
-    ///     Text(verbatim: "pencil") // Displays the string "pencil" in any locale.
-    ///
-    /// If you want to localize a string literal before displaying it, use the
-    /// ``Text/init(_:tableName:bundle:comment:)`` initializer instead. If you
-    /// want to display a string variable, use the ``Text/init(_:)-9d1g4``
-    /// initializer, which also bypasses localization.
-    ///
-    /// - Parameter content: A string to display without localization.
-    @inlinable public init(verbatim content: String) { fatalError() }
-
-    /// Creates a text view that displays a stored string without localization.
-    ///
-    /// Use this initializer to create a text view that displays — without
-    /// localization — the text in a string variable.
-    ///
-    ///     Text(someString) // Displays the contents of `someString` without localization.
-    ///
-    /// SwiftUI doesn't call the `init(_:)` method when you initialize a text
-    /// view with a string literal as the input. Instead, a string literal
-    /// triggers the ``Text/init(_:tableName:bundle:comment:)`` method — which
-    /// treats the input as a ``LocalizedStringKey`` instance — and attempts to
-    /// perform localization.
-    ///
-    /// By default, SwiftUI assumes that you don't want to localize stored
-    /// strings, but if you do, you can first create a localized string key from
-    /// the value, and initialize the text view with that. Using a key as input
-    /// triggers the ``Text/init(_:tableName:bundle:comment:)`` method instead.
-    ///
-    /// - Parameter content: The string value to display without localization.
-    public init<S>(_ content: S) where S : StringProtocol { fatalError() }
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: Text, b: Text) -> Bool { fatalError() }
-}
-
-extension Text {
-
-    /// Creates an instance that wraps an `Image`, suitable for concatenating
-    /// with other `Text`
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public init(_ image: Image) { fatalError() }
-}
-
-extension Text {
-
-    /// Specifies the language for typesetting.
-    ///
-    /// In some cases `Text` may contain text of a particular language which
-    /// doesn't match the device UI language. In that case it's useful to
-    /// specify a language so line height, line breaking and spacing will
-    /// respect the script used for that language. For example:
-    ///
-    ///     Text(verbatim: "แอปเปิล")
-    ///         .typesettingLanguage(.init(languageCode: .thai))
-    ///
-    /// Note: this language does not affect text localization.
-    ///
-    /// - Parameters:
-    ///   - language: The explicit language to use for typesetting.
-    ///   - isEnabled: A Boolean value that indicates whether text langauge is
-    ///     added
-    /// - Returns: Text with the typesetting language set to the value you
-    ///   supply.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func typesettingLanguage(_ language: Locale.Language, isEnabled: Bool = true) -> Text { fatalError() }
-
-    /// Specifies the language for typesetting.
-    ///
-    /// In some cases `Text` may contain text of a particular language which
-    /// doesn't match the device UI language. In that case it's useful to
-    /// specify a language so line height, line breaking and spacing will
-    /// respect the script used for that language. For example:
-    ///
-    ///     Text(verbatim: "แอปเปิล").typesettingLanguage(
-    ///         .explicit(.init(languageCode: .thai)))
-    ///
-    /// Note: this language does not affect text localized localization.
-    ///
-    /// - Parameters:
-    ///   - language: The language to use for typesetting.
-    ///   - isEnabled: A Boolean value that indicates whether text language is
-    ///     added
-    /// - Returns: Text with the typesetting language set to the value you
-    ///   supply.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> Text { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text {
-
-    /// Creates a text view that displays the formatted representation
-    /// of a reference-convertible value.
-    ///
-    /// Use this initializer to create a text view that formats `subject`
-    /// using `formatter`.
-    /// - Parameters:
-    ///   - subject: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/ReferenceConvertible>
-    ///   instance compatible with `formatter`.
-    ///   - formatter: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    ///   capable of converting `subject` into a string representation.
-    public init<Subject>(_ subject: Subject, formatter: Formatter) where Subject : ReferenceConvertible { fatalError() }
-
-    /// Creates a text view that displays the formatted representation
-    /// of a Foundation object.
-    ///
-    /// Use this initializer to create a text view that formats `subject`
-    /// using `formatter`.
-    /// - Parameters:
-    ///   - subject: An
-    ///   <doc://com.apple.documentation/documentation/ObjectiveC/NSObject>
-    ///   instance compatible with `formatter`.
-    ///   - formatter: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    ///   capable of converting `subject` into a string representation.
-    public init<Subject>(_ subject: Subject, formatter: Formatter) where Subject : NSObject { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Creates a text view that displays the formatted representation
-    /// of a nonstring type supported by a corresponding format style.
-    ///
-    /// Use this initializer to create a text view backed by a nonstring
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/FormatStyle>
-    /// to convert the type to a string representation. Any changes to the value
-    /// update the string displayed by the text view.
-    ///
-    /// In the following example, three ``Text`` views present a date with
-    /// different combinations of date and time fields, by using different
-    /// <doc://com.apple.documentation/documentation/Foundation/Date/FormatStyle>
-    /// options.
-    ///
-    ///     @State private var myDate = Date()
-    ///     var body: some View {
-    ///         VStack {
-    ///             Text(myDate, format: Date.FormatStyle(date: .numeric, time: .omitted))
-    ///             Text(myDate, format: Date.FormatStyle(date: .complete, time: .complete))
-    ///             Text(myDate, format: Date.FormatStyle().hour(.defaultDigitsNoAMPM).minute())
-    ///         }
-    ///     }
-    ///
-    /// ![Three vertically stacked text views showing the date with different
-    /// levels of detail: 4/1/1976; April 1, 1976; Thursday, April 1,
-    /// 1976.](Text-init-format-1)
-    ///
-    /// - Parameters:
-    ///   - input: The underlying value to display.
-    ///   - format: A format style of type `F` to convert the underlying value
-    ///     of type `F.FormatInput` to a string representation.
-    public init<F>(_ input: F.FormatInput, format: F) where F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text {
-
-    /// A predefined style used to display a `Date`.
-    public struct DateStyle : Sendable {
-
-        /// A style displaying only the time component for a date.
-        ///
-        ///     Text(event.startDate, style: .time)
-        ///
-        /// Example output:
-        ///     11:23PM
-        public static let time: Text.DateStyle = { fatalError() }()
-
-        /// A style displaying a date.
-        ///
-        ///     Text(event.startDate, style: .date)
-        ///
-        /// Example output:
-        ///     June 3, 2019
-        public static let date: Text.DateStyle = { fatalError() }()
-
-        /// A style displaying a date as relative to now.
-        ///
-        ///     Text(event.startDate, style: .relative)
-        ///
-        /// Example output:
-        ///     2 hours, 23 minutes
-        ///     1 year, 1 month
-        public static let relative: Text.DateStyle = { fatalError() }()
-
-        /// A style displaying a date as offset from now.
-        ///
-        ///     Text(event.startDate, style: .offset)
-        ///
-        /// Example output:
-        ///     +2 hours
-        ///     -3 months
-        public static let offset: Text.DateStyle = { fatalError() }()
-
-        /// A style displaying a date as timer counting from now.
-        ///
-        ///     Text(event.startDate, style: .timer)
-        ///
-        /// Example output:
-        ///    2:32
-        ///    36:59:01
-        public static let timer: Text.DateStyle = { fatalError() }()
-    }
-
-    /// Creates an instance that displays localized dates and times using a specific style.
-    ///
-    /// - Parameters:
-    ///     - date: The target date to display.
-    ///     - style: The style used when displaying a date.
-    public init(_ date: Date, style: Text.DateStyle) { fatalError() }
-
-    /// Creates an instance that displays a localized range between two dates.
-    ///
-    /// - Parameters:
-    ///     - dates: The range of dates to display
-    public init(_ dates: ClosedRange<Date>) { fatalError() }
-
-    /// Creates an instance that displays a localized time interval.
-    ///
-    ///     Text(DateInterval(start: event.startDate, duration: event.duration))
-    ///
-    /// Example output:
-    ///     9:30AM - 3:30PM
-    ///
-    /// - Parameters:
-    ///     - interval: The date interval to display
-    public init(_ interval: DateInterval) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Text {
-
-    /// Creates an instance that displays a timer counting within the provided
-    /// interval.
-    ///
-    ///     Text(
-    ///         timerInterval: Date.now...Date(timeInterval: 12 * 60, since: .now))
-    ///         pauseTime: Date.now + (10 * 60))
-    ///
-    /// The example above shows a text that displays a timer counting down
-    /// from "12:00" and will pause when reaching "10:00".
-    ///
-    /// - Parameters:
-    ///     - timerInterval: The interval between where to run the timer.
-    ///     - pauseTime: If present, the date at which to pause the timer.
-    ///         The default is `nil` which indicates to never pause.
-    ///     - countsDown: Whether to count up or down. The default is `true`.
-    ///     - showsHours: Whether to include an hours component if there are
-    ///         more than 60 minutes left on the timer. The default is `true`.
-    public init(timerInterval: ClosedRange<Date>, pauseTime: Date? = nil, countsDown: Bool = true, showsHours: Bool = true) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// Creates a text view that displays localized content identified by a key.
-    ///
-    /// Use this initializer to look for the `key` parameter in a localization
-    /// table and display the associated string value in the initialized text
-    /// view. If the initializer can't find the key in the table, or if no table
-    /// exists, the text view displays the string representation of the key
-    /// instead.
-    ///
-    ///     Text("pencil") // Localizes the key if possible, or displays "pencil" if not.
-    ///
-    /// When you initialize a text view with a string literal, the view triggers
-    /// this initializer because it assumes you want the string localized, even
-    /// when you don't explicitly specify a table, as in the above example. If
-    /// you haven't provided localization for a particular string, you still get
-    /// reasonable behavior, because the initializer displays the key, which
-    /// typically contains the unlocalized string.
-    ///
-    /// If you initialize a text view with a string variable rather than a
-    /// string literal, the view triggers the ``Text/init(_:)-9d1g4``
-    /// initializer instead, because it assumes that you don't want localization
-    /// in that case. If you do want to localize the value stored in a string
-    /// variable, you can choose to call the `init(_:tableName:bundle:comment:)`
-    /// initializer by first creating a ``LocalizedStringKey`` instance from the
-    /// string variable:
-    ///
-    ///     Text(LocalizedStringKey(someString)) // Localizes the contents of `someString`.
-    ///
-    /// If you have a string literal that you don't want to localize, use the
-    /// ``Text/init(verbatim:)`` initializer instead.
-    ///
-    /// ### Styling localized strings with markdown
-    ///
-    /// If the localized string or the fallback key contains Markdown, the
-    /// view displays the text with appropriate styling. For example, consider
-    /// an app with the following entry in its Spanish localization file:
-    ///
-    ///     "_Please visit our [website](https://www.example.com)._" = "_Visita nuestro [sitio web](https://www.example.com)._";
-    ///
-    /// You can create a `Text` view with the Markdown-formatted base language
-    /// version of the string as the localization key, like this:
-    ///
-    ///     Text("_Please visit our [website](https://www.example.com)._")
-    ///
-    /// When viewed in a Spanish locale, the view uses the Spanish text from the
-    /// strings file, applying the Markdown styling.
-    ///
-    /// ![A text view that says Visita nuestro sitio web, with all text
-    /// displayed in italics. The words sitio web are colored blue to indicate
-    /// they are a link.](SwiftUI-Text-init-localized.png)
-    ///
-    /// > Important: `Text` doesn't render all styling possible in Markdown. It
-    /// doesn't support line breaks, soft breaks, or any style of paragraph- or
-    /// block-based formatting like lists, block quotes, code blocks, or tables.
-    /// It also doesn't support the
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796122-imageURL>
-    /// attribute. Parsing with SwiftUI treats any whitespace in the Markdown
-    /// string as described by the
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString/MarkdownParsingOptions/InterpretedSyntax/inlineOnlyPreservingWhitespace>
-    /// parsing option.
-    ///
-    /// - Parameters:
-    ///   - key: The key for a string in the table identified by `tableName`.
-    ///   - tableName: The name of the string table to search. If `nil`, use the
-    ///     table in the `Localizable.strings` file.
-    ///   - bundle: The bundle containing the strings file. If `nil`, use the
-    ///     main bundle.
-    ///   - comment: Contextual information about this key-value pair.
-    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) { fatalError() }
-}
-
-extension Text {
-
-    /// Defines text scales
-    ///
-    /// Text scale provides a way to pick a logical text scale
-    /// relative to the base font which is used.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public struct Scale : Sendable, Hashable {
-
-        /// Defines default text scale
-        ///
-        /// When specified uses the default text scale.
-        public static let `default`: Text.Scale = { fatalError() }()
-
-        /// Defines secondary text scale
-        ///
-        /// When specified a uses a secondary text scale.
-        public static let secondary: Text.Scale = { fatalError() }()
-
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
-        public static func == (a: Text.Scale, b: Text.Scale) -> Bool { fatalError() }
-
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
-        public var hashValue: Int { get { fatalError() } }
-    }
-}
-
-extension Text {
-
-    /// Applies a text scale to the text.
-    ///
-    /// - Parameters:
-    ///   - scale: The text scale to apply.
-    ///   - isEnabled: If true the text scale is applied; otherwise text scale
-    ///     is unchanged.
-    /// - Returns: Text with the specified scale applied.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func textScale(_ scale: Text.Scale, isEnabled: Bool = true) -> Text { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Sets whether VoiceOver should always speak all punctuation in the text view.
-    ///
-    /// Use this modifier to control whether the system speaks punctuation characters
-    /// in the text. You might use this for code or other text where the punctuation is relevant, or where
-    /// you want VoiceOver to speak a verbatim transcription of the text you provide. For example,
-    /// given the text:
-    ///
-    ///     Text("All the world's a stage, " +
-    ///          "And all the men and women merely players;")
-    ///          .speechAlwaysIncludesPunctuation()
-    ///
-    /// VoiceOver would speak "All the world apostrophe s a stage comma and all the men
-    /// and women merely players semicolon".
-    ///
-    /// By default, VoiceOver voices punctuation based on surrounding context.
-    ///
-    /// - Parameter value: A Boolean value that you set to `true` if
-    ///   VoiceOver should speak all punctuation in the text. Defaults to `true`.
-    public func speechAlwaysIncludesPunctuation(_ value: Bool = true) -> Text { fatalError() }
-
-    /// Sets whether VoiceOver should speak the contents of the text view character by character.
-    ///
-    /// Use this modifier when you want VoiceOver to speak text as individual letters,
-    /// character by character. This is important for text that is not meant to be spoken together, like:
-    /// - An acronym that isn't a word, like APPL, spoken as "A-P-P-L".
-    /// - A number representing a series of digits, like 25, spoken as "two-five" rather than "twenty-five".
-    ///
-    /// - Parameter value: A Boolean value that when `true` indicates
-    ///    VoiceOver should speak text as individual characters. Defaults
-    ///    to `true`.
-    public func speechSpellsOutCharacters(_ value: Bool = true) -> Text { fatalError() }
-
-    /// Raises or lowers the pitch of spoken text.
-    ///
-    /// Use this modifier when you want to change the pitch of spoken text.
-    /// The value indicates how much higher or lower to change the pitch.
-    ///
-    /// - Parameter value: The amount to raise or lower the pitch.
-    ///   Values between `-1` and `0` result in a lower pitch while
-    ///   values between `0` and `1` result in a higher pitch.
-    ///   The method clamps values to the range `-1` to `1`.
-    public func speechAdjustedPitch(_ value: Double) -> Text { fatalError() }
-
-    /// Controls whether to queue pending announcements behind existing speech rather than
-    /// interrupting speech in progress.
-    ///
-    /// Use this modifier when you want affect the order in which the
-    /// accessibility system delivers spoken text. Announcements can
-    /// occur automatically when the label or value of an accessibility
-    /// element changes.
-    ///
-    /// - Parameter value: A Boolean value that determines if VoiceOver speaks
-    ///   changes to text immediately or enqueues them behind existing speech.
-    ///   Defaults to `true`.
-    public func speechAnnouncementsQueued(_ value: Bool = true) -> Text { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// Concatenates the text in two text views in a new text view.
-    ///
-    /// - Parameters:
-    ///   - lhs: The first text view with text to combine.
-    ///   - rhs: The second text view with text to combine.
-    ///
-    /// - Returns: A new text view containing the combined contents of the two
-    ///   input text views.
-    public static func + (lhs: Text, rhs: Text) -> Text { fatalError() }
-}
-
-extension Text {
-
-    /// Creates a text view that displays a localized string resource.
-    ///
-    /// Use this initializer to display a localized string that is
-    /// represented by a <doc://com.apple.documentation/documentation/Foundation/LocalizedStringResource>
-    ///
-    ///     var object = LocalizedStringResource("pencil")
-    ///     Text(object) // Localizes the resource if possible, or displays "pencil" if not.
-    ///
-    @available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
-    public init(_ resource: LocalizedStringResource) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// The type of truncation to apply to a line of text when it's too long to
-    /// fit in the available space.
-    ///
-    /// When a text view contains more text than it's able to display, the view
-    /// might truncate the text and place an ellipsis (...) at the truncation
-    /// point. Use the ``View/truncationMode(_:)`` modifier with one of the
-    /// `TruncationMode` values to indicate which part of the text to
-    /// truncate, either at the beginning, in the middle, or at the end.
-    public enum TruncationMode : Sendable {
-
-        /// Truncate at the beginning of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the beginning of
-        /// the string. For example, you could truncate the English alphabet as
-        /// "...wxyz".
-        case head
-
-        /// Truncate at the end of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the end of the
-        /// string. For example, you could truncate the English alphabet as
-        /// "abcd...".
-        case tail
-
-        /// Truncate in the middle of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the middle of
-        /// the string. For example, you could truncate the English alphabet as
-        /// "ab...yz".
-        case middle
-
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
-        public static func == (a: Text.TruncationMode, b: Text.TruncationMode) -> Bool { fatalError() }
-
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
-        public var hashValue: Int { get { fatalError() } }
-    }
-
-    /// A scheme for transforming the capitalization of characters within text.
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public enum Case : Sendable {
-
-        /// Displays text in all uppercase characters.
-        ///
-        /// For example, "Hello" would be displayed as "HELLO".
-        ///
-        /// - SeeAlso: `StringProtocol.uppercased(with:)`
-        case uppercase
-
-        /// Displays text in all lowercase characters.
-        ///
-        /// For example, "Hello" would be displayed as "hello".
-        ///
-        /// - SeeAlso: `StringProtocol.lowercased(with:)`
-        case lowercase
-
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
-        public static func == (a: Text.Case, b: Text.Case) -> Bool { fatalError() }
-
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
-        public var hashValue: Int { get { fatalError() } }
-    }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Description of the style used to draw the line for `StrikethroughStyleAttribute`
-    /// and `UnderlineStyleAttribute`.
-    ///
-    /// Use this type to specify `underlineStyle` and `strikethroughStyle`
-    /// SwiftUI attributes of an `AttributedString`.
-    public struct LineStyle : Hashable, Sendable {
-
-        /// Creates a line style.
-        ///
-        /// - Parameters:
-        ///   - pattern: The pattern of the line.
-        ///   - color: The color of the line. If not provided, the foreground
-        ///     color of text is used.
-        public init(pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) { fatalError() }
-
-        /// The pattern, that the line has.
-        public struct Pattern : Sendable {
-
-            /// Draw a solid line.
-            public static let solid: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of dots.
-            public static let dot: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of dashes.
-            public static let dash: Text.LineStyle.Pattern = { fatalError() }()
-
-            public static let dashDot: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of alternating dashes and two dots.
-            public static let dashDotDot: Text.LineStyle.Pattern = { fatalError() }()
-        }
-
-        /// Draw a single solid line.
-        public static let single: Text.LineStyle = { fatalError() }()
-
-        /// Creates a ``Text.LineStyle`` from ``NSUnderlineStyle``.
-        ///
-        /// > Note: Use this initializer only if you need to convert an existing
-        /// ``NSUnderlineStyle`` to a SwiftUI ``Text.LineStyle``.
-        /// Otherwise, create a ``Text.LineStyle`` using an
-        /// initializer like ``init(pattern:color:)``.
-        ///
-        /// - Parameter nsUnderlineStyle: A value of ``NSUnderlineStyle``
-        /// to wrap with ``Text.LineStyle``.
-        ///
-        /// - Returns: A new ``Text.LineStyle`` or `nil` when
-        /// `nsUnderlineStyle` contains styles not supported by ``Text.LineStyle``.
-        public init?(nsUnderlineStyle: NSUnderlineStyle) { fatalError() }
-
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
-        public static func == (a: Text.LineStyle, b: Text.LineStyle) -> Bool { fatalError() }
-
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
-        public var hashValue: Int { get { fatalError() } }
-    }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text : View {
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// Sets the color of the text displayed by this view.
-    ///
-    /// Use this method to change the color of the text rendered by a text view.
-    ///
-    /// For example, you can display the names of the colors red, green, and
-    /// blue in their respective colors:
-    ///
-    ///     HStack {
-    ///         Text("Red").foregroundColor(.red)
-    ///         Text("Green").foregroundColor(.green)
-    ///         Text("Blue").foregroundColor(.blue)
-    ///     }
-    ///
-    /// ![Three text views arranged horizontally, each containing
-    ///     the name of a color displayed in that
-    ///     color.](SwiftUI-Text-foregroundColor.png)
-    ///
-    /// - Parameter color: The color to use when displaying this text.
-    /// - Returns: A text view that uses the color value you supply.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    public func foregroundColor(_ color: Color?) -> Text { fatalError() }
-
-    /// Sets the style of the text displayed by this view.
-    ///
-    /// Use this method to change the rendering style of the text
-    /// rendered by a text view.
-    ///
-    /// For example, you can display the names of the colors red,
-    /// green, and blue in their respective colors:
-    ///
-    ///     HStack {
-    ///         Text("Red").foregroundStyle(.red)
-    ///         Text("Green").foregroundStyle(.green)
-    ///         Text("Blue").foregroundStyle(.blue)
-    ///     }
-    ///
-    /// ![Three text views arranged horizontally, each containing
-    ///     the name of a color displayed in that
-    ///     color.](SwiftUI-Text-foregroundColor.png)
-    ///
-    /// - Parameter style: The style to use when displaying this text.
-    /// - Returns: A text view that uses the color value you supply.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func foregroundStyle<S>(_ style: S) -> Text where S : ShapeStyle { fatalError() }
-
-    /// Sets the default font for text in the view.
-    ///
-    /// Use `font(_:)` to apply a specific font to an individual
-    /// Text View, or all of the text views in a container.
-    ///
-    /// In the example below, the first text field has a font set directly,
-    /// while the font applied to the following container applies to all of the
-    /// text views inside that container:
-    ///
-    ///     VStack {
-    ///         Text("Font applied to a text view.")
-    ///             .font(.largeTitle)
-    ///
-    ///         VStack {
-    ///             Text("These two text views have the same font")
-    ///             Text("applied to their parent view.")
-    ///         }
-    ///         .font(.system(size: 16, weight: .light, design: .default))
-    ///     }
-    ///
-    ///
-    /// ![Applying a font to a single text view or a view container](SwiftUI-view-font.png)
-    ///
-    /// - Parameter font: The font to use when displaying this text.
-    /// - Returns: Text that uses the font you specify.
-    public func font(_ font: Font?) -> Text { fatalError() }
-
-    /// Sets the font weight of the text.
-    ///
-    /// - Parameter weight: One of the available font weights.
-    ///
-    /// - Returns: Text that uses the font weight you specify.
-    public func fontWeight(_ weight: Font.Weight?) -> Text { fatalError() }
-
-    /// Sets the font width of the text.
-    ///
-    /// - Parameter width: One of the available font widths.
-    ///
-    /// - Returns: Text that uses the font width you specify, if available.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func fontWidth(_ width: Font.Width?) -> Text { fatalError() }
-
-    /// Applies a bold font weight to the text.
-    ///
-    /// - Returns: Bold text.
-    public func bold() -> Text { fatalError() }
-
-    /// Applies a bold font weight to the text.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether text has bold styling.
-    ///
-    /// - Returns: Bold text.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func bold(_ isActive: Bool) -> Text { fatalError() }
-
-    /// Applies italics to the text.
-    ///
-    /// - Returns: Italic text.
-    public func italic() -> Text { fatalError() }
-
-    /// Applies italics to the text.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether italic styling is added.
-    ///
-    /// - Returns: Italic text.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func italic(_ isActive: Bool) -> Text { fatalError() }
-
-    /// Modifies the font of the text to use the fixed-width variant
-    /// of the current font, if possible.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether monospaced styling is added. Default value is `true`.
-    ///
-    /// - Returns: Monospaced text.
-    @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-    public func monospaced(_ isActive: Bool = true) -> Text { fatalError() }
-
-    /// Sets the font design of the text.
-    ///
-    /// - Parameter design: One of the available font designs.
-    ///
-    /// - Returns: Text that uses the font design you specify.
-    @available(iOS 16.1, macOS 13.0, tvOS 16.1, watchOS 9.1, *)
-    public func fontDesign(_ design: Font.Design?) -> Text { fatalError() }
-
-    /// Modifies the text view's font to use fixed-width digits, while leaving
-    /// other characters proportionally spaced.
-    ///
-    /// This modifier only affects numeric characters, and leaves all other
-    /// characters unchanged.
-    ///
-    /// The following example shows the effect of `monospacedDigit()` on a
-    /// text view. It arranges two text views in a ``VStack``, each displaying
-    /// a formatted date that contains many instances of the character 1.
-    /// The second text view uses the `monospacedDigit()`. Because 1 is
-    /// usually a narrow character in proportional fonts, applying the
-    /// modifier widens all of the 1s, and the text view as a whole.
-    /// The non-digit characters in the text view remain unaffected.
-    ///
-    ///     let myDate = DateComponents(
-    ///         calendar: Calendar(identifier: .gregorian),
-    ///         timeZone: TimeZone(identifier: "EST"),
-    ///         year: 2011,
-    ///         month: 1,
-    ///         day: 11,
-    ///         hour: 11,
-    ///         minute: 11
-    ///     ).date!
-    ///
-    ///     var body: some View {
-    ///         VStack(alignment: .leading) {
-    ///             Text(myDate.formatted(date: .long, time: .complete))
-    ///                 .font(.system(size: 20))
-    ///             Text(myDate.formatted(date: .long, time: .complete))
-    ///                 .font(.system(size: 20))
-    ///                 .monospacedDigit()
-    ///         }
-    ///         .padding()
-    ///         .navigationTitle("monospacedDigit() Modifier")
-    ///     }
-    ///
-    /// ![Two vertically stacked text views, displaying the date January 11,
-    /// 2011, 11:11:00 AM. The second text view uses fixed-width digits, causing
-    /// all of the 1s to be wider than in the first text
-    /// view.](Text-monospacedDigit-1)
-    ///
-    /// If the base font of the text view doesn't support fixed-width digits,
-    /// the font remains unchanged.
-    ///
-    /// - Returns: A text view with a modified font that uses fixed-width
-    /// numeric characters, while leaving other characters proportionally
-    /// spaced.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func monospacedDigit() -> Text { fatalError() }
-
-    /// Applies a strikethrough to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether the text has a
-    ///     strikethrough applied.
-    ///   - color: The color of the strikethrough. If `color` is `nil`, the
-    ///     strikethrough uses the default foreground color.
-    ///
-    /// - Returns: Text with a line through its center.
-    public func strikethrough(_ isActive: Bool = true, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies a strikethrough to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether strikethrough
-    ///     is added. The default value is `true`.
-    ///   - pattern: The pattern of the line.
-    ///   - color: The color of the strikethrough. If `color` is `nil`, the
-    ///     strikethrough uses the default foreground color.
-    ///
-    /// - Returns: Text with a line through its center.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies an underline to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether the text has an
-    ///     underline.
-    ///   - color: The color of the underline. If `color` is `nil`, the
-    ///     underline uses the default foreground color.
-    ///
-    /// - Returns: Text with a line running along its baseline.
-    public func underline(_ isActive: Bool = true, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies an underline to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether underline
-    ///     styling is added. The default value is `true`.
-    ///   - pattern: The pattern of the line.
-    ///   - color: The color of the underline. If `color` is `nil`, the
-    ///     underline uses the default foreground color.
-    ///
-    /// - Returns: Text with a line running along its baseline.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern, color: Color? = nil) -> Text { fatalError() }
-
-    /// Sets the spacing, or kerning, between characters.
-    ///
-    /// Kerning defines the offset, in points, that a text view should shift
-    /// characters from the default spacing. Use positive kerning to widen the
-    /// spacing between characters. Use negative kerning to tighten the spacing
-    /// between characters.
-    ///
-    ///     VStack(alignment: .leading) {
-    ///         Text("ABCDEF").kerning(-3)
-    ///         Text("ABCDEF")
-    ///         Text("ABCDEF").kerning(3)
-    ///     }
-    ///
-    /// The last character in the first case, which uses negative kerning,
-    /// experiences cropping because the kerning affects the trailing edge of
-    /// the text view as well.
-    ///
-    /// ![Three text views showing character groups, with progressively
-    /// increasing spacing between the characters in each
-    /// group.](SwiftUI-Text-kerning-1.png)
-    ///
-    /// Kerning attempts to maintain ligatures. For example, the Hoefler Text
-    /// font uses a ligature for the letter combination _ffl_, as in the word
-    /// _raffle_, shown here with a small negative and a small positive kerning:
-    ///
-    /// ![Two text views showing the word raffle in the Hoefler Text font, the
-    /// first with small negative and the second with small positive kerning.
-    /// The letter combination ffl has the same shape in both variants because
-    /// it acts as a ligature.](SwiftUI-Text-kerning-2.png)
-    ///
-    /// The *ffl* letter combination keeps a constant shape as the other letters
-    /// move together or apart. Beyond a certain point in either direction,
-    /// however, kerning does disable nonessential ligatures.
-    ///
-    /// ![Two text views showing the word raffle in the Hoefler Text font, the
-    /// first with large negative and the second with large positive kerning.
-    /// The letter combination ffl does not act as a ligature in either
-    /// case.](SwiftUI-Text-kerning-3.png)
-    ///
-    /// - Important: If you add both the ``Text/tracking(_:)`` and
-    ///   ``Text/kerning(_:)`` modifiers to a view, the view applies the
-    ///   tracking and ignores the kerning.
-    ///
-    /// - Parameter kerning: The spacing to use between individual characters in
-    ///   this text. Value of `0` sets the kerning to the system default value.
-    ///
-    /// - Returns: Text with the specified amount of kerning.
-    public func kerning(_ kerning: CGFloat) -> Text { fatalError() }
-
-    /// Sets the tracking for the text.
-    ///
-    /// Tracking adds space, measured in points, between the characters in the
-    /// text view. A positive value increases the spacing between characters,
-    /// while a negative value brings the characters closer together.
-    ///
-    ///     VStack(alignment: .leading) {
-    ///         Text("ABCDEF").tracking(-3)
-    ///         Text("ABCDEF")
-    ///         Text("ABCDEF").tracking(3)
-    ///     }
-    ///
-    /// The code above uses an unusually large amount of tracking to make it
-    /// easy to see the effect.
-    ///
-    /// ![Three text views showing character groups with progressively
-    /// increasing spacing between the characters in each
-    /// group.](SwiftUI-Text-tracking.png)
-    ///
-    /// The effect of tracking resembles that of the ``Text/kerning(_:)``
-    /// modifier, but adds or removes trailing whitespace, rather than changing
-    /// character offsets. Also, using any nonzero amount of tracking disables
-    /// nonessential ligatures, whereas kerning attempts to maintain ligatures.
-    ///
-    /// - Important: If you add both the ``Text/tracking(_:)`` and
-    ///   ``Text/kerning(_:)`` modifiers to a view, the view applies the
-    ///   tracking and ignores the kerning.
-    ///
-    /// - Parameter tracking: The amount of additional space, in points, that
-    ///   the view should add to each character cluster after layout. Value of `0`
-    ///   sets the tracking to the system default value.
-    ///
-    /// - Returns: Text with the specified amount of tracking.
-    public func tracking(_ tracking: CGFloat) -> Text { fatalError() }
-
-    /// Sets the vertical offset for the text relative to its baseline.
-    ///
-    /// Change the baseline offset to move the text in the view (in points) up
-    /// or down relative to its baseline. The bounds of the view expand to
-    /// contain the moved text.
-    ///
-    ///     HStack(alignment: .top) {
-    ///         Text("Hello")
-    ///             .baselineOffset(-10)
-    ///             .border(Color.red)
-    ///         Text("Hello")
-    ///             .border(Color.green)
-    ///         Text("Hello")
-    ///             .baselineOffset(10)
-    ///             .border(Color.blue)
-    ///     }
-    ///     .background(Color(white: 0.9))
-    ///
-    /// By drawing a border around each text view, you can see how the text
-    /// moves, and how that affects the view.
-    ///
-    /// ![Three text views, each with the word "Hello" outlined by a border and
-    /// aligned along the top edges. The first and last are larger than the
-    /// second, with padding inside the border above the word "Hello" in the
-    /// first case, and padding inside the border below the word in the last
-    /// case.](SwiftUI-Text-baselineOffset.png)
-    ///
-    /// The first view, with a negative offset, grows downward to handle the
-    /// lowered text. The last view, with a positive offset, grows upward. The
-    /// enclosing ``HStack`` instance, shown in gray, ensures all the text views
-    /// remain aligned at their top edge, regardless of the offset.
-    ///
-    /// - Parameter baselineOffset: The amount to shift the text vertically (up
-    ///   or down) relative to its baseline.
-    ///
-    /// - Returns: Text that's above or below its baseline.
-    public func baselineOffset(_ baselineOffset: CGFloat) -> Text { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Sets an accessibility text content type.
-    ///
-    /// Use this modifier to set the content type of this accessibility
-    /// element. Assistive technologies can use this property to choose
-    /// an appropriate way to output the text. For example, when
-    /// encountering a source coding context, VoiceOver could
-    /// choose to speak all punctuation.
-    ///
-    /// If you don't set a value with this method, the default content type
-    /// is ``AccessibilityTextContentType/plain``.
-    ///
-    /// - Parameter value: The accessibility content type from the available
-    /// ``AccessibilityTextContentType`` options.
-    public func accessibilityTextContentType(_ value: AccessibilityTextContentType) -> Text { fatalError() }
-
-    /// Sets the accessibility level of this heading.
-    ///
-    /// Use this modifier to set the level of this heading in relation to other headings. The system speaks
-    /// the level number of levels ``AccessibilityHeadingLevel/h1`` through
-    /// ``AccessibilityHeadingLevel/h6`` alongside the text.
-    ///
-    /// The default heading level if you don't use this modifier
-    /// is ``AccessibilityHeadingLevel/unspecified``.
-    ///
-    /// - Parameter level: The heading level to associate with this element
-    ///   from the available ``AccessibilityHeadingLevel`` levels.
-    public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> Text { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an alternative accessibility label
-    /// to the text that is displayed. For example, you can give an alternate label to a navigation title:
-    ///
-    ///     var body: some View {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .navigationTitle(Text("􀈤").accessibilityLabel("Inbox"))
-    ///         }
-    ///     }
-    ///
-    /// You can't style the label that you add
-    ///
-    /// - Parameter label: The text view to add the label to.
-    public func accessibilityLabel(_ label: Text) -> Text { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an alternative accessibility label to the text that is displayed.
-    /// For example, you can give an alternate label to a navigation title:
-    ///
-    ///     var body: some View {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .navigationTitle(Text("􀈤").accessibilityLabel("Inbox"))
-    ///         }
-    ///     }
-    ///
-    /// - Parameter labelKey: The string key for the alternative
-    ///   accessibility label.
-    public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> Text { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an alternative accessibility label to the text that is displayed.
-    /// For example, you can give an alternate label to a navigation title:
-    ///
-    ///     var body: some View {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .navigationTitle(Text("􀈤").accessibilityLabel("Inbox"))
-    ///         }
-    ///     }
-    ///
-    /// - Parameter label: The string for the alternative accessibility label.
-    public func accessibilityLabel<S>(_ label: S) -> Text where S : StringProtocol { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Creates a text view that displays styled attributed content.
-    ///
-    /// Use this initializer to style text according to attributes found in the specified
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString>.
-    /// Attributes in the attributed string take precedence over styles added by
-    /// view modifiers. For example, the attributed text in the following
-    /// example appears in blue, despite the use of the ``View/foregroundColor(_:)``
-    /// modifier to use red throughout the enclosing ``VStack``:
-    ///
-    ///     var content: AttributedString {
-    ///         var attributedString = AttributedString("Blue text")
-    ///         attributedString.foregroundColor = .blue
-    ///         return attributedString
-    ///     }
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             Text(content)
-    ///             Text("Red text")
-    ///         }
-    ///         .foregroundColor(.red)
-    ///     }
-    ///
-    /// ![A vertical stack of two text views, the top labeled Blue Text with a
-    /// blue font color, and the bottom labeled Red Text with a red font
-    /// color.](SwiftUI-Text-init-attributed.png)
-    ///
-    /// SwiftUI combines text attributes with SwiftUI modifiers whenever
-    /// possible. For example, the following listing creates text that is
-    /// both bold and red:
-    ///
-    ///     var content: AttributedString {
-    ///         var content = AttributedString("Some text")
-    ///         content.inlinePresentationIntent = .stronglyEmphasized
-    ///         return content
-    ///     }
-    ///
-    ///     var body: some View {
-    ///         Text(content).foregroundColor(Color.red)
-    ///     }
-    ///
-    /// A SwiftUI ``Text`` view renders most of the styles defined by the
-    /// Foundation attribute
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796123-inlinePresentationIntent>, like the
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3746899-stronglyEmphasized>
-    /// value, which SwiftUI presents as bold text.
-    ///
-    /// > Important: ``Text`` uses only a subset of the attributes defined in
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes>.
-    /// `Text` renders all
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent>
-    /// attributes except for
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3787563-lineBreak> and
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3787564-softBreak>.
-    /// It also renders the
-    /// <doc://com.apple.documentation/Foundation/AttributeScopes/FoundationAttributes/3764633-link>
-    /// attribute as a clickable link. `Text` ignores any other
-    /// Foundation-defined attributes in an attributed string.
-    ///
-    /// SwiftUI also defines additional attributes in the attribute scope
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/SwiftUIAttributes>
-    /// which you can access from an attributed string's
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/3788543-swiftUI>
-    /// property. SwiftUI attributes take precedence over equivalent attributes
-    /// from other frameworks, such as
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/UIKitAttributes> and
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/AppKitAttributes>.
-    ///
-    ///
-    /// You can create an `AttributedString` with Markdown syntax, which allows
-    /// you to style distinct runs within a `Text` view:
-    ///
-    ///     let content = try! AttributedString(
-    ///         markdown: "**Thank You!** Please visit our [website](http://example.com).")
-    ///
-    ///     var body: some View {
-    ///         Text(content)
-    ///     }
-    ///
-    /// The `**` syntax around "Thank You!" applies an
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796123-inlinePresentationIntent>
-    /// attribute with the value
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3746899-stronglyEmphasized>.
-    /// SwiftUI renders this as
-    /// bold text, as described earlier. The link syntax around "website"
-    /// creates a
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3764633-link>
-    /// attribute, which `Text` styles to indicate it's a link; by default,
-    /// clicking or tapping the link opens the linked URL in the user's default
-    /// browser. Alternatively, you can perform custom link handling by putting
-    /// an ``OpenURLAction`` in the text view's environment.
-    ///
-    /// ![A text view that says Thank you. Please visit our website. The text
-    /// The view displays the words Thank you in a bold font, and the word
-    /// website styled to indicate it is a
-    /// link.](SwiftUI-Text-init-markdown.png)
-    ///
-    /// You can also use Markdown syntax in localized string keys, which means
-    /// you can write the above example without needing to explicitly create
-    /// an `AttributedString`:
-    ///
-    ///     var body: some View {
-    ///         Text("**Thank You!** Please visit our [website](https://example.com).")
-    ///     }
-    ///
-    /// In your app's strings files, use Markdown syntax to apply styling
-    /// to the app's localized strings. You also use this approach when you want
-    /// to perform automatic grammar agreement on localized strings, with
-    /// the `^[text](inflect:true)` syntax.
-    ///
-    /// For details about Markdown syntax support in SwiftUI, see
-    /// ``Text/init(_:tableName:bundle:comment:)``.
-    ///
-    /// - Parameters:
-    ///   - attributedContent: An attributed string to style and display,
-    ///   in accordance with its attributes.
-    public init(_ attributedContent: AttributedString) { fatalError() }
-}
-
-//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-//extension Text.Storage : @unchecked Sendable {
-//}
-//
-//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-//extension Text.Modifier : @unchecked Sendable {
-//}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text.DateStyle : Equatable {
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: Text.DateStyle, b: Text.DateStyle) -> Bool { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text.DateStyle : Codable {
-
-    /// Encodes this value into the given encoder.
-    ///
-    /// If the value fails to encode anything, `encoder` will encode an empty
-    /// keyed container in its place.
-    ///
-    /// This function throws an error if any values are invalid for the given
-    /// encoder's format.
-    ///
-    /// - Parameter encoder: The encoder to write data to.
-    public func encode(to encoder: Encoder) throws { fatalError() }
-
-    /// Creates a new instance by decoding from the given decoder.
-    ///
-    /// This initializer throws an error if reading from the decoder fails, or
-    /// if the data read is corrupted or otherwise invalid.
-    ///
-    /// - Parameter decoder: The decoder to read data from.
-    public init(from decoder: Decoder) throws { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text.TruncationMode : Equatable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text.TruncationMode : Hashable {
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text.Case : Equatable {
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Text.Case : Hashable {
-}
-
-/// An alignment position for text along the horizontal axis.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public enum TextAlignment : Hashable, CaseIterable {
-
-    case leading
-
-    case center
-
-    case trailing
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: TextAlignment, b: TextAlignment) -> Bool { fatalError() }
-
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    /// A type that can represent a collection of all values of this type.
-    public typealias AllCases = [TextAlignment]
-
-    /// A collection of all values of this type.
-    public static var allCases: [TextAlignment] { get { fatalError() } }
-
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
-    public var hashValue: Int { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextAlignment : Sendable {
-}
-
-/// A built-in group of commands for searching, editing, and transforming
-/// selections of text.
-///
-/// These commands are optional and can be explicitly requested by passing a
-/// value of this type to the `Scene.commands(_:)` modifier.
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct TextEditingCommands : Commands {
-
-    /// A new value describing the built-in text-editing commands.
-    public init() { fatalError() }
-
-    /// The contents of the command hierarchy.
-    ///
-    /// For any commands that you create, provide a computed `body` property
-    /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
-    /// provides, as well as other commands that you've defined.
-    public var body: Body { get { return never() } }
-
-    /// The type of commands that represents the body of this command hierarchy.
-    ///
-    /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
-    /// property.
-    public typealias Body = Never
-}
-
-/// A view that can display and edit long-form text.
-///
-/// A text editor view allows you to display and edit multiline, scrollable
-/// text in your app's user interface. By default, the text editor view styles
-/// the text using characteristics inherited from the environment, like
-/// ``View/font(_:)``, ``View/foregroundColor(_:)``, and
-/// ``View/multilineTextAlignment(_:)``.
-///
-/// You create a text editor by adding a `TextEditor` instance to the
-/// body of your view, and initialize it by passing in a
-/// ``Binding`` to a string variable in your app:
-///
-///     struct TextEditingView: View {
-///         @State private var fullText: String = "This is some editable text..."
-///
-///         var body: some View {
-///             TextEditor(text: $fullText)
-///         }
-///     }
-///
-/// To style the text, use the standard view modifiers to configure a system
-/// font, set a custom font, or change the color of the view's text.
-///
-/// In this example, the view renders the editor's text in gray with a
-/// custom font:
-///
-///     struct TextEditingView: View {
-///         @State private var fullText: String = "This is some editable text..."
-///
-///         var body: some View {
-///             TextEditor(text: $fullText)
-///                 .foregroundColor(Color.gray)
-///                 .font(.custom("HelveticaNeue", size: 13))
-///         }
-///     }
-///
-/// If you want to change the spacing or font scaling aspects of the text, you
-/// can use modifiers like ``View/lineLimit(_:)-513mb``,
-/// ``View/lineSpacing(_:)``, and ``View/minimumScaleFactor(_:)`` to configure
-/// how the view displays text depending on the space constraints. For example,
-/// here the ``View/lineSpacing(_:)`` modifier sets the spacing between lines
-/// to 5 points:
-///
-///     struct TextEditingView: View {
-///         @State private var fullText: String = "This is some editable text..."
-///
-///         var body: some View {
-///             TextEditor(text: $fullText)
-///                 .foregroundColor(Color.gray)
-///                 .font(.custom("HelveticaNeue", size: 13))
-///                 .lineSpacing(5)
-///         }
-///     }
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct TextEditor : View {
-
-    /// Creates a plain text editor.
-    ///
-    /// Use a ``TextEditor`` instance to create a view in which users can enter
-    /// and edit long-form text.
-    ///
-    /// In this example, the text editor renders gray text using the 13
-    /// point Helvetica Neue font with 5 points of spacing between each line:
-    ///
-    ///     struct TextEditingView: View {
-    ///         @State private var fullText: String = "This is some editable text..."
-    ///
-    ///         var body: some View {
-    ///             TextEditor(text: $fullText)
-    ///                 .foregroundColor(Color.gray)
-    ///                 .font(.custom("HelveticaNeue", size: 13))
-    ///                 .lineSpacing(5)
-    ///         }
-    ///     }
-    ///
-    /// You can define the styling for the text within the view, including the
-    /// text color, font, and line spacing. You define these styles by applying
-    /// standard view modifiers to the view.
-    ///
-    /// The default text editor doesn't support rich text, such as styling of
-    /// individual elements within the editor's view. The styles you set apply
-    /// globally to all text in the view.
-    ///
-    /// - Parameter text: A ``Binding`` to the variable containing the
-    ///    text to edit.
-    public init(text: Binding<String>) { fatalError() }
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-/// A specification for the appearance and interaction of a text editor.
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public protocol TextEditorStyle {
-
-    /// A view that represents the body of a text editor.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a text editor.
-    ///
-    /// The system calls this method for each ``TextEditor`` instance in a view
-    /// hierarchy where this style is the current text editor style.
-    ///
-    /// - Parameter configuration: The properties of the text editor.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a text editor.
-    typealias Configuration = TextEditorStyleConfiguration
-}
-
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextEditorStyle where Self == AutomaticTextEditorStyle {
-
-    /// The default text editor style, based on the text editor's context.
-    ///
-    /// The default style represents the recommended style based on the
-    /// current platform and the text editor's context within the view hierarchy.
-    public static var automatic: AutomaticTextEditorStyle { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextEditorStyle where Self == PlainTextEditorStyle {
-
-    /// A text editor style with no decoration.
-    public static var plain: PlainTextEditorStyle { get { fatalError() } }
-}
-
-/// The properties of a text editor.
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct TextEditorStyleConfiguration {
-}
-
-/// A control that displays an editable text interface.
-///
-/// You create a text field with a label and a binding to a value. If the
-/// value is a string, the text field updates this value continuously as the
-/// user types or otherwise edits the text in the field. For non-string types,
-/// it updates the value when the user commits their edits, such as by pressing
-/// the Return key.
-///
-/// The following example shows a text field to accept a username, and a
-/// ``Text`` view below it that shadows the continuously updated value
-/// of `username`. The ``Text`` view changes color as the user begins and ends
-/// editing. When the user submits their completed entry to the text field,
-/// the ``View/onSubmit(of:_:)`` modifer calls an internal `validate(name:)`
-/// method.
-///
-///     @State private var username: String = ""
-///     @FocusState private var emailFieldIsFocused: Bool = false
-///
-///     var body: some View {
-///         TextField(
-///             "User name (email address)",
-///             text: $username
-///         )
-///         .focused($emailFieldIsFocused)
-///         .onSubmit {
-///             validate(name: username)
-///         }
-///         .textInputAutocapitalization(.never)
-///         .disableAutocorrection(true)
-///         .border(.secondary)
-///
-///         Text(username)
-///             .foregroundColor(emailFieldIsFocused ? .red : .blue)
-///     }
-///
-/// ![A text field showing the typed email mruiz2@icloud.com, with a text
-/// view below it also showing this value.](SwiftUI-TextField-echoText.png)
-///
-/// The bound value doesn't have to be a string. By using a
-/// <doc://com.apple.documentation/documentation/Foundation/FormatStyle>,
-/// you can bind the text field to a nonstring type, using the format style
-/// to convert the typed text into an instance of the bound type. The following
-/// example uses a
-/// <doc://com.apple.documentation/documentation/Foundation/PersonNameComponents/FormatStyle>
-/// to convert the name typed in the text field to a
-/// <doc://com.apple.documentation/documentation/Foundation/PersonNameComponents>
-/// instance. A ``Text`` view below the text field shows the debug description
-/// string of this instance.
-///
-///     @State private var nameComponents = PersonNameComponents()
-///
-///     var body: some View {
-///         TextField(
-///             "Proper name",
-///             value: $nameComponents,
-///             format: .name(style: .medium)
-///         )
-///         .onSubmit {
-///             validate(components: nameComponents)
-///         }
-///         .disableAutocorrection(true)
-///         .border(.secondary)
-///         Text(nameComponents.debugDescription)
-///     }
-///
-/// ![A text field showing the typed name Maria Ruiz, with a text view below
-///  it showing the string givenName:Maria
-///  familyName:Ruiz.](SwiftUI-TextField-nameComponents.png)
-///
-/// ### Text field prompts
-///
-/// You can set an explicit prompt on the text field to guide users on what
-/// text they should provide. Each text field style determines where and
-/// when the text field uses a prompt and label. For example, a form on macOS
-/// always places the label at the leading edge of the field and
-/// uses a prompt, when available, as placeholder text within the field itself.
-/// In the same context on iOS, the text field uses either the prompt or label
-/// as placeholder text, depending on whether the initializer provided a prompt.
-///
-/// The following example shows a ``Form`` with two text fields, each of which
-/// provides a prompt to indicate that the field is required, and a view builder
-/// to provide a label:
-///
-///     Form {
-///         TextField(text: $username, prompt: Text("Required")) {
-///             Text("Username")
-///         }
-///         SecureField(text: $password, prompt: Text("Required")) {
-///             Text("Password")
-///         }
-///     }
-///
-/// ![A macOS form, showing two text fields, arranged vertically, with labels to
-/// the side that say Username and Password, respectively. Inside each text
-/// field, the prompt text says Required.](TextField-prompt-1)
-///
-/// ![An iOS form, showing two text fields, arranged vertically, with prompt
-/// text that says Required.](TextField-prompt-2)
-///
-/// ### Styling text fields
-///
-/// SwiftUI provides a default text field style that reflects an appearance and
-/// behavior appropriate to the platform. The default style also takes the
-/// current context into consideration, like whether the text field is in a
-/// container that presents text fields with a special style. Beyond this, you
-/// can customize the appearance and interaction of text fields using the
-/// ``View/textFieldStyle(_:)`` modifier, passing in an instance of
-/// ``TextFieldStyle``. The following example applies the
-/// ``TextFieldStyle/roundedBorder`` style to both text fields within a ``VStack``.
-///
-///     @State private var givenName: String = ""
-///     @State private var familyName: String = ""
-///
-///     var body: some View {
-///         VStack {
-///             TextField(
-///                 "Given Name",
-///                 text: $givenName
-///             )
-///             .disableAutocorrection(true)
-///             TextField(
-///                 "Family Name",
-///                 text: $familyName
-///             )
-///             .disableAutocorrection(true)
-///         }
-///         .textFieldStyle(.roundedBorder)
-///     }
-/// ![Two vertically-stacked text fields, with the prompt text Given Name and
-/// Family Name, both with rounded
-/// borders.](SwiftUI-TextField-roundedBorderStyle.png)
-///
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct TextField<Label> : View where Label : View {
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-extension TextField where Label == Text {
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a localized title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) { fatalError() }
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a localized title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?, axis: Axis) { fatalError() }
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S>(_ title: S, text: Binding<String>, axis: Axis) where S : StringProtocol { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S>(_ title: S, text: Binding<String>, prompt: Text?, axis: Axis) where S : StringProtocol { fatalError() }
-}
-
-extension TextField {
-
-    /// Creates a text field with a preferred axis and a prompt generated from
-    /// a `Text`.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    ///   - label: A view that describes the purpose of the text field.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Creates a text field with a text label generated from a localized title
-    /// string.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?) { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S>(_ title: S, text: Binding<String>, prompt: Text?) where S : StringProtocol { fatalError() }
-}
-
-extension TextField {
-
-    /// Creates a text field with a prompt generated from a `Text`.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - label: A view that describes the purpose of the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Creates a text field with a text label generated from a localized title
-    /// string.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>) { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init<S>(_ title: S, text: Binding<String>) where S : StringProtocol { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextField where Label == Text {
-
-    /// Creates a text field with a text label generated from a localized title
-    /// string.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, onEditingChanged: @escaping (Bool) -> Void, onCommit: @escaping () -> Void) { fatalError() }
-
-    /// Creates a text field with a text label generated from a localized title
-    /// string.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, onEditingChanged: @escaping (Bool) -> Void) { fatalError() }
-
-    /// Creates a text field with a text label generated from a localized title
-    /// string.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, onCommit: @escaping () -> Void) { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S>(_ title: S, text: Binding<String>, onEditingChanged: @escaping (Bool) -> Void, onCommit: @escaping () -> Void) where S : StringProtocol { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S>(_ title: S, text: Binding<String>, onEditingChanged: @escaping (Bool) -> Void) where S : StringProtocol { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:text:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S>(_ title: S, text: Binding<String>, onCommit: @escaping () -> Void) where S : StringProtocol { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Creates a text field that applies a format style to a bound optional
-    /// value, with a label generated from a localized title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the text field
-    /// sets the bound value to `nil`.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
-    /// instance to convert to and from a representation as U.S. dollars. As
-    /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
-    /// the console. If the user enters an invalid currency value, like letters
-    /// or emoji, the console output is `Optional(nil)`.
-    ///
-    ///     @State private var myMoney: Double? = 300.0
-    ///     var body: some View {
-    ///         TextField(
-    ///             "Currency (USD)",
-    ///             value: $myMoney,
-    ///             format: .currency(code: "USD")
-    ///         )
-    ///         .onChange(of: myMoney) { newValue in
-    ///             print ("myMoney: \(newValue)")
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - titleKey: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field sets `binding.value` to `nil`.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-
-    /// Creates a text field that applies a format style to a bound optional
-    /// value, with a label generated from a title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the text field
-    /// sets the bound value to `nil`.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
-    /// instance to convert to and from a representation as U.S. dollars. As
-    /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
-    /// the console. If the user enters an invalid currency value, like letters
-    /// or emoji, the console output is `Optional(nil)`.
-    ///
-    ///     @State private var label = "Currency (USD)"
-    ///     @State private var myMoney: Double? = 300.0
-    ///     var body: some View {
-    ///         TextField(
-    ///             label,
-    ///             value: $myMoney,
-    ///             format: .currency(code: "USD")
-    ///         )
-    ///         .onChange(of: myMoney) { newValue in
-    ///             print ("myMoney: \(newValue)")
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field sets `binding.value` to `nil`.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, F>(_ title: S, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-
-    /// Creates a text field that applies a format style to a bound
-    /// value, with a label generated from a localized title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
-    /// instance to convert to and from a string representation. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 "Double",
-    ///                 value: $myDouble,
-    ///                 format: .number
-    ///             )
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// ![A text field with the string 0.673. Below this, three text views
-    /// showing the number with different styles: 0.673, 0.67300, and 6.73E-1.](TextField-init-format-1)
-    ///
-    /// - Parameters:
-    ///   - titleKey: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field leaves `binding.value` unchanged. If the user stops editing
-    ///     the text in an invalid state, the text field updates the field's
-    ///     text to the last known valid value.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-
-    /// Creates a text field that applies a format style to a bound
-    /// value, with a label generated from a title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
-    /// instance to convert to and from a string representation. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var label = "Double"
-    ///     @State private var myDouble: Double = 0.673
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 label,
-    ///                 value: $myDouble,
-    ///                 format: .number
-    ///             )
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// ![A text field with the string 0.673. Below this, three text views
-    /// showing the number with different styles: 0.673, 0.67300, and 6.73E-1.](TextField-init-format-1)
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field leaves `binding.value` unchanged. If the user stops editing
-    ///     the text in an invalid state, the text field updates the field's
-    ///     text to the last known valid value.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, F>(_ title: S, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-}
-
-extension TextField {
-
-    /// Creates a text field that applies a format style to a bound optional
-    /// value, with a label generated from a view builder.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the text field
-    /// sets the bound value to `nil`.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
-    /// instance to convert to and from a representation as U.S. dollars. As
-    /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
-    /// the console. If the user enters an invalid currency value, like letters
-    /// or emoji, the console output is `Optional(nil)`.
-    ///
-    ///     @State private var myMoney: Double? = 300.0
-    ///     var body: some View {
-    ///         TextField(
-    ///             value: $myMoney,
-    ///             format: .currency(code: "USD")
-    ///         ) {
-    ///             Text("Currency (USD)")
-    ///         }
-    ///         .onChange(of: myMoney) { newValue in
-    ///             print ("myMoney: \(newValue)")
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field sets `binding.value` to `nil`.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    ///   - label: A view builder that produces a label for the text field,
-    ///     describing its purpose.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-
-    /// Creates a text field that applies a format style to a bound
-    /// value, with a label generated from a view builder.
-    ///
-    /// Use this initializer to create a text field that binds to a bound
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the format style can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
-    /// instance to convert to and from a string representation. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 value: $myDouble,
-    ///                 format: .number
-    ///             ) {
-    ///                 Text("Double")
-    ///             }
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// ![A text field with the string 0.673. Below this, three text views
-    /// showing the number with different styles: 0.673, 0.67300, and 6.73E-1.](TextField-init-format-1)
-    ///
-    /// - Parameters:
-    ///   - value: The underlying value to edit.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the text
-    ///     field leaves the value unchanged. If the user stops editing
-    ///     the text in an invalid state, the text field updates the field's
-    ///     text to the last known valid value.
-    ///   - prompt: A `Text` which provides users with guidance on what to type
-    ///     into the text field.
-    ///   - label: A view builder that produces a label for the text field,
-    ///     describing its purpose.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(value: Binding<F.FormatInput>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Creates a text field that applies a formatter to a bound
-    /// value, with a label generated from a localized title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the formatter can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
-    /// instance to convert to and from a string representation. The formatter
-    /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
-    /// style, to allow entering a fractional part. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     @State private var numberFormatter: NumberFormatter = {
-    ///         var nf = NumberFormatter()
-    ///         nf.numberStyle = .decimal
-    ///         return nf
-    ///     }()
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 "Double",
-    ///                 value: $myDouble,
-    ///                 formatter: numberFormatter
-    ///             )
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     If `formatter` can't perform the conversion, the text field doesn't
-    ///     modify `binding.value`.
-    ///   - prompt: A `Text` which provides users with guidance on what to enter
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, prompt: Text?) { fatalError() }
-
-    /// Creates a text field that applies a formatter to a bound
-    /// value, with a label generated from a title string.
-    ///
-    /// Use this initializer to create a text field that binds to a bound
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the formatter can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
-    /// instance to convert to and from a string representation. The formatter
-    /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
-    /// style, to allow entering a fractional part. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var label = "Double"
-    ///     @State private var myDouble: Double = 0.673
-    ///     @State private var numberFormatter: NumberFormatter = {
-    ///         var nf = NumberFormatter()
-    ///         nf.numberStyle = .decimal
-    ///         return nf
-    ///     }()
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 label,
-    ///                 value: $myDouble,
-    ///                 formatter: numberFormatter
-    ///             )
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     If `formatter` can't perform the conversion, the text field doesn't
-    ///     modify `binding.value`.
-    ///   - prompt: A `Text` which provides users with guidance on what to enter
-    ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, prompt: Text?) where S : StringProtocol { fatalError() }
-}
-
-extension TextField {
-
-    /// Creates a text field that applies a formatter to a bound optional
-    /// value, with a label generated from a view builder.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the formatter can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
-    /// instance to convert to and from a string representation. The formatter
-    /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
-    /// style, to allow entering a fractional part. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     @State private var numberFormatter: NumberFormatter = {
-    ///         var nf = NumberFormatter()
-    ///         nf.numberStyle = .decimal
-    ///         return nf
-    ///     }()
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 value: $myDouble,
-    ///                 formatter: numberFormatter
-    ///             ) {
-    ///                 Text("Double")
-    ///             }
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - value: The underlying value to edit.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     If `formatter` can't perform the conversion, the text field doesn't
-    ///     modify `binding.value`.
-    ///   - prompt: A `Text` which provides users with guidance on what to enter
-    ///     into the text field.
-    ///   - label: A view that describes the purpose of the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<V>(value: Binding<V>, formatter: Formatter, prompt: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the formatter can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
-    /// instance to convert to and from a string representation. The formatter
-    /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
-    /// style, to allow entering a fractional part. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     @State private var numberFormatter: NumberFormatter = {
-    ///         var nf = NumberFormatter()
-    ///         nf.numberStyle = .decimal
-    ///         return nf
-    ///     }()
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 value: $myDouble,
-    ///                 formatter: numberFormatter
-    ///             ) {
-    ///                 Text("Double")
-    ///             }
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     If `formatter` can't perform the conversion, the text field doesn't
-    ///     modify `binding.value`.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter) { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// Use this initializer to create a text field that binds to a bound optional
-    /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
-    /// to convert to and from this type. Changes to the bound value update
-    /// the string displayed by the text field. Editing the text field
-    /// updates the bound value, as long as the formatter can parse the
-    /// text. If the format style can't parse the input, the bound value
-    /// remains unchanged.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
-    /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
-    /// instance to convert to and from a string representation. The formatter
-    /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
-    /// style, to allow entering a fractional part. As the user types, the bound
-    /// value updates, which in turn updates three ``Text`` views that use
-    /// different format styles. If the user enters text that doesn't represent
-    /// a valid `Double`, the bound value doesn't update.
-    ///
-    ///     @State private var myDouble: Double = 0.673
-    ///     @State private var numberFormatter: NumberFormatter = {
-    ///         var nf = NumberFormatter()
-    ///         nf.numberStyle = .decimal
-    ///         return nf
-    ///     }()
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField(
-    ///                 value: $myDouble,
-    ///                 formatter: numberFormatter
-    ///             ) {
-    ///                 Text("Double")
-    ///             }
-    ///             Text(myDouble, format: .number)
-    ///             Text(myDouble, format: .number.precision(.significantDigits(5)))
-    ///             Text(myDouble, format: .number.notation(.scientific))
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - value: The underlying value to edit.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     If `formatter` can't perform the conversion, the text field doesn't
-    ///     modify `binding.value`.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
-}
-
-extension TextField where Label == Text {
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, onEditingChanged: @escaping (Bool) -> Void, onCommit: @escaping () -> Void) { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, onEditingChanged: @escaping (Bool) -> Void) { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, onCommit: @escaping () -> Void) { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, onEditingChanged: @escaping (Bool) -> Void, onCommit: @escaping () -> Void) where S : StringProtocol { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onEditingChanged: The action to perform when the user
-    ///     begins editing `text` and after the user finishes editing `text`.
-    ///     The closure receives a Boolean value that indicates the editing
-    ///     status: `true` when the user begins editing, `false` when they
-    ///     finish.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, onEditingChanged: @escaping (Bool) -> Void) where S : StringProtocol { fatalError() }
-
-    /// Create an instance which binds over an arbitrary type, `V`.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text field, describing its purpose.
-    ///   - value: The underlying value to be edited.
-    ///   - formatter: A formatter to use when converting between the
-    ///     string the user edits and the underlying value of type `V`.
-    ///     In the event that `formatter` is unable to perform the conversion,
-    ///     `binding.value` isn't modified.
-    ///   - onCommit: An action to perform when the user performs an action
-    ///     (for example, when the user presses the Return key) while the text
-    ///     field has focus.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed TextField.init(_:value:formatter:onEditingChanged:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter. Use FocusState<T> and View.focused(_:equals:) for functionality previously provided by the onEditingChanged parameter.")
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, onCommit: @escaping () -> Void) where S : StringProtocol { fatalError() }
-}
-
-/// A specification for the appearance and interaction of a text field.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol TextFieldStyle {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextFieldStyle where Self == DefaultTextFieldStyle {
-
-    /// The default text field style, based on the text field's context.
-    ///
-    /// The default style represents the recommended style based on the
-    /// current platform and the text field's context within the view hierarchy.
-    public static var automatic: DefaultTextFieldStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextFieldStyle where Self == RoundedBorderTextFieldStyle {
-
-    /// A text field style with a system-defined rounded border.
-    public static var roundedBorder: RoundedBorderTextFieldStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextFieldStyle where Self == PlainTextFieldStyle {
-
-    /// A text field style with no decoration.
-    public static var plain: PlainTextFieldStyle { get { fatalError() } }
-}
-
-/// A built-in set of commands for transforming the styles applied to selections
-/// of text.
-///
-/// These commands are optional and can be explicitly requested by passing a
-/// value of this type to the `Scene.commands(_:)` modifier.
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct TextFormattingCommands : Commands {
-
-    /// A new value describing the built-in text-formatting commands.
-    public init() { fatalError() }
-
-    /// The contents of the command hierarchy.
-    ///
-    /// For any commands that you create, provide a computed `body` property
-    /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
-    /// provides, as well as other commands that you've defined.
-    public var body: Body { get { return never() } }
-
-    /// The type of commands that represents the body of this command hierarchy.
-    ///
-    /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
-    /// property.
-    public typealias Body = Never
-}
-
-/// The kind of autocapitalization behavior applied during text input.
-///
-/// Pass an instance of `TextInputAutocapitalization` to the
-/// ``View/textInputAutocapitalization(_:)`` view modifier.
-@available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-public struct TextInputAutocapitalization : Sendable {
-
-    /// Defines an autocapitalizing behavior that will not capitalize anything.
-    public static var never: TextInputAutocapitalization { get { fatalError() } }
-
-    /// Defines an autocapitalizing behavior that will capitalize the first
-    /// letter of every word.
-    public static var words: TextInputAutocapitalization { get { fatalError() } }
-
-    /// Defines an autocapitalizing behavior that will capitalize the first
-    /// letter in every sentence.
-    public static var sentences: TextInputAutocapitalization { get { fatalError() } }
-
-    /// Defines an autocapitalizing behavior that will capitalize every letter.
-    public static var characters: TextInputAutocapitalization { get { fatalError() } }
-}
-
-@available(iOS 15.0, tvOS 15.0, *)
-@available(macOS, unavailable)
-@available(watchOS, unavailable)
-extension TextInputAutocapitalization {
-
-    /// Creates a new ``TextInputAutocapitalization`` struct from a
-    /// `UITextAutocapitalizationType` enum.
-    public init?(_ type: UITextAutocapitalizationType) { fatalError() }
-}
-
-@available(iOS 17.0, xrOS 1.0, *)
-@available(macOS, unavailable)
-@available(watchOS, unavailable)
-@available(tvOS, unavailable)
-public struct TextInputDictationActivation : Equatable, Sendable {
-
-    /// A configuration that activates dictation when someone selects the
-    /// microphone.
-    @available(iOS 17.0, xrOS 1.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(tvOS, unavailable)
-    public static let onSelect: TextInputDictationActivation = { fatalError() }()
-
-    /// A configuration that activates dictation when someone selects the
-    /// microphone or looks at the entry field.
-    @available(iOS 17.0, xrOS 1.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(tvOS, unavailable)
-    public static let onLook: TextInputDictationActivation = { fatalError() }()
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: TextInputDictationActivation, b: TextInputDictationActivation) -> Bool { fatalError() }
-}
-
-@available(iOS 17.0, xrOS 1.0, *)
-@available(macOS, unavailable)
-@available(watchOS, unavailable)
-@available(tvOS, unavailable)
-public struct TextInputDictationBehavior : Equatable, Sendable {
-
-    /// A platform-appropriate default text input dictation behavior.
-    ///
-    /// The automatic behavior uses a ``TextInputDictationActivation`` value of
-    /// ``TextInputDictationActivation/onLook`` for visionOS apps and
-    /// ``TextInputDictationActivation/onSelect`` for iOS apps.
-    @available(iOS 17.0, xrOS 1.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(tvOS, unavailable)
-    public static let automatic: TextInputDictationBehavior = { fatalError() }()
-
-    /// Adds a dictation microphone in the search bar.
-    @available(iOS 17.0, xrOS 1.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(tvOS, unavailable)
-    public static func inline(activation: TextInputDictationActivation) -> TextInputDictationBehavior { fatalError() }
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: TextInputDictationBehavior, b: TextInputDictationBehavior) -> Bool { fatalError() }
-}
-
-/// A type that describes the ability to select text.
-///
-/// To configure whether people can select text in your app, use the
-/// ``View/textSelection(_:)`` modifier, passing in a text selectability
-/// value like ``enabled`` or ``disabled``.
-@available(iOS 15.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public protocol TextSelectability {
-
-    /// A Boolean value that indicates whether the selectability type allows
-    /// selection.
-    ///
-    /// Conforming types, such as ``EnabledTextSelectability`` and
-    /// ``DisabledTextSelectability``, return `true` or `false` for this
-    /// property as appropriate. SwiftUI expects this value for a given
-    /// selectability type to be constant, unaffected by global state.
-    static var allowsSelection: Bool { get }
-}
-
-@available(iOS 15.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextSelectability where Self == EnabledTextSelectability {
-
-    /// A selectability value that enables text selection by a person using your app.
-    ///
-    /// Enabling text selection allows people to perform actions on the text
-    /// content, such as copying and sharing. Enable text selection in views
-    /// where those operations are useful, such as copying unique IDs or
-    /// error messages. This allows people to paste the data into
-    /// emails or documents.
-    ///
-    /// The following example enables text selection on the second of two
-    /// ``Text`` views in a ``VStack``.
-    ///
-    ///     VStack {
-    ///         Text("Event Invite")
-    ///             .font(.title)
-    ///         Text(invite.date.formatted(date: .long, time: .shortened))
-    ///             .textSelection(.enabled)
-    ///     }
-    ///
-    public static var enabled: EnabledTextSelectability { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextSelectability where Self == DisabledTextSelectability {
-
-    /// A selectability value that disables text selection by the person using your app.
-    ///
-    /// Use this property to disable text selection of views that
-    /// you don't want people to select and copy, even if contained within an
-    /// overall context that allows text selection.
-    ///
-    ///     content // Content that might contain Text views.
-    ///        .textSelection(.disabled)
-    ///        .padding()
-    ///        .contentShape(Rectangle())
-    ///        .gesture(someGesture)
-    ///
-    public static var disabled: DisabledTextSelectability { get { fatalError() } }
-}
-
-/// A type that provides a sequence of dates for use as a schedule.
-///
-/// Types that conform to this protocol implement a particular kind of schedule
-/// by defining an ``TimelineSchedule/entries(from:mode:)`` method that returns
-/// a sequence of dates. Use a timeline schedule type when you initialize
-/// a ``TimelineView``. For example, you can create a timeline view that
-/// updates every second, starting from some `startDate`, using a
-/// periodic schedule returned by ``TimelineSchedule/periodic(from:by:)``:
-///
-///     TimelineView(.periodic(from: startDate, by: 1.0)) { context in
-///         // View content goes here.
-///     }
-///
-/// You can also create custom timeline schedules.
-/// The timeline view updates its content according to the
-/// sequence of dates produced by the schedule.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public protocol TimelineSchedule {
-
-    /// An alias for the timeline schedule update mode.
-    typealias Mode = TimelineScheduleMode
-
-    /// The sequence of dates within a schedule.
-    ///
-    /// The ``TimelineSchedule/entries(from:mode:)`` method returns a value
-    /// of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
-    /// of dates in ascending order. A ``TimelineView`` that you create with a
-    /// schedule updates its content at the moments in time corresponding to
-    /// the dates included in the sequence.
-    associatedtype Entries : Sequence where Self.Entries.Element == Date
-
-    /// Provides a sequence of dates starting around a given date.
-    ///
-    /// A ``TimelineView`` that you create calls this method to figure out
-    /// when to update its content. The method returns a sequence of dates in
-    /// increasing order that represent points in time when the timeline view
-    /// should update. Types that conform to the ``TimelineSchedule`` protocol,
-    /// like the one returned by ``TimelineSchedule/periodic(from:by:)``, or a custom schedule that
-    /// you define, implement a custom version of this method to implement a
-    /// particular kind of schedule.
-    ///
-    /// One or more dates in the sequence might be before the given
-    /// `startDate`, in which case the timeline view performs its first
-    /// update at `startDate` using the entry that most closely precedes
-    /// that date. For example, if in response to a `startDate` of
-    /// `10:09:55`, the method returns a sequence with the values `10:09:00`,
-    /// `10:10:00`, `10:11:00`, and so on, the timeline view performs an initial
-    /// update at `10:09:55` (using the `10:09:00` entry), followed by another
-    /// update at the beginning of every minute, starting at `10:10:00`.
-    ///
-    /// A type that conforms should adjust its behavior based on the `mode` when
-    /// possible. For example, a periodic schedule providing updates
-    /// for a timer could restrict updates to once per minute while in the
-    /// ``TimelineScheduleMode/lowFrequency`` mode:
-    ///
-    ///     func entries(
-    ///         from startDate: Date, mode: TimelineScheduleMode
-    ///     ) -> PeriodicTimelineSchedule {
-    ///         .periodic(
-    ///             from: startDate, by: (mode == .lowFrequency ? 60.0 : 1.0)
-    ///         )
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - startDate: The date by which the sequence begins.
-    ///   - mode: An indication of whether the schedule updates normally,
-    ///     or with some other cadence.
-    /// - Returns: A sequence of dates in ascending order.
-    func entries(from startDate: Date, mode: Self.Mode) -> Self.Entries
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineSchedule where Self == AnimationTimelineSchedule {
-
-    /// A pausable schedule of dates updating at a frequency no more quickly
-    /// than the provided interval.
-    public static var animation: AnimationTimelineSchedule { get { fatalError() } }
-
-    /// A pausable schedule of dates updating at a frequency no more quickly
-    /// than the provided interval.
-    ///
-    /// - Parameters:
-    ///     - minimumInterval: The minimum interval to update the schedule at.
-    ///     Pass nil to let the system pick an appropriate update interval.
-    ///     - paused: If the schedule should stop generating updates.
-    public static func animation(minimumInterval: Double? = nil, paused: Bool = false) -> AnimationTimelineSchedule { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineSchedule where Self == PeriodicTimelineSchedule {
-
-    /// A schedule for updating a timeline view at regular intervals.
-    ///
-    /// Initialize a ``TimelineView`` with a periodic timeline schedule when
-    /// you want to schedule timeline view updates periodically with a custom
-    /// interval:
-    ///
-    ///     TimelineView(.periodic(from: startDate, by: 3.0)) { context in
-    ///         Text(context.date.description)
-    ///     }
-    ///
-    /// The timeline view updates its content at the start date, and then
-    /// again at dates separated in time by the interval amount, which is every
-    /// three seconds in the example above. For a start date in the
-    /// past, the view updates immediately, providing as context the date
-    /// corresponding to the most recent interval boundary. The view then
-    /// refreshes normally at subsequent interval boundaries. For a start date
-    /// in the future, the view updates once with the current date, and then
-    /// begins regular updates at the start date.
-    ///
-    /// The schedule defines the ``PeriodicTimelineSchedule/Entries``
-    /// structure to return the sequence of dates when the timeline view calls
-    /// the ``PeriodicTimelineSchedule/entries(from:mode:)`` method.
-    ///
-    /// - Parameters:
-    ///   - startDate: The date on which to start the sequence.
-    ///   - interval: The time interval between successive sequence entries.
-    public static func periodic(from startDate: Date, by interval: TimeInterval) -> PeriodicTimelineSchedule { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineSchedule where Self == EveryMinuteTimelineSchedule {
-
-    /// A schedule for updating a timeline view at the start of every minute.
-    ///
-    /// Initialize a ``TimelineView`` with an every minute timeline schedule
-    /// when you want to schedule timeline view updates at the start of every
-    /// minute:
-    ///
-    ///     TimelineView(.everyMinute) { context in
-    ///         Text(context.date.description)
-    ///     }
-    ///
-    /// The schedule provides the first date as the beginning of the minute in
-    /// which you use it to initialize the timeline view. For example, if you
-    /// create the timeline view at `10:09:38`, the schedule's first entry is
-    /// `10:09:00`. In response, the timeline view performs its first update
-    /// immediately, providing the beginning of the current minute, namely
-    /// `10:09:00`, as context to its content. Subsequent updates happen at the
-    /// beginning of each minute that follows.
-    ///
-    /// The schedule defines the ``EveryMinuteTimelineSchedule/Entries``
-    /// structure to return the sequence of dates when the timeline view calls
-    /// the ``EveryMinuteTimelineSchedule/entries(from:mode:)`` method.
-    public static var everyMinute: EveryMinuteTimelineSchedule { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineSchedule {
-
-    /// A schedule for updating a timeline view at explicit points in time.
-    ///
-    /// Initialize a ``TimelineView`` with an explicit timeline schedule when
-    /// you want to schedule view updates at particular points in time:
-    ///
-    ///     let dates = [
-    ///         Date(timeIntervalSinceNow: 10), // Update ten seconds from now,
-    ///         Date(timeIntervalSinceNow: 12) // and a few seconds later.
-    ///     ]
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             TimelineView(.explicit(dates)) { context in
-    ///                 Text(context.date.description)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// The timeline view updates its content on exactly the dates that
-    /// you specify, until it runs out of dates, after which it stops changing.
-    /// If the dates you provide are in the past, the timeline view updates
-    /// exactly once with the last entry. If you only provide dates in the
-    /// future, the timeline view renders with the current date until the first
-    /// date arrives. If you provide one or more dates in the past and one or
-    /// more in the future, the view renders the most recent past date,
-    /// refreshing normally on all subsequent dates.
-    ///
-    /// - Parameter dates: The sequence of dates at which a timeline view
-    ///   updates. Use a monotonically increasing sequence of dates,
-    ///   and ensure that at least one is in the future.
-    public static func explicit<S>(_ dates: S) -> ExplicitTimelineSchedule<S> where Self == ExplicitTimelineSchedule<S>, S : Sequence, S.Element == Date { fatalError() }
-}
-
-/// A mode of operation for timeline schedule updates.
-///
-/// A ``TimelineView`` provides a mode when calling its schedule's
-/// ``TimelineSchedule/entries(from:mode:)`` method.
-/// The view chooses a mode based on the state of the system.
-/// For example, a watchOS view might request a lower frequency
-/// of updates, using the ``lowFrequency`` mode, when the user
-/// lowers their wrist.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public enum TimelineScheduleMode : Sendable {
-
-    /// A mode that produces schedule updates at the schedule's natural cadence.
-    case normal
-
-    /// A mode that produces schedule updates at a reduced rate.
-    ///
-    /// In this mode, the schedule should generate only
-    /// "major" updates, if possible. For example, a timeline providing
-    /// updates to a timer might restrict updates to once a minute while in
-    /// this mode.
-    case lowFrequency
-
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    public static func == (a: TimelineScheduleMode, b: TimelineScheduleMode) -> Bool { fatalError() }
-
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
-    public var hashValue: Int { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineScheduleMode : Equatable {
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineScheduleMode : Hashable {
-}
-
-/// A view that updates according to a schedule that you provide.
-///
-/// A timeline view acts as a container with no appearance of its own. Instead,
-/// it redraws the content it contains at scheduled points in time.
-/// For example, you can update the face of an analog timer once per second:
-///
-///     TimelineView(.periodic(from: startDate, by: 1)) { context in
-///         AnalogTimerView(date: context.date)
-///     }
-///
-/// The closure that creates the content receives an input of type ``Context``
-/// that you can use to customize the content's appearance. The context includes
-/// the ``Context/date`` that triggered the update. In the example above,
-/// the timeline view sends that date to an analog timer that you create so the
-/// timer view knows how to draw the hands on its face.
-///
-/// The context also includes a ``Context/cadence-swift.property``
-/// property that you can use to hide unnecessary detail. For example, you
-/// can use the cadence to decide when it's appropriate to display the
-/// timer's second hand:
-///
-///     TimelineView(.periodic(from: startDate, by: 1.0)) { context in
-///         AnalogTimerView(
-///             date: context.date,
-///             showSeconds: context.cadence <= .seconds)
-///     }
-///
-/// The system might use a cadence that's slower than the schedule's
-/// update rate. For example, a view on watchOS might remain visible when the
-/// user lowers their wrist, but update less frequently, and thus require
-/// less detail.
-///
-/// You can define a custom schedule by creating a type that conforms to the
-/// ``TimelineSchedule`` protocol, or use one of the built-in schedule types:
-/// * Use an ``TimelineSchedule/everyMinute`` schedule to update at the
-///   beginning of each minute.
-/// * Use a ``TimelineSchedule/periodic(from:by:)`` schedule to update
-///   periodically with a custom start time and interval between updates.
-/// * Use an ``TimelineSchedule/explicit(_:)`` schedule when you need a finite number, or
-///   irregular set of updates.
-///
-/// For a schedule containing only dates in the past,
-/// the timeline view shows the last date in the schedule.
-/// For a schedule containing only dates in the future,
-/// the timeline draws its content using the current date
-/// until the first scheduled date arrives.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule {
-
-    /// Information passed to a timeline view's content callback.
-    ///
-    /// The context includes both the ``date`` from the schedule that triggered
-    /// the callback, and a ``cadence-swift.property`` that you can use
-    /// to customize the appearance of your view. For example, you might choose
-    /// to display the second hand of an analog clock only when the cadence is
-    /// ``Cadence-swift.enum/seconds`` or faster.
-    public struct Context {
-
-        /// A rate at which timeline views can receive updates.
-        ///
-        /// Use the cadence presented to content in a ``TimelineView`` to hide
-        /// information that updates faster than the view's current update rate.
-        /// For example, you could hide the millisecond component of a digital
-        /// timer when the cadence is ``seconds`` or ``minutes``.
-        ///
-        /// Because this enumeration conforms to the
-        /// <doc://com.apple.documentation/documentation/Swift/Comparable>
-        /// protocol, you can compare cadences with relational operators.
-        /// Slower cadences have higher values, so you could perform the check
-        /// described above with the following comparison:
-        ///
-        ///     let hideMilliseconds = cadence > .live
-        ///
-        public enum Cadence : Comparable, Sendable {
-
-            /// Updates the view continuously.
-            case live
-
-            /// Updates the view approximately once per second.
-            case seconds
-
-            /// Updates the view approximately once per minute.
-            case minutes
-
-            /// Returns a Boolean value indicating whether two values are equal.
-            ///
-            /// Equality is the inverse of inequality. For any values `a` and `b`,
-            /// `a == b` implies that `a != b` is `false`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func == (a: TimelineView<Schedule, Content>.Context.Cadence, b: TimelineView<Schedule, Content>.Context.Cadence) -> Bool { fatalError() }
-
-            /// Hashes the essential components of this value by feeding them into the
-            /// given hasher.
-            ///
-            /// Implement this method to conform to the `Hashable` protocol. The
-            /// components used for hashing must be the same as the components compared
-            /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-            /// with each of these components.
-            ///
-            /// - Important: In your implementation of `hash(into:)`,
-            ///   don't call `finalize()` on the `hasher` instance provided,
-            ///   or replace it with a different instance.
-            ///   Doing so may become a compile-time error in the future.
-            ///
-            /// - Parameter hasher: The hasher to use when combining the components
-            ///   of this instance.
-            public func hash(into hasher: inout Hasher) { fatalError() }
-
-            /// Returns a Boolean value indicating whether the value of the first
-            /// argument is less than that of the second argument.
-            ///
-            /// This function is the only requirement of the `Comparable` protocol. The
-            /// remainder of the relational operator functions are implemented by the
-            /// standard library for any type that conforms to `Comparable`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func < (a: TimelineView<Schedule, Content>.Context.Cadence, b: TimelineView<Schedule, Content>.Context.Cadence) -> Bool { fatalError() }
-
-            /// The hash value.
-            ///
-            /// Hash values are not guaranteed to be equal across different executions of
-            /// your program. Do not save hash values to use during a future execution.
-            ///
-            /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-            ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-            ///   The compiler provides an implementation for `hashValue` for you.
-            public var hashValue: Int { get { fatalError() } }
-        }
-
-        /// The date from the schedule that triggered the current view update.
-        ///
-        /// The first time a ``TimelineView`` closure receives this date, it
-        /// might be in the past. For example, if you create an
-        /// ``TimelineSchedule/everyMinute`` schedule at `10:09:55`, the
-        /// schedule creates entries `10:09:00`, `10:10:00`, `10:11:00`, and so
-        /// on. In response, the timeline view performs an initial update
-        /// immediately, at `10:09:55`, but the context contains the `10:09:00`
-        /// date entry. Subsequent entries arrive at their corresponding times.
-        public let date: Date = { fatalError() }()
-
-        /// The rate at which the timeline updates the view.
-        ///
-        /// Use this value to hide information that updates faster than the
-        /// view's current update rate. For example, you could hide the
-        /// millisecond component of a digital timer when the cadence is
-        /// anything slower than ``Cadence-swift.enum/live``.
-        ///
-        /// Because the ``Cadence-swift.enum`` enumeration conforms to the
-        /// <doc://com.apple.documentation/documentation/Swift/Comparable>
-        /// protocol, you can compare cadences with relational operators.
-        /// Slower cadences have higher values, so you could perform the check
-        /// described above with the following comparison:
-        ///
-        ///     let hideMilliseconds = cadence > .live
-        ///
-        public let cadence: TimelineView<Schedule, Content>.Context.Cadence = { fatalError() }()
-    }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineView : View where Content : View {
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-
-    /// Creates a new timeline view that uses the given schedule.
-    ///
-    /// - Parameters:
-    ///   - schedule: A schedule that produces a sequence of dates that
-    ///     indicate the instances when the view should update.
-    ///     Use a type that conforms to ``TimelineSchedule``, like
-    ///     ``TimelineSchedule/everyMinute``, or a custom timeline schedule
-    ///     that you define.
-    ///   - content: A closure that generates view content at the moments
-    ///     indicated by the schedule. The closure takes an input of type
-    ///     ``TimelineViewDefaultContext`` that includes the date from the schedule that
-    ///     prompted the update, as well as a ``Context/Cadence-swift.enum``
-    ///     value that the view can use to customize its appearance.
-    public init(_ schedule: Schedule, @ViewBuilder content: @escaping (TimelineViewDefaultContext) -> Content) { fatalError() }
-
-    /// Creates a new timeline view that uses the given schedule.
-    ///
-    /// - Parameters:
-    ///   - schedule: A schedule that produces a sequence of dates that
-    ///     indicate the instances when the view should update.
-    ///     Use a type that conforms to ``TimelineSchedule``, like
-    ///     ``TimelineSchedule/everyMinute``, or a custom timeline schedule
-    ///     that you define.
-    ///   - content: A closure that generates view content at the moments
-    ///     indicated by the schedule. The closure takes an input of type
-    ///     ``Context`` that includes the date from the schedule that
-    ///     prompted the update, as well as a ``Context/Cadence-swift.enum``
-    ///     value that the view can use to customize its appearance.
-    @available(iOS, deprecated, introduced: 15.0, message: "Use TimelineViewDefaultContext for the type of the context parameter passed into TimelineView's content closure to resolve this warning. The new version of this initializer, using TimelineViewDefaultContext, improves compilation performance by using an independent generic type signature, which helps avoid unintended cyclical type dependencies.")
-    @available(macOS, deprecated, introduced: 12.0, message: "Use TimelineViewDefaultContext for the type of the context parameter passed into TimelineView's content closure to resolve this warning. The new version of this initializer, using TimelineViewDefaultContext, improves compilation performance by using an independent generic type signature, which helps avoid unintended cyclical type dependencies.")
-    @available(watchOS, deprecated, introduced: 8.0, message: "Use TimelineViewDefaultContext for the type of the context parameter passed into TimelineView's content closure to resolve this warning. The new version of this initializer, using TimelineViewDefaultContext, improves compilation performance by using an independent generic type signature, which helps avoid unintended cyclical type dependencies.")
-    @available(tvOS, deprecated, introduced: 15.0, message: "Use TimelineViewDefaultContext for the type of the context parameter passed into TimelineView's content closure to resolve this warning. The new version of this initializer, using TimelineViewDefaultContext, improves compilation performance by using an independent generic type signature, which helps avoid unintended cyclical type dependencies.")
-    @available(xrOS, deprecated, introduced: 1.0, message: "Use TimelineViewDefaultContext for the type of the context parameter passed into TimelineView's content closure to resolve this warning. The new version of this initializer, using TimelineViewDefaultContext, improves compilation performance by using an independent generic type signature, which helps avoid unintended cyclical type dependencies.")
-    public init(_ schedule: Schedule, @ViewBuilder content: @escaping (TimelineView<Schedule, Content>.Context) -> Content) { fatalError() }
-}
-
-@available(iOS 16.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-extension TimelineView.Context {
-
-    /// Resets any pre-rendered views the system has from the timeline.
-    ///
-    /// When entering Always On Display, the system might pre-render frames. If the
-    /// content of these frames must change in a way that isn't reflected by
-    /// the schedule or the timeline view's current bindings --- for example, because
-    /// the user changes the title of a future calendar event --- call this method to
-    /// request that the frames be regenerated.
-    public func invalidateTimelineContent() { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension TimelineView.Context.Cadence : Hashable {
-}
-
-/// Information passed to a timeline view's content callback.
-///
-/// The context includes both the date from the schedule that triggered
-/// the callback, and a cadence that you can use to customize the appearance of
-/// your view. For example, you might choose to display the second hand of an
-/// analog clock only when the cadence is
-/// ``TimelineView/Context/Cadence-swift.enum/seconds`` or faster.
-///
-/// > Note: This type alias uses a specific concrete instance of
-/// ``TimelineView/Context`` that all timeline views can use.
-/// It does this to prevent introducing an unnecessary generic parameter
-/// dependency on the context type.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public typealias TimelineViewDefaultContext = TimelineView<EveryMinuteTimelineSchedule, Never>.Context
-
 /// A style that reflects the current tint color.
 ///
 /// You can set the tint color with the ``View/tint(_:)-93mfq`` modifier. If no
@@ -57810,676 +52363,6 @@ public struct TitleOnlyLabelStyle : LabelStyle {
 //    public typealias Body = some View
 }
 
-/// A control that toggles between on and off states.
-///
-/// You create a toggle by providing an `isOn` binding and a label. Bind `isOn`
-/// to a Boolean property that determines whether the toggle is on or off. Set
-/// the label to a view that visually describes the purpose of switching between
-/// toggle states. For example:
-///
-///     @State private var vibrateOnRing = false
-///
-///     var body: some View {
-///         Toggle(isOn: $vibrateOnRing) {
-///             Text("Vibrate on Ring")
-///         }
-///     }
-///
-/// For the common case of text-only labels, you can use the convenience
-/// initializer that takes a title string (or localized string key) as its first
-/// parameter, instead of a trailing closure:
-///
-///     @State private var vibrateOnRing = true
-///
-///     var body: some View {
-///         Toggle("Vibrate on Ring", isOn: $vibrateOnRing)
-///     }
-///
-/// ### Styling toggles
-///
-/// Toggles use a default style that varies based on both the platform and
-/// the context. For more information, read about the ``ToggleStyle/automatic``
-/// toggle style.
-///
-/// You can customize the appearance and interaction of toggles by applying
-/// styles using the ``View/toggleStyle(_:)`` modifier. You can apply built-in
-/// styles, like ``ToggleStyle/switch``, to either a toggle, or to a view
-/// hierarchy that contains toggles:
-///
-///     VStack {
-///         Toggle("Vibrate on Ring", isOn: $vibrateOnRing)
-///         Toggle("Vibrate on Silent", isOn: $vibrateOnSilent)
-///     }
-///     .toggleStyle(.switch)
-///
-/// You can also define custom styles by creating a type that conforms to the
-/// ``ToggleStyle`` protocol.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct Toggle<Label> : View where Label : View {
-
-    /// Creates a toggle that displays a custom label.
-    ///
-    /// - Parameters:
-    ///   - isOn: A binding to a property that determines whether the toggle is on
-    ///     or off.
-    ///   - label: A view that describes the purpose of the toggle.
-    public init(isOn: Binding<Bool>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a toggle representing a collection of values with a custom label.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle(sources: $alarms, isOn: \.isOn) {
-    ///         Text("Enable all alarms")
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - sources: A collection of values used as the source for rendering the
-    ///     Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    ///   - label: A view that describes the purpose of the toggle.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<C>(sources: C, isOn: KeyPath<C.Element, Binding<Bool>>, @ViewBuilder label: () -> Label) where C : RandomAccessCollection { fatalError() }
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Toggle where Label == ToggleStyleConfiguration.Label {
-
-    /// Creates a toggle based on a toggle style configuration.
-    ///
-    /// You can use this initializer within the
-    /// ``ToggleStyle/makeBody(configuration:)`` method of a ``ToggleStyle`` to
-    /// create an instance of the styled toggle. This is useful for custom
-    /// toggle styles that only modify the current toggle style, as opposed to
-    /// implementing a brand new style.
-    ///
-    /// For example, the following style adds a red border around the toggle,
-    /// but otherwise preserves the toggle's current style:
-    ///
-    ///     struct RedBorderToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Toggle(configuration)
-    ///                 .padding()
-    ///                 .border(.red)
-    ///         }
-    ///     }
-    ///
-    /// - Parameter configuration: The properties of the toggle, including a
-    ///   label and a binding to the toggle's state.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init(_ configuration: ToggleStyleConfiguration) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Toggle where Label == Text {
-
-    /// Creates a toggle that generates its label from a localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    /// To initialize a toggle with a string variable, use
-    /// ``Toggle/init(_:isOn:)-2qurm`` instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the toggle's localized title, that describes
-    ///     the purpose of the toggle.
-    ///   - isOn: A binding to a property that indicates whether the toggle is
-    ///    on or off.
-    public init(_ titleKey: LocalizedStringKey, isOn: Binding<Bool>) { fatalError() }
-
-    /// Creates a toggle that generates its label from a string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    /// To initialize a toggle with a localized string key, use
-    /// ``Toggle/init(_:isOn:)-8qx3l`` instead.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the toggle.
-    ///   - isOn: A binding to a property that indicates whether the toggle is
-    ///    on or off.
-    public init<S>(_ title: S, isOn: Binding<Bool>) where S : StringProtocol { fatalError() }
-
-    /// Creates a toggle representing a collection of values that generates its
-    /// label from a localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle("Enable all alarms", sources: $alarms, isOn: \.isOn)
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the toggle's localized title, that describes
-    ///     the purpose of the toggle.
-    ///   - sources: A collection of values used as the source for rendering the
-    ///     Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<C>(_ titleKey: LocalizedStringKey, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) where C : RandomAccessCollection { fatalError() }
-
-    /// Creates a toggle representing a collection of values that generates its
-    /// label from a string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle("Enable all alarms", sources: $alarms, isOn: \.isOn)
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the toggle.
-    ///   - sources: A collection of values used as the source for rendering
-    ///     the Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S, C>(_ title: S, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) where S : StringProtocol, C : RandomAccessCollection { fatalError() }
-}
-
-/// The appearance and behavior of a toggle.
-///
-/// To configure the style for a single ``Toggle`` or for all toggle instances
-/// in a view hierarchy, use the ``View/toggleStyle(_:)`` modifier. You can
-/// specify one of the built-in toggle styles, like ``ToggleStyle/switch`` or
-/// ``ToggleStyle/button``:
-///
-///     Toggle(isOn: $isFlagged) {
-///         Label("Flag", systemImage: "flag.fill")
-///     }
-///     .toggleStyle(.button)
-///
-/// Alternatively, you can create and apply a custom style.
-///
-/// ### Custom styles
-///
-/// To create a custom style, declare a type that conforms to the `ToggleStyle`
-/// protocol and implement the required ``ToggleStyle/makeBody(configuration:)``
-/// method. For example, you can define a checklist toggle style:
-///
-///     struct ChecklistToggleStyle: ToggleStyle {
-///         func makeBody(configuration: Configuration) -> some View {
-///             // Return a view that has checklist appearance and behavior.
-///         }
-///     }
-///
-/// Inside the method, use the `configuration` parameter, which is an instance
-/// of the ``ToggleStyleConfiguration`` structure, to get the label and
-/// a binding to the toggle state. To see examples of how to use these items
-/// to construct a view that has the appearance and behavior of a toggle, see
-/// ``ToggleStyle/makeBody(configuration:)``.
-///
-/// To provide easy access to the new style, declare a corresponding static
-/// variable in an extension to `ToggleStyle`:
-///
-///     extension ToggleStyle where Self == ChecklistToggleStyle {
-///         static var checklist: ChecklistToggleStyle { .init() }
-///     }
-///
-/// You can then use your custom style:
-///
-///     Toggle(activity.name, isOn: $activity.isComplete)
-///         .toggleStyle(.checklist)
-///
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol ToggleStyle {
-
-    /// A view that represents the appearance and interaction of a toggle.
-    ///
-    /// SwiftUI infers this type automatically based on the ``View``
-    /// instance that you return from your implementation of the
-    /// ``makeBody(configuration:)`` method.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a toggle.
-    ///
-    /// Implement this method when you define a custom toggle style that
-    /// conforms to the ``ToggleStyle`` protocol. Use the `configuration`
-    /// input --- a ``ToggleStyleConfiguration`` instance --- to access the
-    /// toggle's label and state. Return a view that has the appearance and
-    /// behavior of a toggle. For example you can create a toggle that displays
-    /// a label and a circle that's either empty or filled with a checkmark:
-    ///
-    ///     struct ChecklistToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Button {
-    ///                 configuration.isOn.toggle()
-    ///             } label: {
-    ///                 HStack {
-    ///                     Image(systemName: configuration.isOn
-    ///                             ? "checkmark.circle.fill"
-    ///                             : "circle")
-    ///                     configuration.label
-    ///                 }
-    ///             }
-    ///             .tint(.primary)
-    ///             .buttonStyle(.borderless)
-    ///         }
-    ///     }
-    ///
-    /// The `ChecklistToggleStyle` toggle style provides a way to both observe
-    /// and modify the toggle state: the circle fills for the on state, and
-    /// users can tap or click the toggle to change the state. By using a
-    /// customized ``Button`` to compose the toggle's body, SwiftUI
-    /// automatically provides the behaviors that users expect from a
-    /// control that has button-like characteristics.
-    ///
-    /// You can present a collection of toggles that use this style in a stack:
-    ///
-    /// ![A screenshot of three items stacked vertically. All have a circle
-    /// followed by a label. The first has the label Walk the dog, and the
-    /// circle is filled. The second has the label Buy groceries, and the
-    /// circle is filled. The third has the label Call Mom, and the cirlce is
-    /// empty.](ToggleStyle-makeBody-1-iOS)
-    ///
-    /// When updating a view hierarchy, the system calls your implementation
-    /// of the `makeBody(configuration:)` method for each ``Toggle`` instance
-    /// that uses the associated style.
-    ///
-    /// ### Modify the current style
-    ///
-    /// Rather than create an entirely new style, you can alternatively
-    /// modify a toggle's current style. Use the ``Toggle/init(_:)``
-    /// initializer inside the `makeBody(configuration:)` method to create
-    /// and modify a toggle based on a `configuration` value. For example,
-    /// you can create a style that adds padding and a red border to the
-    /// current style:
-    ///
-    ///     struct RedBorderToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Toggle(configuration)
-    ///                 .padding()
-    ///                 .border(.red)
-    ///         }
-    ///     }
-    ///
-    /// If you create a `redBorder` static variable from this style,
-    /// you can apply the style to toggles that already use another style, like
-    /// the built-in ``ToggleStyle/switch`` and ``ToggleStyle/button`` styles:
-    ///
-    ///     Toggle("Switch", isOn: $isSwitchOn)
-    ///         .toggleStyle(.redBorder)
-    ///         .toggleStyle(.switch)
-    ///
-    ///     Toggle("Button", isOn: $isButtonOn)
-    ///         .toggleStyle(.redBorder)
-    ///         .toggleStyle(.button)
-    ///
-    /// Both toggles appear with the usual styling, each with a red border:
-    ///
-    /// ![A screenshot of a switch toggle with a red border, and a button
-    /// toggle with a red border.](ToggleStyle-makeBody-2-iOS)
-    ///
-    /// Apply the custom style closer to the toggle than the
-    /// modified style because SwiftUI evaluates style view modifiers in order
-    /// from outermost to innermost. If you apply the styles in the other
-    /// order, the red border style doesn't have an effect, because the
-    /// built-in styles override it completely.
-    ///
-    /// - Parameter configuration: The properties of the toggle, including a
-    ///   label and a binding to the toggle's state.
-    /// - Returns: A view that has behavior and appearance that enables it
-    ///   to function as a ``Toggle``.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a toggle instance.
-    ///
-    /// You receive a `configuration` parameter of this type --- which is an
-    /// alias for the ``ToggleStyleConfiguration`` type --- when you implement
-    /// the required ``makeBody(configuration:)`` method in a custom toggle
-    /// style implementation.
-    typealias Configuration = ToggleStyleConfiguration
-}
-
-@available(iOS 13.0, macOS 10.15, watchOS 6.0, *)
-@available(tvOS, unavailable)
-extension ToggleStyle where Self == SwitchToggleStyle {
-
-    /// A toggle style that displays a leading label and a trailing switch.
-    ///
-    /// Apply this style to a ``Toggle`` or to a view hierarchy that contains
-    /// toggles using the ``View/toggleStyle(_:)`` modifier:
-    ///
-    ///     Toggle("Enhance Sound", isOn: $isEnhanced)
-    ///         .toggleStyle(.switch)
-    ///
-    /// The style produces a label that describes the purpose of the toggle
-    /// and a switch that shows the toggle's state. The user taps or clicks
-    /// the switch to change the toggle's state. The default appearance is
-    /// similar across platforms, although the way you use switches in your
-    /// user interface varies a little, as described in the respective Human
-    /// Interface Guidelines sections:
-    ///
-    /// | Platform    | Appearance | Human Interface Guidelines |
-    /// |-------------|------------|----------------------------|
-    /// | iOS, iPadOS | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is green. The toggle and its text appear in a rounded rectangle, and are aligned with opposite edges of the rectangle.](ToggleStyle-switch-1-iOS) | [Switches](https://developer.apple.com/design/human-interface-guidelines/ios/controls/switches/) |
-    /// | macOS       | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is blue. The toggle and its text are adjacent to each other.](ToggleStyle-switch-1-macOS) | [Switches](https://developer.apple.com/design/human-interface-guidelines/macos/buttons/switches/)
-    /// | watchOS     | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is green. The toggle and its text appear in a rounded rectangle, and are aligned with opposite edges of the rectangle.](ToggleStyle-switch-1-watchOS) | [Toggles and Switches](https://developer.apple.com/design/human-interface-guidelines/watchos/elements/toggles-and-switches/) |
-    ///
-    /// In iOS, iPadOS, and watchOS, the label and switch fill as much
-    /// horizontal space as the toggle's parent offers by aligning the label's
-    /// leading edge and the switch's trailing edge with the containing view's
-    /// respective leading and trailing edges. In macOS, the style uses a
-    /// minimum of horizontal space by aligning the trailing edge of the label
-    /// with the leading edge of the switch. SwiftUI helps you to manage the
-    /// spacing and alignment when this style appears in a ``Form``.
-    ///
-    /// SwiftUI uses this style as the default for iOS, iPadOS, and watchOS in
-    /// most contexts when you don't set a style, or when you apply
-    /// the ``ToggleStyle/automatic`` style.
-    public static var `switch`: SwitchToggleStyle { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ToggleStyle where Self == ButtonToggleStyle {
-
-    /// A toggle style that displays as a button with its label as the title.
-    ///
-    /// Apply this style to a ``Toggle`` or to a view hierarchy that contains
-    /// toggles using the ``View/toggleStyle(_:)`` modifier:
-    ///
-    ///     Toggle(isOn: $isFlagged) {
-    ///         Label("Flag", systemImage: "flag.fill")
-    ///     }
-    ///     .toggleStyle(.button)
-    ///
-    /// The style produces a button with a label that describes the purpose
-    /// of the toggle. The user taps or clicks the button to change the
-    /// toggle's state. The button indicates the `on` state by filling in the
-    /// background with its tint color. You can change the tint color using
-    /// the ``View/tint(_:)-93mfq`` modifier. SwiftUI uses this style as the
-    /// default for toggles that appear in a toolbar.
-    ///
-    /// The following table shows the toggle in both the `off` and `on` states,
-    /// respectively:
-    ///
-    ///   | Platform    | Appearance |
-    ///   |-------------|------------|
-    ///   | iOS, iPadOS | ![A screenshot of two buttons with a flag icon and the word flag inside. The first button isn't highlighted; the second one is.](ToggleStyle-button-1-iOS) |
-    ///   | macOS       | ![A screenshot of two buttons with a flag icon and the word flag inside. The first button isn't highlighted; the second one is.](ToggleStyle-button-1-macOS) |
-    ///
-    /// A ``Label`` instance is a good choice for a button toggle's label.
-    /// Based on the context, SwiftUI decides whether to display both the title
-    /// and icon, as in the example above, or just the icon, like when the
-    /// toggle appears in a toolbar. You can also control the label's style
-    /// by adding a ``View/labelStyle(_:)`` modifier. In any case, SwiftUI
-    /// always uses the title to identify the control using VoiceOver.
-    public static var button: ButtonToggleStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ToggleStyle where Self == DefaultToggleStyle {
-
-    /// The default toggle style.
-    ///
-    /// Use this ``ToggleStyle`` to let SwiftUI pick a suitable style for
-    /// the current platform and context. Toggles use the `automatic` style
-    /// by default, but you might need to set it explicitly using the
-    /// ``View/toggleStyle(_:)`` modifier to override another style
-    /// in the environment. For example, you can request automatic styling for
-    /// a toggle in an ``HStack`` that's otherwise configured to use the
-    /// ``ToggleStyle/button`` style:
-    ///
-    ///     HStack {
-    ///         Toggle(isOn: $isShuffling) {
-    ///             Label("Shuffle", systemImage: "shuffle")
-    ///         }
-    ///         Toggle(isOn: $isRepeating) {
-    ///             Label("Repeat", systemImage: "repeat")
-    ///         }
-    ///
-    ///         Divider()
-    ///
-    ///         Toggle("Enhance Sound", isOn: $isEnhanced)
-    ///             .toggleStyle(.automatic) // Set the style automatically here.
-    ///     }
-    ///     .toggleStyle(.button) // Use button style for toggles in the stack.
-    ///
-    /// ### Platform defaults
-    ///
-    /// The `automatic` style produces an appearance that varies by platform,
-    /// using the following styles in most contexts:
-    ///
-    /// | Platform    | Default style                            |
-    /// |-------------|------------------------------------------|
-    /// | iOS, iPadOS | ``ToggleStyle/switch``                   |
-    /// | macOS       | ``ToggleStyle/checkbox``                 |
-    /// | tvOS        | A tvOS-specific button style (see below) |
-    /// | watchOS     | ``ToggleStyle/switch``                   |
-    ///
-    /// The default style for tvOS behaves like a button. However,
-    /// unlike the ``ToggleStyle/button`` style that's available in some other
-    /// platforms, the tvOS toggle takes as much horizontal space as its parent
-    /// offers, and displays both the toggle's label and a text field that
-    /// indicates the toggle's state. You typically collect tvOS toggles into
-    /// a ``List``:
-    ///
-    ///     List {
-    ///         Toggle("Show Lyrics", isOn: $isShowingLyrics)
-    ///         Toggle("Shuffle", isOn: $isShuffling)
-    ///         Toggle("Repeat", isOn: $isRepeating)
-    ///     }
-    ///
-    /// ![A screenshot of three buttons labeled Show Lyrics, Shuffle, and
-    /// Repeat, stacked vertically. The first is highlighted. The second is
-    /// on, while the others are off.](ToggleStyle-automatic-2-tvOS)
-    ///
-    /// ### Contextual defaults
-    ///
-    /// A toggle's automatic appearance varies in certain contexts:
-    ///
-    /// * A toggle that appears as part of the content that you provide to one
-    ///   of the toolbar modifiers, like ``View/toolbar(content:)-5w0tj``, uses
-    ///   the ``ToggleStyle/button`` style by default.
-    ///
-    /// * A toggle in a ``Menu`` uses a style that you can't create explicitly:
-    ///     ```
-    ///     Menu("Playback") {
-    ///         Toggle("Show Lyrics", isOn: $isShowingLyrics)
-    ///         Toggle("Shuffle", isOn: $isShuffling)
-    ///         Toggle("Repeat", isOn: $isRepeating)
-    ///     }
-    ///     ```
-    ///   SwiftUI shows the toggle's label with a checkmark that appears only
-    ///   in the `on` state:
-    ///
-    ///   | Platform    | Appearance |
-    ///   |-------------|------------|
-    ///   | iOS, iPadOS | ![A screenshot of a Playback menu in iOS showing three menu items with the labels Repeat, Shuffle, and Show Lyrics. The shuffle item has a checkmark to its left, while the other two items have a blank space to their left.](ToggleStyle-automatic-1-iOS) |
-    ///   | macOS       | ![A screenshot of a Playback menu in macOS showing three menu items with the labels Repeat, Shuffle, and Show Lyrics. The shuffle item has a checkmark to its left, while the other two items have a blank space to their left.](ToggleStyle-automatic-1-macOS) |
-    public static var automatic: DefaultToggleStyle { get { fatalError() } }
-}
-
-/// The properties of a toggle instance.
-///
-/// When you define a custom toggle style by creating a type that conforms to
-/// the ``ToggleStyle`` protocol, you implement the
-/// ``ToggleStyle/makeBody(configuration:)`` method. That method takes a
-/// `ToggleStyleConfiguration` input that has the information you need
-/// to define the behavior and appearance of a ``Toggle``.
-///
-/// The configuration structure's ``label-swift.property`` reflects the
-/// toggle's content, which might be the value that you supply to the
-/// `label` parameter of the ``Toggle/init(isOn:label:)`` initializer.
-/// Alternatively, it could be another view that SwiftUI builds from an
-/// initializer that takes a string input, like ``Toggle/init(_:isOn:)-8qx3l``.
-/// In either case, incorporate the label into the toggle's view to help
-/// the user understand what the toggle does. For example, the built-in
-/// ``ToggleStyle/switch`` style horizontally stacks the label with the
-/// control element.
-///
-/// The structure's ``isOn`` property provides a ``Binding`` to the state
-/// of the toggle. Adjust the appearance of the toggle based on this value.
-/// For example, the built-in ``ToggleStyle/button`` style fills the button's
-/// background when the property is `true`, but leaves the background empty
-/// when the property is `false`. Change the value when the user performs
-/// an action that's meant to change the toggle, like the button does when
-/// tapped or clicked by the user.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct ToggleStyleConfiguration {
-
-    /// A type-erased label of a toggle.
-    ///
-    /// SwiftUI provides a value of this type --- which is a ``View`` type ---
-    /// as the ``label-swift.property`` to your custom toggle style
-    /// implementation. Use the label to help define the appearance of the
-    /// toggle.
-    public struct Label : View {
-
-        /// The type of view representing the body of this view.
-        ///
-        /// When you create a custom view, Swift infers this type from your
-        /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
-        public var body: Body { fatalError() }
-    }
-
-    /// A view that describes the effect of switching the toggle between states.
-    ///
-    /// Use this value in your implementation of the
-    /// ``ToggleStyle/makeBody(configuration:)`` method when defining a custom
-    /// ``ToggleStyle``. Access it through the that method's `configuration`
-    /// parameter.
-    ///
-    /// Because the label is a ``View``, you can incorporate it into the
-    /// view hierarchy that you return from your style definition. For example,
-    /// you can combine the label with a circle image in an ``HStack``:
-    ///
-    ///     HStack {
-    ///         Image(systemName: configuration.isOn
-    ///             ? "checkmark.circle.fill"
-    ///             : "circle")
-    ///         configuration.label
-    ///     }
-    ///
-    public let label: ToggleStyleConfiguration.Label = { fatalError() }()
-
-    /// A binding to a state property that indicates whether the toggle is on.
-    ///
-    /// Because this value is a ``Binding``, you can both read and write it
-    /// in your implementation of the ``ToggleStyle/makeBody(configuration:)``
-    /// method when defining a custom ``ToggleStyle``. Access it through
-    /// that method's `configuration` parameter.
-    ///
-    /// Read this value to set the appearance of the toggle. For example, you
-    /// can choose between empty and filled circles based on the `isOn` value:
-    ///
-    ///     Image(systemName: configuration.isOn
-    ///         ? "checkmark.circle.fill"
-    ///         : "circle")
-    ///
-    /// Write this value when the user takes an action that's meant to change
-    /// the state of the toggle. For example, you can toggle it inside the
-    /// `action` closure of a ``Button`` instance:
-    ///
-    ///     Button {
-    ///         configuration.isOn.toggle()
-    ///     } label: {
-    ///         // Draw the toggle.
-    ///     }
-    ///
-//    @Binding public var isOn: Bool { get { fatalError() } nonmutating set { fatalError() } }
-
-//    public var $isOn: Binding<Bool> { get { fatalError() } }
-
-    /// Whether the ``Toggle`` is currently in a mixed state.
-    ///
-    /// Use this property to determine whether the toggle style should render
-    /// a mixed state presentation. A mixed state corresponds to an underlying
-    /// collection with a mix of true and false Bindings.
-    /// To toggle the state, use the ``Bool.toggle()`` method on the ``isOn``
-    /// binding.
-    ///
-    /// In the following example, a custom style uses the `isMixed` property
-    /// to render the correct toggle state using symbols:
-    ///
-    ///     struct SymbolToggleStyle: ToggleStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             Button {
-    ///                 configuration.isOn.toggle()
-    ///             } label: {
-    ///                 Image(
-    ///                     systemName: configuration.isMixed
-    ///                     ? "minus.circle.fill" : configuration.isOn
-    ///                     ? "checkmark.circle.fill" : "circle.fill")
-    ///                 configuration.label
-    ///             }
-    ///         }
-    ///     }
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public var isMixed: Bool { get { fatalError() } }
-}
-
 /// A built-in set of commands for manipulating window toolbars.
 ///
 /// These commands are optional and can be explicitly requested by passing a
@@ -58496,14 +52379,14 @@ public struct ToolbarCommands : Commands {
     ///
     /// For any commands that you create, provide a computed `body` property
     /// that defines the scene as a composition of other scenes. You can
-    /// assemble a command hierarchy from built-in commands that SwiftUI
+    /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
     public var body: Body { get { return never() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
     /// When you create custom commands, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Commands/body-swift.property``
+    /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
     public typealias Body = Never
 }
@@ -58903,7 +52786,7 @@ extension ToolbarItemGroup {
 /// There are two types of placements:
 /// - Semantic placements, such as ``ToolbarItemPlacement/principal`` and
 ///   ``ToolbarItemPlacement/navigation``, denote the intent of the
-///   item being added. SwiftUI determines the appropriate placement for
+///   item being added. SkipUI determines the appropriate placement for
 ///   the item based on this intent and its surrounding context, like the
 ///   current platform.
 /// - Positional placements, such as
@@ -59145,7 +53028,7 @@ public struct ToolbarItemPlacement {
 ///
 /// Use this type in conjunction with modifiers like
 /// ``View/toolbarBackground(_:for:)-5ybst`` and ``View/toolbar(_:for:)`` to
-/// customize the appearance of different bars managed by SwiftUI. Not all bars
+/// customize the appearance of different bars managed by SkipUI. Not all bars
 /// support all types of customizations.
 ///
 /// See ``ToolbarItemPlacement`` to learn about the different regions of these
@@ -59548,7 +53431,7 @@ public protocol TransactionKey {
 
     /// An indication of how to style a shape.
     ///
-    /// SwiftUI looks at a shape's role when deciding how to apply a
+    /// SkipUI looks at a shape's role when deciding how to apply a
     /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
     /// default implementation with a value of ``ShapeRole/fill``. If you
     /// create a composite shape, you can provide an override of this property
@@ -59890,7 +53773,7 @@ public struct TransitionProperties : Sendable {
 /// A type of table column content that creates table columns created from a
 /// Swift tuple of table columns.
 ///
-/// Don't use this type directly; instead, SwiftUI uses this type as the return value
+/// Don't use this type directly; instead, SkipUI uses this type as the return value
 /// from the various `buildBlock` methods in ``TableColumnBuilder``. The size of
 /// the tuple corresponds to how many columns you create in the `columns`
 /// closure you provide to the ``Table`` initializer.
@@ -59916,7 +53799,7 @@ public struct TransitionProperties : Sendable {
 /// A type of table column content that creates table rows created from a
 /// Swift tuple of table rows.
 ///
-/// Don't use this type directly; instead, SwiftUI uses this type as the return value
+/// Don't use this type directly; instead, SkipUI uses this type as the return value
 /// from the various `buildBlock` methods in ``TableRowBuilder``. The size of
 /// the tuple corresponds to how many columns you create in the `rows`
 /// closure you provide to the ``Table`` initializer.
@@ -59993,7 +53876,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 /// A property wrapper type that you use to create a UIKit app delegate.
 ///
 /// To handle app delegate callbacks in an app that uses the
-/// SwiftUI life cycle, define a type that conforms to the
+/// SkipUI life cycle, define a type that conforms to the
 /// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate>
 /// protocol, and implement the delegate methods that you need. For example,
 /// you can implement the
@@ -60010,7 +53893,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///     }
 ///
 /// Then use the `UIApplicationDelegateAdaptor` property wrapper inside your
-/// ``App`` declaration to tell SwiftUI about the delegate type:
+/// ``App`` declaration to tell SkipUI about the delegate type:
 ///
 ///     @main
 ///     struct MyApp: App {
@@ -60019,14 +53902,14 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///         var body: some Scene { ... }
 ///     }
 ///
-/// SwiftUI instantiates the delegate and calls the delegate's
+/// SkipUI instantiates the delegate and calls the delegate's
 /// methods in response to life cycle events. Define the delegate adaptor
 /// only in your ``App`` declaration, and only once for a given app. If
-/// you declare it more than once, SwiftUI generates a runtime error.
+/// you declare it more than once, SkipUI generates a runtime error.
 ///
 /// If your app delegate conforms to the
 /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
-/// protocol, as in the example above, then SwiftUI puts the delegate it
+/// protocol, as in the example above, then SkipUI puts the delegate it
 /// creates into the ``Environment``. You can access the delegate from
 /// any scene or view in your app using the ``EnvironmentObject`` property
 /// wrapper:
@@ -60059,7 +53942,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///         }
 ///     }
 ///
-/// You can provide this kind of delegate to a SwiftUI app by returning the
+/// You can provide this kind of delegate to a SkipUI app by returning the
 /// scene delegate's type from the
 /// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate/3197905-application>
 /// method inside your app delegate:
@@ -60084,11 +53967,11 @@ public struct TypesettingLanguage : Sendable, Equatable {
 /// When you configure the
 /// <doc://com.apple.documentation/documentation/UIKit/UISceneConfiguration>
 /// instance, you only need to indicate the delegate class, and not a scene
-/// class or storyboard. SwiftUI creates and manages the delegate instance,
+/// class or storyboard. SkipUI creates and manages the delegate instance,
 /// and sends it any relevant delegate callbacks.
 ///
 /// As with the app delegate, if you make your scene delegate an observable
-/// object, SwiftUI automatically puts it in the ``Environment``, from where
+/// object, SkipUI automatically puts it in the ``Environment``, from where
 /// you can access it with the ``EnvironmentObject`` property wrapper, and
 /// create bindings to its published properties.
 @available(iOS 14.0, tvOS 14.0, *)
@@ -60112,13 +53995,13 @@ public struct TypesettingLanguage : Sendable, Equatable {
     ///         var body: some Scene { ... }
     ///     }
     ///
-    /// SwiftUI initializes the delegate and manages its lifetime, calling upon
+    /// SkipUI initializes the delegate and manages its lifetime, calling upon
     /// it to handle application delegate callbacks.
     ///
-    /// If you want SwiftUI to put the instantiated delegate in the
+    /// If you want SkipUI to put the instantiated delegate in the
     /// ``Environment``, make sure the delegate class also conforms to the
     /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
-    /// protocol. That causes SwiftUI to invoke the ``init(_:)-8vsx1``
+    /// protocol. That causes SkipUI to invoke the ``init(_:)-8vsx1``
     /// initializer rather than this one.
     ///
     /// - Parameter delegateType: The type of application delegate that you
@@ -60147,18 +54030,18 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
     ///         var body: some Scene { ... }
     ///     }
     ///
-    /// SwiftUI initializes the delegate and manages its lifetime, calling it
+    /// SkipUI initializes the delegate and manages its lifetime, calling it
     /// as needed to handle application delegate callbacks.
     ///
-    /// SwiftUI invokes this method when your app delegate conforms to the
+    /// SkipUI invokes this method when your app delegate conforms to the
     /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
-    /// protocol. In this case, SwiftUI automatically places the delegate in the
+    /// protocol. In this case, SkipUI automatically places the delegate in the
     /// ``Environment``. You can access such a delegate from any scene or
     /// view in your app using the ``EnvironmentObject`` property wrapper:
     ///
     ///     @EnvironmentObject private var appDelegate: MyAppDelegate
     ///
-    /// If your delegate isn't an observable object, SwiftUI invokes the
+    /// If your delegate isn't an observable object, SkipUI invokes the
     /// ``init(_:)-59sfu`` initializer rather than this one, and doesn't
     /// put the delegate instance in the environment.
     ///
@@ -60186,7 +54069,7 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
     ///
     /// If you declare the delegate in your ``App`` using the
     /// ``UIApplicationDelegateAdaptor`` property wrapper, you can get
-    /// the delegate that SwiftUI instantiates from the environment and
+    /// the delegate that SkipUI instantiates from the environment and
     /// access a binding to its published values from any view in your app:
     ///
     ///     struct MyView: View {
@@ -60206,14 +54089,14 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
 extension UIApplicationDelegateAdaptor : Sendable {
 }
 
-/// A content configuration suitable for hosting a hierarchy of SwiftUI views.
+/// A content configuration suitable for hosting a hierarchy of SkipUI views.
 ///
 /// Use a value of this type, which conforms to the
 /// <doc://com.apple.documentation/documentation/UIKit/UIContentConfiguration>
 /// protocol, with a
 /// <doc://com.apple.documentation/documentation/UIKit/UICollectionViewCell> or
 /// <doc://com.apple.documentation/documentation/UIKit/UITableViewCell> to host
-/// a hierarchy of SwiftUI views in a collection or table view, respectively.
+/// a hierarchy of SkipUI views in a collection or table view, respectively.
 /// For example, the following shows a stack with an image and text inside the
 /// cell:
 ///
@@ -60274,7 +54157,7 @@ public struct UIHostingConfiguration<Content, Background> : UIContentConfigurati
     ///         MyBackgroundView()
     ///     }
     ///
-    /// - Parameter background: The contents of the SwiftUI hierarchy to be
+    /// - Parameter background: The contents of the SkipUI hierarchy to be
     ///   shown inside the background of the cell.
     public func background<B>(@ViewBuilder content: () -> B) -> UIHostingConfiguration<Content, B> where B : View { fatalError() }
 
@@ -60364,17 +54247,17 @@ extension UIHostingConfiguration where Background == EmptyView {
 
     /// Creates a hosting configuration with the given contents.
     ///
-    /// - Parameter content: The contents of the SwiftUI hierarchy to be shown
+    /// - Parameter content: The contents of the SkipUI hierarchy to be shown
     ///   inside the cell.
     public init(@ViewBuilder content: () -> Content) { fatalError() }
 }
 
-/// A UIKit view controller that manages a SwiftUI view hierarchy.
+/// A UIKit view controller that manages a SkipUI view hierarchy.
 ///
-/// Create a `UIHostingController` object when you want to integrate SwiftUI
-/// views into a UIKit view hierarchy. At creation time, specify the SwiftUI
+/// Create a `UIHostingController` object when you want to integrate SkipUI
+/// views into a UIKit view hierarchy. At creation time, specify the SkipUI
 /// view you want to use as the root view for this view controller; you can
-/// change that view later using the ``SwiftUI/UIHostingController/rootView``
+/// change that view later using the ``SkipUI/UIHostingController/rootView``
 /// property. Use the hosting controller like you would any other view
 /// controller, by presenting it or embedding it as a child view controller
 /// in your interface.
@@ -60387,21 +54270,21 @@ extension UIHostingConfiguration where Background == EmptyView {
 
     @MainActor override dynamic open var keyCommands: [UIKeyCommand]? { get { fatalError() } }
 
-    /// Creates a hosting controller object that wraps the specified SwiftUI
+    /// Creates a hosting controller object that wraps the specified SkipUI
     /// view.
     ///
-    /// - Parameter rootView: The root view of the SwiftUI view hierarchy that
+    /// - Parameter rootView: The root view of the SkipUI view hierarchy that
     ///   you want to manage using the hosting view controller.
     ///
     /// - Returns: A `UIHostingController` object initialized with the
-    ///   specified SwiftUI view.
+    ///   specified SkipUI view.
     @MainActor public init(rootView: Content) { fatalError() }
 
     /// Creates a hosting controller object from an archive and the specified
-    /// SwiftUI view.
+    /// SkipUI view.
     /// - Parameters:
     ///   - coder: The decoder to use during initialization.
-    ///   - rootView: The root view of the SwiftUI view hierarchy that you want
+    ///   - rootView: The root view of the SkipUI view hierarchy that you want
     ///     to manage using this view controller.
     ///
     /// - Returns: A `UIViewController` object that you can present from your
@@ -60424,7 +54307,7 @@ extension UIHostingConfiguration where Background == EmptyView {
     /// Notifies the view controller that its view is about to be added to a
     /// view hierarchy.
     ///
-    /// SwiftUI calls this method before adding the hosting controller's root
+    /// SkipUI calls this method before adding the hosting controller's root
     /// view to the view hierarchy. You can override this method to perform
     /// custom tasks associated with the appearance of the view. If you
     /// override this method, you must call `super` at some point in your
@@ -60437,7 +54320,7 @@ extension UIHostingConfiguration where Background == EmptyView {
     /// Notifies the view controller that its view has been added to a
     /// view hierarchy.
     ///
-    /// SwiftUI calls this method after adding the hosting controller's root
+    /// SkipUI calls this method after adding the hosting controller's root
     /// view to the view hierarchy. You can override this method to perform
     /// custom tasks associated with the appearance of the view. If you
     /// override this method, you must call `super` at some point in your
@@ -60450,7 +54333,7 @@ extension UIHostingConfiguration where Background == EmptyView {
     /// Notifies the view controller that its view will be removed from a
     /// view hierarchy.
     ///
-    /// SwiftUI calls this method before removing the hosting controller's root
+    /// SkipUI calls this method before removing the hosting controller's root
     /// view from the view hierarchy. You can override this method to perform
     /// custom tasks associated with the disappearance of the view. If you
     /// override this method, you must call `super` at some point in your
@@ -60466,12 +54349,12 @@ extension UIHostingConfiguration where Background == EmptyView {
 
     @MainActor override dynamic open var isModalInPresentation: Bool { get { fatalError() } set { fatalError() } }
 
-    /// The root view of the SwiftUI view hierarchy managed by this view
+    /// The root view of the SkipUI view hierarchy managed by this view
     /// controller.
     @MainActor public var rootView: Content { get { fatalError() } }
 
     /// The options for how the hosting controller tracks changes to the size
-    /// of its SwiftUI content.
+    /// of its SkipUI content.
     ///
     /// The default value is the empty set.
     @available(iOS 16.0, tvOS 16.0, *)
@@ -60532,7 +54415,7 @@ extension UIHostingController {
     /// An example of when this is appropriate to use is when hosting content
     /// that you know should never be affected by the safe area, such as a
     /// custom scrollable container. Disabling a safe area region omits it from
-    /// the SwiftUI layout system altogether.
+    /// the SkipUI layout system altogether.
     ///
     /// The default value is ``SafeAreaRegions.all``.
     @available(iOS 16.4, tvOS 16.4, *)
@@ -60597,10 +54480,10 @@ public struct UIHostingControllerSizingOptions : OptionSet, Sendable {
 /// An environment key that is bridged to a UIKit trait.
 ///
 /// Use this protocol to allow the same underlying data to be accessed using an
-/// environment key in SwiftUI and trait in UIKit. As the bridging is
+/// environment key in SkipUI and trait in UIKit. As the bridging is
 /// bidirectional, values written to the trait in UIKit can be read using the
-/// environment key in SwiftUI, and values written to the environment key in
-/// SwiftUI can be read from the trait in UIKit.
+/// environment key in SkipUI, and values written to the environment key in
+/// SkipUI can be read from the trait in UIKit.
 ///
 /// Given a custom UIKit trait named `MyTrait` with `myTrait` properties on
 /// both `UITraitCollection` and `UIMutableTraits`:
@@ -60665,26 +54548,26 @@ public protocol UITraitBridgedEnvironmentKey : EnvironmentKey {
 ///
 /// Use a ``UIViewControllerRepresentable`` instance to create and manage a
 /// <doc://com.apple.documentation/documentation/UIKit/UIViewController> object in your
-/// SwiftUI interface. Adopt this protocol in one of your app's custom
+/// SkipUI interface. Adopt this protocol in one of your app's custom
 /// instances, and use its methods to create, update, and tear down your view
 /// controller. The creation and update processes parallel the behavior of
-/// SwiftUI views, and you use them to configure your view controller with your
+/// SkipUI views, and you use them to configure your view controller with your
 /// app's current state information. Use the teardown process to remove your
-/// view controller cleanly from your SwiftUI. For example, you might use the
+/// view controller cleanly from your SkipUI. For example, you might use the
 /// teardown process to notify other objects that the view controller is
 /// disappearing.
 ///
-/// To add your view controller into your SwiftUI interface, create your
-/// ``UIViewControllerRepresentable`` instance and add it to your SwiftUI
+/// To add your view controller into your SkipUI interface, create your
+/// ``UIViewControllerRepresentable`` instance and add it to your SkipUI
 /// interface. The system calls the methods of your custom instance at
 /// appropriate times.
 ///
 /// The system doesn't automatically communicate changes occurring within your
-/// view controller to other parts of your SwiftUI interface. When you want your
-/// view controller to coordinate with other SwiftUI views, you must provide a
+/// view controller to other parts of your SkipUI interface. When you want your
+/// view controller to coordinate with other SkipUI views, you must provide a
 /// ``NSViewControllerRepresentable/Coordinator`` instance to facilitate those
 /// interactions. For example, you use a coordinator to forward target-action
-/// and delegate messages from your view controller to any SwiftUI views.
+/// and delegate messages from your view controller to any SkipUI views.
 @available(iOS 13.0, tvOS 13.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
@@ -60711,10 +54594,10 @@ public protocol UIViewControllerRepresentable : View where Self.Body == Never {
     @MainActor func makeUIViewController(context: Self.Context) -> Self.UIViewControllerType
 
     /// Updates the state of the specified view controller with new information
-    /// from SwiftUI.
+    /// from SkipUI.
     ///
-    /// When the state of your app changes, SwiftUI updates the portions of your
-    /// interface affected by those changes. SwiftUI calls this method for any
+    /// When the state of your app changes, SkipUI updates the portions of your
+    /// interface affected by those changes. SkipUI calls this method for any
     /// changes affecting the corresponding UIKit view controller. Use this
     /// method to update the configuration of your view controller to match the
     /// new state information provided in the `context` parameter.
@@ -60730,12 +54613,12 @@ public protocol UIViewControllerRepresentable : View where Self.Body == Never {
     ///
     /// Use this method to perform additional clean-up work related to your
     /// custom view controller. For example, you might use this method to remove
-    /// observers or update other parts of your SwiftUI interface.
+    /// observers or update other parts of your SkipUI interface.
     ///
     /// - Parameters:
     ///   - uiViewController: Your custom view controller object.
     ///   - coordinator: The custom coordinator instance you use to communicate
-    ///     changes back to SwiftUI. If you do not use a custom coordinator, the
+    ///     changes back to SkipUI. If you do not use a custom coordinator, the
     ///     system provides a default instance.
     @MainActor static func dismantleUIViewController(_ uiViewController: Self.UIViewControllerType, coordinator: Self.Coordinator)
 
@@ -60743,17 +54626,17 @@ public protocol UIViewControllerRepresentable : View where Self.Body == Never {
     associatedtype Coordinator = Void
 
     /// Creates the custom instance that you use to communicate changes from
-    /// your view controller to other parts of your SwiftUI interface.
+    /// your view controller to other parts of your SkipUI interface.
     ///
     /// Implement this method if changes to your view controller might affect
     /// other parts of your app. In your implementation, create a custom Swift
     /// instance that can communicate with other parts of your interface. For
     /// example, you might provide an instance that binds its variables to
-    /// SwiftUI properties, causing the two to remain synchronized. If your view
+    /// SkipUI properties, causing the two to remain synchronized. If your view
     /// controller doesn't interact with other parts of your app, providing a
     /// coordinator is unnecessary.
     ///
-    /// SwiftUI calls this method before calling the
+    /// SkipUI calls this method before calling the
     /// ``UIViewControllerRepresentable/makeUIViewController(context:)`` method.
     /// The system provides your coordinator either directly or as part of a
     /// context structure when calling the other methods of your representable
@@ -60763,7 +54646,7 @@ public protocol UIViewControllerRepresentable : View where Self.Body == Never {
     /// Given a proposed size, returns the preferred size of the composite view.
     ///
     /// This method may be called more than once with different proposed sizes
-    /// during the same layout pass. SwiftUI views choose their own size, so one
+    /// during the same layout pass. SkipUI views choose their own size, so one
     /// of the values returned from this function will always be used as the
     /// actual size of the composite view.
     ///
@@ -60790,17 +54673,17 @@ public protocol UIViewControllerRepresentable : View where Self.Body == Never {
 extension UIViewControllerRepresentable where Self.Coordinator == () {
 
     /// Creates the custom instance that you use to communicate changes from
-    /// your view controller to other parts of your SwiftUI interface.
+    /// your view controller to other parts of your SkipUI interface.
     ///
     /// Implement this method if changes to your view controller might affect
     /// other parts of your app. In your implementation, create a custom Swift
     /// instance that can communicate with other parts of your interface. For
     /// example, you might provide an instance that binds its variables to
-    /// SwiftUI properties, causing the two to remain synchronized. If your view
+    /// SkipUI properties, causing the two to remain synchronized. If your view
     /// controller doesn't interact with other parts of your app, providing a
     /// coordinator is unnecessary.
     ///
-    /// SwiftUI calls this method before calling the
+    /// SkipUI calls this method before calling the
     /// ``UIViewControllerRepresentable/makeUIViewController(context:)`` method.
     /// The system provides your coordinator either directly or as part of a
     /// context structure when calling the other methods of your representable
@@ -60815,7 +54698,7 @@ extension UIViewControllerRepresentable {
     /// Given a proposed size, returns the preferred size of the composite view.
     ///
     /// This method may be called more than once with different proposed sizes
-    /// during the same layout pass. SwiftUI views choose their own size, so one
+    /// during the same layout pass. SkipUI views choose their own size, so one
     /// of the values returned from this function will always be used as the
     /// actual size of the composite view.
     ///
@@ -60836,12 +54719,12 @@ extension UIViewControllerRepresentable {
     ///
     /// Use this method to perform additional clean-up work related to your
     /// custom view controller. For example, you might use this method to remove
-    /// observers or update other parts of your SwiftUI interface.
+    /// observers or update other parts of your SkipUI interface.
     ///
     /// - Parameters:
     ///   - uiViewController: Your custom view controller object.
     ///   - coordinator: The custom coordinator instance you use to communicate
-    ///     changes back to SwiftUI. If you do not use a custom coordinator, the
+    ///     changes back to SkipUI. If you do not use a custom coordinator, the
     ///     system provides a default instance.
     public static func dismantleUIViewController(_ uiViewController: Self.UIViewControllerType, coordinator: Self.Coordinator) { fatalError() }
 
@@ -60885,20 +54768,20 @@ extension UIViewControllerRepresentableContext : Sendable {
 }
 
 /// A wrapper for a UIKit view that you use to integrate that view into your
-/// SwiftUI view hierarchy.
+/// SkipUI view hierarchy.
 ///
 /// Use a ``UIViewRepresentable`` instance to create and manage a
-/// <doc://com.apple.documentation/documentation/UIKit/UIView> object in your SwiftUI
+/// <doc://com.apple.documentation/documentation/UIKit/UIView> object in your SkipUI
 /// interface. Adopt this protocol in one of your app's custom instances, and
 /// use its methods to create, update, and tear down your view. The creation and
-/// update processes parallel the behavior of SwiftUI views, and you use them to
+/// update processes parallel the behavior of SkipUI views, and you use them to
 /// configure your view with your app's current state information. Use the
-/// teardown process to remove your view cleanly from your SwiftUI. For example,
+/// teardown process to remove your view cleanly from your SkipUI. For example,
 /// you might use the teardown process to notify other objects that the view is
 /// disappearing.
 ///
-/// To add your view into your SwiftUI interface, create your
-/// ``UIViewRepresentable`` instance and add it to your SwiftUI interface. The
+/// To add your view into your SkipUI interface, create your
+/// ``UIViewRepresentable`` instance and add it to your SkipUI interface. The
 /// system calls the methods of your representable instance at appropriate times
 /// to create and update the view. The following example shows the inclusion of
 /// a custom `MyRepresentedCustomView` structure in the view hierarchy.
@@ -60913,11 +54796,11 @@ extension UIViewControllerRepresentableContext : Sendable {
 ///     }
 ///
 /// The system doesn't automatically communicate changes occurring within your
-/// view to other parts of your SwiftUI interface. When you want your view to
-/// coordinate with other SwiftUI views, you must provide a
+/// view to other parts of your SkipUI interface. When you want your view to
+/// coordinate with other SkipUI views, you must provide a
 /// ``NSViewControllerRepresentable/Coordinator`` instance to facilitate those
 /// interactions. For example, you use a coordinator to forward target-action
-/// and delegate messages from your view to any SwiftUI views.
+/// and delegate messages from your view to any SkipUI views.
 @available(iOS 13.0, tvOS 13.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
@@ -60942,10 +54825,10 @@ public protocol UIViewRepresentable : View where Self.Body == Never {
     @MainActor func makeUIView(context: Self.Context) -> Self.UIViewType
 
     /// Updates the state of the specified view with new information from
-    /// SwiftUI.
+    /// SkipUI.
     ///
-    /// When the state of your app changes, SwiftUI updates the portions of your
-    /// interface affected by those changes. SwiftUI calls this method for any
+    /// When the state of your app changes, SkipUI updates the portions of your
+    /// interface affected by those changes. SkipUI calls this method for any
     /// changes affecting the corresponding UIKit view. Use this method to
     /// update the configuration of your view to match the new state information
     /// provided in the `context` parameter.
@@ -60961,12 +54844,12 @@ public protocol UIViewRepresentable : View where Self.Body == Never {
     ///
     /// Use this method to perform additional clean-up work related to your
     /// custom view. For example, you might use this method to remove observers
-    /// or update other parts of your SwiftUI interface.
+    /// or update other parts of your SkipUI interface.
     ///
     /// - Parameters:
     ///   - uiView: Your custom view object.
     ///   - coordinator: The custom coordinator instance you use to communicate
-    ///     changes back to SwiftUI. If you do not use a custom coordinator, the
+    ///     changes back to SkipUI. If you do not use a custom coordinator, the
     ///     system provides a default instance.
     @MainActor static func dismantleUIView(_ uiView: Self.UIViewType, coordinator: Self.Coordinator)
 
@@ -60974,17 +54857,17 @@ public protocol UIViewRepresentable : View where Self.Body == Never {
     associatedtype Coordinator = Void
 
     /// Creates the custom instance that you use to communicate changes from
-    /// your view to other parts of your SwiftUI interface.
+    /// your view to other parts of your SkipUI interface.
     ///
     /// Implement this method if changes to your view might affect other parts
     /// of your app. In your implementation, create a custom Swift instance that
     /// can communicate with other parts of your interface. For example, you
-    /// might provide an instance that binds its variables to SwiftUI
+    /// might provide an instance that binds its variables to SkipUI
     /// properties, causing the two to remain synchronized. If your view doesn't
     /// interact with other parts of your app, providing a coordinator is
     /// unnecessary.
     ///
-    /// SwiftUI calls this method before calling the
+    /// SkipUI calls this method before calling the
     /// ``UIViewRepresentable/makeUIView(context:)`` method. The system provides
     /// your coordinator either directly or as part of a context structure when
     /// calling the other methods of your representable instance.
@@ -60993,7 +54876,7 @@ public protocol UIViewRepresentable : View where Self.Body == Never {
     /// Given a proposed size, returns the preferred size of the composite view.
     ///
     /// This method may be called more than once with different proposed sizes
-    /// during the same layout pass. SwiftUI views choose their own size, so one
+    /// during the same layout pass. SkipUI views choose their own size, so one
     /// of the values returned from this function will always be used as the
     /// actual size of the composite view.
     ///
@@ -61020,17 +54903,17 @@ public protocol UIViewRepresentable : View where Self.Body == Never {
 extension UIViewRepresentable where Self.Coordinator == () {
 
     /// Creates the custom instance that you use to communicate changes from
-    /// your view to other parts of your SwiftUI interface.
+    /// your view to other parts of your SkipUI interface.
     ///
     /// Implement this method if changes to your view might affect other parts
     /// of your app. In your implementation, create a custom Swift instance that
     /// can communicate with other parts of your interface. For example, you
-    /// might provide an instance that binds its variables to SwiftUI
+    /// might provide an instance that binds its variables to SkipUI
     /// properties, causing the two to remain synchronized. If your view doesn't
     /// interact with other parts of your app, providing a coordinator is
     /// unnecessary.
     ///
-    /// SwiftUI calls this method before calling the
+    /// SkipUI calls this method before calling the
     /// ``UIViewRepresentable/makeUIView(context:)`` method. The system provides
     /// your coordinator either directly or as part of a context structure when
     /// calling the other methods of your representable instance.
@@ -61046,19 +54929,19 @@ extension UIViewRepresentable {
     ///
     /// Use this method to perform additional clean-up work related to your
     /// custom view. For example, you might use this method to remove observers
-    /// or update other parts of your SwiftUI interface.
+    /// or update other parts of your SkipUI interface.
     ///
     /// - Parameters:
     ///   - uiView: Your custom view object.
     ///   - coordinator: The custom coordinator instance you use to communicate
-    ///     changes back to SwiftUI. If you do not use a custom coordinator, the
+    ///     changes back to SkipUI. If you do not use a custom coordinator, the
     ///     system provides a default instance.
     public static func dismantleUIView(_ uiView: Self.UIViewType, coordinator: Self.Coordinator) { fatalError() }
 
     /// Given a proposed size, returns the preferred size of the composite view.
     ///
     /// This method may be called more than once with different proposed sizes
-    /// during the same layout pass. SwiftUI views choose their own size, so one
+    /// during the same layout pass. SkipUI views choose their own size, so one
     /// of the values returned from this function will always be used as the
     /// actual size of the composite view.
     ///
@@ -61358,7 +55241,7 @@ extension UnitCurve {
 ///
 /// You can perform this calculation yourself if you happen to know a view's
 /// size, or if you want to use the unit point for some custom purpose, but
-/// SwiftUI typically does this for you to carry out operations that
+/// SkipUI typically does this for you to carry out operations that
 /// you request, like when you:
 ///
 /// * Transform a shape using a shape modifier. For example, to rotate a
@@ -61373,7 +55256,7 @@ extension UnitCurve {
 ///   ``ShapeStyle``.
 ///
 /// You can create custom unit points with explicit values, like the example
-/// above, or you can use one of the built-in unit points that SwiftUI provides,
+/// above, or you can use one of the built-in unit points that SkipUI provides,
 /// like ``zero``, ``center``, or ``topTrailing``. The built-in values
 /// correspond to the alignment positions of the similarly named, built-in
 /// ``Alignment`` types.
@@ -61388,7 +55271,7 @@ extension UnitCurve {
 /// with positive x toward the right and positive y toward the bottom of the
 /// view. In a right-to-left environment, the origin moves to the upper-right
 /// corner, and the positive x direction changes to be toward the left. You
-/// don't typically need to do anything to handle this change, because SwiftUI
+/// don't typically need to do anything to handle this change, because SkipUI
 /// applies the change to all aspects of the system. For example, see the
 /// discussion about layout direction in ``HorizontalAlignment``.
 ///
@@ -61564,7 +55447,7 @@ extension UnitPoint : Sendable {
 ///     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 ///     @Environment(\.verticalSizeClass) private var verticalSizeClass
 ///
-/// SwiftUI sets the size class based on several factors, including:
+/// SkipUI sets the size class based on several factors, including:
 ///
 /// * The current device type.
 /// * The orientation of the device.
@@ -61627,7 +55510,7 @@ public enum UserInterfaceSizeClass : Sendable {
 
 extension UserInterfaceSizeClass {
 
-    /// Creates a SwiftUI size class from the specified UIKit size class.
+    /// Creates a SkipUI size class from the specified UIKit size class.
     @available(iOS 14.0, *)
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
@@ -61668,7 +55551,7 @@ extension UserInterfaceSizeClass : Hashable {
 ///     }
 ///
 /// ![Ten text views, named Item 1 through Item 10, arranged in a
-/// vertical line.](SwiftUI-VStack-simple.png)
+/// vertical line.](SkipUI-VStack-simple.png)
 ///
 /// > Note: If you need a vertical stack that conforms to the ``Layout``
 /// protocol, like when you want to create a conditional layout using
@@ -61826,8 +55709,8 @@ extension VectorArithmetic {
 ///         }
 ///     }
 ///
-/// During layout, SwiftUI aligns the views inside each stack by bringing
-/// together the specified guides of the affected views. SwiftUI calculates
+/// During layout, SkipUI aligns the views inside each stack by bringing
+/// together the specified guides of the affected views. SkipUI calculates
 /// the position of a guide for a particular view based on the characteristics
 /// of the view. For example, the ``VerticalAlignment/center`` guide appears
 /// at half the height of the view. You can override the guide calculation for a
@@ -61845,8 +55728,8 @@ extension VectorArithmetic {
 ///     row(alignment: .firstTextBaseline, text: "fghijkl")
 ///
 /// If you use a text baseline alignment on a view that contains no text,
-/// SwiftUI applies the equivalent of ``VerticalAlignment/bottom`` alignment
-/// instead. For the row in the example above, SwiftUI matches the bottom of
+/// SkipUI applies the equivalent of ``VerticalAlignment/bottom`` alignment
+/// instead. For the row in the example above, SkipUI matches the bottom of
 /// the horizontal lines with the baseline of the text:
 ///
 /// ![A string containing the lowercase letters f, g, h, i, j, and
@@ -62241,69 +56124,6 @@ extension VerticalEdge : Sendable {
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension VerticalEdge.Set : Sendable {
-}
-
-/// A type that represents part of your app's user interface and provides
-/// modifiers that you use to configure views.
-///
-/// You create custom views by declaring types that conform to the `View`
-/// protocol. Implement the required ``View/body-swift.property`` computed
-/// property to provide the content for your custom view.
-///
-///     struct MyView: View {
-///         var body: some View {
-///             Text("Hello, World!")
-///         }
-///     }
-///
-/// Assemble the view's body by combining one or more of the built-in views
-/// provided by SwiftUI, like the ``Text`` instance in the example above, plus
-/// other custom views that you define, into a hierarchy of views. For more
-/// information about creating custom views, see <doc:Declaring-a-Custom-View>.
-///
-/// The `View` protocol provides a set of modifiers — protocol
-/// methods with default implementations — that you use to configure
-/// views in the layout of your app. Modifiers work by wrapping the
-/// view instance on which you call them in another view with the specified
-/// characteristics, as described in <doc:Configuring-Views>.
-/// For example, adding the ``View/opacity(_:)`` modifier to a
-/// text view returns a new view with some amount of transparency:
-///
-///     Text("Hello, World!")
-///         .opacity(0.5) // Display partially transparent text.
-///
-/// The complete list of default modifiers provides a large set of controls
-/// for managing views.
-/// For example, you can fine tune <doc:View-Layout>,
-/// add <doc:View-Accessibility> information,
-/// and respond to <doc:View-Input-and-Events>.
-/// You can also collect groups of default modifiers into new,
-/// custom view modifiers for easy reuse.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol View {
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    associatedtype Body : View
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SwiftUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @ViewBuilder @MainActor var body: Self.Body { get }
 }
 
 extension View {
@@ -62745,7 +56565,7 @@ extension View {
     ///     }
     ///
     /// ![A view showing a custom structure acting as a data source, providing
-    /// data to a modal sheet.](SwiftUI-View-SheetItemContent.png)
+    /// data to a modal sheet.](SkipUI-View-SheetItemContent.png)
     ///
     /// In vertically compact environments, such as iPhone in landscape
     /// orientation, a sheet presentation automatically adapts to appear as a
@@ -62805,7 +56625,7 @@ extension View {
     ///
     /// ![A screenshot of a full-screen modal sheet showing the mockup of a
     /// software license agreement with a Dismiss
-    /// button.](SwiftUI-View-SheetIsPresentingContent.png)
+    /// button.](SkipUI-View-SheetIsPresentingContent.png)
     ///
     /// In vertically compact environments, such as iPhone in landscape
     /// orientation, a sheet presentation automatically adapts to appear as a
@@ -62869,7 +56689,7 @@ extension View {
     ///     }
     ///
     /// ![A full-screen modal view that shows Custom
-    /// Content.](SwiftUI-FullScreenCoverItemOnDismissContent.png)
+    /// Content.](SkipUI-FullScreenCoverItemOnDismissContent.png)
     ///
     /// - Parameters:
     ///   - item: A binding to an optional source of truth for the sheet.
@@ -62920,7 +56740,7 @@ extension View {
     ///     }
     ///
     /// ![A full-screen modal view with the text A full-screen modal view
-    /// and Tap to Dismiss.](SwiftUI-FullScreenCoverIsPresented.png)
+    /// and Tap to Dismiss.](SkipUI-FullScreenCoverIsPresented.png)
     /// - Parameters:
     ///   - isPresented: A binding to a Boolean value that determines whether
     ///     to present the sheet.
@@ -63033,7 +56853,7 @@ extension View {
 
     /// Marks the view as containing sensitive, private user data.
     ///
-    /// SwiftUI redacts views marked with this modifier when you apply the
+    /// SkipUI redacts views marked with this modifier when you apply the
     /// ``RedactionReasons/privacy`` redaction reason.
     ///
     ///     struct BankAccountView: View {
@@ -63151,7 +56971,7 @@ extension View {
     /// Controls whether people can interact with the view behind a
     /// presentation.
     ///
-    /// On many platforms, SwiftUI automatically disables the view behind a
+    /// On many platforms, SkipUI automatically disables the view behind a
     /// sheet that you present, so that people can't interact with the backing
     /// view until they dismiss the sheet. Use this modifier if you want to
     /// enable interaction.
@@ -63248,7 +57068,7 @@ extension View {
     ///     compact size class.
     ///   - verticalAdaptation: The adaptation to use in a vertically compact
     ///     size class. In a size class that is both horizontally and vertically
-    ///     compact, SwiftUI uses the `verticalAdaptation` value.
+    ///     compact, SkipUI uses the `verticalAdaptation` value.
     public func presentationCompactAdaptation(horizontal horizontalAdaptation: PresentationAdaptation, vertical verticalAdaptation: PresentationAdaptation) -> some View { return never() }
 
 
@@ -63864,7 +57684,7 @@ extension View {
     /// guide of all the other views in the row. Similarly, the grid aligns the
     /// ``HorizontalAlignment`` guides of views in a column by adjusting views
     /// in the x direction. See the guide types for more information about
-    /// typical SwiftUI alignment operations.
+    /// typical SkipUI alignment operations.
     ///
     /// When you use the `gridCellAnchor(_:)` modifier on a
     /// view in a grid, the grid changes to an anchor-based alignment strategy
@@ -64485,7 +58305,7 @@ extension View {
     ///     used to generate the entries of the Rotor. The identifiers
     ///     of the `Identifiable` values must match up with identifiers in a
     ///     `ForEach` or explicit `id` calls within the `ScrollView`.
-    ///     When the user navigates to entries from this Rotor, SwiftUI will
+    ///     When the user navigates to entries from this Rotor, SkipUI will
     ///     automatically scroll them into place as needed.
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
@@ -64503,7 +58323,7 @@ extension View {
     /// Using this modifier requires
     /// that the Rotor be attached to a `ScrollView`, or an Accessibility
     /// Element directly within a `ScrollView`, such as a `ForEach`.
-    /// When the user navigates to entries from this Rotor, SwiftUI will
+    /// When the user navigates to entries from this Rotor, SkipUI will
     /// automatically scroll them into place as needed.
     ///
     /// In the following example, a Message application creates a Rotor
@@ -64580,7 +58400,7 @@ extension View {
     ///     used to generate the entries of the Rotor. The identifiers
     ///     of the `Identifiable` values must match up with identifiers in a
     ///     `ForEach` or explicit `id` calls within the `ScrollView`.
-    ///     When the user navigates to entries from this Rotor, SwiftUI will
+    ///     When the user navigates to entries from this Rotor, SkipUI will
     ///     automatically scroll them into place as needed.
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
@@ -64598,7 +58418,7 @@ extension View {
     /// Using this modifier requires
     /// that the Rotor be attached to a `ScrollView`, or an Accessibility
     /// Element directly within a `ScrollView`, such as a `ForEach`.
-    /// When the user navigates to entries from this Rotor, SwiftUI will
+    /// When the user navigates to entries from this Rotor, SkipUI will
     /// automatically scroll them into place as needed.
     ///
     /// In the following example, a Message application creates a Rotor
@@ -64831,7 +58651,7 @@ extension View {
     ///     used to generate the entries of the Rotor. The identifiers
     ///     of the `Identifiable` values must match up with identifiers in a
     ///     `ForEach` or explicit `id` calls within the `ScrollView`.
-    ///     When the user navigates to entries from this Rotor, SwiftUI will
+    ///     When the user navigates to entries from this Rotor, SkipUI will
     ///     automatically scroll them into place as needed.
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
@@ -64875,7 +58695,7 @@ extension View {
     ///     used to generate the entries of the Rotor. The identifiers
     ///     of the `Identifiable` values must match up with identifiers in a
     ///     `ForEach` or explicit `id` calls within the `ScrollView`.
-    ///     When the user navigates to entries from this Rotor, SwiftUI will
+    ///     When the user navigates to entries from this Rotor, SkipUI will
     ///     automatically scroll them into place as needed.
     ///   - entry: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
@@ -64893,7 +58713,7 @@ extension View {
     /// Using this modifier requires that the Rotor be attached to a
     /// `ScrollView`, or an Accessibility Element directly within a
     /// `ScrollView`, such as a `ForEach`. When the user navigates to entries
-    /// from this Rotor, SwiftUI will automatically scroll them into place as
+    /// from this Rotor, SkipUI will automatically scroll them into place as
     /// needed.
     ///
     /// In the following example, a Message application creates a Rotor
@@ -64938,7 +58758,7 @@ extension View {
     /// Using this modifier requires
     /// that the Rotor be attached to a `ScrollView`, or an Accessibility
     /// Element directly within a `ScrollView`, such as a `ForEach`.
-    /// When the user navigates to entries from this Rotor, SwiftUI will
+    /// When the user navigates to entries from this Rotor, SkipUI will
     /// automatically scroll them into place as needed.
     ///
     /// In the following example, a Message application creates a Rotor
@@ -65150,7 +58970,7 @@ extension View {
     ///     match value. If a caller sets the state value programmatically to the
     ///     matching value, then focus moves to the modified view. When focus
     ///     leaves the modified view, the binding sets the bound value to
-    ///     `nil`. If a caller sets the value to `nil`, SwiftUI automatically
+    ///     `nil`. If a caller sets the value to `nil`, SkipUI automatically
     ///     dismisses focus.
     ///   - value: The value to match against when determining whether the
     ///     binding should change.
@@ -65202,7 +59022,7 @@ extension View {
     ///   sets the value to  `true` programmatically, then focus moves to the
     ///   modified view. When focus leaves the modified view, the binding
     ///   sets the value to `false`. If a caller sets the value to `false`,
-    ///   SwiftUI automatically dismisses focus.
+    ///   SkipUI automatically dismisses focus.
     ///
     /// - Returns: The modified view.
     public func focused(_ condition: FocusState<Bool>.Binding) -> some View { return never() }
@@ -65251,7 +59071,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing the title of a navigation bar configured using a
-    /// text view.](SwiftUI-navigationBarTitle-Text.png)
+    /// text view.](SkipUI-navigationBarTitle-Text.png)
     ///
     /// - Parameter title: A description of this view to display in the
     ///   navigation bar.
@@ -65447,7 +59267,7 @@ extension View {
     ///
     /// ![A screenshot of a navigation bar, showing the title within the bounds
     ///  of the navigation bar]
-    /// (SwiftUI-navigationBarTitle-stringProtocol.png)
+    /// (SkipUI-navigationBarTitle-stringProtocol.png)
     ///
     /// - Parameters:
     ///   - title: A title for this view to display in the navigation bar.
@@ -65516,7 +59336,7 @@ extension View {
     /// ![A screenshot showing the image of a bus with a caption reading
     /// Downtown Bus. A view extension, using custom a modifier, renders the
     ///  caption in blue text surrounded by a rounded
-    ///  rectangle.](SwiftUI-View-ViewModifier.png)
+    ///  rectangle.](SkipUI-View-ViewModifier.png)
     ///
     /// - Parameter modifier: The modifier to apply to this view.
     @inlinable public func modifier<T>(_ modifier: T) -> ModifiedContent<Self, T> { fatalError() }
@@ -65618,7 +59438,7 @@ extension View {
 
     /// Adds an action to perform before this view appears.
     ///
-    /// The exact moment that SwiftUI calls this method
+    /// The exact moment that SkipUI calls this method
     /// depends on the specific view type that you apply it to, but
     /// the `action` closure completes before the first
     /// rendered frame appears.
@@ -65632,7 +59452,7 @@ extension View {
 
     /// Adds an action to perform after this view disappears.
     ///
-    /// The exact moment that SwiftUI calls this method
+    /// The exact moment that SkipUI calls this method
     /// depends on the specific view type that you apply it to, but
     /// the `action` closure doesn't execute until the view
     /// disappears from the interface.
@@ -65850,7 +59670,7 @@ extension View {
     ///    - gesture: A gesture to attach to the view.
     ///    - mask: A value that controls how adding this gesture to the view
     ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SwiftUI/GestureMask/all``.
+    ///      Defaults to ``SkipUI/GestureMask/all``.
     public func gesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
 
 
@@ -65896,7 +59716,7 @@ extension View {
     ///    - gesture: A gesture to attach to the view.
     ///    - mask: A value that controls how adding this gesture to the view
     ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SwiftUI/GestureMask/all``.
+    ///      Defaults to ``SkipUI/GestureMask/all``.
     public func highPriorityGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
 
 
@@ -65947,7 +59767,7 @@ extension View {
     ///    - gesture: A gesture to attach to the view.
     ///    - mask: A value that controls how adding this gesture to the view
     ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SwiftUI/GestureMask/all``.
+    ///      Defaults to ``SkipUI/GestureMask/all``.
     public func simultaneousGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
 
 }
@@ -66481,7 +60301,7 @@ extension View {
     /// You can achieve layering without a background modifier by putting both
     /// the modified view and the background content into a ``ZStack``. This
     /// produces a simpler view hierarchy, but it changes the layout priority
-    /// that SwiftUI applies to the views. Use the background modifier when you
+    /// that SkipUI applies to the views. Use the background modifier when you
     /// want the modified view to dominate the layout.
     ///
     /// If you want to specify a ``ShapeStyle`` like a
@@ -66560,14 +60380,14 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI anchors the style to the view's bounds. For the example above,
+    /// SkipUI anchors the style to the view's bounds. For the example above,
     /// the background fills the entirety of the label's frame, which includes
     /// the padding:
     ///
     /// ![A screenshot of a flag symbol and the word flag layered over a
     /// gray rectangle.](View-background-5)
     ///
-    /// SwiftUI limits the background style's extent to the modified view's
+    /// SkipUI limits the background style's extent to the modified view's
     /// container-relative shape. You can see this effect if you constrain the
     /// `FlagLabel` view with a ``View/containerShape(_:)`` modifier:
     ///
@@ -66598,7 +60418,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - style: An instance of a type that conforms to ``ShapeStyle`` that
-    ///     SwiftUI draws behind the modified view.
+    ///     SkipUI draws behind the modified view.
     ///   - edges: The set of edges for which to ignore safe area insets
     ///     when adding the background. The default value is ``Edge/Set/all``.
     ///     Specify an empty set to respect safe area insets on all edges.
@@ -66647,7 +60467,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - shape: An instance of a type that conforms to ``Shape`` that
-    ///     SwiftUI draws behind the view using the ``ShapeStyle/background``
+    ///     SkipUI draws behind the view using the ``ShapeStyle/background``
     ///     shape style.
     ///   - fillStyle: The ``FillStyle`` to use when drawing the shape.
     ///     The default style uses the nonzero winding number rule and
@@ -66690,10 +60510,10 @@ extension View {
     /// ``View/background(_:ignoresSafeAreaEdges:)``.
     ///
     /// - Parameters:
-    ///   - style: A ``ShapeStyle`` that SwiftUI uses to the fill the shape
+    ///   - style: A ``ShapeStyle`` that SkipUI uses to the fill the shape
     ///     that you specify.
     ///   - shape: An instance of a type that conforms to ``Shape`` that
-    ///     SwiftUI draws behind the view.
+    ///     SkipUI draws behind the view.
     ///   - fillStyle: The ``FillStyle`` to use when drawing the shape.
     ///     The default style uses the nonzero winding number rule and
     ///     antialiasing.
@@ -66734,7 +60554,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - shape: An instance of a type that conforms to ``InsettableShape``
-    ///     that SwiftUI draws behind the view using the
+    ///     that SkipUI draws behind the view using the
     ///     ``ShapeStyle/background`` shape style.
     ///   - fillStyle: The ``FillStyle`` to use when drawing the shape.
     ///     The default style uses the nonzero winding number rule and
@@ -66769,10 +60589,10 @@ extension View {
     /// ``View/background(_:ignoresSafeAreaEdges:)``.
     ///
     /// - Parameters:
-    ///   - style: A ``ShapeStyle`` that SwiftUI uses to the fill the shape
+    ///   - style: A ``ShapeStyle`` that SkipUI uses to the fill the shape
     ///     that you specify.
     ///   - shape: An instance of a type that conforms to ``InsettableShape``
-    ///     that SwiftUI draws behind the view.
+    ///     that SkipUI draws behind the view.
     ///   - fillStyle: The ``FillStyle`` to use when drawing the shape.
     ///     The default style uses the nonzero winding number rule and
     ///     antialiasing.
@@ -66838,7 +60658,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - content: A value that conforms to the ``ShapeStyle`` protocol,
-    ///     like a ``Color`` or ``HierarchicalShapeStyle``, that SwiftUI
+    ///     like a ``Color`` or ``HierarchicalShapeStyle``, that SkipUI
     ///     uses to fill the border.
     ///   - width: The thickness of the border. The default is 1 pixel.
     ///
@@ -66949,7 +60769,7 @@ extension View {
     /// You can achieve layering without an overlay modifier by putting both the
     /// modified view and the overlay content into a ``ZStack``. This can
     /// produce a simpler view hierarchy, but changes the layout priority that
-    /// SwiftUI applies to the views. Use the overlay modifier when you want the
+    /// SkipUI applies to the views. Use the overlay modifier when you want the
     /// modified view to dominate the layout.
     ///
     /// If you want to specify a ``ShapeStyle`` like a ``Color`` or a
@@ -66984,14 +60804,14 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI anchors the style to the view's bounds. For the example above,
+    /// SkipUI anchors the style to the view's bounds. For the example above,
     /// the overlay fills the entirety of the circle's frame (which happens
     /// to be wider than the circle is tall):
     ///
     /// ![A screenshot of a circle showing through a rectangle that imposes
     /// a blurring effect.](View-overlay-5)
     ///
-    /// SwiftUI also limits the style's extent to the view's
+    /// SkipUI also limits the style's extent to the view's
     /// container-relative shape. You can see this effect if you constrain the
     /// `CoveredCircle` view with a ``View/containerShape(_:)`` modifier:
     ///
@@ -67019,7 +60839,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - style: An instance of a type that conforms to ``ShapeStyle`` that
-    ///     SwiftUI layers in front of the modified view.
+    ///     SkipUI layers in front of the modified view.
     ///   - edges: The set of edges for which to ignore safe area insets
     ///     when adding the overlay. The default value is ``Edge/Set/all``.
     ///     Specify an empty set to respect safe area insets on all edges.
@@ -67055,10 +60875,10 @@ extension View {
     /// ``ShapeStyle``, use ``View/overlay(_:ignoresSafeAreaEdges:)``.
     ///
     /// - Parameters:
-    ///   - style: A ``ShapeStyle`` that SwiftUI uses to the fill the shape
+    ///   - style: A ``ShapeStyle`` that SkipUI uses to the fill the shape
     ///     that you specify.
     ///   - shape: An instance of a type that conforms to ``Shape`` that
-    ///     SwiftUI draws in front of the view.
+    ///     SkipUI draws in front of the view.
     ///   - fillStyle: The ``FillStyle`` to use when drawing the shape.
     ///     The default style uses the nonzero winding number rule and
     ///     antialiasing.
@@ -67086,7 +60906,7 @@ extension View {
     ///   - effect: A symbol effect to add to the view. Existing effects
     ///     added by ancestors of the view are preserved, but may be
     ///     overridden by the new effect. Added effects will be applied
-    ///     to the ``SwiftUI/Image` views contained by the child view.
+    ///     to the ``SkipUI/Image` views contained by the child view.
     ///   - isActive: whether the effect is active or inactive.
     ///
     /// - Returns: a copy of the view with a symbol effect added.
@@ -67108,7 +60928,7 @@ extension View {
     ///   - effect: A symbol effect to add to the view. Existing effects
     ///     added by ancestors of the view are preserved, but may be
     ///     overridden by the new effect. Added effects will be applied
-    ///     to the ``SwiftUI/Image` views contained by the child view.
+    ///     to the ``SkipUI/Image` views contained by the child view.
     ///   - value: the value to monitor for changes, the animation is
     ///     triggered each time the value changes.
     ///
@@ -67196,7 +61016,7 @@ extension View {
     ///         .border(Color(white: 0.75))
     ///
     /// ![A view showing a purple ellipse that has a 3:4 width-to-height ratio,
-    /// and scales to fit its frame.](SwiftUI-View-aspectRatio-cgfloat.png)
+    /// and scales to fit its frame.](SkipUI-View-aspectRatio-cgfloat.png)
     ///
     /// - Parameters:
     ///   - aspectRatio: The ratio of width to height to use for the resulting
@@ -67227,7 +61047,7 @@ extension View {
     ///         .border(Color(white: 0.75))
     ///
     /// ![A view showing a purple ellipse that has a 3:4 width-to-height ratio,
-    /// and scales to fill its frame.](SwiftUI-View-aspectRatio.png)
+    /// and scales to fill its frame.](SkipUI-View-aspectRatio.png)
     ///
     /// - Parameters:
     ///   - aspectRatio: A size that specifies the ratio of width to height to
@@ -67252,7 +61072,7 @@ extension View {
     ///         .border(Color(white: 0.75))
     ///
     /// ![A screenshot of pink circle scaled to fit its
-    /// frame.](SwiftUI-View-scaledToFit-1.png)
+    /// frame.](SkipUI-View-scaledToFit-1.png)
     ///
     /// This method is equivalent to calling
     /// ``View/aspectRatio(_:contentMode:)-6j7xz`` with a `nil` aspectRatio and
@@ -67275,7 +61095,7 @@ extension View {
     ///         .border(Color(white: 0.75))
     ///
     /// ![A screenshot of pink circle scaled to fill its
-    /// frame.](SwiftUI-View-scaledToFill-1.png)
+    /// frame.](SkipUI-View-scaledToFill-1.png)
     ///
     /// This method is equivalent to calling
     /// ``View/aspectRatio(_:contentMode:)-6j7xz`` with a `nil` aspectRatio and
@@ -67502,7 +61322,7 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI will attempt to keep the view with the identity specified
+    /// SkipUI will attempt to keep the view with the identity specified
     /// in the provided binding when events occur that might cause it
     /// to be scrolled out of view by the system. Some examples of these
     /// include:
@@ -67579,7 +61399,7 @@ extension View {
     /// may not be the effect you want.
     ///
     /// ![A screenshot showing a text view exceeding the bounds of its
-    /// parent.](SwiftUI-View-fixedSize-3.png)
+    /// parent.](SkipUI-View-fixedSize-3.png)
     ///
     /// - Parameters:
     ///   - horizontal: A Boolean value that indicates whether to fix the width
@@ -67606,7 +61426,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing the text in a text view contained within its
-    /// parent.](SwiftUI-View-fixedSize-1.png)
+    /// parent.](SkipUI-View-fixedSize-1.png)
     ///
     /// The `fixedSize()` modifier can be used to create a view that maintains
     /// the *ideal size* of its children both dimensions:
@@ -67620,7 +61440,7 @@ extension View {
     /// may not be the effect you want.
     ///
     /// ![A screenshot showing a text view exceeding the bounds of its
-    /// parent.](SwiftUI-View-fixedSize-2.png)
+    /// parent.](SkipUI-View-fixedSize-2.png)
     ///
     /// You can think of `fixedSize()` as the creation of a *counter proposal*
     /// to the view size proposed to a view by its parent. The ideal size of a
@@ -67859,12 +61679,12 @@ extension View {
     /// line in the ``Text`` element to the 2 lines that fit within the view's
     /// bounds:
     ///
-    ///     Text("This is a long string that demonstrates the effect of SwiftUI's lineLimit(:_) operator.")
+    ///     Text("This is a long string that demonstrates the effect of SkipUI's lineLimit(:_) operator.")
     ///         .frame(width: 200, height: 200, alignment: .leading)
     ///         .lineLimit(2)
     ///
     /// ![A screenshot showing showing the effect of the line limit operator on
-    /// a very long string in a view.](SwiftUI-view-lineLimit.png)
+    /// a very long string in a view.](SkipUI-view-lineLimit.png)
     ///
     /// - Parameter number: The line limit. If `nil`, no line limit applies.
     ///
@@ -68102,9 +61922,9 @@ extension View {
     /// and its border.](View-padding-2-iOS)
     ///
     /// You can omit either or both of the parameters. If you omit the `length`,
-    /// SwiftUI uses a default amount of padding. If you
-    /// omit the `edges`, SwiftUI applies the padding to all edges. Omit both
-    /// to add a default padding all the way around a view. SwiftUI chooses a
+    /// SkipUI uses a default amount of padding. If you
+    /// omit the `edges`, SkipUI applies the padding to all edges. Omit both
+    /// to add a default padding all the way around a view. SkipUI chooses a
     /// default amount of padding that's appropriate for the platform and
     /// the presentation context.
     ///
@@ -68136,7 +61956,7 @@ extension View {
     ///   - edges: The set of edges to pad for this view. The default
     ///     is ``Edge/Set/all``.
     ///   - length: An amount, given in points, to pad this view on the
-    ///     specified edges. If you set the value to `nil`, SwiftUI uses
+    ///     specified edges. If you set the value to `nil`, SkipUI uses
     ///     a platform-specific default amount. The default value of this
     ///     parameter is `nil`.
     ///
@@ -68329,7 +62149,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing a view that offset from its original position a
-    /// CGPoint to specify the x and y offset.](SwiftUI-View-offset.png)
+    /// CGPoint to specify the x and y offset.](SkipUI-View-offset.png)
     ///
     /// - Parameter offset: The distance to offset this view.
     ///
@@ -68395,7 +62215,7 @@ extension View {
     ///             Text("Vegetable").tag(ProductScope.vegetable)
     ///         }
     ///
-    /// SwiftUI uses this binding and view to add a ``Picker`` with the search
+    /// SkipUI uses this binding and view to add a ``Picker`` with the search
     /// field. In iOS, iPadOS, macOS, and tvOS, the picker appears below the
     /// search field when search is active. To ensure that the picker operates
     /// correctly, match the type of the scope binding with the type of each
@@ -68408,7 +62228,7 @@ extension View {
     /// - Parameters:
     ///   - scope: The active scope of the search field.
     ///   - scopes: A view builder that represents the scoping options
-    ///     SwiftUI uses to populate a ``Picker``.
+    ///     SkipUI uses to populate a ``Picker``.
     @available(iOS 16.0, macOS 13.0, tvOS 16.4, *)
     @available(watchOS, unavailable)
     public func searchScopes<V, S>(_ scope: Binding<V>, @ViewBuilder scopes: () -> S) -> some View where V : Hashable, S : View { return never() }
@@ -68448,7 +62268,7 @@ extension View {
     ///             Text("Vegetable").tag(ProductScope.vegetable)
     ///         }
     ///
-    /// SwiftUI uses this binding and view to add a ``Picker`` below the search
+    /// SkipUI uses this binding and view to add a ``Picker`` below the search
     /// field. In iOS, macOS, and tvOS, the picker appears below the search
     /// field when search is active. To ensure that the picker operates
     /// correctly, match the type of the scope binding with the type of each
@@ -68458,7 +62278,7 @@ extension View {
     /// By default, the appearance of scopes varies by platform:
     ///   - In iOS and iPadOS, search scopes appear when someone enters text
     ///     into the search field and disappear when someone cancels the search.
-    ///   - In macOS, search scopes appear when SwiftUI presents search and
+    ///   - In macOS, search scopes appear when SkipUI presents search and
     ///     disappear when someone cancels the search.
     ///
     /// However, you can use the `activation` parameter with a value of
@@ -68478,7 +62298,7 @@ extension View {
     ///   - scope: The active scope of the search field.
     ///   - activation: The activation style of the search field's scopes.
     ///   - scopes: A view builder that represents the scoping options
-    ///     SwiftUI uses to populate a ``Picker``.
+    ///     SkipUI uses to populate a ``Picker``.
     @available(iOS 16.4, macOS 13.3, tvOS 16.4, *)
     @available(watchOS, unavailable)
     public func searchScopes<V, S>(_ scope: Binding<V>, activation: SearchScopeActivation, @ViewBuilder _ scopes: () -> S) -> some View where V : Hashable, S : View { return never() }
@@ -68517,7 +62337,7 @@ extension View {
     /// the difference of their absolute offsets.
     ///
     /// ![A view showing the two emoji offset from a text element using a
-    /// horizontal alignment guide.](SwiftUI-View-HAlignmentGuide.png)
+    /// horizontal alignment guide.](SkipUI-View-HAlignmentGuide.png)
     ///
     /// - Parameters:
     ///   - g: A ``HorizontalAlignment`` value at which to base the offset.
@@ -68561,7 +62381,7 @@ extension View {
     /// the difference of their absolute offsets.
     ///
     /// ![A view showing the two emoji offset from a text element using a
-    /// vertical alignment guide.](SwiftUI-View-VAlignmentGuide.png)
+    /// vertical alignment guide.](SkipUI-View-VAlignmentGuide.png)
     ///
     /// - Parameters:
     ///   - g: A ``VerticalAlignment`` value at which to base the offset.
@@ -69844,7 +63664,7 @@ extension View {
     ///
     /// Only some platforms enable resizing columns. If
     /// you specify a width that the current presentation environment doesn't
-    /// support, SwiftUI may use a different width for your column.
+    /// support, SkipUI may use a different width for your column.
     public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View { return never() }
 
 
@@ -69872,7 +63692,7 @@ extension View {
     ///
     /// Only some platforms enable resizing columns. If
     /// you specify a width that the current presentation environment doesn't
-    /// support, SwiftUI may use a different width for your column.
+    /// support, SkipUI may use a different width for your column.
     public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return never() }
 
 }
@@ -70116,9 +63936,9 @@ extension View {
     ///     .border(Color.gray)
     ///
     /// ![A screenshot showing a view whose bounds exceed the safe area of the
-    /// screen.](SwiftUI-View-edgesIgnoringSafeArea.png)
+    /// screen.](SkipUI-View-edgesIgnoringSafeArea.png)
     ///
-    /// Depending on the surrounding view hierarchy, SwiftUI may not honor an
+    /// Depending on the surrounding view hierarchy, SkipUI may not honor an
     /// `edgesIgnoringSafeArea(_:)` request. This can happen, for example, if
     /// the view is inside a container that respects the screen's safe area. In
     /// that case you may need to apply `edgesIgnoringSafeArea(_:)` to the
@@ -70179,7 +63999,7 @@ extension View {
     ///         var body: some View { ... }
     ///     }
     ///
-    /// SwiftUI provides dedicated view modifiers for setting most
+    /// SkipUI provides dedicated view modifiers for setting most
     /// environment values, like the ``View/truncationMode(_:)``
     /// modifier which sets the ``EnvironmentValues/truncationMode`` value:
     ///
@@ -70230,7 +64050,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing two overlapping rectangles. The frontmost view is
-    /// represented by the larger zIndex value.](SwiftUI-View-zIndex.png)
+    /// represented by the larger zIndex value.](SkipUI-View-zIndex.png)
     ///
     /// - Parameter value: A relative front-to-back ordering for this view; the
     ///   default is `0`.
@@ -70330,7 +64150,7 @@ extension View {
 
     /// Configures how to display search suggestions within this view.
     ///
-    /// SwiftUI presents search suggestions differently depending on several
+    /// SkipUI presents search suggestions differently depending on several
     /// factors, like the platform, the position of the search field, and the
     /// size class. Use this modifier when you want to only display suggestions
     /// in certain ways under certain conditions. For example, you might choose
@@ -70459,7 +64279,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot of a view showing text that is rotated at -30 degrees on
-    /// the y axis.](SwiftUI-View-transformEffect.png)
+    /// the y axis.](SkipUI-View-transformEffect.png)
     ///
     /// - Parameter transform: A
     /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform> to
@@ -70513,7 +64333,7 @@ extension View {
     ///
     /// ![A screenshot showing an action sheet populated using a custom data
     /// source that describes a file and file
-    /// format.](SwiftUI-View-ActionSheetItemContent.png)
+    /// format.](SkipUI-View-ActionSheetItemContent.png)
     ///
     /// - Parameters:
     ///   - item: A binding to an optional source of truth for the action
@@ -70563,7 +64383,7 @@ extension View {
     ///
     /// ![An action sheet with a title and message showing the use of default
     /// and destructive button
-    /// types.](SwiftUI-View-ActionSheetisPresentedContent.png)
+    /// types.](SkipUI-View-ActionSheetisPresentedContent.png)
     ///
     /// > Note: In regular size classes in iOS, the system renders alert sheets
     ///    as a popover that the user dismisses by tapping anywhere outside the
@@ -70618,7 +64438,7 @@ extension View {
     /// your app's user interface. Some styles of controls use the accent color
     /// as a default tint color.
     ///
-    /// > Note: In macOS, SwiftUI applies customization of the accent color
+    /// > Note: In macOS, SkipUI applies customization of the accent color
     /// only if the user chooses Multicolor under General > Accent color
     /// in System Preferences.
     ///
@@ -70675,7 +64495,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing rotation effect rotating the text 22 degrees with
-    /// respect to its view.](SwiftUI-View-rotationEffect.png)
+    /// respect to its view.](SkipUI-View-rotationEffect.png)
     ///
     /// - Parameters:
     ///   - angle: The angle at which to rotate the view.
@@ -70700,7 +64520,7 @@ extension View {
     /// Specifies if the view is focusable, and if so, what focus-driven
     /// interactions it supports.
     ///
-    /// By default, SwiftUI enables all possible focus interactions. However, on
+    /// By default, SkipUI enables all possible focus interactions. However, on
     /// macOS and iOS it is conventional for button-like views to only accept
     /// focus when the user has enabled keyboard navigation system-wide in the
     /// Settings app. Clients can reproduce this behavior with custom views by
@@ -70767,7 +64587,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing a red envelope scaled to a size of 90x130
-    /// pixels.](SwiftUI-View-scaleEffect.png)
+    /// pixels.](SkipUI-View-scaleEffect.png)
     ///
     /// - Parameters:
     ///   - scale: A <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> that
@@ -70792,7 +64612,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing a 100x100 pixel red envelope scaled up to 2x the
-    /// size of its view.](SwiftUI-View-scaleEffect-cgfloat.png)
+    /// size of its view.](SkipUI-View-scaleEffect-cgfloat.png)
     ///
     /// - Parameters:
     ///   - s: The amount to scale the view in the view in both the horizontal
@@ -70816,7 +64636,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing a 100x100 pixel red envelope scaled down 50% in
-    /// both the x and y axes.](SwiftUI-View-scaleEffect-xy.png)
+    /// both the x and y axes.](SkipUI-View-scaleEffect-xy.png)
     ///
     /// - Parameters:
     ///   - x: An amount that represents the horizontal amount to scale the
@@ -70859,7 +64679,7 @@ extension View {
     /// other attributes (font, font size and character count) are the same.
     ///
     /// ![A screenshot showing twoText views different layout
-    /// priorities.](SwiftUI-View-layoutPriority.png)
+    /// priorities.](SkipUI-View-layoutPriority.png)
     ///
     /// A parent layout offers the child views with the highest layout priority
     /// all the space offered to the parent minus the minimum space required for
@@ -70896,7 +64716,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing the effect of applying gaussian blur effect to
-    /// the rendering of a view.](SwiftUI-View-blurRadius.png)
+    /// the rendering of a view.](SkipUI-View-blurRadius.png)
     ///
     /// - Parameters:
     ///   - radius: The radial size of the blur. A blur is more diffuse when its
@@ -70911,7 +64731,7 @@ extension View {
 extension View {
 
     /// Specifies the preferred shape style of the background of a bar managed
-    /// by SwiftUI.
+    /// by SkipUI.
     ///
     /// The preferred style flows up to the nearest container that
     /// renders a bar. This could be a ``NavigationView`` or ``TabView``
@@ -70962,7 +64782,7 @@ extension View {
 
 
     /// Specifies the preferred visibility of backgrounds on a bar managed by
-    /// SwiftUI.
+    /// SkipUI.
     ///
     /// The preferred visibility flows up to the nearest container that
     /// renders a bar. This could be a ``NavigationView`` or ``TabView``
@@ -71007,7 +64827,7 @@ extension View {
     public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { return never() }
 
 
-    /// Specifies the preferred color scheme of a bar managed by SwiftUI.
+    /// Specifies the preferred color scheme of a bar managed by SkipUI.
     ///
     /// The preferred color scheme flows up to the nearest container
     /// that renders a bar. This could be a ``NavigationView`` or ``TabView``
@@ -71064,7 +64884,7 @@ extension View {
     public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View { return never() }
 
 
-    /// Specifies the visibility of a bar managed by SwiftUI.
+    /// Specifies the visibility of a bar managed by SkipUI.
     ///
     /// The preferred visibility flows up to the nearest container
     /// that renders a bar. This could be a ``NavigationView`` or ``TabView``
@@ -71128,7 +64948,7 @@ extension View {
     ///     }
     ///
     /// ![Rendering showing the effects of brightness adjustments in 20%
-    /// increments from fully-red to white.](SwiftUI-View-brightness.png)
+    /// increments from fully-red to white.](SkipUI-View-brightness.png)
     ///
     /// - Parameter amount: A value between 0 (no effect) and 1 (full white
     ///   brightening) that represents the intensity of the brightness effect.
@@ -71185,7 +65005,7 @@ extension View {
     ///
     /// ![Two red squares with centered green circles with one showing the
     /// effect of color inversion, which yields teal and purple replacing the
-    /// red and green colors.](SwiftUI-View-colorInvert.png)
+    /// red and green colors.](SkipUI-View-colorInvert.png)
     ///
     /// - Returns: A view that inverts its colors.
     @inlinable public func colorInvert() -> some View { return never() }
@@ -71199,7 +65019,7 @@ extension View {
     /// Performs an action if the user presses a key on a hardware keyboard
     /// while the view has focus.
     ///
-    /// SwiftUI performs the action for key-down and key-repeat events.
+    /// SkipUI performs the action for key-down and key-repeat events.
     ///
     /// - Parameters:
     ///   - key: The key to match against incoming hardware keyboard events.
@@ -71214,7 +65034,7 @@ extension View {
     /// Performs an action if the user presses a key on a hardware keyboard
     /// while the view has focus.
     ///
-    /// SwiftUI performs the action for the specified event phases.
+    /// SkipUI performs the action for the specified event phases.
     ///
     /// - Parameters:
     ///   - key: The key to match against incoming hardware keyboard events.
@@ -71320,7 +65140,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing two images showing the effect of multiplying the
-    /// colors of an image with another color.](SwiftUI-View-colorMultiply.png)
+    /// colors of an image with another color.](SkipUI-View-colorMultiply.png)
     ///
     /// - Parameter color: The color to bias this view toward.
     ///
@@ -71372,7 +65192,7 @@ extension View {
     ///     }
     ///
     /// ![Demonstration of the effect of contrast on a view applying contrast
-    /// values from -20% to 100% contrast.](SwiftUI-View-contrast.png)
+    /// values from -20% to 100% contrast.](SkipUI-View-contrast.png)
     ///
     /// - Parameter amount: The intensity of color contrast to apply. negative
     ///   values invert colors in addition to applying contrast.
@@ -71403,9 +65223,9 @@ extension View {
     ///             Text("🍌").searchCompletion("banana")
     ///         }
     ///
-    /// When someone chooses a suggestion, SwiftUI replaces the text in the
+    /// When someone chooses a suggestion, SkipUI replaces the text in the
     /// search field with the search completion string. If you omit the search
-    /// completion modifier for a particular suggestion view, SwiftUI displays
+    /// completion modifier for a particular suggestion view, SkipUI displays
     /// the suggestion, but the suggestion view doesn't react to taps or clicks.
     ///
     /// > Important: In tvOS, searchable modifiers only support suggestion views
@@ -71537,7 +65357,7 @@ extension View {
     ///
     /// ![Rendering showing the effects of grayscale adjustments in
     /// approximately 20% increments from fully-red at 0% to fully desaturated
-    /// at 99%.](SwiftUI-View-grayscale.png)
+    /// at 99%.](SkipUI-View-grayscale.png)
     ///
     /// - Parameter amount: The intensity of grayscale to apply from 0.0 to less
     ///   than 1.0. Values closer to 0.0 are more colorful, and values closer to
@@ -71576,7 +65396,7 @@ extension View {
     ///     }
     ///
     /// ![Shows the effect of hueRotation on a linear
-    /// gradient.](SwiftUI-hueRotation.png)
+    /// gradient.](SkipUI-hueRotation.png)
     ///
     /// - Parameter angle: The hue rotation angle to apply to the colors in this
     ///   view.
@@ -71740,7 +65560,7 @@ extension View {
     ///
     /// ![Rendering showing the effects of saturation adjustments in 20%
     /// increments from gray at 0% to fully-red at
-    /// 100%.](SwiftUI-View-saturation.png)
+    /// 100%.](SkipUI-View-saturation.png)
     ///
     /// - SeeAlso: `contrast(_:)`
     /// - Parameter amount: The amount of saturation to apply to this view.
@@ -71909,7 +65729,7 @@ extension View {
     /// have a function signature matching:
     ///
     ///     [[ stitchable ]] half4 name(float2 position,
-    ///       SwiftUI::Layer layer, args...)
+    ///       SkipUI::Layer layer, args...)
     ///
     /// where `position` is the user-space coordinates of the
     /// destination pixel applied to the shader, and `layer` is a
@@ -72056,7 +65876,7 @@ extension View {
     ///
     /// ![Two overlaid rectangles, where the topmost has its opacity set to 50%,
     /// which allows the occluded portion of the bottom rectangle to be
-    /// visible.](SwiftUI-View-opacity.png)
+    /// visible.](SkipUI-View-opacity.png)
     ///
     /// - Parameter opacity: A value between 0 (fully transparent) and 1 (fully
     ///   opaque).
@@ -73290,7 +67110,7 @@ extension View {
     ///     }
     ///
     /// ![Two overlapping rectangles showing the effect of the blend mode view
-    /// modifier applying the colorBurn effect.](SwiftUI-blendMode.png)
+    /// modifier applying the colorBurn effect.](SkipUI-blendMode.png)
     ///
     /// - Parameter blendMode: The ``BlendMode`` for compositing this view.
     ///
@@ -73308,7 +67128,7 @@ extension View {
     /// list row item.
     ///
     /// In the example below, the `Flavor` enumeration provides content for list
-    /// items. The SwiftUI ``ForEach`` structure computes views for each element
+    /// items. The SkipUI ``ForEach`` structure computes views for each element
     /// of the `Flavor` enumeration and extracts the raw value of each of its
     /// elements using the resulting text to create each list row item. The
     /// `listRowBackground(_:)` modifier then places the view you supply behind
@@ -73335,7 +67155,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing the placement of an image as the background to
-    ///   each row in a list.](SwiftUI-View-listRowBackground.png)
+    ///   each row in a list.](SkipUI-View-listRowBackground.png)
     ///
     /// - Parameter view: The ``View`` to use as the background behind the list
     ///   row view.
@@ -73378,7 +67198,7 @@ extension View {
     ///   highlight the error.
     ///
     /// ![A screenshot showing the effects on several stacks configured as a
-    /// drawing group.](SwiftUI-View-drawingGroup.png)
+    /// drawing group.](SkipUI-View-drawingGroup.png)
     ///
     /// - Parameters:
     ///   - opaque: A Boolean value that indicates whether the image is opaque.
@@ -73428,7 +67248,7 @@ extension View {
     ///
     /// ![A view showing the effect of the compositingGroup modifier in applying
     /// compositing effects to parent views before child views are
-    /// rendered.](SwiftUI-View-compositingGroup.png)
+    /// rendered.](SkipUI-View-compositingGroup.png)
     ///
     /// - Returns: A view that wraps this view in a compositing group.
     @inlinable public func compositingGroup() -> some View { return never() }
@@ -73608,7 +67428,7 @@ extension View {
     ///
     /// Only some platforms enable flexible inspector columns. If
     /// you specify a width that the current presentation environment doesn't
-    /// support, SwiftUI may use a different width for your column.
+    /// support, SkipUI may use a different width for your column.
     /// - Parameters:
     ///   - min: The minimum allowed width for the trailing column inspector
     ///   - ideal: The initial width of the inspector in the absence of state
@@ -73700,7 +67520,7 @@ extension View {
     /// the bounds of the circle.
     ///
     /// ![A screenshot of text clipped to the shape of a
-    /// circle.](SwiftUI-View-clipShape.png)
+    /// circle.](SkipUI-View-clipShape.png)
     ///
     /// - Parameters:
     ///   - shape: The clipping shape to use for this view. The `shape` fills
@@ -73727,7 +67547,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![Screenshot showing text clipped to its
-    /// frame.](SwiftUI-View-clipped.png)
+    /// frame.](SkipUI-View-clipped.png)
     ///
     /// - Parameter antialiased: A Boolean value that indicates whether the
     ///   rendering system applies smoothing to the edges of the clipping
@@ -73753,7 +67573,7 @@ extension View {
     ///         .cornerRadius(25)
     ///
     /// ![A screenshot of a rectangle with rounded corners bounding a text
-    /// view.](SwiftUI-View-cornerRadius.png)
+    /// view.](SkipUI-View-cornerRadius.png)
     ///
     /// - Parameter antialiased: A Boolean value that indicates whether the
     ///   rendering system applies smoothing to the edges of the clipping
@@ -73982,7 +67802,7 @@ extension View {
     ///
     /// ### Automatic styling
     ///
-    /// If you don't set a style, SwiftUI assumes a value of
+    /// If you don't set a style, SkipUI assumes a value of
     /// ``ToggleStyle/automatic``, which corresponds to a context-specific
     /// default. Specify the automatic style explicitly to override a
     /// container's style and revert to the default:
@@ -74003,7 +67823,7 @@ extension View {
     ///     .toggleStyle(.button) // Use button style for toggles in the stack.
     ///     .labelStyle(.iconOnly) // Omit the title from any labels.
     ///
-    /// The style that SwiftUI uses as the default depends on both the platform
+    /// The style that SkipUI uses as the default depends on both the platform
     /// and the context. In macOS, the default in most contexts is a
     /// ``ToggleStyle/checkbox``, while in iOS, the default toggle style is a
     /// ``ToggleStyle/switch``:
@@ -74019,7 +67839,7 @@ extension View {
     /// which is useful for button toggles in space-constrained contexts.
     /// Always include a descriptive title for better accessibility.
     ///
-    /// For more information about how SwiftUI chooses a default toggle style,
+    /// For more information about how SkipUI chooses a default toggle style,
     /// see the ``ToggleStyle/automatic`` style.
     ///
     /// - Parameter style: The toggle style to set. Use one of the built-in
@@ -74063,7 +67883,7 @@ extension View {
     ///     }
     ///
     /// ![A view showing small, medium, and large hearts rendered at a size
-    /// relative to the available space.](SwiftUI-View-imageScale.png)
+    /// relative to the available space.](SkipUI-View-imageScale.png)
     ///
     /// - Parameter scale: One of the relative sizes provided by the image scale
     ///   enumeration.
@@ -74099,7 +67919,7 @@ extension View {
     ///     .font(.system(size: 16, weight: .light, design: .default))
     ///
     /// ![A screenshot showing the application fonts to an individual text field
-    /// and view hierarchy.](SwiftUI-view-font.png)
+    /// and view hierarchy.](SkipUI-view-font.png)
     ///
     /// - Parameter font: The default font to use in this view.
     ///
@@ -74386,7 +68206,7 @@ extension View {
     ///         .scrollDisabled(isScrollDisabled)
     ///     }
     ///
-    /// SwiftUI passes the disabled property through the environment, which
+    /// SkipUI passes the disabled property through the environment, which
     /// means you can use this modifier to disable scrolling for all scroll
     /// views within a view hierarchy. In the following example, the modifier
     /// affects both scroll views:
@@ -74602,7 +68422,7 @@ extension View {
     /// ![A screenshot showing the effect of frame size options: a purple
     /// ellipse shows the effect of a fixed frame size, while a blue ellipse
     /// shows the effect of constraining a view in one
-    /// dimension.](SwiftUI-View-frame-1.png)
+    /// dimension.](SkipUI-View-frame-1.png)
     ///
     /// `The alignment` parameter specifies this view's alignment within the
     /// frame.
@@ -74617,7 +68437,7 @@ extension View {
     ///
     /// ![A screenshot showing the effect of frame size options on a text view
     /// showing a fixed frame size with a specified
-    /// alignment.](SwiftUI-View-frame-2.png)
+    /// alignment.](SkipUI-View-frame-2.png)
     ///
     /// - Parameters:
     ///   - width: A fixed width for the resulting view. If `width` is `nil`,
@@ -74635,8 +68455,8 @@ extension View {
 
     /// Positions this view within an invisible frame.
     ///
-    /// Use ``SwiftUI/View/frame(width:height:alignment:)`` or
-    /// ``SwiftUI/View/frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)``
+    /// Use ``SkipUI/View/frame(width:height:alignment:)`` or
+    /// ``SkipUI/View/frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)``
     /// instead.
     @available(*, deprecated, message: "Please pass one or more parameters.")
     @inlinable public func frame() -> some View { return never() }
@@ -74739,7 +68559,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot of a two views configured as tab items in a tab
-    /// view.](SwiftUI-View-tabItem.png)
+    /// view.](SkipUI-View-tabItem.png)
     ///
     /// - Parameter label: The tab bar item to associate with this view.
     public func tabItem<V>(@ViewBuilder _ label: () -> V) -> some View where V : View { return never() }
@@ -74809,7 +68629,7 @@ extension View {
 
     /// Presents a popover when a given condition is true.
     ///
-    /// Use this method to show a popover whose contents are a SwiftUI view
+    /// Use this method to show a popover whose contents are a SkipUI view
     /// that you provide when a bound Boolean variable is `true`. In the
     /// example below, a popover displays whenever the user toggles
     /// the `isShowingPopover` state variable by pressing the
@@ -75018,7 +68838,7 @@ extension View {
     ///     .defaultHoverEffect(.highlight)
     ///
     /// This also works for customizing the default hover effect in views like
-    /// ``Button``s when using a SwiftUI-defined style like
+    /// ``Button``s when using a SkipUI-defined style like
     /// ``ButtonStyle/bordered``, which can provide a hover effect by default.
     /// For example, this view replaces the hover effect for a ``Button`` with
     /// ``HoverEffect/highlight``:
@@ -75061,31 +68881,6 @@ extension View {
 
 }
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Applies effects to this view, while providing access to layout information
-    /// via `GeometryProxy`.
-    ///
-    /// You return new effects by calling functions on the first argument
-    /// provided to the `effect` closure. In this example, `ContentView` is
-    /// offset by its own size, causing its top left corner to appear where the
-    /// bottom right corner was originally located:
-    /// ```swift
-    /// ContentView()
-    ///     .visualEffect { content, geometryProxy in
-    ///         content.offset(geometryProxy.size)
-    ///     }
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - effect: A closure that returns the effect to be applied. The first
-    ///     argument provided to the closure is a placeholder representing
-    ///     this view. The second argument is a `GeometryProxy`.
-    /// - Returns: A view with the effect applied.
-    public func visualEffect(_ effect: @escaping @Sendable (EmptyVisualEffect, GeometryProxy) -> some VisualEffect) -> some View { return never() }
-
-}
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
@@ -75106,10 +68901,10 @@ extension View {
     ///     }
     ///
     /// The third circle takes up space, because it's still present, but
-    /// SwiftUI doesn't draw it onscreen.
+    /// SkipUI doesn't draw it onscreen.
     ///
     /// ![A row of circles with the letters A, B, and D, with a gap where
-    ///   the circle with the letter C should be.](SwiftUI-View-hidden-1.png)
+    ///   the circle with the letter C should be.](SkipUI-View-hidden-1.png)
     ///
     /// If you want to conditionally include a view in the view hierarchy, use
     /// an `if` statement instead:
@@ -75127,14 +68922,14 @@ extension View {
     ///     }
     ///
     /// Depending on the current value of the `isHidden` state variable in the
-    /// example above, controlled by the ``Toggle`` instance, SwiftUI draws
+    /// example above, controlled by the ``Toggle`` instance, SkipUI draws
     /// the circle or completely omits it from the layout.
     ///
     /// ![Two side by side groups of items, each composed of a toggle beneath
     ///   a row of circles with letters in them. The toggle on the left
     ///   is off and has four equally spaced circles above it: A, B, C, and D.
     ///   The toggle on the right is on and has three equally spaced circles
-    ///   above it: A, B, and D.](SwiftUI-View-hidden-2.png)
+    ///   above it: A, B, and D.](SkipUI-View-hidden-2.png)
     ///
     /// - Returns: A hidden view.
     @inlinable public func hidden() -> some View { return never() }
@@ -75276,9 +69071,9 @@ extension View {
     ///
     /// - Parameters:
     ///   - binding: The state binding to register. When accessibility focus moves to the
-    ///     accessibility element of the modified view, SwiftUI sets the bound value to the corresponding
+    ///     accessibility element of the modified view, SkipUI sets the bound value to the corresponding
     ///     match value. If you set the state value programmatically to the matching value, then
-    ///     accessibility focus moves to the accessibility element of the modified view. SwiftUI sets
+    ///     accessibility focus moves to the accessibility element of the modified view. SkipUI sets
     ///     the value to `nil` if accessibility focus leaves the accessibility element associated with the
     ///     modified view, and programmatically setting the value to `nil` dismisses focus automatically.
     ///   - value: The value to match against when determining whether the
@@ -75327,7 +69122,7 @@ extension View {
     /// specify the default system keyboard type, use `.default`.
     ///
     /// ![A screenshot showing the use of a specialized keyboard type with a
-    /// text field.](SwiftUI-View-keyboardType.png)
+    /// text field.](SkipUI-View-keyboardType.png)
     ///
     /// - Parameter type: One of the keyboard types defined in the
     /// <doc://com.apple.documentation/documentation/UIKit/UIKeyboardType> enumeration.
@@ -75709,7 +69504,7 @@ extension View {
     /// information on how to do that, see ``RefreshAction``.
     ///
     /// - Parameters:
-    ///   - action: An asynchronous handler that SwiftUI executes when the
+    ///   - action: An asynchronous handler that SkipUI executes when the
     ///   user requests a refresh. Use this handler to initiate
     ///   an update of model data displayed in the modified view. Use
     ///   `await` in front of any asynchronous calls inside the handler.
@@ -75969,7 +69764,7 @@ extension View {
     /// of a specified string in the text editor, and optionally to replace
     /// instances of the search string with another string. They can also
     /// show and hide the interface using built-in controls, like menus and
-    /// keyboard shortcuts. SwiftUI updates `isPresented` to reflect the
+    /// keyboard shortcuts. SkipUI updates `isPresented` to reflect the
     /// users's actions.
     ///
     /// If the text editor view isn't currently in focus, the system still
@@ -76104,7 +69899,7 @@ extension View {
     ///   is visible and the other label is hidden.](View-labelsHidden-1.png)
     ///
     /// Always provide a label for controls, even when you hide the label,
-    /// because SwiftUI uses labels for other purposes, including accessibility.
+    /// because SkipUI uses labels for other purposes, including accessibility.
     ///
     /// > Note: This modifier doesn't work for all labels. It applies to
     ///   labels that are separate from the rest of the control's interface,
@@ -76277,7 +70072,7 @@ extension View {
     ///   The Flag button is grey, while the Delete button is
     ///   red.](View-swipeActions-1)
     ///
-    /// For labels or images that appear in swipe actions, SwiftUI automatically
+    /// For labels or images that appear in swipe actions, SkipUI automatically
     /// applies the ``SymbolVariants/fill-swift.type.property`` symbol variant,
     /// as shown above.
     ///
@@ -76299,7 +70094,7 @@ extension View {
     ///     }
     ///
     /// When you set a role for a button using one of the values from the
-    /// ``ButtonRole`` enumeration, SwiftUI styles the button according to
+    /// ``ButtonRole`` enumeration, SkipUI styles the button according to
     /// its role. In the example above, the delete action appears in
     /// ``ShapeStyle/red`` because it has the ``ButtonRole/destructive`` role.
     /// If you want to set a different color — for example, to match the
@@ -76335,7 +70130,7 @@ extension View {
     ///   row after the user swiped from the trailing edge to reveal an
     ///   orange Flag button and a red Delete button.](View-swipeActions-2)
     ///
-    /// When you add swipe actions, SwiftUI no longer synthesizes the Delete
+    /// When you add swipe actions, SkipUI no longer synthesizes the Delete
     /// actions that otherwise appear when using the
     /// ``ForEach/onDelete(perform:)`` method on a ``ForEach`` instance.
     /// You become responsible for creating a Delete
@@ -76747,7 +70542,7 @@ extension View {
     ///         .truncationMode(.tail)
     ///
     /// ![A screenshot showing the effect of truncation mode on text in a
-    /// view.](SwiftUI-view-truncationMode.png)
+    /// view.](SkipUI-view-truncationMode.png)
     ///
     /// - Parameter mode: The truncation mode that specifies where to truncate
     ///   the text within the text view, if needed. You can truncate at the
@@ -76773,7 +70568,7 @@ extension View {
     ///         .lineSpacing(10)
     ///
     /// ![A screenshot showing the effects of setting line spacing on the text
-    /// in a view.](SwiftUI-view-lineSpacing.png)
+    /// in a view.](SkipUI-view-lineSpacing.png)
     ///
     /// - Parameter lineSpacing: The amount of space between the bottom of one
     ///   line and the top of the next line in points.
@@ -76805,7 +70600,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing the effect of enabling text tightening in a
-    /// view.](SwiftUI-view-allowsTightening.png)
+    /// view.](SkipUI-view-allowsTightening.png)
     ///
     /// - Parameter flag: A Boolean value that indicates whether the space
     ///   between characters compresses when necessary.
@@ -76836,7 +70631,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing the effect of setting a minimumScaleFactor on
-    /// text in a view.](SwiftUI-View-minimumScaleFactor.png)
+    /// text in a view.](SkipUI-View-minimumScaleFactor.png)
     ///
     /// - Parameter factor: A fraction between 0 and 1 (inclusive) you use to
     ///   specify the minimum amount of text scaling that this view permits.
@@ -76916,7 +70711,7 @@ extension View {
     ///         }
     ///     }
     ///
-    /// ![A screenshot of a view of a heart.](SwiftUI-View-TapGesture.png)
+    /// ![A screenshot of a view of a heart.](SkipUI-View-TapGesture.png)
     ///
     /// - Parameters:
     ///    - count: The number of taps or clicks required to trigger the action
@@ -77446,7 +71241,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing several controls of various
-    /// sizes.](SwiftUI-View-controlSize.png)
+    /// sizes.](SkipUI-View-controlSize.png)
     ///
     /// - Parameter controlSize: One of the control sizes specified in the
     ///   ``ControlSize`` enumeration.
@@ -77464,7 +71259,7 @@ extension View {
     /// list items.
     ///
     /// In the example below, the `Flavor` enumeration provides content for list
-    /// items. The SwiftUI ``ForEach`` structure computes views for each element
+    /// items. The SkipUI ``ForEach`` structure computes views for each element
     /// of the `Flavor` enumeration and extracts the raw value of each of its
     /// elements using the resulting text to create each list row item. The
     /// `listRowInsets(_:)` modifier then changes the edge insets of each row
@@ -77490,7 +71285,7 @@ extension View {
     ///     }
     ///
     /// ![A screenshot showing a list with leading 25 point inset on each
-    ///  row.](SwiftUI-View-ListRowInsets.png)
+    ///  row.](SkipUI-View-ListRowInsets.png)
     ///
     /// - Parameter insets: The ``EdgeInsets`` to apply to the edges of the
     ///   view.
@@ -78083,7 +71878,7 @@ extension View {
     /// ![A window showing a font size selector, and toggles for bold, italic.
     ///   and underlined text styling installed in the toolbar to
     ///   support text editing in
-    ///   macOS.](SwiftUI-View-Styling-ToolbarContent.png)
+    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
     ///
     /// - Parameter content: The views representing the content of the toolbar.
     public func toolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content : View { return never() }
@@ -78144,7 +71939,7 @@ extension View {
     /// ![A window showing a font size selector, and toggles for bold, italic.
     ///   and underlined text styling installed in the toolbar to
     ///   support text editing in
-    ///   macOS.](SwiftUI-View-Styling-ToolbarContent.png)
+    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
     ///
     /// Although it's not mandatory, wrapping a related group of toolbar
     /// items together in a ``ToolbarItemGroup`` provides a one-to-one mapping
@@ -78229,7 +72024,7 @@ extension View {
     ///     }
     ///
     /// ![A window showing the macOS toolbar customization
-    ///   editor.](SwiftUI-View-Styling-ToolbarCustomization.png)
+    ///   editor.](SkipUI-View-Styling-ToolbarCustomization.png)
     ///
     /// > Note: Only ``ToolbarItemPlacement/secondaryAction`` items support
     ///   customization in iPadOS. Other items follow the normal
@@ -78258,7 +72053,7 @@ extension View {
     /// toolbar to open the toolbar customization editor.
     ///
     /// ![A screenshot of the toolbar editor support for the macOS view
-    /// menu.](SwiftUI-View-Styling-ToolbarCustomizationMenu.png)
+    /// menu.](SkipUI-View-Styling-ToolbarCustomizationMenu.png)
     ///
     /// - Parameters:
     ///   - id: A unique identifier for this toolbar.
@@ -78416,7 +72211,7 @@ extension View {
     /// The following example uses this modifier to set the
     /// ``EnvironmentValues/backgroundStyle`` environment value to a
     /// ``ShapeStyle/blue`` color that includes a subtle ``Color/gradient``.
-    /// SwiftUI fills the ``Circle`` shape that acts as a background element
+    /// SkipUI fills the ``Circle`` shape that acts as a background element
     /// with this style:
     ///
     ///     Image(systemName: "swift")
@@ -78748,7 +72543,7 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI passes the new value into the closure. You can also capture the
+    /// SkipUI passes the new value into the closure. You can also capture the
     /// previous value to compare it to the new value. For example, in
     /// the following code example, `PlayerView` passes both the old and new
     /// values to the model.
@@ -79002,11 +72797,11 @@ extension View {
     /// deceleration rate and the state of its scroll gesture by default. A
     /// scroll behavior allows for customizing this logic. You can provide
     /// your own ``ScrollTargetBehavior`` or use one of the built in behaviors
-    /// provided by SwiftUI.
+    /// provided by SkipUI.
     ///
     /// ### Paging Behavior
     ///
-    /// SwiftUI offers a ``PagingScrollTargetBehavior`` behavior which uses the
+    /// SkipUI offers a ``PagingScrollTargetBehavior`` behavior which uses the
     /// geometry of the scroll view to decide where to allow scrolls to end.
     ///
     /// In the following example, every view in the lazy stack is flexible
@@ -79024,7 +72819,7 @@ extension View {
     ///
     /// ### View Aligned Behavior
     ///
-    /// SwiftUI offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
+    /// SkipUI offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
     /// that will always settle on the geometry of individual views.
     ///
     ///     ScrollView(.horizontal) {
@@ -79387,7 +73182,7 @@ extension View {
     ///
     /// Use this modifier to perform an asynchronous task with a lifetime that
     /// matches that of the modified view. If the task doesn't finish
-    /// before SwiftUI removes the view or the view changes identity, SwiftUI
+    /// before SkipUI removes the view or the view changes identity, SkipUI
     /// cancels the task.
     ///
     /// Use the `await` keyword inside the task to
@@ -79427,8 +73222,8 @@ extension View {
     ///   - priority: The task priority to use when creating the asynchronous
     ///     task. The default priority is
     ///     <doc://com.apple.documentation/documentation/Swift/TaskPriority/3851283-userInitiated>.
-    ///   - action: A closure that SwiftUI calls as an asynchronous task
-    ///     before the view appears. SwiftUI will automatically cancel the task
+    ///   - action: A closure that SkipUI calls as an asynchronous task
+    ///     before the view appears. SkipUI will automatically cancel the task
     ///     at some point after the view disappears before the action completes.
     ///
     ///
@@ -79489,7 +73284,7 @@ extension View {
     ///
     /// The task attached to the ``Text`` view gets and displays the status
     /// value from the notification's user information dictionary. When the user
-    /// chooses a different server, SwiftUI cancels the task and creates a new
+    /// chooses a different server, SkipUI cancels the task and creates a new
     /// one, which then starts waiting for notifications from the new server.
     ///
     /// - Parameters:
@@ -79499,10 +73294,10 @@ extension View {
     ///   - priority: The task priority to use when creating the asynchronous
     ///     task. The default priority is
     ///     <doc://com.apple.documentation/documentation/Swift/TaskPriority/3851283-userInitiated>.
-    ///   - action: A closure that SwiftUI calls as an asynchronous task
-    ///     before the view appears. SwiftUI can automatically cancel the task
+    ///   - action: A closure that SkipUI calls as an asynchronous task
+    ///     before the view appears. SkipUI can automatically cancel the task
     ///     after the view disappears before the action completes. If the
-    ///     `id` value changes, SwiftUI cancels and restarts the task.
+    ///     `id` value changes, SkipUI cancels and restarts the task.
     ///
     /// - Returns: A view that runs the specified action asynchronously before
     ///   the view appears, or restarts the task with the `id` value changes.
@@ -79725,7 +73520,7 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI hides the view that you provide in the `representation` closure
+    /// SkipUI hides the view that you provide in the `representation` closure
     /// and makes it non-interactive. The framework uses it only to
     /// generate accessibility elements.
     ///
@@ -79743,7 +73538,7 @@ extension View {
     /// for synthetic, non-visual accessibility elements to be set as children
     /// of a visual accessibility element.
     ///
-    /// SwiftUI creates an accessibility container implicitly when needed.
+    /// SkipUI creates an accessibility container implicitly when needed.
     /// If an accessibility element already exists, the framework converts it
     /// into an accessibility container.
     ///
@@ -79781,7 +73576,7 @@ extension View {
     ///         }
     ///     }
     ///
-    /// SwiftUI hides any views that you provide with the `children` parameter,
+    /// SkipUI hides any views that you provide with the `children` parameter,
     /// then the framework uses the views to generate the accessibility elements.
     ///
     /// - Parameter children: A ``ViewBuilder`` that represents the replacement
@@ -79847,7 +73642,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing the rotation of text 45 degrees about the
-    /// y-axis.](SwiftUI-View-rotation3DEffect.png)
+    /// y-axis.](SkipUI-View-rotation3DEffect.png)
     ///
     /// - Parameters:
     ///   - angle: The angle at which to rotate the view.
@@ -80095,7 +73890,7 @@ extension View {
     /// view.
     ///
     /// ![A screenshot showing an example of finding a named view and tracking
-    /// relative locations in that view.](SwiftUI-View-coordinateSpace.png)
+    /// relative locations in that view.](SkipUI-View-coordinateSpace.png)
     ///
     /// - Parameter name: A name used to identify this coordinate space.
     @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
@@ -80155,7 +73950,7 @@ extension View {
     /// view.
     ///
     /// ![A screenshot showing an example of finding a named view and tracking
-    /// relative locations in that view.](SwiftUI-View-coordinateSpace.png)
+    /// relative locations in that view.](SkipUI-View-coordinateSpace.png)
     ///
     /// - Parameter name: A name used to identify this coordinate space.
     public func coordinateSpace(_ name: NamedCoordinateSpace) -> some View { return never() }
@@ -80659,7 +74454,7 @@ extension View {
     ///   - isPresented: A binding to whether the interface should be shown.
     ///   - item: The item to be saved on disk.
     ///   - contentTypes: The optional content types to use for the exported file.
-    ///     If empty, SwiftUI uses the content types from the `transferRepresentation`
+    ///     If empty, SkipUI uses the content types from the `transferRepresentation`
     ///     property provided for `Transferable` conformance.
     ///   - onCompletion: A callback that will be invoked when the operation
     ///     has succeeded or failed.
@@ -80681,7 +74476,7 @@ extension View {
     ///   - isPresented: A binding to whether the interface should be shown.
     ///   - items: Collection of values to be saved on disk.
     ///   - contentTypes: The content types to use for the exported file.
-    ///     If empty, SwiftUI uses the content types from the `transferRepresentation`
+    ///     If empty, SkipUI uses the content types from the `transferRepresentation`
     ///     property provided for `Transferable` conformance.
     ///   - allowsOtherContentTypes: A Boolean value that indicates if the users
     ///     are allowed to save the files with a different file extension than
@@ -80820,7 +74615,7 @@ extension View {
     ///         }
     ///
     /// ![A screenshot of a view masked by a rectangle with 10%
-    /// opacity.](SwiftUI-View-mask.png)
+    /// opacity.](SkipUI-View-mask.png)
     ///
     /// - Parameters:
     ///     - alignment: The alignment for `mask` in relation to this view.
@@ -80846,7 +74641,7 @@ extension View {
     ///         .mask(Rectangle().opacity(0.1))
     ///
     /// ![A screenshot of a view masked by a rectangle with 10%
-    /// opacity.](SwiftUI-View-mask.png)
+    /// opacity.](SkipUI-View-mask.png)
     ///
     /// - Parameter mask: The view whose alpha the rendering system applies to
     ///   the specified view.
@@ -81021,7 +74816,7 @@ extension View {
     /// use the ``Shape/fill(style:)`` shape modifier instead because it's more
     /// efficient.
     ///
-    /// SwiftUI creates a context-dependent render for a given style.
+    /// SkipUI creates a context-dependent render for a given style.
     /// For example, a ``Color`` that you load from an asset catalog
     /// can have different light and dark appearances, while some styles
     /// also vary by platform.
@@ -81031,10 +74826,10 @@ extension View {
     /// In particular, they modify the primary
     /// level of the current foreground style to the degree given by
     /// the hierarchical style's name.
-    /// To find the current foreground style to modify, SwiftUI looks for
+    /// To find the current foreground style to modify, SkipUI looks for
     /// the innermost containing style that you apply with the
     /// `foregroundStyle(_:)` or the ``View/foregroundColor(_:)`` modifier.
-    /// If you haven't specified a style, SwiftUI uses the default foreground
+    /// If you haven't specified a style, SkipUI uses the default foreground
     /// style, as in the following example:
     ///
     ///     VStack(alignment: .leading) {
@@ -81083,7 +74878,7 @@ extension View {
     /// Sets the primary and secondary levels of the foreground
     /// style in the child view.
     ///
-    /// SwiftUI uses these styles when rendering child views
+    /// SkipUI uses these styles when rendering child views
     /// that don't have an explicit rendering style, like images,
     /// text, shapes, and so on.
     ///
@@ -81109,7 +74904,7 @@ extension View {
     /// Sets the primary, secondary, and tertiary levels of
     /// the foreground style.
     ///
-    /// SwiftUI uses these styles when rendering child views
+    /// SkipUI uses these styles when rendering child views
     /// that don't have an explicit rendering style, like images,
     /// text, shapes, and so on.
     ///
@@ -81319,14 +75114,14 @@ extension View {
     /// Defines a region of the window in which default focus is evaluated by
     /// assigning a value to a given focus state binding.
     ///
-    /// By default, SwiftUI evaluates default focus when the window first
+    /// By default, SkipUI evaluates default focus when the window first
     /// appears, and when a focus state binding update moves focus
     /// automatically, but not when responding to user-driven navigation
     /// commands.
     ///
     /// Clients can override the default behavior by specifying an evaluation
     /// priority of ``DefaultFocusEvaluationPriority/userInitiated``, which
-    /// causes SwiftUI to use the client's preferred default focus in response
+    /// causes SkipUI to use the client's preferred default focus in response
     /// to user-driven focus navigation as well as automatic changes.
     ///
     /// In the following example, focus automatically goes to the second of the
@@ -81620,46 +75415,6 @@ extension View {
     public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
 }
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Applies the given transition, animating between the phases
-    /// of the transition as this view appears and disappears within the
-    /// visible region of the containing scroll view, or other container
-    /// specified using the `coordinateSpace` parameter.
-    ///
-    /// - Parameters:
-    ///   - configuration: The configuration controlling how the
-    ///     transition will be applied. The configuration will be applied both
-    ///     while the view is coming into view and while it is disappearing (the
-    ///     transition is symmetrical).
-    ///   - axis: The axis over which the transition should be applied.
-    ///   - coordinateSpace: The coordinate space of the container that
-    ///     visibility is evaluated within. Defaults to `.scrollView`.
-    ///   - transition: A closure that applies visual effects as a function of
-    ///     the provided phase.
-    public func scrollTransition(_ configuration: ScrollTransitionConfiguration = .interactive, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return never() }
-
-
-    /// Applies the given transition, animating between the phases
-    /// of the transition as this view appears and disappears within the
-    /// visible region of the containing scroll view, or other container
-    /// specified using the `coordinateSpace` parameter.
-    ///
-    /// - Parameters:
-    ///   - transition: the transition to apply.
-    ///   - topLeading: The configuration that drives the transition when
-    ///     the view is about to appear at the top edge of a vertical
-    ///     scroll view, or the leading edge of a horizont scroll view.
-    ///   - bottomTrailing: The configuration that drives the transition when
-    ///     the view is about to appear at the bottom edge of a vertical
-    ///     scroll view, or the trailing edge of a horizont scroll view.
-    ///   - axis: The axis over which the transition should be applied.
-    ///   - transition: A closure that applies visual effects as a function of
-    ///     the provided phase.
-    public func scrollTransition(topLeading: ScrollTransitionConfiguration, bottomTrailing: ScrollTransitionConfiguration, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return never() }
-
-}
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
@@ -81680,7 +75435,7 @@ extension View {
     ///         .border(Color.gray)
     ///
     /// ![A screenshot showing text rotated 30 degrees around the axis pointing
-    /// out of the screen.](SwiftUI-View-projectionEffect.png)
+    /// out of the screen.](SkipUI-View-projectionEffect.png)
     ///
     /// - Parameter transform: A ``ProjectionTransform`` to apply to the view.
     @inlinable public func projectionEffect(_ transform: ProjectionTransform) -> some View { return never() }
@@ -81786,7 +75541,7 @@ extension View {
     /// view to an entry in an Accessibility Rotor.
     ///
     /// Use this when creating an AccessibilityRotorEntry without a namespace
-    /// does not allow SwiftUI to automatically find and reveal the element,
+    /// does not allow SkipUI to automatically find and reveal the element,
     /// or when the Rotor entry should be associated with a sub-element of
     /// a complex view generated in a ForEach, for example.
     ///
@@ -81803,7 +75558,7 @@ extension View {
     /// Configures the semantic role for the content populating the toolbar.
     ///
     /// Use this modifier to configure the semantic role for content
-    /// populating your app's toolbar. SwiftUI uses this role when
+    /// populating your app's toolbar. SkipUI uses this role when
     /// rendering the content of your app's toolbar.
     ///
     ///     ContentView()
@@ -81921,7 +75676,7 @@ extension View {
     /// result of a file import process. The alert displays the name of the
     /// file imported, MyImageFile.png and its file type, the PNG image
     /// file format along with a default OK button for dismissing the
-    /// alert.](SwiftUI-View-AlertItemContent.png)
+    /// alert.](SkipUI-View-AlertItemContent.png)
     ///
     /// - Parameters:
     ///   - item: A binding to an optional source of truth for the alert.
@@ -81961,7 +75716,7 @@ extension View {
     /// ![An alert whose title reads Order Complete, with the
     /// message, Thank you for shopping with us placed underneath. The alert
     /// also includes an OK button for dismissing the
-    /// alert.](SwiftUI-View-AlertIsPresentedContent.png)
+    /// alert.](SkipUI-View-AlertIsPresentedContent.png)
     /// - Parameters:
     ///   - isPresented: A binding to a Boolean value that determines whether
     ///     to present the alert that you create in the modifier's `content` closure. When the
@@ -82067,135 +75822,6 @@ public struct ViewAlignedScrollTargetBehavior : ScrollTargetBehavior {
     public func updateTarget(_ target: inout ScrollTarget, context: ViewAlignedScrollTargetBehavior.TargetContext) { fatalError() }
 }
 
-/// A custom parameter attribute that constructs views from closures.
-///
-/// You typically use ``ViewBuilder`` as a parameter attribute for child
-/// view-producing closure parameters, allowing those closures to provide
-/// multiple child views. For example, the following `contextMenu` function
-/// accepts a closure that produces one or more views via the view builder.
-///
-///     func contextMenu<MenuItems: View>(
-///         @ViewBuilder menuItems: () -> MenuItems
-///     ) -> some View
-///
-/// Clients of this function can use multiple-statement closures to provide
-/// several child views, as shown in the following example:
-///
-///     myView.contextMenu {
-///         Text("Cut")
-///         Text("Copy")
-///         Text("Paste")
-///         if isSymbol {
-///             Text("Jump to Definition")
-///         }
-///     }
-///
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@resultBuilder public struct ViewBuilder {
-
-    /// Builds an empty view from a block containing no statements.
-    public static func buildBlock() -> EmptyView {
-        fatalError()
-    }
-
-    /// Builds an expression within the builder.
-    public static func buildExpression<Content : View>(_ content: Content) -> Content {
-        fatalError()
-    }
-
-    /// Passes a single view written as a child view through unmodified.
-    ///
-    /// An example of a single view written as a child view is
-    /// `{ Text("Hello") }`.
-    public static func buildBlock<Content: View >(_ content: Content) -> Content{
-        fatalError()
-    }
-
-//    public static func buildBlock<each Content>(_ content: repeat each Content) -> TupleView<(repeat each Content)> where repeat each Content : View {
-//        fatalError()
-//    }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    /// Provides support for “if” statements in multi-statement closures,
-    /// producing an optional view that is visible only when the condition
-    /// evaluates to `true`.
-    public static func buildIf<Content>(_ content: Content?) -> Content? where Content : View { fatalError() }
-
-    /// Provides support for "if" statements in multi-statement closures,
-    /// producing conditional content for the "then" branch.
-//    public static func buildEither<TrueContent, FalseContent>(first: TrueContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : View, FalseContent : View { fatalError() }
-
-    /// Provides support for "if-else" statements in multi-statement closures,
-    /// producing conditional content for the "else" branch.
-//    public static func buildEither<TrueContent, FalseContent>(second: FalseContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : View, FalseContent : View { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ViewBuilder {
-
-    /// Provides support for "if" statements with `#available()` clauses in
-    /// multi-statement closures, producing conditional content for the "then"
-    /// branch, i.e. the conditionally-available branch.
-    public static func buildLimitedAvailability<Content>(_ content: Content) -> AnyView where Content : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> TupleView<(C0, C1)> where C0 : View, C1 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> TupleView<(C0, C1, C2)> where C0 : View, C1 : View, C2 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> TupleView<(C0, C1, C2, C3)> where C0 : View, C1 : View, C2 : View, C3 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> TupleView<(C0, C1, C2, C3, C4)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> TupleView<(C0, C1, C2, C3, C4, C5)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View, C5 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> TupleView<(C0, C1, C2, C3, C4, C5, C6)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View, C5 : View, C6 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> TupleView<(C0, C1, C2, C3, C4, C5, C6, C7)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View, C5 : View, C6 : View, C7 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> TupleView<(C0, C1, C2, C3, C4, C5, C6, C7, C8)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View, C5 : View, C6 : View, C7 : View, C8 : View { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ViewBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> TupleView<(C0, C1, C2, C3, C4, C5, C6, C7, C8, C9)> where C0 : View, C1 : View, C2 : View, C3 : View, C4 : View, C5 : View, C6 : View, C7 : View, C8 : View, C9 : View { fatalError() }
-}
-
 /// A view's size and alignment guides in its own coordinate space.
 ///
 /// This structure contains the size and alignment guides of a view.
@@ -82248,7 +75874,7 @@ extension ViewBuilder {
 /// The example above indents the second text view because the subtraction
 /// moves the second text view's leading guide in the negative x direction,
 /// which is to the left in the view's coordinate space. As a result,
-/// SwiftUI moves the second text view to the right, relative to the first
+/// SkipUI moves the second text view to the right, relative to the first
 /// text view, to keep their leading guides aligned:
 ///
 /// ![A screenshot of two strings. The first says Default and the second,
@@ -82260,7 +75886,7 @@ extension ViewBuilder {
 ///
 /// The discussion above describes a left-to-right language environment,
 /// but you don't change your guide calculation to operate in a right-to-left
-/// environment. SwiftUI moves the view's origin from the left to the right side
+/// environment. SkipUI moves the view's origin from the left to the right side
 /// of the view and inverts the positive x direction. As a result,
 /// the existing calculation produces the same effect, but in the opposite
 /// direction.
@@ -82411,7 +76037,7 @@ extension ViewDimensions : Equatable {
 /// ![A screenshot showing the image of a bus with a caption reading
 /// Downtown Bus. A view extension, using custom a modifier, renders the
 ///  caption in blue text surrounded by a rounded
-///  rectangle.](SwiftUI-View-ViewModifier.png)
+///  rectangle.](SkipUI-View-ViewModifier.png)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public protocol ViewModifier {
 
@@ -82734,387 +76360,6 @@ public struct ViewSpacing : Sendable {
 extension Visibility : Sendable {
 }
 
-/// Visual Effects change the visual appearance of a view without changing its
-/// ancestors or descendents.
-///
-/// Because effects do not impact layout, they are safe to use in situations
-/// where layout modification is not allowed. For example, effects may be
-/// applied as a function of position, accessed through a geometry proxy:
-///
-/// ```swift
-/// var body: some View {
-///     ContentRow()
-///         .visualEffect { content, geometryProxy in
-///             content.offset(x: geometryProxy.frame(in: .global).origin.y)
-///         }
-/// }
-/// ```
-///
-/// You don't conform to this protocol yourself. Instead, visual effects are
-/// created by calling modifier functions (such as `.offset(x:y:)` on other
-/// effects, as seen in the example above.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public protocol VisualEffect : Sendable, Animatable {
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Offsets the view by the horizontal and vertical amount specified in the
-    /// offset parameter.
-    ///
-    /// - Parameter offset: The distance to offset the view.
-    ///
-    /// - Returns: An effect that offsets the view by `offset`.
-//    public func offset(_ offset: CGSize) -> some VisualEffectInsetShape
-
-
-    /// Offsets the view by the specified horizontal and vertical distances.
-    ///
-    /// - Parameters:
-    ///   - x: The horizontal distance to offset the view.
-    ///   - y: The vertical distance to offset the view.
-    ///
-    /// - Returns: An effect that offsets the view by `x` and `y`.
-    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Applies a projection transformation to the view's rendered output.
-    ///
-    /// Use `transformEffect(_:)` to rotate, scale, translate, or skew the
-    /// output of the view according to the provided
-    /// <doc://com.apple.documentation/documentation/SwiftUI/ProjectionTransform>.
-    ///
-    /// - Parameter transform: A
-    /// <doc://com.apple.documentation/documentation/SwiftUI/ProjectionTransform> to
-    /// apply to the view.
-    ///
-    /// - Returns: An effect that applies a projection transformation to the
-    ///   view's rendered output.
-    public func transformEffect(_ transform: ProjectionTransform) -> some VisualEffect { return never() }
-
-
-    /// Applies an affine transformation to the view's rendered output.
-    ///
-    /// Use `transformEffect(_:)` to rotate, scale, translate, or skew the
-    /// output of the view according to the provided
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform>.
-    ///
-    /// - Parameter transform: A
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform> to
-    /// apply to the view.
-    ///
-    /// - Returns: An effect that applies an affine transformation to the
-    ///   view's rendered output.
-    ///
-    public func transformEffect(_ transform: CGAffineTransform) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Rotates the view's rendered output around the specified point.
-    ///
-    /// - Parameters:
-    ///   - angle: The angle at which to rotate the view.
-    ///   - anchor: The location with a default of ``UnitPoint/center`` that
-    ///     defines a point at which the rotation is anchored.
-    /// - Returns: An effect that rotates the view's rendered output.
-    public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Scales the view's rendered output by the given vertical and horizontal
-    /// size amounts, relative to an anchor point.
-    ///
-    /// - Parameters:
-    ///   - scale: A <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> that
-    ///     represents the horizontal and vertical amount to scale the view.
-    ///   - anchor: The point with a default of ``UnitPoint/center`` that
-    ///     defines the location within the view from which to apply the
-    ///     transformation.
-    ///
-    /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
-
-
-    /// Scales the view's rendered output by the given amount in both the
-    /// horizontal and vertical directions, relative to an anchor point.
-    ///
-    /// - Parameters:
-    ///   - s: The amount to scale the view in the view in both the horizontal
-    ///     and vertical directions.
-    ///   - anchor: The point with a default of ``UnitPoint/center`` that
-    ///     defines the location within the view from which to apply the
-    ///     transformation.
-    ///
-    /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(_ scale: CGFloat, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
-
-
-    /// Scales the view's rendered output by the given horizontal and vertical
-    /// amounts, relative to an anchor point.
-    ///
-    /// - Parameters:
-    ///   - x: An amount that represents the horizontal amount to scale the
-    ///     view. The default value is `1.0`.
-    ///   - y: An amount that represents the vertical amount to scale the view.
-    ///     The default value is `1.0`.
-    ///   - anchor: The point with a default of ``UnitPoint/center`` that
-    ///     defines the location within the view from which to apply the
-    ///     transformation.
-    ///
-    /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Applies a Gaussian blur to the view.
-    ///
-    /// Use `blur(radius:opaque:)` to apply a gaussian blur effect to the
-    /// rendering of the view.
-    ///
-    /// - Parameters:
-    ///   - radius: The radial size of the blur. A blur is more diffuse when its
-    ///     radius is large.
-    ///   - opaque: A Boolean value that indicates whether the blur renderer
-    ///     permits transparency in the blur output. Set to `true` to create an
-    ///     opaque blur, or set to `false` to permit transparency.
-    ///
-    /// - Returns: An effect that blurs the view.
-    public func blur(radius: CGFloat, opaque: Bool = false) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Brightens the view by the specified amount.
-    ///
-    /// - Parameter amount: A value between 0 (no effect) and 1 (full white
-    ///   brightening) that represents the intensity of the brightness effect.
-    ///
-    /// - Returns: An effect that brightens the view by the specified amount.
-    public func brightness(_ amount: Double) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Sets the contrast and separation between similar colors in the view.
-    ///
-    /// Apply contrast to a view to increase or decrease the separation between
-    /// similar colors in the view.
-    ///
-    /// - Parameter amount: The intensity of color contrast to apply. negative
-    ///   values invert colors in addition to applying contrast.
-    ///
-    /// - Returns: An effect that applies color contrast to the view.
-    public func contrast(_ amount: Double) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Adds a grayscale effect to the view.
-    ///
-    /// A grayscale effect reduces the intensity of colors in the view.
-    ///
-    /// - Parameter amount: The intensity of grayscale to apply from 0.0 to less
-    ///   than 1.0. Values closer to 0.0 are more colorful, and values closer to
-    ///   1.0 are less colorful.
-    ///
-    /// - Returns: An effect that reduces the intensity of colors in the view.
-    public func grayscale(_ amount: Double) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Applies a hue rotation effect to the view.
-    ///
-    /// Use hue rotation effect to shift all of the colors in a view according
-    /// to the angle you specify.
-    ///
-    /// - Parameter angle: The hue rotation angle to apply to the colors in the
-    ///   view.
-    ///
-    /// - Returns: An effect that shifts all of the colors in the view.
-    public func hueRotation(_ angle: Angle) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Adjusts the color saturation of the view.
-    ///
-    /// Use color saturation to increase or decrease the intensity of colors in
-    /// a view.
-    ///
-    /// - SeeAlso: `contrast(_:)`
-    /// - Parameter amount: The amount of saturation to apply to the view.
-    ///
-    /// - Returns: An effect that adjusts the saturation of the view.
-    public func saturation(_ amount: Double) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-extension VisualEffect {
-
-    /// Returns a new visual effect that applies `shader` to `self` as
-    /// a filter effect on the color of each pixel.
-    ///
-    /// For a shader function to act as a color filter it must have a
-    /// function signature matching:
-    ///
-    ///     [[ stitchable ]] half4 name(float2 position, half4 color, args...)
-    ///
-    /// where `position` is the user-space coordinates of the pixel
-    /// applied to the shader and `color` its source color, as a
-    /// pre-multiplied color in the destination color space. `args...`
-    /// should be compatible with the uniform arguments bound to
-    /// `shader`. The function should return the modified color value.
-    ///
-    /// > Important: Views backed by AppKit or UIKit views may not
-    ///   render into the filtered layer. Instead, they log a warning
-    ///   and display a placeholder image to highlight the error.
-    ///
-    /// - Parameters:
-    ///   - shader: The shader to apply to `self` as a color filter.
-    ///   - isEnabled: Whether the effect is enabled or not.
-    ///
-    /// - Returns: A new view that renders `self` with the shader
-    ///   applied as a color filter.
-    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some VisualEffect { return never() }
-
-
-    /// Returns a new visual effect that applies `shader` to `self` as
-    /// a geometric distortion effect on the location of each pixel.
-    ///
-    /// For a shader function to act as a distortion effect it must
-    /// have a function signature matching:
-    ///
-    ///     [[ stitchable ]] float2 name(float2 position, args...)
-    ///
-    /// where `position` is the user-space coordinates of the
-    /// destination pixel applied to the shader. `args...` should be
-    /// compatible with the uniform arguments bound to `shader`. The
-    /// function should return the user-space coordinates of the
-    /// corresponding source pixel.
-    ///
-    /// > Important: Views backed by AppKit or UIKit views may not
-    ///   render into the filtered layer. Instead, they log a warning
-    ///   and display a placeholder image to highlight the error.
-    ///
-    /// - Parameters:
-    ///   - shader: The shader to apply as a distortion effect.
-    ///   - maxSampleOffset: The maximum distance in each axis between
-    ///     the returned source pixel position and the destination pixel
-    ///     position, for all source pixels.
-    ///   - isEnabled: Whether the effect is enabled or not.
-    ///
-    /// - Returns: A new view that renders `self` with the shader
-    ///   applied as a distortion effect.
-    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return never() }
-
-
-    /// Returns a new visual effect that applies `shader` to `self` as
-    /// a filter on the raster layer created from `self`.
-    ///
-    /// For a shader function to act as a layer effect it must
-    /// have a function signature matching:
-    ///
-    ///     [[ stitchable ]] half4 name(float2 position,
-    ///       SwiftUI::Layer layer, args...)
-    ///
-    /// where `position` is the user-space coordinates of the
-    /// destination pixel applied to the shader, and `layer` is a
-    /// subregion of the raster contents of `self`. `args...` should be
-    /// compatible with the uniform arguments bound to `shader`. The
-    /// function should return the color mapping to the destination
-    /// pixel, typically by sampling one or more pixels from `layer` at
-    /// location(s) derived from `position` and them applying some kind
-    /// of transformation to produce a new color.
-    ///
-    /// > Important: Views backed by AppKit or UIKit views may not
-    ///   render into the filtered layer. Instead, they log a warning
-    ///   and display a placeholder image to highlight the error.
-    ///
-    /// - Parameters:
-    ///   - shader: The shader to apply as a layer effect.
-    ///   - maxSampleOffset: If the shader function samples from the
-    ///     layer at locations not equal to the destination position,
-    ///     this value must specify the maximum sampling distance in
-    ///     each axis, for all source pixels.
-    ///   - isEnabled: Whether the effect is enabled or not.
-    ///
-    /// - Returns: A new view that renders `self` with the shader
-    ///   applied as a distortion effect.
-    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Sets the transparency of the view.
-    ///
-    /// When applying the `opacity(_:)` effect to a view that has already had
-    /// its opacity transformed, the effect of the underlying opacity
-    /// transformation is multiplied.
-    ///
-    /// - Parameter opacity: A value between 0 (fully transparent) and 1 (fully
-    ///   opaque).
-    ///
-    /// - Returns: An effect that sets the transparency of the view.
-    public func opacity(_ opacity: Double) -> some VisualEffect { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension VisualEffect {
-
-    /// Rotates the view's rendered output in three dimensions around the given
-    /// axis of rotation.
-    ///
-    /// Use `rotation3D(_:axis:anchor:anchorZ:perspective:)` to rotate the
-    /// view in three dimensions around the given axis of rotation, and
-    /// optionally, position the view at a custom display order and perspective.
-    ///
-    /// - Parameters:
-    ///   - angle: The angle at which to rotate the view.
-    ///   - axis: The `x`, `y` and `z` elements that specify the axis of
-    ///     rotation.
-    ///   - anchor: The location with a default of ``UnitPoint/center`` that
-    ///     defines a point in 3D space about which the rotation is anchored.
-    ///   - anchorZ: The location with a default of `0` that defines a point in
-    ///     3D space about which the rotation is anchored.
-    ///   - perspective: The relative vanishing point with a default of `1` for
-    ///     this rotation.
-    ///
-    /// - Returns: An effect that rotates the view's rendered output in three
-    ///   dimensions.
-    public func rotation3D(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some VisualEffect { return never() }
-
-}
-
 /// A date picker style that displays each component as columns in a scrollable
 /// wheel.
 ///
@@ -83169,11 +76414,11 @@ public struct WheelPickerStyle : PickerStyle {
 /// There are three key components to a widget:
 ///
 /// * A configuration that determines whether the widget is configurable,
-///   identifies the widget, and defines the SwiftUI views that show the
+///   identifies the widget, and defines the SkipUI views that show the
 ///   widget's content.
 /// * A timeline provider that drives the process of updating the widget's view
 ///   over time.
-/// * SwiftUI views used by WidgetKit to display the widget.
+/// * SkipUI views used by WidgetKit to display the widget.
 ///
 /// For information about adding a widget extension to your app, and keeping
 /// your widget up to date, see
@@ -83203,9 +76448,9 @@ public protocol Widget {
     /// The content and behavior of the widget.
     ///
     /// For any widgets that you create, provide a computed `body` property that
-    /// defines the widget as a composition of SwiftUI views.
+    /// defines the widget as a composition of SkipUI views.
     ///
-    /// Swift infers the widget's ``SwiftUI/Scene/Body-swift.associatedtype``
+    /// Swift infers the widget's ``SkipUI/Scene/Body-swift.associatedtype``
     /// associated type based on the contents of the `body` property.
     var body: Self.Body { get }
 }
@@ -83431,7 +76676,7 @@ extension WidgetConfiguration {
 ///         }
 ///     }
 ///
-/// SwiftUI takes care of certain platform-specific behaviors. For example,
+/// SkipUI takes care of certain platform-specific behaviors. For example,
 /// on platforms that support it, like macOS and iPadOS, people can open more
 /// than one window from the group simultaneously. In macOS, people
 /// can gather open windows together in a tabbed interface. Also in macOS,
@@ -83499,7 +76744,7 @@ extension WidgetConfiguration {
 ///     }
 ///
 /// When you call the ``EnvironmentValues/openWindow`` action with a
-/// value, SwiftUI finds the window group with the matching type
+/// value, SkipUI finds the window group with the matching type
 /// and passes a binding to the value into the window group's content closure.
 /// For example, you can define a button that opens a message by passing
 /// the message's identifier:
@@ -83527,9 +76772,9 @@ extension WidgetConfiguration {
 /// If a window with a binding to the same value that you pass to the
 /// `openWindow` action already appears in the user interface, the system
 /// brings the existing window to the front rather than opening a new window.
-/// If SwiftUI doesn't have a value to provide --- for example, when someone
+/// If SkipUI doesn't have a value to provide --- for example, when someone
 /// opens a window by choosing File > New Window from the macOS menu bar ---
-/// SwiftUI passes a binding to a `nil` value instead. To avoid receiving a
+/// SkipUI passes a binding to a `nil` value instead. To avoid receiving a
 /// `nil` value, you can optionally specify a default value in your window
 /// group initializer. For example, for the message viewer, you can present
 /// a new empty message:
@@ -83540,9 +76785,9 @@ extension WidgetConfiguration {
 ///         model.makeNewMessage().id // A new message that your model stores.
 ///     }
 ///
-/// SwiftUI persists the value of the binding for the purposes of state
+/// SkipUI persists the value of the binding for the purposes of state
 /// restoration, and reapplies the same value when restoring the window. If the
-/// restoration process results in an error, SwiftUI sets the binding to the
+/// restoration process results in an error, SkipUI sets the binding to the
 /// default value if you provide one, or `nil` otherwise.
 ///
 /// ### Title your app's windows
@@ -83554,7 +76799,7 @@ extension WidgetConfiguration {
 ///         MessageDetail(messageID: messageID)
 ///     }
 ///
-/// SwiftUI uses this title when referring to the window in:
+/// SkipUI uses this title when referring to the window in:
 ///
 /// * The list of new windows that someone can open using the File > New menu.
 /// * The window's title bar.
@@ -83563,7 +76808,7 @@ extension WidgetConfiguration {
 /// If you don't provide a title for a window, the system refers to the window
 /// using the app's name instead.
 ///
-/// > Note: You can override the title that SwiftUI uses for a window in the
+/// > Note: You can override the title that SkipUI uses for a window in the
 ///   window's title bar and the menu's list of open windows by adding one of
 ///   the ``View/navigationTitle(_:)-avgj`` modifiers to the window's content.
 ///   This enables you to customize and dynamically update the title for each
@@ -83754,10 +76999,10 @@ public struct WindowGroup<Content> : Scene where Content : View {
 //    ///
 //    /// For any scene that you create, provide a computed `body` property that
 //    /// defines the scene as a composition of other scenes. You can assemble a
-//    /// scene from built-in scenes that SwiftUI provides, as well as other
+//    /// scene from built-in scenes that SkipUI provides, as well as other
 //    /// scenes that you've defined.
 //    ///
-//    /// Swift infers the scene's ``SwiftUI/Scene/Body-swift.associatedtype``
+//    /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
 //    /// associated type based on the contents of the `body` property.
 //    public func makeCache(subviews: Subviews) -> Never {
 //        fatalError()
@@ -83775,7 +77020,7 @@ public struct WindowGroup<Content> : Scene where Content : View {
     /// The type of scene that represents the body of this scene.
     ///
     /// When you create a custom scene, Swift infers this type from your
-    /// implementation of the required ``SwiftUI/Scene/body-swift.property``
+    /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
     public typealias Body = Never
 
@@ -83792,7 +77037,7 @@ extension WindowGroup {
     /// The window group uses the specified content as a
     /// template to create each window in the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83802,7 +77047,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(id: String, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83820,7 +77065,7 @@ extension WindowGroup {
     ///   the formatting controls that the view offers, like for localization,
     ///   dates, and numerical representations.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83831,7 +77076,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(_ title: Text, id: String, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83844,7 +77089,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83855,7 +77100,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(_ titleKey: LocalizedStringKey, id: String, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83868,7 +77113,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83879,7 +77124,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<S, D, C>(_ title: S, id: String, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, S : StringProtocol, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83888,7 +77133,7 @@ extension WindowGroup {
     /// The window group uses the given view as a template to form the
     /// content of each window in the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83896,7 +77141,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83913,7 +77158,7 @@ extension WindowGroup {
     ///   the formatting controls that the view offers, like for localization,
     ///   dates, and numerical representations.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83922,7 +77167,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(_ title: Text, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83935,7 +77180,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83944,7 +77189,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<D, C>(_ titleKey: LocalizedStringKey, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83956,7 +77201,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83965,7 +77210,7 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     public init<S, D, C>(_ title: S, for type: D.Type, @ViewBuilder content: @escaping (Binding<D?>) -> C) where Content == PresentedWindowContent<D, C>, S : StringProtocol, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
 
@@ -83975,7 +77220,7 @@ extension WindowGroup {
     /// The window group uses the given view as a
     /// template to form the content of each window in the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -83985,10 +77230,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(id: String, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84007,7 +77252,7 @@ extension WindowGroup {
     ///   the formatting controls that the view offers, like for localization,
     ///   dates, and numerical representations.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84018,10 +77263,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(_ title: Text, id: String, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84035,7 +77280,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84046,10 +77291,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(_ titleKey: LocalizedStringKey, id: String, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84063,7 +77308,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84074,10 +77319,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<S, D, C>(_ title: S, id: String, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, S : StringProtocol, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84087,7 +77332,7 @@ extension WindowGroup {
     /// The window group using the given view as a template to form the
     /// content of each window in the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84095,10 +77340,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84117,7 +77362,7 @@ extension WindowGroup {
     ///   the formatting controls that the view offers, like for localization,
     ///   dates, and numerical representations.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84126,10 +77371,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(_ title: Text, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84143,7 +77388,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84152,10 +77397,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<D, C>(_ titleKey: LocalizedStringKey, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84169,7 +77414,7 @@ extension WindowGroup {
     /// The system uses the title to distinguish the window group in the user
     /// interface, such as in the name of commands associated with the group.
     ///
-    /// SwiftUI creates a window from the group when you present a value
+    /// SkipUI creates a window from the group when you present a value
     /// of the specified type using the ``EnvironmentValues/openWindow`` action.
     ///
     /// - Parameters:
@@ -84178,10 +77423,10 @@ extension WindowGroup {
     ///   - content: A closure that creates the content for each instance
     ///     of the group. The closure receives a binding to the value that you
     ///     pass into the ``EnvironmentValues/openWindow`` action when you open
-    ///     the window. SwiftUI automatically persists and restores the value
+    ///     the window. SkipUI automatically persists and restores the value
     ///     of this binding as part of the state restoration process.
     ///   - defaultValue: A closure that returns a default value to present.
-    ///     SwiftUI calls this closure when it has no data to provide, like
+    ///     SkipUI calls this closure when it has no data to provide, like
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<S, D, C>(_ title: S, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, S : StringProtocol, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
@@ -84224,7 +77469,7 @@ public struct WindowResizability : Sendable {
 
     /// The automatic window resizability.
     ///
-    /// When you use automatic resizability, SwiftUI applies a resizing
+    /// When you use automatic resizability, SkipUI applies a resizing
     /// strategy that's appropriate for the scene type:
     /// * Windows from ``WindowGroup``, ``Window``, and ``DocumentGroup``
     ///   scene declarations use the ``contentMinSize`` strategy.
@@ -84277,7 +77522,7 @@ public struct WindowResizability : Sendable {
 ///
 /// ![Six squares of different colors, stacked atop each other, with a 10-point
 /// offset in both the x and y axes for each layer so they can be
-/// seen.](SwiftUI-ZStack-offset-rectangles.png)
+/// seen.](SkipUI-ZStack-offset-rectangles.png)
 ///
 /// The `ZStack` uses an ``Alignment`` to set the x- and y-axis coordinates of
 /// each subview, defaulting to a ``Alignment/center`` alignment. In the following
@@ -84302,7 +77547,7 @@ public struct WindowResizability : Sendable {
 /// ![A green 100 by 100 square containing two overlapping rectangles: on the
 /// bottom, a red 100 by 50 rectangle, and atop it, a blue 50 by 100 rectangle.
 /// The rectangles share their bottom left point with the containing green
-/// square.](SwiftUI-ZStack-alignment.png)
+/// square.](SkipUI-ZStack-alignment.png)
 ///
 /// > Note: If you need a version of this stack that conforms to the ``Layout``
 /// protocol, like when you want to create a conditional layout using
@@ -84648,7 +77893,7 @@ extension Never : ShapeStyle {
 
 //extension Preview {
 //
-//    /// Creates a preview of a SwiftUI view.
+//    /// Creates a preview of a SkipUI view.
 //    ///
 //    /// The `#Preview` macro expands into a declaration that calls this initializer. To create a preview
 //    /// that appears in the canvas, you must use the macro, not instantiate a Preview directly.
@@ -84775,7 +78020,7 @@ extension UILegibilityWeight {
 
 extension UIUserInterfaceSizeClass {
 
-    /// Creates a UIKit size class from the specified SwiftUI size class.
+    /// Creates a UIKit size class from the specified SkipUI size class.
     @available(iOS 14.0, *)
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
@@ -84858,37 +78103,37 @@ extension Optional : TableRowContent where Wrapped : TableRowContent {
 
 extension AttributeScopes {
 //
-//    /// A property for accessing the attribute scopes defined by SwiftUI.
+//    /// A property for accessing the attribute scopes defined by SkipUI.
 //    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-//    public var swiftUI: AttributeScopes.SwiftUIAttributes.Type { get { fatalError() } }
+//    public var swiftUI: AttributeScopes.SkipUIAttributes.Type { get { fatalError() } }
 //
-//    /// Attribute scopes defined by SwiftUI.
+//    /// Attribute scopes defined by SkipUI.
 //    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-//    public struct SwiftUIAttributes : AttributeScope {
+//    public struct SkipUIAttributes : AttributeScope {
 //
 //        /// A property for accessing a font attribute.
-//        public let font: AttributeScopes.SwiftUIAttributes.FontAttribute = { fatalError() }()
+//        public let font: AttributeScopes.SkipUIAttributes.FontAttribute = { fatalError() }()
 //
 //        /// A property for accessing a foreground color attribute.
-//        public let foregroundColor: AttributeScopes.SwiftUIAttributes.ForegroundColorAttribute = { fatalError() }()
+//        public let foregroundColor: AttributeScopes.SkipUIAttributes.ForegroundColorAttribute = { fatalError() }()
 //
 //        /// A property for accessing a background color attribute.
-//        public let backgroundColor: AttributeScopes.SwiftUIAttributes.BackgroundColorAttribute = { fatalError() }()
+//        public let backgroundColor: AttributeScopes.SkipUIAttributes.BackgroundColorAttribute = { fatalError() }()
 //
 //        /// A property for accessing a strikethrough style attribute.
-//        public let strikethroughStyle: AttributeScopes.SwiftUIAttributes.StrikethroughStyleAttribute = { fatalError() }()
+//        public let strikethroughStyle: AttributeScopes.SkipUIAttributes.StrikethroughStyleAttribute = { fatalError() }()
 //
 //        /// A property for accessing an underline style attribute.
-//        public let underlineStyle: AttributeScopes.SwiftUIAttributes.UnderlineStyleAttribute = { fatalError() }()
+//        public let underlineStyle: AttributeScopes.SkipUIAttributes.UnderlineStyleAttribute = { fatalError() }()
 //
 //        /// A property for accessing a kerning attribute.
-//        public let kern: AttributeScopes.SwiftUIAttributes.KerningAttribute = { fatalError() }()
+//        public let kern: AttributeScopes.SkipUIAttributes.KerningAttribute = { fatalError() }()
 //
 //        /// A property for accessing a tracking attribute.
-//        public let tracking: AttributeScopes.SwiftUIAttributes.TrackingAttribute = { fatalError() }()
+//        public let tracking: AttributeScopes.SkipUIAttributes.TrackingAttribute = { fatalError() }()
 //
 //        /// A property for accessing a baseline offset attribute.
-//        public let baselineOffset: AttributeScopes.SwiftUIAttributes.BaselineOffsetAttribute = { fatalError() }()
+//        public let baselineOffset: AttributeScopes.SkipUIAttributes.BaselineOffsetAttribute = { fatalError() }()
 //
 //        /// A property for accessing attributes defined by the Accessibility framework.
 //        public let accessibility: AttributeScopes.AccessibilityAttributes = { fatalError() }()
@@ -84905,7 +78150,7 @@ extension AttributeScopes {
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension AttributeDynamicLookup {
 
-//    public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SwiftUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
+//    public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -84932,10 +78177,6 @@ extension Never : Shape {
     public func path(in rect: CGRect) -> Path {
         fatalError()
     }
-    
-}
-
-extension Never : VisualEffect {
 }
 
 extension Never : DynamicViewContent {
