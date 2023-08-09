@@ -835,28 +835,12 @@ public struct NavigationPath {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension NavigationPath : Equatable {
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (lhs: NavigationPath, rhs: NavigationPath) -> Bool { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension NavigationPath.CodableRepresentation : Equatable {
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (lhs: NavigationPath.CodableRepresentation, rhs: NavigationPath.CodableRepresentation) -> Bool { fatalError() }
 }
 
@@ -1140,41 +1124,10 @@ public struct NavigationSplitViewColumn : Hashable, Sendable {
 
     public static var detail: NavigationSplitViewColumn { get { fatalError() } }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: NavigationSplitViewColumn, b: NavigationSplitViewColumn) -> Bool { fatalError() }
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -1272,14 +1225,6 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     /// ``detailOnly``, ``doubleColumn``, or ``all``.
     public static var automatic: NavigationSplitViewVisibility { get { fatalError() } }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (lhs: NavigationSplitViewVisibility, rhs: NavigationSplitViewVisibility) -> Bool { fatalError() }
 
     /// Encodes this value into the given encoder.
@@ -1629,41 +1574,10 @@ public struct NavigationBarItem : Sendable {
         @available(tvOS, unavailable)
         case large
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: NavigationBarItem.TitleDisplayMode, b: NavigationBarItem.TitleDisplayMode) -> Bool { fatalError() }
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 }

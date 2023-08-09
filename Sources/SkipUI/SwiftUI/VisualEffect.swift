@@ -310,7 +310,7 @@ extension VisualEffect {
     /// have a function signature matching:
     ///
     ///     [[ stitchable ]] half4 name(float2 position,
-    ///       SwiftUI::Layer layer, args...)
+    ///       SkipUI::Layer layer, args...)
     ///
     /// where `position` is the user-space coordinates of the
     /// destination pixel applied to the shader, and `layer` is a

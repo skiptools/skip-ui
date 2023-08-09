@@ -156,41 +156,10 @@ public enum DropOperation : Sendable {
     /// Move the data represented by the drag items instead of copying it.
     case move
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: DropOperation, b: DropOperation) -> Bool { fatalError() }
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -1384,6 +1353,135 @@ extension View {
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
     public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where C : Collection, C.Element : ReferenceFileDocument { return never() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Configures the ``fileExporter``, ``fileImporter``, or ``fileMover`` to
+    /// open with the specified default directory.
+    ///
+    /// - Parameter defaultDirectory: The directory to show when
+    ///   the system file dialog launches. If the given file dialog has
+    ///   a `fileDialogCustomizationID` if stores the user-chosen directory and subsequently
+    ///   opens with it, ignoring the default value provided in this modifier.
+    public func fileDialogDefaultDirectory(_ defaultDirectory: URL?) -> some View { return never() }
+
+
+    /// On macOS, configures the `fileExporter`, `fileImporter`,
+    /// or `fileMover` to persist and restore the file dialog configuration.
+    ///
+    /// Among other parameters, it stores the current directory,
+    /// view style (e.g., Icons, List, Columns), recent places,
+    /// and expanded window size.
+    /// It enables a refined user experience; for example,
+    /// when importing an image, the user might switch to the Icons view,
+    /// but the List view could be more convenient in another context.
+    /// The file dialog stores these settings and applies them
+    /// every time before presenting the panel.
+    /// If not provided, on every launch, the file dialog
+    /// uses the default configuration.
+    ///
+    /// - Parameter id: An identifier of the configuration.
+    public func fileDialogCustomizationID(_ id: String) -> some View { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``, or ``fileMover``
+    /// with a custom text that is presented to the user,
+    /// similar to a title.
+    ///
+    /// - Parameter message: The optional text to use as the file dialog message.
+    public func fileDialogMessage(_ message: Text?) -> some View { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` with a custom message that is presented to the user,
+    /// similar to a title.
+    ///
+    /// - Parameter messageKey: The key to a localized string to display.
+    public func fileDialogMessage(_ messageKey: LocalizedStringKey) -> some View { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` with a custom message that is presented to the user,
+    /// similar to a title.
+    ///
+    /// - Parameter message: The string to use as the file dialog message.
+    public func fileDialogMessage<S>(_ message: S) -> some View where S : StringProtocol { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` with a custom confirmation button label.
+    ///
+    /// - Parameter label: The string to use as the label for the confirmation button.
+    public func fileDialogConfirmationLabel<S>(_ label: S) -> some View where S : StringProtocol { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` with custom text as a confirmation button label.
+    ///
+    /// - Parameter label: The optional text to use as the label for the confirmation button.
+    public func fileDialogConfirmationLabel(_ label: Text?) -> some View { return never() }
+
+
+    /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` with a custom confirmation button label.
+    ///
+    /// - Parameter labelKey: The key to a localized string to display.
+    public func fileDialogConfirmationLabel(_ labelKey: LocalizedStringKey) -> some View { return never() }
+
+
+    /// On macOS, configures the ``fileExporter``
+    /// with a text to use as a label for the file name field.
+    /// - Parameter label: The optional text to use as the label for the file name field.
+    public func fileExporterFilenameLabel(_ label: Text?) -> some View { return never() }
+
+
+    /// On macOS, configures the ``fileExporter``
+    /// with a label for the file name field.
+    /// - Parameter labelKey: The key to a localized string to display.
+    public func fileExporterFilenameLabel(_ labelKey: LocalizedStringKey) -> some View { return never() }
+
+
+    /// On macOS, configures the ``fileExporter``
+    /// with a label for the file name field.
+    /// - Parameter label: The string to use as the label for the file name field.
+    public func fileExporterFilenameLabel<S>(_ label: S) -> some View where S : StringProtocol { return never() }
+
+
+    /// On macOS, configures the the ``fileImporter``
+    /// or ``fileMover`` to conditionally disable presented URLs.
+    ///
+    /// - Parameter predicate: The predicate that evaluates the
+    ///    URLs presented to the user to conditionally disable them.
+    ///    The implementation is expected to have constant complexity
+    ///    and should not access the files contents or metadata. A common use case
+    ///    is inspecting the path or the file name.
+    public func fileDialogURLEnabled(_ predicate: Predicate<URL>) -> some View { return never() }
+
+
+    /// On macOS, configures the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` behavior when a user chooses an alias.
+    ///
+    /// By default, file dialogs resolve aliases and
+    /// provide the URL of the item referred to by the chosen alias.
+    /// This modifier allows control of this behavior: pass `true` if the
+    /// application doesn't want file dialog to resolve aliases.
+    /// - Parameter imports: A Boolean value that indicates
+    ///     if the application receives unresolved or resolved URLs
+    ///     when a user chooses aliases.
+    public func fileDialogImportsUnresolvedAliases(_ imports: Bool) -> some View { return never() }
+
+
+    /// On macOS, configures the ``fileExporter``, ``fileImporter``,
+    /// or ``fileMover`` to provide a refined URL search experience: include or exclude
+    /// hidden files, allow searching by tag, etc.
+    ///
+    /// - Parameter options: The search options to apply to a given file dialog.
+    public func fileDialogBrowserOptions(_ options: FileDialogBrowserOptions) -> some View { return never() }
 
 }
 

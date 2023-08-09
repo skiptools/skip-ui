@@ -19,14 +19,6 @@ public struct AccessibilityActionKind : Equatable, Sendable {
 
     public init(named name: Text) { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityActionKind, b: AccessibilityActionKind) -> Bool { fatalError() }
 }
 
@@ -38,41 +30,10 @@ public enum AccessibilityAdjustmentDirection : Sendable {
 
     case decrement
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityAdjustmentDirection, b: AccessibilityAdjustmentDirection) -> Bool { fatalError() }
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -97,41 +58,10 @@ public struct AccessibilityAttachmentModifier : ViewModifier {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct AccessibilityChildBehavior : Hashable {
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (lhs: AccessibilityChildBehavior, rhs: AccessibilityChildBehavior) -> Bool { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -286,14 +216,6 @@ public struct AccessibilityCustomContentKey {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension AccessibilityCustomContentKey : Equatable {
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityCustomContentKey, b: AccessibilityCustomContentKey) -> Bool { fatalError() }
 }
 
@@ -570,45 +492,14 @@ extension AccessibilityHeadingLevel : Sendable {
     /// For example, it might be the custom control itself.
     case content
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityLabeledPairRole, b: AccessibilityLabeledPairRole) -> Bool { fatalError() }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension AccessibilityLabeledPairRole : Hashable {
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -1246,14 +1137,6 @@ public struct AccessibilityTechnologies : SetAlgebra, Sendable {
     ///   set and `[newMember]`, or `nil` if the intersection is empty.
     public mutating func update(with newMember: AccessibilityTechnologies) -> AccessibilityTechnologies? { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityTechnologies, b: AccessibilityTechnologies) -> Bool { fatalError() }
 
     /// The type of the elements of an array literal.
@@ -1599,14 +1482,6 @@ public struct AccessibilityTraits : SetAlgebra, Sendable {
     ///   set and `[newMember]`, or `nil` if the intersection is empty.
     public mutating func update(with newMember: AccessibilityTraits) -> AccessibilityTraits? { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: AccessibilityTraits, b: AccessibilityTraits) -> Bool { fatalError() }
 
     /// The type of the elements of an array literal.
@@ -1632,41 +1507,10 @@ public struct AccessibilityZoomGestureAction {
         /// The gesture direction that represents zooming out.
         case zoomOut
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: AccessibilityZoomGestureAction.Direction, b: AccessibilityZoomGestureAction.Direction) -> Bool { fatalError() }
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 

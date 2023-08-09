@@ -162,14 +162,6 @@ import protocol Foundation.ReferenceConvertible
     /// - Parameter content: The string value to display without localization.
     public init<S>(_ content: S) where S : StringProtocol { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: Text, b: Text) -> Bool { fatalError() }
 }
 
@@ -481,41 +473,10 @@ extension Text {
         /// When specified a uses a secondary text scale.
         public static let secondary: Text.Scale = { fatalError() }()
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: Text.Scale, b: Text.Scale) -> Bool { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 }
@@ -655,41 +616,10 @@ extension Text {
         /// "ab...yz".
         case middle
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: Text.TruncationMode, b: Text.TruncationMode) -> Bool { fatalError() }
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 
@@ -711,41 +641,10 @@ extension Text {
         /// - SeeAlso: `StringProtocol.lowercased(with:)`
         case lowercase
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: Text.Case, b: Text.Case) -> Bool { fatalError() }
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 }
@@ -803,41 +702,10 @@ extension Text {
 //        /// `nsUnderlineStyle` contains styles not supported by ``Text.LineStyle``.
 //        public init?(nsUnderlineStyle: NSUnderlineStyle) { fatalError() }
 
-        /// Hashes the essential components of this value by feeding them into the
-        /// given hasher.
-        ///
-        /// Implement this method to conform to the `Hashable` protocol. The
-        /// components used for hashing must be the same as the components compared
-        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-        /// with each of these components.
-        ///
-        /// - Important: In your implementation of `hash(into:)`,
-        ///   don't call `finalize()` on the `hasher` instance provided,
-        ///   or replace it with a different instance.
-        ///   Doing so may become a compile-time error in the future.
-        ///
-        /// - Parameter hasher: The hasher to use when combining the components
-        ///   of this instance.
         public func hash(into hasher: inout Hasher) { fatalError() }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: Text.LineStyle, b: Text.LineStyle) -> Bool { fatalError() }
 
-        /// The hash value.
-        ///
-        /// Hash values are not guaranteed to be equal across different executions of
-        /// your program. Do not save hash values to use during a future execution.
-        ///
-        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-        ///   The compiler provides an implementation for `hashValue` for you.
         public var hashValue: Int { get { fatalError() } }
     }
 }
@@ -1420,14 +1288,6 @@ extension Text {
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Text.DateStyle : Equatable {
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: Text.DateStyle, b: Text.DateStyle) -> Bool { fatalError() }
 }
 
@@ -1480,31 +1340,8 @@ extension Text.Case : Hashable {
 
     case trailing
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: TextAlignment, b: TextAlignment) -> Bool { fatalError() }
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
@@ -1513,14 +1350,6 @@ extension Text.Case : Hashable {
     /// A collection of all values of this type.
     public static var allCases: [TextAlignment] { get { fatalError() } }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import UIKit
+
 /// Creates a preview of a SkipUI view.
 ///
 /// - Parameters:
@@ -166,41 +168,10 @@ public enum PreviewPlatform : Sendable {
     /// Specifies watchOS as the preview platform.
     case watchOS
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: PreviewPlatform, b: PreviewPlatform) -> Bool { fatalError() }
 
-    /// Hashes the essential components of this value by feeding them into the
-    /// given hasher.
-    ///
-    /// Implement this method to conform to the `Hashable` protocol. The
-    /// components used for hashing must be the same as the components compared
-    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-    /// with each of these components.
-    ///
-    /// - Important: In your implementation of `hash(into:)`,
-    ///   don't call `finalize()` on the `hasher` instance provided,
-    ///   or replace it with a different instance.
-    ///   Doing so may become a compile-time error in the future.
-    ///
-    /// - Parameter hasher: The hasher to use when combining the components
-    ///   of this instance.
     public func hash(into hasher: inout Hasher) { fatalError() }
 
-    /// The hash value.
-    ///
-    /// Hash values are not guaranteed to be equal across different executions of
-    /// your program. Do not save hash values to use during a future execution.
-    ///
-    /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-    ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-    ///   The compiler provides an implementation for `hashValue` for you.
     public var hashValue: Int { get { fatalError() } }
 }
 
@@ -352,3 +323,111 @@ extension PreviewPlatform : Hashable {
 //    /// platform for a preview.
 //    @MainActor public static var platform: PreviewPlatform? { get { fatalError() } }
 //}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Overrides the device for a preview.
+    ///
+    /// By default, Xcode automatically chooses a preview device based
+    /// on your currently selected run destination. If you want to
+    /// choose a device that doesn't change based on Xcode settings,
+    /// provide a ``PreviewDevice`` instance that you initialize with
+    /// the name or model of a specific device:
+    ///
+    ///     struct CircleImage_Previews: PreviewProvider {
+    ///         static var previews: some View {
+    ///             CircleImage()
+    ///                 .previewDevice(PreviewDevice(rawValue: "iPad Pro (11-inch)"))
+    ///         }
+    ///     }
+    ///
+    /// You can get a list of supported preview device names, like "iPhone 11",
+    /// "iPad Pro (11-inch)", and "Apple Watch Series 5 - 44mm", by using the
+    /// `xcrun` command in the Terminal app:
+    ///
+    ///     % xcrun simctl list devicetypes
+    ///
+    /// Additionally, you can use the following values for macOS platform
+    /// development:
+    /// - "Mac"
+    /// - "Mac Catalyst"
+    ///
+    /// - Parameter value: A device to use for preview, or `nil` to let Xcode
+    ///   automatically choose a device based on the run destination.
+    /// - Returns: A preview that uses the given device.
+    @inlinable public func previewDevice(_ value: PreviewDevice?) -> some View { return never() }
+
+
+    /// Overrides the size of the container for the preview.
+    ///
+    /// By default, previews use the ``PreviewLayout/device`` layout,
+    /// which places the view inside a visual representation of the chosen
+    /// device. You can instead tell a preview to use a different layout
+    /// by choosing one of the ``PreviewLayout`` values, like
+    /// ``PreviewLayout/sizeThatFits``:
+    ///
+    ///     struct CircleImage_Previews: PreviewProvider {
+    ///         static var previews: some View {
+    ///             CircleImage()
+    ///                 .previewLayout(.sizeThatFits)
+    ///         }
+    ///     }
+    ///
+    /// - Parameter value: A layout to use for preview.
+    /// - Returns: A preview that uses the given layout.
+    @inlinable public func previewLayout(_ value: PreviewLayout) -> some View { return never() }
+
+
+    /// Sets a user visible name to show in the canvas for a preview.
+    ///
+    /// Apply this modifier to a view inside your ``PreviewProvider``
+    /// implementation to associate a display name with that view's preview:
+    ///
+    ///     struct CircleImage_Previews: PreviewProvider {
+    ///         static var previews: some View {
+    ///             CircleImage()
+    ///                 .previewDisplayName("Circle")
+    ///         }
+    ///     }
+    ///
+    /// ![A screenshot of the Xcode preview canvas cropped to just the top of a
+    /// preview, highlighting the name in the preview's title bar, which is set
+    /// to the word circle.](View-previewDisplayName-1)
+    ///
+    /// Add a name when you have multiple previews together in the canvas that
+    /// you need to tell apart. The default value is `nil`, in which case
+    /// Xcode displays a default string.
+    ///
+    /// - Parameter value: A name for the preview.
+    /// - Returns: A preview that uses the given name.
+    @inlinable public func previewDisplayName(_ value: String?) -> some View { return never() }
+
+
+    /// Declares a context for the preview.
+    ///
+    /// - Parameter value: The context for the preview; the default is `nil`.
+    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+    @inlinable public func previewContext<C>(_ value: C) -> some View where C : PreviewContext { return never() }
+
+
+    /// Overrides the orientation of the preview.
+    ///
+    /// By default, device previews appear right side up, using orientation
+    /// ``InterfaceOrientation/portrait``. You can
+    /// change the orientation of a preview using one of the values in
+    /// the ``InterfaceOrientation`` structure:
+    ///
+    ///     struct CircleImage_Previews: PreviewProvider {
+    ///         static var previews: some View {
+    ///             CircleImage()
+    ///                 .previewInterfaceOrientation(.landscapeRight)
+    ///         }
+    ///     }
+    ///
+    /// - Parameter value: An orientation to use for preview.
+    /// - Returns: A preview that uses the given orientation.
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+    public func previewInterfaceOrientation(_ value: InterfaceOrientation) -> some View { return never() }
+
+}

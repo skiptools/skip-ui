@@ -2835,14 +2835,6 @@ public struct TableColumnCustomization<RowValue> : Equatable, Sendable, Codable 
     /// described by their column builder.
     public mutating func resetOrder() { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: TableColumnCustomization<RowValue>, b: TableColumnCustomization<RowValue>) -> Bool { fatalError() }
 
     /// Encodes this value into the given encoder.
@@ -3108,14 +3100,6 @@ public struct TableColumnCustomizationBehavior : SetAlgebra, Sendable {
     /// - Parameter other: A set of the same type.
     public mutating func formSymmetricDifference(_ other: TableColumnCustomizationBehavior) { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: TableColumnCustomizationBehavior, b: TableColumnCustomizationBehavior) -> Bool { fatalError() }
 
     /// The type of the elements of an array literal.
@@ -3587,3 +3571,133 @@ extension TableRowContent {
     public func itemProvider(_ action: (() -> NSItemProvider?)?) -> ModifiedContent<Self, ItemProviderTableRowModifier> { fatalError() }
 }
 #endif
+
+/// A type of table column content that creates table columns created from a
+/// Swift tuple of table columns.
+///
+/// Don't use this type directly; instead, SkipUI uses this type as the return value
+/// from the various `buildBlock` methods in ``TableColumnBuilder``. The size of
+/// the tuple corresponds to how many columns you create in the `columns`
+/// closure you provide to the ``Table`` initializer.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+@frozen public struct TupleTableColumnContent<RowValue, Sort, T> : TableColumnContent where RowValue : Identifiable, Sort : SortComparator {
+
+    /// The type of value of rows presented by this column content.
+    public typealias TableRowValue = RowValue
+
+    /// The type of sort comparator associated with this table column content.
+    public typealias TableColumnSortComparator = Sort
+
+    /// The value of a row presented by this column content.
+    public var value: T { get { fatalError() } }
+
+    /// The type of content representing the body of this table column content.
+    public typealias TableColumnBody = Never
+    public var tableColumnBody: TableColumnBody { fatalError() }
+}
+
+/// A type of table column content that creates table rows created from a
+/// Swift tuple of table rows.
+///
+/// Don't use this type directly; instead, SkipUI uses this type as the return value
+/// from the various `buildBlock` methods in ``TableRowBuilder``. The size of
+/// the tuple corresponds to how many columns you create in the `rows`
+/// closure you provide to the ``Table`` initializer.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+@frozen public struct TupleTableRowContent<Value, T> : TableRowContent where Value : Identifiable {
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Value
+
+    public var value: T { get { fatalError() } }
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+    public var tableRowBody: TableRowBody { fatalError() }
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension ForEach : TableRowContent where Content : TableRowContent {
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Content.TableRowValue
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+
+    /// Creates an instance that uniquely identifies and creates table rows
+    /// across updates based on the identity of the underlying data.
+    ///
+    /// - Parameters:
+    ///   - data: The identified data that the ``ForEach`` instance uses to
+    ///     create table rows dynamically.
+    ///   - content: The table row builder that creates rows dynamically.
+    public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where ID == Data.Element.ID, V == Content.TableRowValue, Data.Element : Identifiable { fatalError() }
+
+    /// Creates an instance that uniquely identifies and creates table rows
+    /// across updates based on the provided key path to the underlying data's
+    /// identifier.
+    ///
+    /// - Parameters:
+    ///   - data: The data that the ``ForEach`` instance uses to create table
+    ///     rows dynamically.
+    ///   - id: The key path to the provided data's identifier.
+    ///   - content: The table row builder that creates rows dynamically.
+    public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where V == Content.TableRowValue { fatalError() }
+
+    /// Creates an instance that uniquely identifies and creates table rows
+    /// across updates based on the identity of the underlying data.
+    ///
+    /// The following example creates a `Person` type that conforms to
+    /// , and an
+    /// array of this type called `people`. A `ForEach` instance iterates over
+    /// the array, producing new ``TableRow`` instances implicitly.
+    ///
+    ///     private struct Person: Identifiable {
+    ///         var id = UUID()
+    ///         var name: String
+    ///     }
+    ///
+    ///     @State private var people: [Person] = /* ... */
+    ///
+    ///     Table(of: Person.self) {
+    ///         TableColumn("ID", value: \.id.uuidString)
+    ///         TableColumn("Name", value: \.name)
+    ///     } rows: {
+    ///         Section("Team") {
+    ///             /* This is equivalent to the line below:
+    ///             ForEach(people) { TableRow($0) }
+    ///             */
+    ///             ForEach(people)
+    ///         }
+    ///     }
+    ///
+    /// - Parameter data: The identified data that the ``ForEach`` instance uses
+    ///     to create table rows dynamically.
+    public init(_ data: Data) where ID == Data.Element.ID, Content == TableRow<Data.Element>, Data.Element : Identifiable { fatalError() }
+
+    /// Creates an instance that computes table rows on demand over a given
+    /// constant range.
+    ///
+    /// The instance only reads the initial value of the provided `data` and
+    /// doesn't need to identify rows across updates. To compute rows on
+    /// demand over a dynamic range, use ``ForEach/init(_:id:content:)``.
+    ///
+    /// - Parameters:
+    ///   - data: A constant range.
+    ///   - content: The table row builder that creates rows dynamically.
+    public init<V>(_ data: Range<Int>, @TableRowBuilder<V> content: @escaping (Int) -> Content) where Data == Range<Int>, ID == Int, V == Content.TableRowValue { fatalError() }
+
+    public var tableRowBody: Never { fatalError() }
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension ForEach : DynamicTableRowContent where Content : TableRowContent {
+}

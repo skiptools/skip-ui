@@ -486,14 +486,6 @@ public struct MagnifyGesture : Gesture {
         /// space.
         public var startLocation: CGPoint { get { fatalError() } }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: MagnifyGesture.Value, b: MagnifyGesture.Value) -> Bool { fatalError() }
     }
 
@@ -568,14 +560,6 @@ public struct RotateGesture : Gesture {
         /// space.
         public var startLocation: CGPoint { get { fatalError() } }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: RotateGesture.Value, b: RotateGesture.Value) -> Bool { fatalError() }
     }
 
@@ -712,14 +696,6 @@ public struct SpatialTapGesture : Gesture {
         /// The location of the tap gesture's current event.
         public var location: CGPoint { get { fatalError() } }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: SpatialTapGesture.Value, b: SpatialTapGesture.Value) -> Bool { fatalError() }
     }
 
@@ -859,14 +835,6 @@ public struct DragGesture : Gesture {
         /// translation will be if dragging stopped now.
         public var predictedEndTranslation: CGSize { get { fatalError() } }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: DragGesture.Value, b: DragGesture.Value) -> Bool { fatalError() }
     }
 

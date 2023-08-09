@@ -8,6 +8,12 @@ public typealias CGFloat = CoreGraphics.CGFloat
 import struct CoreGraphics.CGSize
 public typealias CGSize = CoreGraphics.CGSize
 
+import enum CoreGraphics.CGLineCap
+public typealias CGLineCap = CoreGraphics.CGLineCap
+
+import enum CoreGraphics.CGLineJoin
+public typealias CGLineJoin = CoreGraphics.CGLineJoin
+
 import struct CoreGraphics.CGRect
 public typealias CGRect = CoreGraphics.CGRect
 
@@ -16,6 +22,10 @@ public typealias CGPoint = CoreGraphics.CGPoint
 
 import struct CoreGraphics.CGAffineTransform
 public typealias CGAffineTransform = CoreGraphics.CGAffineTransform
+
+import struct QuartzCore.CATransform3D
+public typealias CATransform3D = QuartzCore.CATransform3D
+
 
 import struct CoreGraphics.CGVector
 public typealias CGVector = CoreGraphics.CGVector

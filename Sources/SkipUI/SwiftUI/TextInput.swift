@@ -58,14 +58,6 @@ public struct TextInputDictationActivation : Equatable, Sendable {
     @available(tvOS, unavailable)
     public static let onLook: TextInputDictationActivation = { fatalError() }()
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: TextInputDictationActivation, b: TextInputDictationActivation) -> Bool { fatalError() }
 }
 
@@ -93,13 +85,5 @@ public struct TextInputDictationBehavior : Equatable, Sendable {
     @available(tvOS, unavailable)
     public static func inline(activation: TextInputDictationActivation) -> TextInputDictationBehavior { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: TextInputDictationBehavior, b: TextInputDictationBehavior) -> Bool { fatalError() }
 }

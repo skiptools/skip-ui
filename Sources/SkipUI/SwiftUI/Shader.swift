@@ -94,14 +94,6 @@ public struct Shader : Equatable, Sendable {
         /// parameters.
         public static func data(_ data: Data) -> Shader.Argument { fatalError() }
 
-        /// Returns a Boolean value indicating whether two values are equal.
-        ///
-        /// Equality is the inverse of inequality. For any values `a` and `b`,
-        /// `a == b` implies that `a != b` is `false`.
-        ///
-        /// - Parameters:
-        ///   - lhs: A value to compare.
-        ///   - rhs: Another value to compare.
         public static func == (a: Shader.Argument, b: Shader.Argument) -> Bool { fatalError() }
     }
 
@@ -122,14 +114,6 @@ public struct Shader : Equatable, Sendable {
     /// values to bind to the function.
     public init(function: ShaderFunction, arguments: [Shader.Argument]) { fatalError() }
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: Shader, b: Shader) -> Bool { fatalError() }
 }
 

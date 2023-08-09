@@ -287,14 +287,6 @@ public struct ButtonBorderShape : Equatable, Sendable {
     @available(iOS 17.0, macOS 14.0, tvOS 16.4, watchOS 10.0, *)
     public static let circle: ButtonBorderShape = { fatalError() }()
 
-    /// Returns a Boolean value indicating whether two values are equal.
-    ///
-    /// Equality is the inverse of inequality. For any values `a` and `b`,
-    /// `a == b` implies that `a != b` is `false`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
     public static func == (a: ButtonBorderShape, b: ButtonBorderShape) -> Bool { fatalError() }
 }
 
