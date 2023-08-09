@@ -26,9 +26,9 @@
 ///
 /// > Important: To enable an iPadOS app to simultaneously display multiple
 /// windows, be sure to include the
-/// <doc://com.apple.documentation/documentation/bundleresources/information_property_list/uiapplicationscenemanifest/uiapplicationsupportsmultiplescenes>
+/// 
 /// key with a value of `true` in the
-/// <doc://com.apple.documentation/documentation/bundleresources/information_property_list/uiapplicationscenemanifest>
+/// 
 /// dictionary of your app's Information Property List.
 ///
 /// Every window in the group maintains independent state. For example, the
@@ -102,11 +102,11 @@
 ///     }
 ///
 /// Be sure that the type you present conforms to both the
-/// <doc://com.apple.documentation/documentation/Swift/Hashable>
-/// and <doc://com.apple.documentation/documentation/Swift/Codable> protocols.
+/// 
+/// and  protocols.
 /// Also, prefer lightweight data for the presentation value.
 /// For model values that conform to the
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable> protocol,
+///  protocol,
 /// the value's identifier works well as a presentation type, as the above
 /// example demonstrates.
 ///
@@ -159,7 +159,7 @@
 ///
 /// To programmatically distinguish between windows that present the same type
 /// of data, like when you use a
-/// <doc://com.apple.documentation/documentation/Foundation/UUID>
+/// 
 /// as the identifier for more than one model type, add the `id` parameter
 /// to the group's initializer to provide a unique string identifier:
 ///

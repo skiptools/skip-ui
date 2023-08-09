@@ -55,10 +55,10 @@ extension VisualEffect {
     ///
     /// Use `transformEffect(_:)` to rotate, scale, translate, or skew the
     /// output of the view according to the provided
-    /// <doc://com.apple.documentation/documentation/SwiftUI/ProjectionTransform>.
+    /// .
     ///
     /// - Parameter transform: A
-    /// <doc://com.apple.documentation/documentation/SwiftUI/ProjectionTransform> to
+    ///  to
     /// apply to the view.
     ///
     /// - Returns: An effect that applies a projection transformation to the
@@ -70,10 +70,10 @@ extension VisualEffect {
     ///
     /// Use `transformEffect(_:)` to rotate, scale, translate, or skew the
     /// output of the view according to the provided
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform>.
+    /// .
     ///
     /// - Parameter transform: A
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform> to
+    ///  to
     /// apply to the view.
     ///
     /// - Returns: An effect that applies an affine transformation to the
@@ -104,7 +104,7 @@ extension VisualEffect {
     /// size amounts, relative to an anchor point.
     ///
     /// - Parameters:
-    ///   - scale: A <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> that
+    ///   - scale: A  that
     ///     represents the horizontal and vertical amount to scale the view.
     ///   - anchor: The point with a default of ``UnitPoint/center`` that
     ///     defines the location within the view from which to apply the

@@ -31,7 +31,6 @@ public protocol TimelineSchedule {
     ///
     /// The ``TimelineSchedule/entries(from:mode:)`` method returns a value
     /// of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
     /// of dates in ascending order. A ``TimelineView`` that you create with a
     /// schedule updates its content at the moments in time corresponding to
     /// the dates included in the sequence.
@@ -323,8 +322,7 @@ public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule 
         /// timer when the cadence is ``seconds`` or ``minutes``.
         ///
         /// Because this enumeration conforms to the
-        /// <doc://com.apple.documentation/documentation/Swift/Comparable>
-        /// protocol, you can compare cadences with relational operators.
+            /// protocol, you can compare cadences with relational operators.
         /// Slower cadences have higher values, so you could perform the check
         /// described above with the following comparison:
         ///
@@ -410,8 +408,7 @@ public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule 
         /// anything slower than ``Cadence-swift.enum/live``.
         ///
         /// Because the ``Cadence-swift.enum`` enumeration conforms to the
-        /// <doc://com.apple.documentation/documentation/Swift/Comparable>
-        /// protocol, you can compare cadences with relational operators.
+            /// protocol, you can compare cadences with relational operators.
         /// Slower cadences have higher values, so you could perform the check
         /// described above with the following comparison:
         ///

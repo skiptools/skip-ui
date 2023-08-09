@@ -24,16 +24,16 @@
 ///
 /// For information about adding a widget extension to your app, and keeping
 /// your widget up to date, see
-/// <doc://com.apple.documentation/documentation/WidgetKit/Creating-a-Widget-Extension>
+/// 
 /// and
-/// <doc://com.apple.documentation/documentation/WidgetKit/Keeping-a-Widget-Up-To-Date>,
+/// ,
 /// respectively.
 ///
 /// By adding a custom SiriKit intent definition, you can let users customize
 /// their widgets to show the information that's most relevant to them. If
 /// you've already added support for Siri or Shortcuts, you're well on your way
 /// to supporting customizable widgets. For more information, see
-/// <doc://com.apple.documentation/documentation/WidgetKit/Making-a-Configurable-Widget>.
+/// .
 @available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 public protocol Widget {

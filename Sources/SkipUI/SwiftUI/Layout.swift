@@ -983,7 +983,6 @@ public struct LayoutSubview : Equatable {
     /// Use this method as a convenience to get the ``ViewDimensions/width``
     /// and ``ViewDimensions/height`` properties of the ``ViewDimensions``
     /// instance returned by the ``dimensions(in:)`` method, reported as a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGSize>
     /// instance.
     ///
     /// - Parameter proposal: A proposed size for the subview. In SkipUI,
@@ -1190,7 +1189,7 @@ public struct LayoutSubviews : Equatable, RandomAccessCollection, Sendable {
 ///     }
 ///
 /// The Swift compiler infers this particular key's associated type as an
-/// optional <doc://com.apple.documentation/documentation/CoreGraphics/CGFloat>
+/// optional 
 /// from this definition.
 ///
 /// ### Set a value on a view
@@ -1266,7 +1265,7 @@ public protocol LayoutValueKey {
     /// The type that you declare for the `defaultValue` sets the layout
     /// key's ``Value`` associated type. The Swift compiler infers the key's
     /// associated type in the above example as an optional
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGFloat>.
+    /// .
     ///
     /// Any view that you don't explicitly set a value for uses the default
     /// value. Override the default value for a view using the

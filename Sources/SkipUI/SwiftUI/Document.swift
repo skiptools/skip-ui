@@ -204,7 +204,7 @@ extension DocumentGroup where Document : FileDocument {
     ///
     /// You tell the system about the app's role with respect to the document
     /// type by setting the
-    ///  <doc://com.apple.documentation/documentation/BundleResources/Information_Property_List/CFBundleDocumentTypes/CFBundleTypeRole>
+    ///  
     ///   `Info.plist` key with a value of `Viewer`.
     ///
     public init(viewing documentType: Document.Type, @ViewBuilder viewer: @escaping (FileDocumentConfiguration<Document>) -> Content) { fatalError() }
@@ -306,7 +306,7 @@ public protocol FileDocument {
     ///
     /// The above example assumes that you define `Model` to contain
     /// the document's data, that `Model` conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// and that you store a `model` property of that type inside your document.
     ///
     /// > Note: SkipUI calls this method on a background thread. Don't
@@ -345,7 +345,7 @@ public protocol FileDocument {
     ///
     /// - Returns: The destination to serialize the document contents to. The
     ///   value can be a newly created
-    ///   <doc://com.apple.documentation/documentation/Foundation/FileWrapper>
+    ///   
     ///   or an update of the one provided in the `configuration` input.
     func fileWrapper(configuration: Self.WriteConfiguration) throws -> FileWrapper
 
@@ -505,7 +505,7 @@ public protocol ReferenceFileDocument : ObservableObject {
     ///
     /// The above example assumes that you define `Model` to contain
     /// the document's data, that `Model` conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// and that you store a `model` property of that type inside your document.
     ///
     /// > Note: SkipUI calls this method on a background thread. Don't
@@ -580,7 +580,7 @@ public protocol ReferenceFileDocument : ObservableObject {
     ///
     /// - Returns: The destination to serialize the document contents to. The
     ///   value can be a newly created
-    ///   <doc://com.apple.documentation/documentation/Foundation/FileWrapper>
+    ///   
     ///   or an update of the one provided in the `configuration` input.
     func fileWrapper(snapshot: Self.Snapshot, configuration: Self.WriteConfiguration) throws -> FileWrapper
 

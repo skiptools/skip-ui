@@ -7,7 +7,7 @@
 /// Use a canvas to draw rich and dynamic 2D graphics inside a SkipUI view.
 /// The canvas passes a ``GraphicsContext`` to the closure that you use
 /// to perform immediate mode drawing operations. The canvas also passes a
-/// <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> value
+///  value
 /// that you can use to customize what you draw. For example, you can use the
 /// context's ``GraphicsContext/stroke(_:with:lineWidth:)`` command to draw
 /// a ``Path`` instance:
@@ -114,7 +114,6 @@ public struct Canvas<Symbols> where Symbols : View {
     ///     ScatterPlotView(rects: rects, mark: Image(systemName: "circle"))
     ///
     /// If the `rects` input contains 50 randomly arranged
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGRect>
     /// instances, SkipUI draws a plot like this:
     ///
     /// ![A screenshot of a scatter plot inside a blue rectangle, containing

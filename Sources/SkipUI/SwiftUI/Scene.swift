@@ -99,7 +99,6 @@ extension Scene {
     /// state. The system considers the task completed when the action closure
     /// that you provide returns. If the action closure has not returned when
     /// the task runs out of time to complete, the system cancels the task. Use
-    /// <doc://com.apple.documentation/documentation/Swift/3851300-withtaskcancellationhandler>
     /// to observe whether the task is low on runtime.
     ///
     ///     /// An example of a Weather Application.
@@ -415,7 +414,7 @@ extension Scene {
     /// - Parameters:
     ///   - value: The value to check when determining whether to run the
     ///     closure. The value must conform to the
-    ///     <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///     
     ///     protocol.
     ///   - action: A closure to run when the value changes. The closure
     ///     provides a single `newValue` parameter that indicates the changed
@@ -477,7 +476,7 @@ extension Scene {
     /// - Parameters:
     ///   - value: The value to check when determining whether to run the
     ///     closure. The value must conform to the
-    ///     <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///     
     ///     protocol.
     ///   - initial: Whether the action should be run when this scene initially
     ///     appears.
@@ -528,7 +527,7 @@ extension Scene {
     /// - Parameters:
     ///   - value: The value to check when determining whether to run the
     ///     closure. The value must conform to the
-    ///     <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///     
     ///     protocol.
     ///   - initial: Whether the action should be run when this scene initially
     ///     appears.

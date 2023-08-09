@@ -18,7 +18,7 @@ import class UIKit.NSItemProvider
 /// You commonly create tables from collections of data. The following example
 /// shows how to create a simple, three-column table from an array of `Person`
 /// instances that conform to the
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable> protocol:
+///  protocol:
 ///
 ///     struct Person: Identifiable {
 ///         let givenName: String
@@ -61,9 +61,9 @@ import class UIKit.NSItemProvider
 ///
 /// To make rows of a table selectable, provide a binding to a selection
 /// variable. Binding to a single instance of the table data's
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable/3285392-id>
+/// 
 /// type creates a single-selection table. Binding to a
-/// <doc://com.apple.documentation/documentation/Swift/Set> creates a table that
+///  creates a table that
 /// supports multiple selections. The following example shows how to add
 /// multi-select to the previous example. A ``Text`` view below the table shows
 /// the number of items currently selected.
@@ -84,7 +84,7 @@ import class UIKit.NSItemProvider
 /// ### Supporting sorting in tables
 ///
 /// To make the columns of a table sortable, provide a binding to an array
-/// of <doc://com.apple.documentation/documentation/Foundation/SortComparator>
+/// of 
 /// instances. The table reflects the sorted state through its column
 /// headers, allowing sorting for any columns with key paths.
 ///
@@ -1040,7 +1040,7 @@ extension TableColumn {
     ///     larger than the ideal of all of its columns.
     ///   - max: The maximum width of a resizable column. If non-`nil`, the
     ///     value must be greater than `0`. Pass
-    ///     <doc://com.apple.documentation/documentation/CoreGraphics/CGFloat/1454161-infinity>
+    ///     
     ///     to indicate unconstrained maximum width.
     public func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil) -> TableColumn<RowValue, Sort, Content, Label> { fatalError() }
 
@@ -3479,7 +3479,7 @@ extension TableRowContent {
     /// drag and drop to this row.
     ///
     /// - Parameter payload: A closure that returns a single
-    /// instance or a value conforming to <doc://com.apple.documentation/documentation/coretransferable/transferable> that
+    /// instance or a value conforming to  that
     /// represents the draggable data from this view.
     ///
     /// - Returns: A row that activates this row as the source of a drag and

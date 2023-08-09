@@ -33,7 +33,7 @@ extension EnvironmentValues {
 /// placeholder type that you specify. Condition the request with an optional
 /// predicate and sort descriptors. For example, you can create a request to
 /// list all `Quake` managed objects that the
-/// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
+/// 
 /// sample code project defines to store earthquake data, sorted by their
 /// `time` property:
 ///
@@ -42,7 +42,7 @@ extension EnvironmentValues {
 ///
 /// Alternatively, when you need more flexibility, you can initialize the
 /// request with a configured
-/// <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
+/// 
 /// instance:
 ///
 ///     @FetchRequest(fetchRequest: request)
@@ -56,9 +56,9 @@ extension EnvironmentValues {
 /// in the environment, which you can access using the
 /// ``EnvironmentValues/managedObjectContext`` environment value. To
 /// support user interface activity, you typically rely on the
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer/1640622-viewContext>
+/// 
 /// property of a shared
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer>
+/// 
 /// instance. For example, you can set a context on your top level content
 /// view using a shared container that you define as part of your model:
 ///
@@ -84,7 +84,6 @@ extension EnvironmentValues {
     /// when you use ``FetchRequest`` as a property wrapper, and then access
     /// the wrapped property by name. For example, consider the following
     /// `quakes` property declaration that fetches a `Quake` type that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines:
     ///
     ///     @FetchRequest(fetchRequest: request)
@@ -112,7 +111,7 @@ extension EnvironmentValues {
     ///
     /// You initialize a ``FetchRequest`` with an optional predicate and
     /// sort descriptors, either explicitly or using a configured
-    /// <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>.
+    /// .
     /// Later, you can dynamically update the predicate and sort
     /// parameters using the request's configuration structure.
     ///
@@ -126,7 +125,6 @@ extension EnvironmentValues {
     /// do by using the dollar sign (`$`) prefix on the associated
     /// results property. For example, you can create a request for `Quake`
     /// entities --- a managed object type that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines --- that initially sorts the results by time:
     ///
     ///     @FetchRequest(sortDescriptors: [SortDescriptor(\.time, order: .reverse)])
@@ -185,10 +183,8 @@ extension EnvironmentValues {
         ///
         /// Set this configuration value to cause a ``FetchRequest`` to execute
         /// a fetch with a new collection of
-        /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
-        /// instances. If you want to use
-        /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
-        /// instances, set ``FetchRequest/Configuration/sortDescriptors``
+            /// instances. If you want to use
+            /// instances, set ``FetchRequest/Configuration/sortDescriptors``
         /// instead.
         ///
         /// Access this value of a ``FetchRequest/Configuration`` structure for
@@ -219,7 +215,6 @@ extension EnvironmentValues {
     /// configures the request.
     ///
     /// For example, consider the following fetch request for a type that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines to store earthquake data, sorted based on
     /// the `time` property:
     ///
@@ -272,7 +267,7 @@ extension FetchRequest {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -286,10 +281,8 @@ extension FetchRequest {
     /// request with more than a predicate and sort descriptors.
     /// For example, you can vend a request from a `Quake` managed object
     /// that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines to store earthquake data.
     /// Limit the number of results to `1000` by setting a
-    /// <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest/1506622-fetchLimit>
     /// for the request:
     ///
     ///     extension Quake {
@@ -316,7 +309,7 @@ extension FetchRequest {
     ///
     /// - Parameters:
     ///   - fetchRequest: An
-    ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
+    ///     
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
     ///   - animation: The animation to use for user interface changes that
@@ -332,7 +325,7 @@ extension FetchRequest {
     ///
     /// - Parameters:
     ///   - fetchRequest: An
-    ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
+    ///     
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
     ///   - transaction: A transaction to use for user interface changes that
@@ -348,7 +341,6 @@ extension FetchRequest where Result : NSManagedObject {
     ///
     /// The request gets the entity type from the `Result` instance by calling
     /// that managed object's
-    /// <doc://com.apple.documentation/documentation/CoreData/NSManagedObject/1640588-entity>
     /// type method. If you need to specify the entity type explicitly, use the
     /// ``init(entity:sortDescriptors:predicate:animation:)`` initializer
     /// instead. If you need more control over the fetch request configuration,
@@ -359,7 +351,7 @@ extension FetchRequest where Result : NSManagedObject {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -375,7 +367,6 @@ extension FetchRequest where Result : NSManagedObject {
     ///
     /// The request gets the entity type from the `Result` instance by calling
     /// that managed object's
-    /// <doc://com.apple.documentation/documentation/CoreData/NSManagedObject/1640588-entity>
     /// type method. If you need to specify the entity type explicitly, use the
     /// ``init(entity:sortDescriptors:predicate:animation:)`` initializer
     /// instead. If you need more control over the fetch request configuration,
@@ -386,7 +377,7 @@ extension FetchRequest where Result : NSManagedObject {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -401,9 +392,7 @@ extension FetchRequest.Configuration where Result : NSManagedObject {
     ///
     /// Set this configuration value to cause a ``FetchRequest`` to execute a
     /// fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances. If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances, set ``FetchRequest/Configuration/nsSortDescriptors`` instead.
     ///
     /// Access this value of a ``FetchRequest/Configuration`` structure for
@@ -421,7 +410,7 @@ extension FetchRequest.Configuration where Result : NSManagedObject {
 /// results property declaration with a ``FetchRequest`` property wrapper.
 /// For example, you can create a request to list all `Quake` managed objects
 /// that the
-/// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
+/// 
 /// sample code project defines to store earthquake data, sorted by their
 /// `time` property:
 ///
@@ -429,7 +418,7 @@ extension FetchRequest.Configuration where Result : NSManagedObject {
 ///     private var quakes: FetchedResults<Quake>
 ///
 /// The results instance conforms to
-/// <doc://com.apple.documentation/documentation/Swift/RandomAccessCollection>,
+/// ,
 /// so you access it like any other collection. For example, you can create
 /// a ``List`` that iterates over all the results:
 ///
@@ -447,9 +436,9 @@ extension FetchRequest.Configuration where Result : NSManagedObject {
 /// in the environment, which you can access using the
 /// ``EnvironmentValues/managedObjectContext`` environment value. To
 /// support user interface activity, you typically rely on the
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer/1640622-viewContext>
+/// 
 /// property of a shared
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer>
+/// 
 /// instance. For example, you can set a context on your top level content
 /// view using a container that you define as part of your model:
 ///
@@ -465,13 +454,11 @@ public struct FetchedResults<Result> : RandomAccessCollection where Result : NSF
     ///
     /// Set this value to cause the associated ``FetchRequest`` to execute
     /// a fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances.
     /// The order of managed objects stored in the results collection may change
     /// as a result.
     ///
     /// If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances, set ``FetchedResults/sortDescriptors`` instead.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
     public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { fatalError() } }
@@ -529,13 +516,11 @@ extension FetchedResults where Result : NSManagedObject {
     ///
     /// Set this value to cause the associated ``FetchRequest`` to execute a
     /// fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances.
     /// The order of entities stored in the results collection may change
     /// as a result.
     ///
     /// If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances, set ``FetchedResults/nsSortDescriptors`` instead.
     public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { fatalError() } }
 }
@@ -554,7 +539,7 @@ extension FetchedResults where Result : NSManagedObject {
 /// to group the fetched results. Be sure that you choose sorting and sectioning
 /// that work together to avoid discontiguous sections. For example, you can
 /// request a list of earthquakes, composed of `Quake` managed objects that the
-/// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
+/// 
 /// sample code project defines to store earthquake data, sorted by time and
 /// grouped by date:
 ///
@@ -572,7 +557,7 @@ extension FetchedResults where Result : NSManagedObject {
 /// which is `Quake` in the example above. Indicate a `SectionIdentifier` type
 /// to declare the type found at the fetched object's `sectionIdentifier`
 /// key path. The section identifier type must conform to the
-/// <doc://com.apple.documentation/documentation/Swift/Hashable> protocol.
+///  protocol.
 ///
 /// The example above depends on the `Quake` type having a `day` property that's
 /// either a stored or computed string. Be sure to mark any computed property
@@ -583,9 +568,9 @@ extension FetchedResults where Result : NSManagedObject {
 /// stored in the environment, which you can access using the
 /// ``EnvironmentValues/managedObjectContext`` environment value. To
 /// support user interface activity, you typically rely on the
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer/1640622-viewContext>
+/// 
 /// property of a shared
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer>
+/// 
 /// instance. For example, you can set a context on your top-level content
 /// view using a shared container that you define as part of your model:
 ///
@@ -610,7 +595,6 @@ extension FetchedResults where Result : NSManagedObject {
     /// wrapper and then access the wrapped property by name. For example,
     /// consider the following `quakes` property declaration that fetches a
     /// `Quake` type that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines:
     ///
     ///     @SectionedFetchRequest<String, Quake>(
@@ -645,7 +629,7 @@ extension FetchedResults where Result : NSManagedObject {
     /// You initialize a ``SectionedFetchRequest`` with a section identifier,
     /// an optional predicate, and sort descriptors, either explicitly or with
     /// a configured
-    /// <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>.
+    /// .
     /// Later, you can dynamically update the identifier, predicate, and sort
     /// parameters using the request's configuration structure.
     ///
@@ -677,10 +661,8 @@ extension FetchedResults where Result : NSManagedObject {
         ///
         /// Set this configuration value to cause a ``SectionedFetchRequest``
         /// to execute a fetch with a new collection of
-        /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
-        /// instances. If you want to use
-        /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
-        /// instances, set ``SectionedFetchRequest/Configuration/sortDescriptors``
+            /// instances. If you want to use
+            /// instances, set ``SectionedFetchRequest/Configuration/sortDescriptors``
         /// instead. Use care to coordinate section and sort updates, as
         /// described in ``SectionedFetchRequest/Configuration``.
         ///
@@ -747,7 +729,7 @@ extension SectionedFetchRequest {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -761,10 +743,8 @@ extension SectionedFetchRequest {
     /// request with more than a predicate and sort descriptors.
     /// For example, you can vend a request from a `Quake` managed object
     /// that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines to store earthquake data.
     /// Limit the number of results to `1000` by setting a
-    /// <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest/1506622-fetchLimit>
     /// for the request:
     ///
     ///     extension Quake {
@@ -795,7 +775,7 @@ extension SectionedFetchRequest {
     ///
     /// - Parameters:
     ///   - fetchRequest: An
-    ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
+    ///     
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
     ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
@@ -813,7 +793,7 @@ extension SectionedFetchRequest {
     ///
     /// - Parameters:
     ///   - fetchRequest: An
-    ///     <doc://com.apple.documentation/documentation/CoreData/NSFetchRequest>
+    ///     
     ///     instance that describes the search criteria for retrieving data
     ///     from the persistent store.
     ///   - sectionIdentifier: A key path that SkipUI applies to the `Result`
@@ -831,7 +811,6 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     ///
     /// The request gets the entity type from the `Result` instance by calling
     /// that managed object's
-    /// <doc://com.apple.documentation/documentation/CoreData/NSManagedObject/1640588-entity>
     /// type method. If you need to specify the entity type explicitly, use the
     /// ``init(entity:sectionIdentifier:sortDescriptors:predicate:animation:)``
     /// initializer instead. If you need more control over the fetch request
@@ -845,7 +824,7 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -857,7 +836,6 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     ///
     /// The request gets the entity type from the `Result` instance by calling
     /// that managed object's
-    /// <doc://com.apple.documentation/documentation/CoreData/NSManagedObject/1640588-entity>
     /// type method. If you need to specify the entity type explicitly, use the
     /// ``init(entity:sectionIdentifier:sortDescriptors:predicate:animation:)``
     /// initializer instead. If you need more control over the fetch request
@@ -871,7 +849,7 @@ extension SectionedFetchRequest where Result : NSManagedObject {
     ///   - sortDescriptors: An array of sort descriptors that define the sort
     ///     order of the fetched results.
     ///   - predicate: An
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSPredicate>
+    ///     
     ///     instance that defines logical conditions used to filter the fetched
     ///     results.
     ///   - animation: The animation to use for user interface changes that
@@ -886,9 +864,7 @@ extension SectionedFetchRequest.Configuration where Result : NSManagedObject {
     ///
     /// Set this configuration value to cause a ``SectionedFetchRequest`` to
     /// execute a fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances. If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances, set ``SectionedFetchRequest/Configuration/nsSortDescriptors``
     /// instead. Use care to coordinate section and sort updates, as described
     /// in ``SectionedFetchRequest/Configuration``.
@@ -913,7 +889,7 @@ extension SectionedFetchRequest.Configuration where Result : NSManagedObject {
 /// and the type of the identifier that distinguishes the sections with
 /// a `SectionIdentifier` type. For example, you can create a request to list
 /// all `Quake` managed objects that the
-/// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
+/// 
 /// sample code project defines to store earthquake data, sorted by their `time`
 /// property and grouped by a string that represents the days when earthquakes
 /// occurred:
@@ -932,7 +908,7 @@ extension SectionedFetchRequest.Configuration where Result : NSManagedObject {
 ///
 /// The collection of sections, as well as the collection of managed objects in
 /// each section, conforms to the
-/// <doc://com.apple.documentation/documentation/Swift/RandomAccessCollection>
+/// 
 /// protocol, so you can access them as you would any other collection. For
 /// example, you can create nested ``ForEach`` loops inside a ``List`` to
 /// iterate over the results:
@@ -961,9 +937,9 @@ extension SectionedFetchRequest.Configuration where Result : NSManagedObject {
 /// in the environment, which you can access using the
 /// ``EnvironmentValues/managedObjectContext`` environment value. To
 /// support user interface activity, you typically rely on the
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer/1640622-viewContext>
+/// 
 /// property of a shared
-/// <doc://com.apple.documentation/documentation/CoreData/NSPersistentContainer>
+/// 
 /// instance. For example, you can set a context on your top-level content
 /// view using a container that you define as part of your model:
 ///
@@ -988,7 +964,6 @@ public struct SectionedFetchResults<SectionIdentifier, Result> : RandomAccessCol
     /// Obtain specific sections by treating the fetch results as a collection.
     /// For example, consider the following property declaration
     /// that fetches `Quake` managed objects that the
-    /// <doc://com.apple.documentation/documentation/CoreData/loading_and_displaying_a_large_data_feed>
     /// sample code project defines to store earthquake data:
     ///
     ///     @SectionedFetchRequest<String, Quake>(
@@ -1070,14 +1045,12 @@ public struct SectionedFetchResults<SectionIdentifier, Result> : RandomAccessCol
     ///
     /// Set this value to cause the associated ``SectionedFetchRequest`` to
     /// execute a fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances.
     /// The order of managed objects stored in the results collection may change
     /// as a result. Use care to coordinate section and sort updates, as
     /// described in ``SectionedFetchRequest/Configuration``.
     ///
     /// If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances, set ``SectionedFetchResults/sortDescriptors`` instead.
     public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { fatalError() } }
 
@@ -1143,13 +1116,11 @@ extension SectionedFetchResults where Result : NSManagedObject {
     ///
     /// Set this value to cause the associated ``SectionedFetchRequest`` to
     /// execute a fetch with a new collection of
-    /// <doc://com.apple.documentation/documentation/Foundation/SortDescriptor>
     /// instances. The order of entities stored in the results collection may
     /// change as a result. Use care to coordinate section and sort updates, as
     /// described in ``SectionedFetchRequest/Configuration``.
     ///
     /// If you want to use
-    /// <doc://com.apple.documentation/documentation/Foundation/NSSortDescriptor>
     /// instances, set ``SectionedFetchResults/nsSortDescriptors`` instead.
     public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { fatalError() } }
 }

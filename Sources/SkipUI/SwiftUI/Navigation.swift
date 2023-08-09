@@ -259,7 +259,7 @@ extension NavigationLink where Destination == Never {
     ///
     /// If you want to be able to serialize a ``NavigationPath`` that includes
     /// this link, use use a `value` that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol.
+    ///  protocol.
     ///
     /// - Parameters:
     ///   - value: An optional value to present.
@@ -293,7 +293,7 @@ extension NavigationLink where Destination == Never {
     ///
     /// If you want to be able to serialize a ``NavigationPath`` that includes
     /// this link, use use a `value` that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol.
+    ///  protocol.
     ///
     /// - Parameters:
     ///   - titleKey: A localized string that describes the view that this link
@@ -328,7 +328,7 @@ extension NavigationLink where Destination == Never {
     ///
     /// If you want to be able to serialize a ``NavigationPath`` that includes
     /// this link, use use a `value` that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol.
+    ///  protocol.
     ///
     /// - Parameters:
     ///   - title: A string that describes the view that this link presents.
@@ -360,7 +360,7 @@ extension NavigationLink where Destination == Never {
     /// * In other cases, the link doesn't do anything.
     ///
     /// Because this initializer takes a value that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// you ensure that a ``NavigationPath`` that includes this link can produce
     /// a non-`nil` value for its ``NavigationPath/codable`` property. This
     /// helps to make the path serializable.
@@ -396,7 +396,7 @@ extension NavigationLink where Destination == Never {
     /// * In other cases, the link doesn't do anything.
     ///
     /// Because this initializer takes a value that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// you ensure that a ``NavigationPath`` that includes this link can produce
     /// a non-`nil` value for its ``NavigationPath/codable`` property. This
     /// helps to make the path serializable.
@@ -433,7 +433,7 @@ extension NavigationLink where Destination == Never {
     /// * In other cases, the link doesn't do anything.
     ///
     /// Because this initializer takes a value that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// you ensure that a ``NavigationPath`` that includes this link can produce
     /// a non-`nil` value for its ``NavigationPath/codable`` property. This
     /// helps to make the path serializable.
@@ -683,11 +683,11 @@ public struct NavigationLinkPickerStyle : PickerStyle {
 /// ### Serialize the path
 ///
 /// When the values you present on the navigation stack conform to
-/// the <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+/// the  protocol,
 /// you can use the path's ``codable`` property to get a serializable
 /// representation of the path. Use that representation to save and restore
 /// the contents of the stack. For example, you can define an
-/// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
+/// 
 /// that handles serializing and deserializing the path:
 ///
 ///     class MyModelObject: ObservableObject {
@@ -760,7 +760,7 @@ public struct NavigationPath {
     ///
     /// This value is `nil` if any of the type-erased elements of the path
     /// don't conform to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol.
+    ///  protocol.
     public var codable: NavigationPath.CodableRepresentation? { get { fatalError() } }
 
     /// Creates a new, empty navigation path.
@@ -805,7 +805,7 @@ public struct NavigationPath {
     /// A serializable representation of a navigation path.
     ///
     /// When a navigation path contains elements the conform to the
-    /// <doc://com.apple.documentation/documentation/Swift/Codable> protocol,
+    ///  protocol,
     /// you can use the path's `CodableRepresentation` to convert the path to an
     /// external representation and to convert an external representation back
     /// into a navigation path.

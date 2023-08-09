@@ -7,7 +7,7 @@ import struct Foundation.URL
 /// A view that asynchronously loads and displays an image.
 ///
 /// This view uses the shared
-/// <doc://com.apple.documentation/documentation/Foundation/URLSession>
+/// 
 /// instance to load an image from the specified URL, and then display it.
 /// For example, you can display an icon that's stored on a server:
 ///

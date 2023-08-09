@@ -44,13 +44,13 @@ import protocol Foundation.ParseableFormatStyle
 /// view below it also showing this value.](SkipUI-TextField-echoText.png)
 ///
 /// The bound value doesn't have to be a string. By using a
-/// <doc://com.apple.documentation/documentation/Foundation/FormatStyle>,
+/// ,
 /// you can bind the text field to a nonstring type, using the format style
 /// to convert the typed text into an instance of the bound type. The following
 /// example uses a
-/// <doc://com.apple.documentation/documentation/Foundation/PersonNameComponents/FormatStyle>
+/// 
 /// to convert the name typed in the text field to a
-/// <doc://com.apple.documentation/documentation/Foundation/PersonNameComponents>
+/// 
 /// instance. A ``Text`` view below the text field shows the debug description
 /// string of this instance.
 ///
@@ -461,7 +461,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -472,9 +471,7 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
     /// instance to convert to and from a representation as U.S. dollars. As
     /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
     /// the console. If the user enters an invalid currency value, like letters
@@ -509,7 +506,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -520,9 +516,7 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
     /// instance to convert to and from a representation as U.S. dollars. As
     /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
     /// the console. If the user enters an invalid currency value, like letters
@@ -558,7 +552,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -570,9 +563,7 @@ extension TextField where Label == Text {
     ///
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
     /// instance to convert to and from a string representation. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -614,7 +605,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -625,9 +615,7 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
     /// instance to convert to and from a string representation. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -672,7 +660,6 @@ extension TextField {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -683,9 +670,7 @@ extension TextField {
     /// whenever the user submits this text field.
     ///
     /// The following example uses an optional
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound currency value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle/Currency>
     /// instance to convert to and from a representation as U.S. dollars. As
     /// the user types, a `View.onChange(of:_:)` modifier logs the new value to
     /// the console. If the user enters an invalid currency value, like letters
@@ -722,7 +707,6 @@ extension TextField {
     ///
     /// Use this initializer to create a text field that binds to a bound
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/ParseableFormatStyle>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the format style can parse the
@@ -733,9 +717,7 @@ extension TextField {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/FloatingPointFormatStyle>
     /// instance to convert to and from a string representation. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -782,7 +764,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the formatter can parse the
@@ -793,12 +774,9 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
     /// instance to convert to and from a string representation. The formatter
     /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
     /// style, to allow entering a fractional part. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -842,7 +820,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the formatter can parse the
@@ -854,12 +831,9 @@ extension TextField where Label == Text {
     ///
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
     /// instance to convert to and from a string representation. The formatter
     /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
     /// style, to allow entering a fractional part. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -906,7 +880,6 @@ extension TextField {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the formatter can parse the
@@ -917,12 +890,9 @@ extension TextField {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
     /// instance to convert to and from a string representation. The formatter
     /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
     /// style, to allow entering a fractional part. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -968,7 +938,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the formatter can parse the
@@ -979,12 +948,9 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
     /// instance to convert to and from a string representation. The formatter
     /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
     /// style, to allow entering a fractional part. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent
@@ -1026,7 +992,6 @@ extension TextField where Label == Text {
     ///
     /// Use this initializer to create a text field that binds to a bound optional
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/Formatter>
     /// to convert to and from this type. Changes to the bound value update
     /// the string displayed by the text field. Editing the text field
     /// updates the bound value, as long as the formatter can parse the
@@ -1037,12 +1002,9 @@ extension TextField where Label == Text {
     /// whenever the user submits this text field.
     ///
     /// The following example uses a
-    /// <doc://com.apple.documentation/documentation/Swift/Double>
     /// as the bound value, and a
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter>
     /// instance to convert to and from a string representation. The formatter
     /// uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NumberFormatter/Style/decimal>
     /// style, to allow entering a fractional part. As the user types, the bound
     /// value updates, which in turn updates three ``Text`` views that use
     /// different format styles. If the user enters text that doesn't represent

@@ -411,11 +411,6 @@ extension ToggleStyle where Self == SwitchToggleStyle {
     /// user interface varies a little, as described in the respective Human
     /// Interface Guidelines sections:
     ///
-    /// | Platform    | Appearance | Human Interface Guidelines |
-    /// |-------------|------------|----------------------------|
-    /// | iOS, iPadOS | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is green. The toggle and its text appear in a rounded rectangle, and are aligned with opposite edges of the rectangle.](ToggleStyle-switch-1-iOS) | [Switches](https://developer.apple.com/design/human-interface-guidelines/ios/controls/switches/) |
-    /// | macOS       | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is blue. The toggle and its text are adjacent to each other.](ToggleStyle-switch-1-macOS) | [Switches](https://developer.apple.com/design/human-interface-guidelines/macos/buttons/switches/)
-    /// | watchOS     | ![A screenshot of the text On appearing to the left of a toggle switch that's on. The toggle's tint color is green. The toggle and its text appear in a rounded rectangle, and are aligned with opposite edges of the rectangle.](ToggleStyle-switch-1-watchOS) | [Toggles and Switches](https://developer.apple.com/design/human-interface-guidelines/watchos/elements/toggles-and-switches/) |
     ///
     /// In iOS, iPadOS, and watchOS, the label and switch fill as much
     /// horizontal space as the toggle's parent offers by aligning the label's

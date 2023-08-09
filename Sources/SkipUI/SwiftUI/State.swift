@@ -195,7 +195,7 @@ extension State where Value : ExpressibleByNilLiteral {
 /// you store in a view hierarchy. Create a state object in an ``App``,
 /// ``Scene``, or ``View`` by applying the `@StateObject` attribute to a
 /// property declaration and providing an initial value that conforms to the
-/// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
+/// 
 /// protocol. Declare state objects as private to prevent setting them from a
 /// memberwise initializer, which can conflict with the storage management that
 /// SkipUI provides:
@@ -323,7 +323,7 @@ extension State where Value : ExpressibleByNilLiteral {
 ///
 /// If you need the view to reinitialize state based on changes in more than
 /// one value, you can combine the values into a single identifier using a
-/// <doc://com.apple.documentation/documentation/Swift/Hasher>. For example,
+/// . For example,
 /// if you want to update the data model in `MyInitializableView` when the
 /// values of either `name` or `isEnabled` change, you can combine both
 /// variables into a single hash:

@@ -225,30 +225,30 @@ public struct DropProposal : Sendable {
 /// typically uses a system-standard appearance; you only need to supply the
 /// content to share:
 ///
-///     ShareLink(item: URL(string: "https://developer.apple.com/xcode/swiftui/")!)
+///     ShareLink(item: URL(string: "https://example.org/")!)
 ///
 /// You can control the appearance of the link by providing view content.
 /// For example, you can use a ``Label`` to display a
 /// link with a custom icon:
 ///
-///     ShareLink(item: URL(string: "https://developer.apple.com/xcode/swiftui/")!) {
+///     ShareLink(item: URL(string: "https://example.org/")!) {
 ///         Label("Share", image: "MyCustomShareIcon")
 ///     }
 ///
 /// If you only wish to customize the link's title, you can use one of the
 /// convenience initializers that takes a string and creates a `Label` for you:
 ///
-///     ShareLink("Share URL", item: URL(string: "https://developer.apple.com/xcode/swiftui/")!)
+///     ShareLink("Share URL", item: URL(string: "https://example.org/")!)
 ///
 /// The link can share any content that is
-/// <doc://com.apple.documentation/documentation/coretransferable/transferable>.
+/// .
 /// Many framework types, like
-/// <doc://com.apple.documentation/documentation/Foundation/URL>,
+/// ,
 /// already conform to this protocol. You can also make your own types
 /// transferable.
 ///
 /// For example, you can use
-/// <doc://com.apple.documentation/documentation/coretransferable/proxyrepresentation>
+/// 
 /// to resolve your own type to a framework type:
 ///
 ///     struct Photo: Transferable {
@@ -277,9 +277,9 @@ public struct DropProposal : Sendable {
 ///
 /// Sometimes the content that your app shares isn't immediately available. You
 /// can use
-/// <doc://com.apple.documentation/documentation/coretransferable/filerepresentation>
+/// 
 /// or
-/// <doc://com.apple.documentation/documentation/coretransferable/datarepresentation>
+/// 
 /// when you need an asynchronous operation, like a network request, to
 /// retrieve and prepare the content.
 ///
@@ -830,7 +830,7 @@ extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == 
 /// the system fetches the link's metadata over the network:
 ///
 ///     ShareLink(
-///         item: URL(string: "https://developer.apple.com/xcode/swiftui/")!,
+///         item: URL(string: "https://example.org/")!,
 ///         preview: SharePreview(
 ///             "SkipUI",
 ///             image: Image("SkipUI"))
@@ -855,9 +855,7 @@ extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == 
 /// the website overall.
 ///
 /// The system may reuse a single preview representation for multiple previews,
-/// and show different images in each context. For more information and
-/// recommended sizes for each image, see
-/// [TN2444: Best Practices for Link Previews in Messages](https://developer.apple.com/library/archive/technotes/tn2444/_index.html).
+/// and show different images in each context.
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 public struct SharePreview<Image, Icon> where Image : Transferable, Icon : Transferable {
@@ -1017,7 +1015,7 @@ extension DynamicViewContent {
 ///
 /// You declare what type of items your app will accept; use a type that
 /// conforms to the
-/// <doc://com.apple.documentation/documentation/coretransferable/transferable>
+/// 
 /// protocol. When the user taps or clicks the button, your closure receives the
 /// pasteboard items in the specified type.
 ///
@@ -1114,7 +1112,7 @@ extension View {
     /// this view is generated and used as the preview image.
     ///
     /// - Parameter payload: A closure that returns a single
-    /// instance or a value conforming to <doc://com.apple.documentation/documentation/coretransferable/transferable> that
+    /// instance or a value conforming to  that
     /// represents the draggable data from this view.
     ///
     /// - Returns: A view that activates this view as the source of a drag and
@@ -1604,7 +1602,7 @@ extension DynamicViewContent {
     ///     the view. The closure takes two arguments: The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     The second argument is an array of
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSItemProvider> items that
+    ///      items that
     ///     represents the data that you want to insert.
     ///
     /// - Returns: A view that calls `action` when elements are inserted into

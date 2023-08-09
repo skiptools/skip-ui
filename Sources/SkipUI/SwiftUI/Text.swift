@@ -43,7 +43,7 @@ import protocol Foundation.ReferenceConvertible
 ///
 /// To apply styling within specific portions of the text, you can create
 /// the text view from an
-/// <doc://com.apple.documentation/documentation/Foundation/AttributedString>,
+/// ,
 /// which in turn allows you to use Markdown to style runs of text. You can
 /// mix string attributes and SkipUI modifiers, with the string attributes
 /// taking priority.
@@ -236,10 +236,10 @@ extension Text {
     /// using `formatter`.
     /// - Parameters:
     ///   - subject: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/ReferenceConvertible>
+    ///   
     ///   instance compatible with `formatter`.
     ///   - formatter: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/Formatter>
+    ///   
     ///   capable of converting `subject` into a string representation.
     public init<Subject>(_ subject: Subject, formatter: Formatter) where Subject : ReferenceConvertible { fatalError() }
 
@@ -250,10 +250,10 @@ extension Text {
     /// using `formatter`.
     /// - Parameters:
     ///   - subject: An
-    ///   <doc://com.apple.documentation/documentation/ObjectiveC/NSObject>
+    ///   
     ///   instance compatible with `formatter`.
     ///   - formatter: A
-    ///   <doc://com.apple.documentation/documentation/Foundation/Formatter>
+    ///   
     ///   capable of converting `subject` into a string representation.
     public init<Subject>(_ subject: Subject, formatter: Formatter) where Subject : NSObject { fatalError() }
 }
@@ -266,13 +266,11 @@ extension Text {
     ///
     /// Use this initializer to create a text view backed by a nonstring
     /// value, using a
-    /// <doc://com.apple.documentation/documentation/Foundation/FormatStyle>
     /// to convert the type to a string representation. Any changes to the value
     /// update the string displayed by the text view.
     ///
     /// In the following example, three ``Text`` views present a date with
     /// different combinations of date and time fields, by using different
-    /// <doc://com.apple.documentation/documentation/Foundation/Date/FormatStyle>
     /// options.
     ///
     ///     @State private var myDate = Date()
@@ -450,10 +448,8 @@ extension Text {
     /// doesn't support line breaks, soft breaks, or any style of paragraph- or
     /// block-based formatting like lists, block quotes, code blocks, or tables.
     /// It also doesn't support the
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796122-imageURL>
     /// attribute. Parsing with SkipUI treats any whitespace in the Markdown
     /// string as described by the
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString/MarkdownParsingOptions/InterpretedSyntax/inlineOnlyPreservingWhitespace>
     /// parsing option.
     ///
     /// - Parameters:
@@ -616,7 +612,7 @@ extension Text {
     /// Creates a text view that displays a localized string resource.
     ///
     /// Use this initializer to display a localized string that is
-    /// represented by a <doc://com.apple.documentation/documentation/Foundation/LocalizedStringResource>
+    /// represented by a 
     ///
     ///     var object = LocalizedStringResource("pencil")
     ///     Text(object) // Localizes the resource if possible, or displays "pencil" if not.
@@ -1304,7 +1300,7 @@ extension Text {
     /// Creates a text view that displays styled attributed content.
     ///
     /// Use this initializer to style text according to attributes found in the specified
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString>.
+    /// .
     /// Attributes in the attributed string take precedence over styles added by
     /// view modifiers. For example, the attributed text in the following
     /// example appears in blue, despite the use of the ``View/foregroundColor(_:)``
@@ -1344,30 +1340,25 @@ extension Text {
     ///
     /// A SkipUI ``Text`` view renders most of the styles defined by the
     /// Foundation attribute
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796123-inlinePresentationIntent>, like the
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3746899-stronglyEmphasized>
+    /// , like the
     /// value, which SkipUI presents as bold text.
     ///
     /// > Important: ``Text`` uses only a subset of the attributes defined in
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes>.
+    /// .
     /// `Text` renders all
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent>
     /// attributes except for
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3787563-lineBreak> and
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3787564-softBreak>.
+    ///  and
+    /// .
     /// It also renders the
-    /// <doc://com.apple.documentation/Foundation/AttributeScopes/FoundationAttributes/3764633-link>
     /// attribute as a clickable link. `Text` ignores any other
     /// Foundation-defined attributes in an attributed string.
     ///
     /// SkipUI also defines additional attributes in the attribute scope
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/SkipUIAttributes>
     /// which you can access from an attributed string's
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/3788543-swiftUI>
     /// property. SkipUI attributes take precedence over equivalent attributes
     /// from other frameworks, such as
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/UIKitAttributes> and
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/AppKitAttributes>.
+    ///  and
+    /// .
     ///
     ///
     /// You can create an `AttributedString` with Markdown syntax, which allows
@@ -1381,13 +1372,11 @@ extension Text {
     ///     }
     ///
     /// The `**` syntax around "Thank You!" applies an
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3796123-inlinePresentationIntent>
     /// attribute with the value
-    /// <doc://com.apple.documentation/documentation/Foundation/InlinePresentationIntent/3746899-stronglyEmphasized>.
+    /// .
     /// SkipUI renders this as
     /// bold text, as described earlier. The link syntax around "website"
     /// creates a
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributeScopes/FoundationAttributes/3764633-link>
     /// attribute, which `Text` styles to indicate it's a link; by default,
     /// clicking or tapping the link opens the linked URL in the user's default
     /// browser. Alternatively, you can perform custom link handling by putting

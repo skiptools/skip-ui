@@ -12,10 +12,10 @@ import class Foundation.Bundle
 /// * Image files in your app's asset library or bundle. Supported types include
 /// PNG, JPEG, HEIC, and more.
 /// * Instances of platform-specific image types, like
-/// <doc://com.apple.documentation/documentation/UIKit/UIImage> and
-/// <doc://com.apple.documentation/documentation/AppKit/NSImage>.
+///  and
+/// .
 /// * A bitmap stored in a Core Graphics
-///  <doc://com.apple.documentation/documentation/coregraphics/cgimage>
+///  
 ///  instance.
 /// * System graphics from the SF Symbols set.
 ///
@@ -124,8 +124,7 @@ extension Image {
 
     /// Creates a system symbol image.
     ///
-    /// This initializer creates an image using a system-provided symbol. Use
-    /// [SF Symbols](https://developer.apple.com/design/resources/#sf-symbols)
+    /// This initializer creates an image using a system-provided symbol. Use symbols
     /// to find symbols and their corresponding names.
     ///
     /// To create a custom symbol image from your app's asset catalog, use
@@ -145,9 +144,8 @@ extension Image {
     ///
     /// This initializer creates an image using a system-provided symbol. The
     /// rendered symbol may alter its appearance to represent the value
-    /// provided in `variableValue`. Use
-    /// [SF Symbols](https://developer.apple.com/design/resources/#sf-symbols)
-    /// (version 4.0 or later) to find system symbols that support variable
+    /// provided in `variableValue`. Use symbols
+    /// to find system symbols that support variable
     /// values and their corresponding names.
     ///
     /// The following example shows the effect of creating the `"chart.bar.fill"`
@@ -185,10 +183,6 @@ extension Image {
     /// specified bundle. The rendered symbol may alter its appearance to
     /// represent the value provided in `variableValue`.
     ///
-    /// > Note: See WWDC22 session [10158: Adopt variable color in SF
-    /// Symbols](https://developer.apple.com/wwdc22/10158/) for details
-    /// on how to create symbols that support variable values.
-    ///
     /// - Parameters:
     ///   - name: The name of the image resource to lookup, as well as
     ///     the localization key with which to label the image.
@@ -209,10 +203,6 @@ extension Image {
     /// specified bundle. The rendered symbol may alter its appearance to
     /// represent the value provided in `variableValue`.
     ///
-    /// > Note: See WWDC22 session [10158: Adopt variable color in SF
-    /// Symbols](https://developer.apple.com/wwdc22/10158/) for details on
-    /// how to create symbols that support variable values.
-    ///
     /// - Parameters:
     ///   - name: The name of the image resource to lookup.
     ///   - variableValue: An optional value between `0.0` and `1.0` that
@@ -231,10 +221,6 @@ extension Image {
     /// This initializer creates an image using a using a symbol in the
     /// specified bundle. The rendered symbol may alter its appearance to
     /// represent the value provided in `variableValue`.
-    ///
-    /// > Note: See WWDC22 session [10158: Adopt variable color in SF
-    /// Symbols](https://developer.apple.com/wwdc22/10158/) for details on
-    /// how to create symbols that support variable values.
     ///
     /// SkipUI ignores this image for accessibility purposes.
     ///
@@ -427,7 +413,7 @@ extension Image {
     ///
     /// In SkipUI, you provide an orientation value when initializing an
     /// ``Image`` from an existing
-    /// <doc://com.apple.documentation/documentation/coregraphics/cgimage>.
+    /// .
     @frozen public enum Orientation : UInt8, CaseIterable, Hashable {
 
         /// A value that indicates the original pixel data matches the image's
@@ -970,9 +956,9 @@ import class Combine.PassthroughSubject
 /// initialize the renderer with a view, then render images on demand,
 /// either by calling the ``render(rasterizationScale:renderer:)`` method, or
 /// by using the renderer's properties to create a
-/// <doc://com.apple.documentation/documentation/CoreGraphics/CGImage>,
-/// <doc://com.apple.documentation/documentation/AppKit/NSImage>, or
-/// <doc://com.apple.documentation/documentation/UIKit/UIImage>.
+/// ,
+/// , or
+/// .
 ///
 /// By drawing to a ``Canvas`` and exporting with an `ImageRenderer`,
 /// you can generate images from any progammatically-rendered content, like
@@ -1022,7 +1008,7 @@ import class Combine.PassthroughSubject
 /// view.](ImageRenderer-1)
 ///
 /// Because `ImageRenderer` conforms to
-/// <doc://com.apple.documentation/documentation/Combine/ObservableObject>, you
+/// , you
 /// can use it to produce a stream of images as its properties change. Subscribe
 /// to the renderer's ``ImageRenderer/objectWillChange`` publisher, then use the
 /// renderer to rasterize a new image each time the subscriber receives an
@@ -1039,7 +1025,7 @@ import class Combine.PassthroughSubject
 ///
 /// The ``render(rasterizationScale:renderer:)`` method renders the specified
 /// view to any
-/// <doc://com.apple.documentation/documentation/CoreGraphics/CGContext>. That
+/// . That
 /// means you aren't limited to creating a rasterized `CGImage`. For
 /// example, you can generate PDF data by rendering to a PDF context. The
 /// resulting PDF maintains resolution-independence for supported members of the
@@ -1092,7 +1078,6 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     /// A publisher that informs subscribers of changes to the image.
     ///
     /// The renderer's
-    /// <doc://com.apple.documentation/documentation/Combine/ObservableObject/ObjectWillChangePublisher>
     /// publishes `Void` elements.
     /// Subscribers should interpret any event as indicating that the contents
     /// of the image may have changed.
@@ -1162,7 +1147,6 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     /// context.
     ///
     /// Use this method to rasterize the renderer's content to a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGContext>
     /// you provide. The `renderer` closure receives two parameters: the current
     /// size of the view, and a function that renders the view to your
     /// `CGContext`. Implement the closure to provide a suitable `CGContext`,
@@ -1177,7 +1161,7 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     ///     renders the view. This closure receives two parameters: the size of
     ///     the view and a function that you invoke in the closure to render the
     ///     view at the reported size. This function takes a
-    ///     <doc://com.apple.documentation/documentation/CoreGraphics/CGContext>
+    ///     
     ///     parameter, and assumes a bottom-left coordinate space origin.
     @MainActor final public func render(rasterizationScale: CGFloat = 1, renderer: (CGSize, (CGContext) -> Void) -> Void) { fatalError() }
 

@@ -60,7 +60,7 @@
 ///
 /// ``ForEach`` automatically assigns a tag to the selection views using
 /// each option's `id`. This is possible because `Flavor` conforms to the
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable>
+/// 
 /// protocol.
 ///
 /// The example above relies on the fact that `Flavor` defines the type of its
@@ -116,14 +116,14 @@
 /// Other examples of when the views in a picker's ``ForEach`` need an explicit
 /// tag modifier include when you:
 /// * Select over the cases of an enumeration that conforms to the
-///   <doc://com.apple.documentation/documentation/Swift/Identifiable> protocol
+///    protocol
 ///   by using anything besides `Self` as the `id` parameter type. For example,
 ///   a string enumeration might use the case's `rawValue` string as the `id`.
 ///   That identifier type doesn't match the selection type, which is the type
 ///   of the enumeration itself.
 /// * Use an optional value for the `selection` input parameter. For that to
 ///   work, you need to explicitly cast the tag modifier's input as
-///   <doc://com.apple.documentation/documentation/Swift/Optional> to match.
+///    to match.
 ///   For an example of this, see ``View/tag(_:)``.
 ///
 /// ### Styling pickers

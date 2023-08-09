@@ -714,9 +714,7 @@ extension EnvironmentValues {
     /// lowers their wrist, but the display remains on. Starting in watchOS 8, the system keeps your
     /// view visible on wrist down by default. If you want the system to blur the screen
     /// instead, as it did in earlier versions of watchOS, set the value for the
-    /// <doc://com.apple.documentation/documentation/BundleResources/Information_Property_List/WKSupportsAlwaysOnDisplay>
     /// key in your app's
-    /// <doc://com.apple.documentation/documentation/BundleResources/Information_Property_List>
     /// file to `false`.
     public var isLuminanceReduced: Bool { get { fatalError() } }
 }
@@ -763,7 +761,7 @@ extension EnvironmentValues {
     ///    you specify in the scene's initializer.
     ///  * Both an identifier and a value. This enables you to define
     ///    multiple window groups that take input values of the same type like a
-    ///    <doc://com.apple.documentation/documentation/Foundation/UUID>.
+    ///    .
     ///
     /// Use the first option to target either a ``WindowGroup`` or a
     /// ``Window`` scene in your app that has a matching identifier. For a
@@ -818,7 +816,7 @@ extension EnvironmentValues {
     ///   SkipUI app lifecycle.
     /// * In iPadOS, this property returns `true` for any app that uses the
     ///   SkipUI app lifecycle and has the Information Property List key
-    /// <doc://com.apple.documentation/documentation/bundleresources/information_property_list/uiapplicationscenemanifest/uiapplicationsupportsmultiplescenes> set to `true`.
+    ///  set to `true`.
     /// * For all other platforms and configurations, the value returns `false`.
     ///
     /// If the value is false and you try to open a window, SkipUI
@@ -1362,7 +1360,7 @@ extension EnvironmentValues {
     /// calling the handler, and hide it when the handler completes.
     ///
     /// If your code isn't already in an asynchronous context, create a
-    /// <doc://com.apple.documentation/documentation/Swift/Task> for the
+    ///  for the
     /// method to run in. If you do this, consider adding a way for the
     /// user to cancel the task. For more information, see
     /// [Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html)
@@ -1827,13 +1825,12 @@ extension EnvironmentValues {
     /// When adjusting your app's user interface to match the color scheme,
     /// consider also checking the ``EnvironmentValues/colorSchemeContrast``
     /// property, which reflects a system-wide contrast setting that the user
-    /// controls. For information about using color and contrast in your app,
-    /// see [Color and Contrast](https://developer.apple.com/design/human-interface-guidelines/accessibility/overview/color-and-contrast/).
+    /// controls.
     ///
     /// > Note: If you only need to provide different colors or
     /// images for different color scheme and contrast settings, do that in
     /// your app's Asset Catalog. See
-    /// <doc://com.apple.documentation/documentation/Xcode/Asset-Management>.
+    /// .
     public var colorScheme: ColorScheme { get { fatalError() } }
 
     /// The contrast associated with the color scheme of this environment.
@@ -1852,13 +1849,12 @@ extension EnvironmentValues {
     /// When adjusting your app's user interface to match the contrast,
     /// consider also checking the ``EnvironmentValues/colorScheme`` property
     /// to find out if SkipUI is displaying the view with a light or dark
-    /// appearance. For information about using color and contrast in your app,
-    /// see [Color and Contrast](https://developer.apple.com/design/human-interface-guidelines/accessibility/overview/color-and-contrast/).
-    ///
+    /// appearance.
+    /// 
     /// > Note: If you only need to provide different colors or
     /// images for different color scheme and contrast settings, do that in
     /// your app's Asset Catalog. See
-    /// <doc://com.apple.documentation/documentation/Xcode/Asset-Management>.
+    /// .
     public var colorSchemeContrast: ColorSchemeContrast { get { fatalError() } }
 }
 

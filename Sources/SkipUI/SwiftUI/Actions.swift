@@ -248,7 +248,7 @@ public struct OpenURLAction {
 ///    you specify in the scene's initializer.
 ///  * Both an identifier and a value. This enables you to define
 ///    multiple window groups that take input values of the same type, like a
-///    <doc://com.apple.documentation/documentation/Foundation/UUID>.
+///    .
 ///
 /// Use the first option to target either a ``WindowGroup`` or a
 /// ``Window`` scene in your app that has a matching identifier. For a
@@ -372,7 +372,7 @@ public struct OpenWindowAction {
 /// calling the handler, and hide it when the handler completes.
 ///
 /// If your code isn't already in an asynchronous context, create a
-/// <doc://com.apple.documentation/documentation/Swift/Task> for the
+///  for the
 /// method to run in. If you do this, consider adding a way for the
 /// user to cancel the task. For more information, see
 /// [Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html)

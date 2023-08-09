@@ -2410,7 +2410,7 @@ public struct BackgroundProminence : Hashable, Sendable {
 /// to your app or extension. For example, you can use ``urlSession`` to define
 /// an asynchronous closure that the system calls when it launches your app or
 /// extension to handle a response from a background
-/// <doc://com.apple.documentation/documentation/Foundation/URLSession>.
+/// .
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct BackgroundTask<Request, Response> : Sendable {
 }
@@ -3843,9 +3843,7 @@ extension ColorScheme : Hashable {
 /// The user sets the contrast by selecting the Increase Contrast option in
 /// Accessibility > Display in System Preferences on macOS, or
 /// Accessibility > Display & Text Size in the Settings app on iOS.
-/// Your app can't override the user's choice. For
-/// information about using color and contrast in your app, see
-/// [Color and Contrast](https://developer.apple.com/design/human-interface-guidelines/accessibility/overview/color-and-contrast).
+/// Your app can't override the user's choice.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public enum ColorSchemeContrast : CaseIterable, Sendable {
 
@@ -5599,14 +5597,14 @@ extension CustomizableToolbarContent {
 ///
 /// Use a `DatePicker` when you want to provide a view that allows the user to
 /// select a calendar date, and optionally a time. The view binds to a
-/// <doc://com.apple.documentation/documentation/Foundation/Date> instance.
+///  instance.
 ///
 /// The following example creates a basic `DatePicker`, which appears on iOS as
 /// text representing the date. This example limits the display to only the
 /// calendar date, not the time. When the user taps or clicks the text, a
 /// calendar view animates in, from which the user can select a date. When the
 /// user dismisses the calendar view, the view updates the bound
-/// <doc://com.apple.documentation/documentation/Foundation/Date>.
+/// .
 ///
 ///     @State private var date = Date()
 ///
@@ -7206,7 +7204,7 @@ extension DynamicTableRowContent {
     ///     The closure takes two arguments. The first argument is the
     ///     offset relative to the dynamic view's underlying collection of data.
     ///     The second argument is an array of
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSItemProvider>
+    ///     
     ///     items that represents the data that you want to insert.
     ///
     /// - Returns: A view that calls `action` when inserting elements into
@@ -7215,11 +7213,6 @@ extension DynamicTableRowContent {
 }
 
 /// A Dynamic Type size, which specifies how large scalable content should be.
-///
-/// For more information about Dynamic Type sizes in iOS, see iOS Human Interface Guidelines >
-/// [Dynamic Type Sizes](https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/typography/#dynamic-type-sizes).
-/// For more information about Dynamic Type sizes in watchOS, see watchOS Human Interface Guidelines >
-/// [Dynamic Type Sizes](https://developer.apple.com/design/human-interface-guidelines/watchos/visual/typography/#dynamic-type-sizes).
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public enum DynamicTypeSize : Hashable, Comparable, CaseIterable, Sendable {
 
@@ -8370,7 +8363,6 @@ public struct EveryMinuteTimelineSchedule : TimelineSchedule, Sendable {
     ///
     /// The ``EveryMinuteTimelineSchedule/entries(from:mode:)`` method returns
     /// a value of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
     /// of dates, one per minute, in ascending order. A ``TimelineView`` that
     /// you create updates its content at the moments in time corresponding to
     /// the dates included in the sequence.
@@ -9373,9 +9365,7 @@ extension Font {
     /// the view. To mix fixed-width text with other styles in the same
     /// `Text` view, use the ``Text/init(_:)-1a4oh`` initializer to use an
     /// appropropriately-styled
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString>
     /// for the text view's content. You can use the
-    /// <doc://com.apple.documentation/documentation/Foundation/AttributedString/3796160-init>
     /// initializer to provide a Markdown-formatted string containing the
     /// backtick-syntax (\`…\`) to apply code voice to specific ranges
     /// of the attributed string.
@@ -9712,11 +9702,11 @@ extension Font {
     /// Creates a custom font from a platform font instance.
     ///
     /// Initializing ``Font`` with platform font instance
-    /// (<doc://com.apple.documentation/documentation/CoreText/CTFont-q6r>) can bridge SkipUI
-    /// ``Font`` with <doc://com.apple.documentation/documentation/AppKit/NSFont> or
-    /// <doc://com.apple.documentation/documentation/UIKit/UIFont>, both of which are
+    /// () can bridge SkipUI
+    /// ``Font`` with  or
+    /// , both of which are
     /// toll-free bridged to
-    /// <doc://com.apple.documentation/documentation/CoreText/CTFont-q6r>. For example:
+    /// . For example:
     ///
     ///     // Use native Core Text API to create desired ctFont.
     ///     let ctFont = CTFontCreateUIFontForLanguage(.system, 12, nil)!
@@ -9750,13 +9740,13 @@ extension Font.Leading : Hashable {
 /// identified data.
 ///
 /// Use `ForEach` to provide views based on a
-/// <doc://com.apple.documentation/documentation/Swift/RandomAccessCollection>
+/// 
 /// of some data type. Either the collection's elements must conform to
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable> or you
+///  or you
 /// need to provide an `id` parameter to the `ForEach` initializer.
 ///
 /// The following example creates a `NamedFont` type that conforms to
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable>, and an
+/// , and an
 /// array of this type called `namedFonts`. A `ForEach` instance iterates
 /// over the array, producing new ``Text`` instances that display examples
 /// of each SkipUI ``Font`` style provided in the array.
@@ -9829,7 +9819,7 @@ extension ForEach : TableRowContent where Content : TableRowContent {
     /// across updates based on the identity of the underlying data.
     ///
     /// The following example creates a `Person` type that conforms to
-    /// <doc://com.apple.documentation/documentation/Swift/Identifiable>, and an
+    /// , and an
     /// array of this type called `people`. A `ForEach` instance iterates over
     /// the array, producing new ``TableRow`` instances implicitly.
     ///
@@ -11864,8 +11854,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
         /// defined by the Scalable Vector Graphics (SVG) specification.
         /// You can obtain an effect like that filter using a ``grayscale(_:)``
         /// color multiply. However, this filter does match the
-        /// <doc://com.apple.documentation/documentation/CoreImage/CIColorControls>
-        /// filter's brightness adjustment.
+            /// filter's brightness adjustment.
         ///
         /// - Parameters:
         ///   - amount: An amount to add to the pixel's color components.
@@ -12831,7 +12820,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     /// Core Graphics primitives.
     ///
     /// - Parameter content: A closure that receives a
-    ///   <doc://com.apple.documentation/documentation/CoreGraphics/CGContext>
+    ///   
     ///   that you use to perform drawing operations, just like you draw into a
     ///   ``GraphicsContext`` instance. Any filters, blend mode settings, clip
     ///   masks, and other state set before calling `withCGContext(content:)`
@@ -14372,7 +14361,7 @@ public struct GroupedListStyle : ListStyle {
 /// This automatic layout adjustment makes it easier to localize your app,
 /// but it's still important to test your app for the different locales that
 /// you ship into. For more information about the localization process, see
-/// <doc://com.apple.documentation/documentation/Xcode/localization>.
+/// .
 ///
 /// ### Custom alignment guides
 ///
@@ -15932,8 +15921,7 @@ public protocol Keyframes<Value> {
 ///
 /// You create a label, in its simplest form, by providing a title and the name
 /// of an image, such as an icon from the
-/// [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/)
-/// collection:
+/// symbols collection:
 ///
 ///     Label("Lightning", systemImage: "bolt.fill")
 ///
@@ -17199,7 +17187,7 @@ extension Link where Label == Text {
 /// More commonly, you create lists dynamically from an underlying collection
 /// of data. The following example shows how to create a simple list from an
 /// array of an `Ocean` type which conforms to
-/// <doc://com.apple.documentation/documentation/Swift/Identifiable>:
+/// :
 ///
 ///     struct Ocean: Identifiable {
 ///         let name: String
@@ -17228,7 +17216,7 @@ extension Link where Label == Text {
 /// To make members of a list selectable, provide a binding to a selection
 /// variable. Binding to a single instance of the list data's `Identifiable.ID`
 /// type creates a single-selection list. Binding to a
-/// <doc://com.apple.documentation/documentation/Swift/Set> creates a list that
+///  creates a list that
 /// supports multiple selections. The following example shows how to add
 /// multiselect to the previous example:
 ///
@@ -18274,11 +18262,11 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
 /// SkipUI creates a `LocalizedStringKey` for you and uses that to look up a
 /// localization of the `Hello` string. This works because `LocalizedStringKey`
 /// conforms to
-/// <doc://com.apple.documentation/documentation/Swift/ExpressibleByStringLiteral>.
+/// .
 ///
 /// Types whose initializers take a `LocalizedStringKey` usually have
 /// a corresponding initializer that accepts a parameter that conforms to
-/// <doc://com.apple.documentation/documentation/Swift/StringProtocol>. Passing
+/// . Passing
 /// a `String` variable to these initializers avoids localization, which is
 /// usually appropriate when the variable contains a user-provided value.
 ///
@@ -18341,7 +18329,6 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
     ///
     /// The following example uses a string interpolation with two arguments:
     /// an unlabeled
-    /// <doc://com.apple.documentation/documentation/Foundation/Date>
     /// and a ``Text/DateStyle`` labeled `style`. The compiler maps these to the
     /// method
     /// ``LocalizedStringKey/StringInterpolation/appendInterpolation(_:style:)``
@@ -18418,13 +18405,10 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         /// interpreting string interpolations.
         ///
         /// The following example shows how to use a
-        /// <doc://com.apple.documentation/documentation/Foundation/Measurement>
-        /// value and a
-        /// <doc://com.apple.documentation/documentation/Foundation/MeasurementFormatter>
-        /// to create a ``LocalizedStringKey`` that uses the formatter
+            /// value and a
+            /// to create a ``LocalizedStringKey`` that uses the formatter
         /// style
-        /// <doc://com.apple.documentation/documentation/foundation/Formatter/UnitStyle/long>
-        /// when generating the measurement's string representation. Rather than
+            /// when generating the measurement's string representation. Rather than
         /// calling `appendInterpolation(_:formatter)` directly, the code
         /// gets the formatting behavior implicitly by using the `\()`
         /// string interpolation syntax.
@@ -18436,7 +18420,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         ///     let text1 = Text(key) // Text contains "Resistance: 640 ohms"
         ///
         /// - Parameters:
-        ///   - subject: An <doc://com.apple.documentation/documentation/objectivec/NSObject>
+        ///   - subject: An 
         ///     to append.
         ///   - formatter: A formatter to convert `subject` to a string
         ///     representation.
@@ -18450,9 +18434,8 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         ///
         /// The following example shows how to use a string interpolation to
         /// format a
-        /// <doc://com.apple.documentation/documentation/Foundation/Date>
-        /// with a
-        /// <doc://com.apple.documentation/documentation/Foundation/Date/FormatStyle> and
+            /// with a
+        ///  and
         /// append it to static text. The resulting interpolation implicitly
         /// creates a ``LocalizedStringKey``, which a ``Text`` uses to provide
         /// its content.
@@ -18474,9 +18457,9 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         ///
         /// - Parameters:
         ///   - value: A primitive type to append, such as
-        ///     <doc://com.apple.documentation/documentation/swift/Int>,
-        ///     <doc://com.apple.documentation/documentation/swift/UInt32>, or
-        ///     <doc://com.apple.documentation/documentation/swift/Double>.
+        ///     ,
+        ///     , or
+        ///     .
         public mutating func appendInterpolation<T>(_ value: T) where T : _FormatSpecifiable { fatalError() }
 
         /// Appends a type, convertible to a string with a format specifier,
@@ -18488,12 +18471,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         /// - Parameters:
         ///   - value: The value to append.
         ///   - specifier: A format specifier to convert `subject` to a string
-        ///     representation, like `%f` for a
-        ///     <doc://com.apple.documentation/documentation/swift/Double>, or
-        ///     `%x` to create a hexidecimal representation of a
-        ///     <doc://com.apple.documentation/documentation/swift/UInt32>. For a
-        ///     list of available specifier strings, see
-        ///     [String Format Specifers](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFStrings/formatSpecifiers.html#//apple_ref/doc/uid/TP40004265).
+        ///     representation, like `%f`
         public mutating func appendInterpolation<T>(_ value: T, specifier: String) where T : _FormatSpecifiable { fatalError() }
 
         /// Appends the string displayed by a text view to a string
@@ -18514,8 +18492,7 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
         ///
         /// The following example shows how to use a string interpolation to
         /// format an
-        /// <doc://com.apple.documentation/documentation/Foundation/AttributedString>
-        /// and append it to static text. The resulting interpolation implicitly
+            /// and append it to static text. The resulting interpolation implicitly
         /// creates a ``LocalizedStringKey``, which a ``Text`` view uses to provide
         /// its content.
         ///
@@ -20425,7 +20402,7 @@ extension Namespace.ID : Sendable {
 ///
 /// Add the `@ObservedObject` attribute to a parameter of a SkipUI ``View``
 /// when the input is an
-/// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
+/// 
 /// and you want the view to update when the object's published properties
 /// change. You typically do this to pass a ``StateObject`` into a subview.
 ///
@@ -20829,7 +20806,6 @@ public struct PeriodicTimelineSchedule : TimelineSchedule, Sendable {
     ///
     /// The ``PeriodicTimelineSchedule/entries(from:mode:)`` method returns
     /// a value of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
     /// of periodic dates in ascending order. A ``TimelineView`` that you
     /// create updates its content at the moments in time corresponding to the
     /// dates included in the sequence.
@@ -21420,7 +21396,7 @@ public struct PresentedWindowContent<Data, Content> : View where Data : Decodabl
 /// creating the spinning effect.](ProgressView-2-macOS)
 ///
 /// You can also create a progress view that covers a closed range of
-/// <doc://com.apple.documentation/documentation/Foundation/Date> values. As long
+///  values. As long
 /// as the current date is within the range, the progress view automatically
 /// updates, filling or depleting the progress view as it nears the end of the
 /// range. The following example shows a five-minute timer whose start time is
@@ -22181,7 +22157,6 @@ public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle
     /// A size proposal that contains infinity in both dimensions.
     ///
     /// Both dimensions contain
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGFloat/1454161-infinity>
     /// in this size proposal.
     /// Subviews of a custom layout return their maximum size when you propose
     /// this value using the ``LayoutSubview/dimensions(in:)`` method.
@@ -25081,8 +25056,7 @@ public struct SymbolRenderingMode : Sendable {
 
 /// A variant of a symbol.
 ///
-/// Many of the
-/// [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/)
+/// Many of the symbols
 /// that you can add to your app using an ``Image`` or a ``Label`` instance
 /// have common variants, like a filled version or a version that's
 /// contained within a circle. The symbol's name indicates the variant:
@@ -25869,10 +25843,10 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///
 /// To handle app delegate callbacks in an app that uses the
 /// SkipUI life cycle, define a type that conforms to the
-/// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate>
+/// 
 /// protocol, and implement the delegate methods that you need. For example,
 /// you can implement the
-/// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate/1622958-application>
+/// 
 /// method to handle remote notification registration:
 ///
 ///     class MyAppDelegate: NSObject, UIApplicationDelegate, ObservableObject {
@@ -25900,7 +25874,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 /// you declare it more than once, SkipUI generates a runtime error.
 ///
 /// If your app delegate conforms to the
-/// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
+/// 
 /// protocol, as in the example above, then SkipUI puts the delegate it
 /// creates into the ``Environment``. You can access the delegate from
 /// any scene or view in your app using the ``EnvironmentObject`` property
@@ -25915,12 +25889,12 @@ public struct TypesettingLanguage : Sendable, Equatable {
 /// > Important: Manage an app's life cycle events without using an app
 /// delegate whenever possible. For example, prefer to handle changes
 /// in ``ScenePhase`` instead of relying on delegate callbacks, like
-/// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate/1622921-application>.
+/// .
 ///
 /// ### Scene delegates
 ///
 /// Some iOS apps define a
-/// <doc://com.apple.documentation/documentation/UIKit/UIWindowSceneDelegate>
+/// 
 /// to handle scene-based events, like app shortcuts:
 ///
 ///     class MySceneDelegate: NSObject, UIWindowSceneDelegate, ObservableObject {
@@ -25936,7 +25910,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///
 /// You can provide this kind of delegate to a SkipUI app by returning the
 /// scene delegate's type from the
-/// <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate/3197905-application>
+/// 
 /// method inside your app delegate:
 ///
 ///     extension MyAppDelegate {
@@ -25957,7 +25931,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
 ///     }
 ///
 /// When you configure the
-/// <doc://com.apple.documentation/documentation/UIKit/UISceneConfiguration>
+/// 
 /// instance, you only need to indicate the delegate class, and not a scene
 /// class or storyboard. SkipUI creates and manages the delegate instance,
 /// and sends it any relevant delegate callbacks.
@@ -25992,13 +25966,12 @@ public struct TypesettingLanguage : Sendable, Equatable {
     ///
     /// If you want SkipUI to put the instantiated delegate in the
     /// ``Environment``, make sure the delegate class also conforms to the
-    /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
     /// protocol. That causes SkipUI to invoke the ``init(_:)-8vsx1``
     /// initializer rather than this one.
     ///
     /// - Parameter delegateType: The type of application delegate that you
     ///   define in your app, which conforms to the
-    ///   <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate>
+    ///   
     ///   protocol.
     @MainActor public init(_ delegateType: DelegateType.Type = DelegateType.self) { fatalError() }
 }
@@ -26026,7 +25999,6 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
     /// as needed to handle application delegate callbacks.
     ///
     /// SkipUI invokes this method when your app delegate conforms to the
-    /// <doc://com.apple.documentation/documentation/Combine/ObservableObject>
     /// protocol. In this case, SkipUI automatically places the delegate in the
     /// ``Environment``. You can access such a delegate from any scene or
     /// view in your app using the ``EnvironmentObject`` property wrapper:
@@ -26039,9 +26011,9 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
     ///
     /// - Parameter delegateType: The type of application delegate that you
     ///   define in your app, which conforms to the
-    ///   <doc://com.apple.documentation/documentation/UIKit/UIApplicationDelegate>
+    ///   
     ///   and
-    ///   <doc://com.apple.documentation/documentation/Combine/ObservableObject>
+    ///   
     ///   protocols.
     @MainActor public init(_ delegateType: DelegateType.Type = DelegateType.self) { fatalError() }
 
@@ -26084,10 +26056,10 @@ extension UIApplicationDelegateAdaptor : Sendable {
 /// A content configuration suitable for hosting a hierarchy of SkipUI views.
 ///
 /// Use a value of this type, which conforms to the
-/// <doc://com.apple.documentation/documentation/UIKit/UIContentConfiguration>
+/// 
 /// protocol, with a
-/// <doc://com.apple.documentation/documentation/UIKit/UICollectionViewCell> or
-/// <doc://com.apple.documentation/documentation/UIKit/UITableViewCell> to host
+///  or
+///  to host
 /// a hierarchy of SkipUI views in a collection or table view, respectively.
 /// For example, the following shows a stack with an image and text inside the
 /// cell:
@@ -26539,7 +26511,7 @@ public protocol UITraitBridgedEnvironmentKey : EnvironmentKey {
 /// A view that represents a UIKit view controller.
 ///
 /// Use a ``UIViewControllerRepresentable`` instance to create and manage a
-/// <doc://com.apple.documentation/documentation/UIKit/UIViewController> object in your
+///  object in your
 /// SkipUI interface. Adopt this protocol in one of your app's custom
 /// instances, and use its methods to create, update, and tear down your view
 /// controller. The creation and update processes parallel the behavior of
@@ -26763,7 +26735,7 @@ extension UIViewControllerRepresentableContext : Sendable {
 /// SkipUI view hierarchy.
 ///
 /// Use a ``UIViewRepresentable`` instance to create and manage a
-/// <doc://com.apple.documentation/documentation/UIKit/UIView> object in your SkipUI
+///  object in your SkipUI
 /// interface. Adopt this protocol in one of your app's custom instances, and
 /// use its methods to create, update, and tear down your view. The creation and
 /// update processes parallel the behavior of SkipUI views, and you use them to
@@ -27216,7 +27188,7 @@ extension UnitCurve {
 ///
 /// It’s important to test your app for the different locales that you
 /// distribute your app in. For more information about the localization process,
-/// see <doc://com.apple.documentation/documentation/Xcode/localization>.
+/// see .
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct UnitPoint : Hashable {
 
@@ -28973,8 +28945,7 @@ extension View {
 
     /// Makes symbols within the view show a particular variant.
     ///
-    /// When you want all the
-    /// [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/)
+    /// When you want all the symbols
     /// in a part of your app's user interface to use the same variant, use the
     /// `symbolVariant(_:)` modifier with a ``SymbolVariants`` value, like
     /// ``SymbolVariants/fill-swift.type.property``:
@@ -29778,7 +29749,7 @@ extension View {
     /// this view is generated and used as the preview image.
     ///
     /// - Parameter data: A closure that returns a single
-    /// <doc://com.apple.documentation/documentation/Foundation/NSItemProvider> that
+    ///  that
     /// represents the draggable data from this view.
     ///
     /// - Returns: A view that activates this view as the source of a drag and
@@ -29801,7 +29772,6 @@ extension View {
     /// a rendering of `preview` is generated and used as the preview image.
     ///
     /// - Parameter data: A closure that returns a single
-    /// <doc://com.apple.documentation/documentation/Foundation/NSItemProvider>
     /// that represents the draggable data from this view.
     /// - Parameter preview: A ``View`` to use as the source for the dragging
     ///   preview, once the drag operation has begun. The preview is centered over
@@ -32479,7 +32449,7 @@ extension View {
     ///
     /// Use `aspectRatio(_:contentMode:)` to constrain a view's dimensions to an
     /// aspect ratio specified by a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGFloat> using the specified
+    ///  using the specified
     /// content mode.
     ///
     /// If this view is resizable, the resulting view will have `aspectRatio` as
@@ -32511,7 +32481,7 @@ extension View {
     ///
     /// Use `aspectRatio(_:contentMode:)` to constrain a view's dimensions to
     /// an aspect ratio specified by a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGSize>.
+    /// .
     ///
     /// If this view is resizable, the resulting view uses `aspectRatio` as its
     /// own aspect ratio. In this example, the purple ellipse has a 3:4
@@ -33372,7 +33342,6 @@ extension View {
     /// Use this modifier to add a specified amount of padding to one or more
     /// edges of the view. Indicate the edges to pad by naming either a single
     /// value from ``Edge/Set``, or by specifying an
-    /// <doc://com.apple.documentation/documentation/Swift/OptionSet>
     /// that contains edge values:
     ///
     ///     VStack {
@@ -33487,7 +33456,7 @@ extension View {
     ///
     /// Use this modifier to add a scene-appropriate amount of padding to a
     /// view. Specify either a single edge value from ``Edge/Set``, or an
-    /// <doc://com.apple.documentation/documentation/Swift/OptionSet> that
+    ///  that
     /// describes the edges to pad.
     ///
     /// In macOS, use scene padding to produce the recommended spacing around
@@ -33553,7 +33522,7 @@ extension View {
     ///
     /// Use this modifier to add a scene-appropriate amount of padding to a
     /// view. Specify either a single edge value from ``Edge/Set``, or an
-    /// <doc://com.apple.documentation/documentation/Swift/OptionSet> that
+    ///  that
     /// describes the edges to pad.
     ///
     /// In macOS, use scene padding to produce the recommended spacing around
@@ -33942,7 +33911,6 @@ extension View {
     ///     }
     ///
     /// The above example assumes that the `Item` type conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Identifiable>
     /// protocol, and relies on the associated `ID` type for both selection
     /// and context menu presentation.
     ///
@@ -34952,7 +34920,7 @@ extension View {
     ///
     /// Use the `position(_:)` modifier to place the center of a view at a
     /// specific coordinate in the parent view using a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGPoint> to specify the `x`
+    ///  to specify the `x`
     /// and `y` offset.
     ///
     ///     Text("Position by passing a CGPoint()")
@@ -35745,7 +35713,7 @@ extension View {
     ///
     /// Use `transformEffect(_:)` to rotate, scale, translate, or skew the
     /// output of the view according to the provided
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform>.
+    /// .
     ///
     /// In the example below, the text is rotated at -30˚ on the `y` axis.
     ///
@@ -35759,7 +35727,7 @@ extension View {
     /// the y axis.](SkipUI-View-transformEffect.png)
     ///
     /// - Parameter transform: A
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGAffineTransform> to
+    ///  to
     /// apply to the view.
     @inlinable public func transformEffect(_ transform: CGAffineTransform) -> some View { return never() }
 
@@ -36067,7 +36035,7 @@ extension View {
     /// pixels.](SkipUI-View-scaleEffect.png)
     ///
     /// - Parameters:
-    ///   - scale: A <doc://com.apple.documentation/documentation/CoreGraphics/CGSize> that
+    ///   - scale: A  that
     ///     represents the horizontal and vertical amount to scale the view.
     ///   - anchor: The point with a default of ``UnitPoint/center`` that
     ///     defines the location within the view from which to apply the
@@ -38108,7 +38076,7 @@ extension View {
     /// Use this modifier to differentiate among certain selectable views,
     /// like the possible values of a ``Picker`` or the tabs of a ``TabView``.
     /// Tag values can be of any type that conforms to the
-    /// <doc://com.apple.documentation/documentation/Swift/Hashable> protocol.
+    ///  protocol.
     ///
     /// In the example below, the ``ForEach`` loop in the ``Picker`` view
     /// builder iterates over the `Flavor` enumeration. It extracts the string
@@ -38136,7 +38104,7 @@ extension View {
     ///     }
     ///
     /// If you change `selectedFlavor` to be non-optional, you need to
-    /// remove the <doc://com.apple.documentation/documentation/Swift/Optional>
+    /// remove the 
     /// cast from the tag input to match.
     ///
     /// A ``ForEach`` automatically applies a default tag to each enumerated
@@ -38145,7 +38113,7 @@ extension View {
     /// have exactly the same type, you can omit the explicit tag modifier.
     /// To see examples that don't require an explicit tag, see ``Picker``.
     ///
-    /// - Parameter tag: A <doc://com.apple.documentation/documentation/Swift/Hashable>
+    /// - Parameter tag: A 
     ///   value to use as the view's tag.
     ///
     /// - Returns: A view with the specified tag set.
@@ -39389,7 +39357,7 @@ extension View {
     ///
     /// - Parameter value: The value that causes scroll indicators to flash.
     ///   The value must conform to the
-    ///   <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///   
     ///   protocol.
     ///
     /// - Returns: A view that flashes any visible scroll indicators when a
@@ -40260,14 +40228,14 @@ extension View {
     ///
     /// There are several different kinds of specialized keyboard types
     /// available though the
-    /// <doc://com.apple.documentation/documentation/UIKit/UIKeyboardType> enumeration. To
+    ///  enumeration. To
     /// specify the default system keyboard type, use `.default`.
     ///
     /// ![A screenshot showing the use of a specialized keyboard type with a
     /// text field.](SkipUI-View-keyboardType.png)
     ///
     /// - Parameter type: One of the keyboard types defined in the
-    /// <doc://com.apple.documentation/documentation/UIKit/UIKeyboardType> enumeration.
+    ///  enumeration.
     @available(iOS 13.0, tvOS 13.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
@@ -40288,12 +40256,11 @@ extension View {
     ///     TextField("Last, First", text: $fullName)
     ///         .autocapitalization(UITextAutocapitalizationType.words)
     ///
-    /// The <doc://com.apple.documentation/documentation/UIKit/UITextAutocapitalizationType>
+    /// The 
     /// enumeration defines the available capitalization modes. The default is
-    /// <doc://com.apple.documentation/documentation/UIKit/UITextAutocapitalizationType/sentences>.
+    /// .
     ///
     /// - Parameter style: One of the autocapitalization modes defined in the
-    /// <doc://com.apple.documentation/documentation/UIKit/UITextAutocapitalizationType>
     /// enumeration.
     @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
     @available(macOS, unavailable)
@@ -40789,7 +40756,7 @@ extension View {
     ///         .textContentType(.emailAddress)
     ///
     /// - Parameter textContentType: One of the content types available in the
-    ///   <doc://com.apple.documentation/documentation/UIKit/UITextContentType>
+    ///   
     ///   structure that identify the semantic meaning expected for a text-entry
     ///   area. These include support for email addresses, location names, URLs,
     ///   and telephone numbers, to name just a few.
@@ -43087,11 +43054,6 @@ extension View {
     /// items together in a ``ToolbarItemGroup`` provides a one-to-one mapping
     /// between controls and toolbar items which results in the correct layout
     /// and spacing on each platform.
-    /// For design guidance on toolbars for macOS apps, see macOS Human
-    /// Interface Guidelines >
-    /// [Toolbars](https://developer.apple.com/design/human-interface-guidelines/macos/windows-and-views/toolbars/).
-    /// For design guidance on toolbars for iOS apps, see iOS Human Interface Guidelines >
-    /// [Toolbars](https://developer.apple.com/design/human-interface-guidelines/ios/bars/toolbars/).
     ///
     /// - Parameter content: The items representing the content of the toolbar.
     public func toolbar<Content>(@ToolbarContentBuilder content: () -> Content) -> some View where Content : ToolbarContent { return never() }
@@ -43737,7 +43699,7 @@ extension View {
     /// - Parameters:
     ///   - value: The value to check when determining whether to run the
     ///     closure. The value must conform to the
-    ///     <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///     
     ///     protocol.
     ///   - action: A closure to run when the value changes. The closure
     ///     takes a `newValue` parameter that indicates the updated
@@ -44329,7 +44291,7 @@ extension View {
     ///
     /// Use the `await` keyword inside the task to
     /// wait for an asynchronous call to complete, or to wait on the values of
-    /// an <doc://com.apple.documentation/documentation/Swift/AsyncSequence>
+    /// an 
     /// instance. For example, you can modify a ``Text`` view to start a task
     /// that loads content from a remote resource:
     ///
@@ -44352,9 +44314,8 @@ extension View {
     ///     }
     ///
     /// This example uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/URL/3767315-lines>
     /// method to get the content stored at the specified
-    /// <doc://com.apple.documentation/documentation/Foundation/URL> as an
+    ///  as an
     /// asynchronous sequence of strings. When each new line arrives, the body
     /// of the `for`-`await`-`in` loop stores the line in an array of strings
     /// and updates the content of the text view to report the latest line
@@ -44363,7 +44324,7 @@ extension View {
     /// - Parameters:
     ///   - priority: The task priority to use when creating the asynchronous
     ///     task. The default priority is
-    ///     <doc://com.apple.documentation/documentation/Swift/TaskPriority/3851283-userInitiated>.
+    ///     .
     ///   - action: A closure that SkipUI calls as an asynchronous task
     ///     before the view appears. SkipUI will automatically cancel the task
     ///     at some point after the view disappears before the action completes.
@@ -44382,7 +44343,7 @@ extension View {
     /// a change, the modifier tests whether a new value for the `id` parameter
     /// equals the previous value. For this to work,
     /// the value's type must conform to the
-    /// <doc://com.apple.documentation/documentation/Swift/Equatable> protocol.
+    ///  protocol.
     ///
     /// For example, if you define an equatable `Server` type that posts custom
     /// notifications whenever its state changes --- for example, from _signed
@@ -44401,10 +44362,8 @@ extension View {
     ///         }
     ///
     /// This example uses the
-    /// <doc://com.apple.documentation/documentation/Foundation/NotificationCenter/3813137-notifications>
     /// method to wait indefinitely for an asynchronous sequence of
     /// notifications, given by an
-    /// <doc://com.apple.documentation/documentation/Swift/AsyncSequence>
     /// instance.
     ///
     /// Elsewhere, the server defines a custom `didUpdateStatus` notification:
@@ -44431,11 +44390,11 @@ extension View {
     ///
     /// - Parameters:
     ///   - id: The value to observe for changes. The value must conform
-    ///     to the <doc://com.apple.documentation/documentation/Swift/Equatable>
+    ///     to the 
     ///     protocol.
     ///   - priority: The task priority to use when creating the asynchronous
     ///     task. The default priority is
-    ///     <doc://com.apple.documentation/documentation/Swift/TaskPriority/3851283-userInitiated>.
+    ///     .
     ///   - action: A closure that SkipUI calls as an asynchronous task
     ///     before the view appears. SkipUI can automatically cancel the task
     ///     after the view disappears before the action completes. If the
@@ -45384,7 +45343,7 @@ extension View {
     /// - Parameters:
     ///   - activityType: The type of activity to handle.
     ///   - action: A function to call that takes a
-    ///     <doc://com.apple.documentation/documentation/Foundation/NSUserActivity>
+    ///     
     ///     object as its parameter
     ///     when delivering the activity to the scene or window the view is in.
     public func onContinueUserActivity(_ activityType: String, perform action: @escaping (NSUserActivity) -> ()) -> some View { return never() }
@@ -45395,10 +45354,10 @@ extension View {
     ///
     /// > Note: This method handles the reception of Universal Links,
     ///   rather than a
-    ///   <doc://com.apple.documentation/documentation/Foundation/NSUserActivity>.
+    ///   .
     ///
     /// - Parameter action: A function that takes a
-    ///  <doc://com.apple.documentation/documentation/Foundation/URL>
+    ///  
     ///  object as its parameter when delivering the URL to the scene or window
     ///  the view is in.
     public func onOpenURL(perform action: @escaping (URL) -> ()) -> some View { return never() }
@@ -46136,9 +46095,6 @@ extension View {
     ///
     /// Adding help to a view configures the view's accessibility hint and
     /// its tooltip ("help tag") on macOS.
-    /// For more information on using help tags, see
-    /// [Help](https://developer.apple.com/design/human-interface-guidelines/macos/user-interaction/help/)
-    /// in the macOS Human Interface Guidelines.
     ///
     ///     Button(action: composeMessage) {
     ///         Image(systemName: "square.and.pencil")
@@ -46153,9 +46109,6 @@ extension View {
     ///
     /// Adding help to a view configures the view's accessibility hint and
     /// its tooltip ("help tag") on macOS.
-    /// For more information on using help tags, see
-    /// [Help](https://developer.apple.com/design/human-interface-guidelines/macos/user-interaction/help/)
-    /// in the macOS Human Interface Guidelines.
     ///
     ///     Slider("Opacity", value: $selectedShape.opacity)
     ///         .help(Text("Adjust the opacity of the selected \(selectedShape.name)"))
@@ -46168,9 +46121,6 @@ extension View {
     ///
     /// Adding help to a view configures the view's accessibility hint and
     /// its tooltip ("help tag") on macOS.
-    /// For more information on using help tags, see
-    /// [Help](https://developer.apple.com/design/human-interface-guidelines/macos/user-interaction/help/)
-    /// in the macOS Human Interface Guidelines.
     ///
     ///     Image(systemName: "pin.circle")
     ///         .foregroundColor(pointOfInterest.tintColor)

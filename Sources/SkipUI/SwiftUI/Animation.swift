@@ -1776,7 +1776,6 @@ public struct AnimationTimelineSchedule : TimelineSchedule, Sendable {
     ///
     /// The ``TimelineSchedule/entries(from:mode:)`` method returns a value
     /// of this type, which is a
-    /// <doc://com.apple.documentation/documentation/Swift/Sequence>
     /// of dates in ascending order. A ``TimelineView`` that you create with a
     /// schedule updates its content at the moments in time corresponding to
     /// the dates included in the sequence.

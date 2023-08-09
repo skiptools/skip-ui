@@ -20,8 +20,8 @@ import class Foundation.Bundle
 ///     let steelGray = Color(white: 0.4745)
 ///     ```
 /// * Create a color instance from another color, like a
-///   <doc://com.apple.documentation/documentation/UIKit/UIColor> or an
-///   <doc://com.apple.documentation/documentation/AppKit/NSColor>:
+///    or an
+///   :
 ///     ```
 ///     #if os(iOS)
 ///     let linkColor = Color(uiColor: .link)
@@ -34,8 +34,7 @@ import class Foundation.Bundle
 ///
 /// Some view modifiers can take a color as an argument. For example,
 /// ``View/foregroundStyle(_:)`` uses the color you provide to set the
-/// foreground color for view elements, like text or
-/// [SF Symbols](https://developer.apple.com/design/human-interface-guidelines/sf-symbols/overview/):
+/// foreground color for view elements, like text or symbols.
 ///
 ///     Image(systemName: "leaf.fill")
 ///         .foregroundStyle(Color.green)
@@ -79,7 +78,6 @@ import class Foundation.Bundle
     /// A Core Graphics representation of the color, if available.
     ///
     /// You can get a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGColor>
     /// instance from a constant SkipUI color. This includes colors you create
     /// from a Core Graphics color, from RGB or HSB components, or from constant
     /// UIKit and AppKit colors.
@@ -114,7 +112,7 @@ import class Foundation.Bundle
     /// A textual representation of the color.
     ///
     /// Use this method to get a string that represents the color.
-    /// The <doc://com.apple.documentation/documentation/Swift/1541053-print>
+    /// The 
     /// function uses this property to get a string representing an instance:
     ///
     ///     print(Color.red)
@@ -223,7 +221,7 @@ extension Color {
     /// Creates a color from a Core Graphics color.
     ///
     /// - Parameter color: A
-    ///   <doc://com.apple.documentation/documentation/CoreGraphics/CGColor> instance
+    ///    instance
     ///   from which to create a color.
     public init(_ cgColor: CGColor) { fatalError() }
 }
@@ -234,7 +232,7 @@ extension Color {
     /// Creates a color from a Core Graphics color.
     ///
     /// - Parameter color: A
-    ///   <doc://com.apple.documentation/documentation/CoreGraphics/CGColor> instance
+    ///    instance
     ///   from which to create a color.
     public init(cgColor: CGColor) { fatalError() }
 }
@@ -541,10 +539,9 @@ extension Color {
     /// Creates a color from a UIKit color.
     ///
     /// Use this method to create a SkipUI color from a
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor> instance.
+    ///  instance.
     /// The new color preserves the adaptability of the original.
     /// For example, you can create a rectangle using
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor/3173132-link>
     /// to see how the shade adjusts to match the user's system settings:
     ///
     ///     struct Box: View {
@@ -564,13 +561,13 @@ extension Color {
     ///   the left, and the dark variant on the right.](Color-init-3)
     ///
     /// > Note: Use this initializer only if you need to convert an existing
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor> to a
+    ///  to a
     /// SkipUI color. Otherwise, create a SkipUI ``Color`` using an
     /// initializer like ``init(_:red:green:blue:opacity:)``, or use a system
     /// color like ``ShapeStyle/blue``.
     ///
     /// - Parameter color: A
-    ///   <doc://com.apple.documentation/documentation/UIKit/UIColor> instance
+    ///    instance
     ///   from which to create a color.
     public init(_ color: UIColor) { fatalError() }
 }
@@ -583,10 +580,9 @@ extension Color {
     /// Creates a color from a UIKit color.
     ///
     /// Use this method to create a SkipUI color from a
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor> instance.
+    ///  instance.
     /// The new color preserves the adaptability of the original.
     /// For example, you can create a rectangle using
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor/3173132-link>
     /// to see how the shade adjusts to match the user's system settings:
     ///
     ///     struct Box: View {
@@ -606,13 +602,13 @@ extension Color {
     ///   the left, and the dark variant on the right.](Color-init-3)
     ///
     /// > Note: Use this initializer only if you need to convert an existing
-    /// <doc://com.apple.documentation/documentation/UIKit/UIColor> to a
+    ///  to a
     /// SkipUI color. Otherwise, create a SkipUI ``Color`` using an
     /// initializer like ``init(_:red:green:blue:opacity:)``, or use a system
     /// color like ``ShapeStyle/blue``.
     ///
     /// - Parameter color: A
-    ///   <doc://com.apple.documentation/documentation/UIKit/UIColor> instance
+    ///    instance
     ///   from which to create a color.
     public init(uiColor: UIColor) { fatalError() }
 }
@@ -780,7 +776,6 @@ extension Color.Resolved {
     /// A Core Graphics representation of the color.
     ///
     /// You can get a
-    /// <doc://com.apple.documentation/documentation/CoreGraphics/CGColor>
     /// instance from a resolved color.
     public var cgColor: CGColor { get { fatalError() } }
 }
