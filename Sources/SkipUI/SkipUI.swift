@@ -20,6 +20,12 @@ public typealias CGAffineTransform = CoreGraphics.CGAffineTransform
 import class CoreGraphics.CGColor
 public typealias CGColor = CoreGraphics.CGColor
 
+import class CoreGraphics.CGContext
+public typealias CGContext = CoreGraphics.CGContext
+
+import class CoreGraphics.CGImage
+public typealias CGImage = CoreGraphics.CGImage
+
 import class CoreGraphics.CGPath
 public typealias CGPath = CoreGraphics.CGPath
 
