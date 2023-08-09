@@ -96,6 +96,21 @@ public protocol ShapeStyle : Sendable {
     func resolve(in environment: EnvironmentValues) -> Self.Resolved
 }
 
+
+/// A type-erased ShapeStyle value.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+@frozen public struct AnyShapeStyle : ShapeStyle {
+
+    /// Create an instance from `style`.
+    public init<S>(_ style: S) where S : ShapeStyle { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ShapeStyle where Self == ImagePaint {
 
@@ -962,4 +977,45 @@ public struct TitleAndIconLabelStyle : LabelStyle {
 
     /// A view that represents the body of a label.
 //    public typealias Body = some View
+}
+
+/// A style used to visually indicate selection following platform conventional
+/// colors and behaviors.
+///
+/// You can also use ``ShapeStyle/selection`` to construct this style.
+@available(iOS 15.0, macOS 10.15, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct SelectionShapeStyle : ShapeStyle {
+
+    /// Creates a selection shape style.
+    @available(macOS 12.0, *)
+    public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+/// A style appropriate for foreground separator or border lines.
+///
+/// You can also use ``ShapeStyle/separator`` to construct this style.
+@available(iOS 17.0, macOS 10.15, tvOS 17.0, watchOS 10.0, *)
+public struct SeparatorShapeStyle : ShapeStyle {
+
+    /// Creates a new separator shape style instance.
+    public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+extension Shader : ShapeStyle {
 }

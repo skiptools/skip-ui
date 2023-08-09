@@ -57,102 +57,16 @@ public protocol Transition {
     typealias Content = PlaceholderContentView<Self>
 }
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == OffsetTransition {
 
-    /// Returns a transition that offset the view by the specified amount.
-    public static func offset(_ offset: CGSize) -> Self { fatalError() }
+/// A type-erased transition.
+///
+/// - See Also: `Transition`
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct AnyTransition {
 
-    /// Returns a transition that offset the view by the specified x and y
-    /// values.
-    public static func offset(x: CGFloat = 0, y: CGFloat = 0) -> Self { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == ScaleTransition {
-
-    /// Returns a transition that scales the view.
-    public static var scale: ScaleTransition { get { fatalError() } }
-
-    /// Returns a transition that scales the view by the specified amount.
-    public static func scale(_ scale: Double, anchor: UnitPoint = .center) -> Self { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == OpacityTransition {
-
-    /// A transition from transparent to opaque on insertion, and from opaque to
-    /// transparent on removal.
-    public static var opacity: OpacityTransition { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == SlideTransition {
-
-    /// A transition that inserts by moving in from the leading edge, and
-    /// removes by moving out towards the trailing edge.
-    ///
-    /// - SeeAlso: `AnyTransition.move(edge:)`
-    public static var slide: SlideTransition { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition {
-
-//    public func combined<T>(with other: T) -> some Transition where T : Transition { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition {
-
-    /// Attaches an animation to this transition.
-//    public func animation(_ animation: Animation?) -> some Transition { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition {
-
-    /// Returns the properties this transition type has.
-    ///
-    /// Defaults to `TransitionProperties()`.
-    public static var properties: TransitionProperties { get { fatalError() } }
-
-    public func apply<V>(content: V, phase: TransitionPhase) -> some View where V : View { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == IdentityTransition {
-
-    /// A transition that returns the input view, unmodified, as the output
-    /// view.
-    public static var identity: IdentityTransition { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == MoveTransition {
-
-    /// Returns a transition that moves the view away, towards the specified
-    /// edge of the view.
-    public static func move(edge: Edge) -> Self { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Transition where Self == PushTransition {
-
-    /// Creates a transition that when added to a view will animate the
-    /// view's insertion by moving it in from the specified edge while
-    /// fading it in, and animate its removal by moving it out towards
-    /// the opposite edge and fading it out.
-    ///
-    /// - Parameters:
-    ///   - edge: the edge from which the view will be animated in.
-    ///
-    /// - Returns: A transition that animates a view by moving and
-    ///   fading it.
-    public static func push(from edge: Edge) -> Self { fatalError() }
+    /// Create an instance that type-erases `transition`.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public init<T>(_ transition: T) where T : Transition { fatalError() }
 }
 
 /// An indication of which the current stage of a transition.
@@ -477,17 +391,6 @@ public struct ContentTransition : Equatable, Sendable {
     public static func == (a: ContentTransition, b: ContentTransition) -> Bool { fatalError() }
 }
 
-/// A type-erased transition.
-///
-/// - See Also: `Transition`
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct AnyTransition {
-
-    /// Create an instance that type-erases `transition`.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public init<T>(_ transition: T) where T : Transition { fatalError() }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
 
@@ -532,4 +435,269 @@ extension View {
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public func transition<T>(_ transition: T) -> some View where T : Transition { return never() }
 
+}
+
+/// Returns a transition that moves the view away, towards the specified
+/// edge of the view.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct MoveTransition : Transition {
+
+    /// The edge to move the view towards.
+    public var edge: Edge { get { fatalError() } }
+
+    /// Creates a transition that moves the view away, towards the specified
+    /// edge of the view.
+    public init(edge: Edge) { fatalError() }
+
+    /// Gets the current body of the caller.
+    ///
+    /// `content` is a proxy for the view that will have the modifier
+    /// represented by `Self` applied to it.
+    public func body(content: MoveTransition.Content, phase: TransitionPhase) -> some View { return never() }
+
+
+    /// The type of view representing the body.
+//    public typealias Body = some View
+}
+
+/// Returns a transition that offset the view by the specified amount.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct OffsetTransition : Transition {
+
+    /// The amount to offset the view by.
+    public var offset: CGSize { get { fatalError() } }
+
+    /// Creates a transition that offset the view by the specified amount.
+    public init(_ offset: CGSize) { fatalError() }
+
+    /// Gets the current body of the caller.
+    ///
+    /// `content` is a proxy for the view that will have the modifier
+    /// represented by `Self` applied to it.
+    public func body(content: OffsetTransition.Content, phase: TransitionPhase) -> some View { return never() }
+
+
+    /// The type of view representing the body.
+//    public typealias Body = some View
+}
+
+/// A transition from transparent to opaque on insertion, and from opaque to
+/// transparent on removal.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct OpacityTransition : Transition {
+
+    public init() { fatalError() }
+
+    /// Gets the current body of the caller.
+    ///
+    /// `content` is a proxy for the view that will have the modifier
+    /// represented by `Self` applied to it.
+    public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return never() }
+
+
+    /// Returns the properties this transition type has.
+    ///
+    /// Defaults to `TransitionProperties()`.
+    public static let properties: TransitionProperties = { fatalError() }()
+
+    /// The type of view representing the body.
+//    public typealias Body = some View
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    public static func offset(_ offset: CGSize) -> AnyTransition { fatalError() }
+
+    public static func offset(x: CGFloat = 0, y: CGFloat = 0) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Returns a transition that scales the view.
+    public static var scale: AnyTransition { get { fatalError() } }
+
+    /// Returns a transition that scales the view by the specified amount.
+    public static func scale(scale: CGFloat, anchor: UnitPoint = .center) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// A transition from transparent to opaque on insertion, and from opaque to
+    /// transparent on removal.
+    public static let opacity: AnyTransition = { fatalError() }()
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// A transition that inserts by moving in from the leading edge, and
+    /// removes by moving out towards the trailing edge.
+    ///
+    /// - SeeAlso: `AnyTransition.move(edge:)`
+    public static var slide: AnyTransition { get { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Combines this transition with another, returning a new transition that
+    /// is the result of both transitions being applied.
+    public func combined(with other: AnyTransition) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Returns a transition defined between an active modifier and an identity
+    /// modifier.
+    public static func modifier<E>(active: E, identity: E) -> AnyTransition where E : ViewModifier { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Attaches an animation to this transition.
+    public func animation(_ animation: Animation?) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// A transition that returns the input view, unmodified, as the output
+    /// view.
+    public static let identity: AnyTransition = { fatalError() }()
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Returns a transition that moves the view away, towards the specified
+    /// edge of the view.
+    public static func move(edge: Edge) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension AnyTransition {
+
+    /// Creates a transition that when added to a view will animate the
+    /// view's insertion by moving it in from the specified edge while
+    /// fading it in, and animate its removal by moving it out towards
+    /// the opposite edge and fading it out.
+    ///
+    /// - Parameters:
+    ///   - edge: the edge from which the view will be animated in.
+    ///
+    /// - Returns: A transition that animates a view by moving and
+    ///   fading it.
+    public static func push(from edge: Edge) -> AnyTransition { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension AnyTransition {
+
+    /// Provides a composite transition that uses a different transition for
+    /// insertion versus removal.
+    public static func asymmetric(insertion: AnyTransition, removal: AnyTransition) -> AnyTransition { fatalError() }
+}
+
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == OffsetTransition {
+
+    /// Returns a transition that offset the view by the specified amount.
+    public static func offset(_ offset: CGSize) -> Self { fatalError() }
+
+    /// Returns a transition that offset the view by the specified x and y
+    /// values.
+    public static func offset(x: CGFloat = 0, y: CGFloat = 0) -> Self { fatalError() }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == ScaleTransition {
+
+    /// Returns a transition that scales the view.
+    public static var scale: ScaleTransition { get { fatalError() } }
+
+    /// Returns a transition that scales the view by the specified amount.
+    public static func scale(_ scale: Double, anchor: UnitPoint = .center) -> Self { fatalError() }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == OpacityTransition {
+
+    /// A transition from transparent to opaque on insertion, and from opaque to
+    /// transparent on removal.
+    public static var opacity: OpacityTransition { get { fatalError() } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == SlideTransition {
+
+    /// A transition that inserts by moving in from the leading edge, and
+    /// removes by moving out towards the trailing edge.
+    ///
+    /// - SeeAlso: `AnyTransition.move(edge:)`
+    public static var slide: SlideTransition { get { fatalError() } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition {
+
+//    public func combined<T>(with other: T) -> some Transition where T : Transition { return never() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition {
+
+    /// Attaches an animation to this transition.
+//    public func animation(_ animation: Animation?) -> some Transition { return never() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition {
+
+    /// Returns the properties this transition type has.
+    ///
+    /// Defaults to `TransitionProperties()`.
+    public static var properties: TransitionProperties { get { fatalError() } }
+
+    public func apply<V>(content: V, phase: TransitionPhase) -> some View where V : View { return never() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == IdentityTransition {
+
+    /// A transition that returns the input view, unmodified, as the output
+    /// view.
+    public static var identity: IdentityTransition { get { fatalError() } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == MoveTransition {
+
+    /// Returns a transition that moves the view away, towards the specified
+    /// edge of the view.
+    public static func move(edge: Edge) -> Self { fatalError() }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Transition where Self == PushTransition {
+
+    /// Creates a transition that when added to a view will animate the
+    /// view's insertion by moving it in from the specified edge while
+    /// fading it in, and animate its removal by moving it out towards
+    /// the opposite edge and fading it out.
+    ///
+    /// - Parameters:
+    ///   - edge: the edge from which the view will be animated in.
+    ///
+    /// - Returns: A transition that animates a view by moving and
+    ///   fading it.
+    public static func push(from edge: Edge) -> Self { fatalError() }
 }
