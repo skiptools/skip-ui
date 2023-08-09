@@ -666,3 +666,146 @@ public struct ToggleStyleConfiguration {
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     public var isMixed: Bool { get { fatalError() } }
 }
+
+/// The default toggle style.
+///
+/// Use the ``ToggleStyle/automatic`` static variable to create this style:
+///
+///     Toggle("Enhance Sound", isOn: $isEnhanced)
+///         .toggleStyle(.automatic)
+///
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct DefaultToggleStyle : ToggleStyle {
+
+    /// Creates a default toggle style.
+    ///
+    /// Don't call this initializer directly. Instead, use the
+    /// ``ToggleStyle/automatic`` static variable to create this style:
+    ///
+    ///     Toggle("Enhance Sound", isOn: $isEnhanced)
+    ///         .toggleStyle(.automatic)
+    ///
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a toggle.
+    ///
+    /// SkipUI implements this required method of the ``ToggleStyle``
+    /// protocol to define the behavior and appearance of the
+    /// ``ToggleStyle/automatic`` toggle style. Don't call this method
+    /// directly. Rather, the system calls this method for each
+    /// ``Toggle`` instance in a view hierarchy that needs the default
+    /// style.
+    ///
+    /// - Parameter configuration: The properties of the toggle, including a
+    ///   label and a binding to the toggle's state.
+    /// - Returns: A view that acts as a toggle.
+    public func makeBody(configuration: DefaultToggleStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and interaction of a toggle.
+    ///
+    /// SkipUI infers this type automatically based on the ``View``
+    /// instance that you return from your implementation of the
+    /// ``makeBody(configuration:)`` method.
+//    public typealias Body = some View
+}
+
+/// A toggle style that displays a leading label and a trailing switch.
+///
+/// Use the ``ToggleStyle/switch`` static variable to create this style:
+///
+///     Toggle("Enhance Sound", isOn: $isEnhanced)
+///         .toggleStyle(.switch)
+///
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, *)
+@available(tvOS, unavailable)
+public struct SwitchToggleStyle : ToggleStyle {
+
+    /// Creates a switch toggle style.
+    ///
+    /// Don't call this initializer directly. Instead, use the
+    /// ``ToggleStyle/switch`` static variable to create this style:
+    ///
+    ///     Toggle("Enhance Sound", isOn: $isEnhanced)
+    ///         .toggleStyle(.switch)
+    ///
+    public init() { fatalError() }
+
+    /// Creates a switch style with a tint color.
+    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use ``View/tint(_)`` instead.")
+    @available(macOS, introduced: 11.0, deprecated: 100000.0, message: "Use ``View/tint(_)`` instead.")
+    @available(tvOS, unavailable)
+    @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "Use ``View/tint(_)`` instead.")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use ``View/tint(_)`` instead.")
+    public init(tint: Color) { fatalError() }
+
+    /// Creates a view that represents the body of a toggle switch.
+    ///
+    /// SkipUI implements this required method of the ``ToggleStyle``
+    /// protocol to define the behavior and appearance of the
+    /// ``ToggleStyle/switch`` toggle style. Don't call this method
+    /// directly. Rather, the system calls this method for each
+    /// ``Toggle`` instance in a view hierarchy that's styled as
+    /// a switch.
+    ///
+    /// - Parameter configuration: The properties of the toggle, including a
+    ///   label and a binding to the toggle's state.
+    /// - Returns: A view that represents a switch.
+    public func makeBody(configuration: SwitchToggleStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and interaction of a toggle.
+    ///
+    /// SkipUI infers this type automatically based on the ``View``
+    /// instance that you return from your implementation of the
+    /// ``makeBody(configuration:)`` method.
+//    public typealias Body = some View
+}
+
+/// A toggle style that displays as a button with its label as the title.
+///
+/// You can also use ``ToggleStyle/button`` to construct this style.
+///
+///     Toggle(isOn: $isFlagged) {
+///         Label("Flag", systemImage: "flag.fill")
+///     }
+///     .toggleStyle(.button)
+///
+@available(iOS 15.0, macOS 12.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+public struct ButtonToggleStyle : ToggleStyle {
+
+    /// Creates a button toggle style.
+    ///
+    /// Don't call this initializer directly. Instead, use the
+    /// ``ToggleStyle/button`` static variable to create this style:
+    ///
+    ///     Toggle(isOn: $isFlagged) {
+    ///         Label("Flag", systemImage: "flag.fill")
+    ///     }
+    ///     .toggleStyle(.button)
+    ///
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a toggle button.
+    ///
+    /// SkipUI implements this required method of the ``ToggleStyle``
+    /// protocol to define the behavior and appearance of the
+    /// ``ToggleStyle/button`` toggle style. Don't call this method
+    /// directly; the system calls this method for each
+    /// ``Toggle`` instance in a view hierarchy that's styled as
+    /// a button.
+    ///
+    /// - Parameter configuration: The properties of the toggle, including a
+    ///   label and a binding to the toggle's state.
+    /// - Returns: A view that acts as a button that controls a Boolean state.
+    public func makeBody(configuration: ButtonToggleStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and interaction of a toggle.
+    ///
+    /// SkipUI infers this type automatically based on the ``View``
+    /// instance that you return from your implementation of the
+    /// ``makeBody(configuration:)`` method.
+//    public typealias Body = some View
+}

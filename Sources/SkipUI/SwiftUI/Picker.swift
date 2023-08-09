@@ -609,3 +609,51 @@ extension PickerStyle where Self == PalettePickerStyle {
     /// the ``View/pickerStyle(_:)`` modifier.
     public static var palette: PalettePickerStyle { get { fatalError() } }
 }
+
+/// A `PickerStyle` where each option is displayed inline with other views in
+/// the current container.
+///
+/// You can also use ``PickerStyle/inline`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct InlinePickerStyle : PickerStyle {
+
+    /// Creates an inline picker style.
+    public init() { fatalError() }
+}
+
+/// A picker style that presents the options as a row of compact elements.
+///
+/// You can also use ``PickerStyle/palette`` to construct this style.
+@available(iOS 17.0, macOS 14.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct PalettePickerStyle : PickerStyle {
+
+    /// Creates a palette picker style.
+    public init() { fatalError() }
+}
+
+/// A picker style that presents the options in a segmented control.
+///
+/// You can also use ``PickerStyle/segmented`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, *)
+@available(watchOS, unavailable)
+public struct SegmentedPickerStyle : PickerStyle {
+
+    /// Creates a segmented picker style.
+    public init() { fatalError() }
+}
+
+/// A picker style that presents the options in a scrollable wheel that shows
+/// the selected option and a few neighboring options.
+///
+/// You can also use ``PickerStyle/wheel`` to construct this style.
+@available(iOS 13.0, watchOS 6.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+public struct WheelPickerStyle : PickerStyle {
+
+    /// Sets the picker style to display an item wheel from which the user makes
+    /// a selection.
+    public init() { fatalError() }
+}

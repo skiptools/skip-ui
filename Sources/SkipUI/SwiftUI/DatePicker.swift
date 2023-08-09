@@ -688,3 +688,90 @@ extension MultiDatePicker where Label == Text {
     ///   - bounds: The open range before some end date.
     public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) where S : StringProtocol { fatalError() }
 }
+
+/// A date picker style that displays each component as columns in a scrollable
+/// wheel.
+///
+/// You can also use ``DatePickerStyle/wheel`` to construct this style.
+@available(iOS 13.0, watchOS 10.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+public struct WheelDatePickerStyle : DatePickerStyle {
+
+    /// Creates an instance of the wheel date picker style.
+    public init() { fatalError() }
+
+    /// Returns the appearance and interaction content for a `DatePicker`.
+    ///
+    /// The system calls this method for each ``DatePicker`` instance in a view
+    /// hierarchy where this style is the current date picker style.
+    ///
+    /// - Parameter configuration : The properties of the date picker.
+    @available(iOS 16.0, watchOS 10.0, *)
+    public func makeBody(configuration: WheelDatePickerStyle.Configuration) -> Body { return never() }
+
+
+    /// A view representing the appearance and interaction of a `DatePicker`.
+    public typealias Body = Never
+}
+
+/// A date picker style that displays the components in a compact, textual
+/// format.
+///
+/// You can also use ``DatePickerStyle/compact`` to construct this style.
+@available(iOS 14.0, macCatalyst 13.4, macOS 10.15.4, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct CompactDatePickerStyle : DatePickerStyle {
+
+    /// Creates an instance of the compact date picker style.
+    public init() { fatalError() }
+
+    /// Returns the appearance and interaction content for a `DatePicker`.
+    ///
+    /// The system calls this method for each ``DatePicker`` instance in a view
+    /// hierarchy where this style is the current date picker style.
+    ///
+    /// - Parameter configuration : The properties of the date picker.
+    @available(iOS 16.0, macOS 13.0, *)
+    public func makeBody(configuration: CompactDatePickerStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the appearance and interaction of a `DatePicker`.
+//    public typealias Body = some View
+}
+
+/// The default picker style, based on the picker's context.
+///
+/// You can also use ``PickerStyle/automatic`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct DefaultPickerStyle : PickerStyle {
+
+    /// Creates a default picker style.
+    public init() { fatalError() }
+}
+
+/// A date picker style that displays an interactive calendar or clock.
+///
+/// You can also use ``DatePickerStyle/graphical`` to construct this style.
+@available(iOS 14.0, macOS 10.15, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct GraphicalDatePickerStyle : DatePickerStyle {
+
+    /// Creates an instance of the graphical date picker style.
+    public init() { fatalError() }
+
+    /// Returns the appearance and interaction content for a `DatePicker`.
+    ///
+    /// The system calls this method for each ``DatePicker`` instance in a view
+    /// hierarchy where this style is the current date picker style.
+    ///
+    /// - Parameter configuration : The properties of the date picker.
+    @available(iOS 16.0, macOS 13.0, *)
+    public func makeBody(configuration: GraphicalDatePickerStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the appearance and interaction of a `DatePicker`.
+//    public typealias Body = some View
+}
