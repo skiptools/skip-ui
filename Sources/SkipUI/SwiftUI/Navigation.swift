@@ -1602,3 +1602,106 @@ extension NavigationViewStyle where Self == StackNavigationViewStyle {
     /// single top view at a time.
     public static var stack: StackNavigationViewStyle { get { fatalError() } }
 }
+
+/// A configuration for a navigation bar that represents a view at the top of a
+/// navigation stack.
+///
+/// Use one of the ``TitleDisplayMode`` values to configure a navigation bar
+/// title's display mode with the ``View/navigationBarTitleDisplayMode(_:)``
+/// view modifier.
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS, unavailable)
+public struct NavigationBarItem : Sendable {
+
+    /// A style for displaying the title of a navigation bar.
+    ///
+    /// Use one of these values with the
+    /// ``View/navigationBarTitleDisplayMode(_:)`` view modifier to configure
+    /// the title of a navigation bar.
+    public enum TitleDisplayMode : Sendable {
+
+        /// Inherit the display mode from the previous navigation item.
+        case automatic
+
+        /// Display the title within the standard bounds of the navigation bar.
+        case inline
+
+        /// Display a large title within an expanded navigation bar.
+        @available(watchOS 8.0, *)
+        @available(tvOS, unavailable)
+        case large
+
+        /// Returns a Boolean value indicating whether two values are equal.
+        ///
+        /// Equality is the inverse of inequality. For any values `a` and `b`,
+        /// `a == b` implies that `a != b` is `false`.
+        ///
+        /// - Parameters:
+        ///   - lhs: A value to compare.
+        ///   - rhs: Another value to compare.
+        public static func == (a: NavigationBarItem.TitleDisplayMode, b: NavigationBarItem.TitleDisplayMode) -> Bool { fatalError() }
+
+        /// Hashes the essential components of this value by feeding them into the
+        /// given hasher.
+        ///
+        /// Implement this method to conform to the `Hashable` protocol. The
+        /// components used for hashing must be the same as the components compared
+        /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
+        /// with each of these components.
+        ///
+        /// - Important: In your implementation of `hash(into:)`,
+        ///   don't call `finalize()` on the `hasher` instance provided,
+        ///   or replace it with a different instance.
+        ///   Doing so may become a compile-time error in the future.
+        ///
+        /// - Parameter hasher: The hasher to use when combining the components
+        ///   of this instance.
+        public func hash(into hasher: inout Hasher) { fatalError() }
+
+        /// The hash value.
+        ///
+        /// Hash values are not guaranteed to be equal across different executions of
+        /// your program. Do not save hash values to use during a future execution.
+        ///
+        /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
+        ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
+        ///   The compiler provides an implementation for `hashValue` for you.
+        public var hashValue: Int { get { fatalError() } }
+    }
+}
+
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS, unavailable)
+extension NavigationBarItem.TitleDisplayMode : Equatable {
+}
+
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS, unavailable)
+extension NavigationBarItem.TitleDisplayMode : Hashable {
+}
+
+/// The navigation control group style.
+///
+/// You can also use ``ControlGroupStyle/navigation`` to construct this style.
+@available(iOS 15.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct NavigationControlGroupStyle : ControlGroupStyle {
+
+    /// Creates a navigation control group style.
+    public init() { fatalError() }
+
+    /// Creates a view representing the body of a control group.
+    ///
+    /// - Parameter configuration: The properties of the control group instance
+    ///   being created.
+    ///
+    /// This method will be called for each instance of ``ControlGroup`` created
+    /// within a view hierarchy where this style is the current
+    /// `ControlGroupStyle`.
+    @MainActor public func makeBody(configuration: NavigationControlGroupStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a control group.
+//    public typealias Body = some View
+}

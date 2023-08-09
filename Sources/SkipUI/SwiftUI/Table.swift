@@ -3508,6 +3508,76 @@ extension TableRowContent {
 
 }
 
+
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Section : TableRowContent where Parent : TableRowContent, Content : TableRowContent, Footer : TableRowContent {
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Content.TableRowValue
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+
+    /// Creates a section with a header and the provided section content.
+    /// - Parameters:
+    ///   - content: The section's content.
+    ///   - header: A view to use as the section's header.
+    public init<V, H>(@TableRowBuilder<V> content: () -> Content, @ViewBuilder header: () -> H) where Parent == TableHeaderRowContent<V, H>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue, H : View { fatalError() }
+
+    /// Creates a section with the provided section content.
+    /// - Parameters:
+    ///   - titleKey: The key for the section's localized title, which describes
+    ///     the contents of the section.
+    ///   - content: The section's content.
+    public init<V>(_ titleKey: LocalizedStringKey, @TableRowBuilder<V> content: () -> Content) where Parent == TableHeaderRowContent<V, Text>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue { fatalError() }
+
+    /// Creates a section with the provided section content.
+    /// - Parameters:
+    ///   - title: A string that describes the contents of the section.
+    ///   - content: The section's content.
+    public init<V, S>(_ title: S, @TableRowBuilder<V> content: () -> Content) where Parent == TableHeaderRowContent<V, Text>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue, S : StringProtocol { fatalError() }
+
+    /// Creates a section with the provided section content.
+    /// - Parameters:
+    ///   - content: The section's content.
+    public init<V>(@TableRowBuilder<V> content: () -> Content) where Parent == EmptyTableRowContent<V>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue { fatalError() }
+
+    public var tableRowBody: Never { fatalError() }
+}
+
+@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Section where Parent : TableRowContent, Content : TableRowContent {
+
+    /// Creates a section with a header and the provided section content.
+    /// - Parameters:
+    ///   - isExpanded: A binding to a Boolean value that determines the section's
+    ///    expansion state (expanded or collapsed).
+    ///   - content: The section's content.
+    ///   - header: A view to use as the section's header.
+    public init<V, H>(isExpanded: Binding<Bool>, @TableRowBuilder<V> content: () -> Content, @ViewBuilder header: () -> H) where Parent == TableHeaderRowContent<V, H>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue, H : View { fatalError() }
+
+    /// Creates a section with the provided section content.
+    /// - Parameters:
+    ///   - titleKey: The key for the section's localized title, which describes
+    ///     the contents of the section.
+    ///   - isExpanded: A binding to a Boolean value that determines the section's
+    ///    expansion state (expanded or collapsed).
+    ///   - content: The section's content.
+    public init<V>(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @TableRowBuilder<V> content: () -> Content) where Parent == TableHeaderRowContent<V, Text>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue { fatalError() }
+
+    /// Creates a section with the provided section content.
+    /// - Parameters:
+    ///   - title: A string that describes the contents of the section.
+    ///   - isExpanded: A binding to a Boolean value that determines the section's
+    ///    expansion state (expanded or collapsed).
+    ///   - content: The section's content.
+    public init<V, S>(_ title: S, isExpanded: Binding<Bool>, @TableRowBuilder<V> content: () -> Content) where Parent == TableHeaderRowContent<V, Text>, Footer == EmptyTableRowContent<V>, V == Content.TableRowValue, S : StringProtocol { fatalError() }
+}
+
 #if canImport(UIKit)
 @available(iOS 16.0, macOS 12.0, *)
 @available(tvOS, unavailable)
