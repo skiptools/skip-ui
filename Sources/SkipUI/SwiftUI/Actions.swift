@@ -319,3 +319,170 @@ public struct OpenWindowAction {
     ///   - value: The value to present.
     public func callAsFunction<D>(id: String, value: D) where D : Decodable, D : Encodable, D : Hashable { fatalError() }
 }
+
+/// An action that initiates a refresh operation.
+///
+/// When the ``EnvironmentValues/refresh`` environment value contains an
+/// instance of this structure, certain built-in views in the corresponding
+/// ``Environment`` begin offering a refresh capability. They apply the
+/// instance's handler to any refresh operation that the user initiates.
+/// By default, the environment value is `nil`, but you can use the
+/// ``View/refreshable(action:)`` modifier to create and store a new
+/// refresh action that uses the handler that you specify:
+///
+///     List(mailbox.conversations) { conversation in
+///         ConversationCell(conversation)
+///     }
+///     .refreshable {
+///         await mailbox.fetch()
+///     }
+///
+/// On iOS and iPadOS, the ``List`` in the example above offers a
+/// pull to refresh gesture because it detects the refresh action. When
+/// the user drags the list down and releases, the list calls the action's
+/// handler. Because SkipUI declares the handler as asynchronous, it can
+/// safely make long-running asynchronous calls, like fetching network data.
+///
+/// ### Refreshing custom views
+///
+/// You can also offer refresh capability in your custom views.
+/// Read the ``EnvironmentValues/refresh`` environment value to get the
+/// `RefreshAction` instance for a given ``Environment``. If you find
+/// a non-`nil` value, change your view's appearance or behavior to offer
+/// the refresh to the user, and call the instance to conduct the
+/// refresh. You can call the refresh instance directly because it defines
+/// a ``RefreshAction/callAsFunction()`` method that Swift calls
+/// when you call the instance:
+///
+///     struct RefreshableView: View {
+///         @Environment(\.refresh) private var refresh
+///
+///         var body: some View {
+///             Button("Refresh") {
+///                 Task {
+///                     await refresh?()
+///                 }
+///             }
+///             .disabled(refresh == nil)
+///         }
+///     }
+///
+/// Be sure to call the handler asynchronously by preceding it
+/// with `await`. Because the call is asynchronous, you can use
+/// its lifetime to indicate progress to the user. For example,
+/// you might reveal an indeterminate ``ProgressView`` before
+/// calling the handler, and hide it when the handler completes.
+///
+/// If your code isn't already in an asynchronous context, create a
+/// <doc://com.apple.documentation/documentation/Swift/Task> for the
+/// method to run in. If you do this, consider adding a way for the
+/// user to cancel the task. For more information, see
+/// [Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html)
+/// in *The Swift Programming Language*.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+public struct RefreshAction : Sendable {
+
+    /// Initiates a refresh action.
+    ///
+    /// Don't call this method directly. SkipUI calls it when you
+    /// call the ``RefreshAction`` structure that you get from the
+    /// ``Environment``:
+    ///
+    ///     struct RefreshableView: View {
+    ///         @Environment(\.refresh) private var refresh
+    ///
+    ///         var body: some View {
+    ///             Button("Refresh") {
+    ///                 Task {
+    ///                     await refresh?()  // Implicitly calls refresh.callAsFunction()
+    ///                 }
+    ///             }
+    ///             .disabled(refresh == nil)
+    ///         }
+    ///     }
+    ///
+    /// For information about how Swift uses the `callAsFunction()` method to
+    /// simplify call site syntax, see
+    /// [Methods with Special Names](https://docs.swift.org/swift-book/ReferenceManual/Declarations.html#ID622)
+    /// in *The Swift Programming Language*.
+    /// For information about asynchronous operations in Swift, see
+    /// [Concurrency](https://docs.swift.org/swift-book/LanguageGuide/Concurrency.html).
+    public func callAsFunction() async { fatalError() }
+}
+
+/// An action that activates a standard rename interaction.
+///
+/// Use the ``View/renameAction(_:)-6lghl`` modifier to configure the rename
+/// action in the environment.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct RenameAction {
+
+    /// Triggers the standard rename action provided through the environment.
+    public func callAsFunction() { fatalError() }
+}
+
+/// A button that triggers a standard rename action.
+///
+/// A rename button receives its action from the environment. Use the
+/// ``View/renameAction(_:)-6lghl`` modifier to set the action. The
+/// system disables the button if you don't define an action.
+///
+///     struct RowView: View {
+///         @State private var text = ""
+///         @FocusState private var isFocused: Bool
+///
+///         var body: some View {
+///             TextField(text: $item.name) {
+///                 Text("Prompt")
+///             }
+///             .focused($isFocused)
+///             .contextMenu {
+///                 RenameButton()
+///                 // ... your own custom actions
+///             }
+///             .renameAction { $isFocused = true }
+///     }
+///
+/// When someone taps the rename button in the context menu, the rename
+/// action focuses the text field by setting the `isFocused`
+/// property to true.
+///
+/// You can use this button inside of a navigation title menu and the
+/// navigation title modifier automatically configures the environment
+/// with the appropriate rename action.
+///
+///     ContentView()
+///         .navigationTitle($contentTitle) {
+///             // ... your own custom actions
+///             RenameButton()
+///         }
+///
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct RenameButton<LabelX> : View where LabelX : View {
+
+    /// Creates a rename button.
+    public init() where LabelX == Label<Text, Image> { fatalError() }
+
+    /// The content and behavior of the view.
+    ///
+    /// When you implement a custom view, you must implement a computed
+    /// `body` property to provide the content for your view. Return a view
+    /// that's composed of built-in views that SkipUI provides, plus other
+    /// composite views that you've already defined:
+    ///
+    ///     struct MyView: View {
+    ///         var body: some View {
+    ///             Text("Hello, World!")
+    ///         }
+    ///     }
+    ///
+    /// For more information about composing views and a view hierarchy,
+    /// see <doc:Declaring-a-Custom-View>.
+    @MainActor public var body: some View { get { return never() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+//    public typealias Body = some View
+}
