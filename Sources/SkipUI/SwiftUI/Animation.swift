@@ -196,8 +196,8 @@ extension AnimatablePair : Sendable where First : Sendable, Second : Sendable {
 ///
 /// When the value of `scale` changes, the modifier
 /// ``View/scaleEffect(_:anchor:)-pmi7`` resizes ``Circle`` according to the
-/// new value. SwiftUI can animate the transition between sizes because
-/// ``Circle`` conforms to the ``Shape`` protocol. Shapes in SwiftUI conform to
+/// new value. SkipUI can animate the transition between sizes because
+/// ``Circle`` conforms to the ``Shape`` protocol. Shapes in SkipUI conform to
 /// the ``Animatable`` protocol, which describes how to animate a property of a
 /// view.
 ///
@@ -1058,7 +1058,7 @@ extension Animation {
     ///
     /// @Video(source: "animation-19-speed-slow.mp4", poster: "animation-19-speed-slow.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the right-side capsule is tall. They animate for four seconds with the short capsule growing upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. For another four seconds, the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
     ///
-    /// - Parameter speed: The speed at which SwiftUI performs the animation.
+    /// - Parameter speed: The speed at which SkipUI performs the animation.
     /// - Returns: An animation with the adjusted speed.
     public func speed(_ speed: Double) -> Animation { fatalError() }
 }

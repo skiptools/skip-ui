@@ -1019,3 +1019,19 @@ public struct SeparatorShapeStyle : ShapeStyle {
 @available(watchOS, unavailable)
 extension Shader : ShapeStyle {
 }
+
+/// The background style in the current context.
+///
+/// You can also use ``ShapeStyle/background`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+@frozen public struct BackgroundStyle : ShapeStyle {
+
+    /// Creates a background style instance.
+    @inlinable public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}

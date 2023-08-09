@@ -623,8 +623,6 @@ extension ReferenceFileDocument {
     ///
     /// Changes to the document dirty the document state, indicating that it
     /// needs to be saved. SkipUI doesn't automatically register undo actions.
-    /// You have to manage undo operations yourself, as demonstrated in
-    /// <doc://com.apple.documentation/documentation/swiftui/building_a_document-based_app_with_swiftui>.
     //@ObservedObject @MainActor public var document: Document { get { fatalError() } }
 
     //@MainActor public var $document: ObservedObject<Document>.Wrapper { get { fatalError() } }
