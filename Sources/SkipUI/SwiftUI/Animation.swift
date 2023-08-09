@@ -2451,3 +2451,80 @@ extension StrokeStyle : Animatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EmptyAnimatableData : Sendable {
 }
+
+/// A container that animates its content by automatically cycling through
+/// a collection of phases that you provide, each defining a discrete step
+/// within an animation.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct PhaseAnimator<Phase, Content> : View where Phase : Equatable, Content : View {
+
+    /// Cycles through the given phases when the trigger value changes,
+    /// updating the view builder closure that you supply.
+    ///
+    /// The phases that you provide specify the individual values that will
+    /// be animated to when the trigger value changes.
+    ///
+    /// When the view first appears, the value from the first phase is provided
+    /// to the `content` closure. When the trigger value changes, the content
+    /// closure is called with the value from the second phase and its
+    /// corresponding animation. This continues until the last phase is
+    /// reached, after which the first phase is animated to.
+    ///
+    /// - Parameters:
+    ///   - phases: Phases defining the states that will be cycled through.
+    ///     This sequence must not be empty. If an empty sequence is provided,
+    ///     a visual warning will be displayed in place of this view, and a
+    ///     warning will be logged.
+    ///   - trigger: A value to observe for changes.
+    ///   - content: A view builder closure.
+    ///   - animation: A closure that returns the animation to use when
+    ///     transitioning to the next phase. If `nil` is returned, the
+    ///     transition will not be animated.
+    public init(_ phases: some Sequence<Phase>, trigger: some Equatable, @ViewBuilder content: @escaping (Phase) -> Content, animation: @escaping (Phase) -> Animation? = { _ in .default }) { fatalError() }
+
+    /// Cycles through the given phases continuously, updating the content
+    /// using the view builder closure that you supply.
+    ///
+    /// The phases that you provide define the individual values that will
+    /// be animated between.
+    ///
+    /// When the view first appears, the the first phase is provided
+    /// to the `content` closure. The animator then immediately animates
+    /// to the second phase, using an animation returned from the `animation`
+    /// closure. This continues until the last phase is reached, after which
+    /// the animator loops back to the beginning.
+    ///
+    /// - Parameters:
+    ///   - phases: Phases defining the states that will be cycled through.
+    ///     This sequence must not be empty. If an empty sequence is provided,
+    ///     a visual warning will be displayed in place of this view, and a
+    ///     warning will be logged.
+    ///   - content: A view builder closure.
+    ///   - animation: A closure that returns the animation to use when
+    ///     transitioning to the next phase. If `nil` is returned, the
+    ///     transition will not be animated.
+    public init(_ phases: some Sequence<Phase>, @ViewBuilder content: @escaping (Phase) -> Content, animation: @escaping (Phase) -> Animation? = { _ in .default }) { fatalError() }
+
+    /// The content and behavior of the view.
+    ///
+    /// When you implement a custom view, you must implement a computed
+    /// `body` property to provide the content for your view. Return a view
+    /// that's composed of built-in views that SkipUI provides, plus other
+    /// composite views that you've already defined:
+    ///
+    ///     struct MyView: View {
+    ///         var body: some View {
+    ///             Text("Hello, World!")
+    ///         }
+    ///     }
+    ///
+    /// For more information about composing views and a view hierarchy,
+    /// see <doc:Declaring-a-Custom-View>.
+    @MainActor public var body: some View { get { return never() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+//    public typealias Body = some View
+}
