@@ -2,32 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-import protocol Foundation.LocalizedError
-import class Foundation.Formatter
-import class Foundation.NSObject
-import class Foundation.Bundle
-import struct Foundation.LocalizedStringResource
-import protocol Foundation.FormatStyle
-import protocol Foundation.ParseableFormatStyle
-import protocol Foundation.ReferenceConvertible
-import struct Foundation.AttributedString
-import enum Foundation.AttributeScopes
-import enum Foundation.AttributeDynamicLookup
-import protocol Foundation._FormatSpecifiable
-
-import struct UniformTypeIdentifiers.UTType
-import struct Foundation.Data
-import struct Foundation.URL
-import struct Foundation.Date
-import struct Foundation.DateComponents
-import struct Foundation.DateInterval
-import struct Foundation.CharacterSet
 import struct Foundation.Locale
 import struct Foundation.IndexSet
-
-import class Foundation.FileWrapper
-import class Foundation.NSItemProvider
-import class Foundation.NSUserActivity
 
 /// No-op
 @usableFromInline func stub<T>() -> T {
@@ -3441,64 +3417,6 @@ public struct DisclosureGroupStyleConfiguration {
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }
 
-/// A kind of table row that shows or hides additional rows based on the state
-/// of a disclosure control.
-///
-/// A disclosure group row consists of a label row that is always visible, and
-/// some content rows that are conditionally visible depending on the state.
-/// Toggling the control will flip the state between "expanded" and "collapsed".
-///
-/// In the following example, a disclosure group has `allDevices` as the label
-/// row, and exposes its expanded state with the bound property, `expanded`.
-/// Upon toggling the disclosure control, the user can update the expanded state
-/// which will in turn show or hide the three content rows for `iPhone`, `iPad`,
-/// and `Mac`.
-///
-///     private struct DeviceStats: Identifiable {
-///         // ...
-///     }
-///     @State private var expanded: Bool = true
-///     @State private var allDevices: DeviceStats = /* ... */
-///     @State private var iPhone: DeviceStats = /* ... */
-///     @State private var iPad: DeviceStats = /* ... */
-///     @State private var Mac: DeviceStats = /* ... */
-///
-///     var body: some View {
-///         Table(of: DeviceStats.self) {
-///             // ...
-///         } rows: {
-///             DisclosureTableRow(allDevices, isExpanded: $expanded) {
-///                 TableRow(iPhone)
-///                 TableRow(iPad)
-///                 TableRow(Mac)
-///             }
-///         }
-///     }
-@available(iOS 17.0, macOS 14.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct DisclosureTableRow<Label, Content> : TableRowContent where Label : TableRowContent, Content : TableRowContent, Label.TableRowValue == Content.TableRowValue {
-
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Label.TableRowValue
-
-    /// Creates a disclosure group with the given value and table rows, and a
-    /// binding to the expansion state (expanded or collapsed).
-    ///
-    /// - Parameters:
-    ///   - value: The value of the discloseable table row.
-    ///   - isExpanded: A binding to a Boolean value that determines the group's
-    ///    expansion state (expanded or collapsed).
-    ///   - content: The table row shown when the disclosure group expands.
-    public init<Value>(_ value: Value, isExpanded: Binding<Bool>? = nil, @TableRowBuilder<Value> content: @escaping () -> Content) where Label == TableRow<Value>, Value == Content.TableRowValue { fatalError() }
-
-    /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
-}
-
 /// An action that dismisses a presentation.
 ///
 /// Use the ``EnvironmentValues/dismiss`` environment value to get the instance
@@ -3949,100 +3867,6 @@ extension DynamicProperty {
     public mutating func update() { fatalError() }
 }
 
-/// A type of table row content that generates table rows from an underlying
-/// collection of data.
-///
-/// This table row content type provides drag-and-drop support for tables. Use
-/// the ``DynamicTableRowContent/onInsert(of:perform:)`` modifier to add an
-/// action to call when the table inserts new contents into its underlying
-/// collection.
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public protocol DynamicTableRowContent : TableRowContent {
-
-    /// The type of the underlying collection of data.
-    associatedtype Data : Collection
-
-    /// The collection of underlying data.
-    var data: Self.Data { get }
-}
-
-@available(iOS 16.0, macOS 13.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension DynamicTableRowContent {
-
-    /// Sets the insert action for the dynamic table rows.
-    ///
-    ///     struct Profile: Identifiable {
-    ///         let givenName: String
-    ///         let familyName: String
-    ///         let id = UUID()
-    ///     }
-    ///
-    ///     @State private var profiles: [Profile] = [
-    ///         Person(givenName: "Juan", familyName: "Chavez"),
-    ///         Person(givenName: "Mei", familyName: "Chen"),
-    ///         Person(givenName: "Tom", familyName: "Clark"),
-    ///         Person(givenName: "Gita", familyName: "Kumar")
-    ///     ]
-    ///
-    ///     var body: some View {
-    ///         Table {
-    ///             TableColumn("Given Name", value: \.givenName)
-    ///             TableColumn("Family Name", value: \.familyName)
-    ///         } rows: {
-    ///             ForEach(profiles) {
-    ///                 TableRow($0)
-    ///             }
-    ///             .dropDestination(
-    ///                 for: Profile.self
-    ///             ) { offset, receivedProfiles in
-    ///                 people.insert(contentsOf: receivedProfiles, at: offset)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - payloadType: Type of the models that are dropped.
-    ///   - action: A closure that SkipUI invokes when elements are added to
-    ///     the collection of rows.
-    ///     The closure takes two arguments: The first argument is the
-    ///     offset relative to the dynamic view's underlying collection of data.
-    ///     The second argument is an array of `Transferable` items that
-    ///     represents the data that you want to insert.
-    ///
-    /// - Returns: A view that calls `action` when elements are inserted into
-    ///   the original view.
-//    @available(iOS 16.0, macOS 13.0, *)
-//    @available(tvOS, unavailable)
-//    @available(watchOS, unavailable)
-//    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping (Int, [T]) -> Void) -> ModifiedContent<Self, OnInsertTableRowModifier> where T : Transferable { fatalError() }
-}
-
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension DynamicTableRowContent {
-
-    /// Sets the insert action for the dynamic table rows.
-    ///
-    /// - Parameters:
-    ///   - supportedContentTypes: An array of universal type identifiers types that the rows supports.
-    ///   - action: A closure that SkipUI invokes when adding elements to
-    ///     the collection of rows.
-    ///     The closure takes two arguments. The first argument is the
-    ///     offset relative to the dynamic view's underlying collection of data.
-    ///     The second argument is an array of
-    ///     
-    ///     items that represents the data that you want to insert.
-    ///
-    /// - Returns: A view that calls `action` when inserting elements into
-    ///   the original view.
-//    public func onInsert(of supportedContentTypes: [UTType], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> ModifiedContent<Self, OnInsertTableRowModifier> { fatalError() }
-}
-
 /// A Dynamic Type size, which specifies how large scalable content should be.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public enum DynamicTypeSize : Hashable, Comparable, CaseIterable, Sendable {
@@ -4328,16 +4152,6 @@ extension Edge.Set : Sendable {
     @inlinable public init() { fatalError() }
 
     public static func == (a: EdgeInsets, b: EdgeInsets) -> Bool { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension EdgeInsets : Animatable {
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>>
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -4665,29 +4479,6 @@ extension EditableCollectionContent : View where Content : View {
 extension EmptyModifier : Sendable {
 }
 
-/// A table row content that doesn't produce any rows.
-///
-/// You will rarely, if ever, need to create an `EmptyTableRowContent` directly.
-/// Instead, `EmptyTableRowContent` represents the absence of a row.
-@available(iOS 16.0, macOS 13.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct EmptyTableRowContent<Value> where Value : Identifiable {
-
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Value
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
-}
-
-@available(iOS 16.0, macOS 13.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension EmptyTableRowContent : TableRowContent {
-    public var tableRowBody: Never { fatalError() }
-}
-
 /// A view that doesn't contain any content.
 ///
 /// You will rarely, if ever, need to create an `EmptyView` directly. Instead,
@@ -4845,52 +4636,6 @@ public struct EnabledTextSelectability : TextSelectability {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EventModifiers : Sendable {
-}
-
-/// A gesture that consists of two gestures where only one of them can succeed.
-///
-/// The `ExclusiveGesture` gives precedence to its first gesture.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct ExclusiveGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
-
-    /// The value of an exclusive gesture that indicates which of two gestures
-    /// succeeded.
-    @frozen public enum Value {
-
-        /// The first of two gestures succeeded.
-        case first(First.Value)
-
-        /// The second of two gestures succeeded.
-        case second(Second.Value)
-    }
-
-    /// The first of two gestures.
-    public var first: First { get { fatalError() } }
-
-    /// The second of two gestures.
-    public var second: Second { get { fatalError() } }
-
-    /// Creates a gesture from two gestures where only one of them succeeds.
-    ///
-    /// - Parameters:
-    ///   - first: The first of two gestures. This gesture has precedence over
-    ///     the other gesture.
-    ///   - second: The second of two gestures.
-    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
-
-    /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ExclusiveGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ExclusiveGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
-
-    public static func == (a: ExclusiveGesture<First, Second>.Value, b: ExclusiveGesture<First, Second>.Value) -> Bool { fatalError() }
 }
 
 /// The way that file dialogs present the file system.
@@ -5634,18 +5379,6 @@ public struct InterfaceOrientation : CaseIterable, Identifiable, Equatable, Send
     public typealias ID = String
 }
 
-/// A table row modifier that associates an item provider with some base
-/// row content.
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct ItemProviderTableRowModifier {
-
-//    public var body: some _TableRowContentModifier { get { fatalError() } }
-
-//    public typealias Body = some _TableRowContentModifier
-}
-
 /// Key equivalents consist of a letter, punctuation, or function key that can
 /// be combined with an optional set of modifier keys to specify a keyboard
 /// shortcut.
@@ -6331,386 +6064,6 @@ public struct LocalCoordinateSpace : CoordinateSpaceProtocol {
     public var coordinateSpace: CoordinateSpace { get { fatalError() } }
 }
 
-/// The key used to look up an entry in a strings file or strings dictionary
-/// file.
-///
-/// Initializers for several SkipUI types -- such as ``Text``, ``Toggle``,
-/// ``Picker`` and others --  implicitly look up a localized string when you
-/// provide a string literal. When you use the initializer `Text("Hello")`,
-/// SkipUI creates a `LocalizedStringKey` for you and uses that to look up a
-/// localization of the `Hello` string. This works because `LocalizedStringKey`
-/// conforms to
-/// .
-///
-/// Types whose initializers take a `LocalizedStringKey` usually have
-/// a corresponding initializer that accepts a parameter that conforms to
-/// . Passing
-/// a `String` variable to these initializers avoids localization, which is
-/// usually appropriate when the variable contains a user-provided value.
-///
-/// As a general rule, use a string literal argument when you want
-/// localization, and a string variable argument when you don't. In the case
-/// where you want to localize the value of a string variable, use the string to
-/// create a new `LocalizedStringKey` instance.
-///
-/// The following example shows how to create ``Text`` instances both
-/// with and without localization. The title parameter provided to the
-/// ``Section`` is a literal string, so SkipUI creates a
-/// `LocalizedStringKey` for it. However, the string entries in the
-/// `messageStore.today` array are `String` variables, so the ``Text`` views
-/// in the list use the string values verbatim.
-///
-///     List {
-///         Section(header: Text("Today")) {
-///             ForEach(messageStore.today) { message in
-///                 Text(message.title)
-///             }
-///         }
-///     }
-///
-/// If the app is localized into Japanese with the following
-/// translation of its `Localizable.strings` file:
-///
-/// ```other
-/// "Today" = "今日";
-/// ```
-///
-/// When run in Japanese, the example produces a
-/// list like the following, localizing "Today" for the section header, but not
-/// the list items.
-///
-/// ![A list with a single section header displayed in Japanese.
-/// The items in the list are all in English: New for Monday, Account update,
-/// and Server
-/// maintenance.](SkipUI-LocalizedStringKey-Today-List-Japanese.png)
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct LocalizedStringKey : Equatable, ExpressibleByStringInterpolation {
-
-    /// Creates a localized string key from the given string value.
-    ///
-    /// - Parameter value: The string to use as a localization key.
-    public init(_ value: String) { fatalError() }
-
-    /// Creates a localized string key from the given string literal.
-    ///
-    /// - Parameter value: The string literal to use as a localization key.
-    public init(stringLiteral value: String) { fatalError() }
-
-    /// Creates a localized string key from the given string interpolation.
-    ///
-    /// To create a localized string key from a string interpolation, use
-    /// the `\()` string interpolation syntax. Swift matches the parameter
-    /// types in the expression to one of the `appendInterpolation` methods
-    /// in ``LocalizedStringKey/StringInterpolation``. The interpolated
-    /// types can include numeric values, Foundation types, and SkipUI
-    /// ``Text`` and ``Image`` instances.
-    ///
-    /// The following example uses a string interpolation with two arguments:
-    /// an unlabeled
-    /// and a ``Text/DateStyle`` labeled `style`. The compiler maps these to the
-    /// method
-    /// ``LocalizedStringKey/StringInterpolation/appendInterpolation(_:style:)``
-    /// as it builds the string that it creates the
-    /// ``LocalizedStringKey`` with.
-    ///
-    ///     let key = LocalizedStringKey("Date is \(company.foundedDate, style: .offset)")
-    ///     let text = Text(key) // Text contains "Date is +45 years"
-    ///
-    /// You can write this example more concisely, implicitly creating a
-    /// ``LocalizedStringKey`` as the parameter to the ``Text``
-    /// initializer:
-    ///
-    ///     let text = Text("Date is \(company.foundedDate, style: .offset)")
-    ///
-    /// - Parameter stringInterpolation: The string interpolation to use as the
-    ///   localization key.
-    public init(stringInterpolation: LocalizedStringKey.StringInterpolation) { fatalError() }
-
-    /// Represents the contents of a string literal with interpolations
-    /// while it’s being built, for use in creating a localized string key.
-    public struct StringInterpolation : StringInterpolationProtocol {
-
-        /// Creates an empty instance ready to be filled with string literal content.
-        ///
-        /// Don't call this initializer directly. Instead, initialize a variable or
-        /// constant using a string literal with interpolated expressions.
-        ///
-        /// Swift passes this initializer a pair of arguments specifying the size of
-        /// the literal segments and the number of interpolated segments. Use this
-        /// information to estimate the amount of storage you will need.
-        ///
-        /// - Parameter literalCapacity: The approximate size of all literal segments
-        ///   combined. This is meant to be passed to `String.reserveCapacity(_:)`;
-        ///   it may be slightly larger or smaller than the sum of the counts of each
-        ///   literal segment.
-        /// - Parameter interpolationCount: The number of interpolations which will be
-        ///   appended. Use this value to estimate how much additional capacity will
-        ///   be needed for the interpolated segments.
-        public init(literalCapacity: Int, interpolationCount: Int) { fatalError() }
-
-        /// Appends a literal string.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameter literal: The literal string to append.
-        public mutating func appendLiteral(_ literal: String) { fatalError() }
-
-        /// Appends a literal string segment to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameter string: The literal string to append.
-        public mutating func appendInterpolation(_ string: String) { fatalError() }
-
-        /// Appends an optionally-formatted instance of a Foundation type
-        /// to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameters:
-        ///   - subject: The Foundation object to append.
-        ///   - formatter: A formatter to convert `subject` to a string
-        ///     representation.
-        public mutating func appendInterpolation<Subject>(_ subject: Subject, formatter: Formatter? = nil) where Subject : ReferenceConvertible { fatalError() }
-
-        /// Appends an optionally-formatted instance of an Objective-C subclass
-        /// to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// The following example shows how to use a
-            /// value and a
-            /// to create a ``LocalizedStringKey`` that uses the formatter
-        /// style
-            /// when generating the measurement's string representation. Rather than
-        /// calling `appendInterpolation(_:formatter)` directly, the code
-        /// gets the formatting behavior implicitly by using the `\()`
-        /// string interpolation syntax.
-        ///
-        ///     let siResistance = Measurement(value: 640, unit: UnitElectricResistance.ohms)
-        ///     let formatter = MeasurementFormatter()
-        ///     formatter.unitStyle = .long
-        ///     let key = LocalizedStringKey ("Resistance: \(siResistance, formatter: formatter)")
-        ///     let text1 = Text(key) // Text contains "Resistance: 640 ohms"
-        ///
-        /// - Parameters:
-        ///   - subject: An 
-        ///     to append.
-        ///   - formatter: A formatter to convert `subject` to a string
-        ///     representation.
-        public mutating func appendInterpolation<Subject>(_ subject: Subject, formatter: Formatter? = nil) where Subject : NSObject { fatalError() }
-
-        /// Appends the formatted representation  of a nonstring type
-        /// supported by a corresponding format style.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// The following example shows how to use a string interpolation to
-        /// format a
-            /// with a
-        ///  and
-        /// append it to static text. The resulting interpolation implicitly
-        /// creates a ``LocalizedStringKey``, which a ``Text`` uses to provide
-        /// its content.
-        ///
-        ///     Text("The time is \(myDate, format: Date.FormatStyle(date: .omitted, time:.complete))")
-        ///
-        /// - Parameters:
-        ///   - input: The instance to format and append.
-        ///   - format: A format style to use when converting `input` into a string
-        ///   representation.
-        @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-        public mutating func appendInterpolation<F>(_ input: F.FormatInput, format: F) where F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
-
-        /// Appends a type, convertible to a string by using a default format
-        /// specifier, to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameters:
-        ///   - value: A primitive type to append, such as
-        ///     ,
-        ///     , or
-        ///     .
-        public mutating func appendInterpolation<T>(_ value: T) where T : _FormatSpecifiable { fatalError() }
-
-        /// Appends a type, convertible to a string with a format specifier,
-        /// to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameters:
-        ///   - value: The value to append.
-        ///   - specifier: A format specifier to convert `subject` to a string
-        ///     representation, like `%f`
-        public mutating func appendInterpolation<T>(_ value: T, specifier: String) where T : _FormatSpecifiable { fatalError() }
-
-        /// Appends the string displayed by a text view to a string
-        /// interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// - Parameters:
-        ///   - value: A ``Text`` instance to append.
-        @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-        public mutating func appendInterpolation(_ text: Text) { fatalError() }
-
-        /// Appends an attributed string to a string interpolation.
-        ///
-        /// Don't call this method directly; it's used by the compiler when
-        /// interpreting string interpolations.
-        ///
-        /// The following example shows how to use a string interpolation to
-        /// format an
-            /// and append it to static text. The resulting interpolation implicitly
-        /// creates a ``LocalizedStringKey``, which a ``Text`` view uses to provide
-        /// its content.
-        ///
-        ///     struct ContentView: View {
-        ///
-        ///         var nextDate: AttributedString {
-        ///             var result = Calendar.current
-        ///                 .nextWeekend(startingAfter: Date.now)!
-        ///                 .start
-        ///                 .formatted(
-        ///                     .dateTime
-        ///                     .month(.wide)
-        ///                     .day()
-        ///                     .attributed
-        ///                 )
-        ///             result.backgroundColor = .green
-        ///             result.foregroundColor = .white
-        ///             return result
-        ///         }
-        ///
-        ///         var body: some View {
-        ///             Text("Our next catch-up is on \(nextDate)!")
-        ///         }
-        ///     }
-        ///
-        /// For this example, assume that the app runs on a device set to a
-        /// Russian locale, and has the following entry in a Russian-localized
-        /// `Localizable.strings` file:
-        ///
-        ///     "Our next catch-up is on %@!" = "Наша следующая встреча состоится %@!";
-        ///
-        /// The attributed string `nextDate` replaces the format specifier
-        /// `%@`,  maintaining its color and date-formatting attributes, when
-        /// the ``Text`` view renders its contents:
-        ///
-        /// ![A text view with Russian text, ending with a date that uses white
-        /// text on a green
-        /// background.](LocalizedStringKey-AttributedString-Russian)
-        ///
-        /// - Parameter attributedString: The attributed string to append.
-        @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-        public mutating func appendInterpolation(_ attributedString: AttributedString) { fatalError() }
-
-        /// The type that should be used for literal segments.
-        public typealias StringLiteralType = String
-    }
-
-    public static func == (a: LocalizedStringKey, b: LocalizedStringKey) -> Bool { fatalError() }
-
-    /// A type that represents an extended grapheme cluster literal.
-    ///
-    /// Valid types for `ExtendedGraphemeClusterLiteralType` are `Character`,
-    /// `String`, and `StaticString`.
-    public typealias ExtendedGraphemeClusterLiteralType = String
-
-    /// A type that represents a string literal.
-    ///
-    /// Valid types for `StringLiteralType` are `String` and `StaticString`.
-    public typealias StringLiteralType = String
-
-    /// A type that represents a Unicode scalar literal.
-    ///
-    /// Valid types for `UnicodeScalarLiteralType` are `Unicode.Scalar`,
-    /// `Character`, `String`, and `StaticString`.
-    public typealias UnicodeScalarLiteralType = String
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension LocalizedStringKey.StringInterpolation {
-
-    /// Appends an image to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameter image: The image to append.
-    public mutating func appendInterpolation(_ image: Image) { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension LocalizedStringKey.StringInterpolation {
-
-    /// Appends a formatted date to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameters:
-    ///   - date: The date to append.
-    ///   - style: A predefined style to format the date with.
-    public mutating func appendInterpolation(_ date: Date, style: Text.DateStyle) { fatalError() }
-
-    /// Appends a date range to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameter dates: The closed range of dates to append.
-    public mutating func appendInterpolation(_ dates: ClosedRange<Date>) { fatalError() }
-
-    /// Appends a date interval to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameter interval: The date interval to append.
-    public mutating func appendInterpolation(_ interval: DateInterval) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LocalizedStringKey.StringInterpolation {
-
-    /// Appends a timer interval to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameters:
-    ///     - timerInterval: The interval between where to run the timer.
-    ///     - pauseTime: If present, the date at which to pause the timer.
-    ///         The default is `nil` which indicates to never pause.
-    ///     - countsDown: Whether to count up or down. The default is `true`.
-    ///     - showsHours: Whether to include an hours component if there are
-    ///         more than 60 minutes left on the timer. The default is `true`.
-    public mutating func appendInterpolation(timerInterval: ClosedRange<Date>, pauseTime: Date? = nil, countsDown: Bool = true, showsHours: Bool = true) { fatalError() }
-}
-
-extension LocalizedStringKey.StringInterpolation {
-
-    /// Appends the localized string resource to a string interpolation.
-    ///
-    /// Don't call this method directly; it's used by the compiler when
-    /// interpreting string interpolations.
-    ///
-    /// - Parameters:
-    ///   - value: The localized string resource to append.
-    @available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
-    public mutating func appendInterpolation(_ resource: LocalizedStringResource) { fatalError() }
-}
-
 /// A set of view properties that may be synchronized between views
 /// using the `View.matchedGeometryEffect()` function.
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -6909,215 +6262,6 @@ public struct MoveKeyframe<Value> : KeyframeTrackContent where Value : Animatabl
     public var body: Body { fatalError() }
 }
 
-/// A control for picking multiple dates.
-///
-/// Use a `MultiDatePicker` when you want to provide a view that allows the
-/// user to select multiple dates.
-///
-/// The following example creates a basic `MultiDatePicker`, which appears as a
-/// calendar view representing the selected dates:
-///
-///     @State private var dates: Set<DateComponents> = []
-///
-///     var body: some View {
-///         MultiDatePicker("Dates Available", selection: $dates)
-///     }
-///
-/// You can limit the `MultiDatePicker` to specific ranges of dates
-/// allowing selections only before or after a certain date or between two
-/// dates. The following example shows a multi-date picker that only permits
-/// selections within the 6th and (excluding) the 16th of December 2021
-/// (in the `UTC` time zone):
-///
-///     @Environment(\.calendar) var calendar
-///     @Environment(\.timeZone) var timeZone
-///
-///     var bounds: Range<Date> {
-///         let start = calendar.date(from: DateComponents(
-///             timeZone: timeZone, year: 2022, month: 6, day: 6))!
-///         let end = calendar.date(from: DateComponents(
-///             timeZone: timeZone, year: 2022, month: 6, day: 16))!
-///         return start ..< end
-///     }
-///
-///     @State private var dates: Set<DateComponents> = []
-///
-///     var body: some View {
-///         MultiDatePicker("Dates Available", selection: $dates, in: bounds)
-///     }
-///
-/// You can also specify an alternative locale, calendar and time zone through
-/// environment values. This can be useful when using a ``PreviewProvider`` to
-/// see how your multi-date picker behaves in environments that differ from
-/// your own.
-///
-/// The following example shows a multi-date picker with a custom locale,
-/// calendar and time zone:
-///
-///     struct ContentView_Previews: PreviewProvider {
-///         static var previews: some View {
-///             MultiDatePicker("Dates Available", selection: .constant([]))
-///                 .environment(\.locale, Locale.init(identifier: "zh"))
-///                 .environment(
-///                     \.calendar, Calendar.init(identifier: .chinese))
-///                 .environment(\.timeZone, TimeZone(abbreviation: "HKT")!)
-///         }
-///     }
-///
-@available(iOS 16.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct MultiDatePicker<Label> : View where Label : View {
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-@available(iOS 16.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension MultiDatePicker {
-
-    /// Creates an instance that selects multiple dates with an unbounded
-    /// range.
-    ///
-    /// - Parameters:
-    ///   - selection: The date values being displayed and selected.
-    ///   - label: A view that describes the use of the dates.
-    public init(selection: Binding<Set<DateComponents>>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates an instance that selects multiple dates in a range.
-    ///
-    /// - Parameters:
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The exclusive range of selectable dates.
-    ///   - label: A view that describes the use of the dates.
-    public init(selection: Binding<Set<DateComponents>>, in bounds: Range<Date>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates an instance that selects multiple dates on or after some
-    /// start date.
-    ///
-    /// - Parameters:
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range from some selectable start date.
-    ///   - label: A view that describes the use of the dates.
-    public init(selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates an instance that selects multiple dates before some end date.
-    ///
-    /// - Parameters:
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range before some end date.
-    ///   - label: A view that describes the use of the dates.
-    public init(selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-@available(iOS 16.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension MultiDatePicker where Label == Text {
-
-    /// Creates an instance that selects multiple dates with an unbounded
-    /// range.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of `self`, describing
-    ///     its purpose.
-    ///   - selection: The date values being displayed and selected.
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>) { fatalError() }
-
-    /// Creates an instance that selects multiple dates in a range.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of `self`, describing
-    ///     its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The exclusive range of selectable dates.
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: Range<Date>) { fatalError() }
-
-    /// Creates an instance that selects multiple dates on or after some
-    /// start date.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of `self`, describing
-    ///     its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range from some selectable start date.
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>) { fatalError() }
-
-    /// Creates an instance that selects multiple dates before some end date.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of `self`, describing
-    ///     its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range before some end date.
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) { fatalError() }
-}
-
-@available(iOS 16.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension MultiDatePicker where Label == Text {
-
-    /// Creates an instance that selects multiple dates with an unbounded
-    /// range.
-    ///
-    /// - Parameters:
-    ///   - title: The title of `self`, describing its purpose.
-    ///   - selection: The date values being displayed and selected.
-    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance that selects multiple dates in a range.
-    ///
-    /// - Parameters:
-    ///   - title: The title of `self`, describing its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The exclusive range of selectable dates.
-    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: Range<Date>) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance that selects multiple dates on or after some
-    /// start date.
-    ///
-    /// - Parameters:
-    ///   - title: The title of `self`, describing its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range from some selectable start date.
-    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance that selects multiple dates before some end date.
-    ///
-    /// - Parameters:
-    ///   - title: The title of `self`, describing its purpose.
-    ///   - selection: The date values being displayed and selected.
-    ///   - bounds: The open range before some end date.
-    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) where S : StringProtocol { fatalError() }
-}
-
 /// A named coordinate space.
 ///
 /// Use the `coordinateSpace(_:)` modifier to assign a name to the local
@@ -7161,18 +6305,6 @@ extension Namespace : Sendable {
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Namespace.ID : Sendable {
 }
-
-///// A table row modifier that adds the ability to insert data in some base
-///// row content.
-//@available(iOS 16.0, macOS 12.0, *)
-//@available(tvOS, unavailable)
-//@available(watchOS, unavailable)
-//public struct OnInsertTableRowModifier {
-//
-//    public var body: some _TableRowContentModifier { get { fatalError() } }
-//
-//    public typealias Body = some _TableRowContentModifier
-//}
 
 /// An index view style that places a page index view over its content.
 ///
@@ -8306,132 +7438,6 @@ public struct SensoryFeedback : Equatable, Sendable {
     public static func == (a: SensoryFeedback, b: SensoryFeedback) -> Bool { fatalError() }
 }
 
-/// A gesture that's a sequence of two gestures.
-///
-/// Read <doc:Composing-SkipUI-Gestures> to learn how you can create a sequence
-/// of two gestures.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct SequenceGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
-
-    /// The value of a sequence gesture that helps to detect whether the first
-    /// gesture succeeded, so the second gesture can start.
-    @frozen public enum Value {
-
-        /// The first gesture hasn't ended.
-        case first(First.Value)
-
-        /// The first gesture has ended.
-        case second(First.Value, Second.Value?)
-    }
-
-    /// The first gesture in a sequence of two gestures.
-    public var first: First { get { fatalError() } }
-
-    /// The second gesture in a sequence of two gestures.
-    public var second: Second { get { fatalError() } }
-
-    /// Creates a sequence gesture with two gestures.
-    ///
-    /// - Parameters:
-    ///   - first: The first gesture of the sequence.
-    ///   - second: The second gesture of the sequence.
-    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
-
-    /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension SequenceGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension SequenceGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
-
-    public static func == (a: SequenceGesture<First, Second>.Value, b: SequenceGesture<First, Second>.Value) -> Bool { fatalError() }
-}
-
-/// A reference to a function in a Metal shader library.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-@dynamicCallable public struct ShaderFunction : Equatable, Sendable {
-
-    /// The shader library storing the function.
-    public var library: ShaderLibrary { get { fatalError() } }
-
-    /// The name of the shader function in the library.
-    public var name: String { get { fatalError() } }
-
-    /// Creates a new function reference from the provided shader
-    /// library and function name string.
-    public init(library: ShaderLibrary, name: String) { fatalError() }
-
-    /// Returns a new shader by applying the provided argument values
-    /// to the referenced function.
-    ///
-    /// Typically this subscript is used implicitly via function-call
-    /// syntax, for example:
-    ///
-    ///    let shader = ShaderLibrary.default.myFunction(.float(42))
-    ///
-    /// which creates a shader passing the value `42` to the first
-    /// unbound parameter of `myFunction()`.
-    public func dynamicallyCall(withArguments args: [Shader.Argument]) -> Shader { fatalError() }
-
-    public static func == (a: ShaderFunction, b: ShaderFunction) -> Bool { fatalError() }
-}
-
-/// A Metal shader library.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-@dynamicMemberLookup public struct ShaderLibrary : Equatable, @unchecked Sendable {
-
-    /// The default shader library of the main (i.e. app) bundle.
-    public static let `default`: ShaderLibrary = { fatalError() }()
-
-    /// Returns the default shader library of the specified bundle.
-    public static func bundle(_ bundle: Bundle) -> ShaderLibrary { fatalError() }
-
-    /// Creates a new Metal shader library from `data`, which must be
-    /// the contents of precompiled Metal library. Functions compiled
-    /// from the returned library will only be cached as long as the
-    /// returned library exists.
-    public init(data: Data) { fatalError() }
-
-    /// Creates a new Metal shader library from the contents of `url`,
-    /// which must be the location  of precompiled Metal library.
-    /// Functions compiled from the returned library will only be
-    /// cached as long as the returned library exists.
-    public init(url: URL) { fatalError() }
-
-    /// Returns a new shader function representing the stitchable MSL
-    /// function called `name` in the default shader library.
-    ///
-    /// Typically this subscript is used implicitly via the dynamic
-    /// member syntax, for example:
-    ///
-    ///    let fn = ShaderLibrary.myFunction
-    ///
-    /// which creates a reference to the MSL function called
-    /// `myFunction()`.
-    public static subscript(dynamicMember name: String) -> ShaderFunction { get { fatalError() } }
-
-    /// Returns a new shader function representing the stitchable MSL
-    /// function in the library called `name`.
-    ///
-    /// Typically this subscript is used implicitly via the dynamic
-    /// member syntax, for example:
-    ///
-    ///    let fn = ShaderLibrary.default.myFunction
-    ///
-    /// which creates a reference to the MSL function called
-    /// `myFunction()`.
-    public subscript(dynamicMember name: String) -> ShaderFunction { get { fatalError() } }
-
-    public static func == (lhs: ShaderLibrary, rhs: ShaderLibrary) -> Bool { fatalError() }
-}
-
 /// A style to use when rendering shadows.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct ShadowStyle : Equatable, Sendable {
@@ -8517,63 +7523,6 @@ extension SidebarRowSize : Hashable {
     public var hashValue: Int { get { fatalError() } }
 }
 
-/// A gesture containing two gestures that can happen at the same time with
-/// neither of them preceding the other.
-///
-/// A simultaneous gesture is a container-event handler that evaluates its two
-/// child gestures at the same time. Its value is a struct with two optional
-/// values, each representing the phases of one of the two gestures.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct SimultaneousGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
-
-    /// The value of a simultaneous gesture that indicates which of its two
-    /// gestures receives events.
-    @frozen public struct Value {
-
-        /// The value of the first gesture.
-        public var first: First.Value?
-
-        /// The value of the second gesture.
-        public var second: Second.Value?
-    }
-
-    /// The first of two gestures that can happen simultaneously.
-    public var first: First { get { fatalError() } }
-
-    /// The second of two gestures that can happen simultaneously.
-    public var second: Second { get { fatalError() } }
-
-    /// Creates a gesture with two gestures that can receive updates or succeed
-    /// independently of each other.
-    ///
-    /// - Parameters:
-    ///   - first: The first of two gestures that can happen simultaneously.
-    ///   - second: The second of two gestures that can happen simultaneously.
-    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
-
-    /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension SimultaneousGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension SimultaneousGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
-
-    public static func == (a: SimultaneousGesture<First, Second>.Value, b: SimultaneousGesture<First, Second>.Value) -> Bool { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension SimultaneousGesture.Value : Hashable where First.Value : Hashable, Second.Value : Hashable {
-
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    public var hashValue: Int { get { fatalError() } }
-}
-
 /// A navigation view style represented by a view stack that only shows a
 /// single top view at a time.
 ///
@@ -8625,16 +7574,6 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
     public init(lineWidth: CGFloat = 1, lineCap: CGLineCap = .butt, lineJoin: CGLineJoin = .miter, miterLimit: CGFloat = 10, dash: [CGFloat] = [CGFloat](), dashPhase: CGFloat = 0) { fatalError() }
 
     public static func == (a: StrokeStyle, b: StrokeStyle) -> Bool { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension StrokeStyle : Animatable {
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -9183,16 +8122,6 @@ extension UnitCurve {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension UnitPoint : Animatable {
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension UnitPoint : Sendable {
 }
 
@@ -9668,48 +8597,6 @@ extension Never : TableColumnContent {
 extension Never : ToolbarContent, CustomizableToolbarContent {
 }
 
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Never {
-
-    /// The type of value of rows presented by this column content.
-    public typealias TableRowValue = Never
-}
-
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Never : TableRowContent {
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
-
-    /// The composition of content that comprise the table row content.
-    public var tableRowBody: Never { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Never : Gesture {
-
-    /// The type representing the gesture's value.
-    public typealias Value = Never
-}
-
-/// Extends `T?` to conform to `Gesture` type if `T` also conforms to
-/// `Gesture`. A nil value is mapped to an empty (i.e. failing)
-/// gesture.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Optional : Gesture where Wrapped : Gesture {
-
-    /// The type representing the gesture's value.
-    public typealias Value = Wrapped.Value
-
-    public typealias Body = Never
-    public var body: Never { return never() }
-}
-
-
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Never : Scene {
 }
@@ -9717,22 +8604,6 @@ extension Never : Scene {
 @available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 extension Never : WidgetConfiguration {
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Double : Animatable {
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = Double
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension CGFloat : Animatable {
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = CGFloat
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -9811,20 +8682,7 @@ extension MutableCollection {
     public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) { fatalError() }
 }
 
-@available(iOS 16.0, macOS 13.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Optional : TableRowContent where Wrapped : TableRowContent {
-
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Wrapped.TableRowValue
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
-    public var tableRowBody: TableRowBody { fatalError() }
-}
-
-extension AttributeScopes {
+//extension AttributeScopes {
 //
 //    /// A property for accessing the attribute scopes defined by SkipUI.
 //    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
@@ -9868,13 +8726,13 @@ extension AttributeScopes {
 //
 //        public typealias EncodingConfiguration = AttributeScopeCodableConfiguration
 //    }
-}
+//}
 
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-extension AttributeDynamicLookup {
-
+//@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+//extension AttributeDynamicLookup {
+//
 //    public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
-}
+//}
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Never : Keyframes {

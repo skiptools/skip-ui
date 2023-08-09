@@ -875,3 +875,173 @@ public struct DragGesture : Gesture {
     public typealias Body = Never
     public var body: Body { fatalError() }
 }
+
+/// A gesture containing two gestures that can happen at the same time with
+/// neither of them preceding the other.
+///
+/// A simultaneous gesture is a container-event handler that evaluates its two
+/// child gestures at the same time. Its value is a struct with two optional
+/// values, each representing the phases of one of the two gestures.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct SimultaneousGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
+
+    /// The value of a simultaneous gesture that indicates which of its two
+    /// gestures receives events.
+    @frozen public struct Value {
+
+        /// The value of the first gesture.
+        public var first: First.Value?
+
+        /// The value of the second gesture.
+        public var second: Second.Value?
+    }
+
+    /// The first of two gestures that can happen simultaneously.
+    public var first: First { get { fatalError() } }
+
+    /// The second of two gestures that can happen simultaneously.
+    public var second: Second { get { fatalError() } }
+
+    /// Creates a gesture with two gestures that can receive updates or succeed
+    /// independently of each other.
+    ///
+    /// - Parameters:
+    ///   - first: The first of two gestures that can happen simultaneously.
+    ///   - second: The second of two gestures that can happen simultaneously.
+    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension SimultaneousGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension SimultaneousGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
+
+    public static func == (a: SimultaneousGesture<First, Second>.Value, b: SimultaneousGesture<First, Second>.Value) -> Bool { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension SimultaneousGesture.Value : Hashable where First.Value : Hashable, Second.Value : Hashable {
+
+    public func hash(into hasher: inout Hasher) { fatalError() }
+
+    public var hashValue: Int { get { fatalError() } }
+}
+
+/// A gesture that's a sequence of two gestures.
+///
+/// Read <doc:Composing-SkipUI-Gestures> to learn how you can create a sequence
+/// of two gestures.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct SequenceGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
+
+    /// The value of a sequence gesture that helps to detect whether the first
+    /// gesture succeeded, so the second gesture can start.
+    @frozen public enum Value {
+
+        /// The first gesture hasn't ended.
+        case first(First.Value)
+
+        /// The first gesture has ended.
+        case second(First.Value, Second.Value?)
+    }
+
+    /// The first gesture in a sequence of two gestures.
+    public var first: First { get { fatalError() } }
+
+    /// The second gesture in a sequence of two gestures.
+    public var second: Second { get { fatalError() } }
+
+    /// Creates a sequence gesture with two gestures.
+    ///
+    /// - Parameters:
+    ///   - first: The first gesture of the sequence.
+    ///   - second: The second gesture of the sequence.
+    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension SequenceGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension SequenceGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
+
+    public static func == (a: SequenceGesture<First, Second>.Value, b: SequenceGesture<First, Second>.Value) -> Bool { fatalError() }
+}
+
+/// A gesture that consists of two gestures where only one of them can succeed.
+///
+/// The `ExclusiveGesture` gives precedence to its first gesture.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct ExclusiveGesture<First, Second> : Gesture where First : Gesture, Second : Gesture {
+
+    /// The value of an exclusive gesture that indicates which of two gestures
+    /// succeeded.
+    @frozen public enum Value {
+
+        /// The first of two gestures succeeded.
+        case first(First.Value)
+
+        /// The second of two gestures succeeded.
+        case second(Second.Value)
+    }
+
+    /// The first of two gestures.
+    public var first: First { get { fatalError() } }
+
+    /// The second of two gestures.
+    public var second: Second { get { fatalError() } }
+
+    /// Creates a gesture from two gestures where only one of them succeeds.
+    ///
+    /// - Parameters:
+    ///   - first: The first of two gestures. This gesture has precedence over
+    ///     the other gesture.
+    ///   - second: The second of two gestures.
+    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension ExclusiveGesture.Value : Sendable where First.Value : Sendable, Second.Value : Sendable {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension ExclusiveGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
+
+    public static func == (a: ExclusiveGesture<First, Second>.Value, b: ExclusiveGesture<First, Second>.Value) -> Bool { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Never : Gesture {
+
+    /// The type representing the gesture's value.
+    public typealias Value = Never
+}
+
+/// Extends `T?` to conform to `Gesture` type if `T` also conforms to
+/// `Gesture`. A nil value is mapped to an empty (i.e. failing)
+/// gesture.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Optional : Gesture where Wrapped : Gesture {
+
+    /// The type representing the gesture's value.
+    public typealias Value = Wrapped.Value
+
+    public typealias Body = Never
+    public var body: Never { return never() }
+}
+

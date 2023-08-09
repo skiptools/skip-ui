@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+//import protocol SwiftUI.View
+
 /// A type that represents part of your app's user interface and provides
 /// modifiers that you use to configure views.
 ///

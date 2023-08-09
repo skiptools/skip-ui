@@ -479,3 +479,212 @@ public struct DefaultDatePickerStyle : DatePickerStyle {
     /// A view representing the appearance and interaction of a `DatePicker`.
 //    public typealias Body = some View
 }
+
+/// A control for picking multiple dates.
+///
+/// Use a `MultiDatePicker` when you want to provide a view that allows the
+/// user to select multiple dates.
+///
+/// The following example creates a basic `MultiDatePicker`, which appears as a
+/// calendar view representing the selected dates:
+///
+///     @State private var dates: Set<DateComponents> = []
+///
+///     var body: some View {
+///         MultiDatePicker("Dates Available", selection: $dates)
+///     }
+///
+/// You can limit the `MultiDatePicker` to specific ranges of dates
+/// allowing selections only before or after a certain date or between two
+/// dates. The following example shows a multi-date picker that only permits
+/// selections within the 6th and (excluding) the 16th of December 2021
+/// (in the `UTC` time zone):
+///
+///     @Environment(\.calendar) var calendar
+///     @Environment(\.timeZone) var timeZone
+///
+///     var bounds: Range<Date> {
+///         let start = calendar.date(from: DateComponents(
+///             timeZone: timeZone, year: 2022, month: 6, day: 6))!
+///         let end = calendar.date(from: DateComponents(
+///             timeZone: timeZone, year: 2022, month: 6, day: 16))!
+///         return start ..< end
+///     }
+///
+///     @State private var dates: Set<DateComponents> = []
+///
+///     var body: some View {
+///         MultiDatePicker("Dates Available", selection: $dates, in: bounds)
+///     }
+///
+/// You can also specify an alternative locale, calendar and time zone through
+/// environment values. This can be useful when using a ``PreviewProvider`` to
+/// see how your multi-date picker behaves in environments that differ from
+/// your own.
+///
+/// The following example shows a multi-date picker with a custom locale,
+/// calendar and time zone:
+///
+///     struct ContentView_Previews: PreviewProvider {
+///         static var previews: some View {
+///             MultiDatePicker("Dates Available", selection: .constant([]))
+///                 .environment(\.locale, Locale.init(identifier: "zh"))
+///                 .environment(
+///                     \.calendar, Calendar.init(identifier: .chinese))
+///                 .environment(\.timeZone, TimeZone(abbreviation: "HKT")!)
+///         }
+///     }
+///
+@available(iOS 16.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct MultiDatePicker<Label> : View where Label : View {
+
+    /// The content and behavior of the view.
+    ///
+    /// When you implement a custom view, you must implement a computed
+    /// `body` property to provide the content for your view. Return a view
+    /// that's composed of built-in views that SkipUI provides, plus other
+    /// composite views that you've already defined:
+    ///
+    ///     struct MyView: View {
+    ///         var body: some View {
+    ///             Text("Hello, World!")
+    ///         }
+    ///     }
+    ///
+    /// For more information about composing views and a view hierarchy,
+    /// see <doc:Declaring-a-Custom-View>.
+    @MainActor public var body: some View { get { return never() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+//    public typealias Body = some View
+}
+
+@available(iOS 16.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension MultiDatePicker {
+
+    /// Creates an instance that selects multiple dates with an unbounded
+    /// range.
+    ///
+    /// - Parameters:
+    ///   - selection: The date values being displayed and selected.
+    ///   - label: A view that describes the use of the dates.
+    public init(selection: Binding<Set<DateComponents>>, @ViewBuilder label: () -> Label) { fatalError() }
+
+    /// Creates an instance that selects multiple dates in a range.
+    ///
+    /// - Parameters:
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The exclusive range of selectable dates.
+    ///   - label: A view that describes the use of the dates.
+    public init(selection: Binding<Set<DateComponents>>, in bounds: Range<Date>, @ViewBuilder label: () -> Label) { fatalError() }
+
+    /// Creates an instance that selects multiple dates on or after some
+    /// start date.
+    ///
+    /// - Parameters:
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range from some selectable start date.
+    ///   - label: A view that describes the use of the dates.
+    public init(selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>, @ViewBuilder label: () -> Label) { fatalError() }
+
+    /// Creates an instance that selects multiple dates before some end date.
+    ///
+    /// - Parameters:
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range before some end date.
+    ///   - label: A view that describes the use of the dates.
+    public init(selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>, @ViewBuilder label: () -> Label) { fatalError() }
+}
+
+@available(iOS 16.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension MultiDatePicker where Label == Text {
+
+    /// Creates an instance that selects multiple dates with an unbounded
+    /// range.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of `self`, describing
+    ///     its purpose.
+    ///   - selection: The date values being displayed and selected.
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>) { fatalError() }
+
+    /// Creates an instance that selects multiple dates in a range.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of `self`, describing
+    ///     its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The exclusive range of selectable dates.
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: Range<Date>) { fatalError() }
+
+    /// Creates an instance that selects multiple dates on or after some
+    /// start date.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of `self`, describing
+    ///     its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range from some selectable start date.
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>) { fatalError() }
+
+    /// Creates an instance that selects multiple dates before some end date.
+    ///
+    /// - Parameters:
+    ///   - titleKey: The key for the localized title of `self`, describing
+    ///     its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range before some end date.
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) { fatalError() }
+}
+
+@available(iOS 16.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension MultiDatePicker where Label == Text {
+
+    /// Creates an instance that selects multiple dates with an unbounded
+    /// range.
+    ///
+    /// - Parameters:
+    ///   - title: The title of `self`, describing its purpose.
+    ///   - selection: The date values being displayed and selected.
+    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>) where S : StringProtocol { fatalError() }
+
+    /// Creates an instance that selects multiple dates in a range.
+    ///
+    /// - Parameters:
+    ///   - title: The title of `self`, describing its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The exclusive range of selectable dates.
+    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: Range<Date>) where S : StringProtocol { fatalError() }
+
+    /// Creates an instance that selects multiple dates on or after some
+    /// start date.
+    ///
+    /// - Parameters:
+    ///   - title: The title of `self`, describing its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range from some selectable start date.
+    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeFrom<Date>) where S : StringProtocol { fatalError() }
+
+    /// Creates an instance that selects multiple dates before some end date.
+    ///
+    /// - Parameters:
+    ///   - title: The title of `self`, describing its purpose.
+    ///   - selection: The date values being displayed and selected.
+    ///   - bounds: The open range before some end date.
+    public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) where S : StringProtocol { fatalError() }
+}

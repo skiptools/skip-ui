@@ -2319,6 +2319,52 @@ extension CGRect : Animatable {
     public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension UnitPoint : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Double : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = Double
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension CGFloat : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = CGFloat
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension EdgeInsets : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension StrokeStyle : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
 /// An empty type for animatable data.
 ///
 /// This type is suitable for use as the `animatableData` property of

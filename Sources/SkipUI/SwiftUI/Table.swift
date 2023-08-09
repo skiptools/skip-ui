@@ -3797,3 +3797,236 @@ extension TableStyle where Self == InsetTableStyle {
 @available(watchOS, unavailable)
 public struct TableStyleConfiguration {
 }
+
+/// A kind of table row that shows or hides additional rows based on the state
+/// of a disclosure control.
+///
+/// A disclosure group row consists of a label row that is always visible, and
+/// some content rows that are conditionally visible depending on the state.
+/// Toggling the control will flip the state between "expanded" and "collapsed".
+///
+/// In the following example, a disclosure group has `allDevices` as the label
+/// row, and exposes its expanded state with the bound property, `expanded`.
+/// Upon toggling the disclosure control, the user can update the expanded state
+/// which will in turn show or hide the three content rows for `iPhone`, `iPad`,
+/// and `Mac`.
+///
+///     private struct DeviceStats: Identifiable {
+///         // ...
+///     }
+///     @State private var expanded: Bool = true
+///     @State private var allDevices: DeviceStats = /* ... */
+///     @State private var iPhone: DeviceStats = /* ... */
+///     @State private var iPad: DeviceStats = /* ... */
+///     @State private var Mac: DeviceStats = /* ... */
+///
+///     var body: some View {
+///         Table(of: DeviceStats.self) {
+///             // ...
+///         } rows: {
+///             DisclosureTableRow(allDevices, isExpanded: $expanded) {
+///                 TableRow(iPhone)
+///                 TableRow(iPad)
+///                 TableRow(Mac)
+///             }
+///         }
+///     }
+@available(iOS 17.0, macOS 14.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct DisclosureTableRow<Label, Content> : TableRowContent where Label : TableRowContent, Content : TableRowContent, Label.TableRowValue == Content.TableRowValue {
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Label.TableRowValue
+
+    /// Creates a disclosure group with the given value and table rows, and a
+    /// binding to the expansion state (expanded or collapsed).
+    ///
+    /// - Parameters:
+    ///   - value: The value of the discloseable table row.
+    ///   - isExpanded: A binding to a Boolean value that determines the group's
+    ///    expansion state (expanded or collapsed).
+    ///   - content: The table row shown when the disclosure group expands.
+    public init<Value>(_ value: Value, isExpanded: Binding<Bool>? = nil, @TableRowBuilder<Value> content: @escaping () -> Content) where Label == TableRow<Value>, Value == Content.TableRowValue { fatalError() }
+
+    /// The composition of content that comprise the table row content.
+    public var tableRowBody: TableRowBody { get { return never() } }
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+}
+
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Optional : TableRowContent where Wrapped : TableRowContent {
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Wrapped.TableRowValue
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+    public var tableRowBody: TableRowBody { fatalError() }
+}
+
+/// A type of table row content that generates table rows from an underlying
+/// collection of data.
+///
+/// This table row content type provides drag-and-drop support for tables. Use
+/// the ``DynamicTableRowContent/onInsert(of:perform:)`` modifier to add an
+/// action to call when the table inserts new contents into its underlying
+/// collection.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public protocol DynamicTableRowContent : TableRowContent {
+
+    /// The type of the underlying collection of data.
+    associatedtype Data : Collection
+
+    /// The collection of underlying data.
+    var data: Self.Data { get }
+}
+
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension DynamicTableRowContent {
+
+    /// Sets the insert action for the dynamic table rows.
+    ///
+    ///     struct Profile: Identifiable {
+    ///         let givenName: String
+    ///         let familyName: String
+    ///         let id = UUID()
+    ///     }
+    ///
+    ///     @State private var profiles: [Profile] = [
+    ///         Person(givenName: "Juan", familyName: "Chavez"),
+    ///         Person(givenName: "Mei", familyName: "Chen"),
+    ///         Person(givenName: "Tom", familyName: "Clark"),
+    ///         Person(givenName: "Gita", familyName: "Kumar")
+    ///     ]
+    ///
+    ///     var body: some View {
+    ///         Table {
+    ///             TableColumn("Given Name", value: \.givenName)
+    ///             TableColumn("Family Name", value: \.familyName)
+    ///         } rows: {
+    ///             ForEach(profiles) {
+    ///                 TableRow($0)
+    ///             }
+    ///             .dropDestination(
+    ///                 for: Profile.self
+    ///             ) { offset, receivedProfiles in
+    ///                 people.insert(contentsOf: receivedProfiles, at: offset)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - payloadType: Type of the models that are dropped.
+    ///   - action: A closure that SkipUI invokes when elements are added to
+    ///     the collection of rows.
+    ///     The closure takes two arguments: The first argument is the
+    ///     offset relative to the dynamic view's underlying collection of data.
+    ///     The second argument is an array of `Transferable` items that
+    ///     represents the data that you want to insert.
+    ///
+    /// - Returns: A view that calls `action` when elements are inserted into
+    ///   the original view.
+//    @available(iOS 16.0, macOS 13.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping (Int, [T]) -> Void) -> ModifiedContent<Self, OnInsertTableRowModifier> where T : Transferable { fatalError() }
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension DynamicTableRowContent {
+
+    /// Sets the insert action for the dynamic table rows.
+    ///
+    /// - Parameters:
+    ///   - supportedContentTypes: An array of universal type identifiers types that the rows supports.
+    ///   - action: A closure that SkipUI invokes when adding elements to
+    ///     the collection of rows.
+    ///     The closure takes two arguments. The first argument is the
+    ///     offset relative to the dynamic view's underlying collection of data.
+    ///     The second argument is an array of
+    ///
+    ///     items that represents the data that you want to insert.
+    ///
+    /// - Returns: A view that calls `action` when inserting elements into
+    ///   the original view.
+//    public func onInsert(of supportedContentTypes: [UTType], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> ModifiedContent<Self, OnInsertTableRowModifier> { fatalError() }
+}
+
+/// A table row content that doesn't produce any rows.
+///
+/// You will rarely, if ever, need to create an `EmptyTableRowContent` directly.
+/// Instead, `EmptyTableRowContent` represents the absence of a row.
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct EmptyTableRowContent<Value> where Value : Identifiable {
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Value
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+}
+
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension EmptyTableRowContent : TableRowContent {
+    public var tableRowBody: Never { fatalError() }
+}
+
+/// A table row modifier that associates an item provider with some base
+/// row content.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct ItemProviderTableRowModifier {
+
+//    public var body: some _TableRowContentModifier { get { fatalError() } }
+
+//    public typealias Body = some _TableRowContentModifier
+}
+
+///// A table row modifier that adds the ability to insert data in some base
+///// row content.
+//@available(iOS 16.0, macOS 12.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//public struct OnInsertTableRowModifier {
+//
+//    public var body: some _TableRowContentModifier { get { fatalError() } }
+//
+//    public typealias Body = some _TableRowContentModifier
+//}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Never {
+
+    /// The type of value of rows presented by this column content.
+    public typealias TableRowValue = Never
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Never : TableRowContent {
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+
+    /// The composition of content that comprise the table row content.
+    public var tableRowBody: Never { get { fatalError() } }
+}

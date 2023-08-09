@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 import struct Foundation.Data
+import struct Foundation.URL
+import class Foundation.Bundle
 
 /// A reference to a function in a Metal shader library, along with its
 /// bound uniform argument values.
@@ -126,4 +128,84 @@ extension Shader {
     /// When you create a custom shape style, Swift infers this type
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
+}
+
+/// A reference to a function in a Metal shader library.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+@dynamicCallable public struct ShaderFunction : Equatable, Sendable {
+
+    /// The shader library storing the function.
+    public var library: ShaderLibrary { get { fatalError() } }
+
+    /// The name of the shader function in the library.
+    public var name: String { get { fatalError() } }
+
+    /// Creates a new function reference from the provided shader
+    /// library and function name string.
+    public init(library: ShaderLibrary, name: String) { fatalError() }
+
+    /// Returns a new shader by applying the provided argument values
+    /// to the referenced function.
+    ///
+    /// Typically this subscript is used implicitly via function-call
+    /// syntax, for example:
+    ///
+    ///    let shader = ShaderLibrary.default.myFunction(.float(42))
+    ///
+    /// which creates a shader passing the value `42` to the first
+    /// unbound parameter of `myFunction()`.
+    public func dynamicallyCall(withArguments args: [Shader.Argument]) -> Shader { fatalError() }
+
+    public static func == (a: ShaderFunction, b: ShaderFunction) -> Bool { fatalError() }
+}
+
+/// A Metal shader library.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+@dynamicMemberLookup public struct ShaderLibrary : Equatable, @unchecked Sendable {
+
+    /// The default shader library of the main (i.e. app) bundle.
+    public static let `default`: ShaderLibrary = { fatalError() }()
+
+    /// Returns the default shader library of the specified bundle.
+    public static func bundle(_ bundle: Bundle) -> ShaderLibrary { fatalError() }
+
+    /// Creates a new Metal shader library from `data`, which must be
+    /// the contents of precompiled Metal library. Functions compiled
+    /// from the returned library will only be cached as long as the
+    /// returned library exists.
+    public init(data: Data) { fatalError() }
+
+    /// Creates a new Metal shader library from the contents of `url`,
+    /// which must be the location  of precompiled Metal library.
+    /// Functions compiled from the returned library will only be
+    /// cached as long as the returned library exists.
+    public init(url: URL) { fatalError() }
+
+    /// Returns a new shader function representing the stitchable MSL
+    /// function called `name` in the default shader library.
+    ///
+    /// Typically this subscript is used implicitly via the dynamic
+    /// member syntax, for example:
+    ///
+    ///    let fn = ShaderLibrary.myFunction
+    ///
+    /// which creates a reference to the MSL function called
+    /// `myFunction()`.
+    public static subscript(dynamicMember name: String) -> ShaderFunction { get { fatalError() } }
+
+    /// Returns a new shader function representing the stitchable MSL
+    /// function in the library called `name`.
+    ///
+    /// Typically this subscript is used implicitly via the dynamic
+    /// member syntax, for example:
+    ///
+    ///    let fn = ShaderLibrary.default.myFunction
+    ///
+    /// which creates a reference to the MSL function called
+    /// `myFunction()`.
+    public subscript(dynamicMember name: String) -> ShaderFunction { get { fatalError() } }
+
+    public static func == (lhs: ShaderLibrary, rhs: ShaderLibrary) -> Bool { fatalError() }
 }
