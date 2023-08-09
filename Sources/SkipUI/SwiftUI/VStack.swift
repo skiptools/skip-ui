@@ -1,26 +1,24 @@
-// Copyright 2023 Skip
-//
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-/// A view that arranges its subviews in a horizontal line.
+/// A view that arranges its subviews in a vertical line.
 ///
-/// Unlike ``LazyHStack``, which only renders the views when your app needs to
-/// display them onscreen, an `HStack` renders the views all at once, regardless
-/// of whether they are on- or offscreen. Use the regular `HStack` when you have
+/// Unlike ``LazyVStack``, which only renders the views when your app needs to
+/// display them, a `VStack` renders the views all at once, regardless
+/// of whether they are on- or offscreen. Use the regular `VStack` when you have
 /// a small number of subviews or don't want the delayed rendering behavior
 /// of the "lazy" version.
 ///
-/// The following example shows a simple horizontal stack of five text views:
+/// The following example shows a simple vertical stack of 10 text views:
 ///
 ///     var body: some View {
-///         HStack(
-///             alignment: .top,
+///         VStack(
+///             alignment: .leading,
 ///             spacing: 10
 ///         ) {
 ///             ForEach(
-///                 1...5,
+///                 1...10,
 ///                 id: \.self
 ///             ) {
 ///                 Text("Item \($0)")
@@ -28,16 +26,16 @@
 ///         }
 ///     }
 ///
-/// ![Five text views, named Item 1 through Item 5, arranged in a
-/// horizontal row.](SkipUI-HStack-simple.png)
+/// ![Ten text views, named Item 1 through Item 10, arranged in a
+/// vertical line.](SkipUI-VStack-simple.png)
 ///
-/// > Note: If you need a horizontal stack that conforms to the ``Layout``
+/// > Note: If you need a vertical stack that conforms to the ``Layout``
 /// protocol, like when you want to create a conditional layout using
-/// ``AnyLayout``, use ``HStackLayout`` instead.
+/// ``AnyLayout``, use ``VStackLayout`` instead.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct HStack<Content> : View where Content : View {
+@frozen public struct VStack<Content> : View where Content : View {
 
-    /// Creates a horizontal stack with the given spacing and vertical alignment.
+    /// Creates an instance with the given spacing and horizontal alignment.
     ///
     /// - Parameters:
     ///   - alignment: The guide for aligning the subviews in this stack. This
@@ -46,7 +44,7 @@
     ///     want the stack to choose a default distance for each pair of
     ///     subviews.
     ///   - content: A view builder that creates the content of this stack.
-    @inlinable public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { fatalError() }
+    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { fatalError() }
 
     /// The type of view representing the body of this view.
     ///
@@ -56,31 +54,32 @@
     public var body: Body { fatalError() }
 }
 
-/// A horizontal container that you can use in conditional layouts.
+/// A vertical container that you can use in conditional layouts.
 ///
-/// This layout container behaves like an ``HStack``, but conforms to the
+/// This layout container behaves like a ``VStack``, but conforms to the
 /// ``Layout`` protocol so you can use it in the conditional layouts that you
 /// construct with ``AnyLayout``. If you don't need a conditional layout, use
-/// ``HStack`` instead.
+/// ``VStack`` instead.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct HStackLayout : Layout {
-    /// The vertical alignment of subviews.
-    public var alignment: VerticalAlignment { get { fatalError() } }
+@frozen public struct VStackLayout : Layout {
+
+    /// The horizontal alignment of subviews.
+    public var alignment: HorizontalAlignment { get { fatalError() } }
 
     /// The distance between adjacent subviews.
     ///
     /// Set this value to `nil` to use default distances between subviews.
     public var spacing: CGFloat?
 
-    /// Creates a horizontal stack with the specified spacing and vertical
+    /// Creates a vertical stack with the specified spacing and horizontal
     /// alignment.
     ///
     /// - Parameters:
     ///     - alignment: The guide for aligning the subviews in this stack. It
-    ///       has the same vertical screen coordinate for all subviews.
+    ///       has the same horizontal screen coordinate for all subviews.
     ///     - spacing: The distance between adjacent subviews. Set this value
     ///       to `nil` to use default distances between subviews.
-    @inlinable public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil) { fatalError() }
+    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil) { fatalError() }
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
@@ -110,5 +109,5 @@
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension HStackLayout : Sendable {
+extension VStackLayout : Sendable {
 }
