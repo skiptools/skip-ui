@@ -17,3 +17,9 @@ public typealias CGPoint = CoreGraphics.CGPoint
 import struct CoreGraphics.CGAffineTransform
 public typealias CGAffineTransform = CoreGraphics.CGAffineTransform
 
+
+import class CoreGraphics.CGPath
+public typealias CGPath = CoreGraphics.CGPath
+
+import class CoreGraphics.CGMutablePath
+public typealias CGMutablePath = CoreGraphics.CGMutablePath

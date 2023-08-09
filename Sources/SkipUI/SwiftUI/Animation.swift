@@ -7,6 +7,28 @@
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
+
+/// Returns the result of recomputing the view's body with the provided
+/// animation, and runs the completion when all animations are complete.
+///
+/// This function sets the given ``Animation`` as the ``Transaction/animation``
+/// property of the thread's current ``Transaction`` as well as calling
+/// ``Transaction/addAnimationCompletion`` with the specified completion.
+///
+/// The completion callback will always be fired exactly one time. If no
+/// animations are created by the changes in `body`, then the callback will be
+/// called immediately after `body`.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public func withAnimation<Result>(_ animation: Animation? = .default, completionCriteria: AnimationCompletionCriteria = .logicallyComplete, _ body: () throws -> Result, completion: @escaping () -> Void) rethrows -> Result { fatalError() }
+
+/// Returns the result of recomputing the view's body with the provided
+/// animation.
+///
+/// This function sets the given ``Animation`` as the ``Transaction/animation``
+/// property of the thread's current ``Transaction``.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result { fatalError() }
+
 /// A type that describes how to animate a property of a view.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public protocol Animatable {
