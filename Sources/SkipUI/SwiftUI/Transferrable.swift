@@ -1948,3 +1948,58 @@ extension View {
     public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], allowsMultipleSelection: Bool, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return never() }
 
 }
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Provides a closure that vends the drag representation to be used for a
+    /// particular data element.
+    @inlinable public func itemProvider(_ action: (() -> NSItemProvider?)?) -> some View { return never() }
+
+}
+
+@available(iOS 13.4, macOS 10.15, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Activates this view as the source of a drag and drop operation.
+    ///
+    /// Applying the `onDrag(_:)` modifier adds the appropriate gestures for
+    /// drag and drop to this view. When a drag operation begins, a rendering of
+    /// this view is generated and used as the preview image.
+    ///
+    /// - Parameter data: A closure that returns a single
+    ///  that
+    /// represents the draggable data from this view.
+    ///
+    /// - Returns: A view that activates this view as the source of a drag and
+    ///   drop operation, beginning with user gesture input.
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func onDrag(_ data: @escaping () -> NSItemProvider) -> some View { return never() }
+
+}
+
+@available(iOS 15.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Activates this view as the source of a drag and drop operation.
+    ///
+    /// Applying the `onDrag(_:preview:)` modifier adds the appropriate gestures
+    /// for drag and drop to this view. When a drag operation begins,
+    /// a rendering of `preview` is generated and used as the preview image.
+    ///
+    /// - Parameter data: A closure that returns a single
+    /// that represents the draggable data from this view.
+    /// - Parameter preview: A ``View`` to use as the source for the dragging
+    ///   preview, once the drag operation has begun. The preview is centered over
+    ///   the source view.
+    ///
+    /// - Returns: A view that activates this view as the source of a drag-and-
+    ///   drop operation, beginning with user gesture input.
+    public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return never() }
+
+}

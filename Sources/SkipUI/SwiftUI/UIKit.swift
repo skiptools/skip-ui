@@ -2,18 +2,49 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-import UIKit
+import protocol Combine.ObservableObject
+import protocol UIKit.UIApplicationDelegate
+import protocol UIKit.UIMutableTraits
+import protocol UIKit.UIContentConfiguration
+import protocol UIKit.UIViewControllerTransitionCoordinator
+import protocol UIKit.UIContentView
+import protocol UIKit.UIContentContainer
+import protocol UIKit.UIConfigurationState
 
-//import class UIKit.UIColor
-//import struct UIKit.UITextContentType
-//import enum UIKit.UIKeyboardType
-//import enum UIKit.UITextAutocapitalizationType
-//import enum UIKit.UIUserInterfaceStyle
-//import enum UIKit.UILegibilityWeight
-//import enum UIKit.UIUserInterfaceSizeClass
-//import struct UIKit.UIRectEdge
-//import struct UIKit.UIContentSizeCategory
-//import enum UIKit.UIContentSizeCategory
+import class Foundation.NSObject
+import class Foundation.UndoManager
+import class Foundation.NSCoder
+
+import class UIKit.UIView
+import class UIKit.UIColor
+import class UIKit.UITraitCollection
+import class UIKit.UIKeyCommand
+import class UIKit.UIViewController
+
+import struct ObjectiveC.Selector
+
+import struct UIKit.UITextContentType
+import struct UIKit.UIRectEdge
+import struct UIKit.UIContentSizeCategory
+import struct UIKit.UIContentSizeCategory
+import struct UIKit.UITextContentType
+import struct UIKit.NSUnderlineStyle
+import struct UIKit.ImageResource
+import struct UIKit.NSDirectionalEdgeInsets
+
+import enum UIKit.UIKeyboardType
+import enum UIKit.UITextAutocapitalizationType
+import enum UIKit.UIUserInterfaceStyle
+import enum UIKit.UILegibilityWeight
+import enum UIKit.UIUserInterfaceSizeClass
+import enum UIKit.UIAccessibilityContrast
+
+import enum UIKit.UIKeyboardType
+import enum UIKit.UITextAutocapitalizationType
+import enum UIKit.UIStatusBarAnimation
+import enum UIKit.UIStatusBarStyle
+import enum UIKit.UITraitEnvironmentLayoutDirection
+
 
 /// A property wrapper type that you use to create a UIKit app delegate.
 ///
@@ -1303,4 +1334,89 @@ extension Label where Title == Text, Icon == Image {
     ///    - title: A string used as the label's title.
     ///    - image: The image resource to lookup.
     public init<S>(_ title: S, image resource: ImageResource) where S : StringProtocol { fatalError() }
+}
+
+extension View {
+
+    /// Sets the keyboard type for this view.
+    ///
+    /// Use `keyboardType(_:)` to specify the keyboard type to use for text
+    /// entry. A number of different keyboard types are available to meet
+    /// specialized input needs, such as entering email addresses or phone
+    /// numbers.
+    ///
+    /// The example below presents a ``TextField`` to input an email address.
+    /// Setting the text field's keyboard type to `.emailAddress` ensures the
+    /// user can only enter correctly formatted email addresses.
+    ///
+    ///     TextField("someone@example.com", text: $emailAddress)
+    ///         .keyboardType(.emailAddress)
+    ///
+    /// There are several different kinds of specialized keyboard types
+    /// available though the
+    ///  enumeration. To
+    /// specify the default system keyboard type, use `.default`.
+    ///
+    /// ![A screenshot showing the use of a specialized keyboard type with a
+    /// text field.](SkipUI-View-keyboardType.png)
+    ///
+    /// - Parameter type: One of the keyboard types defined in the
+    ///  enumeration.
+    @available(iOS 13.0, tvOS 13.0, *)
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    public func keyboardType(_ type: UIKeyboardType) -> some View { return never() }
+
+}
+
+extension View {
+
+    /// Sets whether to apply auto-capitalization to this view.
+    ///
+    /// Use `autocapitalization(_:)` when you need to automatically capitalize
+    /// words, sentences, or other text like proper nouns.
+    ///
+    /// In example below, as the user enters text each word is automatically
+    /// capitalized:
+    ///
+    ///     TextField("Last, First", text: $fullName)
+    ///         .autocapitalization(UITextAutocapitalizationType.words)
+    ///
+    /// The
+    /// enumeration defines the available capitalization modes. The default is
+    /// .
+    ///
+    /// - Parameter style: One of the autocapitalization modes defined in the
+    /// enumeration.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
+    public func autocapitalization(_ style: UITextAutocapitalizationType) -> some View { return never() }
+
+}
+
+extension View {
+
+    /// Sets the text content type for this view, which the system uses to
+    /// offer suggestions while the user enters text on an iOS or tvOS device.
+    ///
+    /// Use this method to set the content type for input text.
+    /// For example, you can configure a ``TextField`` for the entry of email
+    /// addresses:
+    ///
+    ///     TextField("Enter your email", text: $emailAddress)
+    ///         .textContentType(.emailAddress)
+    ///
+    /// - Parameter textContentType: One of the content types available in the
+    ///
+    ///   structure that identify the semantic meaning expected for a text-entry
+    ///   area. These include support for email addresses, location names, URLs,
+    ///   and telephone numbers, to name just a few.
+    @available(iOS 13.0, tvOS 13.0, *)
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return never() }
+
 }
