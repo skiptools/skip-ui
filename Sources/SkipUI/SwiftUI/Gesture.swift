@@ -513,3 +513,399 @@ public struct MagnifyGesture : Gesture {
     public typealias Body = Never
     public var body: Body { fatalError() }
 }
+
+/// A gesture that recognizes a rotation motion and tracks the angle of the
+/// rotation.
+///
+/// A rotate gesture tracks how a rotation event sequence changes. To
+/// recognize a rotate gesture on a view, create and configure the gesture,
+/// and then add it to the view using the ``View/gesture(_:including:)``
+/// modifier.
+///
+/// Add a rotate gesture to a ``Rectangle`` and apply a rotation effect:
+///
+///     struct RotateGestureView: View {
+///         @State private var angle = Angle(degrees: 0.0)
+///
+///         var rotation: some Gesture {
+///             RotateGesture()
+///                 .onChanged { value in
+///                     angle = value.rotation
+///                 }
+///         }
+///
+///         var body: some View {
+///             Rectangle()
+///                 .frame(width: 200, height: 200, alignment: .center)
+///                 .rotationEffect(angle)
+///                 .gesture(rotation)
+///         }
+///     }
+@available(iOS 17.0, macOS 14.0, *)
+@available(watchOS, unavailable)
+@available(tvOS, unavailable)
+public struct RotateGesture : Gesture {
+
+    /// The type representing the gesture's value.
+    public struct Value : Equatable, Sendable {
+
+        /// The time associated with the gesture's current event.
+        public var time: Date { get { fatalError() } }
+
+        /// The relative amount that the gesture has rotated by.
+        ///
+        /// A value of 30 degrees means that the user has interacted with the
+        /// gesture to rotate by 30 degrees relative to the amount before the
+        /// gesture.
+        public var rotation: Angle { get { fatalError() } }
+
+        /// The current rotation velocity.
+        public var velocity: Angle { get { fatalError() } }
+
+        /// The initial anchor point of the gesture in the modified view's
+        /// coordinate space.
+        public var startAnchor: UnitPoint { get { fatalError() } }
+
+        /// The initial center of the gesture in the modified view's coordinate
+        /// space.
+        public var startLocation: CGPoint { get { fatalError() } }
+
+        /// Returns a Boolean value indicating whether two values are equal.
+        ///
+        /// Equality is the inverse of inequality. For any values `a` and `b`,
+        /// `a == b` implies that `a != b` is `false`.
+        ///
+        /// - Parameters:
+        ///   - lhs: A value to compare.
+        ///   - rhs: Another value to compare.
+        public static func == (a: RotateGesture.Value, b: RotateGesture.Value) -> Bool { fatalError() }
+    }
+
+    /// The minimum delta required before the gesture succeeds.
+    public var minimumAngleDelta: Angle { get { fatalError() } }
+
+    /// Creates a rotation gesture with a minimum delta for the gesture to
+    /// start.
+    ///
+    /// - Parameter minimumAngleDelta: The minimum delta required before the
+    ///   gesture starts. The default value is a one-degree angle.
+    public init(minimumAngleDelta: Angle = .degrees(1)) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "RotateGesture")
+@available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "RotateGesture")
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "RotateGesture")
+public struct RotationGesture : Gesture {
+
+    /// The minimum delta required before the gesture succeeds.
+    public var minimumAngleDelta: Angle { get { fatalError() } }
+
+    /// Creates a rotation gesture with a minimum delta for the gesture to
+    /// start.
+    ///
+    /// - Parameter minimumAngleDelta: The minimum delta required before the
+    ///   gesture starts. The default value is a one-degree angle.
+    public init(minimumAngleDelta: Angle = .degrees(1)) { fatalError() }
+
+    /// The type representing the gesture's value.
+    public typealias Value = Angle
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+/// A gesture that activates immediately upon receiving any spatial event that describes
+/// clicks, touches, or pinches.
+///
+/// Use the `action` closure to handle the collection
+/// of events that target this gesture's view. The `phase` of
+/// the events in the collection may move to `ended` or `cancelled` while
+/// the gesture itself remains active. Individually track state for each `Event`
+/// inside the `action` closure. The following shows a `SpatialEventGesture` that emits
+/// particles in a simulation:
+///
+/// ```
+/// struct ParticlePlayground: View {
+///     @StateObject
+///     var model = ParticlesModel()
+///     var body: some View {
+///         Canvas { context, size in
+///             for p in model.particles {
+///                 drawParticle(p, in: context)
+///             }
+///         }.gesture(SpatialEventGesture { events in
+///             for event in events {
+///                 if event.phase == .active {
+///                     // Update a particle emitter at each active event's location.
+///                     model.emitters[event.id] = ParticlesModel.Emitter(
+///                         location: event.location
+///                     )
+///                 } else {
+///                     // Clear out emitter state when the event is no longer active.
+///                     model.emitters[event.id] = nil
+///                 }
+///             }
+///         })
+///     }
+/// }
+/// ```
+@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
+@available(tvOS, unavailable)
+public struct SpatialEventGesture : Gesture {
+
+    /// Creates the gesture with a desired coordinate space and a handler
+    /// that triggers when any event state changes.
+    public init(coordinateSpace: CoordinateSpaceProtocol = .local, action: @escaping (SpatialEventCollection) -> Void) { fatalError() }
+
+    /// The type representing the gesture's value.
+    public typealias Value = Void
+
+    /// The coordinate space of the gesture.
+    public let coordinateSpace: CoordinateSpace = { fatalError() }()
+
+    /// The action to call when the state of any event changes.
+    public let action: (SpatialEventCollection) -> Void = { fatalError() }()
+
+//    public var internalBody: some Gesture<()> { get { fatalError() } }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+/// A gesture that recognizes one or more taps and reports their location.
+///
+/// To recognize a tap gesture on a view, create and configure the gesture, and
+/// then add it to the view using the ``View/gesture(_:including:)`` modifier.
+/// The following code adds a tap gesture to a ``Circle`` that toggles the color
+/// of the circle based on the tap location:
+///
+///     struct TapGestureView: View {
+///         @State private var location: CGPoint = .zero
+///
+///         var tap: some Gesture {
+///             SpatialTapGesture()
+///                 .onEnded { event in
+///                     self.location = event.location
+///                  }
+///         }
+///
+///         var body: some View {
+///             Circle()
+///                 .fill(self.location.y > 50 ? Color.blue : Color.red)
+///                 .frame(width: 100, height: 100, alignment: .center)
+///                 .gesture(tap)
+///         }
+///     }
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, xrOS 1.0, *)
+@available(tvOS, unavailable)
+public struct SpatialTapGesture : Gesture {
+
+    /// The attributes of a tap gesture.
+    public struct Value : Equatable, @unchecked Sendable {
+
+        /// The location of the tap gesture's current event.
+        public var location: CGPoint { get { fatalError() } }
+
+        /// Returns a Boolean value indicating whether two values are equal.
+        ///
+        /// Equality is the inverse of inequality. For any values `a` and `b`,
+        /// `a == b` implies that `a != b` is `false`.
+        ///
+        /// - Parameters:
+        ///   - lhs: A value to compare.
+        ///   - rhs: Another value to compare.
+        public static func == (a: SpatialTapGesture.Value, b: SpatialTapGesture.Value) -> Bool { fatalError() }
+    }
+
+    /// The required number of tap events.
+    public var count: Int { get { fatalError() } }
+
+    /// The coordinate space in which to receive location values.
+    public var coordinateSpace: CoordinateSpace { get { fatalError() } }
+
+    /// Creates a tap gesture with the number of required taps and the
+    /// coordinate space of the gesture's location.
+    ///
+    /// - Parameters:
+    ///   - count: The required number of taps to complete the tap
+    ///     gesture.
+    ///   - coordinateSpace: The coordinate space of the tap gesture's location.
+    @available(iOS, introduced: 16.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(macOS, introduced: 13.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(watchOS, introduced: 9.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(tvOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    public init(count: Int = 1, coordinateSpace: CoordinateSpace = .local) { fatalError() }
+
+    /// Creates a tap gesture with the number of required taps and the
+    /// coordinate space of the gesture's location.
+    ///
+    /// - Parameters:
+    ///   - count: The required number of taps to complete the tap
+    ///     gesture.
+    ///   - coordinateSpace: The coordinate space of the tap gesture's location.
+    @available(iOS 17.0, macOS 14.0, watchOS 10.0, *)
+    @available(tvOS, unavailable)
+    public init(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+/// A gesture that recognizes one or more taps.
+///
+/// To recognize a tap gesture on a view, create and configure the gesture, and
+/// then add it to the view using the ``View/gesture(_:including:)`` modifier.
+/// The following code adds a tap gesture to a ``Circle`` that toggles the color
+/// of the circle:
+///
+///     struct TapGestureView: View {
+///         @State private var tapped = false
+///
+///         var tap: some Gesture {
+///             TapGesture(count: 1)
+///                 .onEnded { _ in self.tapped = !self.tapped }
+///         }
+///
+///         var body: some View {
+///             Circle()
+///                 .fill(self.tapped ? Color.blue : Color.red)
+///                 .frame(width: 100, height: 100, alignment: .center)
+///                 .gesture(tap)
+///         }
+///     }
+@available(iOS 13.0, macOS 10.15, tvOS 16.0, watchOS 6.0, *)
+public struct TapGesture : Gesture {
+    public var body: Never
+
+
+    /// The required number of tap events.
+    public var count: Int { get { fatalError() } }
+
+    /// Creates a tap gesture with the number of required taps.
+    ///
+    /// - Parameter count: The required number of taps to complete the tap
+    ///   gesture.
+    public init(count: Int = 1) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+
+    /// The type representing the gesture's value.
+    public typealias Value = Void
+}
+
+/// A dragging motion that invokes an action as the drag-event sequence changes.
+///
+/// To recognize a drag gesture on a view, create and configure the gesture, and
+/// then add it to the view using the ``View/gesture(_:including:)`` modifier.
+///
+/// Add a drag gesture to a ``Circle`` and change its color while the user
+/// performs the drag gesture:
+///
+///     struct DragGestureView: View {
+///         @State private var isDragging = false
+///
+///         var drag: some Gesture {
+///             DragGesture()
+///                 .onChanged { _ in self.isDragging = true }
+///                 .onEnded { _ in self.isDragging = false }
+///         }
+///
+///         var body: some View {
+///             Circle()
+///                 .fill(self.isDragging ? Color.red : Color.blue)
+///                 .frame(width: 100, height: 100, alignment: .center)
+///                 .gesture(drag)
+///         }
+///     }
+@available(iOS 13.0, macOS 10.15, watchOS 6.0, *)
+@available(tvOS, unavailable)
+public struct DragGesture : Gesture {
+
+    /// The attributes of a drag gesture.
+    public struct Value : Equatable, Sendable {
+
+        /// The time associated with the drag gesture's current event.
+        public var time: Date { get { fatalError() } }
+
+        /// The location of the drag gesture's current event.
+        public var location: CGPoint { get { fatalError() } }
+
+        /// The location of the drag gesture's first event.
+        public var startLocation: CGPoint { get { fatalError() } }
+
+        /// The total translation from the start of the drag gesture to the
+        /// current event of the drag gesture.
+        ///
+        /// This is equivalent to `location.{x,y} - startLocation.{x,y}`.
+        public var translation: CGSize { get { fatalError() } }
+
+        /// The current drag velocity.
+        public var velocity: CGSize { get { fatalError() } }
+
+        /// A prediction, based on the current drag velocity, of where the final
+        /// location will be if dragging stopped now.
+        public var predictedEndLocation: CGPoint { get { fatalError() } }
+
+        /// A prediction, based on the current drag velocity, of what the final
+        /// translation will be if dragging stopped now.
+        public var predictedEndTranslation: CGSize { get { fatalError() } }
+
+        /// Returns a Boolean value indicating whether two values are equal.
+        ///
+        /// Equality is the inverse of inequality. For any values `a` and `b`,
+        /// `a == b` implies that `a != b` is `false`.
+        ///
+        /// - Parameters:
+        ///   - lhs: A value to compare.
+        ///   - rhs: Another value to compare.
+        public static func == (a: DragGesture.Value, b: DragGesture.Value) -> Bool { fatalError() }
+    }
+
+    /// The minimum dragging distance before the gesture succeeds.
+    public var minimumDistance: CGFloat { get { fatalError() } }
+
+    /// The coordinate space in which to receive location values.
+    public var coordinateSpace: CoordinateSpace { get { fatalError() } }
+
+    /// Creates a dragging gesture with the minimum dragging distance before the
+    /// gesture succeeds and the coordinate space of the gesture's location.
+    ///
+    /// - Parameters:
+    ///   - minimumDistance: The minimum dragging distance for the gesture to
+    ///     succeed.
+    ///   - coordinateSpace: The coordinate space of the dragging gesture's
+    ///     location.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
+    @available(tvOS, unavailable)
+    public init(minimumDistance: CGFloat = 10, coordinateSpace: CoordinateSpace = .local) { fatalError() }
+
+    /// Creates a dragging gesture with the minimum dragging distance before the
+    /// gesture succeeds and the coordinate space of the gesture's location.
+    ///
+    /// - Parameters:
+    ///   - minimumDistance: The minimum dragging distance for the gesture to
+    ///     succeed.
+    ///   - coordinateSpace: The coordinate space of the dragging gesture's
+    ///     location.
+    @available(iOS 17.0, macOS 14.0, watchOS 10.0, *)
+    @available(tvOS, unavailable)
+    public init(minimumDistance: CGFloat = 10, coordinateSpace: some CoordinateSpaceProtocol = .local) { fatalError() }
+
+    /// The type of gesture representing the body of `Self`.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
