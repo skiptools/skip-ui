@@ -3701,3 +3701,46 @@ extension ForEach : TableRowContent where Content : TableRowContent {
 @available(watchOS, unavailable)
 extension ForEach : DynamicTableRowContent where Content : TableRowContent {
 }
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Group : TableColumnContent where Content : TableColumnContent {
+
+    /// The type of value of rows presented by this column content.
+    public typealias TableRowValue = Content.TableRowValue
+
+    /// The type of sort comparator associated with this table column content.
+    public typealias TableColumnSortComparator = Content.TableColumnSortComparator
+
+    /// The type of content representing the body of this table column content.
+    public typealias TableColumnBody = Never
+
+    /// Creates a group of table columns.
+    ///
+    /// - Parameter content: A ``SkipUI/TableColumnBuilder`` that produces the
+    ///   columns to group.
+    @inlinable public init<R, C>(@TableColumnBuilder<R, C> content: () -> Content) where R == Content.TableRowValue, C == Content.TableColumnSortComparator { fatalError() }
+
+    public var tableColumnBody: Never { fatalError() }
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Group : TableRowContent where Content : TableRowContent {
+    public var tableRowBody: Never { fatalError() }
+
+
+    /// The type of value represented by this table row content.
+    public typealias TableRowValue = Content.TableRowValue
+
+    /// The type of content representing the body of this table row content.
+    public typealias TableRowBody = Never
+
+    /// Creates a group of table rows.
+    ///
+    /// - Parameter content: A ``SkipUI/TableRowBuilder`` that produces the
+    ///   rows to group.
+    @inlinable public init<R>(@TableRowBuilder<R> content: () -> Content) where R == Content.TableRowValue { fatalError() }
+}

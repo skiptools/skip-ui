@@ -1047,3 +1047,25 @@ extension View {
     public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { return never() }
 
 }
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension Group : ToolbarContent where Content : ToolbarContent {
+    /// Creates a group of toolbar content instances.
+    ///
+    /// - Parameter content: A ``SkipUI/ToolbarContentBuilder`` that produces
+    /// the toolbar content instances to group.
+    public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
+
+    public typealias Body = Never
+    public var body: Body { return never() }
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension Group : CustomizableToolbarContent where Content : CustomizableToolbarContent {
+
+    /// Creates a group of customizable toolbar content instances.
+    ///
+    /// - Parameter content: A ``SkipUI/ToolbarContentBuilder`` that produces
+    /// the customizable toolbar content instances to group.
+    public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
+}

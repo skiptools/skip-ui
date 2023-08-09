@@ -856,3 +856,15 @@ extension ScenePhase : Sendable {
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension ScenePhase : Hashable {
 }
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension Group : Scene where Content : Scene {
+    public var body: Never { fatalError() }
+
+
+    /// Creates a group of scenes.
+    ///
+    /// - Parameter content: A ``SkipUI/SceneBuilder`` that produces the scenes
+    /// to group.
+    @inlinable public init(@SceneBuilder content: () -> Content) { fatalError() }
+}

@@ -1035,3 +1035,108 @@ extension Shader : ShapeStyle {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
 }
+
+/// A shape style that displays one of the overlay fills.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@frozen public struct FillShapeStyle : ShapeStyle {
+
+    /// An overlay fill style for filling shapes.
+    ///
+    /// This shape style is appropriate for items situated on top of an existing
+    /// background color. It incorporates transparency to allow the background
+    /// color to show through.
+    ///
+    /// Use the primary version of this style to fill thin or small shapes, such
+    /// as the track of a slider.
+    /// Use the secondary version of this style to fill medium-size shapes, such
+    /// as the background of a switch.
+    /// Use the tertiary version of this style to fill large shapes, such as
+    /// input fields, search bars, or buttons.
+    /// Use the quaternary version of this style to fill large areas that
+    /// contain complex content, such as an expanded table cell.
+    public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+/// A shape provider that fills its shape.
+///
+/// You do not create this type directly, it is the return type of `Shape.fill`.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@frozen public struct FillShapeView<Content, Style, Background> : ShapeView where Content : Shape, Style : ShapeStyle, Background : View {
+
+    /// The shape that this type draws and provides for other drawing
+    /// operations.
+    public var shape: Content { get { fatalError() } }
+
+    /// The style that fills this view's shape.
+    public var style: Style { get { fatalError() } }
+
+    /// The fill style used when filling this view's shape.
+    public var fillStyle: FillStyle { get { fatalError() } }
+
+    /// The background shown beneath this view.
+    public var background: Background { get { fatalError() } }
+
+    /// Create a FillShapeView.
+    public init(shape: Content, style: Style, fillStyle: FillStyle, background: Background) { fatalError() }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+/// A style for rasterizing vector shapes.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct FillStyle : Equatable {
+
+    /// A Boolean value that indicates whether to use the even-odd rule when
+    /// rendering a shape.
+    ///
+    /// When `isOEFilled` is `false`, the style uses the non-zero winding number
+    /// rule.
+    public var isEOFilled: Bool { get { fatalError() } }
+
+    /// A Boolean value that indicates whether to apply antialiasing to the
+    /// edges of a shape.
+    public var isAntialiased: Bool { get { fatalError() } }
+
+    /// Creates a new fill style with the specified settings.
+    ///
+    /// - Parameters:
+    ///   - eoFill: A Boolean value that indicates whether to use the even-odd
+    ///     rule for rendering a shape. Pass `false` to use the non-zero winding
+    ///     number rule instead.
+    ///   - antialiased: A Boolean value that indicates whether to use
+    ///     antialiasing when rendering the edges of a shape.
+    @inlinable public init(eoFill: Bool = false, antialiased: Bool = true) { fatalError() }
+
+    public static func == (a: FillStyle, b: FillStyle) -> Bool { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension FillStyle : Sendable {
+}
+
+/// The foreground style in the current context.
+///
+/// You can also use ``ShapeStyle/foreground`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct ForegroundStyle : ShapeStyle {
+
+    /// Creates a foreground style instance.
+    @inlinable public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
