@@ -5,7 +5,6 @@
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
-
 /// Returns the result of recomputing the view's body with the provided
 /// animation, and runs the completion when all animations are complete.
 ///
@@ -1747,4 +1746,662 @@ public struct AnimationTimelineSchedule : TimelineSchedule, Sendable {
         /// encapsulates its iteration state.
         public typealias Iterator = AnimationTimelineSchedule.Entries
     }
+}
+
+/// A type that defines how an animatable value changes over time.
+///
+/// Use this protocol to create a type that changes an animatable value over
+/// time, which produces a custom visual transition of a view. For example, the
+/// follow code changes an animatable value using an elastic ease-in ease-out
+/// function:
+///
+///     struct ElasticEaseInEaseOutAnimation: CustomAnimation {
+///         let duration: TimeInterval
+///
+///         func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic {
+///             if time > duration { return nil } // The animation has finished.
+///
+///             let p = time / duration
+///             let s = sin((20 * p - 11.125) * ((2 * Double.pi) / 4.5))
+///             if p < 0.5 {
+///                 return value.scaled(by: -(pow(2, 20 * p - 10) * s) / 2)
+///             } else {
+///                 return value.scaled(by: (pow(2, -20 * p + 10) * s) / 2 + 1)
+///             }
+///         }
+///     }
+///
+/// > Note: To maintain state during the life span of a custom animation, use
+/// the ``AnimationContext/state`` property available on the `context`
+/// parameter value. You can also use context's
+/// ``AnimationContext/environment`` property to retrieve environment values
+/// from the view that created the custom animation. For more information, see
+/// ``AnimationContext``.
+///
+/// To create an ``Animation`` instance of a custom animation, use the
+/// ``Animation/init(_:)`` initializer, passing in an instance of a custom
+/// animation; for example:
+///
+///     Animation(ElasticEaseInEaseOutAnimation(duration: 5.0))
+///
+/// To help make view code more readable, extend ``Animation`` and add a static
+/// property and function that returns an `Animation` instance of a custom
+/// animation. For example, the following code adds the static property
+/// `elasticEaseInEaseOut` that returns the elastic ease-in ease-out animation
+/// with a default duration of `0.35` seconds. Next, the code adds a method
+/// that returns the animation with a specified duration.
+///
+///     extension Animation {
+///         static var elasticEaseInEaseOut: Animation { elasticEaseInEaseOut(duration: 0.35) }
+///         static func elasticEaseInEaseOut(duration: TimeInterval) -> Animation {
+///             Animation(ElasticEaseInEaseOutAnimation(duration: duration))
+///         }
+///     }
+///
+/// To animate a view with the elastic ease-in ease-out animation, a view calls
+/// either `.elasticEaseInEaseOut` or `.elasticEaseInEaseOut(duration:)`. For
+/// example, the follow code includes an Animate button that, when clicked,
+/// animates a circle as it moves from one edge of the view to the other,
+/// using the elastic ease-in ease-out animation with a duration of `5`
+/// seconds:
+///
+///     struct ElasticEaseInEaseOutView: View {
+///         @State private var isActive = false
+///
+///         var body: some View {
+///             VStack(alignment: isActive ? .trailing : .leading) {
+///                 Circle()
+///                     .frame(width: 100.0)
+///                     .foregroundColor(.accentColor)
+///
+///                 Button("Animate") {
+///                     withAnimation(.elasticEaseInEaseOut(duration: 5.0)) {
+///                         isActive.toggle()
+///                     }
+///                 }
+///                 .frame(maxWidth: .infinity)
+///             }
+///             .padding()
+///         }
+///     }
+///
+/// @Video(source: "animation-20-elastic.mp4", poster: "animation-20-elastic.png", alt: "A video that shows a circle that moves from one edge of the view to the other using an elastic ease-in ease-out animation. The circle's initial position is near the leading edge of the view. The circle begins moving slightly towards the leading, then towards trail edges of the view before it moves off the leading edge showing only two-thirds of the circle. The circle then moves quickly to the trailing edge of the view, going slightly beyond the edge so that only two-thirds of the circle is visible. The circle bounces back into full view before settling into position near the trailing edge of the view. The circle repeats this animation in reverse, going from the trailing edge of the view to the leading edge.")
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public protocol CustomAnimation : Hashable {
+
+    /// Calculates the value of the animation at the specified time.
+    ///
+    /// Implement this method to calculate and return the value of the
+    /// animation at a given point in time. If the animation has finished,
+    /// return `nil` as the value. This signals to the system that it can
+    /// remove the animation.
+    ///
+    /// If your custom animation needs to maintain state between calls to the
+    /// `animate(value:time:context:)` method, store the state data in
+    /// `context`. This makes the data available to the method next time
+    /// the system calls it. To learn more about managing state data in a
+    /// custom animation, see ``AnimationContext``.
+    ///
+    /// - Parameters:
+    ///   - value: The vector to animate towards.
+    ///   - time: The elapsed time since the start of the animation.
+    ///   - context: An instance of ``AnimationContext`` that provides access
+    ///   to state and the animation environment.
+    /// - Returns: The current value of the animation, or `nil` if the
+    ///   animation has finished.
+    func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic
+
+    /// Calculates the velocity of the animation at a specified time.
+    ///
+    /// Implement this method to provide the velocity of the animation at a
+    /// given time. Should subsequent animations merge with the animation,
+    /// the system preserves continuity of the velocity between animations.
+    ///
+    /// The default implementation of this method returns `nil`.
+    ///
+    /// > Note: State and environment data is available to this method via the
+    /// `context` parameter, but `context` is read-only. This behavior is
+    /// different than with ``animate(value:time:context:)`` and
+    /// ``shouldMerge(previous:value:time:context:)-7f4ts`` where `context` is
+    /// an `inout` parameter, letting you change the context including state
+    /// data of the animation. For more information about managing state data
+    /// in a custom animation, see ``AnimationContext``.
+    ///
+    /// - Parameters:
+    ///   - value: The vector to animate towards.
+    ///   - time: The amount of time since the start of the animation.
+    ///   - context: An instance of ``AnimationContext`` that provides access
+    ///   to state and the animation environment.
+    /// - Returns: The current velocity of the animation, or `nil` if the
+    ///   animation has finished.
+    func velocity<V>(value: V, time: TimeInterval, context: AnimationContext<V>) -> V? where V : VectorArithmetic
+
+    /// Determines whether an instance of the animation can merge with other
+    /// instance of the same type.
+    ///
+    /// When a view creates a new animation on an animatable value that already
+    /// has a running animation of the same animation type, the system calls
+    /// the `shouldMerge(previous:value:time:context:)` method on the new
+    /// instance to determine whether it can merge the two instance. Implement
+    /// this method if the animation can merge with another instance. The
+    /// default implementation returns `false`.
+    ///
+    /// If `shouldMerge(previous:value:time:context:)` returns `true`, the
+    /// system merges the new animation instance with the previous animation.
+    /// The system provides to the new instance the state and elapsed time from
+    /// the previous one. Then it removes the previous animation.
+    ///
+    /// If this method returns `false`, the system doesn't merge the animation
+    /// with the previous one. Instead, both animations run together and the
+    /// system combines their results.
+    ///
+    /// If your custom animation needs to maintain state between calls to the
+    /// `shouldMerge(previous:value:time:context:)` method, store the state
+    /// data in `context`. This makes the data available to the method next
+    /// time the system calls it. To learn more, see ``AnimationContext``.
+    ///
+    /// - Parameters:
+    ///   - previous: The previous running animation.
+    ///   - value: The vector to animate towards.
+    ///   - time: The amount of time since the start of the previous animation.
+    ///   - context: An instance of ``AnimationContext`` that provides access
+    ///   to state and the animation environment.
+    /// - Returns: A Boolean value of `true` if the animation should merge with
+    ///   the previous animation; otherwise, `false`.
+    func shouldMerge<V>(previous: Animation, value: V, time: TimeInterval, context: inout AnimationContext<V>) -> Bool where V : VectorArithmetic
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension CustomAnimation {
+
+    /// Calculates the velocity of the animation at a specified time.
+    ///
+    /// Implement this method to provide the velocity of the animation at a
+    /// given time. Should subsequent animations merge with the animation,
+    /// the system preserves continuity of the velocity between animations.
+    ///
+    /// The default implementation of this method returns `nil`.
+    ///
+    /// > Note: State and environment data is available to this method via the
+    /// `context` parameter, but `context` is read-only. This behavior is
+    /// different than with ``animate(value:time:context:)`` and
+    /// ``shouldMerge(previous:value:time:context:)-7f4ts`` where `context` is
+    /// an `inout` parameter, letting you change the context including state
+    /// data of the animation. For more information about managing state data
+    /// in a custom animation, see ``AnimationContext``.
+    ///
+    /// - Parameters:
+    ///   - value: The vector to animate towards.
+    ///   - time: The amount of time since the start of the animation.
+    ///   - context: An instance of ``AnimationContext`` that provides access
+    ///   to state and the animation environment.
+    /// - Returns: The current velocity of the animation, or `nil` if the
+    ///   animation has finished.
+    public func velocity<V>(value: V, time: TimeInterval, context: AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
+
+    /// Determines whether an instance of the animation can merge with other
+    /// instance of the same type.
+    ///
+    /// When a view creates a new animation on an animatable value that already
+    /// has a running animation of the same animation type, the system calls
+    /// the `shouldMerge(previous:value:time:context:)` method on the new
+    /// instance to determine whether it can merge the two instance. Implement
+    /// this method if the animation can merge with another instance. The
+    /// default implementation returns `false`.
+    ///
+    /// If `shouldMerge(previous:value:time:context:)` returns `true`, the
+    /// system merges the new animation instance with the previous animation.
+    /// The system provides to the new instance the state and elapsed time from
+    /// the previous one. Then it removes the previous animation.
+    ///
+    /// If this method returns `false`, the system doesn't merge the animation
+    /// with the previous one. Instead, both animations run together and the
+    /// system combines their results.
+    ///
+    /// If your custom animation needs to maintain state between calls to the
+    /// `shouldMerge(previous:value:time:context:)` method, store the state
+    /// data in `context`. This makes the data available to the method next
+    /// time the system calls it. To learn more, see ``AnimationContext``.
+    ///
+    /// - Parameters:
+    ///   - previous: The previous running animation.
+    ///   - value: The vector to animate towards.
+    ///   - time: The amount of time since the start of the previous animation.
+    ///   - context: An instance of ``AnimationContext`` that provides access
+    ///   to state and the animation environment.
+    /// - Returns: A Boolean value of `true` if the animation should merge with
+    ///   the previous animation; otherwise, `false`.
+    public func shouldMerge<V>(previous: Animation, value: V, time: TimeInterval, context: inout AnimationContext<V>) -> Bool where V : VectorArithmetic { fatalError() }
+}
+
+/// A keyframe that uses a cubic curve to smoothly interpolate between values.
+///
+/// If you don't specify a start or end velocity, SkipUI automatically
+/// computes a curve that maintains smooth motion between keyframes.
+///
+/// Adjacent cubic keyframes result in a Catmull-Rom spline.
+///
+/// If a cubic keyframe follows a different type of keyframe, such as a linear
+/// keyframe, the end velocity of the segment defined by the previous keyframe
+/// will be used as the starting velocity.
+///
+/// Likewise, if a cubic keyframe is followed by a different type of keyframe,
+/// the initial velocity of the next segment is used as the end velocity of the
+/// segment defined by this keyframe.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct CubicKeyframe<Value> : KeyframeTrackContent where Value : Animatable {
+
+    /// Creates a new keyframe using the given value and timestamp.
+    ///
+    /// - Parameters:
+    ///   - to: The value of the keyframe.
+    ///   - startVelocity: The velocity of the value at the beginning of the
+    ///     segment, or `nil` to automatically compute the velocity to maintain
+    ///     smooth motion.
+    ///   - endVelocity: The velocity of the value at the end of the segment,
+    ///     or `nil` to automatically compute the velocity to maintain smooth
+    ///     motion.
+    ///   - duration: The duration of the segment defined by this keyframe.
+    public init(_ to: Value, duration: TimeInterval, startVelocity: Value? = nil, endVelocity: Value? = nil) { fatalError() }
+
+    public typealias Value = Value
+    public typealias Body = CubicKeyframe<Value>
+    public var body: Body { fatalError() }
+}
+
+/// A container that animates its content with keyframes.
+///
+/// The `content` closure updates every frame while
+/// animating, so avoid performing any expensive operations directly within
+/// `content`.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct KeyframeAnimator<Value, KeyframePath, Content> : View where Value == KeyframePath.Value, KeyframePath : Keyframes, Content : View {
+
+    /// Plays the given keyframes when the given trigger value changes, updating
+    /// the view using the modifiers you apply in `body`.
+    ///
+    /// Note that the `content` closure will be updated on every frame while
+    /// animating, so avoid performing any expensive operations directly within
+    /// `content`.
+    ///
+    /// If the trigger value changes while animating, the `keyframes` closure
+    /// will be called with the current interpolated value, and the keyframes
+    /// that you return define a new animation that replaces the old one. The
+    /// previous velocity will be preserved, so cubic or spring keyframes will
+    /// maintain continuity from the previous animation if they do not specify
+    /// a custom initial velocity.
+    ///
+    /// When a keyframe animation finishes, the animator will remain at the
+    /// end value, which becomes the initial value for the next animation.
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value that the keyframes will animate
+    ///     from.
+    ///   - trigger: A value to observe for changes.
+    ///   - content: A view builder closure that takes the interpolated value
+    ///     generated by the keyframes as its single argument.
+    ///   - keyframes: Keyframes defining how the value changes over time. The
+    ///     current value of the animator is the single argument, which is
+    ///     equal to `initialValue` when the view first appears, then is equal
+    ///     to the end value of the previous keyframe animation on subsequent
+    ///     calls.
+    public init(initialValue: Value, trigger: some Equatable, @ViewBuilder content: @escaping (Value) -> Content, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> KeyframePath) { fatalError() }
+
+    /// Loops the given keyframes continuously, updating
+    /// the view using the modifiers you apply in `body`.
+    ///
+    /// Note that the `content` closure will be updated on every frame while
+    /// animating, so avoid performing any expensive operations directly within
+    /// `content`.
+    ///
+    /// - Parameters:
+    ///   - initialValue: The initial value that the keyframes will animate
+    ///     from.
+    ///   - repeating: Whether the keyframes are currently repeating. If false,
+    ///     the value at the beginning of the keyframe timeline will be
+    ///     provided to the content closure.
+    ///   - content: A view builder closure that takes the interpolated value
+    ///     generated by the keyframes as its single argument.
+    ///   - keyframes: Keyframes defining how the value changes over time. The
+    ///     current value of the animator is the single argument, which is
+    ///     equal to `initialValue` when the view first appears, then is equal
+    ///     to the end value of the previous keyframe animation on subsequent
+    ///     calls.
+    public init(initialValue: Value, repeating: Bool = true, @ViewBuilder content: @escaping (Value) -> Content, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> KeyframePath) { fatalError() }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+/// A description of how a value changes over time, modeled using keyframes.
+///
+/// Unlike other animations in SkipUI (using ``Animation``), keyframes
+/// don't interpolate between from and to values that SkipUI provides as
+/// state changes. Instead, keyframes fully define the path that a value
+/// takes over time using the tracks that make up their body.
+///
+/// `Keyframes` values are roughly analogous to video clips;
+/// they have a set duration, and you can scrub and evaluate them for any
+/// time within the duration.
+///
+/// The `Keyframes` structure also allows you to compute an interpolated
+/// value at a specific time, which you can use when integrating keyframes
+/// into custom use cases.
+///
+/// For example, you can use a `Keyframes` instance to define animations for a
+/// type conforming to `Animatable:`
+///
+///     let keyframes = KeyframeTimeline(initialValue: CGPoint.zero) {
+///         CubcKeyframe(.init(x: 0, y: 100), duration: 0.3)
+///         CubicKeyframe(.init(x: 0, y: 0), duration: 0.7)
+///     }
+///
+///     let value = keyframes.value(time: 0.45
+///
+/// For animations that involve multiple coordinated changes, you can include
+/// multiple nested tracks:
+///
+///     struct Values {
+///         var rotation = Angle.zero
+///         var scale = 1.0
+///     }
+///
+///     let keyframes = KeyframeTimeline(initialValue: Values()) {
+///         KeyframeTrack(\.rotation) {
+///             CubicKeyframe(.zero, duration: 0.2)
+///             CubicKeyframe(.degrees(45), duration: 0.3)
+///         }
+///         KeyframeTrack(\.scale) {
+///             CubicKeyframe(value: 1.2, duration: 0.5)
+///             CubicKeyframe(value: 0.9, duration: 0.2)
+///             CubicKeyframe(value: 1.0, duration: 0.3)
+///         }
+///     }
+///
+/// Multiple nested tracks update the initial value in the order that they are
+/// declared. This means that if multiple nested plans change the same property
+/// of the root value, the value from the last competing track will be used.
+///
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct KeyframeTimeline<Value> {
+
+    /// Creates a new instance using the initial value and content that you
+    /// provide.
+    public init(initialValue: Value, @KeyframesBuilder<Value> content: () -> some Keyframes<Value>) { fatalError() }
+
+    /// The duration of the content in seconds.
+    public var duration: TimeInterval { get { fatalError() } }
+
+    /// Returns the interpolated value at the given time.
+    public func value(time: Double) -> Value { fatalError() }
+
+    /// Returns the interpolated value at the given progress in the range zero to one.
+    public func value(progress: Double) -> Value { fatalError() }
+}
+
+/// A sequence of keyframes animating a single property of a root type.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct KeyframeTrack<Root, Value, Content> : Keyframes where Value == Content.Value, Content : KeyframeTrackContent {
+
+    /// Creates an instance that animates the entire value from the root of the key path.
+    ///
+    /// - Parameter keyframes: A keyframe collection builder closure containing
+    ///   the keyframes that control the interpolation curve.
+    public init(@KeyframeTrackContentBuilder<Root> content: () -> Content) where Root == Value { fatalError() }
+
+    /// Creates an instance that animates the property of the root value
+    /// at the given key path.
+    ///
+    /// - Parameter keyPath: The property to animate.
+    /// - Parameter keyframes: A keyframe collection builder closure containing
+    ///   the keyframes that control the interpolation curve.
+    public init(_ keyPath: WritableKeyPath<Root, Value>, @KeyframeTrackContentBuilder<Value> content: () -> Content) { fatalError() }
+
+    /// The type of keyframes representing the body of this type.
+    ///
+    /// When you create a custom keyframes type, Swift infers this type from your
+    /// implementation of the required
+    /// ``Keyframes/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { return never() }
+}
+
+/// A group of keyframes that define an interpolation curve of an animatable
+/// value.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public protocol KeyframeTrackContent<Value> {
+
+    associatedtype Value : Animatable = Self.Body.Value
+
+    associatedtype Body : KeyframeTrackContent
+
+    /// The composition of content that comprise the keyframe track.
+//    @KeyframeTrackContentBuilder<Self.Value> var body: Self.Body { get }
+}
+
+/// The builder that creates keyframe track content from the keyframes
+/// that you define within a closure.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@resultBuilder public struct KeyframeTrackContentBuilder<Value> where Value : Animatable {
+
+    public static func buildExpression<K>(_ expression: K) -> K where Value == K.Value, K : KeyframeTrackContent { fatalError() }
+
+//    public static func buildArray(_ components: [some KeyframeTrackContent<Value>]) -> some KeyframeTrackContent<Value> { return never() }
+
+
+    public static func buildEither<First, Second>(first component: First) -> KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second> where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value { fatalError() }
+
+    public static func buildEither<First, Second>(second component: Second) -> KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second> where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value { fatalError() }
+
+    public static func buildPartialBlock<K>(first: K) -> K where Value == K.Value, K : KeyframeTrackContent { fatalError() }
+
+//    public static func buildPartialBlock(accumulated: some KeyframeTrackContent<Value>, next: some KeyframeTrackContent<Value>) -> some KeyframeTrackContent<Value> { return never() }
+
+
+    public static func buildBlock() -> Never { return never() }
+
+}
+
+extension KeyframeTrackContentBuilder {
+
+    /// A conditional result from the result builder.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public struct Conditional<Value, First, Second> : KeyframeTrackContent where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value {
+        public typealias Value = Value
+        public typealias Body = KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second>
+        public var body: Body { fatalError() }
+    }
+}
+
+/// A type that defines changes to a value over time.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public protocol Keyframes<Value> {
+
+    /// The type of value animated by this keyframes type
+    associatedtype Value = Self.Body.Value
+
+    /// The type of keyframes representing the body of this type.
+    ///
+    /// When you create a custom keyframes type, Swift infers this type from your
+    /// implementation of the required
+    /// ``Keyframes/body-swift.property`` property.
+    associatedtype Body : Keyframes
+
+    /// The composition of content that comprise the keyframes.
+    @KeyframesBuilder<Self.Value> var body: Self.Body { get }
+}
+
+/// A builder that combines keyframe content values into a single value.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@resultBuilder public struct KeyframesBuilder<Value> {
+
+    public static func buildExpression<K>(_ expression: K) -> K where Value == K.Value, K : KeyframeTrackContent { fatalError() }
+
+//    public static func buildArray(_ components: [some KeyframeTrackContent<Value>]) -> some KeyframeTrackContent<Value> { fatalError() }
+
+
+    public static func buildEither<First, Second>(first component: First) -> KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second> where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value { fatalError() }
+
+    public static func buildEither<First, Second>(second component: Second) -> KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second> where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value { fatalError() }
+
+    public static func buildPartialBlock<K>(first: K) -> K where Value == K.Value, K : KeyframeTrackContent { fatalError() }
+
+//    public static func buildPartialBlock(accumulated: some KeyframeTrackContent<Value>, next: some KeyframeTrackContent<Value>) -> some KeyframeTrackContent<Value> { return never() }
+
+
+    public static func buildBlock() -> Never where Value : Animatable { return never() }
+
+
+    public static func buildFinalResult<Content>(_ component: Content) -> KeyframeTrack<Value, Value, Content> where Value == Content.Value, Content : KeyframeTrackContent { fatalError() }
+
+    /// Keyframes
+    public static func buildExpression<Content>(_ expression: Content) -> Content where Value == Content.Value, Content : Keyframes { fatalError() }
+
+    public static func buildPartialBlock<Content>(first: Content) -> Content where Value == Content.Value, Content : Keyframes { fatalError() }
+
+//    public static func buildPartialBlock(accumulated: some Keyframes<Value>, next: some Keyframes<Value>) -> some Keyframes<Value> { return never() }
+
+
+//    public static func buildBlock() -> some Keyframes<Value> { return never() }
+
+
+    public static func buildFinalResult<Content>(_ component: Content) -> Content where Value == Content.Value, Content : Keyframes { fatalError() }
+}
+
+/// A keyframe that uses simple linear interpolation.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct LinearKeyframe<Value> : KeyframeTrackContent where Value : Animatable {
+
+    /// Creates a new keyframe using the given value and timestamp.
+    ///
+    /// - Parameters:
+    ///   - to: The value of the keyframe.
+    ///   - duration: The duration of the segment defined by this keyframe.
+    ///   - timingCurve: A unit curve that controls the speed of interpolation.
+    public init(_ to: Value, duration: TimeInterval, timingCurve: UnitCurve = .linear) { fatalError() }
+
+    public typealias Value = Value
+    public typealias Body = LinearKeyframe<Value>
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension CGPoint : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension CGSize : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension CGRect : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = Never // AnimatablePair<CGPoint.AnimatableData, CGSize.AnimatableData>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+/// An empty type for animatable data.
+///
+/// This type is suitable for use as the `animatableData` property of
+/// types that do not have any animatable properties.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct EmptyAnimatableData : VectorArithmetic {
+
+    @inlinable public init() { fatalError() }
+
+    /// The zero value.
+    ///
+    /// Zero is the identity element for addition. For any value,
+    /// `x + .zero == x` and `.zero + x == x`.
+    @inlinable public static var zero: EmptyAnimatableData { get { fatalError() } }
+
+    /// Adds two values and stores the result in the left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    @inlinable public static func += (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
+
+    /// Subtracts the second value from the first and stores the difference in the
+    /// left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    @inlinable public static func -= (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
+
+    /// Adds two values and produces their sum.
+    ///
+    /// The addition operator (`+`) calculates the sum of its two arguments. For
+    /// example:
+    ///
+    ///     1 + 2                   // 3
+    ///     -10 + 15                // 5
+    ///     -15 + -5                // -20
+    ///     21.5 + 3.25             // 24.75
+    ///
+    /// You cannot use `+` with arguments of different types. To add values of
+    /// different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: Int8 = 21
+    ///     let y: Int = 1000000
+    ///     Int(x) + y              // 1000021
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    @inlinable public static func + (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
+
+    /// Subtracts one value from another and produces their difference.
+    ///
+    /// The subtraction operator (`-`) calculates the difference of its two
+    /// arguments. For example:
+    ///
+    ///     8 - 3                   // 5
+    ///     -10 - 5                 // -15
+    ///     100 - -5                // 105
+    ///     10.5 - 100.0            // -89.5
+    ///
+    /// You cannot use `-` with arguments of different types. To subtract values
+    /// of different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: UInt8 = 21
+    ///     let y: UInt = 1000000
+    ///     y - UInt(x)             // 999979
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    @inlinable public static func - (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
+
+    /// Multiplies each component of this value by the given value.
+    @inlinable public mutating func scale(by rhs: Double) { fatalError() }
+
+    /// The dot-product of this animatable data instance with itself.
+    @inlinable public var magnitudeSquared: Double { get { fatalError() } }
+
+    public static func == (a: EmptyAnimatableData, b: EmptyAnimatableData) -> Bool { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension EmptyAnimatableData : Sendable {
 }

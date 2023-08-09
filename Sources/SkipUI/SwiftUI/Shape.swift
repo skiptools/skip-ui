@@ -1021,6 +1021,180 @@ extension RoundedRectangle : InsettableShape {
     public typealias InsetShape = Never
 }
 
+/// A capsule shape aligned inside the frame of the view containing it.
+///
+/// A capsule shape is equivalent to a rounded rectangle where the corner radius
+/// is chosen as half the length of the rectangle's smallest edge.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct Capsule : Shape {
+    public var style: RoundedCornerStyle { get { fatalError() } }
+
+    /// Creates a new capsule shape.
+    ///
+    /// - Parameters:
+    ///   - style: the style of corners drawn by the shape.
+    @inlinable public init(style: RoundedCornerStyle = .continuous) { fatalError() }
+
+    /// Describes this shape as a path within a rectangular frame of reference.
+    ///
+    /// - Parameter rect: The frame of reference for describing this shape.
+    ///
+    /// - Returns: A path that describes this shape.
+    public func path(in r: CGRect) -> Path { fatalError() }
+
+    /// Returns the behavior this shape should use for different layout
+    /// directions.
+    ///
+    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
+    /// shape's path will be mirrored horizontally when in the specified layout
+    /// direction. When mirrored, the individual points of the path will be
+    /// transformed.
+    ///
+    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
+    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
+    /// To mirror a path when deploying to earlier releases, either use
+    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
+    /// shape or conditionally mirror the points in the path of the shape.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Capsule : InsettableShape {
+    /// Returns `self` inset by `amount`.
+    @inlinable public func inset(by amount: CGFloat) -> InsetShape { return never() }
+
+
+    /// The type of the inset shape.
+    public typealias InsetShape = Never
+}
+
+/// A shape that is replaced by an inset version of the current
+/// container shape. If no container shape was defined, is replaced by
+/// a rectangle.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+@frozen public struct ContainerRelativeShape : Shape {
+
+    /// Describes this shape as a path within a rectangular frame of reference.
+    ///
+    /// - Parameter rect: The frame of reference for describing this shape.
+    ///
+    /// - Returns: A path that describes this shape.
+    public func path(in rect: CGRect) -> Path { fatalError() }
+
+    @inlinable public init() { fatalError() }
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension ContainerRelativeShape : InsettableShape {
+
+    /// Returns `self` inset by `amount`.
+    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+
+
+    /// The type of the inset shape.
+    public typealias InsetShape = Never
+}
+
+/// A circle centered on the frame of the view containing it.
+///
+/// The circle's radius equals half the length of the frame rectangle's smallest
+/// edge.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct Circle : Shape {
+
+    /// Describes this shape as a path within a rectangular frame of reference.
+    ///
+    /// - Parameter rect: The frame of reference for describing this shape.
+    ///
+    /// - Returns: A path that describes this shape.
+    public func path(in rect: CGRect) -> Path { fatalError() }
+
+    /// Creates a new circle shape.
+    @inlinable public init() { fatalError() }
+
+    /// Returns the behavior this shape should use for different layout
+    /// directions.
+    ///
+    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
+    /// shape's path will be mirrored horizontally when in the specified layout
+    /// direction. When mirrored, the individual points of the path will be
+    /// transformed.
+    ///
+    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
+    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
+    /// To mirror a path when deploying to earlier releases, either use
+    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
+    /// shape or conditionally mirror the points in the path of the shape.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Circle {
+
+    /// Returns the size of the view that will render the shape, given
+    /// a proposed size.
+    ///
+    /// Implement this method to tell the container of the shape how
+    /// much space the shape needs to render itself, given a size
+    /// proposal.
+    ///
+    /// See ``Layout/sizeThatFits(proposal:subviews:cache:)``
+    /// for more details about how the layout system chooses the size of
+    /// views.
+    ///
+    /// - Parameters:
+    ///   - proposal: A size proposal for the container.
+    ///
+    /// - Returns: A size that indicates how much space the shape needs.
+    public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Circle : InsettableShape {
+
+    /// Returns `self` inset by `amount`.
+    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+
+
+    /// The type of the inset shape.
+    public typealias InsetShape = Never
+}
+
 /// A shape with a scale transform applied to it.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct ScaledShape<Content> : Shape where Content : Shape {
@@ -1131,4 +1305,195 @@ extension UnevenRoundedRectangle : InsettableShape {
 
     /// The type of the inset shape.
     public typealias InsetShape = Never
+}
+
+/// An ellipse aligned inside the frame of the view containing it.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct Ellipse : Shape {
+
+    /// Describes this shape as a path within a rectangular frame of reference.
+    ///
+    /// - Parameter rect: The frame of reference for describing this shape.
+    ///
+    /// - Returns: A path that describes this shape.
+    public func path(in rect: CGRect) -> Path { fatalError() }
+
+    /// Creates a new ellipse shape.
+    @inlinable public init() { fatalError() }
+
+    /// Returns the behavior this shape should use for different layout
+    /// directions.
+    ///
+    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
+    /// shape's path will be mirrored horizontally when in the specified layout
+    /// direction. When mirrored, the individual points of the path will be
+    /// transformed.
+    ///
+    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
+    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
+    /// To mirror a path when deploying to earlier releases, either use
+    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
+    /// shape or conditionally mirror the points in the path of the shape.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Ellipse : InsettableShape {
+
+    /// Returns `self` inset by `amount`.
+    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+
+
+    /// The type of the inset shape.
+    public typealias InsetShape = Never
+}
+
+/// A shape type that is able to inset itself to produce another shape.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public protocol InsettableShape : Shape {
+
+    /// The type of the inset shape.
+    associatedtype InsetShape : InsettableShape
+
+    /// Returns `self` inset by `amount`.
+    func inset(by amount: CGFloat) -> Self.InsetShape
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension InsettableShape {
+
+    /// Returns a view that is the result of insetting `self` by
+    /// `style.lineWidth / 2`, stroking the resulting shape with
+    /// `style`, and then filling with `content`.
+    @inlinable public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return never() }
+
+
+    /// Returns a view that is the result of insetting `self` by
+    /// `style.lineWidth / 2`, stroking the resulting shape with
+    /// `style`, and then filling with the foreground color.
+    @inlinable public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return never() }
+
+
+    /// Returns a view that is the result of filling the `lineWidth`-sized
+    /// border (aka inner stroke) of `self` with `content`. This is
+    /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
+    /// resulting shape with `lineWidth` as the line-width.
+    @inlinable public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return never() }
+
+
+    /// Returns a view that is the result of filling the `lineWidth`-sized
+    /// border (aka inner stroke) of `self` with the foreground color.
+    /// This is equivalent to insetting `self` by `lineWidth / 2` and
+    /// stroking the resulting shape with `lineWidth` as the line-width.
+    @inlinable public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return never() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension InsettableShape {
+
+    /// Returns a view that is the result of insetting `self` by
+    /// `style.lineWidth / 2`, stroking the resulting shape with
+    /// `style`, and then filling with `content`.
+    public func strokeBorder<S>(_ content: S = .foreground, style: StrokeStyle, antialiased: Bool = true) -> StrokeBorderShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
+
+    /// Returns a view that is the result of filling the `lineWidth`-sized
+    /// border (aka inner stroke) of `self` with `content`. This is
+    /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
+    /// resulting shape with `lineWidth` as the line-width.
+    public func strokeBorder<S>(_ content: S = .foreground, lineWidth: CGFloat = 1, antialiased: Bool = true) -> StrokeBorderShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
+}
+
+/// A shape with a translation offset transform applied to it.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct OffsetShape<Content> : Shape where Content : Shape {
+
+    public var shape: Content { get { fatalError() } }
+
+    public var offset: CGSize { get { fatalError() } }
+
+    @inlinable public init(shape: Content, offset: CGSize) { fatalError() }
+
+    /// Describes this shape as a path within a rectangular frame of reference.
+    ///
+    /// - Parameter rect: The frame of reference for describing this shape.
+    ///
+    /// - Returns: A path that describes this shape.
+    public func path(in rect: CGRect) -> Path { fatalError() }
+
+    /// An indication of how to style a shape.
+    ///
+    /// SkipUI looks at a shape's role when deciding how to apply a
+    /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
+    /// default implementation with a value of ``ShapeRole/fill``. If you
+    /// create a composite shape, you can provide an override of this property
+    /// to return another value, if appropriate.
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+    public static var role: ShapeRole { get { fatalError() } }
+
+    /// Returns the behavior this shape should use for different layout
+    /// directions.
+    ///
+    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
+    /// shape's path will be mirrored horizontally when in the specified layout
+    /// direction. When mirrored, the individual points of the path will be
+    /// transformed.
+    ///
+    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
+    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
+    /// To mirror a path when deploying to earlier releases, either use
+    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
+    /// shape or conditionally mirror the points in the path of the shape.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension OffsetShape : InsettableShape where Content : InsettableShape {
+
+    /// Returns `self` inset by `amount`.
+    @inlinable public func inset(by amount: CGFloat) -> OffsetShape<Content.InsetShape> { fatalError() }
+
+    /// The type of the inset shape.
+    public typealias InsetShape = OffsetShape<Content.InsetShape>
+}
+
+extension Never : Shape {
+    public typealias AnimatableData = Never
+    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+
+    public func path(in rect: CGRect) -> Path {
+        fatalError()
+    }
+}
+
+extension Never : InsettableShape {
+    public func inset(by amount: CGFloat) -> Never {
+        fatalError()
+    }
 }

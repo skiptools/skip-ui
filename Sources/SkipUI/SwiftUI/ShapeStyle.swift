@@ -1140,3 +1140,75 @@ extension FillStyle : Sendable {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
 }
+
+/// A shape style that maps to one of the numbered content styles.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+@frozen public struct HierarchicalShapeStyle : ShapeStyle {
+
+    /// A shape style that maps to the first level of the current
+    /// content style.
+    public static let primary: HierarchicalShapeStyle = { fatalError() }()
+
+    /// A shape style that maps to the second level of the current
+    /// content style.
+    public static let secondary: HierarchicalShapeStyle = { fatalError() }()
+
+    /// A shape style that maps to the third level of the current
+    /// content style.
+    public static let tertiary: HierarchicalShapeStyle = { fatalError() }()
+
+    /// A shape style that maps to the fourth level of the current
+    /// content style.
+    public static let quaternary: HierarchicalShapeStyle = { fatalError() }()
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+/// Styles that you can apply to hierarchical shapes.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@frozen public struct HierarchicalShapeStyleModifier<Base> : ShapeStyle where Base : ShapeStyle {
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension Material : ShapeStyle {
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+/// A style appropriate for placeholder text.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@frozen public struct PlaceholderTextShapeStyle : ShapeStyle {
+
+    /// Creates a new placeholder text shape style.
+    public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Never : ShapeStyle {
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}

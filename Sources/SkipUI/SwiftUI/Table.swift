@@ -3744,3 +3744,56 @@ extension Group : TableRowContent where Content : TableRowContent {
     ///   rows to group.
     @inlinable public init<R>(@TableRowBuilder<R> content: () -> Content) where R == Content.TableRowValue { fatalError() }
 }
+
+/// A type that applies a custom appearance to all tables within a view.
+///
+/// To configure the current table style for a view hierarchy, use the
+/// ``View/tableStyle(_:)`` modifier.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public protocol TableStyle {
+
+    /// A view that represents the body of a table.
+    associatedtype Body : View
+
+    /// Creates a view that represents the body of a table.
+    ///
+    /// The system calls this method for each ``Table`` instance in a view
+    /// hierarchy where this style is the current table style.
+    ///
+    /// - Parameter configuration: The properties of the table.
+    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
+
+    /// The properties of a table.
+    typealias Configuration = TableStyleConfiguration
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension TableStyle where Self == AutomaticTableStyle {
+
+    /// The default table style in the current context.
+    public static var automatic: AutomaticTableStyle { get { fatalError() } }
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension TableStyle where Self == InsetTableStyle {
+
+    /// The table style that describes the behavior and appearance of a table
+    /// with its content and selection inset from the table edges.
+    ///
+    /// To customize whether the rows of the table should alternate their
+    /// backgrounds, use ``View/alternatingRowBackgrounds(_:)``.
+    public static var inset: InsetTableStyle { get { fatalError() } }
+}
+
+/// The properties of a table.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct TableStyleConfiguration {
+}

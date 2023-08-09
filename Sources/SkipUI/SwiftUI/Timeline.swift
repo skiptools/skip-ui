@@ -466,3 +466,204 @@ extension TimelineView.Context.Cadence : Hashable {
 /// dependency on the context type.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public typealias TimelineViewDefaultContext = TimelineView<EveryMinuteTimelineSchedule, Never>.Context
+
+
+/// A schedule for updating a timeline view at regular intervals.
+///
+/// You can also use ``TimelineSchedule/periodic(from:by:)`` to construct this
+/// schedule.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+public struct PeriodicTimelineSchedule : TimelineSchedule, Sendable {
+
+    /// The sequence of dates in periodic schedule.
+    ///
+    /// The ``PeriodicTimelineSchedule/entries(from:mode:)`` method returns
+    /// a value of this type, which is a
+    /// of periodic dates in ascending order. A ``TimelineView`` that you
+    /// create updates its content at the moments in time corresponding to the
+    /// dates included in the sequence.
+    public struct Entries : Sequence, IteratorProtocol, Sendable {
+
+        /// Advances to the next element and returns it, or `nil` if no next element
+        /// exists.
+        ///
+        /// Repeatedly calling this method returns, in order, all the elements of the
+        /// underlying sequence. As soon as the sequence has run out of elements, all
+        /// subsequent calls return `nil`.
+        ///
+        /// You must not call this method if any other copy of this iterator has been
+        /// advanced with a call to its `next()` method.
+        ///
+        /// The following example shows how an iterator can be used explicitly to
+        /// emulate a `for`-`in` loop. First, retrieve a sequence's iterator, and
+        /// then call the iterator's `next()` method until it returns `nil`.
+        ///
+        ///     let numbers = [2, 3, 5, 7]
+        ///     var numbersIterator = numbers.makeIterator()
+        ///
+        ///     while let num = numbersIterator.next() {
+        ///         print(num)
+        ///     }
+        ///     // Prints "2"
+        ///     // Prints "3"
+        ///     // Prints "5"
+        ///     // Prints "7"
+        ///
+        /// - Returns: The next element in the underlying sequence, if a next element
+        ///   exists; otherwise, `nil`.
+        public mutating func next() -> Date? { fatalError() }
+
+        /// A type representing the sequence's elements.
+        public typealias Element = Date
+
+        /// A type that provides the sequence's iteration interface and
+        /// encapsulates its iteration state.
+        public typealias Iterator = PeriodicTimelineSchedule.Entries
+    }
+
+    /// Creates a periodic update schedule.
+    ///
+    /// Use the ``PeriodicTimelineSchedule/entries(from:mode:)`` method
+    /// to get the sequence of dates.
+    ///
+    /// - Parameters:
+    ///   - startDate: The date on which to start the sequence.
+    ///   - interval: The time interval between successive sequence entries.
+    public init(from startDate: Date, by interval: TimeInterval) { fatalError() }
+
+    /// Provides a sequence of periodic dates starting from around a given date.
+    ///
+    /// A ``TimelineView`` that you create with a schedule calls this method
+    /// to ask the schedule when to update its content. The method returns
+    /// a sequence of equally spaced dates in increasing order that represent
+    /// points in time when the timeline view should update.
+    ///
+    /// The schedule defines its periodicity and phase aligment based on the
+    /// parameters you pass to its ``init(from:by:)`` initializer.
+    /// For example, for a `startDate` and `interval` of `10:09:30` and
+    /// `60` seconds, the schedule prepares to issue dates half past each
+    /// minute. The `startDate` that you pass to the `entries(from:mode:)`
+    /// method then dictates the first date of the sequence as the beginning of
+    /// the interval that the start date overlaps. Continuing the example above,
+    /// a start date of `10:34:45` causes the first sequence entry to be
+    /// `10:34:30`, because that's the start of the interval in which the
+    /// start date appears.
+    public func entries(from startDate: Date, mode: TimelineScheduleMode) -> PeriodicTimelineSchedule.Entries { fatalError() }
+}
+
+/// A schedule for updating a timeline view at the start of every minute.
+///
+/// You can also use ``TimelineSchedule/everyMinute`` to construct this
+/// schedule.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+public struct EveryMinuteTimelineSchedule : TimelineSchedule, Sendable {
+
+    /// The sequence of dates in an every minute schedule.
+    ///
+    /// The ``EveryMinuteTimelineSchedule/entries(from:mode:)`` method returns
+    /// a value of this type, which is a
+    /// of dates, one per minute, in ascending order. A ``TimelineView`` that
+    /// you create updates its content at the moments in time corresponding to
+    /// the dates included in the sequence.
+    public struct Entries : Sequence, IteratorProtocol, Sendable {
+
+        /// Advances to the next element and returns it, or `nil` if no next element
+        /// exists.
+        ///
+        /// Repeatedly calling this method returns, in order, all the elements of the
+        /// underlying sequence. As soon as the sequence has run out of elements, all
+        /// subsequent calls return `nil`.
+        ///
+        /// You must not call this method if any other copy of this iterator has been
+        /// advanced with a call to its `next()` method.
+        ///
+        /// The following example shows how an iterator can be used explicitly to
+        /// emulate a `for`-`in` loop. First, retrieve a sequence's iterator, and
+        /// then call the iterator's `next()` method until it returns `nil`.
+        ///
+        ///     let numbers = [2, 3, 5, 7]
+        ///     var numbersIterator = numbers.makeIterator()
+        ///
+        ///     while let num = numbersIterator.next() {
+        ///         print(num)
+        ///     }
+        ///     // Prints "2"
+        ///     // Prints "3"
+        ///     // Prints "5"
+        ///     // Prints "7"
+        ///
+        /// - Returns: The next element in the underlying sequence, if a next element
+        ///   exists; otherwise, `nil`.
+        public mutating func next() -> Date? { fatalError() }
+
+        /// A type representing the sequence's elements.
+        public typealias Element = Date
+
+        /// A type that provides the sequence's iteration interface and
+        /// encapsulates its iteration state.
+        public typealias Iterator = EveryMinuteTimelineSchedule.Entries
+    }
+
+    /// Creates a per-minute update schedule.
+    ///
+    /// Use the ``EveryMinuteTimelineSchedule/entries(from:mode:)`` method
+    /// to get the sequence of dates.
+    public init() { fatalError() }
+
+    /// Provides a sequence of per-minute dates starting from a given date.
+    ///
+    /// A ``TimelineView`` that you create with an every minute schedule
+    /// calls this method to ask the schedule when to update its content.
+    /// The method returns a sequence of per-minute dates in increasing
+    /// order, from earliest to latest, that represents
+    /// when the timeline view updates.
+    ///
+    /// For a `startDate` that's exactly minute-aligned, the
+    /// schedule's sequence of dates starts at that time. Otherwise, it
+    /// starts at the beginning of the specified minute. For
+    /// example, for start dates of both `10:09:32` and `10:09:00`, the first
+    /// entry in the sequence is `10:09:00`.
+    ///
+    /// - Parameters:
+    ///   - startDate: The date from which the sequence begins.
+    ///   - mode: The mode for the update schedule.
+    /// - Returns: A sequence of per-minute dates in ascending order.
+    public func entries(from startDate: Date, mode: TimelineScheduleMode) -> EveryMinuteTimelineSchedule.Entries { fatalError() }
+}
+
+/// A schedule for updating a timeline view at explicit points in time.
+///
+/// You can also use ``TimelineSchedule/explicit(_:)`` to construct this
+/// schedule.
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries : Sequence, Entries.Element == Date {
+
+    /// Creates a schedule composed of an explicit sequence of dates.
+    ///
+    /// Use the ``ExplicitTimelineSchedule/entries(from:mode:)`` method
+    /// to get the sequence of dates.
+    ///
+    /// - Parameter dates: The sequence of dates at which a timeline view
+    ///   updates. Use a monotonically increasing sequence of dates,
+    ///   and ensure that at least one is in the future.
+    public init(_ dates: Entries) { fatalError() }
+
+    /// Provides the sequence of dates with which you initialized the schedule.
+    ///
+    /// A ``TimelineView`` that you create with a schedule calls this
+    /// ``TimelineSchedule`` method to ask the schedule when to update its
+    /// content. The explicit timeline schedule implementation
+    /// of this method returns the unmodified sequence of dates that you
+    /// provided when you created the schedule with
+    /// ``TimelineSchedule/explicit(_:)``. As a result, this particular
+    /// implementation ignores the `startDate` and `mode` parameters.
+    ///
+    /// - Parameters:
+    ///   - startDate: The date from which the sequence begins. This
+    ///     particular implementation of the protocol method ignores the start
+    ///     date.
+    ///   - mode: The mode for the update schedule. This particular
+    ///     implementation of the protocol method ignores the mode.
+    /// - Returns: The sequence of dates that you provided at initialization.
+    public func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries { fatalError() }
+}
