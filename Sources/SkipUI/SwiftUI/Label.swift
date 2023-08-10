@@ -650,6 +650,24 @@ public struct LabeledContentStyleConfiguration {
     public let content: LabeledContentStyleConfiguration.Content = { fatalError() }()
 }
 
+
+/// The default labeled content style.
+///
+/// Use ``LabeledContentStyle/automatic`` to construct this style.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct AutomaticLabeledContentStyle : LabeledContentStyle {
+
+    /// Creates an automatic labeled content style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of labeled content.
+    public func makeBody(configuration: AutomaticLabeledContentStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and behavior of labeled content.
+//    public typealias Body = some View
+}
+
 /// A view that represents the body of a control group with a specified
 /// label.
 ///

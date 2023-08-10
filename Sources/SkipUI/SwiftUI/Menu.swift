@@ -432,4 +432,28 @@ public struct DefaultMenuStyle : MenuStyle {
 //    public typealias Body = some View
 }
 
+/// A menu style that displays a button that toggles the display of the
+/// menu's contents when pressed.
+///
+/// Use ``MenuStyle/button`` to construct this style.
+@available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+public struct ButtonMenuStyle : MenuStyle {
+
+    /// Creates a button menu style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a menu.
+    ///
+    /// - Parameter configuration: The properties of the menu.
+    ///
+    /// The system calls this method for each ``Menu`` instance in a view
+    /// hierarchy where this style is the current menu style.
+    public func makeBody(configuration: ButtonMenuStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a menu.
+//    public typealias Body = some View
+}
+
 #endif

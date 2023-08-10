@@ -572,4 +572,28 @@ public struct LinearCapacityGaugeStyle : GaugeStyle {
 //    public typealias Body = some View
 }
 
+/// The default gauge view style in the current context of the view being
+/// styled.
+///
+/// You can also use ``GaugeStyle/automatic`` to construct this style.
+@available(iOS 16.0, macOS 13.0, watchOS 7.0, *)
+@available(tvOS, unavailable)
+public struct DefaultGaugeStyle : GaugeStyle {
+
+    /// Creates a default gauge style.
+    public init() { fatalError() }
+
+    /// Creates a view representing the body of a gauge.
+    ///
+    /// The system calls this modifier on each instance of gauge within a view
+    /// hierarchy where this style is the current gauge style.
+    ///
+    /// - Parameter configuration: The properties to apply to the gauge instance.
+    public func makeBody(configuration: DefaultGaugeStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a gauge.
+//    public typealias Body = some View
+}
+
 #endif

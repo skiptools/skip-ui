@@ -1088,4 +1088,131 @@ extension Optional : ToolbarContent where Wrapped : ToolbarContent {
 extension Optional : CustomizableToolbarContent where Wrapped : CustomizableToolbarContent {
 }
 
+/// Conforming types represent items that can be placed in various locations
+/// in a customizable toolbar.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public protocol CustomizableToolbarContent : ToolbarContent where Self.Body : CustomizableToolbarContent {
+}
+
+extension CustomizableToolbarContent {
+
+    /// Configures the way customizable toolbar items with the default
+    /// behavior behave.
+    ///
+    /// Default customizable items support a variety of edits by the user.
+    /// * A user can add an an item that is not in the toolbar.
+    /// * A user can remove an item that is in the toolbar.
+    /// * A user can move an item within the toolbar.
+    ///
+    /// By default, all default customizable items will be initially
+    /// present in the toolbar. Provide a value of
+    /// ``Visibility/hidden`` to this modifier to specify that items should
+    /// initially be hidden from the user, and require them to add those items
+    /// to the toolbar if desired.
+    ///
+    ///     ContentView()
+    ///         .toolbar(id: "main") {
+    ///             ToolbarItem(id: "new") {
+    ///                 // new button here
+    ///             }
+    ///             .defaultCustomization(.hidden)
+    ///         }
+    ///
+    /// You can ensure that the user can always use an item with default
+    /// customizability, even if it's removed from the customizable toolbar. To
+    /// do this, provide the ``ToolbarCustomizationOptions/alwaysAvailable``
+    /// option. Unlike a customizable item with a customization behavior of
+    /// ``ToolbarCustomizationBehavior/none`` which always remain in the toolbar
+    /// itself, these items will remain in the overflow if the user removes them
+    /// from the toolbar.
+    ///
+    /// Provide a value of ``ToolbarCustomizationOptions/alwaysAvailable`` to
+    /// the options parameter of this modifier to receive this behavior.
+    ///
+    ///     ContentView()
+    ///         .toolbar(id: "main") {
+    ///             ToolbarItem(id: "new") {
+    ///                 // new button here
+    ///             }
+    ///             .defaultCustomization(options: .alwaysAvailable)
+    ///         }
+    ///
+    /// - Parameters:
+    ///   - defaultVisibility: The default visibility of toolbar content
+    ///     with the default customization behavior.
+    ///   - options: The customization options to configure the behavior
+    ///     of toolbar content with the default customization behavior.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func defaultCustomization(_ defaultVisibility: Visibility = .automatic, options: ToolbarCustomizationOptions = []) -> some CustomizableToolbarContent { return never() }
+
+
+    /// Configures customizable toolbar content with the default visibility
+    /// and options.
+    ///
+    /// Use the ``CustomizableToolbarContent/defaultCustomization(_:options:)``
+    /// modifier providing either a `defaultVisibility` or `options` instead.
+    @available(iOS, introduced: 16.0, deprecated: 16.0, message: "Please provide either a visibility or customization options")
+    @available(macOS, introduced: 13.0, deprecated: 13.0, message: "Please provide either a visibility or customization options")
+    @available(tvOS, introduced: 16.0, deprecated: 16.0, message: "Please provide either a visibility or customization options")
+    @available(watchOS, introduced: 9.0, deprecated: 9.0, message: "Please provide either a visibility or customization options")
+    public func defaultCustomization() -> some CustomizableToolbarContent { return never() }
+
+}
+
+extension CustomizableToolbarContent {
+
+    /// Configures the customization behavior of customizable toolbar content.
+    ///
+    /// Customizable toolbar items support different kinds of customization:
+    /// * A user can add an an item that is not in the toolbar.
+    /// * A user can remove an item that is in the toolbar.
+    /// * A user can move an item within the toolbar.
+    ///
+    /// Based on the customization behavior of the toolbar items, different
+    /// edits will be supported.
+    ///
+    /// Use this modifier to the customization behavior a user can
+    /// perform on your toolbar items. In the following example, the
+    /// customizable toolbar item supports all of the different kinds of
+    /// toolbar customizations and starts in the toolbar.
+    ///
+    ///     ContentView()
+    ///         .toolbar(id: "main") {
+    ///             ToolbarItem(id: "new") {
+    ///                 // new button here
+    ///             }
+    ///         }
+    ///
+    /// You can create an item that can not be removed from the toolbar
+    /// or moved within the toolbar  by passing a value of
+    /// ``ToolbarCustomizationBehavior/disabled`` to this modifier.
+    ///
+    ///     ContentView()
+    ///         .toolbar(id: "main") {
+    ///             ToolbarItem(id: "new") {
+    ///                 // new button here
+    ///             }
+    ///             .customizationBehavior(.disabled)
+    ///         }
+    ///
+    /// You can create an item that can not be removed from the toolbar, but
+    /// can be moved by passing a value of
+    /// ``ToolbarCustomizationBehavior/reorderable``.
+    ///
+    ///     ContentView()
+    ///         .toolbar(id: "main") {
+    ///             ToolbarItem(id: "new") {
+    ///                 // new button here
+    ///             }
+    ///             .customizationBehavior(.reorderable)
+    ///         }
+    ///
+    /// - Parameter behavior: The customization behavior of the customizable
+    ///   toolbar content.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func customizationBehavior(_ behavior: ToolbarCustomizationBehavior) -> some CustomizableToolbarContent { return never() }
+
+}
+
+
 #endif

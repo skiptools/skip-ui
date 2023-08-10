@@ -108,10 +108,60 @@ public struct PresentationDetent : Hashable, Sendable {
         /// environment where the presentation modifier is applied.
         public subscript<T>(dynamicMember keyPath: KeyPath<EnvironmentValues, T>) -> T { get { fatalError() } }
     }
+}
 
 
-    
+/// The definition of a custom detent with a calculated height.
+///
+/// You can create and use a custom detent with built-in detents.
+///
+///     extension PresentationDetent {
+///         static let bar = Self.custom(BarDetent.self)
+///         static let small = Self.height(100)
+///         static let extraLarge = Self.fraction(0.75)
+///     }
+///
+///     private struct BarDetent: CustomPresentationDetent {
+///         static func height(in context: Context) -> CGFloat? {
+///             max(44, context.maxDetentValue * 0.1)
+///         }
+///     }
+///
+///     struct ContentView: View {
+///         @State private var showSettings = false
+///         @State private var selectedDetent = PresentationDetent.bar
+///
+///         var body: some View {
+///             Button("View Settings") {
+///                 showSettings = true
+///             }
+///             .sheet(isPresented: $showSettings) {
+///                 SettingsView(selectedDetent: $selectedDetent)
+///                     .presentationDetents(
+///                         [.bar, .small, .medium, .large, .extraLarge],
+///                         selection: $selectedDetent)
+///             }
+///         }
+///     }
+///
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public protocol CustomPresentationDetent {
 
+    /// Calculates and returns a height based on the context.
+    ///
+    /// - Parameter context: Information that can help to determine the
+    ///   height of the detent.
+    ///
+    /// - Returns: The height of the detent, or `nil` if the detent should be
+    ///   inactive based on the `contenxt` input.
+    static func height(in context: Self.Context) -> CGFloat?
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension CustomPresentationDetent {
+
+    /// Information that you can use to calculate the height of a custom detent.
+    public typealias Context = PresentationDetent.Context
 }
 
 /// An indication whether a view is currently presented by another view.

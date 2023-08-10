@@ -236,4 +236,30 @@ public struct DisclosureGroupStyleConfiguration {
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }
 
+/// A disclosure group style that resolves its appearance automatically
+/// based on the current context.
+///
+/// Use ``DisclosureGroupStyle/automatic`` to construct this style.
+@available(iOS 16.0, macOS 13.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct AutomaticDisclosureGroupStyle : DisclosureGroupStyle {
+
+    /// Creates an automatic disclosure group style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a disclosure group.
+    ///
+    /// SkipUI calls this method for each instance of ``DisclosureGroup``
+    /// that you create within a view hierarchy where this style is the current
+    /// ``DisclosureGroupStyle``.
+    ///
+    /// - Parameter configuration: The properties of the instance being created.
+    public func makeBody(configuration: AutomaticDisclosureGroupStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a disclosure group.
+//    public typealias Body = some View
+}
+
 #endif

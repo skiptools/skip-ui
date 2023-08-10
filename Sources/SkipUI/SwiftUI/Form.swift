@@ -242,4 +242,78 @@ public struct GroupedFormStyle : FormStyle {
 //    public typealias Body = some View
 }
 
+/// The default form style.
+///
+/// Use the ``FormStyle/automatic`` static variable to create this style:
+///
+///     Form {
+///        ...
+///     }
+///     .formStyle(.automatic)
+///
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct AutomaticFormStyle : FormStyle {
+
+    /// Creates a default form style.
+    ///
+    /// Don't call this initializer directly. Instead, use the
+    /// ``FormStyle/automatic`` static variable to create this style:
+    ///
+    ///     Form {
+    ///        ...
+    ///     }
+    ///     .formStyle(.automatic)
+    ///
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a form.
+    ///
+    /// - Parameter configuration: The properties of the form.
+    /// - Returns: A view that has behavior and appearance that enables it
+    ///   to function as a ``Form``.
+    public func makeBody(configuration: AutomaticFormStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and interaction of a form.
+//    public typealias Body = some View
+}
+
+/// A non-scrolling form style with a trailing aligned column of labels
+/// next to a leading aligned column of values.
+///
+/// Use the ``FormStyle/columns`` static variable to create this style:
+///
+///     Form {
+///        ...
+///     }
+///     .formStyle(.columns)
+///
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct ColumnsFormStyle : FormStyle {
+
+    /// A non-scrolling form style with a trailing aligned column of labels
+    /// next to a leading aligned column of values.
+    ///
+    /// Don't call this initializer directly. Instead, use the
+    /// ``FormStyle/columns`` static variable to create this style:
+    ///
+    ///     Form {
+    ///        ...
+    ///     }
+    ///     .formStyle(.columns)
+    ///
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a form.
+    ///
+    /// - Parameter configuration: The properties of the form.
+    /// - Returns: A view that has behavior and appearance that enables it
+    ///   to function as a ``Form``.
+    public func makeBody(configuration: ColumnsFormStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the appearance and interaction of a form.
+//    public typealias Body = some View
+}
+
 #endif

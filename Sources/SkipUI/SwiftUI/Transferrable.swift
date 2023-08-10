@@ -655,6 +655,39 @@ extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == 
     public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
 }
 
+
+/// The default label used for a share link.
+///
+/// You don't use this type directly. Instead, ``ShareLink`` uses it
+/// automatically depending on how you create a share link.
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+public struct DefaultShareLinkLabel : View {
+
+    /// The content and behavior of the view.
+    ///
+    /// When you implement a custom view, you must implement a computed
+    /// `body` property to provide the content for your view. Return a view
+    /// that's composed of built-in views that SkipUI provides, plus other
+    /// composite views that you've already defined:
+    ///
+    ///     struct MyView: View {
+    ///         var body: some View {
+    ///             Text("Hello, World!")
+    ///         }
+    ///     }
+    ///
+    /// For more information about composing views and a view hierarchy,
+    /// see <doc:Declaring-a-Custom-View>.
+    @MainActor public var body: some View { get { return never() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+//    public typealias Body = some View
+}
+
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel {

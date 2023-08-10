@@ -127,4 +127,13 @@ public struct PageTabViewStyle : TabViewStyle {
     public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) { fatalError() }
 }
 
+/// The default `TabView` style.
+///
+/// You can also use ``TabViewStyle/automatic`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct DefaultTabViewStyle : TabViewStyle {
+
+    public init() { fatalError() }
+}
+
 #endif

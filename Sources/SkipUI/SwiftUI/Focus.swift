@@ -358,4 +358,19 @@ public struct FocusedValues {
 extension FocusedValues : Equatable {
 }
 
+/// Prioritizations for default focus preferences when evaluating where
+/// to move focus in different circumstances.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct DefaultFocusEvaluationPriority : Sendable {
+
+    /// Use the default focus preference when focus moves into the affected
+    /// branch automatically, but ignore it when the movement is driven by a
+    /// user-initiated navigation command.
+    public static let automatic: DefaultFocusEvaluationPriority = { fatalError() }()
+
+    /// Always use the default focus preference when focus moves into the
+    /// affected branch.
+    public static let userInitiated: DefaultFocusEvaluationPriority = { fatalError() }()
+}
+
 #endif

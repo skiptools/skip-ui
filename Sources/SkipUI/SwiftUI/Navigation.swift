@@ -1129,6 +1129,68 @@ public struct NavigationSplitViewColumn : Hashable, Sendable {
 
 }
 
+/// A navigation view style represented by a series of views in columns.
+///
+/// You can also use ``NavigationViewStyle/columns`` to construct this style.
+@available(iOS, introduced: 15.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
+@available(macOS, introduced: 12.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
+public struct ColumnNavigationViewStyle : NavigationViewStyle {
+}
+
+/// A navigation split style that resolves its appearance automatically
+/// based on the current context.
+///
+/// Use ``NavigationSplitViewStyle/automatic`` to construct this style.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct AutomaticNavigationSplitViewStyle : NavigationSplitViewStyle {
+
+    /// Creates an instance of the automatic navigation split view style.
+    ///
+    /// Use ``NavigationSplitViewStyle/automatic`` to construct this style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a navigation split view.
+    ///
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
+    /// where this style is the current ``NavigationSplitViewStyle``.
+    ///
+    /// - Parameter configuration: The properties of the instance to create.
+    public func makeBody(configuration: AutomaticNavigationSplitViewStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a navigation split view.
+//    public typealias Body = some View
+}
+
+/// A navigation split style that reduces the size of the detail content
+/// to make room when showing the leading column or columns.
+///
+/// Use ``NavigationSplitViewStyle/balanced`` to construct this style.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct BalancedNavigationSplitViewStyle : NavigationSplitViewStyle {
+
+    /// Creates an instance of ``BalancedNavigationSplitViewStyle``.
+    ///
+    /// You can also use ``NavigationSplitViewStyle/balanced`` to construct this
+    /// style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a navigation split view.
+    ///
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
+    /// where this style is the current ``NavigationSplitViewStyle``.
+    ///
+    /// - Parameter configuration: The properties of the instance to create.
+    public func makeBody(configuration: BalancedNavigationSplitViewStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a navigation split view.
+//    public typealias Body = some View
+}
+
 /// A type that specifies the appearance and interaction of navigation split
 /// views within a view hierarchy.
 ///
@@ -1661,6 +1723,19 @@ public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle
 @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
 @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
 public struct StackNavigationViewStyle : NavigationViewStyle {
+
+    public init() { fatalError() }
+}
+
+
+/// A navigation view style represented by a primary view stack that
+/// navigates to a detail view.
+@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView instead")
+@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+@available(watchOS, unavailable)
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+public struct DoubleColumnNavigationViewStyle : NavigationViewStyle {
 
     public init() { fatalError() }
 }

@@ -1,0 +1,37 @@
+// This is free software: you can redistribute and/or modify it
+// under the terms of the GNU Lesser General Public License 3.0
+// as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
+
+
+/// The selection effect to apply to a palette item.
+///
+/// You can configure the selection effect of a palette item by using the
+/// ``View/paletteSelectionEffect(_:)`` view modifier.
+@available(iOS 17.0, macOS 14.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct PaletteSelectionEffect : Sendable, Equatable {
+
+    /// Applies the system's default effect when selected.
+    ///
+    /// When using un-tinted SF Symbols or template images, the current tint
+    /// color is applied to the selected items' image.
+    /// If the provided SF Symbols have custom tints, a stroke is drawn around selected items.
+    public static var automatic: PaletteSelectionEffect { get { fatalError() } }
+
+    /// Applies the specified symbol variant when selected.
+    ///
+    /// - Note: This effect only applies to SF Symbols.
+    public static func symbolVariant(_ variant: SymbolVariants) -> PaletteSelectionEffect { fatalError() }
+
+    /// Does not apply any system effect when selected.
+    ///
+    /// - Note: Make sure to manually implement a way to indicate selection when
+    /// using this case. For example, you could dynamically resolve the item's
+    /// image based on the selection state.
+    public static var custom: PaletteSelectionEffect { get { fatalError() } }
+}
+
+#endif

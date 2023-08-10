@@ -1223,4 +1223,14 @@ public struct RoundedBorderTextFieldStyle : TextFieldStyle {
     public init() { fatalError() }
 }
 
+
+/// The default text field style, based on the text field's context.
+///
+/// You can also use ``TextFieldStyle/automatic`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct DefaultTextFieldStyle : TextFieldStyle {
+
+    public init() { fatalError() }
+}
+
 #endif

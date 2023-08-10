@@ -265,6 +265,28 @@ extension WidgetConfiguration {
 
 }
 
+/// An empty widget configuration.
+@available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+@frozen public struct EmptyWidgetConfiguration : WidgetConfiguration {
+
+    @inlinable public init() { fatalError() }
+
+    /// The type of widget configuration representing the body of
+    /// this configuration.
+    ///
+    /// When you create a custom widget, Swift infers this type from your
+    /// implementation of the required `body` property.
+    public typealias Body = Never
+    public var body: Body { fatalError() }
+}
+
+@available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+extension EmptyWidgetConfiguration : Sendable {
+}
+
+
 @available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 extension Never : WidgetConfiguration {

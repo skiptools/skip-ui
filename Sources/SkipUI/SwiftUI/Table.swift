@@ -4033,6 +4033,27 @@ extension Never : TableRowContent {
     public var tableRowBody: Never { get { fatalError() } }
 }
 
+/// The default table style in the current context.
+///
+/// You can also use ``TableStyle/automatic`` to construct this style.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct AutomaticTableStyle : TableStyle {
+
+    /// Creates a view that represents the body of a table.
+    ///
+    /// The system calls this method for each ``Table`` instance in a view
+    /// hierarchy where this style is the current table style.
+    ///
+    /// - Parameter configuration: The properties of the table.
+    public func makeBody(configuration: AutomaticTableStyle.Configuration) -> Body { return never() }
+
+
+    /// A view that represents the body of a table.
+    public typealias Body = Never
+}
+
 /// The table style that describes the behavior and appearance of a table with
 /// its content and selection inset from the table edges.
 ///

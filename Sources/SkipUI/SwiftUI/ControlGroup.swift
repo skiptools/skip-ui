@@ -311,4 +311,53 @@ public struct PaletteControlGroupStyle : ControlGroupStyle {
 //    public typealias Body = some View
 }
 
+/// A control group style that presents its content as a compact menu when the user
+/// presses the control, or as a submenu when nested within a larger menu.
+///
+/// Use ``ControlGroupStyle/compactMenu`` to construct this style.
+@available(iOS 16.4, macOS 13.3, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct CompactMenuControlGroupStyle : ControlGroupStyle {
+
+    /// Creates a compact menu control group style.
+    public init() { fatalError() }
+
+    /// Creates a view representing the body of a control group.
+    ///
+    /// - Parameter configuration: The properties of the control group instance
+    ///   being created.
+    ///
+    /// This method will be called for each instance of ``ControlGroup`` created
+    /// within a view hierarchy where this style is the current
+    /// `ControlGroupStyle`.
+    @MainActor public func makeBody(configuration: CompactMenuControlGroupStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a control group.
+//    public typealias Body = some View
+}
+
+/// The default control group style.
+///
+/// You can also use ``ControlGroupStyle/automatic`` to construct this style.
+@available(iOS 15.0, macOS 12.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+public struct AutomaticControlGroupStyle : ControlGroupStyle {
+
+    /// Creates a view representing the body of a control group.
+    ///
+    /// - Parameter configuration: The properties of the control group instance
+    ///   being created.
+    ///
+    /// This method will be called for each instance of ``ControlGroup`` created
+    /// within a view hierarchy where this style is the current
+    /// `ControlGroupStyle`.
+    @MainActor public func makeBody(configuration: AutomaticControlGroupStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a control group.
+//    public typealias Body = some View
+}
+
 #endif
