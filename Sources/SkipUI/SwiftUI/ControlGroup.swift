@@ -282,3 +282,29 @@ public struct ControlGroupStyleConfiguration {
     @available(iOS 16.0, macOS 13.0, *)
     public let label: ControlGroupStyleConfiguration.Label = { fatalError() }()
 }
+
+/// A control group style that presents its content as a palette.
+///
+/// Use ``ControlGroupStyle/palette`` to construct this style.
+@available(iOS 17.0, macOS 14.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct PaletteControlGroupStyle : ControlGroupStyle {
+
+    /// Creates a palette control group style.
+    public init() { fatalError() }
+
+    /// Creates a view representing the body of a control group.
+    ///
+    /// - Parameter configuration: The properties of the control group instance
+    ///   being created.
+    ///
+    /// This method will be called for each instance of ``ControlGroup`` created
+    /// within a view hierarchy where this style is the current
+    /// `ControlGroupStyle`.
+    @MainActor public func makeBody(configuration: PaletteControlGroupStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a control group.
+//    public typealias Body = some View
+}

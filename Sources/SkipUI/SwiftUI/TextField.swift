@@ -1200,3 +1200,23 @@ extension TextFieldStyle where Self == PlainTextFieldStyle {
     /// A text field style with no decoration.
     public static var plain: PlainTextFieldStyle { get { fatalError() } }
 }
+
+/// A text field style with no decoration.
+///
+/// You can also use ``TextFieldStyle/plain`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct PlainTextFieldStyle : TextFieldStyle {
+
+    public init() { fatalError() }
+}
+
+/// A text field style with a system-defined rounded border.
+///
+/// You can also use ``TextFieldStyle/roundedBorder`` to construct this style.
+@available(iOS 13.0, macOS 10.15, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct RoundedBorderTextFieldStyle : TextFieldStyle {
+
+    public init() { fatalError() }
+}

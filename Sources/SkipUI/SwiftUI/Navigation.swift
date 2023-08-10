@@ -1617,3 +1617,56 @@ public struct NavigationControlGroupStyle : ControlGroupStyle {
     /// A view representing the body of a control group.
 //    public typealias Body = some View
 }
+
+/// The default navigation view style.
+///
+/// You can also use ``NavigationViewStyle/automatic`` to construct this style.
+@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView instead")
+@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+public struct DefaultNavigationViewStyle : NavigationViewStyle {
+
+    public init() { fatalError() }
+}
+
+/// A navigation split style that attempts to maintain the size of the
+/// detail content when hiding or showing the leading columns.
+///
+/// Use ``NavigationSplitViewStyle/prominentDetail`` to construct this style.
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle {
+
+    /// Creates an instance of ``ProminentDetailNavigationSplitViewStyle``.
+    ///
+    /// You can also use ``NavigationSplitViewStyle/prominentDetail`` to
+    /// construct this style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a navigation split view.
+    ///
+    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
+    /// where this style is the current ``NavigationSplitViewStyle``.
+    ///
+    /// - Parameter configuration: The properties of the instance to create.
+    public func makeBody(configuration: ProminentDetailNavigationSplitViewStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a navigation split view.
+//    public typealias Body = some View
+}
+
+/// A navigation view style represented by a view stack that only shows a
+/// single top view at a time.
+///
+/// You can also use ``NavigationViewStyle/stack`` to construct this style.
+@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
+@available(macOS, unavailable)
+@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
+@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
+public struct StackNavigationViewStyle : NavigationViewStyle {
+
+    public init() { fatalError() }
+}

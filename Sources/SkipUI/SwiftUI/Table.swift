@@ -4030,3 +4030,28 @@ extension Never : TableRowContent {
     /// The composition of content that comprise the table row content.
     public var tableRowBody: Never { get { fatalError() } }
 }
+
+/// The table style that describes the behavior and appearance of a table with
+/// its content and selection inset from the table edges.
+///
+/// You can also use ``TableStyle/inset`` to construct this style.
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct InsetTableStyle : TableStyle {
+
+    /// Creates a default inset table style, with alternating row backgrounds.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a table.
+    ///
+    /// The system calls this method for each ``Table`` instance in a view
+    /// hierarchy where this style is the current table style.
+    ///
+    /// - Parameter configuration: The properties of the table.
+    public func makeBody(configuration: InsetTableStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a table.
+//    public typealias Body = some View
+}

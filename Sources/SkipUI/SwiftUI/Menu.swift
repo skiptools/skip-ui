@@ -408,3 +408,26 @@ public struct MenuStyleConfiguration {
         public var body: Body { fatalError() }
     }
 }
+
+/// The default menu style, based on the menu's context.
+///
+/// You can also use ``MenuStyle/automatic`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+public struct DefaultMenuStyle : MenuStyle {
+
+    /// Creates a default menu style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a menu.
+    ///
+    /// - Parameter configuration: The properties of the menu.
+    ///
+    /// The system calls this method for each ``Menu`` instance in a view
+    /// hierarchy where this style is the current menu style.
+    public func makeBody(configuration: DefaultMenuStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a menu.
+//    public typealias Body = some View
+}

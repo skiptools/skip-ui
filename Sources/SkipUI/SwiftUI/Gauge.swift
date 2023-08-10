@@ -545,3 +545,27 @@ public struct GaugeStyleConfiguration {
     /// A view that describes the maximum of the range for the current value.
     public var maximumValueLabel: GaugeStyleConfiguration.MaximumValueLabel?
 }
+
+/// A gauge style that displays bar that fills from leading to trailing
+/// edges as the gauge's current value increases.
+///
+/// Use ``GaugeStyle/linearCapacity`` to construct this style.
+@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+public struct LinearCapacityGaugeStyle : GaugeStyle {
+
+    /// Creates a linear capacity gauge style.
+    public init() { fatalError() }
+
+    /// Creates a view representing the body of a gauge.
+    ///
+    /// The system calls this modifier on each instance of gauge within a view
+    /// hierarchy where this style is the current gauge style.
+    ///
+    /// - Parameter configuration: The properties to apply to the gauge instance.
+    public func makeBody(configuration: LinearCapacityGaugeStyle.Configuration) -> some View { return never() }
+
+
+    /// A view representing the body of a gauge.
+//    public typealias Body = some View
+}

@@ -707,3 +707,25 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
     /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
+
+/// The default label style in the current context.
+///
+/// You can also use ``LabelStyle/automatic`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct DefaultLabelStyle : LabelStyle {
+
+    /// Creates an automatic label style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a label.
+    ///
+    /// The system calls this method for each ``Label`` instance in a view
+    /// hierarchy where this style is the current label style.
+    ///
+    /// - Parameter configuration: The properties of the label.
+    public func makeBody(configuration: DefaultLabelStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a label.
+//    public typealias Body = some View
+}

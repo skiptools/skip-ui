@@ -1089,3 +1089,50 @@ public struct GroupedListStyle : ListStyle {
     /// Creates a grouped list style.
     public init() { fatalError() }
 }
+
+/// The list style that describes a platform's default behavior and appearance
+/// for a list.
+///
+/// You can also use ``ListStyle/automatic`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct DefaultListStyle : ListStyle {
+
+    /// Creates a default list style.
+    public init() { fatalError() }
+}
+
+/// The list style that describes the behavior and appearance of an inset
+/// grouped list.
+///
+/// You can also use ``ListStyle/insetGrouped`` to construct this style.
+@available(iOS 14.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct InsetGroupedListStyle : ListStyle {
+
+    /// Creates an inset grouped list style.
+    public init() { fatalError() }
+}
+
+/// The list style that describes the behavior and appearance of an inset list.
+///
+/// You can also use ``ListStyle/inset`` to construct this style.
+@available(iOS 14.0, macOS 11.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct InsetListStyle : ListStyle {
+
+    /// Creates an inset list style.
+    public init() { fatalError() }
+}
+
+/// The list style that describes the behavior and appearance of a plain list.
+///
+/// You can also use ``ListStyle/plain`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct PlainListStyle : ListStyle {
+
+    /// Creates a plain list style.
+    public init() { fatalError() }
+}

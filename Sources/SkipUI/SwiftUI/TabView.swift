@@ -97,3 +97,30 @@ extension TabViewStyle where Self == DefaultTabViewStyle {
     /// The default `TabView` style.
     public static var automatic: DefaultTabViewStyle { get { fatalError() } }
 }
+
+/// A `TabViewStyle` that implements a paged scrolling `TabView`.
+///
+/// You can also use ``TabViewStyle/page`` or
+/// ``TabViewStyle/page(indexDisplayMode:)`` to construct this style.
+@available(iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+@available(macOS, unavailable)
+public struct PageTabViewStyle : TabViewStyle {
+
+    /// A style for displaying the page index view
+    public struct IndexDisplayMode : Sendable {
+
+        /// Displays an index view when there are more than one page
+        public static let automatic: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
+
+        /// Always display an index view regardless of page count
+        @available(watchOS 8.0, *)
+        public static let always: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
+
+        /// Never display an index view
+        @available(watchOS 8.0, *)
+        public static let never: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
+    }
+
+    /// Creates a new `PageTabViewStyle` with an index display mode
+    public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) { fatalError() }
+}
