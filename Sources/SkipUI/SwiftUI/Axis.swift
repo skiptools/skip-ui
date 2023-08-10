@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The horizontal or vertical dimension in a 2D coordinate system.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public enum Axis : Int8, CaseIterable {
@@ -170,3 +172,6 @@ extension Axis : Sendable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Axis.Set : Sendable {
 }
+
+#endif
+

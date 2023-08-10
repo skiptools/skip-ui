@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A representation of an action sheet presentation.
 ///
 /// Use an action sheet when you want the user to make a choice between two
@@ -79,3 +81,5 @@ public struct ActionSheet {
     /// which provides default, cancel, and destructive styles.
     public typealias Button = Alert.Button
 }
+
+#endif

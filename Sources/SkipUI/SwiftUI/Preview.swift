@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import enum UIKit.PreviewLayout
 
 /// Creates a preview of a SkipUI view.
@@ -168,11 +170,9 @@ public enum PreviewPlatform : Sendable {
     /// Specifies watchOS as the preview platform.
     case watchOS
 
-    public static func == (a: PreviewPlatform, b: PreviewPlatform) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -441,3 +441,5 @@ extension View {
 //    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 //    public init(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) { fatalError() }
 //}
+
+#endif

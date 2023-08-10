@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import typealias Foundation.TimeInterval
 
 /// A representation of a spring's motion.
@@ -27,11 +29,9 @@ import typealias Foundation.TimeInterval
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 public struct Spring : Hashable, Sendable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: Spring, b: Spring) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 
     public init() { fatalError() }
 }
@@ -316,9 +316,9 @@ public struct SpringLoadingBehavior : Hashable, Sendable {
     /// Spring loaded interactions will be disabled for applicable views.
     public static let disabled: SpringLoadingBehavior = { fatalError() }()
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: SpringLoadingBehavior, b: SpringLoadingBehavior) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
+
+#endif

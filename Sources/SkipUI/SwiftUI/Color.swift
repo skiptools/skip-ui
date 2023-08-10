@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import class Foundation.Bundle
 
 /// A representation of a color that adapts to a given context.
@@ -93,21 +95,6 @@ import class Foundation.Bundle
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "resolve(in:)")
     public var cgColor: CGColor? { get { fatalError() } }
 
-    /// Hashes the essential components of the color by feeding them into the
-    /// given hash function.
-    ///
-    /// - Parameters:
-    ///   - hasher: The hash function to use when combining the components of
-    ///     the color.
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    /// Indicates whether two colors are equal.
-    ///
-    /// - Parameters:
-    ///   - lhs: The first color to compare.
-    ///   - rhs: The second color to compare.
-    /// - Returns: A Boolean that's set to `true` if the two colors are equal.
-    public static func == (lhs: Color, rhs: Color) -> Bool { fatalError() }
 
     /// A textual representation of the color.
     ///
@@ -119,7 +106,6 @@ import class Foundation.Bundle
     ///     // Prints "red"
     public var description: String { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -160,12 +146,10 @@ extension Color {
         /// 100% opacity.
         public var opacity: Float { get { fatalError() } }
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Color.Resolved, b: Color.Resolved) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 
     /// Creates a constant color with the values specified by the resolved
     /// color.
@@ -233,12 +217,10 @@ extension Color {
         /// transfer function.
         case displayP3
 
-        public static func == (a: Color.RGBColorSpace, b: Color.RGBColorSpace) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// Creates a constant color from red, green, and blue component values.
     ///
@@ -717,3 +699,5 @@ extension Color.RGBColorSpace : Equatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Color.RGBColorSpace : Hashable {
 }
+
+#endif

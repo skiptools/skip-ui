@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A container view that displays semantically-related controls
 /// in a visually-appropriate manner for the context
 ///
@@ -308,3 +310,5 @@ public struct PaletteControlGroupStyle : ControlGroupStyle {
     /// A view representing the body of a control group.
 //    public typealias Body = some View
 }
+
+#endif

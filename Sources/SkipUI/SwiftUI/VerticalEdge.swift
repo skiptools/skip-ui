@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An edge on the vertical axis.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 @frozen public enum VerticalEdge : Int8, CaseIterable, Codable {
@@ -149,3 +151,5 @@ extension VerticalEdge : Sendable {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension VerticalEdge.Set : Sendable {
 }
+
+#endif

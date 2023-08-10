@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The visibility of a UI element, chosen automatically based on
 /// the platform, current context, and other factors.
 ///
@@ -38,9 +40,8 @@
     /// some platforms.
     case hidden
 
-    public static func == (a: Visibility, b: Visibility) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [Visibility]
@@ -48,9 +49,10 @@
     /// A collection of all values of this type.
     public static var allCases: [Visibility] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Visibility : Sendable {
 }
+
+#endif

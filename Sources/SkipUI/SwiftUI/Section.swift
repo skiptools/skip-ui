@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A container view that you can use to add hierarchy to certain collection views.
 ///
 /// Use `Section` instances in views like ``List``, ``Picker``, and
@@ -166,3 +168,5 @@ extension Section where Parent : View, Content : View, Footer == EmptyView {
     @available(xrOS, deprecated: 100000.0, renamed: "Section(content:header:)")
     public init(header: Parent, @ViewBuilder content: () -> Content) { fatalError() }
 }
+
+#endif

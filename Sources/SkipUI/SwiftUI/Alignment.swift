@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An alignment in both axes.
 ///
 /// An `Alignment` contains a ``HorizontalAlignment`` guide and a
@@ -148,7 +150,7 @@
     ///   - vertical: The alignment on the vertical axis.
     @inlinable public init(horizontal: HorizontalAlignment, vertical: VerticalAlignment) { fatalError() }
 
-    public static func == (a: Alignment, b: Alignment) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -383,3 +385,5 @@ extension Alignment {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Alignment : Sendable {
 }
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A 2D shape that you can use when drawing a view.
 ///
 /// Shapes without an explicit fill or stroke get a default fill based on the
@@ -714,11 +716,9 @@ public enum ShapeRole : Sendable {
     /// separator.
     case separator
 
-    public static func == (a: ShapeRole, b: ShapeRole) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -872,7 +872,7 @@ extension Rectangle : InsettableShape {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 
-    public static func == (a: RectangleCornerRadii, b: RectangleCornerRadii) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -1497,3 +1497,5 @@ extension Never : InsettableShape {
         fatalError()
     }
 }
+
+#endif

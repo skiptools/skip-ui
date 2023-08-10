@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The outline of a 2D shape.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct Path : Equatable, LosslessStringConvertible, @unchecked Sendable {
@@ -175,7 +177,7 @@
         /// After closing the subpath, the current point becomes undefined.
         case closeSubpath
 
-        public static func == (a: Path.Element, b: Path.Element) -> Bool { fatalError() }
+        
     }
 
     /// Calls `body` with each element in the path.
@@ -192,7 +194,7 @@
     /// linearly-interpolated along the path.
     public func trimmedPath(from: CGFloat, to: CGFloat) -> Path { fatalError() }
 
-    public static func == (a: Path, b: Path) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -670,3 +672,5 @@ extension Path {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Path.Element : Sendable {
 }
+
+#endif

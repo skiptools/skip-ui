@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 #if canImport(UIKit)
 import protocol Combine.ObservableObject
 import protocol UIKit.UIApplicationDelegate
@@ -1420,4 +1422,6 @@ extension View {
     @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return never() }
 
 }
+#endif
+
 #endif

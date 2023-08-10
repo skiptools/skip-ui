@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.AttributedString
 import struct Foundation.Date
 import struct Foundation.DateInterval
@@ -168,7 +170,7 @@ import protocol Foundation.ReferenceConvertible
     /// - Parameter content: The string value to display without localization.
     public init<S>(_ content: S) where S : StringProtocol { fatalError() }
 
-    public static func == (a: Text, b: Text) -> Bool { fatalError() }
+    
 }
 
 extension Text {
@@ -479,12 +481,10 @@ extension Text {
         /// When specified a uses a secondary text scale.
         public static let secondary: Text.Scale = { fatalError() }()
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Text.Scale, b: Text.Scale) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 }
 
 extension Text {
@@ -622,12 +622,10 @@ extension Text {
         /// "ab...yz".
         case middle
 
-        public static func == (a: Text.TruncationMode, b: Text.TruncationMode) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// A scheme for transforming the capitalization of characters within text.
     @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -647,12 +645,10 @@ extension Text {
         /// - SeeAlso: `StringProtocol.lowercased(with:)`
         case lowercase
 
-        public static func == (a: Text.Case, b: Text.Case) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -708,12 +704,10 @@ extension Text {
 //        /// `nsUnderlineStyle` contains styles not supported by ``Text.LineStyle``.
 //        public init?(nsUnderlineStyle: NSUnderlineStyle) { fatalError() }
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Text.LineStyle, b: Text.LineStyle) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1294,7 +1288,7 @@ extension Text {
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Text.DateStyle : Equatable {
 
-    public static func == (a: Text.DateStyle, b: Text.DateStyle) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -1346,9 +1340,8 @@ extension Text.Case : Hashable {
 
     case trailing
 
-    public static func == (a: TextAlignment, b: TextAlignment) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [TextAlignment]
@@ -1356,7 +1349,6 @@ extension Text.Case : Hashable {
     /// A collection of all values of this type.
     public static var allCases: [TextAlignment] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1509,3 +1501,5 @@ extension AttributeDynamicLookup {
 
     public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
 }
+
+#endif

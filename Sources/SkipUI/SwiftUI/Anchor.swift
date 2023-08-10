@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An opaque value derived from an anchor source and a particular view.
 ///
 /// You can convert the anchor to a `Value` in the coordinate space of a target
@@ -26,15 +28,12 @@ extension Anchor : Sendable where Value : Sendable {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Anchor : Equatable where Value : Equatable {
 
-    public static func == (lhs: Anchor<Value>, rhs: Anchor<Value>) -> Bool { fatalError() }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Anchor : Hashable where Value : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -89,3 +88,5 @@ extension Anchor.Source {
 
     public init<T>(_ anchor: Anchor<T>.Source?) where Value == T? { fatalError() }
 }
+
+#endif

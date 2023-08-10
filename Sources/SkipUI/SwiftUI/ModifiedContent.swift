@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A value with a modifier applied to it.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -104,7 +106,7 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ModifiedContent : Equatable where Content : Equatable, Modifier : Equatable {
 
-    public static func == (a: ModifiedContent<Content, Modifier>, b: ModifiedContent<Content, Modifier>) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -641,3 +643,5 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     public func accessibility(value: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
+
+#endif

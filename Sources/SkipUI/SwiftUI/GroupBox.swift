@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A stylized view, with an optional label, that visually collects a logical
 /// grouping of content.
@@ -239,3 +241,5 @@ public struct DefaultGroupBoxStyle : GroupBoxStyle {
     /// A view that represents the body of a group box.
 //    public typealias Body = some View
 }
+
+#endif

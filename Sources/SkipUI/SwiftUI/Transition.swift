@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A description of view changes to apply when a view is added to and removed
 /// from the view hierarchy.
 ///
@@ -117,11 +119,9 @@ public protocol Transition {
     /// This is true in the `identity` phase.
     public var isIdentity: Bool { get { fatalError() } }
 
-    public static func == (a: TransitionPhase, b: TransitionPhase) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -349,7 +349,7 @@ public struct ContentTransition : Equatable, Sendable {
     /// - Returns: a new content transition.
     public static func numericText(countsDown: Bool = false) -> ContentTransition { fatalError() }
 
-    public static func == (a: ContentTransition, b: ContentTransition) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -662,3 +662,5 @@ extension Transition where Self == PushTransition {
     ///   fading it.
     public static func push(from edge: Edge) -> Self { fatalError() }
 }
+
+#endif

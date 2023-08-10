@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Date
 import class Foundation.Progress
 
@@ -739,3 +741,5 @@ public struct LinearProgressViewStyle : ProgressViewStyle {
     /// A view representing the body of a progress view.
 //    public typealias Body = some View
 }
+
+#endif

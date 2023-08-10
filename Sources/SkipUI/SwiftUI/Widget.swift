@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The configuration and content of a widget to display on the Home screen or
 /// in Notification Center.
 ///
@@ -275,3 +277,5 @@ extension Never : Widget {
     }
 
 }
+
+#endif

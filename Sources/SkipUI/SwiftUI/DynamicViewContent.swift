@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.IndexSet
 
 /// A type of view that generates views from an underlying collection of data.
@@ -111,3 +113,5 @@ extension MutableCollection {
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) { fatalError() }
 }
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A type that collects multiple instances of a content type --- like views,
 /// scenes, or commands --- into a single unit.
 ///
@@ -92,3 +94,5 @@ extension Group : View where Content : View {
     @inlinable public init(@ViewBuilder content: () -> Content) { fatalError() }
     public var body: Never { fatalError() }
 }
+
+#endif

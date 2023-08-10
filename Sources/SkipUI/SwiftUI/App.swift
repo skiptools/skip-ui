@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A type that represents the structure and behavior of an app.
 ///
 /// Create an app by declaring a structure that conforms to the `App` protocol.
@@ -115,3 +117,5 @@ extension App {
     /// a platform-appropriate way.
     //@MainActor public static func main() { fatalError() }
 }
+
+#endif

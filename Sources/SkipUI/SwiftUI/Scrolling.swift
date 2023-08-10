@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The ways that a scrollable view can bounce when it reaches the end of its
 /// content.
 ///
@@ -105,7 +107,7 @@ public struct ScrollIndicatorVisibility {
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 extension ScrollIndicatorVisibility : Equatable {
 
-    public static func == (a: ScrollIndicatorVisibility, b: ScrollIndicatorVisibility) -> Bool { fatalError() }
+    
 }
 
 /// A type defining the target in which a scroll view should try and scroll to.
@@ -529,11 +531,9 @@ extension ScrollTransitionConfiguration {
     /// phase, and 1.0 when in the bottomTrailing phase.
     public var value: Double { get { fatalError() } }
 
-    public static func == (a: ScrollTransitionPhase, b: ScrollTransitionPhase) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -897,3 +897,5 @@ public struct PagingScrollTargetBehavior : ScrollTargetBehavior {
     /// than it would otherwise.
     public func updateTarget(_ target: inout ScrollTarget, context: PagingScrollTargetBehavior.TargetContext) { fatalError() }
 }
+
+#endif

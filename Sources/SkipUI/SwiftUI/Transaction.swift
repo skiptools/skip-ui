@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The context of the current state-processing update.
 ///
 /// Use a transaction to pass an animation between views in a view hierarchy.
@@ -226,3 +228,5 @@ public func withTransaction<Result>(_ transaction: Transaction, _ body: () throw
 ///   transaction value.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public func withTransaction<R, V>(_ keyPath: WritableKeyPath<Transaction, V>, _ value: V, _ body: () throws -> R) rethrows -> R { fatalError() }
+
+#endif

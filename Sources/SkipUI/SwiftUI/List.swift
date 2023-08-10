@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A container that presents rows of data arranged in a single column,
 /// optionally providing the ability to select one or more members.
@@ -1149,3 +1151,5 @@ public struct SidebarListStyle : ListStyle {
     /// Creates a sidebar list style.
     public init() { fatalError() }
 }
+
+#endif

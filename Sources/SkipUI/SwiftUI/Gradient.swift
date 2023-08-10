@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A color gradient represented as an array of color stops, each having a
 /// parametric location value.
@@ -22,7 +24,7 @@
         /// Creates a color stop with a color and location.
         public init(color: Color, location: CGFloat) { fatalError() }
 
-        public static func == (a: Gradient.Stop, b: Gradient.Stop) -> Bool { fatalError() }
+        
     }
 
     /// The array of color stops.
@@ -37,7 +39,7 @@
     /// along the gradient.
     public init(colors: [Color]) { fatalError() }
 
-    public static func == (a: Gradient, b: Gradient) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -52,12 +54,10 @@ extension Gradient {
         /// Interpolates gradient colors in a perceptual color space.
         public static let perceptual: Gradient.ColorSpace = { fatalError() }()
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Gradient.ColorSpace, b: Gradient.ColorSpace) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 
     /// Returns a version of the gradient that will use a specified
     /// color space for interpolating between its colors.
@@ -78,9 +78,7 @@ extension Gradient {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Gradient : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -96,9 +94,7 @@ extension Gradient : ShapeStyle {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Gradient.Stop : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -352,9 +348,6 @@ extension Gradient.Stop : Sendable {
     /// Creates a new instance from the specified gradient.
     public init(_ gradient: Gradient) { fatalError() }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    public static func == (lhs: AnyGradient, rhs: AnyGradient) -> Bool { fatalError() }
 
     /// The type of shape style this will resolve to.
     ///
@@ -362,7 +355,6 @@ extension Gradient.Stop : Sendable {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -383,3 +375,5 @@ extension AnyGradient {
     ///
     public func colorSpace(_ space: Gradient.ColorSpace) -> AnyGradient { fatalError() }
 }
+
+#endif

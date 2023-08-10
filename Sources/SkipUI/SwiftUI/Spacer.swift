@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A flexible space that expands along the major axis of its containing stack
 /// layout, or on both axes if not contained in a stack.
 ///
@@ -131,3 +133,5 @@ extension Spacer : View {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Spacer : Sendable {
 }
+
+#endif

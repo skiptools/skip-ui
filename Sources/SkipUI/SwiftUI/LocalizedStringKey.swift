@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import class Foundation.Formatter
 import class Foundation.NSObject
 import protocol Foundation.ReferenceConvertible
@@ -300,7 +302,7 @@ import struct Foundation.LocalizedStringResource
         public typealias StringLiteralType = String
     }
 
-    public static func == (a: LocalizedStringKey, b: LocalizedStringKey) -> Bool { fatalError() }
+    
 
     /// A type that represents an extended grapheme cluster literal.
     ///
@@ -392,3 +394,5 @@ extension LocalizedStringKey.StringInterpolation {
     @available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
     public mutating func appendInterpolation(_ resource: LocalizedStringResource) { fatalError() }
 }
+
+#endif

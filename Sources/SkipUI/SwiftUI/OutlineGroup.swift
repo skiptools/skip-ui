@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A structure that computes views and disclosure groups on demand from an
 /// underlying collection of tree-structured, identified data.
 ///
@@ -524,3 +526,5 @@ public struct OutlineSubgroupChildren : View {
     public typealias Body = Never
     public var body: Body { fatalError() }
 }
+
+#endif

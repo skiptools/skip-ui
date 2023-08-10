@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import class Foundation.UserDefaults
 import struct Foundation.URL
 import struct Foundation.Data
@@ -289,3 +291,6 @@ extension AppStorage {
     ///     of `nil` will use the user default store from the environment.
     public init<R>(_ key: String, store: UserDefaults? = nil) where Value == R?, R : RawRepresentable, R.RawValue == Int { fatalError() }
 }
+
+#endif
+

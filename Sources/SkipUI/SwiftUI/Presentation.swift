@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// Strategies for adapting a presentation to a different size class.
 ///
 /// Use values of this type with the ``View/presentationCompactAdaptation(_:)``
@@ -71,7 +73,7 @@ public struct PresentationContentInteraction : Equatable, Sendable {
     /// swiping, rather than resizing the presentation.
     public static var scrolls: PresentationContentInteraction { get { fatalError() } }
 
-    public static func == (a: PresentationContentInteraction, b: PresentationContentInteraction) -> Bool { fatalError() }
+    
 }
 
 /// A type that represents a height where a sheet naturally rests.
@@ -107,11 +109,9 @@ public struct PresentationDetent : Hashable, Sendable {
         public subscript<T>(dynamicMember keyPath: KeyPath<EnvironmentValues, T>) -> T { get { fatalError() } }
     }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: PresentationDetent, b: PresentationDetent) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// An indication whether a view is currently presented by another view.
@@ -146,3 +146,5 @@ public struct PresentedWindowContent<Data, Content> : View where Data : Decodabl
     public typealias Body = Never
     public var body: Body { fatalError() }
 }
+
+#endif

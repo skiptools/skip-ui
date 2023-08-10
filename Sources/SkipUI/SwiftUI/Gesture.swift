@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Date
 
 /// An instance that matches a sequence of events to a gesture, and returns a
@@ -486,7 +488,7 @@ public struct MagnifyGesture : Gesture {
         /// space.
         public var startLocation: CGPoint { get { fatalError() } }
 
-        public static func == (a: MagnifyGesture.Value, b: MagnifyGesture.Value) -> Bool { fatalError() }
+        
     }
 
     /// The minimum required delta before the gesture starts.
@@ -560,7 +562,7 @@ public struct RotateGesture : Gesture {
         /// space.
         public var startLocation: CGPoint { get { fatalError() } }
 
-        public static func == (a: RotateGesture.Value, b: RotateGesture.Value) -> Bool { fatalError() }
+        
     }
 
     /// The minimum delta required before the gesture succeeds.
@@ -696,7 +698,7 @@ public struct SpatialTapGesture : Gesture {
         /// The location of the tap gesture's current event.
         public var location: CGPoint { get { fatalError() } }
 
-        public static func == (a: SpatialTapGesture.Value, b: SpatialTapGesture.Value) -> Bool { fatalError() }
+        
     }
 
     /// The required number of tap events.
@@ -835,7 +837,7 @@ public struct DragGesture : Gesture {
         /// translation will be if dragging stopped now.
         public var predictedEndTranslation: CGSize { get { fatalError() } }
 
-        public static func == (a: DragGesture.Value, b: DragGesture.Value) -> Bool { fatalError() }
+        
     }
 
     /// The minimum dragging distance before the gesture succeeds.
@@ -922,15 +924,13 @@ extension SimultaneousGesture.Value : Sendable where First.Value : Sendable, Sec
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension SimultaneousGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
 
-    public static func == (a: SimultaneousGesture<First, Second>.Value, b: SimultaneousGesture<First, Second>.Value) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension SimultaneousGesture.Value : Hashable where First.Value : Hashable, Second.Value : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A gesture that's a sequence of two gestures.
@@ -976,7 +976,7 @@ extension SequenceGesture.Value : Sendable where First.Value : Sendable, Second.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension SequenceGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
 
-    public static func == (a: SequenceGesture<First, Second>.Value, b: SequenceGesture<First, Second>.Value) -> Bool { fatalError() }
+    
 }
 
 /// A gesture that consists of two gestures where only one of them can succeed.
@@ -1022,7 +1022,7 @@ extension ExclusiveGesture.Value : Sendable where First.Value : Sendable, Second
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ExclusiveGesture.Value : Equatable where First.Value : Equatable, Second.Value : Equatable {
 
-    public static func == (a: ExclusiveGesture<First, Second>.Value, b: ExclusiveGesture<First, Second>.Value) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1045,3 +1045,5 @@ extension Optional : Gesture where Wrapped : Gesture {
     public var body: Never { return never() }
 }
 
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct CoreGraphics.CGSize
 import class Foundation.UserDefaults
 
@@ -718,7 +720,7 @@ public struct ScenePadding : Equatable, Sendable {
     /// that you use to align your view with the title of a navigation view.
     public static let minimum: ScenePadding = { fatalError() }()
 
-    public static func == (a: ScenePadding, b: ScenePadding) -> Bool { fatalError() }
+    
 }
 
 /// An indication of a scene's operational state.
@@ -830,9 +832,8 @@ public enum ScenePhase : Comparable {
     /// instance.
     case active
 
-    public static func == (a: ScenePhase, b: ScenePhase) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// Returns a Boolean value indicating whether the value of the first
     /// argument is less than that of the second argument.
@@ -846,7 +847,6 @@ public enum ScenePhase : Comparable {
     ///   - rhs: Another value to compare.
     public static func < (a: ScenePhase, b: ScenePhase) -> Bool { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -872,3 +872,5 @@ extension Group : Scene where Content : Scene {
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Never : Scene {
 }
+
+#endif

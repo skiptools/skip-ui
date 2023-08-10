@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import protocol SwiftUI.View
 
 //public typealias PlatformView = SwiftUI.View
@@ -85,3 +87,5 @@ extension Optional : View where Wrapped : View {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Never : View {
 }
+
+#endif

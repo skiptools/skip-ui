@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An edge on the horizontal axis.
 ///
 /// Use a horizontal edge for tasks like setting a swipe action with the
@@ -154,3 +156,5 @@ extension HorizontalEdge : Sendable {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension HorizontalEdge.Set : Sendable {
 }
+
+#endif

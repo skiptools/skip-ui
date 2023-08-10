@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A color or pattern to use when rendering a shape.
 ///
 /// You create custom shape styles by declaring a type that conforms to the
@@ -1118,7 +1120,7 @@ extension Shader : ShapeStyle {
     ///     antialiasing when rendering the edges of a shape.
     @inlinable public init(eoFill: Bool = false, antialiased: Bool = true) { fatalError() }
 
-    public static func == (a: FillStyle, b: FillStyle) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1223,11 +1225,9 @@ public enum RoundedCornerStyle : Sendable {
     /// Continuous curvature rounded rect corners.
     case continuous
 
-    public static func == (a: RoundedCornerStyle, b: RoundedCornerStyle) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1237,3 +1237,5 @@ extension RoundedCornerStyle : Equatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension RoundedCornerStyle : Hashable {
 }
+
+#endif

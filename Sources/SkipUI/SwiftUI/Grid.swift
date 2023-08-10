@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A container view that arranges other views in a two dimensional layout.
 ///
 /// Create a two dimensional layout by initializing a `Grid` with a collection
@@ -956,3 +958,5 @@ extension GridLayout : Sendable {
 extension GridRow : View {
     public var body: Body { fatalError() }
 }
+
+#endif

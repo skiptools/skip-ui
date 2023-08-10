@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control that toggles between on and off states.
 ///
 /// You create a toggle by providing an `isOn` binding and a label. Bind `isOn`
@@ -809,3 +811,5 @@ public struct ButtonToggleStyle : ToggleStyle {
     /// ``makeBody(configuration:)`` method.
 //    public typealias Body = some View
 }
+
+#endif

@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import protocol Combine.ObservableObject
 
 /// A property wrapper type that subscribes to an observable object and
@@ -148,3 +150,5 @@ import protocol Combine.ObservableObject
     ///
     @MainActor public var projectedValue: ObservedObject<ObjectType>.Wrapper { get { fatalError() } }
 }
+
+#endif

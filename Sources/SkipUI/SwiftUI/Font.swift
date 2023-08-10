@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import class CoreText.CTFont
 
 /// An environment-dependent font.
@@ -10,11 +12,7 @@ import class CoreText.CTFont
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct Font : Hashable, Sendable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (lhs: Font, rhs: Font) -> Bool { fatalError() }
-
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -126,15 +124,13 @@ extension Font {
         /// A collection of all values of this type.
         public static var allCases: [Font.TextStyle] { get { fatalError() } }
 
-        public static func == (a: Font.TextStyle, b: Font.TextStyle) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
+    
         /// A type that can represent a collection of all values of this type.
         public typealias AllCases = [Font.TextStyle]
 
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -302,12 +298,10 @@ extension Font {
 
         public init(_ value: CGFloat) { fatalError() }
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Font.Width, b: Font.Width) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 
     /// A line spacing adjustment that you can apply to a font.
     ///
@@ -335,12 +329,10 @@ extension Font {
         /// and 2 points on other platforms.
         case loose
 
-        public static func == (a: Font.Leading, b: Font.Leading) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -414,12 +406,10 @@ extension Font {
         @available(watchOS 7.0, *)
         case monospaced
 
-        public static func == (a: Font.Design, b: Font.Design) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -489,11 +479,9 @@ public enum LegibilityWeight : Hashable, Sendable {
     /// Use heavier font weight (force Accessibility Bold).
     case bold
 
-    public static func == (a: LegibilityWeight, b: LegibilityWeight) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A dynamic property that scales a numeric value.
@@ -578,3 +566,5 @@ public struct RedactionReasons : OptionSet, Sendable {
     /// type that don't have a corresponding value of the conforming type.
     public typealias RawValue = Int
 }
+
+#endif

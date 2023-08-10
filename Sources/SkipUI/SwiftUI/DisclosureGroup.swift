@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view that shows or hides another content view, based on the state of a
 /// disclosure control.
 ///
@@ -233,3 +235,5 @@ public struct DisclosureGroupStyleConfiguration {
 
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }
+
+#endif

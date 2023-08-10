@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A view that overlays its subviews, aligning them in both axes.
 ///
@@ -123,3 +125,5 @@
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension ZStackLayout : Sendable {
 }
+
+#endif

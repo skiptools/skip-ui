@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import Observation
 //import protocol Observation.Observable
 
@@ -61,3 +63,6 @@ extension Bindable where Value : AnyObject, Value : Observable {
     /// Creates a bindable from the value of another bindable.
     public init(projectedValue: Bindable<Value>) { fatalError() }
 }
+
+#endif
+

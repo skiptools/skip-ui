@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Calendar
 import struct Foundation.TimeZone
 import struct Foundation.Locale
@@ -1980,3 +1982,5 @@ public protocol EnvironmentalModifier : ViewModifier where Self.Body == Never {
     /// Resolve to a concrete modifier in the given `environment`.
     func resolve(in environment: EnvironmentValues) -> Self.ResolvedModifier
 }
+
+#endif

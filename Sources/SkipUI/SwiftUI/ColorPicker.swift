@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control used to select a color from the system color picker UI.
 ///
 /// The color picker provides a color well that shows the currently selected
@@ -163,3 +165,5 @@ extension ColorPicker where Label == Text {
     ///     default is `true`.
     public init<S>(_ title: S, selection: Binding<CGColor>, supportsOpacity: Bool = true) where S : StringProtocol { fatalError() }
 }
+
+#endif

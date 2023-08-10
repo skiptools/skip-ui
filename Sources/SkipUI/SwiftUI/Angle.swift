@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A geometric angle whose value you access in either radians or degrees.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct Angle {
@@ -36,11 +38,9 @@ extension Angle : Hashable, Comparable {
     ///   - rhs: Another value to compare.
     @inlinable public static func < (lhs: Angle, rhs: Angle) -> Bool { fatalError() }
 
-    public static func == (a: Angle, b: Angle) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -58,3 +58,5 @@ extension Angle : Animatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Angle : Sendable {
 }
+
+#endif

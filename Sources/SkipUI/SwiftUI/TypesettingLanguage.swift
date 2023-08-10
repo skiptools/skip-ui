@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Locale
 
 /// Defines how typesetting language is determined for text.
@@ -32,5 +34,7 @@ public struct TypesettingLanguage : Sendable, Equatable {
     /// - Returns: A `TypesettingLanguage`.
     public static func explicit(_ language: Locale.Language) -> TypesettingLanguage { fatalError() }
 
-    public static func == (a: TypesettingLanguage, b: TypesettingLanguage) -> Bool { fatalError() }
+    
 }
+
+#endif

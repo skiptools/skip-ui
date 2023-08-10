@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// The kind of autocapitalization behavior applied during text input.
 ///
@@ -58,7 +60,7 @@ public struct TextInputDictationActivation : Equatable, Sendable {
     @available(tvOS, unavailable)
     public static let onLook: TextInputDictationActivation = { fatalError() }()
 
-    public static func == (a: TextInputDictationActivation, b: TextInputDictationActivation) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 17.0, xrOS 1.0, *)
@@ -85,5 +87,7 @@ public struct TextInputDictationBehavior : Equatable, Sendable {
     @available(tvOS, unavailable)
     public static func inline(activation: TextInputDictationActivation) -> TextInputDictationBehavior { fatalError() }
 
-    public static func == (a: TextInputDictationBehavior, b: TextInputDictationBehavior) -> Bool { fatalError() }
+    
 }
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view that switches between multiple child views using interactive user
 /// interface elements.
 ///
@@ -124,3 +126,5 @@ public struct PageTabViewStyle : TabViewStyle {
     /// Creates a new `PageTabViewStyle` with an index display mode
     public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) { fatalError() }
 }
+
+#endif

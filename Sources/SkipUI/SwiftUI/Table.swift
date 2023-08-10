@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import class Foundation.NSObject
 import protocol Foundation.SortComparator
 import struct Foundation.KeyPathComparator
@@ -2835,7 +2837,7 @@ public struct TableColumnCustomization<RowValue> : Equatable, Sendable, Codable 
     /// described by their column builder.
     public mutating func resetOrder() { fatalError() }
 
-    public static func == (a: TableColumnCustomization<RowValue>, b: TableColumnCustomization<RowValue>) -> Bool { fatalError() }
+    
 
     /// Encodes this value into the given encoder.
     ///
@@ -3100,7 +3102,7 @@ public struct TableColumnCustomizationBehavior : SetAlgebra, Sendable {
     /// - Parameter other: A set of the same type.
     public mutating func formSymmetricDifference(_ other: TableColumnCustomizationBehavior) { fatalError() }
 
-    public static func == (a: TableColumnCustomizationBehavior, b: TableColumnCustomizationBehavior) -> Bool { fatalError() }
+    
 
     /// The type of the elements of an array literal.
     public typealias ArrayLiteralElement = TableColumnCustomizationBehavior.Element
@@ -4070,3 +4072,5 @@ extension Never : TableColumnContent {
     /// The composition of content that comprise the table column content.
     public var tableColumnBody: Never { get { fatalError() } }
 }
+
+#endif

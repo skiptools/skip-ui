@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A scene that presents a group of identically structured windows.
 ///
 /// Use a `WindowGroup` as a container for a view hierarchy that your app
@@ -836,3 +838,5 @@ public struct WindowResizability : Sendable {
     /// * No maximum size.
     public static var contentMinSize: WindowResizability { get { fatalError() } }
 }
+
+#endif

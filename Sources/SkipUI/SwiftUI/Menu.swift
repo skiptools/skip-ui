@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control for presenting a menu of actions.
 ///
 /// The following example presents a menu of three buttons and a submenu, which
@@ -207,7 +209,7 @@ public struct MenuActionDismissBehavior : Equatable {
     @available(watchOS, unavailable)
     public static let disabled: MenuActionDismissBehavior = { fatalError() }()
 
-    public static func == (a: MenuActionDismissBehavior, b: MenuActionDismissBehavior) -> Bool { fatalError() }
+    
 }
 
 /// A control group style that presents its content as a menu when the user
@@ -263,11 +265,9 @@ public struct MenuOrder : Equatable, Hashable, Sendable {
     /// Order items from top to bottom.
     public static let fixed: MenuOrder = { fatalError() }()
 
-    public static func == (a: MenuOrder, b: MenuOrder) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A picker style that presents the options as a menu when the user presses a
@@ -431,3 +431,5 @@ public struct DefaultMenuStyle : MenuStyle {
     /// A view that represents the body of a menu.
 //    public typealias Body = some View
 }
+
+#endif

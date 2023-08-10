@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A control that initiates an action.
 ///
@@ -287,7 +289,7 @@ public struct ButtonBorderShape : Equatable, Sendable {
     @available(iOS 17.0, macOS 14.0, tvOS 16.4, watchOS 10.0, *)
     public static let circle: ButtonBorderShape = { fatalError() }()
 
-    public static func == (a: ButtonBorderShape, b: ButtonBorderShape) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -726,3 +728,5 @@ extension View {
     public func buttonRepeatBehavior(_ behavior: ButtonRepeatBehavior) -> some View { return never() }
 
 }
+
+#endif

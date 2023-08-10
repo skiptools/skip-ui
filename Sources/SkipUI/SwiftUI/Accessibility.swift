@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import class Accessibility.AXCustomContent
 import class Accessibility.AXChartDescriptor
 
@@ -22,7 +24,7 @@ public struct AccessibilityActionKind : Equatable, Sendable {
 
     public init(named name: Text) { fatalError() }
 
-    public static func == (a: AccessibilityActionKind, b: AccessibilityActionKind) -> Bool { fatalError() }
+    
 }
 
 /// A directional indicator you use when making an accessibility adjustment.
@@ -33,11 +35,9 @@ public enum AccessibilityAdjustmentDirection : Sendable {
 
     case decrement
 
-    public static func == (a: AccessibilityAdjustmentDirection, b: AccessibilityAdjustmentDirection) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -61,11 +61,7 @@ public struct AccessibilityAttachmentModifier : ViewModifier {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct AccessibilityChildBehavior : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (lhs: AccessibilityChildBehavior, rhs: AccessibilityChildBehavior) -> Bool { fatalError() }
-
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -219,7 +215,7 @@ public struct AccessibilityCustomContentKey {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension AccessibilityCustomContentKey : Equatable {
 
-    public static func == (a: AccessibilityCustomContentKey, b: AccessibilityCustomContentKey) -> Bool { fatalError() }
+    
 }
 
 /// An option set that defines the functionality of a view's direct touch area.
@@ -495,15 +491,13 @@ extension AccessibilityHeadingLevel : Sendable {
     /// For example, it might be the custom control itself.
     case content
 
-    public static func == (a: AccessibilityLabeledPairRole, b: AccessibilityLabeledPairRole) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension AccessibilityLabeledPairRole : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -1140,7 +1134,7 @@ public struct AccessibilityTechnologies : SetAlgebra, Sendable {
     ///   set and `[newMember]`, or `nil` if the intersection is empty.
     public mutating func update(with newMember: AccessibilityTechnologies) -> AccessibilityTechnologies? { fatalError() }
 
-    public static func == (a: AccessibilityTechnologies, b: AccessibilityTechnologies) -> Bool { fatalError() }
+    
 
     /// The type of the elements of an array literal.
     public typealias ArrayLiteralElement = AccessibilityTechnologies
@@ -1485,7 +1479,7 @@ public struct AccessibilityTraits : SetAlgebra, Sendable {
     ///   set and `[newMember]`, or `nil` if the intersection is empty.
     public mutating func update(with newMember: AccessibilityTraits) -> AccessibilityTraits? { fatalError() }
 
-    public static func == (a: AccessibilityTraits, b: AccessibilityTraits) -> Bool { fatalError() }
+    
 
     /// The type of the elements of an array literal.
     public typealias ArrayLiteralElement = AccessibilityTraits
@@ -1510,12 +1504,10 @@ public struct AccessibilityZoomGestureAction {
         /// The gesture direction that represents zooming out.
         case zoomOut
 
-        public static func == (a: AccessibilityZoomGestureAction.Direction, b: AccessibilityZoomGestureAction.Direction) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// The zoom gesture's direction.
     public let direction: AccessibilityZoomGestureAction.Direction = { fatalError() }()
@@ -2067,3 +2059,5 @@ extension Never {
     /// The internal content of this `AccessibilityRotorContent`.
     public var body: Never { get { fatalError() } }
 }
+
+#endif

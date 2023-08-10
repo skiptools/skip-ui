@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 
 /// A type that can serve as the animatable data of an animatable type.
 ///
@@ -74,3 +76,5 @@ extension Never : VectorArithmetic {
     public var magnitudeSquared: Double { fatalError() }
     public static var zero: Never { fatalError() }
 }
+
+#endif

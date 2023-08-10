@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An alignment position along the vertical axis.
 ///
 /// Use vertical alignment guides to position views
@@ -165,7 +167,7 @@
     ///   vertical alignment.
     public init(_ id: AlignmentID.Type) { fatalError() }
 
-    public static func == (a: VerticalAlignment, b: VerticalAlignment) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -301,3 +303,5 @@ extension VerticalAlignment {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension VerticalAlignment : Sendable {
 }
+
+#endif

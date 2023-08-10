@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.URL
 
 /// A view that asynchronously loads and displays an image.
@@ -224,3 +226,6 @@ public enum AsyncImagePhase : Sendable {
     /// The error that occurred when attempting to load an image, if any.
     public var error: (Error)? { get { fatalError() } }
 }
+
+#endif
+

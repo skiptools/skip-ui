@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import CoreTransferable
 import struct UniformTypeIdentifiers.UTType
 
@@ -156,11 +158,9 @@ public enum DropOperation : Sendable {
     /// Move the data represented by the drag items instead of copying it.
     case move
 
-    public static func == (a: DropOperation, b: DropOperation) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.4, macOS 10.15, *)
@@ -2081,3 +2081,5 @@ extension View {
     public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return never() }
 
 }
+
+#endif

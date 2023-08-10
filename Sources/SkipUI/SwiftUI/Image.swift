@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import class Foundation.Bundle
 
 /// A view that displays an image.
@@ -57,7 +59,6 @@ import class Foundation.Bundle
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct Image : Equatable, Sendable {
 
-    public static func == (lhs: Image, rhs: Image) -> Bool { fatalError() }
 }
 
 
@@ -255,12 +256,10 @@ extension Image {
         /// Allow image content to use an unrestricted extended range.
         public static let high: Image.DynamicRange = { fatalError() }()
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Image.DynamicRange, b: Image.DynamicRange) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 
     /// Returns a new image configured with the specified allowed
     /// dynamic range.
@@ -477,12 +476,10 @@ extension Image {
         /// respect the current foreground and accent colors.
         case original
 
-        public static func == (a: Image.TemplateRenderingMode, b: Image.TemplateRenderingMode) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// A scale to apply to vector images relative to text.
     ///
@@ -515,12 +512,10 @@ extension Image {
         /// A scale that produces large images.
         case large
 
-        public static func == (a: Image.Scale, b: Image.Scale) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -550,12 +545,10 @@ extension Image {
         /// may slow down image rendering.
         case high
 
-        public static func == (a: Image.Interpolation, b: Image.Interpolation) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -691,12 +684,10 @@ extension Image {
         /// fills the available space.
         case stretch
 
-        public static func == (a: Image.ResizingMode, b: Image.ResizingMode) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// Sets the mode by which SkipUI resizes an image to fit its space.
     /// - Parameters:
@@ -1005,4 +996,6 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     /// The type of publisher that emits before the object has changed.
     public typealias ObjectWillChangePublisher = PassthroughSubject<Void, Never>
 }
+#endif
+
 #endif

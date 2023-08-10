@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A  function defined by a two-dimensional curve that maps an input
 /// progress in the range [0,1] to an output progress that is also in the
 /// range [0,1]. By changing the shape of the curve, the effective speed
@@ -75,11 +77,9 @@ extension UnitCurve : Sendable {
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension UnitCurve : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: UnitCurve, b: UnitCurve) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -304,13 +304,13 @@ extension UnitCurve {
     /// environment and on the left in a right-to-left environment.
     public static let bottomTrailing: UnitPoint = { fatalError() }()
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: UnitPoint, b: UnitPoint) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension UnitPoint : Sendable {
 }
+
+#endif

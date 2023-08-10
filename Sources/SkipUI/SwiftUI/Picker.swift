@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control for selecting from a set of mutually exclusive values.
 ///
 /// You create a picker by providing a selection binding, a label, and the
@@ -657,3 +659,5 @@ public struct WheelPickerStyle : PickerStyle {
     /// a selection.
     public init() { fatalError() }
 }
+
+#endif

@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import struct Foundation.Data
 import struct Foundation.URL
 import class Foundation.Bundle
@@ -96,7 +98,7 @@ public struct Shader : Equatable, Sendable {
         /// parameters.
         public static func data(_ data: Data) -> Shader.Argument { fatalError() }
 
-        public static func == (a: Shader.Argument, b: Shader.Argument) -> Bool { fatalError() }
+        
     }
 
     /// The shader function called by the shader.
@@ -116,7 +118,7 @@ public struct Shader : Equatable, Sendable {
     /// values to bind to the function.
     public init(function: ShaderFunction, arguments: [Shader.Argument]) { fatalError() }
 
-    public static func == (a: Shader, b: Shader) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
@@ -157,7 +159,7 @@ extension Shader {
     /// unbound parameter of `myFunction()`.
     public func dynamicallyCall(withArguments args: [Shader.Argument]) -> Shader { fatalError() }
 
-    public static func == (a: ShaderFunction, b: ShaderFunction) -> Bool { fatalError() }
+    
 }
 
 /// A Metal shader library.
@@ -207,5 +209,6 @@ extension Shader {
     /// `myFunction()`.
     public subscript(dynamicMember name: String) -> ShaderFunction { get { fatalError() } }
 
-    public static func == (lhs: ShaderLibrary, rhs: ShaderLibrary) -> Bool { fatalError() }
 }
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// The placement of a search field in a view hierarchy.
 ///
 /// You can give a preferred placement to any of the searchable modifiers, like
@@ -208,7 +210,7 @@ public struct SearchSuggestionsPlacement : Equatable, Sendable {
         public typealias RawValue = Int
     }
 
-    public static func == (a: SearchSuggestionsPlacement, b: SearchSuggestionsPlacement) -> Bool { fatalError() }
+    
 }
 
 /// A structure that represents the body of a static placeholder search view.
@@ -308,3 +310,5 @@ public struct SearchUnavailableContent {
 //        public typealias Body = some View
     }
 }
+
+#endif

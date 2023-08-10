@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control for selecting a value from a bounded linear range of values.
 ///
 /// A slider consists of a "thumb" image that the user moves between two
@@ -351,3 +353,5 @@ extension Slider where ValueLabel == EmptyView {
     @available(xrOS, deprecated: 100000.0, renamed: "Slider(value:in:step:label:onEditingChanged:)")
     public init<V>(value: Binding<V>, in bounds: ClosedRange<V>, step: V.Stride = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }, @ViewBuilder label: () -> Label) where V : BinaryFloatingPoint, V.Stride : BinaryFloatingPoint { fatalError() }
 }
+
+#endif

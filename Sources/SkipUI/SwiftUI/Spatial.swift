@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import typealias Foundation.TimeInterval
 
 /// A collection of events that target a specific view.
@@ -22,43 +24,10 @@ public struct SpatialEventCollection : Collection {
         /// A value that uniquely identifies an event over the course of its lifetime.
         public struct ID : Hashable {
 
-            /// Hashes the essential components of this value by feeding them into the
-            /// given hasher.
-            ///
-            /// Implement this method to conform to the `Hashable` protocol. The
-            /// components used for hashing must be the same as the components compared
-            /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-            /// with each of these components.
-            ///
-            /// - Important: In your implementation of `hash(into:)`,
-            ///   don't call `finalize()` on the `hasher` instance provided,
-            ///   or replace it with a different instance.
-            ///   Doing so may become a compile-time error in the future.
-            ///
-            /// - Parameter hasher: The hasher to use when combining the components
-            ///   of this instance.
-            public func hash(into hasher: inout Hasher) { fatalError() }
+        
+            
 
-            /// Returns a Boolean value indicating whether two values are equal.
-            ///
-            /// Equality is the inverse of inequality. For any values `a` and `b`,
-            /// `a == b` implies that `a != b` is `false`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func == (a: SpatialEventCollection.Event.ID, b: SpatialEventCollection.Event.ID) -> Bool { fatalError() }
-
-            /// The hash value.
-            ///
-            /// Hash values are not guaranteed to be equal across different executions of
-            /// your program. Do not save hash values to use during a future execution.
-            ///
-            /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-            ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-            ///   The compiler provides an implementation for `hashValue` for you.
-            public var hashValue: Int { get { fatalError() } }
-        }
+                }
 
         /// A kind of spatial event used to differentiate between different
         /// input sources or modes.
@@ -82,43 +51,10 @@ public struct SpatialEventCollection : Collection {
             @available(watchOS, unavailable)
             case pointer
 
-            /// Returns a Boolean value indicating whether two values are equal.
-            ///
-            /// Equality is the inverse of inequality. For any values `a` and `b`,
-            /// `a == b` implies that `a != b` is `false`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func == (a: SpatialEventCollection.Event.Kind, b: SpatialEventCollection.Event.Kind) -> Bool { fatalError() }
+            
 
-            /// Hashes the essential components of this value by feeding them into the
-            /// given hasher.
-            ///
-            /// Implement this method to conform to the `Hashable` protocol. The
-            /// components used for hashing must be the same as the components compared
-            /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-            /// with each of these components.
-            ///
-            /// - Important: In your implementation of `hash(into:)`,
-            ///   don't call `finalize()` on the `hasher` instance provided,
-            ///   or replace it with a different instance.
-            ///   Doing so may become a compile-time error in the future.
-            ///
-            /// - Parameter hasher: The hasher to use when combining the components
-            ///   of this instance.
-            public func hash(into hasher: inout Hasher) { fatalError() }
-
-            /// The hash value.
-            ///
-            /// Hash values are not guaranteed to be equal across different executions of
-            /// your program. Do not save hash values to use during a future execution.
-            ///
-            /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-            ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-            ///   The compiler provides an implementation for `hashValue` for you.
-            public var hashValue: Int { get { fatalError() } }
-        }
+        
+                }
 
         /// The phase of a particular state of the event.
         public enum Phase {
@@ -135,43 +71,10 @@ public struct SpatialEventCollection : Collection {
             /// and won't produce any more updates.
             case cancelled
 
-            /// Returns a Boolean value indicating whether two values are equal.
-            ///
-            /// Equality is the inverse of inequality. For any values `a` and `b`,
-            /// `a == b` implies that `a != b` is `false`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func == (a: SpatialEventCollection.Event.Phase, b: SpatialEventCollection.Event.Phase) -> Bool { fatalError() }
+            
 
-            /// Hashes the essential components of this value by feeding them into the
-            /// given hasher.
-            ///
-            /// Implement this method to conform to the `Hashable` protocol. The
-            /// components used for hashing must be the same as the components compared
-            /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-            /// with each of these components.
-            ///
-            /// - Important: In your implementation of `hash(into:)`,
-            ///   don't call `finalize()` on the `hasher` instance provided,
-            ///   or replace it with a different instance.
-            ///   Doing so may become a compile-time error in the future.
-            ///
-            /// - Parameter hasher: The hasher to use when combining the components
-            ///   of this instance.
-            public func hash(into hasher: inout Hasher) { fatalError() }
-
-            /// The hash value.
-            ///
-            /// Hash values are not guaranteed to be equal across different executions of
-            /// your program. Do not save hash values to use during a future execution.
-            ///
-            /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-            ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-            ///   The compiler provides an implementation for `hashValue` for you.
-            public var hashValue: Int { get { fatalError() } }
-        }
+        
+                }
 
         /// A pose describing the input device such as a pencil
         /// or hand controlling the event.
@@ -252,7 +155,7 @@ public struct SpatialEventCollection : Collection {
         ///   - rhs: Another value to compare.
         public static func < (lhs: SpatialEventCollection.Index, rhs: SpatialEventCollection.Index) -> Bool { fatalError() }
 
-        public static func == (a: SpatialEventCollection.Index, b: SpatialEventCollection.Index) -> Bool { fatalError() }
+        
     }
 
     /// The position of the first element in a nonempty collection.
@@ -325,10 +228,6 @@ public struct SpatialEventCollection : Collection {
 }
 
 extension SpatialEventCollection.Event {
-
-    @available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
-    @available(tvOS, unavailable)
-    public static func == (lhs: SpatialEventCollection.Event, rhs: SpatialEventCollection.Event) -> Bool { fatalError() }
 }
 
 @available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
@@ -340,3 +239,5 @@ extension SpatialEventCollection.Event.Phase : Equatable {
 @available(tvOS, unavailable)
 extension SpatialEventCollection.Event.Phase : Hashable {
 }
+
+#endif

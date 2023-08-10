@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view that controls a navigation presentation.
 ///
 /// People click or tap a navigation link to present a view inside a
@@ -835,13 +837,11 @@ public struct NavigationPath {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension NavigationPath : Equatable {
 
-    public static func == (lhs: NavigationPath, rhs: NavigationPath) -> Bool { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension NavigationPath.CodableRepresentation : Equatable {
 
-    public static func == (lhs: NavigationPath.CodableRepresentation, rhs: NavigationPath.CodableRepresentation) -> Bool { fatalError() }
 }
 
 /// A view that presents views in two or three columns, where selections in
@@ -1124,11 +1124,9 @@ public struct NavigationSplitViewColumn : Hashable, Sendable {
 
     public static var detail: NavigationSplitViewColumn { get { fatalError() } }
 
-    public static func == (a: NavigationSplitViewColumn, b: NavigationSplitViewColumn) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A type that specifies the appearance and interaction of navigation split
@@ -1224,8 +1222,6 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     /// This computed property returns one of the three concrete cases:
     /// ``detailOnly``, ``doubleColumn``, or ``all``.
     public static var automatic: NavigationSplitViewVisibility { get { fatalError() } }
-
-    public static func == (lhs: NavigationSplitViewVisibility, rhs: NavigationSplitViewVisibility) -> Bool { fatalError() }
 
     /// Encodes this value into the given encoder.
     ///
@@ -1574,12 +1570,10 @@ public struct NavigationBarItem : Sendable {
         @available(tvOS, unavailable)
         case large
 
-        public static func == (a: NavigationBarItem.TitleDisplayMode, b: NavigationBarItem.TitleDisplayMode) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 }
 
 @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -1670,3 +1664,5 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 
     public init() { fatalError() }
 }
+
+#endif

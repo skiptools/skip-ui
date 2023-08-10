@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
@@ -144,7 +146,7 @@ public protocol AnimatableModifier : Animatable, ViewModifier {
     /// The dot-product of this animated pair with itself.
     public var magnitudeSquared: Double { get { fatalError() } }
 
-    public static func == (a: AnimatablePair<First, Second>, b: AnimatablePair<First, Second>) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -253,7 +255,6 @@ extension AnimatablePair : Sendable where First : Sendable, Second : Sendable {
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public init<A>(_ base: A) where A : CustomAnimation { fatalError() }
 
-    public static func == (lhs: Animation, rhs: Animation) -> Bool { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1162,9 +1163,7 @@ extension Animation : Hashable {
 
 //    public var base: CustomAnimation { get { fatalError() } }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1249,11 +1248,9 @@ public struct AnimationCompletionCriteria : Hashable, Sendable {
     /// complete.
     public static let removed: AnimationCompletionCriteria = { fatalError() }()
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: AnimationCompletionCriteria, b: AnimationCompletionCriteria) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// Contextual values that a custom animation can use to manage state and
@@ -2451,7 +2448,7 @@ extension StrokeStyle : Animatable {
     /// The dot-product of this animatable data instance with itself.
     @inlinable public var magnitudeSquared: Double { get { fatalError() } }
 
-    public static func == (a: EmptyAnimatableData, b: EmptyAnimatableData) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2541,3 +2538,5 @@ extension Never : Keyframes {
 
 extension Never : KeyframeTrackContent {
 }
+
+#endif

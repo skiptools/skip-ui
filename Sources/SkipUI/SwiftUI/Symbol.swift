@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import protocol Symbols.SymbolEffect
 import struct Symbols.SymbolEffectOptions
 import protocol Symbols.TransitionSymbolEffect
@@ -465,9 +467,9 @@ public struct SymbolVariants : Hashable, Sendable {
     ///   `false`.
     public func contains(_ other: SymbolVariants) -> Bool { fatalError() }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: SymbolVariants, b: SymbolVariants) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
+
+#endif

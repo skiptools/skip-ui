@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A type that defines the geometry of a collection of views.
 ///
 /// You traditionally arrange views in your app's user interface using built-in
@@ -1175,9 +1177,8 @@ public enum LayoutDirection : Hashable, CaseIterable, Sendable {
     /// A right-to-left layout direction.
     case rightToLeft
 
-    public static func == (a: LayoutDirection, b: LayoutDirection) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [LayoutDirection]
@@ -1185,7 +1186,6 @@ public enum LayoutDirection : Hashable, CaseIterable, Sendable {
     /// A collection of all values of this type.
     public static var allCases: [LayoutDirection] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 #if canImport(UIKit)
@@ -1225,11 +1225,9 @@ public enum LayoutDirectionBehavior : Hashable, Sendable {
     /// A behavior that mirrors when the layout direction is right-to-left.
     public static var mirrors: LayoutDirectionBehavior { get { fatalError() } }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: LayoutDirectionBehavior, b: LayoutDirectionBehavior) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// Layout-specific properties of a layout container.
@@ -1473,7 +1471,7 @@ public struct LayoutSubview : Equatable {
     ///     their parent view into account when doing so.
     public func place(at position: CGPoint, anchor: UnitPoint = .topLeading, proposal: ProposedViewSize) { fatalError() }
 
-    public static func == (a: LayoutSubview, b: LayoutSubview) -> Bool { fatalError() }
+    
 }
 
 /// A collection of proxy values that represent the subviews of a layout view.
@@ -1534,8 +1532,6 @@ public struct LayoutSubviews : Equatable, RandomAccessCollection, Sendable {
 
     /// Gets the subview proxies with the specified indicies.
     public subscript<S>(indices: S) -> LayoutSubviews where S : Sequence, S.Element == Int { get { fatalError() } }
-
-    public static func == (lhs: LayoutSubviews, rhs: LayoutSubviews) -> Bool { fatalError() }
 
     /// A type that represents the indices that are valid for subscripting the
     /// collection, in ascending order.
@@ -1654,3 +1650,5 @@ public protocol LayoutValueKey {
     /// ``View/layoutValue(key:value:)`` modifier.
     static var defaultValue: Self.Value { get }
 }
+
+#endif

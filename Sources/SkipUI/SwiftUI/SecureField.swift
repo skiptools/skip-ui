@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A control into which the user securely enters private text.
 ///
 /// Use a `SecureField` when you want behavior similar to a ``TextField``, but
@@ -196,3 +198,5 @@ extension SecureField where Label == Text {
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Renamed SecureField.init(_:text:). Use View.onSubmit(of:_:) for functionality previously provided by the onCommit parameter.")
     public init<S>(_ title: S, text: Binding<String>, onCommit: @escaping () -> Void) where S : StringProtocol { fatalError() }
 }
+
+#endif

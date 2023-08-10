@@ -24,7 +24,41 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual("Spacer(minLength: nil)", "\(Spacer())")
         XCTAssertEqual("Spacer(minLength: Optional(12.345))", "\(Spacer(minLength: 12.345))")
 
+        XCTAssertEqual("largeTitle", "\(Font.TextStyle.largeTitle)")
+        XCTAssertEqual("title", "\(Font.TextStyle.title)")
+        XCTAssertEqual("title2", "\(Font.TextStyle.title2)")
+        XCTAssertEqual("title3", "\(Font.TextStyle.title3)")
+        XCTAssertEqual("headline", "\(Font.TextStyle.headline)")
+        XCTAssertEqual("subheadline", "\(Font.TextStyle.subheadline)")
+        XCTAssertEqual("body", "\(Font.TextStyle.body)")
+        XCTAssertEqual("callout", "\(Font.TextStyle.callout)")
+        XCTAssertEqual("footnote", "\(Font.TextStyle.footnote)")
+        XCTAssertEqual("caption", "\(Font.TextStyle.caption)")
+        XCTAssertEqual("caption2", "\(Font.TextStyle.caption2)")
+
+
         #if !DEBUG
+        XCTAssertEqual("AccentColorProvider()", "\(Color.accentColor)")
+        XCTAssertEqual("red", "\(Color.red)")
+        XCTAssertEqual("orange", "\(Color.orange)")
+        XCTAssertEqual("yellow", "\(Color.yellow)")
+        XCTAssertEqual("green", "\(Color.green)")
+        XCTAssertEqual("mint", "\(Color.mint)")
+        XCTAssertEqual("teal", "\(Color.teal)")
+        XCTAssertEqual("cyan", "\(Color.cyan)")
+        XCTAssertEqual("blue", "\(Color.blue)")
+        XCTAssertEqual("indigo", "\(Color.indigo)")
+        XCTAssertEqual("purple", "\(Color.purple)")
+        XCTAssertEqual("pink", "\(Color.pink)")
+        XCTAssertEqual("brown", "\(Color.brown)")
+        XCTAssertEqual("white", "\(Color.white)")
+        XCTAssertEqual("gray", "\(Color.gray)")
+        XCTAssertEqual("black", "\(Color.black)")
+        XCTAssertEqual("clear", "\(Color.clear)")
+        XCTAssertEqual("primary", "\(Color.primary)")
+        XCTAssertEqual("secondary", "\(Color.secondary)")
+
+
         XCTAssertEqual(#"Text(storage: SwiftUI.Text.Storage.verbatim("XYZ"), modifiers: [])"#, "\(Text(verbatim: "XYZ"))")
         #endif
     }

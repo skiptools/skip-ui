@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view type that supports immediate mode drawing.
 ///
 /// Use a canvas to draw rich and dynamic 2D graphics inside a SkipUI view.
@@ -206,3 +208,5 @@ extension Canvas where Symbols == EmptyView {
 extension Canvas : View {
     public var body: Body { fatalError() }
 }
+
+#endif

@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A structure that computes views on demand from an underlying collection of
 /// identified data.
 ///
@@ -305,3 +307,5 @@ extension ForEach where Data == Range<Int>, ID == Int, Content : View {
     ///   - content: The view builder that creates views dynamically.
     public init(_ data: Range<Int>, @ViewBuilder content: @escaping (Int) -> Content) { fatalError() }
 }
+
+#endif

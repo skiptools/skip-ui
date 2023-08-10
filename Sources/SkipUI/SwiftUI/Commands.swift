@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// Conforming types represent a group of related commands that can be exposed
 /// to the user via the main menu on macOS and key commands on iOS.
 @available(iOS 14.0, macOS 11.0, *)
@@ -487,3 +489,5 @@ public struct SidebarCommands : Commands {
     /// property.
     public typealias Body = Never
 }
+
+#endif

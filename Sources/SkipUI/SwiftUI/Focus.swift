@@ -1,6 +1,8 @@
 // This is free software: you can redistribute and/or modify it
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
+
+#if !SKIP
 import protocol Combine.ObservableObject
 
 /// Values describe different focus interactions that a view can support.
@@ -354,6 +356,6 @@ public struct FocusedValues {
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension FocusedValues : Equatable {
-
-    public static func == (lhs: FocusedValues, rhs: FocusedValues) -> Bool { fatalError() }
 }
+
+#endif

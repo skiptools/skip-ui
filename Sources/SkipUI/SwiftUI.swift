@@ -320,11 +320,9 @@ public struct BackgroundProminence : Hashable, Sendable {
     /// have greater contrast against the background.
     public static let increased: BackgroundProminence = { fatalError() }()
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: BackgroundProminence, b: BackgroundProminence) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// The kinds of background tasks that your app or extension can handle.
@@ -449,11 +447,9 @@ public struct BadgeProminence : Hashable, Sendable {
     ///
     public static let increased: BadgeProminence = { fatalError() }()
 
-    public static func == (a: BadgeProminence, b: BadgeProminence) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A navigation split style that reduces the size of the detail content
@@ -528,11 +524,9 @@ public enum BlendMode : Sendable {
 
     case plusLighter
 
-    public static func == (a: BlendMode, b: BlendMode) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -610,11 +604,9 @@ public struct ButtonRepeatBehavior : Hashable, Sendable {
     /// Repeating button actions will be disabled.
     public static let disabled: ButtonRepeatBehavior = { fatalError() }()
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: ButtonRepeatBehavior, b: ButtonRepeatBehavior) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A value that describes the purpose of a button.
@@ -659,7 +651,7 @@ public struct ButtonRole : Equatable, Sendable {
     /// Use this role for a button that cancels the current operation.
     public static let cancel: ButtonRole = { fatalError() }()
 
-    public static func == (a: ButtonRole, b: ButtonRole) -> Bool { fatalError() }
+    
 }
 
 /// A matrix to use in an RGBA color transformation.
@@ -714,7 +706,7 @@ public struct ButtonRole : Equatable, Sendable {
     /// Creates the identity matrix.
     @inlinable public init() { fatalError() }
 
-    public static func == (a: ColorMatrix, b: ColorMatrix) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -746,11 +738,9 @@ public enum ColorRenderingMode : Sendable {
     /// This color space isn't gamma corrected.
     case extendedLinear
 
-    public static func == (a: ColorRenderingMode, b: ColorRenderingMode) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -788,9 +778,8 @@ public enum ColorScheme : CaseIterable, Sendable {
     /// The color scheme that corresponds to a dark appearance.
     case dark
 
-    public static func == (a: ColorScheme, b: ColorScheme) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [ColorScheme]
@@ -798,7 +787,6 @@ public enum ColorScheme : CaseIterable, Sendable {
     /// A collection of all values of this type.
     public static var allCases: [ColorScheme] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -839,9 +827,8 @@ public enum ColorSchemeContrast : CaseIterable, Sendable {
     /// foreground and background colors.
     case increased
 
-    public static func == (a: ColorSchemeContrast, b: ColorSchemeContrast) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [ColorSchemeContrast]
@@ -849,7 +836,6 @@ public enum ColorSchemeContrast : CaseIterable, Sendable {
     /// A collection of all values of this type.
     public static var allCases: [ColorSchemeContrast] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -944,11 +930,9 @@ public struct CompactMenuControlGroupStyle : ControlGroupStyle {
 @available(iOS 17.0, tvOS 17.0, macOS 14.0, watchOS 10.0, *)
 public struct ContainerBackgroundPlacement : Sendable, Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: ContainerBackgroundPlacement, b: ContainerBackgroundPlacement) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// The placement of margins.
@@ -1010,9 +994,8 @@ public struct ContentMarginPlacement {
     /// one axis, and larger on the other axis.
     case fill
 
-    public static func == (a: ContentMode, b: ContentMode) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [ContentMode]
@@ -1020,7 +1003,6 @@ public struct ContentMarginPlacement {
     /// A collection of all values of this type.
     public static var allCases: [ContentMode] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1159,9 +1141,8 @@ public enum ContentSizeCategory : Hashable, CaseIterable {
     @available(iOS 13.4, macOS 10.15.4, tvOS 13.4, watchOS 6.2, *)
     public var isAccessibilityCategory: Bool { get { fatalError() } }
 
-    public static func == (a: ContentSizeCategory, b: ContentSizeCategory) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [ContentSizeCategory]
@@ -1169,7 +1150,6 @@ public enum ContentSizeCategory : Hashable, CaseIterable {
     /// A collection of all values of this type.
     public static var allCases: [ContentSizeCategory] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -1459,14 +1439,12 @@ public enum ControlSize : CaseIterable, Sendable {
     /// A collection of all values of this type.
     public static var allCases: [ControlSize] { get { fatalError() } }
 
-    public static func == (a: ControlSize, b: ControlSize) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [ControlSize]
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 10.15, watchOS 9.0, *)
@@ -1508,11 +1486,7 @@ extension CoordinateSpace {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension CoordinateSpace : Equatable, Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (lhs: CoordinateSpace, rhs: CoordinateSpace) -> Bool { fatalError() }
-
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A frame of reference within the layout system.
@@ -2048,9 +2022,8 @@ public enum DynamicTypeSize : Hashable, Comparable, CaseIterable, Sendable {
     ///   - rhs: Another value to compare.
     public static func < (a: DynamicTypeSize, b: DynamicTypeSize) -> Bool { fatalError() }
 
-    public static func == (a: DynamicTypeSize, b: DynamicTypeSize) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [DynamicTypeSize]
@@ -2058,7 +2031,6 @@ public enum DynamicTypeSize : Hashable, Comparable, CaseIterable, Sendable {
     /// A collection of all values of this type.
     public static var allCases: [DynamicTypeSize] { get { fatalError() } }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// An enumeration to indicate one edge of a rectangle.
@@ -2232,7 +2204,7 @@ extension Edge.Set : Sendable {
 
     @inlinable public init() { fatalError() }
 
-    public static func == (a: EdgeInsets, b: EdgeInsets) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2375,11 +2347,9 @@ public enum EditMode : Sendable {
     /// inactive.
     public var isEditing: Bool { get { fatalError() } }
 
-    public static func == (a: EditMode, b: EditMode) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, tvOS 13.0, *)
@@ -2882,7 +2852,7 @@ public struct HoverEffect {
     /// The pointer exited the view.
     case ended
 
-    public static func == (a: HoverPhase, b: HoverPhase) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
@@ -3031,7 +3001,7 @@ public struct InterfaceOrientation : CaseIterable, Identifiable, Equatable, Send
     /// The device is in landscape mode, with the top of the device on the right.
     public static let landscapeRight: InterfaceOrientation = { fatalError() }()
 
-    public static func == (a: InterfaceOrientation, b: InterfaceOrientation) -> Bool { fatalError() }
+    
 
     /// A type that can represent a collection of all values of this type.
     public typealias AllCases = [InterfaceOrientation]
@@ -3119,11 +3089,9 @@ public struct KeyEquivalent : Sendable {
 @available(watchOS, unavailable)
 extension KeyEquivalent : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public static func == (a: KeyEquivalent, b: KeyEquivalent) -> Bool { fatalError() }
+    
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
@@ -3274,12 +3242,10 @@ extension KeyPress : CustomDebugStringConvertible {
         /// The action ignored the event, allowing dispatch to continue.
         case ignored
 
-        public static func == (a: KeyPress.Result, b: KeyPress.Result) -> Bool { fatalError() }
+        
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+    
+        }
 
     /// A textual representation of this instance, suitable for debugging.
     ///
@@ -3417,11 +3383,7 @@ public struct KeyboardShortcut : Sendable {
 @available(watchOS, unavailable)
 extension KeyboardShortcut : Hashable {
 
-    public static func == (lhs: KeyboardShortcut, rhs: KeyboardShortcut) -> Bool { fatalError() }
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
-
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// A type-erased widget configuration.
@@ -3660,7 +3622,7 @@ public struct NamedCoordinateSpace : CoordinateSpaceProtocol, Equatable {
     /// The resolved coordinate space.
     public var coordinateSpace: CoordinateSpace { get { fatalError() } }
 
-    public static func == (a: NamedCoordinateSpace, b: NamedCoordinateSpace) -> Bool { fatalError() }
+    
 }
 
 /// A dynamic property type that allows access to a namespace defined
@@ -3677,12 +3639,10 @@ public struct NamedCoordinateSpace : CoordinateSpaceProtocol, Equatable {
     /// `@Namespace` dynamic property.
     @frozen public struct ID : Hashable {
 
-        public func hash(into hasher: inout Hasher) { fatalError() }
+    
+        
 
-        public static func == (a: Namespace.ID, b: Namespace.ID) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
-    }
+        }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -3757,8 +3717,6 @@ public struct PageIndexViewStyle : IndexViewStyle {
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 public struct PaletteSelectionEffect : Sendable, Equatable {
-
-    public static func == (lhs: PaletteSelectionEffect, rhs: PaletteSelectionEffect) -> Bool { fatalError() }
 
     /// Applies the system's default effect when selected.
     ///
@@ -3912,7 +3870,7 @@ public struct PreferredColorSchemeKey : PreferenceKey {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ProjectionTransform : Equatable {
 
-    public static func == (a: ProjectionTransform, b: ProjectionTransform) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -3937,11 +3895,9 @@ public enum Prominence : Sendable {
     /// - Note: Not all views will react to increased prominence.
     case increased
 
-    public static func == (a: Prominence, b: Prominence) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -4060,7 +4016,7 @@ public struct ShadowStyle : Equatable, Sendable {
     /// - Returns: A new shadow style.
     public static func inner(color: Color = .init(.sRGBLinear, white: 0, opacity: 0.55), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
 
-    public static func == (a: ShadowStyle, b: ShadowStyle) -> Bool { fatalError() }
+    
 }
 
 /// The standard sizes of sidebar rows.
@@ -4085,15 +4041,13 @@ public enum SidebarRowSize : Sendable {
     /// The standard "large" row size
     case large
 
-    public static func == (a: SidebarRowSize, b: SidebarRowSize) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension SidebarRowSize : Hashable {
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 /// The characteristics of a stroke that traces a path.
@@ -4132,7 +4086,7 @@ extension SidebarRowSize : Hashable {
     ///   - dashPhase: How far into the dash pattern the line starts.
     public init(lineWidth: CGFloat = 1, lineCap: CGLineCap = .butt, lineJoin: CGLineJoin = .miter, miterLimit: CGFloat = 10, dash: [CGFloat] = [CGFloat](), dashPhase: CGFloat = 0) { fatalError() }
 
-    public static func == (a: StrokeStyle, b: StrokeStyle) -> Bool { fatalError() }
+    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -4286,11 +4240,9 @@ public enum UserInterfaceSizeClass : Sendable {
     /// The regular size class.
     case regular
 
-    public static func == (a: UserInterfaceSizeClass, b: UserInterfaceSizeClass) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

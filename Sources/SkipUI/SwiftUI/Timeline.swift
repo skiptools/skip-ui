@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
@@ -210,11 +212,9 @@ public enum TimelineScheduleMode : Sendable {
     /// this mode.
     case lowFrequency
 
-    public static func == (a: TimelineScheduleMode, b: TimelineScheduleMode) -> Bool { fatalError() }
+    
 
-    public func hash(into hasher: inout Hasher) { fatalError() }
 
-    public var hashValue: Int { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -308,33 +308,9 @@ public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule 
             /// Updates the view approximately once per minute.
             case minutes
 
-            /// Returns a Boolean value indicating whether two values are equal.
-            ///
-            /// Equality is the inverse of inequality. For any values `a` and `b`,
-            /// `a == b` implies that `a != b` is `false`.
-            ///
-            /// - Parameters:
-            ///   - lhs: A value to compare.
-            ///   - rhs: Another value to compare.
-            public static func == (a: TimelineView<Schedule, Content>.Context.Cadence, b: TimelineView<Schedule, Content>.Context.Cadence) -> Bool { fatalError() }
+            
 
-            /// Hashes the essential components of this value by feeding them into the
-            /// given hasher.
-            ///
-            /// Implement this method to conform to the `Hashable` protocol. The
-            /// components used for hashing must be the same as the components compared
-            /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
-            /// with each of these components.
-            ///
-            /// - Important: In your implementation of `hash(into:)`,
-            ///   don't call `finalize()` on the `hasher` instance provided,
-            ///   or replace it with a different instance.
-            ///   Doing so may become a compile-time error in the future.
-            ///
-            /// - Parameter hasher: The hasher to use when combining the components
-            ///   of this instance.
-            public func hash(into hasher: inout Hasher) { fatalError() }
-
+        
             /// Returns a Boolean value indicating whether the value of the first
             /// argument is less than that of the second argument.
             ///
@@ -347,16 +323,7 @@ public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule 
             ///   - rhs: Another value to compare.
             public static func < (a: TimelineView<Schedule, Content>.Context.Cadence, b: TimelineView<Schedule, Content>.Context.Cadence) -> Bool { fatalError() }
 
-            /// The hash value.
-            ///
-            /// Hash values are not guaranteed to be equal across different executions of
-            /// your program. Do not save hash values to use during a future execution.
-            ///
-            /// - Important: `hashValue` is deprecated as a `Hashable` requirement. To
-            ///   conform to `Hashable`, implement the `hash(into:)` requirement instead.
-            ///   The compiler provides an implementation for `hashValue` for you.
-            public var hashValue: Int { get { fatalError() } }
-        }
+                }
 
         /// The date from the schedule that triggered the current view update.
         ///
@@ -671,3 +638,5 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
     /// - Returns: The sequence of dates that you provided at initialization.
     public func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries { fatalError() }
 }
+
+#endif

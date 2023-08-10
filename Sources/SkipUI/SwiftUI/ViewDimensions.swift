@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view's size and alignment guides in its own coordinate space.
 ///
 /// This structure contains the size and alignment guides of a view.
@@ -164,10 +166,11 @@ public struct ViewDimensions {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ViewDimensions : Equatable {
 
-    public static func == (lhs: ViewDimensions, rhs: ViewDimensions) -> Bool { fatalError() }
 }
 
 /// A collection of the geometric spacing preferences of a view.
 ///
 /// This type represents how much space a view prefers to have between it and
 /// the next view in a layout. The type stores independent values
+
+#endif

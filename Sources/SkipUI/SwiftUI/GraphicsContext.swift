@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// An immediate mode drawing destination, and its current state.
 ///
 /// Use a context to execute 2D drawing primitives. For example, you can draw
@@ -1670,3 +1672,5 @@ extension GraphicsContext.FilterOptions : Sendable {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension GraphicsContext.GradientOptions : Sendable {
 }
+
+#endif

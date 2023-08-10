@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A built-in set of commands for manipulating window toolbars.
 ///
 /// These commands are optional and can be explicitly requested by passing a
@@ -1085,3 +1087,5 @@ extension Optional : ToolbarContent where Wrapped : ToolbarContent {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Optional : CustomizableToolbarContent where Wrapped : CustomizableToolbarContent {
 }
+
+#endif

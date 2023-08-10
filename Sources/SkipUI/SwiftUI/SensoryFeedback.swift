@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// Represents a type of haptic and/or audio feedback that can be played.
 ///
 /// This feedback can be passed to `View.sensoryFeedback` to play it.
@@ -114,7 +116,7 @@ public struct SensoryFeedback : Equatable, Sendable {
         /// Indicates a collision between large or heavyweight UI objects.
         public static let heavy: SensoryFeedback.Weight = { fatalError() }()
 
-        public static func == (a: SensoryFeedback.Weight, b: SensoryFeedback.Weight) -> Bool { fatalError() }
+        
     }
 
     /// The flexibility to be represented by a type of feedback.
@@ -133,8 +135,10 @@ public struct SensoryFeedback : Equatable, Sendable {
         /// Indicates a collision between soft or flexible UI objects.
         public static let soft: SensoryFeedback.Flexibility = { fatalError() }()
 
-        public static func == (a: SensoryFeedback.Flexibility, b: SensoryFeedback.Flexibility) -> Bool { fatalError() }
+        
     }
 
-    public static func == (a: SensoryFeedback, b: SensoryFeedback) -> Bool { fatalError() }
+    
 }
+
+#endif

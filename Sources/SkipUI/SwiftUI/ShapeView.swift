@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view that provides a shape that you can use for drawing operations.
 ///
 /// Use this type with the drawing methods on ``Shape`` to apply multiple fills
@@ -156,3 +158,5 @@ extension ShapeView where Self.Content : InsettableShape {
     public typealias Body = Never
     public var body: Body { fatalError() }
 }
+
+#endif

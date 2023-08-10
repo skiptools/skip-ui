@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+
 /// A view that can display and edit long-form text.
 ///
 /// A text editor view allows you to display and edit multiline, scrollable
@@ -232,3 +234,5 @@ public struct AutomaticTextEditorStyle : TextEditorStyle {
         public typealias Body = Never
     }
 }
+
+#endif
