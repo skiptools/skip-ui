@@ -274,30 +274,16 @@ extension Font {
 
     /// A weight to use for fonts.
     @frozen public struct Weight : Hashable {
-
-        public static let ultraLight: Font.Weight = { fatalError() }()
-
-        public static let thin: Font.Weight = { fatalError() }()
-
-        public static let light: Font.Weight = { fatalError() }()
-
-        public static let regular: Font.Weight = { fatalError() }()
-
-        public static let medium: Font.Weight = { fatalError() }()
-
-        public static let semibold: Font.Weight = { fatalError() }()
-
-        public static let bold: Font.Weight = { fatalError() }()
-
-        public static let heavy: Font.Weight = { fatalError() }()
-
-        public static let black: Font.Weight = { fatalError() }()
-
-        public func hash(into hasher: inout Hasher) { fatalError() }
-
-        public static func == (a: Font.Weight, b: Font.Weight) -> Bool { fatalError() }
-
-        public var hashValue: Int { get { fatalError() } }
+        private let value: Double
+        public static let ultraLight: Font.Weight = Weight(value: -0.8)
+        public static let thin: Font.Weight = Weight(value: -0.6)
+        public static let light: Font.Weight = Weight(value: -0.4)
+        public static let regular: Font.Weight = Weight(value: 0.0)
+        public static let medium: Font.Weight = Weight(value: 0.23)
+        public static let semibold: Font.Weight = Weight(value: 0.3)
+        public static let bold: Font.Weight = Weight(value: 0.4)
+        public static let heavy: Font.Weight = Weight(value: 0.56)
+        public static let black: Font.Weight = Weight(value: 0.62)
     }
 
     /// A width to use for fonts that have multiple widths.
@@ -488,4 +474,107 @@ extension Font.Leading : Equatable {
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Font.Leading : Hashable {
+}
+
+/// The Accessibility Bold Text user setting options.
+///
+/// The app can't override the user's choice before iOS 16, tvOS 16 or
+/// watchOS 9.0.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public enum LegibilityWeight : Hashable, Sendable {
+
+    /// Use regular font weight (no Accessibility Bold).
+    case regular
+
+    /// Use heavier font weight (force Accessibility Bold).
+    case bold
+
+    public static func == (a: LegibilityWeight, b: LegibilityWeight) -> Bool { fatalError() }
+
+    public func hash(into hasher: inout Hasher) { fatalError() }
+
+    public var hashValue: Int { get { fatalError() } }
+}
+
+/// A dynamic property that scales a numeric value.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+@propertyWrapper public struct ScaledMetric<Value> : DynamicProperty where Value : BinaryFloatingPoint {
+
+    /// Creates the scaled metric with an unscaled value and a text style to
+    /// scale relative to.
+    public init(wrappedValue: Value, relativeTo textStyle: Font.TextStyle) { fatalError() }
+
+    /// Creates the scaled metric with an unscaled value using the default
+    /// scaling.
+    public init(wrappedValue: Value) { fatalError() }
+
+    /// The value scaled based on the current environment.
+    public var wrappedValue: Value { get { fatalError() } }
+}
+
+/// The reasons to apply a redaction to data displayed on screen.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct RedactionReasons : OptionSet, Sendable {
+
+    /// The raw value.
+    public let rawValue: Int = { fatalError() }()
+
+    /// Creates a new set from a raw value.
+    ///
+    /// - Parameter rawValue: The raw value with which to create the
+    ///   reasons for redaction.
+    public init(rawValue: Int) { fatalError() }
+
+    /// Displayed data should appear as generic placeholders.
+    ///
+    /// Text and images will be automatically masked to appear as
+    /// generic placeholders, though maintaining their original size and shape.
+    /// Use this to create a placeholder UI without directly exposing
+    /// placeholder data to users.
+    public static let placeholder: RedactionReasons = { fatalError() }()
+
+    /// Displayed data should be obscured to protect private information.
+    ///
+    /// Views marked with `privacySensitive` will be automatically redacted
+    /// using a standard styling. To apply a custom treatment the redaction
+    /// reason can be read out of the environment.
+    ///
+    ///     struct BankingContentView: View {
+    ///         @Environment(\.redactionReasons) var redactionReasons
+    ///
+    ///         var body: some View {
+    ///             if redactionReasons.contains(.privacy) {
+    ///                 FullAppCover()
+    ///             } else {
+    ///                 AppContent()
+    ///             }
+    ///         }
+    ///     }
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+    public static let privacy: RedactionReasons = { fatalError() }()
+
+    /// Displayed data should appear as invalidated and pending a new update.
+    ///
+    /// Views marked with `invalidatableContent` will be automatically
+    /// redacted with a standard styling indicating the content is invalidated
+    /// and new content will be available soon.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public static let invalidated: RedactionReasons = { fatalError() }()
+
+    /// The type of the elements of an array literal.
+    public typealias ArrayLiteralElement = RedactionReasons
+
+    /// The element type of the option set.
+    ///
+    /// To inherit all the default implementations from the `OptionSet` protocol,
+    /// the `Element` type must be `Self`, the default.
+    public typealias Element = RedactionReasons
+
+    /// The raw type that can be used to represent all values of the conforming
+    /// type.
+    ///
+    /// Every distinct value of the conforming type has a corresponding unique
+    /// value of the `RawValue` type, but there may be values of the `RawValue`
+    /// type that don't have a corresponding value of the conforming type.
+    public typealias RawValue = Int
 }

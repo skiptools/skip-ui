@@ -80,6 +80,10 @@
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Group : PlatformView where Content : PlatformView {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Group : View where Content : View {
 
     /// Creates a group of views.

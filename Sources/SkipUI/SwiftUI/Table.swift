@@ -3856,18 +3856,18 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
     public typealias TableRowBody = Never
 }
 
-@available(iOS 16.0, macOS 13.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Optional : TableRowContent where Wrapped : TableRowContent {
-
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Wrapped.TableRowValue
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
-    public var tableRowBody: TableRowBody { fatalError() }
-}
+//@available(iOS 16.0, macOS 13.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension Optional : TableRowContent where Wrapped : TableRowContent {
+//
+//    /// The type of value represented by this table row content.
+//    public typealias TableRowValue = Wrapped.TableRowValue
+//
+//    /// The type of content representing the body of this table row content.
+//    public typealias TableRowBody = Never
+//    public var tableRowBody: TableRowBody { fatalError() }
+//}
 
 /// A type of table row content that generates table rows from an underlying
 /// collection of data.

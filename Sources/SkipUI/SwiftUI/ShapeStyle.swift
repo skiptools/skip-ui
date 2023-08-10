@@ -1212,3 +1212,28 @@ extension Never : ShapeStyle {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
 }
+
+/// Defines the shape of a rounded rectangle's corners.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public enum RoundedCornerStyle : Sendable {
+
+    /// Quarter-circle rounded rect corners.
+    case circular
+
+    /// Continuous curvature rounded rect corners.
+    case continuous
+
+    public static func == (a: RoundedCornerStyle, b: RoundedCornerStyle) -> Bool { fatalError() }
+
+    public func hash(into hasher: inout Hasher) { fatalError() }
+
+    public var hashValue: Int { get { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension RoundedCornerStyle : Equatable {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension RoundedCornerStyle : Hashable {
+}

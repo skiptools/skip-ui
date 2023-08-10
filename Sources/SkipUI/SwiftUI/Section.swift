@@ -13,6 +13,10 @@ public struct Section<Parent, Content, Footer> {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Section : PlatformView where Parent : PlatformView, Content : PlatformView, Footer : PlatformView {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Section : View where Parent : View, Content : View, Footer : View {
 
     /// The type of view representing the body of this view.

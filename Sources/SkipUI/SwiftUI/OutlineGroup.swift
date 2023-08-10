@@ -296,7 +296,7 @@ extension OutlineGroup where ID == Data.Element.ID, Parent : View, Parent == Lea
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 extension OutlineGroup where Parent : View, Parent == Leaf, Subgroup == DisclosureGroup<Parent, OutlineSubgroupChildren> {
-
+    
     /// Creates an outline group from a root data element, the key path to its
     /// identifier, and a key path to its children.
     ///
@@ -324,7 +324,7 @@ extension OutlineGroup where Parent : View, Parent == Leaf, Subgroup == Disclosu
     ///   - content: A view builder that produces a content view based on a
     ///     data element.
     public init<DataElement>(_ root: DataElement, id: KeyPath<DataElement, ID>, children: KeyPath<DataElement, Data?>, @ViewBuilder content: @escaping (DataElement) -> Leaf) where DataElement == Data.Element { fatalError() }
-
+    
     /// Creates an outline group from a collection of root data elements, the
     /// key path to a data element's identifier, and a key path to its children.
     ///
@@ -350,6 +350,14 @@ extension OutlineGroup where Parent : View, Parent == Leaf, Subgroup == Disclosu
     ///   - content: A view builder that produces a content view based on an
     ///     element in `data`.
     public init<DataElement>(_ data: Data, id: KeyPath<DataElement, ID>, children: KeyPath<DataElement, Data?>, @ViewBuilder content: @escaping (DataElement) -> Leaf) where DataElement == Data.Element { fatalError() }
+
+}
+
+
+@available(iOS 14.0, macOS 11.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension OutlineGroup : PlatformView where Parent : PlatformView, Leaf : PlatformView, Subgroup : PlatformView {
 }
 
 @available(iOS 14.0, macOS 11.0, *)

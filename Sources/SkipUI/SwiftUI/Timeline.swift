@@ -388,6 +388,10 @@ public struct TimelineView<Schedule, Content> where Schedule : TimelineSchedule 
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension TimelineView : PlatformView where Content : PlatformView {
+}
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension TimelineView : View where Content : View {
 
     /// The type of view representing the body of this view.

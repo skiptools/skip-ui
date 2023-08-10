@@ -997,10 +997,10 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 
     /// The type defining the data to animate.
-    public typealias AnimatableData = CGSize.AnimatableData
+    public typealias AnimatableData = Never // CGSize.AnimatableData
 
     /// The type of view representing the body of this view.
     ///
@@ -1241,7 +1241,7 @@ extension Circle : InsettableShape {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<CGSize.AnimatableData, UnitPoint.AnimatableData>>
+    public typealias AnimatableData = Never // AnimatablePair<Content.AnimatableData, AnimatablePair<CGSize.AnimatableData, UnitPoint.AnimatableData>>
 
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
@@ -1460,7 +1460,7 @@ extension InsettableShape {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
+    public typealias AnimatableData = Never // AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
 
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }

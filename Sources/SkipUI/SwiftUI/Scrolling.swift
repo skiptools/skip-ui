@@ -860,3 +860,40 @@ public struct PinnedScrollableViews : OptionSet, Sendable {
     /// type that don't have a corresponding value of the conforming type.
     public typealias RawValue = UInt32
 }
+
+/// The scroll behavior that aligns scroll targets to container-based geometry.
+///
+/// In the following example, every view in the lazy stack is flexible
+/// in both directions and the scroll view settles to container-aligned
+/// boundaries.
+///
+///     ScrollView {
+///         LazyVStack(spacing: 0.0) {
+///             ForEach(items) { item in
+///                 FullScreenItem(item)
+///             }
+///         }
+///     }
+///     .scrollTargetBehavior(.paging)
+///
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct PagingScrollTargetBehavior : ScrollTargetBehavior {
+
+    /// Creates a paging scroll behavior.
+    public init() { fatalError() }
+
+    /// Updates the proposed target that a scrollable view should scroll to.
+    ///
+    /// The system calls this method in two main cases:
+    /// - When a scroll gesture ends, it calculates where it would naturally
+    ///   scroll to using its deceleration rate. The system
+    ///   provides this calculated value as the target of this method.
+    /// - When a scrollable view's size changes, it calculates where it should
+    ///   be scrolled given the new size and provides this calculates value
+    ///   as the target of this method.
+    ///
+    /// You can implement this method to override the calculated target
+    /// which will have the scrollable view scroll to a different position
+    /// than it would otherwise.
+    public func updateTarget(_ target: inout ScrollTarget, context: PagingScrollTargetBehavior.TargetContext) { fatalError() }
+}

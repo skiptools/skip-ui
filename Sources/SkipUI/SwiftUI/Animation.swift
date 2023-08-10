@@ -34,7 +34,7 @@ public protocol Animatable {
     associatedtype AnimatableData : VectorArithmetic
 
     /// The data to animate.
-    var animatableData: Self.AnimatableData { get set }
+//    var animatableData: Self.AnimatableData { get set }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2296,7 +2296,13 @@ extension CGPoint : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension CGPoint {
+
+    public func applying(_ m: ProjectionTransform) -> CGPoint { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2306,7 +2312,7 @@ extension CGSize : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2316,7 +2322,7 @@ extension CGRect : Animatable {
     public typealias AnimatableData = Never // AnimatablePair<CGPoint.AnimatableData, CGSize.AnimatableData>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

@@ -2,7 +2,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-//import protocol SwiftUI.View
+import protocol SwiftUI.View
+
+//public typealias PlatformView = SwiftUI.View
+public protocol PlatformView {
+}
 
 /// A type that represents part of your app's user interface and provides
 /// modifiers that you use to configure views.
@@ -41,7 +45,7 @@
 /// You can also collect groups of default modifiers into new,
 /// custom view modifiers for easy reuse.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol View {
+public protocol View : PlatformView {
 
     /// The type of view representing the body of this view.
     ///
@@ -65,6 +69,11 @@ public protocol View {
     /// For more information about composing views and a view hierarchy,
     /// see <doc:Declaring-a-Custom-View>.
     @ViewBuilder @MainActor var body: Self.Body { get }
+}
+
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Optional : PlatformView where Wrapped : PlatformView {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
