@@ -1069,3 +1069,19 @@ extension Group : CustomizableToolbarContent where Content : CustomizableToolbar
     /// the customizable toolbar content instances to group.
     public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
 }
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension Never : ToolbarContent, CustomizableToolbarContent {
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Optional : ToolbarContent where Wrapped : ToolbarContent {
+
+    /// The type of content representing the body of this toolbar content.
+    public typealias Body = Never
+    public var body: Never { return never() }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Optional : CustomizableToolbarContent where Wrapped : CustomizableToolbarContent {
+}

@@ -1068,6 +1068,84 @@ public struct PasteButton : View {
 //    public typealias Body = some View
 }
 
+/// A button that toggles the edit mode environment value.
+///
+/// An edit button toggles the environment's ``EnvironmentValues/editMode``
+/// value for content within a container that supports edit mode.
+/// In the following example, an edit button placed inside a ``NavigationView``
+/// supports editing of a ``List``:
+///
+///     @State private var fruits = [
+///         "Apple",
+///         "Banana",
+///         "Papaya",
+///         "Mango"
+///     ]
+///
+///     var body: some View {
+///         NavigationView {
+///             List {
+///                 ForEach(fruits, id: \.self) { fruit in
+///                     Text(fruit)
+///                 }
+///                 .onDelete { fruits.remove(atOffsets: $0) }
+///                 .onMove { fruits.move(fromOffsets: $0, toOffset: $1) }
+///             }
+///             .navigationTitle("Fruits")
+///             .toolbar {
+///                 EditButton()
+///             }
+///         }
+///     }
+///
+/// Because the ``ForEach`` in the above example defines behaviors for
+/// ``DynamicViewContent/onDelete(perform:)`` and
+/// ``DynamicViewContent/onMove(perform:)``, the editable list displays the
+/// delete and move UI when the user taps Edit. Notice that the Edit button
+/// displays the title "Done" while edit mode is active:
+///
+/// ![A screenshot of an app with an Edit button in the navigation bar.
+/// The button is labeled Done to indicate edit mode is active. Below the
+/// navigation bar, a list labeled Fruits in edit mode. The list contains
+/// four members, each showing a red circle containing a white dash to the
+/// left of the item, and an icon composed of three horizontal lines to the
+/// right of the item.](EditButton-1)
+///
+/// You can also create custom views that react to changes in the edit mode
+/// state, as described in ``EditMode``.
+@available(iOS 13.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct EditButton : View {
+
+    /// Creates an Edit button instance.
+    public init() { fatalError() }
+
+    /// The content and behavior of the view.
+    ///
+    /// When you implement a custom view, you must implement a computed
+    /// `body` property to provide the content for your view. Return a view
+    /// that's composed of built-in views that SkipUI provides, plus other
+    /// composite views that you've already defined:
+    ///
+    ///     struct MyView: View {
+    ///         var body: some View {
+    ///             Text("Hello, World!")
+    ///         }
+    ///     }
+    ///
+    /// For more information about composing views and a view hierarchy,
+    /// see <doc:Declaring-a-Custom-View>.
+    @MainActor public var body: some View { get { return never() } }
+
+    /// The type of view representing the body of this view.
+    ///
+    /// When you create a custom view, Swift infers this type from your
+    /// implementation of the required ``View/body-swift.property`` property.
+//    public typealias Body = some View
+}
+
 
 @available(iOS 16.0, macOS 13.0, *)
 @available(tvOS, unavailable)

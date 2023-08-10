@@ -2528,3 +2528,10 @@ public struct PhaseAnimator<Phase, Content> : View where Phase : Equatable, Cont
     /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Never : Keyframes {
+}
+
+extension Never : KeyframeTrackContent {
+}

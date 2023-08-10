@@ -68,5 +68,11 @@ public protocol View {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Optional : View where Wrapped : View {
+
+    public var body: some View { get { return never() } }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Never : View {
 }

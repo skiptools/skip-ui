@@ -431,3 +431,13 @@ extension View {
     public func previewInterfaceOrientation(_ value: InterfaceOrientation) -> some View { return never() }
 
 }
+
+//extension Preview {
+//
+//    /// Creates a preview of a SkipUI view.
+//    ///
+//    /// The `#Preview` macro expands into a declaration that calls this initializer. To create a preview
+//    /// that appears in the canvas, you must use the macro, not instantiate a Preview directly.
+//    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+//    public init(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) { fatalError() }
+//}

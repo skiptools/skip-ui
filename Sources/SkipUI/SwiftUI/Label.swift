@@ -729,3 +729,47 @@ public struct DefaultLabelStyle : LabelStyle {
     /// A view that represents the body of a label.
 //    public typealias Body = some View
 }
+
+/// A label style that only displays the title of the label.
+///
+/// You can also use ``LabelStyle/titleOnly`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct TitleOnlyLabelStyle : LabelStyle {
+
+    /// Creates a title-only label style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a label.
+    ///
+    /// The system calls this method for each ``Label`` instance in a view
+    /// hierarchy where this style is the current label style.
+    ///
+    /// - Parameter configuration: The properties of the label.
+    public func makeBody(configuration: TitleOnlyLabelStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a label.
+//    public typealias Body = some View
+}
+
+/// A label style that only displays the icon of the label.
+///
+/// You can also use ``LabelStyle/iconOnly`` to construct this style.
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+public struct IconOnlyLabelStyle : LabelStyle {
+
+    /// Creates an icon-only label style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a label.
+    ///
+    /// The system calls this method for each ``Label`` instance in a view
+    /// hierarchy where this style is the current label style.
+    ///
+    /// - Parameter configuration: The properties of the label.
+    public func makeBody(configuration: IconOnlyLabelStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a label.
+//    public typealias Body = some View
+}

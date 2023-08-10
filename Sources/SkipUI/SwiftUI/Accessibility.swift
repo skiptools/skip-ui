@@ -2053,3 +2053,17 @@ extension View {
     ///   instead replace the previous value and importance.
     public func accessibilityCustomContent<V>(_ labelKey: LocalizedStringKey, _ value: V, importance: AXCustomContent.Importance = .default) -> ModifiedContent<Self, AccessibilityAttachmentModifier> where V : StringProtocol { fatalError() }
 }
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension Never : AccessibilityRotorContent {
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Never {
+
+    /// The type for the internal content of this `AccessibilityRotorContent`.
+    public typealias Body = Never
+
+    /// The internal content of this `AccessibilityRotorContent`.
+    public var body: Never { get { fatalError() } }
+}

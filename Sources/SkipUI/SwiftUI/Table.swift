@@ -4055,3 +4055,18 @@ public struct InsetTableStyle : TableStyle {
     /// A view that represents the body of a table.
 //    public typealias Body = some View
 }
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension Never : TableColumnContent {
+
+    /// The type of sort comparator associated with this table column content.
+    public typealias TableColumnSortComparator = Never
+
+    /// The type of content representing the body of this table column content.
+    public typealias TableColumnBody = Never
+
+    /// The composition of content that comprise the table column content.
+    public var tableColumnBody: Never { get { fatalError() } }
+}

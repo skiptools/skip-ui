@@ -262,3 +262,16 @@ extension WidgetConfiguration {
     public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some WidgetConfiguration where D : Sendable, R : Sendable { return never() }
 
 }
+
+@available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
+@available(tvOS, unavailable)
+extension Never : WidgetConfiguration {
+}
+
+
+extension Never : Widget {
+    public init() {
+        fatalError()
+    }
+
+}

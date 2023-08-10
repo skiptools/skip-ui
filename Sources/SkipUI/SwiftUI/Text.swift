@@ -8,6 +8,12 @@ import struct Foundation.DateInterval
 import struct Foundation.Locale
 import struct Foundation.LocalizedStringResource
 
+import protocol Foundation.AttributeScope
+import struct Foundation.AttributeScopeCodableConfiguration
+import enum Foundation.AttributeScopes
+import enum Foundation.AttributeDynamicLookup
+import protocol Foundation.AttributedStringKey
+
 import class Foundation.Bundle
 import class Foundation.NSObject
 import class Foundation.Formatter
@@ -1450,4 +1456,56 @@ extension TextSelectability where Self == DisabledTextSelectability {
     ///        .gesture(someGesture)
     ///
     public static var disabled: DisabledTextSelectability { get { fatalError() } }
+}
+
+extension AttributeScopes {
+
+    /// A property for accessing the attribute scopes defined by SkipUI.
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    public var skipUI: AttributeScopes.SkipUIAttributes.Type { get { fatalError() } }
+
+    /// Attribute scopes defined by SkipUI.
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    public struct SkipUIAttributes : AttributeScope {
+
+//        /// A property for accessing a font attribute.
+//        public let font: AttributeScopes.SwiftUI.FontAttribute = { fatalError() }()
+//
+//        /// A property for accessing a foreground color attribute.
+//        public let foregroundColor: AttributeScopes.SkipUIAttributes.ForegroundColorAttribute = { fatalError() }()
+//
+//        /// A property for accessing a background color attribute.
+//        public let backgroundColor: AttributeScopes.SkipUIAttributes.BackgroundColorAttribute = { fatalError() }()
+//
+//        /// A property for accessing a strikethrough style attribute.
+//        public let strikethroughStyle: AttributeScopes.SkipUIAttributes.StrikethroughStyleAttribute = { fatalError() }()
+//
+//        /// A property for accessing an underline style attribute.
+//        public let underlineStyle: AttributeScopes.SkipUIAttributes.UnderlineStyleAttribute = { fatalError() }()
+//
+//        /// A property for accessing a kerning attribute.
+//        public let kern: AttributeScopes.SkipUIAttributes.KerningAttribute = { fatalError() }()
+//
+//        /// A property for accessing a tracking attribute.
+//        public let tracking: AttributeScopes.SkipUIAttributes.TrackingAttribute = { fatalError() }()
+//
+//        /// A property for accessing a baseline offset attribute.
+//        public let baselineOffset: AttributeScopes.SkipUIAttributes.BaselineOffsetAttribute = { fatalError() }()
+//
+//        /// A property for accessing attributes defined by the Accessibility framework.
+//        public let accessibility: AttributeScopes.AccessibilityAttributes = { fatalError() }()
+
+        /// A property for accessing attributes defined by the Foundation framework.
+        public let foundation: AttributeScopes.FoundationAttributes = { fatalError() }()
+
+        public typealias DecodingConfiguration = AttributeScopeCodableConfiguration
+
+        public typealias EncodingConfiguration = AttributeScopeCodableConfiguration
+    }
+}
+
+@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+extension AttributeDynamicLookup {
+
+    public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
 }

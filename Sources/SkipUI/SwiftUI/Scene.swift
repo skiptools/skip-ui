@@ -868,3 +868,7 @@ extension Group : Scene where Content : Scene {
     /// to group.
     @inlinable public init(@SceneBuilder content: () -> Content) { fatalError() }
 }
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension Never : Scene {
+}

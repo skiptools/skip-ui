@@ -1136,3 +1136,16 @@ public struct PlainListStyle : ListStyle {
     /// Creates a plain list style.
     public init() { fatalError() }
 }
+
+/// The list style that describes the behavior and appearance of a
+/// sidebar list.
+///
+/// You can also use ``ListStyle/sidebar`` to construct this style.
+@available(iOS 14.0, macOS 10.15, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public struct SidebarListStyle : ListStyle {
+
+    /// Creates a sidebar list style.
+    public init() { fatalError() }
+}

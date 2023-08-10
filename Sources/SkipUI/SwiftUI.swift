@@ -2303,84 +2303,6 @@ extension EditActions where Data : MutableCollection, Data : RangeReplaceableCol
     public static var all: EditActions<Data> { get { fatalError() } }
 }
 
-/// A button that toggles the edit mode environment value.
-///
-/// An edit button toggles the environment's ``EnvironmentValues/editMode``
-/// value for content within a container that supports edit mode.
-/// In the following example, an edit button placed inside a ``NavigationView``
-/// supports editing of a ``List``:
-///
-///     @State private var fruits = [
-///         "Apple",
-///         "Banana",
-///         "Papaya",
-///         "Mango"
-///     ]
-///
-///     var body: some View {
-///         NavigationView {
-///             List {
-///                 ForEach(fruits, id: \.self) { fruit in
-///                     Text(fruit)
-///                 }
-///                 .onDelete { fruits.remove(atOffsets: $0) }
-///                 .onMove { fruits.move(fromOffsets: $0, toOffset: $1) }
-///             }
-///             .navigationTitle("Fruits")
-///             .toolbar {
-///                 EditButton()
-///             }
-///         }
-///     }
-///
-/// Because the ``ForEach`` in the above example defines behaviors for
-/// ``DynamicViewContent/onDelete(perform:)`` and
-/// ``DynamicViewContent/onMove(perform:)``, the editable list displays the
-/// delete and move UI when the user taps Edit. Notice that the Edit button
-/// displays the title "Done" while edit mode is active:
-///
-/// ![A screenshot of an app with an Edit button in the navigation bar.
-/// The button is labeled Done to indicate edit mode is active. Below the
-/// navigation bar, a list labeled Fruits in edit mode. The list contains
-/// four members, each showing a red circle containing a white dash to the
-/// left of the item, and an icon composed of three horizontal lines to the
-/// right of the item.](EditButton-1)
-///
-/// You can also create custom views that react to changes in the edit mode
-/// state, as described in ``EditMode``.
-@available(iOS 13.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct EditButton : View {
-
-    /// Creates an Edit button instance.
-    public init() { fatalError() }
-
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
 /// A mode that indicates whether the user can edit a view's content.
 ///
 /// You receive an optional binding to the edit mode state when you
@@ -2962,52 +2884,6 @@ public struct HoverEffect {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
 @available(watchOS, unavailable)
 extension HoverPhase : Sendable {
-}
-
-/// A label style that only displays the icon of the label.
-///
-/// You can also use ``LabelStyle/iconOnly`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct IconOnlyLabelStyle : LabelStyle {
-
-    /// Creates an icon-only label style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: IconOnlyLabelStyle.Configuration) -> some View { return never() }
-
-
-    /// A view that represents the body of a label.
-//    public typealias Body = some View
-}
-
-/// Defines the implementation of all `IndexView` instances within a view
-/// hierarchy.
-///
-/// To configure the current `IndexViewStyle` for a view hierarchy, use the
-/// `.indexViewStyle()` modifier.
-@available(iOS 14.0, tvOS 14.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-public protocol IndexViewStyle {
-}
-
-@available(iOS 14.0, tvOS 14.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-extension IndexViewStyle where Self == PageIndexViewStyle {
-
-    /// An index view style that places a page index view over its content.
-    public static var page: PageIndexViewStyle { get { fatalError() } }
-
-    /// An index view style that places a page index view over its content.
-    ///
-    /// - Parameter backgroundDisplayMode: The display mode of the background of
-    ///   any page index views receiving this style
-    public static func page(backgroundDisplayMode: PageIndexViewStyle.BackgroundDisplayMode) -> PageIndexViewStyle { fatalError() }
 }
 
 /// A collection wrapper that iterates over the indices and identifiers of a
@@ -3833,6 +3709,30 @@ extension Namespace : Sendable {
 extension Namespace.ID : Sendable {
 }
 
+/// Defines the implementation of all `IndexView` instances within a view
+/// hierarchy.
+///
+/// To configure the current `IndexViewStyle` for a view hierarchy, use the
+/// `.indexViewStyle()` modifier.
+@available(iOS 14.0, tvOS 14.0, watchOS 8.0, *)
+@available(macOS, unavailable)
+public protocol IndexViewStyle {
+}
+
+@available(iOS 14.0, tvOS 14.0, watchOS 8.0, *)
+@available(macOS, unavailable)
+extension IndexViewStyle where Self == PageIndexViewStyle {
+
+    /// An index view style that places a page index view over its content.
+    public static var page: PageIndexViewStyle { get { fatalError() } }
+
+    /// An index view style that places a page index view over its content.
+    ///
+    /// - Parameter backgroundDisplayMode: The display mode of the background of
+    ///   any page index views receiving this style
+    public static func page(backgroundDisplayMode: PageIndexViewStyle.BackgroundDisplayMode) -> PageIndexViewStyle { fatalError() }
+}
+
 /// An index view style that places a page index view over its content.
 ///
 /// You can also use ``IndexViewStyle/page`` to construct this style.
@@ -4388,143 +4288,6 @@ extension SafeAreaRegions : Sendable {
     public var wrappedValue: Value { get { fatalError() } }
 }
 
-/// Represents a type of haptic and/or audio feedback that can be played.
-///
-/// This feedback can be passed to `View.sensoryFeedback` to play it.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-@available(xrOS, unavailable)
-public struct SensoryFeedback : Equatable, Sendable {
-
-    /// Indicates that a task or action has completed.
-    ///
-    /// Only plays feedback on iOS and watchOS.
-    public static let success: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that a task or action has produced a warning of some kind.
-    ///
-    /// Only plays feedback on iOS and watchOS.
-    public static let warning: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that an error has occurred.
-    ///
-    /// Only plays feedback on iOS and watchOS.
-    public static let error: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that a UI element’s values are changing.
-    ///
-    /// Only plays feedback on iOS and watchOS.
-    public static let selection: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that an important value increased above a significant
-    /// threshold.
-    ///
-    /// Only plays feedback on watchOS.
-    public static let increase: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that an important value decreased below a significant
-    /// threshold.
-    ///
-    /// Only plays feedback on watchOS.
-    public static let decrease: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that an activity started.
-    ///
-    /// Use this haptic when starting a timer or any other activity that can be
-    /// explicitly started and stopped.
-    ///
-    /// Only plays feedback on watchOS.
-    public static let start: SensoryFeedback = { fatalError() }()
-
-    /// Indicates that an activity stopped.
-    ///
-    /// Use this haptic when stopping a timer or other activity that was
-    /// previously started.
-    ///
-    /// Only plays feedback on watchOS.
-    public static let stop: SensoryFeedback = { fatalError() }()
-
-    /// Indicates the alignment of a dragged item.
-    ///
-    /// For example, use this pattern in a drawing app when the user drags a
-    /// shape into alignment with another shape.
-    ///
-    /// Only plays feedback on macOS.
-    public static let alignment: SensoryFeedback = { fatalError() }()
-
-    /// Indicates movement between discrete levels of pressure.
-    ///
-    /// For example, as the user presses a fast-forward button on a video
-    /// player, playback could increase or decrease and haptic feedback could be
-    /// provided as different levels of pressure are reached.
-    ///
-    /// Only plays feedback on macOS.
-    public static let levelChange: SensoryFeedback = { fatalError() }()
-
-    /// Provides a physical metaphor you can use to complement a visual
-    /// experience.
-    ///
-    /// Only plays feedback on iOS, watchOS, and macOS.
-    public static let impact: SensoryFeedback = { fatalError() }()
-
-    /// Provides a physical metaphor you can use to complement a visual
-    /// experience.
-    ///
-    /// Not all platforms will play different feedback for different weights and
-    /// intensities of impact.
-    ///
-    /// Only plays feedback on iOS, watchOS, and macOS.
-    public static func impact(weight: SensoryFeedback.Weight = .medium, intensity: Double = 1.0) -> SensoryFeedback { fatalError() }
-
-    /// Provides a physical metaphor you can use to complement a visual
-    /// experience.
-    ///
-    /// Not all platforms will play different feedback for different
-    /// flexibilities and intensities of impact.
-    ///
-    /// Only plays feedback on iOS, watchOS, and macOS.
-    public static func impact(flexibility: SensoryFeedback.Flexibility, intensity: Double = 1.0) -> SensoryFeedback { fatalError() }
-
-    /// The weight to be represented by a type of feedback.
-    ///
-    /// `Weight` values can be passed to
-    /// `SensoryFeedback.impact(weight:intensity:)`.
-    public struct Weight : Equatable, Sendable {
-
-        /// Indicates a collision between small or lightweight UI objects.
-        public static let light: SensoryFeedback.Weight = { fatalError() }()
-
-        /// Indicates a collision between medium-sized or medium-weight UI
-        /// objects.
-        public static let medium: SensoryFeedback.Weight = { fatalError() }()
-
-        /// Indicates a collision between large or heavyweight UI objects.
-        public static let heavy: SensoryFeedback.Weight = { fatalError() }()
-
-        public static func == (a: SensoryFeedback.Weight, b: SensoryFeedback.Weight) -> Bool { fatalError() }
-    }
-
-    /// The flexibility to be represented by a type of feedback.
-    ///
-    /// `Flexibility` values can be passed to
-    /// `SensoryFeedback.impact(flexibility:intensity:)`.
-    public struct Flexibility : Equatable, Sendable {
-
-        /// Indicates a collision between hard or inflexible UI objects.
-        public static let rigid: SensoryFeedback.Flexibility = { fatalError() }()
-
-        /// Indicates a collision between solid UI objects of medium
-        /// flexibility.
-        public static let solid: SensoryFeedback.Flexibility = { fatalError() }()
-
-        /// Indicates a collision between soft or flexible UI objects.
-        public static let soft: SensoryFeedback.Flexibility = { fatalError() }()
-
-        public static func == (a: SensoryFeedback.Flexibility, b: SensoryFeedback.Flexibility) -> Bool { fatalError() }
-    }
-
-    public static func == (a: SensoryFeedback, b: SensoryFeedback) -> Bool { fatalError() }
-}
-
 /// A style to use when rendering shadows.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct ShadowStyle : Equatable, Sendable {
@@ -4562,19 +4325,6 @@ public struct ShadowStyle : Equatable, Sendable {
     public static func inner(color: Color = .init(.sRGBLinear, white: 0, opacity: 0.55), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
 
     public static func == (a: ShadowStyle, b: ShadowStyle) -> Bool { fatalError() }
-}
-
-/// The list style that describes the behavior and appearance of a
-/// sidebar list.
-///
-/// You can also use ``ListStyle/sidebar`` to construct this style.
-@available(iOS 14.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct SidebarListStyle : ListStyle {
-
-    /// Creates a sidebar list style.
-    public init() { fatalError() }
 }
 
 /// The standard sizes of sidebar rows.
@@ -4762,28 +4512,6 @@ public struct SubmitTriggers : OptionSet, Sendable {
     /// To inherit all the default implementations from the `OptionSet` protocol,
     /// the `Element` type must be `Self`, the default.
     public typealias Element = SubmitTriggers
-}
-
-/// A label style that only displays the title of the label.
-///
-/// You can also use ``LabelStyle/titleOnly`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct TitleOnlyLabelStyle : LabelStyle {
-
-    /// Creates a title-only label style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: TitleOnlyLabelStyle.Configuration) -> some View { return never() }
-
-
-    /// A view that represents the body of a label.
-//    public typealias Body = some View
 }
 
 /// A  function defined by a two-dimensional curve that maps an input
@@ -5343,228 +5071,4 @@ public struct ViewSpacing : Sendable {
     ///   in points between two views that satisfies the spacing preferences
     ///   of both this view and the adjacent views on their shared edge.
     public func distance(to next: ViewSpacing, along axis: Axis) -> CGFloat { fatalError() }
-}
-
-/// A view that adapts to the available space by providing the first
-/// child view that fits.
-///
-/// `ViewThatFits` evaluates its child views in the order you provide them
-/// to the initializer. It selects the first child whose ideal size on the
-/// constrained axes fits within the proposed size. This means that you
-/// provide views in order of preference. Usually this order is largest to
-/// smallest, but since a view might fit along one constrained axis but not the
-/// other, this isn't always the case. By default, `ViewThatFits` constrains
-/// in both the horizontal and vertical axes.
-///
-/// The following example shows an `UploadProgressView` that uses `ViewThatFits`
-/// to display the upload progress in one of three ways. In order, it attempts
-/// to display:
-///
-/// * An ``HStack`` that contains a ``Text`` view and a ``ProgressView``.
-/// * Only the `ProgressView`.
-/// * Only the `Text` view.
-///
-/// The progress views are fixed to a 100-point width.
-///
-///     struct UploadProgressView: View {
-///         var uploadProgress: Double
-///
-///         var body: some View {
-///             ViewThatFits(in: .horizontal) {
-///                 HStack {
-///                     Text("\(uploadProgress.formatted(.percent))")
-///                     ProgressView(value: uploadProgress)
-///                         .frame(width: 100)
-///                 }
-///                 ProgressView(value: uploadProgress)
-///                     .frame(width: 100)
-///                 Text("\(uploadProgress.formatted(.percent))")
-///             }
-///         }
-///     }
-///
-/// This use of `ViewThatFits` evaluates sizes only on the horizontal axis. The
-/// following code fits the `UploadProgressView` to several fixed widths:
-///
-///     VStack {
-///         UploadProgressView(uploadProgress: 0.75)
-///             .frame(maxWidth: 200)
-///         UploadProgressView(uploadProgress: 0.75)
-///             .frame(maxWidth: 100)
-///         UploadProgressView(uploadProgress: 0.75)
-///             .frame(maxWidth: 50)
-///     }
-///
-/// ![A vertical stack showing three expressions of progress, constrained by
-/// the available horizontal space. The first line shows the text, 75%, and a
-/// three-quarters-full progress bar. The second line shows only the progress
-/// view. The third line shows only the text.](ViewThatFits-1)
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct ViewThatFits<Content> : View where Content : View {
-
-    /// Produces a view constrained in the given axes from one of several
-    /// alternatives provided by a view builder.
-    ///
-    /// - Parameters:
-    ///     - axes: A set of axes to constrain children to. The set may
-    ///       contain ``Axis/horizontal``, ``Axis/vertical``, or both of these.
-    ///       `ViewThatFits` chooses the first child whose size fits within the
-    ///       proposed size on these axes. If `axes` is an empty set,
-    ///       `ViewThatFits` uses the first child view. By default,
-    ///       `ViewThatFits` uses both axes.
-    ///     - content: A view builder that provides the child views for this
-    ///       container, in order of preference. The builder chooses the first
-    ///       child view that fits within the proposed width, height, or both,
-    ///       as defined by `axes`.
-    @inlinable public init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
-    public var body: Body { fatalError() }
-}
-
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Optional : ToolbarContent where Wrapped : ToolbarContent {
-
-    /// The type of content representing the body of this toolbar content.
-    public typealias Body = Never
-    public var body: Never { return never() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Optional : CustomizableToolbarContent where Wrapped : CustomizableToolbarContent {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Never {
-
-    /// The type for the internal content of this `AccessibilityRotorContent`.
-    public typealias Body = Never
-
-    /// The internal content of this `AccessibilityRotorContent`.
-    public var body: Never { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension CGPoint {
-
-    public func applying(_ m: ProjectionTransform) -> CGPoint { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Never : AccessibilityRotorContent {
-}
-
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Never : TableColumnContent {
-
-    /// The type of sort comparator associated with this table column content.
-    public typealias TableColumnSortComparator = Never
-
-    /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = Never
-
-    /// The composition of content that comprise the table column content.
-    public var tableColumnBody: Never { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Never : ToolbarContent, CustomizableToolbarContent {
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Never : Scene {
-}
-
-@available(iOS 14.0, macOS 11.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension Never : WidgetConfiguration {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Optional : View where Wrapped : View {
-
-    public var body: some View { get { return never() } }
-}
-
-//extension Preview {
-//
-//    /// Creates a preview of a SkipUI view.
-//    ///
-//    /// The `#Preview` macro expands into a declaration that calls this initializer. To create a preview
-//    /// that appears in the canvas, you must use the macro, not instantiate a Preview directly.
-//    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-//    public init(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) { fatalError() }
-//}
-
-//extension AttributeScopes {
-//
-//    /// A property for accessing the attribute scopes defined by SkipUI.
-//    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-//    public var skipUI: AttributeScopes.SkipUIAttributes.Type { get { fatalError() } }
-//
-//    /// Attribute scopes defined by SkipUI.
-//    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-//    public struct SkipUIAttributes : AttributeScope {
-//
-//        /// A property for accessing a font attribute.
-//        public let font: AttributeScopes.SkipUIAttributes.FontAttribute = { fatalError() }()
-//
-//        /// A property for accessing a foreground color attribute.
-//        public let foregroundColor: AttributeScopes.SkipUIAttributes.ForegroundColorAttribute = { fatalError() }()
-//
-//        /// A property for accessing a background color attribute.
-//        public let backgroundColor: AttributeScopes.SkipUIAttributes.BackgroundColorAttribute = { fatalError() }()
-//
-//        /// A property for accessing a strikethrough style attribute.
-//        public let strikethroughStyle: AttributeScopes.SkipUIAttributes.StrikethroughStyleAttribute = { fatalError() }()
-//
-//        /// A property for accessing an underline style attribute.
-//        public let underlineStyle: AttributeScopes.SkipUIAttributes.UnderlineStyleAttribute = { fatalError() }()
-//
-//        /// A property for accessing a kerning attribute.
-//        public let kern: AttributeScopes.SkipUIAttributes.KerningAttribute = { fatalError() }()
-//
-//        /// A property for accessing a tracking attribute.
-//        public let tracking: AttributeScopes.SkipUIAttributes.TrackingAttribute = { fatalError() }()
-//
-//        /// A property for accessing a baseline offset attribute.
-//        public let baselineOffset: AttributeScopes.SkipUIAttributes.BaselineOffsetAttribute = { fatalError() }()
-//
-//        /// A property for accessing attributes defined by the Accessibility framework.
-//        public let accessibility: AttributeScopes.AccessibilityAttributes = { fatalError() }()
-//
-//        /// A property for accessing attributes defined by the Foundation framework.
-//        public let foundation: AttributeScopes.FoundationAttributes = { fatalError() }()
-//
-//        public typealias DecodingConfiguration = AttributeScopeCodableConfiguration
-//
-//        public typealias EncodingConfiguration = AttributeScopeCodableConfiguration
-//    }
-//}
-
-//@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-//extension AttributeDynamicLookup {
-//
-//    public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
-//}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Never : Keyframes {
-}
-
-extension Never : Widget {
-    public init() {
-        fatalError()
-    }
-    
-}
-
-extension Never : KeyframeTrackContent {
 }
