@@ -2,8 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 import XCTest
+// the CI workflow at .github/workflows/ci.yml will run with both Debug "import SkipUI" and Release "import SwiftUI"
+#if DEBUG
 import SkipUI
-//import SwiftUI
+#else
+import SwiftUI
+#endif
 
 final class SkipUITests: XCTestCase {
     @MainActor func testConstants() throws {
@@ -16,6 +20,13 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual("Weight(value: 0.4)", "\(Font.Weight.bold)")
         XCTAssertEqual("Weight(value: 0.56)", "\(Font.Weight.heavy)")
         XCTAssertEqual("Weight(value: 0.62)", "\(Font.Weight.black)")
+
+        XCTAssertEqual("Spacer(minLength: nil)", "\(Spacer())")
+        XCTAssertEqual("Spacer(minLength: Optional(12.345))", "\(Spacer(minLength: 12.345))")
+
+        #if !DEBUG
+        XCTAssertEqual(#"Text(storage: SwiftUI.Text.Storage.verbatim("XYZ"), modifiers: [])"#, "\(Text(verbatim: "XYZ"))")
+        #endif
     }
 
     @MainActor func testExample() throws {

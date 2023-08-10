@@ -109,9 +109,11 @@
     /// of expansion.
     ///
     /// If `nil`, the system default spacing between views is used.
-    public var minLength: CGFloat?
+    @usableFromInline var minLength: CGFloat?
 
-    @inlinable public init(minLength: CGFloat? = nil) { fatalError() }
+    @inlinable public init(minLength: CGFloat? = nil) {
+        self.minLength = minLength
+    }
 
     /// The type of view representing the body of this view.
     ///

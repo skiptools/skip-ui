@@ -25,19 +25,17 @@ jobs:
               -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
-      - name: Test (SkipUI)
+      - name: Test (SkipUI / Debug)
         run: |
-            sed -i '' 's;import SwiftUI;import SkipUI;g' Tests/*/*.swift
             xcodebuild test \
               -configuration Debug \
               -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
-      - name: Test (SwiftUI)
+      - name: Test (SwiftUI / Release)
         run: |
-            sed -i '' 's;import SkipUI;import SwiftUI;g' Tests/*/*.swift
             xcodebuild test \
-              -configuration Debug \
+              -configuration Release \
               -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
