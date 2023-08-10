@@ -193,7 +193,7 @@ public struct PresentedWindowContent<Data, Content> : View where Data : Decodabl
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 

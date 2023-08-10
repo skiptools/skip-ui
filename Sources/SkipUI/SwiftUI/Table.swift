@@ -229,7 +229,7 @@ public struct Table<Value, Rows, Columns> : View where Value == Rows.TableRowVal
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -725,7 +725,7 @@ public struct TableColumn<RowValue, Sort, Content, Label> : TableColumnContent w
     public typealias TableColumnSortComparator = Sort
 
     /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = Never
+    public typealias TableColumnBody = NeverView
 
     public var tableColumnBody: TableColumnBody { fatalError()}
 }
@@ -3127,7 +3127,7 @@ public struct TableForEachContent<Data> : TableRowContent where Data : RandomAcc
     public var tableRowBody: TableRowBody { get { return never() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 /// A table row that displays a single view instead of columned content.
@@ -3146,7 +3146,7 @@ public struct TableHeaderRowContent<Value, Content> : TableRowContent where Valu
     public var tableRowBody: TableRowBody { get { return never() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 /// An opaque table row type created by a table's hierarchical initializers.
@@ -3167,7 +3167,7 @@ public struct TableOutlineGroupContent<Data> : TableRowContent where Data : Rand
     public var tableRowBody: TableRowBody { get { return never() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 /// A row that represents a data value in a table.
@@ -3185,7 +3185,7 @@ public struct TableRow<Value> : TableRowContent where Value : Identifiable {
     public typealias TableRowValue = Value
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
     public var tableRowBody: TableRowBody { fatalError() }
 
     /// Creates a table row for the given value.
@@ -3502,7 +3502,7 @@ extension Section : TableRowContent where Parent : TableRowContent, Content : Ta
     public typealias TableRowValue = Content.TableRowValue
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 
     /// Creates a section with a header and the provided section content.
     /// - Parameters:
@@ -3596,7 +3596,7 @@ extension TableRowContent {
     public var value: T { get { fatalError() } }
 
     /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = Never
+    public typealias TableColumnBody = NeverView
     public var tableColumnBody: TableColumnBody { fatalError() }
 }
 
@@ -3618,7 +3618,7 @@ extension TableRowContent {
     public var value: T { get { fatalError() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
     public var tableRowBody: TableRowBody { fatalError() }
 }
 
@@ -3630,7 +3630,7 @@ extension ForEach : TableRowContent where Content : TableRowContent {
     public typealias TableRowValue = Content.TableRowValue
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 
     /// Creates an instance that uniquely identifies and creates table rows
     /// across updates based on the identity of the underlying data.
@@ -3716,7 +3716,7 @@ extension Group : TableColumnContent where Content : TableColumnContent {
     public typealias TableColumnSortComparator = Content.TableColumnSortComparator
 
     /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = Never
+    public typealias TableColumnBody = NeverView
 
     /// Creates a group of table columns.
     ///
@@ -3738,7 +3738,7 @@ extension Group : TableRowContent where Content : TableRowContent {
     public typealias TableRowValue = Content.TableRowValue
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 
     /// Creates a group of table rows.
     ///
@@ -3855,7 +3855,7 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
     public var tableRowBody: TableRowBody { get { return never() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 //@available(iOS 16.0, macOS 13.0, *)
@@ -3867,7 +3867,7 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
 //    public typealias TableRowValue = Wrapped.TableRowValue
 //
 //    /// The type of content representing the body of this table row content.
-//    public typealias TableRowBody = Never
+//    public typealias TableRowBody = NeverView
 //    public var tableRowBody: TableRowBody { fatalError() }
 //}
 
@@ -3978,7 +3978,7 @@ public struct EmptyTableRowContent<Value> where Value : Identifiable {
     public typealias TableRowValue = Value
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 @available(iOS 16.0, macOS 13.0, *)
@@ -4027,7 +4027,7 @@ extension Never {
 extension Never : TableRowContent {
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 
     /// The composition of content that comprise the table row content.
     public var tableRowBody: Never { get { fatalError() } }
@@ -4051,7 +4051,7 @@ public struct AutomaticTableStyle : TableStyle {
 
 
     /// A view that represents the body of a table.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// The table style that describes the behavior and appearance of a table with
@@ -4088,7 +4088,7 @@ extension Never : TableColumnContent {
     public typealias TableColumnSortComparator = Never
 
     /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = Never
+    public typealias TableColumnBody = NeverView
 
     /// The composition of content that comprise the table column content.
     public var tableColumnBody: Never { get { fatalError() } }

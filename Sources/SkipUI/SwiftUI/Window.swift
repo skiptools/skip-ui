@@ -365,7 +365,7 @@ public struct WindowGroup<Content> : Scene where Content : View {
     /// When you create a custom scene, Swift infers this type from your
     /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     public var body: Body { fatalError() }
 }

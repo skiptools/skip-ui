@@ -13,7 +13,7 @@
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     /// The content that the modifier transforms into a new view or new
     /// view modifier.
@@ -526,7 +526,7 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
 //    public typealias TableRowValue = Content.TableRowValue
 //
 //    /// The type of content representing the body of this table row content.
-//    public typealias TableRowBody = Never
+//    public typealias TableRowBody = NeverView
 //
 //    /// The composition of content that comprise the table row content.
 //    public var tableRowBody: Never { get { fatalError() } }

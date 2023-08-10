@@ -53,7 +53,7 @@ extension Group : Commands where Content : Commands {
 @available(watchOS, unavailable)
 extension Optional : Commands where Wrapped : Commands {
 
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Never { return never() }
 }
 
@@ -71,7 +71,7 @@ public struct EmptyCommands : Commands {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -110,7 +110,7 @@ public struct CommandGroup<Content> : Commands where Content : View {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// The standard locations that you can place new command groups relative to.
@@ -305,7 +305,7 @@ public struct CommandMenu<Content> : Commands where Content : View {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// Constructs command sets from multi-expression closures. Like `ViewBuilder`,
@@ -459,7 +459,7 @@ public struct TextFormattingCommands : Commands {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// A built-in set of commands for manipulating window sidebars.
@@ -487,7 +487,7 @@ public struct SidebarCommands : Commands {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 #endif

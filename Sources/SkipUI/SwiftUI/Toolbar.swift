@@ -29,7 +29,7 @@ public struct ToolbarCommands : Commands {
     /// When you create custom commands, Swift infers this type from your
     /// implementation of the required ``SkipUI/Commands/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// Conforming types represent items that can be placed in various locations
@@ -331,7 +331,7 @@ public struct ToolbarCustomizationOptions : OptionSet, Sendable {
 public struct ToolbarItem<ID, Content> : ToolbarContent where Content : View {
 
     /// The type of content representing the body of this toolbar content.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { return never() }
 }
 
@@ -400,7 +400,7 @@ public struct ToolbarItemGroup<Content> : ToolbarContent where Content : View {
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) { fatalError() }
 
     /// The type of content representing the body of this toolbar content.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { return never() }
 }
 
@@ -849,7 +849,7 @@ public struct ToolbarTitleMenu<Content> : ToolbarContent, CustomizableToolbarCon
     public init(@ViewBuilder content: () -> Content) { fatalError() }
 
     /// The type of content representing the body of this toolbar content.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     public var body: Body { return never() }
 }
@@ -1058,7 +1058,7 @@ extension Group : ToolbarContent where Content : ToolbarContent {
     /// the toolbar content instances to group.
     public init(@ToolbarContentBuilder content: () -> Content) { fatalError() }
 
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { return never() }
 }
 
@@ -1080,7 +1080,7 @@ extension Never : ToolbarContent, CustomizableToolbarContent {
 extension Optional : ToolbarContent where Wrapped : ToolbarContent {
 
     /// The type of content representing the body of this toolbar content.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Never { return never() }
 }
 

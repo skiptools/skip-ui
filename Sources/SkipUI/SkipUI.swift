@@ -2,6 +2,19 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+
+/// No-op
+@usableFromInline func stub<T>() -> T {
+    fatalError("stub")
+}
+
+/// No-op
+@usableFromInline func never() -> Never {
+    stub()
+}
+
+public typealias NeverView = Never
+
 import struct CoreGraphics.CGFloat
 public typealias CGFloat = CoreGraphics.CGFloat
 

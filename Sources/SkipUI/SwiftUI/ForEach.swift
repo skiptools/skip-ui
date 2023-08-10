@@ -64,7 +64,7 @@ extension ForEach : AccessibilityRotorContent where Content : AccessibilityRotor
     public var body: Never { get { fatalError() } }
 
     /// The type for the internal content of this `AccessibilityRotorContent`.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -216,7 +216,7 @@ extension ForEach : PlatformView where Content : PlatformView {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ForEach : View where Content : View {
 
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Never { fatalError() }
 }
 

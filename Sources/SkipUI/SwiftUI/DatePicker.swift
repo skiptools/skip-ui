@@ -436,7 +436,7 @@ public struct DatePickerStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
         public var body: Body { fatalError() }
     }
 
@@ -714,7 +714,7 @@ public struct WheelDatePickerStyle : DatePickerStyle {
 
 
     /// A view representing the appearance and interaction of a `DatePicker`.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 /// A date picker style that displays the components in a compact, textual

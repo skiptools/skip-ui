@@ -277,7 +277,7 @@ extension WidgetConfiguration {
     ///
     /// When you create a custom widget, Swift infers this type from your
     /// implementation of the required `body` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 

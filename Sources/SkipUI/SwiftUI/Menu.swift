@@ -393,7 +393,7 @@ public struct MenuStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
         public var body: Body { fatalError() }
     }
 
@@ -404,7 +404,7 @@ public struct MenuStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
         public var body: Body { fatalError() }
     }
 }
@@ -454,6 +454,99 @@ public struct ButtonMenuStyle : MenuStyle {
 
     /// A view that represents the body of a menu.
 //    public typealias Body = some View
+}
+
+/// A menu style that displays a borderless button that toggles the display of
+/// the menu's contents when pressed.
+///
+/// Use ``MenuStyle/borderlessButton`` to construct this style.
+@available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use .menuStyle(.button) and .buttonStyle(.borderless).")
+@available(macOS, introduced: 11.0, deprecated: 100000.0, message: "Use .menuStyle(.button) and .buttonStyle(.borderless).")
+@available(tvOS, introduced: 17.0, deprecated: 100000.0, message: "Use .menuStyle(.button) and .buttonStyle(.borderless).")
+@available(watchOS, unavailable)
+@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use .menuStyle(.button) and .buttonStyle(.borderless).")
+public struct BorderlessButtonMenuStyle : MenuStyle {
+
+    /// Creates a borderless button menu style.
+    public init() { fatalError() }
+
+    /// Creates a view that represents the body of a menu.
+    ///
+    /// - Parameter configuration: The properties of the menu.
+    ///
+    /// The system calls this method for each ``Menu`` instance in a view
+    /// hierarchy where this style is the current menu style.
+    public func makeBody(configuration: BorderlessButtonMenuStyle.Configuration) -> some View { return never() }
+
+
+    /// A view that represents the body of a menu.
+//    public typealias Body = some View
+}
+
+/// The options for controlling the repeatability of button actions.
+///
+/// Use values of this type with the ``View/buttonRepeatBehavior(_:)``
+/// modifier.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public struct ButtonRepeatBehavior : Hashable, Sendable {
+
+    /// The automatic repeat behavior.
+    public static let automatic: ButtonRepeatBehavior = { fatalError() }()
+
+    /// Repeating button actions will be enabled.
+    public static let enabled: ButtonRepeatBehavior = { fatalError() }()
+
+    /// Repeating button actions will be disabled.
+    public static let disabled: ButtonRepeatBehavior = { fatalError() }()
+
+
+
+
+}
+
+/// A value that describes the purpose of a button.
+///
+/// A button role provides a description of a button's purpose.  For example,
+/// the ``ButtonRole/destructive`` role indicates that a button performs
+/// a destructive action, like delete user data:
+///
+///     Button("Delete", role: .destructive) { delete() }
+///
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+public struct ButtonRole : Equatable, Sendable {
+
+    /// A role that indicates a destructive button.
+    ///
+    /// Use this role for a button that deletes user data, or performs an
+    /// irreversible operation. A destructive button signals by its appearance
+    /// that the user should carefully consider whether to tap or click the
+    /// button. For example, SkipUI presents a destructive button that you add
+    /// with the ``View/swipeActions(edge:allowsFullSwipe:content:)``
+    /// modifier using a red background:
+    ///
+    ///     List {
+    ///         ForEach(items) { item in
+    ///             Text(item.title)
+    ///                 .swipeActions {
+    ///                     Button(role: .destructive) { delete() } label: {
+    ///                         Label("Delete", systemImage: "trash")
+    ///                     }
+    ///                 }
+    ///         }
+    ///     }
+    ///     .navigationTitle("Shopping List")
+    ///
+    /// ![A screenshot of a list of three items, where the second item is
+    /// shifted to the left, and the row displays a red button with a trash
+    /// icon on the right side.](ButtonRole-destructive-1)
+    public static let destructive: ButtonRole = { fatalError() }()
+
+    /// A role that indicates a button that cancels an operation.
+    ///
+    /// Use this role for a button that cancels the current operation.
+    public static let cancel: ButtonRole = { fatalError() }()
+
+
 }
 
 #endif

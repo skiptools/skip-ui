@@ -153,7 +153,7 @@ public struct Canvas<Symbols> where Symbols : View {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)

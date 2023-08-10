@@ -146,7 +146,7 @@ public struct DocumentGroup<Document, Content> : Scene where Content : View {
     /// When you create a custom scene, Swift infers this type from your
     /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 @available(iOS 14.0, macOS 11.0, *)

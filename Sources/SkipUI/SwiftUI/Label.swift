@@ -264,7 +264,7 @@ public struct LabelStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
     }
 
     /// A type-erased icon view of a label.
@@ -274,7 +274,7 @@ public struct LabelStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
     }
 
     /// A description of the labeled item.
@@ -628,7 +628,7 @@ public struct LabeledContentStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
         public var body: Body { fatalError() }
     }
 
@@ -639,7 +639,7 @@ public struct LabeledContentStyleConfiguration {
         ///
         /// When you create a custom view, Swift infers this type from your
         /// implementation of the required ``View/body-swift.property`` property.
-        public typealias Body = Never
+        public typealias Body = NeverView
         public var body: Body { fatalError() }
     }
 

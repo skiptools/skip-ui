@@ -121,7 +121,7 @@ public protocol Shape : Sendable, Animatable, View {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -782,7 +782,7 @@ extension ShapeRole : Hashable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -824,7 +824,7 @@ extension ShapeRole : Hashable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -934,7 +934,7 @@ extension RectangleCornerRadii : Sendable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1006,7 +1006,7 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1066,7 +1066,7 @@ extension RoundedRectangle : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1103,7 +1103,7 @@ extension Capsule : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1159,7 +1159,7 @@ extension ContainerRelativeShape : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1250,7 +1250,7 @@ extension Circle : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1292,7 +1292,7 @@ extension Circle : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1345,7 +1345,7 @@ extension UnevenRoundedRectangle : InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1469,7 +1469,7 @@ extension InsettableShape {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 

@@ -41,7 +41,7 @@
     public static let identity: EmptyModifier = { fatalError() }()
 
     /// The type of view representing the body.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     @inlinable public init() { fatalError() }
 

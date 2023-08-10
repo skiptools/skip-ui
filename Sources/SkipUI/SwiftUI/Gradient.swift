@@ -143,7 +143,7 @@ extension Gradient.Stop : Sendable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 
     /// The type of shape style this will resolve to.
@@ -163,7 +163,7 @@ extension Gradient.Stop : Sendable {
     public init<T>(_ gesture: T) where Value == T.Value, T : Gesture { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -258,7 +258,7 @@ extension Gradient.Stop : Sendable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 
     /// The type of shape style this will resolve to.
@@ -293,7 +293,7 @@ extension Gradient.Stop : Sendable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 
     /// The type of shape style this will resolve to.
@@ -328,7 +328,7 @@ extension Gradient.Stop : Sendable {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     /// The type of shape style this will resolve to.
     ///

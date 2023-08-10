@@ -233,7 +233,7 @@ extension OutlineGroup : TableRowContent where ID == Data.Element.ID, Parent : T
     public var tableRowBody: TableRowBody { get { return never() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = Never
+    public typealias TableRowBody = NeverView
 }
 
 @available(iOS 14.0, macOS 11.0, *)
@@ -523,7 +523,7 @@ public struct OutlineSubgroupChildren : View {
     ///
     /// When you create a custom view, Swift infers this type from your
     /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 

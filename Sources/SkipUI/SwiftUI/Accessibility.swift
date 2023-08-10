@@ -52,7 +52,7 @@ extension AccessibilityAdjustmentDirection : Hashable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct AccessibilityAttachmentModifier : ViewModifier {
     /// The type of view representing the body.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
     public typealias Content = Never
 }
@@ -853,7 +853,7 @@ public struct AccessibilityRotorEntry<ID> where ID : Hashable {
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension AccessibilityRotorEntry : AccessibilityRotorContent {
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { get { return never() } }
 }
 
@@ -2054,7 +2054,7 @@ extension Never : AccessibilityRotorContent {
 extension Never {
 
     /// The type for the internal content of this `AccessibilityRotorContent`.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     /// The internal content of this `AccessibilityRotorContent`.
     public var body: Never { get { fatalError() } }

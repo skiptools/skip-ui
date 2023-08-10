@@ -285,7 +285,7 @@ public struct IdentityTransition : Transition {
     public static let properties: TransitionProperties = { fatalError() }()
 
     /// The type of view representing the body.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 

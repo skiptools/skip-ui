@@ -336,7 +336,7 @@ extension GestureState where Value : ExpressibleByNilLiteral {
     @inlinable public init(base: Base, state: GestureState<State>, body: @escaping (GestureStateGesture<Base, State>.Value, inout State, inout Transaction) -> Void) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -401,7 +401,7 @@ public struct LongPressGesture : Gesture {
     public typealias Value = Bool
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -426,7 +426,7 @@ public struct MagnificationGesture : Gesture {
     public typealias Value = CGFloat
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -502,7 +502,7 @@ public struct MagnifyGesture : Gesture {
     public init(minimumScaleDelta: CGFloat = 0.01) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -576,7 +576,7 @@ public struct RotateGesture : Gesture {
     public init(minimumAngleDelta: Angle = .degrees(1)) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -601,7 +601,7 @@ public struct RotationGesture : Gesture {
     public typealias Value = Angle
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -660,7 +660,7 @@ public struct SpatialEventGesture : Gesture {
 //    public var internalBody: some Gesture<()> { get { fatalError() } }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -733,7 +733,7 @@ public struct SpatialTapGesture : Gesture {
     public init(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -774,7 +774,7 @@ public struct TapGesture : Gesture {
     public init(count: Int = 1) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
 
     /// The type representing the gesture's value.
     public typealias Value = Void
@@ -874,7 +874,7 @@ public struct DragGesture : Gesture {
     public init(minimumDistance: CGFloat = 10, coordinateSpace: some CoordinateSpaceProtocol = .local) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -913,7 +913,7 @@ public struct DragGesture : Gesture {
     @inlinable public init(_ first: First, _ second: Second) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -965,7 +965,7 @@ extension SimultaneousGesture.Value : Hashable where First.Value : Hashable, Sec
     @inlinable public init(_ first: First, _ second: Second) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1011,7 +1011,7 @@ extension SequenceGesture.Value : Equatable where First.Value : Equatable, Secon
     @inlinable public init(_ first: First, _ second: Second) { fatalError() }
 
     /// The type of gesture representing the body of `Self`.
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
 
@@ -1041,7 +1041,7 @@ extension Optional : Gesture where Wrapped : Gesture {
     /// The type representing the gesture's value.
     public typealias Value = Wrapped.Value
 
-    public typealias Body = Never
+    public typealias Body = NeverView
     public var body: Never { return never() }
 }
 

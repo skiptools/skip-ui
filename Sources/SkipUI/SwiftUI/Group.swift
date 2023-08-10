@@ -78,7 +78,7 @@
 @frozen public struct Group<Content> {
 
     /// The type for the internal content of this `AccessibilityRotorContent`.
-    public typealias Body = Never
+    public typealias Body = NeverView
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
