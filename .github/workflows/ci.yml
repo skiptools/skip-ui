@@ -42,7 +42,7 @@ jobs:
             xcodebuild test \
               -configuration Release \
               -skipPackagePluginValidation \
-              -scheme "SkipUI" \
+              -scheme "SkipUIX" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
 
