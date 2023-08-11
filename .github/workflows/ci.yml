@@ -14,7 +14,7 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
 
 jobs:
-  ios:
+  ci:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v2
@@ -25,6 +25,7 @@ jobs:
         run: |
             xcodebuild build \
               -configuration Build \
+              -skipPackagePluginValidation \
               -scheme "SkipUIX" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
@@ -32,6 +33,7 @@ jobs:
         run: |
             xcodebuild test \
               -configuration Debug \
+              -skipPackagePluginValidation \
               -scheme "SkipUIX" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
@@ -39,6 +41,7 @@ jobs:
         run: |
             xcodebuild test \
               -configuration Release \
+              -skipPackagePluginValidation \
               -scheme "SkipUI" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
