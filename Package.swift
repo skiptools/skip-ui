@@ -1,6 +1,7 @@
 // swift-tools-version: 5.8
 import PackageDescription
 
+
 let package = Package(
     name: "skip-uix",
     platforms: [.macOS("13"), .iOS("17")],
@@ -13,9 +14,6 @@ let package = Package(
         .package(url: "https://skip.tools/skiptools/skiphub.git", from: "0.0.0"),
     ],
     targets: [
-//        .target(name: "SkipUIX"),
-//        .testTarget(name: "SkipUIXTests", dependencies: ["SkipUIX"]),
-
         .target(name: "SkipUIX",
             plugins: [.plugin(name: "preflight", package: "skip")]),
         .testTarget(name: "SkipUIXTests", dependencies: ["SkipUIX"],
@@ -37,5 +35,5 @@ import class Foundation.ProcessInfo
 // For Skip library development in peer directories, run: SKIPLOCAL=.. xed Package.swift
 if let localPath = ProcessInfo.processInfo.environment["SKIPLOCAL"] {
     package.dependencies[0] = .package(path: localPath + "/skip")
-//    package.dependencies[1] = .package(path: localPath + "/skiphub")
+    package.dependencies[1] = .package(path: localPath + "/skiphub")
 }

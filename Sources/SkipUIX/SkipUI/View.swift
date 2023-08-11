@@ -2,13 +2,19 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
 
-import protocol SwiftUI.View
+//import protocol SwiftUI.View
+// SKIP INSERT: import androidx.compose.runtime.Composable
 
 //public typealias PlatformView = SwiftUI.View
 public protocol PlatformView {
 }
+
+
+// View.kt:53 testSkipModule(): One type argument expected for interface View<Body>
+// Fail: interface View<Body>: PlatformView where Body: View
+// Need: interface View<Body: View<Body>>: PlatformView
+
 
 /// A type that represents part of your app's user interface and provides
 /// modifiers that you use to configure views.
@@ -46,6 +52,7 @@ public protocol PlatformView {
 /// and respond to <doc:View-Input-and-Events>.
 /// You can also collect groups of default modifiers into new,
 /// custom view modifiers for easy reuse.
+// SKIP DECLARE: interface View<Body: View<Body>>: PlatformView
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public protocol View : PlatformView {
 
@@ -70,9 +77,10 @@ public protocol View : PlatformView {
     ///
     /// For more information about composing views and a view hierarchy,
     /// see <doc:Declaring-a-Custom-View>.
-    @ViewBuilder @MainActor var body: Self.Body { get }
+    @ViewBuilder @MainActor var body: Body { get }
 }
 
+#if !SKIP
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Optional : PlatformView where Wrapped : PlatformView {
