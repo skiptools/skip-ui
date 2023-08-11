@@ -2203,6 +2203,7 @@ public protocol KeyframeTrackContent<Value> {
 
 }
 
+@available(macOS 14.0, *)
 extension KeyframeTrackContentBuilder {
 
     /// A conditional result from the result builder.

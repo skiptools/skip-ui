@@ -332,6 +332,7 @@ public struct EnvironmentValues : CustomStringConvertible {
     ///
     public subscript<K>(key: K.Type) -> K.Value where K : EnvironmentKey { get { fatalError() } }
 
+    #if canImport(UIKit)
     /// Accesses the environment value associated with a custom key.
     ///
     /// Create custom environment values by defining a key
@@ -366,7 +367,8 @@ public struct EnvironmentValues : CustomStringConvertible {
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     public subscript<K>(key: K.Type) -> K.Value where K : UITraitBridgedEnvironmentKey { get { fatalError() } }
-
+    #endif
+    
     /// A string that represents the contents of the environment values
     /// instance.
     public var description: String { get { fatalError() } }

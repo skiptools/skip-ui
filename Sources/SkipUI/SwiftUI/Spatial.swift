@@ -110,12 +110,14 @@ public struct SpatialEventCollection : Collection {
         /// The set of active modifier keys at the time of this event.
         public var modifierKeys: EventModifiers { get { fatalError() } }
 
+        #if canImport(UIKit)
         /// The 3D position and orientation of the device controlling the touch, if one exists.
         @available(xrOS 1.0, iOS 17.0, *)
         @available(macOS, unavailable)
         @available(watchOS, unavailable)
         @available(tvOS, unavailable)
         public var inputDevicePose: SpatialEventCollection.Event.InputDevicePose?
+        #endif
     }
 
     /// Retrieves an event using its unique identifier.
@@ -227,6 +229,7 @@ public struct SpatialEventCollection : Collection {
     public typealias SubSequence = Slice<SpatialEventCollection>
 }
 
+@available(macOS 14.0, *)
 extension SpatialEventCollection.Event {
 }
 

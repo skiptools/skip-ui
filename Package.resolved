@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "skip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://skip.tools/skiptools/skip.git",
+      "state" : {
+        "revision" : "9fd444887481395f37366ea34790ab4ca5042fb6",
+        "version" : "0.5.38"
+      }
+    }
+  ],
+  "version" : 2
+}

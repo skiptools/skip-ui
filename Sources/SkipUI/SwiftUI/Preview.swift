@@ -4,6 +4,7 @@
 
 #if !SKIP
 
+#if canImport(UIKit)
 import enum UIKit.PreviewLayout
 
 /// Creates a preview of a SkipUI view.
@@ -441,5 +442,7 @@ extension View {
 //    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 //    public init(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>..., body: @escaping () -> View) { fatalError() }
 //}
+
+#endif
 
 #endif

@@ -18,6 +18,9 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v2
+      - name: Test macOS
+        run: |
+          swift test
       - name: Build (Debug)
         run: |
             xcodebuild build \

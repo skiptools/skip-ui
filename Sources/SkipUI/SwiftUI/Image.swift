@@ -965,12 +965,14 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     /// the contents of the image may have changed.
     @MainActor final public var cgImage: CGImage? { get { fatalError() } }
 
+    #if canImport(UIKit)
     /// The current contents of the view, rasterized as a UIKit image.
     ///
     /// The renderer notifies its `objectWillChange` publisher when
     /// the contents of the image may have changed.
     @MainActor final public var uiImage: UIImage? { get { fatalError() } }
-
+    #endif
+    
     /// Draws the renderer's current contents to an arbitrary Core Graphics
     /// context.
     ///

@@ -1422,6 +1422,7 @@ extension View {
     @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return never() }
 
 }
+
 #endif
 
 #endif
