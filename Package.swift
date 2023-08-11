@@ -2,33 +2,33 @@
 import PackageDescription
 
 let package = Package(
-    name: "SkipUI",
+    name: "skip-uix",
     platforms: [.macOS("13"), .iOS("17")],
     products: [
-        .library(name: "SkipUI", targets: ["SkipUI"]),
-//        .library(name: "SkipUIKt", targets: ["SkipUIKt"]),
+        .library(name: "SkipUIX", targets: ["SkipUIX"]),
+        .library(name: "SkipUIXKt", targets: ["SkipUIXKt"]),
     ],
     dependencies: [ 
         .package(url: "https://skip.tools/skiptools/skip.git", from: "0.0.0"),
-//        .package(url: "https://skip.tools/skiptools/skiphub.git", from: "0.0.0"),
+        .package(url: "https://skip.tools/skiptools/skiphub.git", from: "0.0.0"),
     ],
     targets: [
-//        .target(name: "SkipUI"),
-//        .testTarget(name: "SkipUITests", dependencies: ["SkipUI"]),
+//        .target(name: "SkipUIX"),
+//        .testTarget(name: "SkipUIXTests", dependencies: ["SkipUIX"]),
 
-        .target(name: "SkipUI",
+        .target(name: "SkipUIX",
             plugins: [.plugin(name: "preflight", package: "skip")]),
-        .testTarget(name: "SkipUITests", dependencies: ["SkipUI"],
+        .testTarget(name: "SkipUIXTests", dependencies: ["SkipUIX"],
             plugins: [.plugin(name: "preflight", package: "skip")]),
 
-//        .target(name: "SkipUIKt",
-//            dependencies: [ "SkipUI", .product(name: "SkipFoundationKt", package: "skiphub") ],
-//            resources: [.process("Skip")],
-//            plugins: [.plugin(name: "transpile", package: "skip")]),
-//        .testTarget(name: "SkipUIKtTests",
-//            dependencies: ["SkipUIKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
-//            .plugin(name: "transpile", package: "skip")
-//        ]),
+        .target(name: "SkipUIXKt",
+            dependencies: [ "SkipUIX", .product(name: "SkipUIKt", package: "skiphub") ],
+            resources: [.process("Skip")],
+            plugins: [.plugin(name: "transpile", package: "skip")]),
+        .testTarget(name: "SkipUIXKtTests",
+            dependencies: ["SkipUIXKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
+            .plugin(name: "transpile", package: "skip")
+        ]),
     ]
 )
 

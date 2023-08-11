@@ -8,6 +8,15 @@
         "revision" : "9fd444887481395f37366ea34790ab4ca5042fb6",
         "version" : "0.5.38"
       }
+    },
+    {
+      "identity" : "skiphub",
+      "kind" : "remoteSourceControl",
+      "location" : "https://skip.tools/skiptools/skiphub.git",
+      "state" : {
+        "revision" : "cfd128dd269c45764b2a7d47cc41214d3a3c5bfb",
+        "version" : "0.4.36"
+      }
     }
   ],
   "version" : 2

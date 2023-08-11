@@ -14,23 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SkipUI"
-               BuildableName = "SkipUI"
-               BlueprintName = "SkipUI"
-               ReferencedContainer = "container:">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SkipUITests"
-               BuildableName = "SkipUITests"
-               BlueprintName = "SkipUITests"
+               BlueprintIdentifier = "SkipUIX"
+               BuildableName = "SkipUIX"
+               BlueprintName = "SkipUIX"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,9 +33,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SkipUITests"
-               BuildableName = "SkipUITests"
-               BlueprintName = "SkipUITests"
+               BlueprintIdentifier = "SkipUIXTests"
+               BuildableName = "SkipUIXTests"
+               BlueprintName = "SkipUIXTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -75,9 +61,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "SkipUI"
-            BuildableName = "SkipUI"
-            BlueprintName = "SkipUI"
+            BlueprintIdentifier = "SkipUIX"
+            BuildableName = "SkipUIX"
+            BlueprintName = "SkipUIX"
             ReferencedContainer = "container:">
          </BuildableReference>
       </MacroExpansion>

@@ -4,12 +4,13 @@
 import XCTest
 // the CI workflow at .github/workflows/ci.yml will run with both Debug "import SkipUI" and Release "import SwiftUI"
 #if DEBUG
-import SkipUI
+import SkipUIX
 #else
 import SwiftUI
 #endif
 
 final class SkipUITests: XCTestCase {
+    #if !SKIP
     @MainActor func testConstants() throws {
         XCTAssertEqual("Weight(value: -0.8)", "\(Font.Weight.ultraLight)")
         XCTAssertEqual("Weight(value: -0.6)", "\(Font.Weight.thin)")
@@ -62,7 +63,9 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual(#"Text(storage: SwiftUI.Text.Storage.verbatim("XYZ"), modifiers: [])"#, "\(Text(verbatim: "XYZ"))")
         #endif
     }
+    #endif
 
+    #if !SKIP
     @MainActor func testExample() throws {
         if ({ false }()) {
             _ = VStack {
@@ -88,9 +91,10 @@ final class SkipUITests: XCTestCase {
             }
         }
     }
+    #endif
 }
 
-
+#if !SKIP
 struct DemoViw : View {
     @ViewBuilder var body: some View {
         VStack {
@@ -99,3 +103,4 @@ struct DemoViw : View {
         }
     }
 }
+#endif

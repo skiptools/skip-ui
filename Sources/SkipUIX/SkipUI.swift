@@ -7,8 +7,13 @@
     fatalError("stub")
 }
 
+#if !SKIP
+// SkipUI.kt:13:14 'Nothing' return type can't be specified with type alias
+@usableFromInline typealias Nothing = Never
+#endif
+
 /// No-op
-@usableFromInline func never() -> Never {
+@usableFromInline func never() -> Nothing {
     stub()
 }
 
