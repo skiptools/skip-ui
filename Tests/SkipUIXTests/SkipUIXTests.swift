@@ -10,6 +10,10 @@ import SwiftUI
 #endif
 
 final class SkipUITests: XCTestCase {
+    func testExampleAssert() throws {
+        XCTAssertEqual(1, 1)
+    }
+
     #if !SKIP
     @MainActor func testConstants() throws {
         XCTAssertEqual("Weight(value: -0.8)", "\(Font.Weight.ultraLight)")
