@@ -9,7 +9,7 @@
 
 #if !SKIP
 // SkipUI.kt:13:14 'Nothing' return type can't be specified with type alias
-@usableFromInline typealias Nothing = Never
+public typealias Nothing = Never
 #endif
 
 /// No-op

@@ -1,57 +1,21 @@
 {
   "pins" : [
     {
-      "identity" : "swift-argument-parser",
+      "identity" : "skip",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "location" : "https://skip.tools/skiptools/skip.git",
       "state" : {
-        "revision" : "fee6933f37fde9a5e12a1e4aeaa93fe60116ff2a",
-        "version" : "1.2.2"
+        "revision" : "9fd444887481395f37366ea34790ab4ca5042fb6",
+        "version" : "0.5.38"
       }
     },
     {
-      "identity" : "swift-crypto",
+      "identity" : "skiphub",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-crypto.git",
+      "location" : "https://skip.tools/skiptools/skiphub.git",
       "state" : {
-        "revision" : "60f13f60c4d093691934dc6cfdf5f508ada1f894",
-        "version" : "2.6.0"
-      }
-    },
-    {
-      "identity" : "swift-syntax",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-syntax.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "4294feb4454db4e443b47bce52e081ff7cf2b6ea"
-      }
-    },
-    {
-      "identity" : "swift-system",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-system.git",
-      "state" : {
-        "revision" : "836bc4557b74fe6d2660218d56e3ce96aff76574",
-        "version" : "1.1.1"
-      }
-    },
-    {
-      "identity" : "swift-tools-support-core",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-tools-support-core.git",
-      "state" : {
-        "revision" : "93784c59434dbca8e8a9e4b700d0d6d94551da6a",
-        "version" : "0.5.2"
-      }
-    },
-    {
-      "identity" : "universal",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/marcprux/universal.git",
-      "state" : {
-        "revision" : "13421e9299fa1ad95aeecb8fe8472caae0f9d4c7",
-        "version" : "5.2.1"
+        "revision" : "cfd128dd269c45764b2a7d47cc41214d3a3c5bfb",
+        "version" : "0.4.36"
       }
     }
   ],
