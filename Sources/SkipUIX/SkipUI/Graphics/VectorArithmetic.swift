@@ -4,6 +4,7 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
 
 /// A type that can serve as the animatable data of an animatable type.
 ///

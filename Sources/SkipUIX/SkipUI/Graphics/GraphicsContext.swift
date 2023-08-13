@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// An immediate mode drawing destination, and its current state.
 ///
 /// Use a context to execute 2D drawing primitives. For example, you can draw

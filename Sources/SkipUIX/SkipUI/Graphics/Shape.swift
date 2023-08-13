@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// No-op
 @usableFromInline func stubShape() -> some Shape {
     return never()

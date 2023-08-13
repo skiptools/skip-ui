@@ -10,16 +10,17 @@
 #if !SKIP
 // SkipUI.kt:13:14 'Nothing' return type can't be specified with type alias
 public typealias Nothing = Never
+
+
+/// No-op
+@usableFromInline func stubView() -> some View {
+    return never()
+}
 #endif
 
 /// No-op
 @usableFromInline func never() -> Nothing {
     stub()
-}
-
-/// No-op
-@usableFromInline func stubView() -> some View {
-    return never()
 }
 
 public typealias NeverView = Never

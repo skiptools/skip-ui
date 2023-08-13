@@ -4,6 +4,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGAffineTransform
+
 /// The outline of a 2D shape.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct Path : Equatable, LosslessStringConvertible, @unchecked Sendable {

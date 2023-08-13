@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// A view that provides a shape that you can use for drawing operations.
 ///
 /// Use this type with the drawing methods on ``Shape`` to apply multiple fills

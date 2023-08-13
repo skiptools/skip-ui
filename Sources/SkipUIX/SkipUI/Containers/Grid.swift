@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// A container view that arranges other views in a two dimensional layout.
 ///
 /// Create a two dimensional layout by initializing a `Grid` with a collection

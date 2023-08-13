@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 
 /// A color gradient represented as an array of color stops, each having a
 /// parametric location value.
