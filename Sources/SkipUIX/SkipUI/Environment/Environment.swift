@@ -7,9 +7,8 @@
 import struct Foundation.Calendar
 import struct Foundation.TimeZone
 import struct Foundation.Locale
-import Combine
+import protocol Combine.ObservableObject
 import Observation
-
 
 extension View {
 
@@ -1986,3 +1985,4 @@ public protocol EnvironmentalModifier : ViewModifier where Self.Body == Never {
 }
 
 #endif
+
