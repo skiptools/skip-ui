@@ -139,14 +139,14 @@ public struct DocumentGroup<Document, Content> : Scene where Content : View {
     ///
     /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
     /// associated type based on the contents of the `body` property.
-    @MainActor public var body: Body { get { return never() } }
+    @MainActor public var body: some Scene { get { return stubScene() } }
 
     /// The type of scene that represents the body of this scene.
     ///
     /// When you create a custom scene, Swift infers this type from your
     /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
-    public typealias Body = NeverView
+    //public typealias Body = NeverView
 }
 
 @available(iOS 14.0, macOS 11.0, *)
@@ -670,7 +670,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentType: UTType, defaultFilename: String? = nil, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View where D : FileDocument { return never() }
+    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentType: UTType, defaultFilename: String? = nil, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View where D : FileDocument { return stubView() }
 
 
     /// Presents a system interface for exporting a collection of value type
@@ -694,7 +694,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentType: UTType, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element : FileDocument { return never() }
+    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentType: UTType, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element : FileDocument { return stubView() }
 
 
     /// Presents a system interface for exporting a document that's stored in
@@ -721,7 +721,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentType: UTType, defaultFilename: String? = nil, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View where D : ReferenceFileDocument { return never() }
+    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentType: UTType, defaultFilename: String? = nil, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View where D : ReferenceFileDocument { return stubView() }
 
 
     /// Presents a system interface for exporting a collection of reference type
@@ -745,7 +745,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentType: UTType, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element : ReferenceFileDocument { return never() }
+    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentType: UTType, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element : ReferenceFileDocument { return stubView() }
 
 }
 

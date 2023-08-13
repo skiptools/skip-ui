@@ -297,22 +297,7 @@ public struct Gauge<Label, CurrentValueLabel, BoundsLabel, MarkedValueLabels> : 
     ///       The method ignores this parameter.
     public init<V>(value: V, in bounds: ClosedRange<V> = 0...1, @ViewBuilder label: () -> Label, @ViewBuilder currentValueLabel: () -> CurrentValueLabel, @ViewBuilder minimumValueLabel: () -> BoundsLabel, @ViewBuilder maximumValueLabel: () -> BoundsLabel, @ViewBuilder markedValueLabels: () -> MarkedValueLabels) where V : BinaryFloatingPoint { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -565,7 +550,7 @@ public struct LinearCapacityGaugeStyle : GaugeStyle {
     /// hierarchy where this style is the current gauge style.
     ///
     /// - Parameter configuration: The properties to apply to the gauge instance.
-    public func makeBody(configuration: LinearCapacityGaugeStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: LinearCapacityGaugeStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a gauge.
@@ -589,7 +574,7 @@ public struct DefaultGaugeStyle : GaugeStyle {
     /// hierarchy where this style is the current gauge style.
     ///
     /// - Parameter configuration: The properties to apply to the gauge instance.
-    public func makeBody(configuration: DefaultGaugeStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultGaugeStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a gauge.

@@ -17,26 +17,32 @@ public typealias Nothing = Never
     stub()
 }
 
+/// No-op
+@usableFromInline func stubView() -> some View {
+    return never()
+}
+
 public typealias NeverView = Never
 
 #if !SKIP
 import struct CoreGraphics.CGFloat
 public typealias CGFloat = CoreGraphics.CGFloat
 
+import struct CoreGraphics.CGPoint
+public typealias CGPoint = CoreGraphics.CGPoint
+
 import struct CoreGraphics.CGSize
 public typealias CGSize = CoreGraphics.CGSize
+
+import struct CoreGraphics.CGRect
+public typealias CGRect = CoreGraphics.CGRect
+
 
 import enum CoreGraphics.CGLineCap
 public typealias CGLineCap = CoreGraphics.CGLineCap
 
 import enum CoreGraphics.CGLineJoin
 public typealias CGLineJoin = CoreGraphics.CGLineJoin
-
-import struct CoreGraphics.CGRect
-public typealias CGRect = CoreGraphics.CGRect
-
-import struct CoreGraphics.CGPoint
-public typealias CGPoint = CoreGraphics.CGPoint
 
 import struct CoreGraphics.CGAffineTransform
 public typealias CGAffineTransform = CoreGraphics.CGAffineTransform

@@ -190,7 +190,7 @@ extension View {
     ///     present the alert. When the user presses or taps one of the alert's
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
-    public func alert<A>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where A : View { return never() }
+    public func alert<A>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where A : View { return stubView() }
 
 
     /// Presents an alert when a given condition is true, using a string
@@ -238,7 +238,7 @@ extension View {
     ///     present the alert. When the user presses or taps one of the alert's
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
-    public func alert<S, A>(_ title: S, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where S : StringProtocol, A : View { return never() }
+    public func alert<S, A>(_ title: S, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where S : StringProtocol, A : View { return stubView() }
 
 
     /// Presents an alert when a given condition is true, using a text view for
@@ -286,7 +286,7 @@ extension View {
     ///     present the alert. When the user presses or taps one of the alert's
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
-    public func alert<A>(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where A : View { return never() }
+    public func alert<A>(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A) -> some View where A : View { return stubView() }
 
 }
 
@@ -348,7 +348,7 @@ extension View {
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
     ///   - message: A ``ViewBuilder`` returning the message for the alert.
-    public func alert<A, M>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return never() }
+    public func alert<A, M>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return stubView() }
 
 
     /// Presents an alert with a message when a given condition is true using
@@ -401,7 +401,7 @@ extension View {
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
     ///   - message: A ``ViewBuilder`` returning the message for the alert.
-    public func alert<S, A, M>(_ title: S, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where S : StringProtocol, A : View, M : View { return never() }
+    public func alert<S, A, M>(_ title: S, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where S : StringProtocol, A : View, M : View { return stubView() }
 
 
     /// Presents an alert with a message when a given condition is true using
@@ -454,7 +454,7 @@ extension View {
     ///     actions, the system sets this value to `false` and dismisses.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
     ///   - message: A ``ViewBuilder`` returning the message for the alert.
-    public func alert<A, M>(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return never() }
+    public func alert<A, M>(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return stubView() }
 
 }
 
@@ -536,7 +536,7 @@ extension View {
     ///     displays to the user.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions given the
     ///     currently available data.
-    public func alert<A, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return never() }
+    public func alert<A, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return stubView() }
 
 
     /// Presents an alert using the given data to produce the alert's content
@@ -609,7 +609,7 @@ extension View {
     ///     displays to the user.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions given the
     ///     currently available data.
-    public func alert<S, A, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where S : StringProtocol, A : View { return never() }
+    public func alert<S, A, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where S : StringProtocol, A : View { return stubView() }
 
 
     /// Presents an alert using the given data to produce the alert's content
@@ -770,7 +770,7 @@ extension View {
     ///     currently available data.
     ///   - message: A ``ViewBuilder`` returning the message for the alert given
     ///     the currently available data.
-    public func alert<A, M, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return never() }
+    public func alert<A, M, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return stubView() }
 
 
     /// Presents an alert with a message using the given data to produce the
@@ -849,7 +849,7 @@ extension View {
     ///     currently available data.
     ///   - message: A ``ViewBuilder`` returning the message for the alert given
     ///     the currently available data.
-    public func alert<S, A, M, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where S : StringProtocol, A : View, M : View { return never() }
+    public func alert<S, A, M, T>(_ title: S, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where S : StringProtocol, A : View, M : View { return stubView() }
 
 
     /// Presents an alert with a message using the given data to produce the
@@ -928,7 +928,7 @@ extension View {
     ///     currently available data.
     ///   - message: A ``ViewBuilder`` returning the message for the alert given
     ///     the currently available data.
-    public func alert<A, M, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return never() }
+    public func alert<A, M, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return stubView() }
 
 }
 
@@ -986,7 +986,7 @@ extension View {
     ///     closures. You use this data to populate the fields of an alert that
     ///     you create that the system displays to the user.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
-    public func alert<E, A>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: () -> A) -> some View where E : LocalizedError, A : View { return never() }
+    public func alert<E, A>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: () -> A) -> some View where E : LocalizedError, A : View { return stubView() }
 
 
     /// Presents an alert with a message when an error is present.
@@ -1044,7 +1044,7 @@ extension View {
     ///   - actions: A ``ViewBuilder`` returning the alert's actions.
     ///   - message: A view builder returning the message for the alert given
     ///     the current error.
-    public func alert<E, A, M>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: (E) -> A, @ViewBuilder message: (E) -> M) -> some View where E : LocalizedError, A : View, M : View { return never() }
+    public func alert<E, A, M>(isPresented: Binding<Bool>, error: E?, @ViewBuilder actions: (E) -> A, @ViewBuilder message: (E) -> M) -> some View where E : LocalizedError, A : View, M : View { return stubView() }
 
 }
 

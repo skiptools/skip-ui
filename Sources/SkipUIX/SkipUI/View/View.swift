@@ -62,21 +62,6 @@ public protocol View : PlatformView {
     /// implementation of the required ``View/body-swift.property`` property.
     associatedtype Body : View
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
     @ViewBuilder @MainActor var body: Body { get }
 }
 
@@ -89,7 +74,7 @@ extension Optional : PlatformView where Wrapped : PlatformView {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Optional : View where Wrapped : View {
 
-    public var body: some View { get { return never() } }
+    public var body: some View { get { return stubView() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

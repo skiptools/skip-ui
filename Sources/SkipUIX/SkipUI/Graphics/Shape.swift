@@ -4,6 +4,11 @@
 
 #if !SKIP
 
+/// No-op
+@usableFromInline func stubShape() -> some Shape {
+    return never()
+}
+
 /// A 2D shape that you can use when drawing a view.
 ///
 /// Shapes without an explicit fill or stroke get a default fill based on the
@@ -144,7 +149,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func intersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func intersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 
     /// Returns a new shape with filled regions in either this shape or
@@ -163,7 +168,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func union<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func union<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 
     /// Returns a new shape with filled regions from this shape that are
@@ -182,7 +187,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func subtracting<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func subtracting<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 
     /// Returns a new shape with filled regions either from this shape or
@@ -201,7 +206,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func symmetricDifference<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func symmetricDifference<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 
     /// Returns a new shape with a line from this shape that overlaps the
@@ -219,7 +224,7 @@ extension Shape {
     ///
     /// Intersected subpaths that are clipped create open subpaths.
     /// Closed subpaths that do not intersect `other` remain closed.
-    public func lineIntersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func lineIntersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 
     /// Returns a new shape with a line from this shape that does not
@@ -237,7 +242,7 @@ extension Shape {
     ///
     /// Intersected subpaths that are clipped create open subpaths.
     /// Closed subpaths that do not intersect `other` remain closed.
-    public func lineSubtraction<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return never() }
+    public func lineSubtraction<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
 
 }
 
@@ -285,7 +290,7 @@ extension Shape {
     ///   - endFraction: The fraction of the way through drawing this shape
     ///     where drawing ends.
     /// - Returns: A shape built by capturing a portion of this shape's path.
-    @inlinable public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { return never() }
+    @inlinable public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { return stubShape() }
 
 }
 
@@ -492,14 +497,14 @@ extension Shape {
     /// that will ask it to create its path from a rect of `size`. This
     /// does not affect the layout properties of any views created from
     /// the shape (e.g. by filling it).
-    @inlinable public func size(_ size: CGSize) -> some Shape { return never() }
+    @inlinable public func size(_ size: CGSize) -> some Shape { return stubShape() }
 
 
     /// Returns a new version of self representing the same shape, but
     /// that will ask it to create its path from a rect of size
     /// `(width, height)`. This does not affect the layout properties
     /// of any views created from the shape (e.g. by filling it).
-    @inlinable public func size(width: CGFloat, height: CGFloat) -> some Shape { return never() }
+    @inlinable public func size(width: CGFloat, height: CGFloat) -> some Shape { return stubShape() }
 
 }
 
@@ -601,7 +606,7 @@ extension Shape {
     ///   - content: The color or gradient to use when filling this shape.
     ///   - style: The style options that determine how the fill renders.
     /// - Returns: A shape filled with the color or gradient you supply.
-    @inlinable public func fill<S>(_ content: S, style: FillStyle = FillStyle()) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func fill<S>(_ content: S, style: FillStyle = FillStyle()) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Fills this shape with the foreground color.
@@ -609,7 +614,7 @@ extension Shape {
     /// - Parameter style: The style options that determine how the fill
     ///   renders.
     /// - Returns: A shape filled with the foreground color.
-    @inlinable public func fill(style: FillStyle = FillStyle()) -> some View { return never() }
+    @inlinable public func fill(style: FillStyle = FillStyle()) -> some View { return stubView() }
 
 
     /// Traces the outline of this shape with a color or gradient.
@@ -635,7 +640,7 @@ extension Shape {
     ///     whether the stroke is dashed --- that determine how to render this
     ///     shape.
     /// - Returns: A stroked shape.
-    @inlinable public func stroke<S>(_ content: S, style: StrokeStyle) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func stroke<S>(_ content: S, style: StrokeStyle) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Traces the outline of this shape with a color or gradient.
@@ -648,7 +653,7 @@ extension Shape {
     ///   - content: The color or gradient with which to stroke this shape.
     ///   - lineWidth: The width of the stroke that outlines this shape.
     /// - Returns: A stroked shape.
-    @inlinable public func stroke<S>(_ content: S, lineWidth: CGFloat = 1) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func stroke<S>(_ content: S, lineWidth: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -657,21 +662,6 @@ extension Shape {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Shape {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
     //public var body: _ShapeView<Self, ForegroundStyle> { get { fatalError() } }
 }
 
@@ -680,13 +670,13 @@ extension Shape {
 
     /// Returns a new shape that is a stroked copy of `self`, using the
     /// contents of `style` to define the stroke characteristics.
-    @inlinable public func stroke(style: StrokeStyle) -> some Shape { return never() }
+    @inlinable public func stroke(style: StrokeStyle) -> some Shape { return stubShape() }
 
 
     /// Returns a new shape that is a stroked copy of `self` with
     /// line-width defined by `lineWidth` and all other properties of
     /// `StrokeStyle` having their default values.
-    @inlinable public func stroke(lineWidth: CGFloat = 1) -> some Shape { return never() }
+    @inlinable public func stroke(lineWidth: CGFloat = 1) -> some Shape { return stubShape() }
 
 }
 
@@ -1073,7 +1063,7 @@ extension RoundedRectangle : InsettableShape {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Capsule : InsettableShape {
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { return never() }
+    @inlinable public func inset(by amount: CGFloat) -> InsetShape { stub() as Never }
 
 
     /// The type of the inset shape.
@@ -1377,27 +1367,27 @@ extension InsettableShape {
     /// Returns a view that is the result of insetting `self` by
     /// `style.lineWidth / 2`, stroking the resulting shape with
     /// `style`, and then filling with `content`.
-    @inlinable public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Returns a view that is the result of insetting `self` by
     /// `style.lineWidth / 2`, stroking the resulting shape with
     /// `style`, and then filling with the foreground color.
-    @inlinable public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return never() }
+    @inlinable public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return stubView() }
 
 
     /// Returns a view that is the result of filling the `lineWidth`-sized
     /// border (aka inner stroke) of `self` with `content`. This is
     /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
     /// resulting shape with `lineWidth` as the line-width.
-    @inlinable public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Returns a view that is the result of filling the `lineWidth`-sized
     /// border (aka inner stroke) of `self` with the foreground color.
     /// This is equivalent to insetting `self` by `lineWidth / 2` and
     /// stroking the resulting shape with `lineWidth` as the line-width.
-    @inlinable public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return never() }
+    @inlinable public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return stubView() }
 
 }
 

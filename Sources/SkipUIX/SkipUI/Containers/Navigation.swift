@@ -4,6 +4,8 @@
 
 #if !SKIP
 
+import struct Foundation.URL
+
 /// A view that controls a navigation presentation.
 ///
 /// People click or tap a navigation link to present a view inside a
@@ -167,22 +169,7 @@ public struct NavigationLink<Label, Destination> : View where Label : View, Dest
     @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
     public init<V>(tag: V, selection: Binding<V?>, @ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) where V : Hashable { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// Creates a navigation link that presents the destination view.
     /// - Parameters:
@@ -648,7 +635,7 @@ extension NavigationLink {
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func isDetailLink(_ isDetailLink: Bool) -> some View { return never() }
+    public func isDetailLink(_ isDetailLink: Bool) -> some View { return stubView() }
 
 }
 
@@ -1029,22 +1016,7 @@ public struct NavigationSplitView<Sidebar, Content, Detail> : View where Sidebar
     ///   - detail: The view to show in the detail area.
     public init(columnVisibility: Binding<NavigationSplitViewVisibility>, @ViewBuilder sidebar: () -> Sidebar, @ViewBuilder detail: () -> Detail) where Content == EmptyView { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1158,7 +1130,7 @@ public struct AutomaticNavigationSplitViewStyle : NavigationSplitViewStyle {
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: AutomaticNavigationSplitViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: AutomaticNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a navigation split view.
@@ -1184,7 +1156,7 @@ public struct BalancedNavigationSplitViewStyle : NavigationSplitViewStyle {
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: BalancedNavigationSplitViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: BalancedNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a navigation split view.
@@ -1425,22 +1397,7 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     ///   - root: The view to display when the stack is empty.
     @MainActor public init(path: Binding<Data>, @ViewBuilder root: () -> Root) where Data : MutableCollection, Data : RandomAccessCollection, Data : RangeReplaceableCollection, Data.Element : Hashable { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1667,7 +1624,7 @@ public struct NavigationControlGroupStyle : ControlGroupStyle {
     /// This method will be called for each instance of ``ControlGroup`` created
     /// within a view hierarchy where this style is the current
     /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: NavigationControlGroupStyle.Configuration) -> some View { return never() }
+    @MainActor public func makeBody(configuration: NavigationControlGroupStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a control group.
@@ -1706,7 +1663,7 @@ public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle
     /// where this style is the current ``NavigationSplitViewStyle``.
     ///
     /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: ProminentDetailNavigationSplitViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: ProminentDetailNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a navigation split view.
@@ -1738,6 +1695,655 @@ public struct StackNavigationViewStyle : NavigationViewStyle {
 public struct DoubleColumnNavigationViewStyle : NavigationViewStyle {
 
     public init() { fatalError() }
+}
+
+
+extension View {
+
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    public func navigationBarItems<L, T>(leading: L, trailing: T) -> some View where L : View, T : View { return stubView() }
+
+
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    public func navigationBarItems<L>(leading: L) -> some View where L : View { return stubView() }
+
+
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
+    public func navigationBarItems<T>(trailing: T) -> some View where T : View { return stubView() }
+
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Associates a destination view with a presented data type for use within
+    /// a navigation stack.
+    ///
+    /// Add this view modifer to a view inside a ``NavigationStack`` to
+    /// describe the view that the stack displays when presenting
+    /// a particular kind of data. Use a ``NavigationLink`` to present
+    /// the data. For example, you can present a `ColorDetail` view for
+    /// each presentation of a ``Color`` instance:
+    ///
+    ///     NavigationStack {
+    ///         List {
+    ///             NavigationLink("Mint", value: Color.mint)
+    ///             NavigationLink("Pink", value: Color.pink)
+    ///             NavigationLink("Teal", value: Color.teal)
+    ///         }
+    ///         .navigationDestination(for: Color.self) { color in
+    ///             ColorDetail(color: color)
+    ///         }
+    ///         .navigationTitle("Colors")
+    ///     }
+    ///
+    /// You can add more than one navigation destination modifier to the stack
+    /// if it needs to present more than one kind of data.
+    ///
+    /// Do not put a navigation destination modifier inside a "lazy" container,
+    /// like ``List`` or ``LazyVStack``. These containers create child views
+    /// only when needed to render on screen. Add the navigation destination
+    /// modifier outside these containers so that the navigation stack can
+    /// always see the destination.
+    ///
+    /// - Parameters:
+    ///   - data: The type of data that this destination matches.
+    ///   - destination: A view builder that defines a view to display
+    ///     when the stack's navigation state contains a value of
+    ///     type `data`. The closure takes one argument, which is the value
+    ///     of the data to present.
+    public func navigationDestination<D, C>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return stubView() }
+
+
+    /// Associates a destination view with a binding that can be used to push
+    /// the view onto a ``NavigationStack``.
+    ///
+    /// In general, favor binding a path to a navigation stack for programmatic
+    /// navigation. Add this view modifer to a view inside a ``NavigationStack``
+    /// to programmatically push a single view onto the stack. This is useful
+    /// for building components that can push an associated view. For example,
+    /// you can present a `ColorDetail` view for a particular color:
+    ///
+    ///     @State private var showDetails = false
+    ///     var favoriteColor: Color
+    ///
+    ///     NavigationStack {
+    ///         VStack {
+    ///             Circle()
+    ///                 .fill(favoriteColor)
+    ///             Button("Show details") {
+    ///                 showDetails = true
+    ///             }
+    ///         }
+    ///         .navigationDestination(isPresented: $showDetails) {
+    ///             ColorDetail(color: favoriteColor)
+    ///         }
+    ///         .navigationTitle("My Favorite Color")
+    ///     }
+    ///
+    /// Do not put a navigation destination modifier inside a "lazy" container,
+    /// like ``List`` or ``LazyVStack``. These containers create child views
+    /// only when needed to render on screen. Add the navigation destination
+    /// modifier outside these containers so that the navigation stack can
+    /// always see the destination.
+    ///
+    /// - Parameters:
+    ///   - isPresented: A binding to a Boolean value that indicates whether
+    ///     `destination` is currently presented.
+    ///   - destination: A view to present.
+    public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View { return stubView() }
+
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension View {
+
+    /// Associates a destination view with a bound value for use within a
+    /// navigation stack or navigation split view
+    ///
+    /// Add this view modifer to a view inside a ``NavigationStack`` or
+    /// ``NavigationSplitView`` to describe the view that the stack displays
+    /// when presenting a particular kind of data. Use a ``NavigationLink`` to
+    /// present the data, which updates the binding. Programmatically update
+    /// the binding to display or remove the view. For example, you can replace
+    /// the view showing in the detail column of a navigation split view:
+    ///
+    ///     @State private var colorShown: Color?
+    ///
+    ///     NavigationSplitView {
+    ///         List {
+    ///             NavigationLink("Mint", value: Color.mint)
+    ///             NavigationLink("Pink", value: Color.pink)
+    ///             NavigationLink("Teal", value: Color.teal)
+    ///         }
+    ///         .navigationDestination(item: $colorShown) { color in
+    ///             ColorDetail(color: color)
+    ///         }
+    ///     } detail: {
+    ///         Text("Select a color")
+    ///     }
+    ///
+    /// When the person using the app taps on the Mint link, the mint color
+    /// shows in the detail and `colorShown` gets the value `Color.mint`. You
+    /// can reset the navigation split view to show the message "Select a color"
+    /// by setting `colorShown` back to `nil`.
+    ///
+    /// You can add more than one navigation destination modifier to the stack
+    /// if it needs to present more than one kind of data.
+    ///
+    /// Do not put a navigation destination modifier inside a "lazy" container,
+    /// like ``List`` or ``LazyVStack``. These containers create child views
+    /// only when needed to render on screen. Add the navigation destination
+    /// modifier outside these containers so that the navigation split view can
+    /// always see the destination.
+    ///
+    /// - Parameters:
+    ///   - item: A binding to the data presented, or `nil` if nothing is
+    ///     currently presented.
+    ///   - destination: A view builder that defines a view to display
+    ///     when `item` is not `nil`.
+    public func navigationDestination<D, C>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return stubView() }
+
+}
+
+@available(iOS 13.0, macOS 13.0, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Hides the navigation bar for this view.
+    ///
+    /// Use `navigationBarHidden(_:)` to hide the navigation bar. This modifier
+    /// only takes effect when this view is inside of and visible within a
+    /// ``NavigationView``.
+    ///
+    /// - Parameter hidden: A Boolean value that indicates whether to hide the
+    ///   navigation bar.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
+    @available(macOS, unavailable)
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
+    public func navigationBarHidden(_ hidden: Bool) -> some View { return stubView() }
+
+
+    /// Sets the title in the navigation bar for this view.
+    ///
+    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar.
+    /// This modifier only takes effect when this view is inside of and visible
+    /// within a ``NavigationView``.
+    ///
+    /// The example below shows setting the title of the navigation bar using a
+    /// ``Text`` view:
+    ///
+    ///     struct FlavorView: View {
+    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                      "Pistachio"]
+    ///         var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle(Text("Today's Flavors"))
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// ![A screenshot showing the title of a navigation bar configured using a
+    /// text view.](SkipUI-navigationBarTitle-Text.png)
+    ///
+    /// - Parameter title: A description of this view to display in the
+    ///   navigation bar.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    public func navigationBarTitle(_ title: Text) -> some View { return stubView() }
+
+
+    /// Sets the title of this view's navigation bar with a localized string.
+    ///
+    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
+    /// using a ``LocalizedStringKey`` that will be used to search for a
+    /// matching localized string in the application's localizable strings
+    /// assets.
+    ///
+    /// This modifier only takes effect when this view is inside of and visible
+    /// within a ``NavigationView``.
+    ///
+    /// In the example below, a string constant is used to access a
+    /// ``LocalizedStringKey`` that will be resolved at run time to provide a
+    /// title for the navigation bar. If the localization key cannot be
+    /// resolved, the text of the key name will be used as the title text.
+    ///
+    ///     struct FlavorView: View {
+    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                      "Pistachio"]
+    ///         var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle("Today's Flavors")
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameter titleKey: A key to a localized description of this view to
+    ///   display in the navigation bar.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    public func navigationBarTitle(_ titleKey: LocalizedStringKey) -> some View { return stubView() }
+
+
+    /// Sets the title of this view's navigation bar with a string.
+    ///
+    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
+    /// using a `String`. This modifier only takes effect when this view is
+    /// inside of and visible within a ``NavigationView``.
+    ///
+    /// In the example below, text for the navigation bar title is provided
+    /// using a string:
+    ///
+    ///     struct FlavorView: View {
+    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                      "Pistachio"]
+    ///         let text = "Today's Flavors"
+    ///         var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle(text)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameter title: A title for this view to display in the navigation
+    ///   bar.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
+    public func navigationBarTitle<S>(_ title: S) -> some View where S : StringProtocol { return stubView() }
+
+
+    /// Sets the title and display mode in the navigation bar for this view.
+    ///
+    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
+    /// navigation bar for this view and specify a display mode for the title
+    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
+    /// modifier only takes effect when this view is inside of and visible
+    /// within a ``NavigationView``.
+    ///
+    /// In the example below, text for the navigation bar title is provided
+    /// using a ``Text`` view. The navigation bar title's
+    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
+    /// the navigation bar title in the bounds of the navigation bar.
+    ///
+    ///     struct FlavorView: View {
+    ///        let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                     "Pistachio"]
+    ///        var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle(Text("Today's Flavors", displayMode: .inline)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - title: A title for this view to display in the navigation bar.
+    ///   - displayMode: The style to use for displaying the navigation bar title.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    public func navigationBarTitle(_ title: Text, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
+
+
+    /// Sets the title and display mode in the navigation bar for this view.
+    ///
+    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
+    /// navigation bar for this view and specify a display mode for the title
+    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
+    /// modifier only takes effect when this view is inside of and visible
+    /// within a ``NavigationView``.
+    ///
+    /// In the example below, text for the navigation bar title is provided
+    /// using a string. The navigation bar title's
+    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
+    /// the navigation bar title in the bounds of the navigation bar.
+    ///
+    ///     struct FlavorView: View {
+    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                      "Pistachio"]
+    ///         var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle("Today's Flavors", displayMode: .inline)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// If the `titleKey` can't be found, the title uses the text of the key
+    /// name instead.
+    ///
+    /// - Parameters:
+    ///   - titleKey: A key to a localized description of this view to display
+    ///     in the navigation bar.
+    ///   - displayMode: The style to use for displaying the navigation bar
+    ///     title.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    public func navigationBarTitle(_ titleKey: LocalizedStringKey, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
+
+
+    /// Sets the title and display mode in the navigation bar for this view.
+    ///
+    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
+    /// navigation bar for this view and specify a display mode for the
+    /// title from one of the `NavigationBarItem.Title.DisplayMode`
+    /// styles. This modifier only takes effect when this view is inside of and
+    /// visible within a `NavigationView`.
+    ///
+    /// In the example below, `navigationBarTitle(_:displayMode:)` uses a
+    /// string to provide a title for the navigation bar. Setting the title's
+    /// `displayMode` to `.inline` places the navigation bar title within the
+    /// bounds of the navigation bar.
+    ///
+    /// In the example below, text for the navigation bar title is provided using
+    /// a string. The navigation bar title's `displayMode` is set to
+    /// `.inline` which places the navigation bar title in the bounds of the
+    /// navigation bar.
+    ///
+    ///     struct FlavorView: View {
+    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
+    ///                      "Pistachio"]
+    ///         let title = "Today's Flavors"
+    ///         var body: some View {
+    ///             NavigationView {
+    ///                 List(items, id: \.self) {
+    ///                     Text($0)
+    ///                 }
+    ///                 .navigationBarTitle(title, displayMode: .inline)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// ![A screenshot of a navigation bar, showing the title within the bounds
+    ///  of the navigation bar]
+    /// (SkipUI-navigationBarTitle-stringProtocol.png)
+    ///
+    /// - Parameters:
+    ///   - title: A title for this view to display in the navigation bar.
+    ///   - displayMode: The way to display the title.
+    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    @available(macOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
+    public func navigationBarTitle<S>(_ title: S, displayMode: NavigationBarItem.TitleDisplayMode) -> some View where S : StringProtocol { return stubView() }
+
+
+    /// Hides the navigation bar back button for the view.
+    ///
+    /// Use `navigationBarBackButtonHidden(_:)` to hide the back button for this
+    /// view.
+    ///
+    /// This modifier only takes effect when this view is inside of and visible
+    /// within a ``NavigationView``.
+    ///
+    /// - Parameter hidesBackButton: A Boolean value that indicates whether to
+    ///   hide the back button. The default value is `true`.
+    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View { return stubView() }
+
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Sets a fixed, preferred width for the column containing this view.
+    ///
+    /// Apply this modifier to the content of a column in a
+    /// ``NavigationSplitView`` to specify a fixed preferred width for the
+    /// column. Use ``View/navigationSplitViewColumnWidth(min:ideal:max:)`` if
+    /// you need to specify a flexible width.
+    ///
+    /// The following example shows a three-column navigation split view where
+    /// the first column has a preferred width of 150 points, and the second
+    /// column has a flexible, preferred width between 150 and 400 points:
+    ///
+    ///     NavigationSplitView {
+    ///         MySidebar()
+    ///             .navigationSplitViewColumnWidth(150)
+    ///     } contents: {
+    ///         MyContents()
+    ///             .navigationSplitViewColumnWidth(
+    ///                 min: 150, ideal: 200, max: 400)
+    ///     } detail: {
+    ///         MyDetail()
+    ///     }
+    ///
+    /// Only some platforms enable resizing columns. If
+    /// you specify a width that the current presentation environment doesn't
+    /// support, SkipUI may use a different width for your column.
+    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View { return stubView() }
+
+
+    /// Sets a flexible, preferred width for the column containing this view.
+    ///
+    /// Apply this modifier to the content of a column in a
+    /// ``NavigationSplitView`` to specify a preferred flexible width for the
+    /// column. Use ``View/navigationSplitViewColumnWidth(_:)`` if you need to
+    /// specify a fixed width.
+    ///
+    /// The following example shows a three-column navigation split view where
+    /// the first column has a preferred width of 150 points, and the second
+    /// column has a flexible, preferred width between 150 and 400 points:
+    ///
+    ///     NavigationSplitView {
+    ///         MySidebar()
+    ///             .navigationSplitViewColumnWidth(150)
+    ///     } contents: {
+    ///         MyContents()
+    ///             .navigationSplitViewColumnWidth(
+    ///                 min: 150, ideal: 200, max: 400)
+    ///     } detail: {
+    ///         MyDetail()
+    ///     }
+    ///
+    /// Only some platforms enable resizing columns. If
+    /// you specify a width that the current presentation environment doesn't
+    /// support, SkipUI may use a different width for your column.
+    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return stubView() }
+
+}
+
+extension View {
+
+    /// Sets the style for navigation split views within this view.
+    ///
+    /// - Parameter style: The style to set.
+    ///
+    /// - Returns: A view that uses the specified navigation split view style.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func navigationSplitViewStyle<S>(_ style: S) -> some View where S : NavigationSplitViewStyle { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the view's document for purposes of navigation.
+    ///
+    /// In iOS, iPadOS, this populates the title menu with a header
+    /// previewing the document. In macOS, this populates a proxy icon.
+    ///
+    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
+    /// for more information on navigation document modifiers.
+    ///
+    /// - Parameters:
+    ///   - document: The URL content associated to the
+    ///     navigation title.
+    ///   - preview: The preview of the document to use when sharing.
+    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+    public func navigationDocument(_ url: URL) -> some View { return stubView() }
+
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
+extension View {
+
+    /// Sets the style for navigation views within this view.
+    ///
+    /// Use this modifier to change the appearance and behavior of navigation
+    /// views. For example, by default, navigation views appear with multiple
+    /// columns in wider environments, like iPad in landscape orientation:
+    ///
+    /// ![A screenshot of an iPad in landscape orientation mode showing a
+    /// multicolumn navigation view. The left column lists the colors Purple,
+    /// Pink, and Orange, with Purple selected. The right column presents a
+    /// detail view that shows a purple square.](View-navigationViewStyle-1)
+    ///
+    /// You can apply the ``NavigationViewStyle/stack`` style to force
+    /// single-column stack navigation in these environments:
+    ///
+    ///     NavigationView {
+    ///         List {
+    ///             NavigationLink("Purple", destination: ColorDetail(color: .purple))
+    ///             NavigationLink("Pink", destination: ColorDetail(color: .pink))
+    ///             NavigationLink("Orange", destination: ColorDetail(color: .orange))
+    ///         }
+    ///         .navigationTitle("Colors")
+    ///
+    ///         Text("Select a Color") // A placeholder to show before selection.
+    ///     }
+    ///     .navigationViewStyle(.stack)
+    ///
+    /// ![A screenshot of an iPad in landscape orientation mode showing a
+    /// single column containing the list Purple, Pink, and
+    /// Orange.](View-navigationViewStyle-2)
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+    @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
+    public func navigationViewStyle<S>(_ style: S) -> some View where S : NavigationViewStyle { return stubView() }
+
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension View {
+
+    /// Configures the view's title for purposes of navigation.
+    ///
+    /// A view's navigation title is used to visually display
+    /// the current navigation state of an interface.
+    /// On iOS and watchOS, when a view is navigated to inside
+    /// of a navigation view, that view's title is displayed
+    /// in the navigation bar. On iPadOS, the primary destination's
+    /// navigation title is reflected as the window's title in the
+    /// App Switcher. Similarly on macOS, the primary destination's title
+    /// is used as the window title in the titlebar, Windows menu
+    /// and Mission Control.
+    ///
+    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
+    /// for more information on navigation title modifiers.
+    ///
+    /// - Parameter title: The title to display.
+    public func navigationTitle(_ title: Text) -> some View { return stubView() }
+
+
+    /// Configures the view's title for purposes of navigation,
+    /// using a localized string.
+    ///
+    /// A view's navigation title is used to visually display
+    /// the current navigation state of an interface.
+    /// On iOS and watchOS, when a view is navigated to inside
+    /// of a navigation view, that view's title is displayed
+    /// in the navigation bar. On iPadOS, the primary destination's
+    /// navigation title is reflected as the window's title in the
+    /// App Switcher. Similarly on macOS, the primary destination's title
+    /// is used as the window title in the titlebar, Windows menu
+    /// and Mission Control.
+    ///
+    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
+    /// for more information on navigation title modifiers.
+    ///
+    /// - Parameter titleKey: The key to a localized string to display.
+    public func navigationTitle(_ titleKey: LocalizedStringKey) -> some View { return stubView() }
+
+
+    /// Configures the view's title for purposes of navigation, using a string.
+    ///
+    /// A view's navigation title is used to visually display
+    /// the current navigation state of an interface.
+    /// On iOS and watchOS, when a view is navigated to inside
+    /// of a navigation view, that view's title is displayed
+    /// in the navigation bar. On iPadOS, the primary destination's
+    /// navigation title is reflected as the window's title in the
+    /// App Switcher. Similarly on macOS, the primary destination's title
+    /// is used as the window title in the titlebar, Windows menu
+    /// and Mission Control.
+    ///
+    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
+    /// for more information on navigation title modifiers.
+    ///
+    /// - Parameter title: The string to display.
+    public func navigationTitle<S>(_ title: S) -> some View where S : StringProtocol { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the view's title for purposes of navigation, using a string
+    /// binding.
+    ///
+    /// In iOS, iPadOS, and macOS, this allows editing the navigation title
+    /// when the title is displayed in the toolbar.
+    ///
+    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
+    /// for more information on navigation title modifiers.
+    ///
+    /// - Parameter title: The text of the title.
+    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
+    public func navigationTitle(_ title: Binding<String>) -> some View { return stubView() }
+
+}
+
+@available(iOS 14.0, watchOS 8.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+extension View {
+
+    /// Configures the title display mode for this view.
+    ///
+    /// - Parameter displayMode: The style to use for displaying the title.
+    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
+
 }
 
 #endif

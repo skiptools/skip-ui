@@ -1147,7 +1147,7 @@ extension Layout {
     ///   lay out.
     ///
     /// - Returns: A composite view that combines all the input views.
-    public func callAsFunction<V>(@ViewBuilder _ content: () -> V) -> some View where V : View { return never() }
+    public func callAsFunction<V>(@ViewBuilder _ content: () -> V) -> some View where V : View { return stubView() }
 
 }
 

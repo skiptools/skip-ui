@@ -1367,7 +1367,7 @@ extension View {
     @available(iOS 13.0, tvOS 13.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
-    public func keyboardType(_ type: UIKeyboardType) -> some View { return never() }
+    public func keyboardType(_ type: UIKeyboardType) -> some View { return stubView() }
 
 }
 
@@ -1395,7 +1395,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
     @available(watchOS, unavailable)
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
-    public func autocapitalization(_ style: UITextAutocapitalizationType) -> some View { return never() }
+    public func autocapitalization(_ style: UITextAutocapitalizationType) -> some View { return stubView() }
 
 }
 
@@ -1419,7 +1419,7 @@ extension View {
     @available(iOS 13.0, tvOS 13.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
-    @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return never() }
+    @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return stubView() }
 
 }
 

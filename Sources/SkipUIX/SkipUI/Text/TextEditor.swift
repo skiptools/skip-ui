@@ -93,22 +93,7 @@ public struct TextEditor : View {
     ///    text to edit.
     public init(text: Binding<String>) { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -180,7 +165,7 @@ public struct PlainTextEditorStyle : TextEditorStyle {
     /// hierarchy where this style is the current text editor style.
     ///
     /// - Parameter configuration: The properties of the text editor.
-    public func makeBody(configuration: PlainTextEditorStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: PlainTextEditorStyle.Configuration) -> some View { return stubView() }
 
 
     public init() { fatalError() }
@@ -210,22 +195,7 @@ public struct AutomaticTextEditorStyle : TextEditorStyle {
     /// A view that represents the body of a text editor.
     public struct Body : View {
 
-        /// The content and behavior of the view.
-        ///
-        /// When you implement a custom view, you must implement a computed
-        /// `body` property to provide the content for your view. Return a view
-        /// that's composed of built-in views that SkipUI provides, plus other
-        /// composite views that you've already defined:
-        ///
-        ///     struct MyView: View {
-        ///         var body: some View {
-        ///             Text("Hello, World!")
-        ///         }
-        ///     }
-        ///
-        /// For more information about composing views and a view hierarchy,
-        /// see <doc:Declaring-a-Custom-View>.
-        @MainActor public var body: Body { get { return never() } }
+        @MainActor public var body: NeverView { get { return NeverView() } }
 
         /// The type of view representing the body of this view.
         ///

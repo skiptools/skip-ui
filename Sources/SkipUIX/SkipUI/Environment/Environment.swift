@@ -13,7 +13,7 @@ import Observation
 extension View {
 
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func environment<T>(_ object: T?) -> some View where T : AnyObject, T : Observable { return never() }
+    public func environment<T>(_ object: T?) -> some View where T : AnyObject, T : Observable { return stubView() }
 
 }
 

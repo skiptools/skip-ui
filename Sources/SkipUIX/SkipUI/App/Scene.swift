@@ -7,6 +7,12 @@
 import struct CoreGraphics.CGSize
 import class Foundation.UserDefaults
 
+
+/// No-op
+@usableFromInline func stubScene() -> some Scene {
+    return never()
+}
+
 /// A part of an app's user interface with a life cycle managed by the
 /// system.
 ///
@@ -123,7 +129,7 @@ extension Scene {
     ///   - task: The type of task with which to associate the provided action.
     ///   - action: An async closure that the system runs for the specified task
     ///     type.
-    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some Scene where D : Sendable, R : Sendable { return never() }
+    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some Scene where D : Sendable, R : Sendable { return stubScene() }
 
 }
 
@@ -176,7 +182,7 @@ extension Scene {
     /// - Parameter size: The default size for new windows created from a scene.
     ///
     /// - Returns: A scene that uses a default size for new windows.
-    public func defaultSize(_ size: CGSize) -> some Scene { return never() }
+    public func defaultSize(_ size: CGSize) -> some Scene { return stubScene() }
 
 
     /// Sets a default width and height for a window.
@@ -224,7 +230,7 @@ extension Scene {
     /// - Parameter height: The default height for windows created from a scene.
     ///
     /// - Returns: A scene that uses a default size for new windows.
-    public func defaultSize(width: CGFloat, height: CGFloat) -> some Scene { return never() }
+    public func defaultSize(width: CGFloat, height: CGFloat) -> some Scene { return stubScene() }
 
 }
 
@@ -257,7 +263,7 @@ extension Scene {
     ///     }
     ///
     /// - Returns: A scene that excludes any commands defined by its children.
-    public func commandsRemoved() -> some Scene { return never() }
+    public func commandsRemoved() -> some Scene { return stubScene() }
 
 
     /// Replaces all commands defined by the modified scene with the commands
@@ -300,7 +306,7 @@ extension Scene {
     ///
     /// - Returns: A scene that replaces any commands defined by its children
     ///   with alternative content.
-    public func commandsReplaced<Content>(@CommandsBuilder content: () -> Content) -> some Scene where Content : Commands { return never() }
+    public func commandsReplaced<Content>(@CommandsBuilder content: () -> Content) -> some Scene where Content : Commands { return stubScene() }
 
 }
 
@@ -344,7 +350,7 @@ extension Scene {
     ///   this scene.
     ///
     /// - Returns: A scene that uses the specified resizability strategy.
-    public func windowResizability(_ resizability: WindowResizability) -> some Scene { return never() }
+    public func windowResizability(_ resizability: WindowResizability) -> some Scene { return stubScene() }
 
 }
 
@@ -428,7 +434,7 @@ extension Scene {
     @available(tvOS, deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(watchOS, deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(xrOS, deprecated: 1.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @inlinable public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some Scene where V : Equatable { return never() }
+    @inlinable public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some Scene where V : Equatable { return stubScene() }
 
 }
 
@@ -488,7 +494,7 @@ extension Scene {
     ///   - newValue: The new value that failed the comparison check.
     ///
     /// - Returns: A scene that triggers an action in response to a change.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some Scene where V : Equatable { return never() }
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some Scene where V : Equatable { return stubScene() }
 
 
     /// Adds an action to perform when the given value changes.
@@ -536,7 +542,7 @@ extension Scene {
     ///   - action: A closure to run when the value changes.
     ///
     /// - Returns: A scene that triggers an action in response to a change.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene where V : Equatable { return never() }
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene where V : Equatable { return stubScene() }
 
 }
 
@@ -556,7 +562,7 @@ extension Scene {
     /// On iPadOS, commands with keyboard shortcuts are exposed in the shortcut
     /// discoverability HUD that users see when they hold down the Command (⌘)
     /// key.
-    public func commands<Content>(@CommandsBuilder content: () -> Content) -> some Scene where Content : Commands { return never() }
+    public func commands<Content>(@CommandsBuilder content: () -> Content) -> some Scene where Content : Commands { return stubScene() }
 
 }
 
@@ -573,7 +579,7 @@ extension Scene {
     ///
     /// - Parameter store: The user defaults to use as the default
     ///   store for `AppStorage`.
-    public func defaultAppStorage(_ store: UserDefaults) -> some Scene { return never() }
+    public func defaultAppStorage(_ store: UserDefaults) -> some Scene { return stubScene() }
 
 }
 
@@ -609,7 +615,7 @@ extension Scene {
     /// - Parameter matching: A Set of Strings that are checked to see
     /// if they are contained in the targetContentIdenfifier. The empty Set
     /// and empty Strings never match. The String value "*" always matches.
-    public func handlesExternalEvents(matching conditions: Set<String>) -> some Scene { return never() }
+    public func handlesExternalEvents(matching conditions: Set<String>) -> some Scene { return stubScene() }
 
 }
 
@@ -634,75 +640,75 @@ extension Scene {
 //    ///
 //    /// "if" statements in a ``SceneBuilder`` are limited to only
 //    /// `#available()` clauses.
-//    public static func buildOptional(_ scene: (Scene & _LimitedAvailabilitySceneMarker)?) -> some Scene { return never() }
+//    public static func buildOptional(_ scene: (Scene & _LimitedAvailabilitySceneMarker)?) -> some Scene { return stubScene() }
 //
 //
 //    /// Provides support for "if" statements with `#available()` clauses in
 //    /// multi-statement closures, producing conditional content for the "then"
 //    /// branch, i.e. the conditionally-available branch.
-//    public static func buildLimitedAvailability(_ scene: some Scene) -> Scene & _LimitedAvailabilitySceneMarker { return never() }
+//    public static func buildLimitedAvailability(_ scene: some Scene) -> Scene & _LimitedAvailabilitySceneMarker { return stubScene() }
 //}
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Scene where C0 : Scene, C1 : Scene { return never() }
+    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Scene where C0 : Scene, C1 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene, C8 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene, C8 : Scene { return stubScene() }
 
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension SceneBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene, C8 : Scene, C9 : Scene { return never() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Scene where C0 : Scene, C1 : Scene, C2 : Scene, C3 : Scene, C4 : Scene, C5 : Scene, C6 : Scene, C7 : Scene, C8 : Scene, C9 : Scene { return stubScene() }
 
 }
 

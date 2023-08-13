@@ -91,22 +91,7 @@ public struct Label<Title, Icon> : View where Title : View, Icon : View {
     /// Creates a label with a custom title and icon.
     public init(@ViewBuilder title: () -> Title, @ViewBuilder icon: () -> Icon) { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -435,22 +420,7 @@ extension LabeledContent : View where Label : View, Content : View {
     ///   - label: The label that describes the purpose of the result.
     public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -661,7 +631,7 @@ public struct AutomaticLabeledContentStyle : LabeledContentStyle {
     public init() { fatalError() }
 
     /// Creates a view that represents the body of labeled content.
-    public func makeBody(configuration: AutomaticLabeledContentStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: AutomaticLabeledContentStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the appearance and behavior of labeled content.
@@ -677,22 +647,7 @@ public struct AutomaticLabeledContentStyle : LabeledContentStyle {
 @available(watchOS, unavailable)
 public struct LabeledControlGroupContent<Content, Label> : View where Content : View, Label : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -709,22 +664,7 @@ public struct LabeledControlGroupContent<Content, Label> : View where Content : 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct LabeledToolbarItemGroupContent<Content, Label> : View where Content : View, Label : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -748,7 +688,7 @@ public struct DefaultLabelStyle : LabelStyle {
     /// hierarchy where this style is the current label style.
     ///
     /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: DefaultLabelStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultLabelStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a label.
@@ -770,7 +710,7 @@ public struct TitleOnlyLabelStyle : LabelStyle {
     /// hierarchy where this style is the current label style.
     ///
     /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: TitleOnlyLabelStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: TitleOnlyLabelStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a label.
@@ -792,7 +732,7 @@ public struct IconOnlyLabelStyle : LabelStyle {
     /// hierarchy where this style is the current label style.
     ///
     /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: IconOnlyLabelStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: IconOnlyLabelStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a label.

@@ -71,22 +71,7 @@
 @available(watchOS, unavailable)
 public struct Menu<Label, Content> : View where Label : View, Content : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -231,7 +216,7 @@ public struct MenuControlGroupStyle : ControlGroupStyle {
     /// This method will be called for each instance of ``ControlGroup`` created
     /// within a view hierarchy where this style is the current
     /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: MenuControlGroupStyle.Configuration) -> some View { return never() }
+    @MainActor public func makeBody(configuration: MenuControlGroupStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a control group.
@@ -425,7 +410,7 @@ public struct DefaultMenuStyle : MenuStyle {
     ///
     /// The system calls this method for each ``Menu`` instance in a view
     /// hierarchy where this style is the current menu style.
-    public func makeBody(configuration: DefaultMenuStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultMenuStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a menu.
@@ -449,7 +434,7 @@ public struct ButtonMenuStyle : MenuStyle {
     ///
     /// The system calls this method for each ``Menu`` instance in a view
     /// hierarchy where this style is the current menu style.
-    public func makeBody(configuration: ButtonMenuStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: ButtonMenuStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a menu.
@@ -476,7 +461,7 @@ public struct BorderlessButtonMenuStyle : MenuStyle {
     ///
     /// The system calls this method for each ``Menu`` instance in a view
     /// hierarchy where this style is the current menu style.
-    public func makeBody(configuration: BorderlessButtonMenuStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: BorderlessButtonMenuStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a menu.
@@ -546,6 +531,190 @@ public struct ButtonRole : Equatable, Sendable {
     /// Use this role for a button that cancels the current operation.
     public static let cancel: ButtonRole = { fatalError() }()
 
+
+}
+
+
+
+@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Sets the style for menus within this view.
+    ///
+    /// To set a specific style for all menu instances within a view, use the
+    /// `menuStyle(_:)` modifier:
+    ///
+    ///     Menu("PDF") {
+    ///         Button("Open in Preview", action: openInPreview)
+    ///         Button("Save as PDF", action: saveAsPDF)
+    ///     }
+    ///     .menuStyle(ButtonMenuStyle())
+    ///
+    public func menuStyle<S>(_ style: S) -> some View where S : MenuStyle { return stubView() }
+
+}
+
+extension View {
+
+    /// Tells a menu whether to dismiss after performing an action.
+    ///
+    /// Use this modifier to control the dismissal behavior of a menu.
+    /// In the example below, the menu doesn't dismiss after someone
+    /// chooses either the increase or decrease action:
+    ///
+    ///     Menu("Font size") {
+    ///         Button(action: increase) {
+    ///             Label("Increase", systemImage: "plus.magnifyingglass")
+    ///         }
+    ///         .menuActionDismissBehavior(.disabled)
+    ///
+    ///         Button("Reset", action: reset)
+    ///
+    ///         Button(action: decrease) {
+    ///             Label("Decrease", systemImage: "minus.magnifyingglass")
+    ///         }
+    ///         .menuActionDismissBehavior(.disabled)
+    ///     }
+    ///
+    /// You can use this modifier on any controls that present a menu, like a
+    /// ``Picker`` that uses the ``PickerStyle/menu`` style or a
+    /// ``ControlGroup``. For example, the code below creates a picker that
+    /// disables dismissal when someone selects one of the options:
+    ///
+    ///     Picker("Flavor", selection: $selectedFlavor) {
+    ///         ForEach(Flavor.allCases) { flavor in
+    ///             Text(flavor.rawValue.capitalized)
+    ///                 .tag(flavor)
+    ///         }
+    ///     }
+    ///     .pickerStyle(.menu)
+    ///     .menuActionDismissBehavior(.disabled)
+    ///
+    /// You can also use this modifier on context menus. The example below
+    /// creates a context menu that stays presented after someone selects an
+    /// action to run:
+    ///
+    ///     Text("Favorite Card Suit")
+    ///         .padding()
+    ///         .contextMenu {
+    ///             Button("♥️ - Hearts", action: increaseHeartsCount)
+    ///             Button("♣️ - Clubs", action: increaseClubsCount)
+    ///             Button("♠️ - Spades", action: increaseSpadesCount)
+    ///             Button("♦️ - Diamonds", action: increaseDiamondsCount)
+    ///         }
+    ///         .menuActionDismissBehavior(.disabled)
+    ///
+    /// - Parameter dismissal: The menu action dismissal behavior to apply.
+    ///
+    /// - Returns: A view that has the specified menu dismissal behavior.
+    @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
+    public func menuActionDismissBehavior(_ behavior: MenuActionDismissBehavior) -> some View { return stubView() }
+
+}
+
+@available(iOS 15.0, macOS 12.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Sets the menu indicator visibility for controls within this view.
+    ///
+    /// Use this modifier to override the default menu indicator
+    /// visibility for controls in this view. For example, the code below
+    /// creates a menu without an indicator:
+    ///
+    ///     Menu {
+    ///         ForEach(history , id: \.self) { historyItem in
+    ///             Button(historyItem.title) {
+    ///                 self.openURL(historyItem.url)
+    ///             }
+    ///         }
+    ///     } label: {
+    ///         Label("Back", systemImage: "chevron.backward")
+    ///             .labelStyle(.iconOnly)
+    ///     } primaryAction: {
+    ///         if let last = history.last {
+    ///             self.openURL(last.url)
+    ///         }
+    ///     }
+    ///     .menuIndicator(.hidden)
+    ///
+    /// - Note: On tvOS, the standard button styles do not include a menu
+    ///         indicator, so this modifier will have no effect when using a
+    ///         built-in button style. You can implement an indicator in your
+    ///         own ``ButtonStyle`` implementation by checking the value of the
+    ///         `menuIndicatorVisibility` environment value.
+    ///
+    /// - Parameter visibility: The menu indicator visibility to apply.
+    @inlinable public func menuIndicator(_ visibility: Visibility) -> some View { return stubView() }
+}
+
+extension View {
+
+    /// Sets the preferred order of items for menus presented from this view.
+    ///
+    /// Use this modifier to override the default menu order. On supported
+    /// platforms, ``MenuOrder/priority`` order keeps the first items closer
+    /// to the user’s point of interaction, whereas ``MenuOrder/fixed`` order
+    /// always orders items from top to bottom.
+    ///
+    /// On iOS, the ``MenuOrder/automatic`` order resolves to
+    /// ``MenuOrder/fixed`` for menus presented within scrollable content.
+    /// Pickers that use the ``PickerStyle/menu`` style also default to
+    /// ``MenuOrder/fixed`` order. In all other cases, menus default to
+    /// ``MenuOrder/priority`` order.
+    ///
+    /// On macOS, tvOS and watchOS, the ``MenuOrder/automatic`` order always
+    /// resolves to ``MenuOrder/fixed`` order.
+    ///
+    /// The following example creates a menu that presents its content in a
+    /// fixed order from top to bottom:
+    ///
+    ///     Menu {
+    ///         Button("Select", action: selectFolders)
+    ///         Button("New Folder", action: createFolder)
+    ///         Picker("Appearance", selection: $appearance) {
+    ///             Label("Icons", systemImage: "square.grid.2x2").tag(Appearance.icons)
+    ///             Label("List", systemImage: "list.bullet").tag(Appearance.list)
+    ///         }
+    ///     } label: {
+    ///         Label("Settings", systemImage: "ellipsis.circle")
+    ///     }
+    ///     .menuOrder(.fixed)
+    ///
+    /// You can use this modifier on controls that present a menu.
+    /// For example, the code below creates a ``Picker`` using the
+    /// ``PickerStyle/menu`` style with a priority-based order:
+    ///
+    ///     Picker("Flavor", selection: $selectedFlavor) {
+    ///         Text("Chocolate").tag(Flavor.chocolate)
+    ///         Text("Vanilla").tag(Flavor.vanilla)
+    ///         Text("Strawberry").tag(Flavor.strawberry)
+    ///     }
+    ///     .pickerStyle(.menu)
+    ///     .menuOrder(.priority)
+    ///
+    /// You can also use this modifier on context menus. The example below
+    /// creates a context menu that presents its content in a fixed order:
+    ///
+    ///     Text("Favorite Card Suit")
+    ///         .padding()
+    ///         .contextMenu {
+    ///             Button("♥️ - Hearts", action: selectHearts)
+    ///             Button("♣️ - Clubs", action: selectClubs)
+    ///             Button("♠️ - Spades", action: selectSpades)
+    ///             Button("♦️ - Diamonds", action: selectDiamonds)
+    ///         }
+    ///         .menuOrder(.fixed)
+    ///
+    /// The modifier has no effect when applied to a subsection or
+    /// submenu of a menu.
+    ///
+    /// - Parameter order: The menu item ordering strategy to apply.
+    ///
+    /// - Returns: A view that uses the specified menu ordering strategy.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func menuOrder(_ order: MenuOrder) -> some View { return stubView() }
 
 }
 

@@ -552,6 +552,7 @@ extension Color {
 
 #if canImport(CoreTransferable)
 import protocol CoreTransferable.Transferable
+import protocol CoreTransferable.TransferRepresentation
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Color : Transferable {
@@ -566,13 +567,13 @@ extension Color : Transferable {
     /// a slightly different result at the destination if the source of drag
     /// or copy uses a non-default environment.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public static var transferRepresentation: Representation { get { return never() } }
+    public static var transferRepresentation: some TransferRepresentation { get { return stubTransferRepresentation() } }
 
     /// The type of the representation used to import and export the item.
     ///
     /// Swift infers this type from the return value of the
     /// ``transferRepresentation`` property.
-    public typealias Representation = Never // some TransferRepresentation
+    //public typealias Representation = Never // some TransferRepresentation
 }
 #endif
 

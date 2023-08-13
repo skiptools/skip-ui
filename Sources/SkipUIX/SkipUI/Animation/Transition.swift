@@ -187,7 +187,7 @@ public struct AsymmetricTransition<Insertion, Removal> : Transition where Insert
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: AsymmetricTransition<Insertion, Removal>.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: AsymmetricTransition<Insertion, Removal>.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// Returns the properties this transition type has.
@@ -215,7 +215,7 @@ public struct PushTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: PushTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: PushTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// The type of view representing the body.
@@ -239,7 +239,7 @@ public struct ScaleTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: ScaleTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: ScaleTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// The type of view representing the body.
@@ -259,7 +259,7 @@ public struct SlideTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: SlideTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: SlideTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// The type of view representing the body.
@@ -372,7 +372,7 @@ extension View {
     ///             isActive.toggle()
     ///         }
     ///     }
-    @inlinable public func transition(_ t: AnyTransition) -> some View { return never() }
+    @inlinable public func transition(_ t: AnyTransition) -> some View { return stubView() }
 
 
     /// Associates a transition with the view.
@@ -394,7 +394,7 @@ extension View {
     ///         }
     ///     }
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func transition<T>(_ transition: T) -> some View where T : Transition { return never() }
+    public func transition<T>(_ transition: T) -> some View where T : Transition { return stubView() }
 
 }
 
@@ -414,7 +414,7 @@ public struct MoveTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: MoveTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: MoveTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// The type of view representing the body.
@@ -435,7 +435,7 @@ public struct OffsetTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: OffsetTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: OffsetTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// The type of view representing the body.
@@ -453,7 +453,7 @@ public struct OpacityTransition : Transition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// Returns the properties this transition type has.
@@ -607,7 +607,7 @@ extension Transition where Self == SlideTransition {
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Transition {
 
-//    public func combined<T>(with other: T) -> some Transition where T : Transition { return never() }
+//    public func combined<T>(with other: T) -> some Transition where T : Transition { return stubView() }
 
 }
 
@@ -615,7 +615,7 @@ extension Transition {
 extension Transition {
 
     /// Attaches an animation to this transition.
-//    public func animation(_ animation: Animation?) -> some Transition { return never() }
+//    public func animation(_ animation: Animation?) -> some Transition { return stubView() }
 
 }
 
@@ -627,7 +627,7 @@ extension Transition {
     /// Defaults to `TransitionProperties()`.
     public static var properties: TransitionProperties { get { fatalError() } }
 
-    public func apply<V>(content: V, phase: TransitionPhase) -> some View where V : View { return never() }
+    public func apply<V>(content: V, phase: TransitionPhase) -> some View where V : View { return stubView() }
 
 }
 

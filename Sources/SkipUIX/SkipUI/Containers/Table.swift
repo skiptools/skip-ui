@@ -14,6 +14,12 @@ import struct Foundation.SortDescriptor
 import class UIKit.NSItemProvider
 #endif
 
+
+/// No-op
+@usableFromInline func stubTableRowContent() -> some TableRowContent {
+    return never()
+}
+
 /// A container that presents rows of data arranged in one or more columns,
 /// optionally providing the ability to select one or more members.
 ///
@@ -3124,10 +3130,10 @@ public struct TableForEachContent<Data> : TableRowContent where Data : RandomAcc
     public typealias TableRowValue = Data.Element
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
+    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
+    //public typealias TableRowBody = NeverView
 }
 
 /// A table row that displays a single view instead of columned content.
@@ -3143,10 +3149,10 @@ public struct TableHeaderRowContent<Value, Content> : TableRowContent where Valu
     public typealias TableRowValue = Value
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
+    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
+    //public typealias TableRowBody = NeverView
 }
 
 /// An opaque table row type created by a table's hierarchical initializers.
@@ -3164,10 +3170,10 @@ public struct TableOutlineGroupContent<Data> : TableRowContent where Data : Rand
     public typealias TableRowValue = Data.Element
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
+    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
+    //public typealias TableRowBody = NeverView
 }
 
 /// A row that represents a data value in a table.
@@ -3852,10 +3858,10 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
     public init<Value>(_ value: Value, isExpanded: Binding<Bool>? = nil, @TableRowBuilder<Value> content: @escaping () -> Content) where Label == TableRow<Value>, Value == Content.TableRowValue { fatalError() }
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
+    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
+    //public typealias TableRowBody = NeverView
 }
 
 //@available(iOS 16.0, macOS 13.0, *)
@@ -4047,11 +4053,11 @@ public struct AutomaticTableStyle : TableStyle {
     /// hierarchy where this style is the current table style.
     ///
     /// - Parameter configuration: The properties of the table.
-    public func makeBody(configuration: AutomaticTableStyle.Configuration) -> Body { return never() }
+    public func makeBody(configuration: AutomaticTableStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a table.
-    public typealias Body = NeverView
+    //public typealias Body = NeverView
 }
 
 /// The table style that describes the behavior and appearance of a table with
@@ -4072,7 +4078,7 @@ public struct InsetTableStyle : TableStyle {
     /// hierarchy where this style is the current table style.
     ///
     /// - Parameter configuration: The properties of the table.
-    public func makeBody(configuration: InsetTableStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: InsetTableStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a table.

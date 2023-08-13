@@ -36,22 +36,7 @@ public struct ControlGroup<Content> : View where Content : View {
     ///   - content: the children to display
     public init(@ViewBuilder content: () -> Content) { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -304,7 +289,7 @@ public struct PaletteControlGroupStyle : ControlGroupStyle {
     /// This method will be called for each instance of ``ControlGroup`` created
     /// within a view hierarchy where this style is the current
     /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: PaletteControlGroupStyle.Configuration) -> some View { return never() }
+    @MainActor public func makeBody(configuration: PaletteControlGroupStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a control group.
@@ -331,7 +316,7 @@ public struct CompactMenuControlGroupStyle : ControlGroupStyle {
     /// This method will be called for each instance of ``ControlGroup`` created
     /// within a view hierarchy where this style is the current
     /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: CompactMenuControlGroupStyle.Configuration) -> some View { return never() }
+    @MainActor public func makeBody(configuration: CompactMenuControlGroupStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a control group.
@@ -353,7 +338,7 @@ public struct AutomaticControlGroupStyle : ControlGroupStyle {
     /// This method will be called for each instance of ``ControlGroup`` created
     /// within a view hierarchy where this style is the current
     /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: AutomaticControlGroupStyle.Configuration) -> some View { return never() }
+    @MainActor public func makeBody(configuration: AutomaticControlGroupStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a control group.

@@ -6,6 +6,11 @@
 
 import struct Foundation.IndexSet
 
+/// No-op
+@usableFromInline func stubDynamicViewContent() -> some DynamicViewContent {
+    return never()
+}
+
 /// A type of view that generates views from an underlying collection of data.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public protocol DynamicViewContent : View {
@@ -29,7 +34,7 @@ extension DynamicViewContent {
     ///
     /// - Returns: A view that calls `action` when elements are deleted from the
     ///   original view.
-    @inlinable public func onDelete(perform action: ((IndexSet) -> Void)?) -> some DynamicViewContent { return never() }
+    @inlinable public func onDelete(perform action: ((IndexSet) -> Void)?) -> some DynamicViewContent { return stubDynamicViewContent() }
 
 }
 
@@ -46,7 +51,7 @@ extension DynamicViewContent {
     ///
     /// - Returns: A view that calls `action` when elements are moved within the
     ///   original view.
-    @inlinable public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> some DynamicViewContent { return never() }
+    @inlinable public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> some DynamicViewContent { return stubDynamicViewContent() }
 
 }
 

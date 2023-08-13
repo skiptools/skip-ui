@@ -301,7 +301,7 @@
     @MainActor public init(selection: Binding<SelectionValue?>?, @ViewBuilder content: () -> Content) { fatalError() }
 
     /// The content of the list.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1150,6 +1150,83 @@ public struct SidebarListStyle : ListStyle {
 
     /// Creates a sidebar list style.
     public init() { fatalError() }
+}
+
+
+@available(iOS 17.0, watchOS 10.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+extension View {
+
+    /// Sets the spacing between adjacent sections in a List.
+    ///
+    /// Pass `.default` for the default spacing, or use `.compact` for
+    /// a compact appearance between sections.
+    ///
+    /// The following example creates a List with compact spacing between
+    /// sections:
+    ///
+    ///     List {
+    ///         Section("Colors") {
+    ///             Text("Blue")
+    ///             Text("Red")
+    ///         }
+    ///
+    ///         Section("Shapes") {
+    ///             Text("Square")
+    ///             Text("Circle")
+    ///         }
+    ///     }
+    ///     .listSectionSpacing(.compact)
+    @inlinable public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { return stubView() }
+
+
+    /// Sets the spacing to a custom value between adjacent sections in a List.
+    ///
+    /// The following example creates a List with 5 pts of spacing between
+    /// sections:
+    ///
+    ///     List {
+    ///         Section("Colors") {
+    ///             Text("Blue")
+    ///             Text("Red")
+    ///         }
+    ///
+    ///         Section("Shapes") {
+    ///             Text("Square")
+    ///             Text("Circle")
+    ///         }
+    ///     }
+    ///     .listSectionSpacing(5.0)
+    ///
+    /// Spacing can also be specified on a per-section basis. The following
+    /// example creates a List with compact spacing for its second section:
+    ///
+    ///     List {
+    ///         Section("Colors") {
+    ///             Text("Blue")
+    ///             Text("Red")
+    ///         }
+    ///
+    ///         Section("Borders") {
+    ///             Text("Dashed")
+    ///             Text("Solid")
+    ///         }
+    ///         .listSectionSpacing(.compact)
+    ///
+    ///         Section("Shapes") {
+    ///             Text("Square")
+    ///             Text("Circle")
+    ///         }
+    ///     }
+    ///
+    /// If adjacent sections have different spacing value, the smaller value on
+    /// the shared edge is used. Spacing specified inside the List is preferred
+    /// over any List-wide value.
+    ///
+    /// - Parameter spacing: the amount of spacing to apply.
+    @inlinable public func listSectionSpacing(_ spacing: CGFloat) -> some View { return stubView() }
+
 }
 
 #endif

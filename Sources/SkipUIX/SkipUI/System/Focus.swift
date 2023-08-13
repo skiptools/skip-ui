@@ -373,4 +373,567 @@ public struct DefaultFocusEvaluationPriority : Sendable {
     public static let userInitiated: DefaultFocusEvaluationPriority = { fatalError() }()
 }
 
+
+extension View {
+
+    /// Defines a region of the window in which default focus is evaluated by
+    /// assigning a value to a given focus state binding.
+    ///
+    /// By default, SkipUI evaluates default focus when the window first
+    /// appears, and when a focus state binding update moves focus
+    /// automatically, but not when responding to user-driven navigation
+    /// commands.
+    ///
+    /// Clients can override the default behavior by specifying an evaluation
+    /// priority of ``DefaultFocusEvaluationPriority/userInitiated``, which
+    /// causes SkipUI to use the client's preferred default focus in response
+    /// to user-driven focus navigation as well as automatic changes.
+    ///
+    /// In the following example, focus automatically goes to the second of the
+    /// two text fields when the view is first presented in the window.
+    ///
+    ///     WindowGroup {
+    ///         VStack {
+    ///             TextField(...)
+    ///                 .focused($focusedField, equals: .firstField)
+    ///             TextField(...)
+    ///                 .focused($focusedField, equals: .secondField)
+    ///         }
+    ///         .defaultFocus($focusedField, .secondField)
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - binding: A focus state binding to update when evaluating default
+    ///     focus in the modified view hierarchy.
+    ///   - value: The value to set the binding to during evaluation.
+    ///   - priority: An indication of how to prioritize the preferred default
+    ///     focus target when focus moves into the modified view hierarchy.
+    ///     The default value is `automatic`, which means the preference will
+    ///     be given priority when focus is being initialized or relocated
+    ///     programmatically, but not when responding to user-directed
+    ///     navigation commands.
+    /// - Returns: The modified view.
+    @available(iOS 17.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func defaultFocus<V>(_ binding: FocusState<V>.Binding, _ value: V, priority: DefaultFocusEvaluationPriority = .automatic) -> some View where V : Hashable { return stubView() }
+
+}
+
+
+extension View {
+
+    /// Specifies if the view is focusable.
+    ///
+    /// - Parameters isFocusable: A Boolean value that indicates whether this
+    ///   view is focusable.
+    ///
+    /// - Returns: A view that sets whether a view is focusable.
+    @available(iOS 17.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+    public func focusable(_ isFocusable: Bool = true) -> some View { return stubView() }
+
+
+    /// Specifies if the view is focusable, and if so, what focus-driven
+    /// interactions it supports.
+    ///
+    /// By default, SkipUI enables all possible focus interactions. However, on
+    /// macOS and iOS it is conventional for button-like views to only accept
+    /// focus when the user has enabled keyboard navigation system-wide in the
+    /// Settings app. Clients can reproduce this behavior with custom views by
+    /// only supporting `.activate` interactions.
+    ///
+    ///     MyTapGestureView(...)
+    ///         .focusable(interactions: .activate)
+    ///
+    /// - Note: The focus interactions allowed for custom views changed in
+    ///   macOS 14—previously, custom views could only become focused with
+    ///   keyboard navigation enabled system-wide. Clients built using older
+    ///   SDKs will continue to see the older focus behavior, while custom views
+    ///   in clients built using macOS 14 or later will always be focusable
+    ///   unless the client requests otherwise by specifying a restricted set of
+    ///   focus interactions.
+    ///
+    /// - Parameters:
+    ///   - isFocusable: `true` if the view should participate in focus;
+    ///     `false` otherwise. The default value is `true`.
+    ///   - interactions: The types of focus interactions supported by the view.
+    ///     The default value is `.automatic`.
+    /// - Returns: A view that sets whether its child is focusable.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func focusable(_ isFocusable: Bool = true, interactions: FocusInteractions) -> some View { return stubView() }
+
+
+    /// Adds a condition that controls whether this view can display focus
+    /// effects, such as a default focus ring or hover effect.
+    ///
+    /// The higher views in a view hierarchy can override the value you set on
+    /// this view. In the following example, the button does not display a focus
+    /// effect because the outer `focusEffectDisabled(_:)` modifier overrides
+    /// the inner one:
+    ///
+    ///     HStack {
+    ///         Button("Press") {}
+    ///             .focusEffectDisabled(false)
+    ///     }
+    ///     .focusEffectDisabled(true)
+    ///
+    /// - Parameter disabled: A Boolean value that determines whether this view
+    ///   can display focus effects.
+    /// - Returns: A view that controls whether focus effects can be displayed
+    ///   in this view.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func focusEffectDisabled(_ disabled: Bool = true) -> some View { return stubView() }
+
+}
+
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension View {
+
+    /// Modifies this view by binding its focus state to the given state value.
+    ///
+    /// Use this modifier to cause the view to receive focus whenever the
+    /// the `binding` equals the `value`. Typically, you create an enumeration
+    /// of fields that may receive focus, bind an instance of this enumeration,
+    /// and assign its cases to focusable views.
+    ///
+    /// The following example uses the cases of a `LoginForm` enumeration to
+    /// bind the focus state of two ``TextField`` views. A sign-in button
+    /// validates the fields and sets the bound `focusedField` value to
+    /// any field that requires the user to correct a problem.
+    ///
+    ///     struct LoginForm {
+    ///         enum Field: Hashable {
+    ///             case usernameField
+    ///             case passwordField
+    ///         }
+    ///
+    ///         @State private var username = ""
+    ///         @State private var password = ""
+    ///         @FocusState private var focusedField: Field?
+    ///
+    ///         var body: some View {
+    ///             Form {
+    ///                 TextField("Username", text: $username)
+    ///                     .focused($focusedField, equals: .usernameField)
+    ///
+    ///                 SecureField("Password", text: $password)
+    ///                     .focused($focusedField, equals: .passwordField)
+    ///
+    ///                 Button("Sign In") {
+    ///                     if username.isEmpty {
+    ///                         focusedField = .usernameField
+    ///                     } else if password.isEmpty {
+    ///                         focusedField = .passwordField
+    ///                     } else {
+    ///                         handleLogin(username, password)
+    ///                     }
+    ///                 }
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// To control focus using a Boolean, use the ``View/focused(_:)`` method
+    /// instead.
+    ///
+    /// - Parameters:
+    ///   - binding: The state binding to register. When focus moves to the
+    ///     modified view, the binding sets the bound value to the corresponding
+    ///     match value. If a caller sets the state value programmatically to the
+    ///     matching value, then focus moves to the modified view. When focus
+    ///     leaves the modified view, the binding sets the bound value to
+    ///     `nil`. If a caller sets the value to `nil`, SkipUI automatically
+    ///     dismisses focus.
+    ///   - value: The value to match against when determining whether the
+    ///     binding should change.
+    /// - Returns: The modified view.
+    public func focused<Value>(_ binding: FocusState<Value>.Binding, equals value: Value) -> some View where Value : Hashable { return stubView() }
+
+
+    /// Modifies this view by binding its focus state to the given Boolean state
+    /// value.
+    ///
+    /// Use this modifier to cause the view to receive focus whenever the
+    /// the `condition` value is `true`. You can use this modifier to
+    /// observe the focus state of a single view, or programmatically set and
+    /// remove focus from the view.
+    ///
+    /// In the following example, a single ``TextField`` accepts a user's
+    /// desired `username`. The text field binds its focus state to the
+    /// Boolean value `usernameFieldIsFocused`. A "Submit" button's action
+    /// verifies whether the name is available. If the name is unavailable, the
+    /// button sets `usernameFieldIsFocused` to `true`, which causes focus to
+    /// return to the text field, so the user can enter a different name.
+    ///
+    ///     @State private var username: String = ""
+    ///     @FocusState private var usernameFieldIsFocused: Bool
+    ///     @State private var showUsernameTaken = false
+    ///
+    ///     var body: some View {
+    ///         VStack {
+    ///             TextField("Choose a username.", text: $username)
+    ///                 .focused($usernameFieldIsFocused)
+    ///             if showUsernameTaken {
+    ///                 Text("That username is taken. Please choose another.")
+    ///             }
+    ///             Button("Submit") {
+    ///                 showUsernameTaken = false
+    ///                 if !isUserNameAvailable(username: username) {
+    ///                     usernameFieldIsFocused = true
+    ///                     showUsernameTaken = true
+    ///                 }
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// To control focus by matching a value, use the
+    /// ``View/focused(_:equals:)`` method instead.
+    ///
+    /// - Parameter condition: The focus state to bind. When focus moves
+    ///   to the view, the binding sets the bound value to `true`. If a caller
+    ///   sets the value to  `true` programmatically, then focus moves to the
+    ///   modified view. When focus leaves the modified view, the binding
+    ///   sets the value to `false`. If a caller sets the value to `false`,
+    ///   SkipUI automatically dismisses focus.
+    ///
+    /// - Returns: The modified view.
+    public func focused(_ condition: FocusState<Bool>.Binding) -> some View { return stubView() }
+
+}
+
+extension View {
+
+    /// Modifies this view by injecting a value that you provide for use by
+    /// other views whose state depends on the focused view hierarchy.
+    ///
+    /// - Parameters:
+    ///   - keyPath: The key path to associate `value` with when adding
+    ///     it to the existing table of exported focus values.
+    ///   - value: The focus value to export.
+    /// - Returns: A modified representation of this view.
+    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+    public func focusedValue<Value>(_ keyPath: WritableKeyPath<FocusedValues, Value?>, _ value: Value) -> some View { return stubView() }
+
+
+    /// Creates a new view that exposes the provided value to other views whose
+    /// state depends on the focused view hierarchy.
+    ///
+    /// Use this method instead of ``View/focusedSceneValue(_:_:)`` when your
+    /// scene includes multiple focusable views with their own associated
+    /// values, and you need an app- or scene-scoped element like a command or
+    /// toolbar item that operates on the value associated with whichever view
+    /// currently has focus. Each focusable view can supply its own value:
+    ///
+    ///
+    ///
+    /// - Parameters:
+    ///   - keyPath: The key path to associate `value` with when adding
+    ///     it to the existing table of exported focus values.
+    ///   - value: The focus value to export, or `nil` if no value is
+    ///     currently available.
+    /// - Returns: A modified representation of this view.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func focusedValue<Value>(_ keyPath: WritableKeyPath<FocusedValues, Value?>, _ value: Value?) -> some View { return stubView() }
+
+
+    /// Modifies this view by injecting a value that you provide for use by
+    /// other views whose state depends on the focused scene.
+    ///
+    /// Use this method instead of ``View/focusedValue(_:_:)`` for values that
+    /// must be visible regardless of where focus is located in the active
+    /// scene. For example, if an app needs a command for moving focus to a
+    /// particular text field in the sidebar, it could use this modifier to
+    /// publish a button action that's visible to command views as long as the
+    /// scene is active, and regardless of where focus happens to be in it.
+    ///
+    ///     struct Sidebar: View {
+    ///         @FocusState var isFiltering: Bool
+    ///
+    ///         var body: some View {
+    ///             VStack {
+    ///                 TextField(...)
+    ///                     .focused(when: $isFiltering)
+    ///                     .focusedSceneValue(\.filterAction) {
+    ///                         isFiltering = true
+    ///                     }
+    ///             }
+    ///         }
+    ///     }
+    ///
+    ///     struct NavigationCommands: Commands {
+    ///         @FocusedValue(\.filterAction) var filterAction
+    ///
+    ///         var body: some Commands {
+    ///             CommandMenu("Navigate") {
+    ///                 Button("Filter in Sidebar") {
+    ///                     filterAction?()
+    ///                 }
+    ///             }
+    ///             .disabled(filterAction == nil)
+    ///         }
+    ///     }
+    ///
+    ///     struct FilterActionKey: FocusedValuesKey {
+    ///         typealias Value = () -> Void
+    ///     }
+    ///
+    ///     extension FocusedValues {
+    ///         var filterAction: (() -> Void)? {
+    ///             get { self[FilterActionKey.self] }
+    ///             set { self[FilterActionKey.self] = newValue }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - keyPath: The key path to associate `value` with when adding
+    ///     it to the existing table of published focus values.
+    ///   - value: The focus value to publish.
+    /// - Returns: A modified representation of this view.
+    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+    public func focusedSceneValue<T>(_ keyPath: WritableKeyPath<FocusedValues, T?>, _ value: T) -> some View { return stubView() }
+
+
+    /// Creates a new view that exposes the provided value to other views whose
+    /// state depends on the active scene.
+    ///
+    /// Use this method instead of ``View/focusedValue(_:_:)`` for values that
+    /// must be visible regardless of where focus is located in the active
+    /// scene. For example, if an app needs a command for moving focus to a
+    /// particular text field in the sidebar, it could use this modifier to
+    /// publish a button action that's visible to command views as long as the
+    /// scene is active, and regardless of where focus happens to be in it.
+    ///
+    ///     struct Sidebar: View {
+    ///         @FocusState var isFiltering: Bool
+    ///
+    ///         var body: some View {
+    ///             VStack {
+    ///                 TextField(...)
+    ///                     .focused(when: $isFiltering)
+    ///                     .focusedSceneValue(\.filterAction) {
+    ///                         isFiltering = true
+    ///                     }
+    ///             }
+    ///         }
+    ///     }
+    ///
+    ///     struct NavigationCommands: Commands {
+    ///         @FocusedValue(\.filterAction) var filterAction
+    ///
+    ///         var body: some Commands {
+    ///             CommandMenu("Navigate") {
+    ///                 Button("Filter in Sidebar") {
+    ///                     filterAction?()
+    ///                 }
+    ///             }
+    ///             .disabled(filterAction == nil)
+    ///         }
+    ///     }
+    ///
+    ///     struct FilterActionKey: FocusedValuesKey {
+    ///         typealias Value = () -> Void
+    ///     }
+    ///
+    ///     extension FocusedValues {
+    ///         var filterAction: (() -> Void)? {
+    ///             get { self[FilterActionKey.self] }
+    ///             set { self[FilterActionKey.self] = newValue }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - keyPath: The key path to associate `value` with when adding
+    ///     it to the existing table of published focus values.
+    ///   - value: The focus value to publish, or `nil` if no value is
+    ///     currently available.
+    /// - Returns: A modified representation of this view.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func focusedSceneValue<T>(_ keyPath: WritableKeyPath<FocusedValues, T?>, _ value: T?) -> some View { return stubView() }
+
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Creates a new view that exposes the provided object to other views whose
+    /// whose state depends on the focused view hierarchy.
+    ///
+    /// Use this method instead of ``View/focusedSceneObject(_:)`` when your
+    /// scene includes multiple focusable views with their own associated data,
+    /// and you need an app- or scene-scoped element like a command or toolbar
+    /// item that operates on the data associated with whichever view currently
+    /// has focus. Each focusable view can supply its own object:
+    ///
+    ///     struct MessageView: View {
+    ///         @StateObject private var message = Message(...)
+    ///
+    ///         var body: some View {
+    ///             TextField(...)
+    ///                 .focusedObject(message)
+    ///         }
+    ///     }
+    ///
+    /// Interested views can then use the ``FocusedObject`` property wrapper to
+    /// observe and update the focused view's object. In this example, an app
+    /// command updates the focused view's data, and is automatically disabled
+    /// when focus is in an unrelated part of the scene:
+    ///
+    ///     struct MessageCommands: Commands {
+    ///         @FocusedObject private var message: Message?
+    ///
+    ///         var body: some Commands {
+    ///             CommandGroup(after: .pasteboard) {
+    ///                 Button("Add Duck to Message") {
+    ///                     message?.text.append(" 🦆")
+    ///                 }
+    ///                 .keyboardShortcut("d")
+    ///                 .disabled(message == nil)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - object: The observable object to associate with focus.
+    /// - Returns: A view that supplies an observable object when in focus.
+    @inlinable public func focusedObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
+
+
+    /// Creates a new view that exposes the provided object to other views whose
+    /// state depends on the focused view hierarchy.
+    ///
+    /// Use this method instead of ``View/focusedSceneObject(_:)`` when your
+    /// scene includes multiple focusable views with their own associated data,
+    /// and you need an app- or scene-scoped element like a command or toolbar
+    /// item that operates on the data associated with whichever view currently
+    /// has focus. Each focusable view can supply its own object:
+    ///
+    ///     struct MessageView: View {
+    ///         @StateObject private var message = Message(...)
+    ///
+    ///         var body: some View {
+    ///             TextField(...)
+    ///                 .focusedObject(message)
+    ///         }
+    ///     }
+    ///
+    /// Interested views can then use the ``FocusedObject`` property wrapper to
+    /// observe and update the focused view's object. In this example, an app
+    /// command updates the focused view's data, and is automatically disabled
+    /// when focus is in an unrelated part of the scene:
+    ///
+    ///     struct MessageCommands: Commands {
+    ///         @FocusedObject private var message: Message?
+    ///
+    ///         var body: some Commands {
+    ///             CommandGroup(after: .pasteboard) {
+    ///                 Button("Add Duck to Message") {
+    ///                     message?.text.append(" 🦆")
+    ///                 }
+    ///                 .keyboardShortcut("d")
+    ///                 .disabled(message == nil)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - object: The observable object to associate with focus, or `nil` if
+    ///     no object is currently available.
+    /// - Returns: A view that supplies an observable object when in focus.
+    @inlinable public func focusedObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
+
+
+    /// Creates a new view that exposes the provided object to other views whose
+    /// whose state depends on the active scene.
+    ///
+    /// Use this method instead of ``View/focusedObject(_:)`` for observable
+    /// objects that must be visible regardless of where focus is located in the
+    /// active scene. This is sometimes needed for things like main menu and
+    /// discoverability HUD commands that observe and update data from the
+    /// active scene but aren't concerned with what the user is actually focused
+    /// on. The scene's root view can supply the scene's state object:
+    ///
+    ///     struct RootView: View {
+    ///         @StateObject private var sceneData = SceneData()
+    ///
+    ///         var body: some View {
+    ///             NavigationSplitView {
+    ///                 ...
+    ///             }
+    ///             .focusedSceneObject(sceneData)
+    ///         }
+    ///     }
+    ///
+    /// Interested views can then use the ``FocusedObject`` property wrapper to
+    /// observe and update the active scene's state object. In this example, an
+    /// app command updates the active scene's data, and is enabled as long as
+    /// any scene is active.
+    ///
+    ///     struct MessageCommands: Commands {
+    ///         @FocusedObject private var sceneData: SceneData?
+    ///
+    ///         var body: some Commands {
+    ///             CommandGroup(after: .newItem) {
+    ///                 Button("New Message") {
+    ///                     sceneData?.addMessage()
+    ///                 }
+    ///                 .keyboardShortcut("n", modifiers: [.option, .command])
+    ///                 .disabled(sceneData == nil)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - object: The observable object to associate with the scene.
+    /// - Returns: A view that supplies an observable object while the scene
+    ///   is active.
+    @inlinable public func focusedSceneObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
+
+
+    /// Creates a new view that exposes the provided object to other views whose
+    /// whose state depends on the active scene.
+    ///
+    /// Use this method instead of ``View/focusedObject(_:)`` for observable
+    /// objects that must be visible regardless of where focus is located in the
+    /// active scene. This is sometimes needed for things like main menu and
+    /// discoverability HUD commands that observe and update data from the
+    /// active scene but aren't concerned with what the user is actually focused
+    /// on. The scene's root view can supply the scene's state object:
+    ///
+    ///     struct RootView: View {
+    ///         @StateObject private var sceneData = SceneData()
+    ///
+    ///         var body: some View {
+    ///             NavigationSplitView {
+    ///                 ...
+    ///             }
+    ///             .focusedSceneObject(sceneData)
+    ///         }
+    ///     }
+    ///
+    /// Interested views can then use the ``FocusedObject`` property wrapper to
+    /// observe and update the active scene's state object. In this example, an
+    /// app command updates the active scene's data, and is enabled as long as
+    /// any scene is active.
+    ///
+    ///     struct MessageCommands: Commands {
+    ///         @FocusedObject private var sceneData: SceneData?
+    ///
+    ///         var body: some Commands {
+    ///             CommandGroup(after: .newItem) {
+    ///                 Button("New Message") {
+    ///                     sceneData?.addMessage()
+    ///                 }
+    ///                 .keyboardShortcut("n", modifiers: [.option, .command])
+    ///                 .disabled(sceneData == nil)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - object: The observable object to associate with the scene, or `nil`
+    ///     if no object is currently available.
+    /// - Returns: A view that supplies an observable object while the scene
+    ///   is active.
+    @inlinable public func focusedSceneObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
+
+}
+
 #endif

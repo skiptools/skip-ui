@@ -230,10 +230,10 @@ extension OutlineGroup : TableRowContent where ID == Data.Element.ID, Parent : T
     public typealias TableRowValue = Leaf.TableRowValue
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: TableRowBody { get { return never() } }
+    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
+    //public typealias TableRowBody = NeverView
 }
 
 @available(iOS 14.0, macOS 11.0, *)
@@ -367,22 +367,7 @@ extension OutlineGroup : PlatformView where Parent : PlatformView, Leaf : Platfo
 @available(watchOS, unavailable)
 extension OutlineGroup : View where Parent : View, Leaf : View, Subgroup : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///

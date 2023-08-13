@@ -44,7 +44,7 @@ extension Transition where Self == SymbolEffectTransition {
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    public func body(content: SymbolEffectTransition.Content, phase: TransitionPhase) -> some View { return never() }
+    public func body(content: SymbolEffectTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
 
     /// Returns the properties this transition type has.
@@ -80,7 +80,7 @@ extension View {
     ///   - isActive: whether the effect is active or inactive.
     ///
     /// - Returns: a copy of the view with a symbol effect added.
-    public func symbolEffect<T>(_ effect: T, options: SymbolEffectOptions = .default, isActive: Bool = true) -> some View where T : IndefiniteSymbolEffect, T : SymbolEffect { return never() }
+    public func symbolEffect<T>(_ effect: T, options: SymbolEffectOptions = .default, isActive: Bool = true) -> some View where T : IndefiniteSymbolEffect, T : SymbolEffect { return stubView() }
 
 
     /// Returns a new view with a symbol effect added to it.
@@ -103,7 +103,7 @@ extension View {
     ///     triggered each time the value changes.
     ///
     /// - Returns: a copy of the view with a symbol effect added.
-    public func symbolEffect<T, U>(_ effect: T, options: SymbolEffectOptions = .default, value: U) -> some View where T : DiscreteSymbolEffect, T : SymbolEffect, U : Equatable { return never() }
+    public func symbolEffect<T, U>(_ effect: T, options: SymbolEffectOptions = .default, value: U) -> some View where T : DiscreteSymbolEffect, T : SymbolEffect, U : Equatable { return stubView() }
 
 }
 

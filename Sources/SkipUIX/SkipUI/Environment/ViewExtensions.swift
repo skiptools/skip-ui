@@ -41,34 +41,7 @@ extension View {
     /// - Parameter visibility: A value that indicates the visibility of the
     /// non-transient system views overlaying the app.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func persistentSystemOverlays(_ visibility: Visibility) -> some View { return never() }
-
-}
-
-extension View {
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<L, T>(leading: L, trailing: T) -> some View where L : View, T : View { return never() }
-
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<L>(leading: L) -> some View where L : View { return never() }
-
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<T>(trailing: T) -> some View where T : View { return never() }
+    public func persistentSystemOverlays(_ visibility: Visibility) -> some View { return stubView() }
 
 }
 
@@ -153,7 +126,7 @@ extension View {
     ///         }
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center) -> some View { return never() }
+    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center) -> some View { return stubView() }
 
 
     /// Positions this view within an invisible frame with a size relative
@@ -236,7 +209,7 @@ extension View {
     ///         }
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func containerRelativeFrame(_ axes: Axis.Set, count: Int, span: Int = 1, spacing: CGFloat, alignment: Alignment = .center) -> some View { return never() }
+    public func containerRelativeFrame(_ axes: Axis.Set, count: Int, span: Int = 1, spacing: CGFloat, alignment: Alignment = .center) -> some View { return stubView() }
 
 
     /// Positions this view within an invisible frame with a size relative
@@ -319,7 +292,7 @@ extension View {
     ///         }
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center, _ length: @escaping (CGFloat, Axis) -> CGFloat) -> some View { return never() }
+    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center, _ length: @escaping (CGFloat, Axis) -> CGFloat) -> some View { return stubView() }
 
 }
 
@@ -341,7 +314,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view in front of the view.
-    @inlinable public func overlayPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return never() }
+    @inlinable public func overlayPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
 
 
     /// Reads the specified preference value from the view, using it to
@@ -359,7 +332,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view behind the view.
-    @inlinable public func backgroundPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return never() }
+    @inlinable public func backgroundPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
 
 }
 
@@ -376,7 +349,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view in front of the view.
-    @inlinable public func overlayPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return never() }
+    @inlinable public func overlayPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
 
 
     /// Reads the specified preference value from the view, using it to
@@ -389,7 +362,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view behind the view.
-    @inlinable public func backgroundPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return never() }
+    @inlinable public func backgroundPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
 
 }
 
@@ -400,7 +373,7 @@ extension View {
     /// Sets the style for date pickers within this view.
     @available(watchOS 10.0, *)
     @available(tvOS, unavailable)
-    public func datePickerStyle<S>(_ style: S) -> some View where S : DatePickerStyle { return never() }
+    public func datePickerStyle<S>(_ style: S) -> some View where S : DatePickerStyle { return stubView() }
 
 }
 
@@ -469,7 +442,7 @@ extension View {
     ///     using the same process.
     ///   - onDismiss: The closure to execute when dismissing the sheet.
     ///   - content: A closure returning the content of the sheet.
-    public func sheet<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return never() }
+    public func sheet<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return stubView() }
 
 
     /// Presents a sheet when a binding to a Boolean value that you
@@ -526,7 +499,7 @@ extension View {
     ///     `content` closure.
     ///   - onDismiss: The closure to execute when dismissing the sheet.
     ///   - content: A closure that returns the content of the sheet.
-    public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return never() }
+    public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return stubView() }
 
 }
 
@@ -587,7 +560,7 @@ extension View {
     ///     it with a new one using the same process.
     ///   - onDismiss: The closure to execute when dismissing the modal view.
     ///   - content: A closure returning the content of the modal view.
-    public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return never() }
+    public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return stubView() }
 
 
     /// Presents a modal view that covers as much of the screen as
@@ -633,7 +606,7 @@ extension View {
     ///     to present the sheet.
     ///   - onDismiss: The closure to execute when dismissing the modal view.
     ///   - content: A closure that returns the content of the modal view.
-    public func fullScreenCover<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return never() }
+    public func fullScreenCover<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return stubView() }
 
 }
 
@@ -652,7 +625,7 @@ extension View {
     ///     - onPressingChanged:  A closure to run when the pressing state of the
     ///     gesture changes, passing the current state as a parameter.
     @available(tvOS, unavailable)
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10, perform action: @escaping () -> Void, onPressingChanged: ((Bool) -> Void)? = nil) -> some View { return never() }
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10, perform action: @escaping () -> Void, onPressingChanged: ((Bool) -> Void)? = nil) -> some View { return stubView() }
 
 }
 
@@ -666,7 +639,7 @@ extension View {
     @available(tvOS, unavailable)
     @available(watchOS, deprecated: 100000.0, renamed: "onLongPressGesture(minimumDuration:maximumDuration:perform:onPressingChanged:)")
     @available(xrOS, deprecated: 100000.0, renamed: "onLongPressGesture(minimumDuration:maximumDuration:perform:onPressingChanged:)")
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10, pressing: ((Bool) -> Void)? = nil, perform action: @escaping () -> Void) -> some View { return never() }
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10, pressing: ((Bool) -> Void)? = nil, perform action: @escaping () -> Void) -> some View { return stubView() }
 
 }
 
@@ -691,7 +664,7 @@ extension View {
     /// - Parameter disable: A Boolean value that indicates whether
     ///   autocorrection is disabled for this view. The default value is `true`.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 8.0, *)
-    public func autocorrectionDisabled(_ disable: Bool = true) -> some View { return never() }
+    public func autocorrectionDisabled(_ disable: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -720,7 +693,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "autocorrectionDisabled(_:)")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, renamed: "autocorrectionDisabled(_:)")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "autocorrectionDisabled(_:)")
-    public func disableAutocorrection(_ disable: Bool?) -> some View { return never() }
+    public func disableAutocorrection(_ disable: Bool?) -> some View { return stubView() }
 
 }
 
@@ -731,7 +704,7 @@ extension View {
     /// Sets the style for the index view within the current environment.
     ///
     /// - Parameter style: The style to apply to this view.
-    public func indexViewStyle<S>(_ style: S) -> some View where S : IndexViewStyle { return never() }
+    public func indexViewStyle<S>(_ style: S) -> some View where S : IndexViewStyle { return stubView() }
 
 }
 
@@ -754,7 +727,7 @@ extension View {
     ///             }
     ///         }
     ///     }
-    public func privacySensitive(_ sensitive: Bool = true) -> some View { return never() }
+    public func privacySensitive(_ sensitive: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -782,7 +755,7 @@ extension View {
     /// - Parameter detents: A set of supported detents for the sheet.
     ///   If you provide more that one detent, people can drag the sheet
     ///   to resize it.
-    public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View { return never() }
+    public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View { return stubView() }
 
 
     /// Sets the available detents for the enclosing sheet, giving you
@@ -815,7 +788,7 @@ extension View {
     ///   - selection: A ``Binding`` to the currently selected detent.
     ///     Ensure that the value matches one of the detents that you
     ///     provide for the `detents` parameter.
-    public func presentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View { return never() }
+    public func presentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View { return stubView() }
 
 
     /// Sets the visibility of the drag indicator on top of a sheet.
@@ -839,7 +812,7 @@ extension View {
     ///     }
     ///
     /// - Parameter visibility: The preferred visibility of the drag indicator.
-    public func presentationDragIndicator(_ visibility: Visibility) -> some View { return never() }
+    public func presentationDragIndicator(_ visibility: Visibility) -> some View { return stubView() }
 
 }
 
@@ -878,7 +851,7 @@ extension View {
     /// - Parameters:
     ///   - interaction: A specification of how people can interact with the
     ///     view behind a presentation.
-    public func presentationBackgroundInteraction(_ interaction: PresentationBackgroundInteraction) -> some View { return never() }
+    public func presentationBackgroundInteraction(_ interaction: PresentationBackgroundInteraction) -> some View { return stubView() }
 
 
     /// Specifies how to adapt a presentation to compact size classes.
@@ -911,7 +884,7 @@ extension View {
     ///
     /// - Parameter adaptation: The adaptation to use in either a horizontally
     ///   or vertically compact size class.
-    public func presentationCompactAdaptation(_ adaptation: PresentationAdaptation) -> some View { return never() }
+    public func presentationCompactAdaptation(_ adaptation: PresentationAdaptation) -> some View { return stubView() }
 
 
     /// Specifies how to adapt a presentation to horizontally and vertically
@@ -947,7 +920,7 @@ extension View {
     ///   - verticalAdaptation: The adaptation to use in a vertically compact
     ///     size class. In a size class that is both horizontally and vertically
     ///     compact, SkipUI uses the `verticalAdaptation` value.
-    public func presentationCompactAdaptation(horizontal horizontalAdaptation: PresentationAdaptation, vertical verticalAdaptation: PresentationAdaptation) -> some View { return never() }
+    public func presentationCompactAdaptation(horizontal horizontalAdaptation: PresentationAdaptation, vertical verticalAdaptation: PresentationAdaptation) -> some View { return stubView() }
 
 
     /// Requests that the presentation have a specific corner radius.
@@ -971,7 +944,7 @@ extension View {
     ///
     /// - Parameter cornerRadius: The corner radius, or `nil` to use the system
     ///   default.
-    public func presentationCornerRadius(_ cornerRadius: CGFloat?) -> some View { return never() }
+    public func presentationCornerRadius(_ cornerRadius: CGFloat?) -> some View { return stubView() }
 
 
     /// Configures the behavior of swipe gestures on a presentation.
@@ -1005,7 +978,7 @@ extension View {
     /// People can always resize your presentation using the drag indicator.
     ///
     /// - Parameter behavior: The requested behavior.
-    public func presentationContentInteraction(_ behavior: PresentationContentInteraction) -> some View { return never() }
+    public func presentationContentInteraction(_ behavior: PresentationContentInteraction) -> some View { return stubView() }
 
 }
 
@@ -1013,7 +986,7 @@ extension View {
 extension View {
 
     /// Adds a condition for whether the view's view hierarchy is deletable.
-    @inlinable public func deleteDisabled(_ isDisabled: Bool) -> some View { return never() }
+    @inlinable public func deleteDisabled(_ isDisabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -1091,140 +1064,7 @@ extension View {
     ///   ``SymbolVariants``.
     /// - Returns: A view that applies the specified symbol variant or variants
     ///   to itself and its child views.
-    public func symbolVariant(_ variant: SymbolVariants) -> some View { return never() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Associates a destination view with a presented data type for use within
-    /// a navigation stack.
-    ///
-    /// Add this view modifer to a view inside a ``NavigationStack`` to
-    /// describe the view that the stack displays when presenting
-    /// a particular kind of data. Use a ``NavigationLink`` to present
-    /// the data. For example, you can present a `ColorDetail` view for
-    /// each presentation of a ``Color`` instance:
-    ///
-    ///     NavigationStack {
-    ///         List {
-    ///             NavigationLink("Mint", value: Color.mint)
-    ///             NavigationLink("Pink", value: Color.pink)
-    ///             NavigationLink("Teal", value: Color.teal)
-    ///         }
-    ///         .navigationDestination(for: Color.self) { color in
-    ///             ColorDetail(color: color)
-    ///         }
-    ///         .navigationTitle("Colors")
-    ///     }
-    ///
-    /// You can add more than one navigation destination modifier to the stack
-    /// if it needs to present more than one kind of data.
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation stack can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - data: The type of data that this destination matches.
-    ///   - destination: A view builder that defines a view to display
-    ///     when the stack's navigation state contains a value of
-    ///     type `data`. The closure takes one argument, which is the value
-    ///     of the data to present.
-    public func navigationDestination<D, C>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return never() }
-
-
-    /// Associates a destination view with a binding that can be used to push
-    /// the view onto a ``NavigationStack``.
-    ///
-    /// In general, favor binding a path to a navigation stack for programmatic
-    /// navigation. Add this view modifer to a view inside a ``NavigationStack``
-    /// to programmatically push a single view onto the stack. This is useful
-    /// for building components that can push an associated view. For example,
-    /// you can present a `ColorDetail` view for a particular color:
-    ///
-    ///     @State private var showDetails = false
-    ///     var favoriteColor: Color
-    ///
-    ///     NavigationStack {
-    ///         VStack {
-    ///             Circle()
-    ///                 .fill(favoriteColor)
-    ///             Button("Show details") {
-    ///                 showDetails = true
-    ///             }
-    ///         }
-    ///         .navigationDestination(isPresented: $showDetails) {
-    ///             ColorDetail(color: favoriteColor)
-    ///         }
-    ///         .navigationTitle("My Favorite Color")
-    ///     }
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation stack can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to a Boolean value that indicates whether
-    ///     `destination` is currently presented.
-    ///   - destination: A view to present.
-    public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View { return never() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Associates a destination view with a bound value for use within a
-    /// navigation stack or navigation split view
-    ///
-    /// Add this view modifer to a view inside a ``NavigationStack`` or
-    /// ``NavigationSplitView`` to describe the view that the stack displays
-    /// when presenting a particular kind of data. Use a ``NavigationLink`` to
-    /// present the data, which updates the binding. Programmatically update
-    /// the binding to display or remove the view. For example, you can replace
-    /// the view showing in the detail column of a navigation split view:
-    ///
-    ///     @State private var colorShown: Color?
-    ///
-    ///     NavigationSplitView {
-    ///         List {
-    ///             NavigationLink("Mint", value: Color.mint)
-    ///             NavigationLink("Pink", value: Color.pink)
-    ///             NavigationLink("Teal", value: Color.teal)
-    ///         }
-    ///         .navigationDestination(item: $colorShown) { color in
-    ///             ColorDetail(color: color)
-    ///         }
-    ///     } detail: {
-    ///         Text("Select a color")
-    ///     }
-    ///
-    /// When the person using the app taps on the Mint link, the mint color
-    /// shows in the detail and `colorShown` gets the value `Color.mint`. You
-    /// can reset the navigation split view to show the message "Select a color"
-    /// by setting `colorShown` back to `nil`.
-    ///
-    /// You can add more than one navigation destination modifier to the stack
-    /// if it needs to present more than one kind of data.
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation split view can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - item: A binding to the data presented, or `nil` if nothing is
-    ///     currently presented.
-    ///   - destination: A view builder that defines a view to display
-    ///     when `item` is not `nil`.
-    public func navigationDestination<D, C>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return never() }
+    public func symbolVariant(_ variant: SymbolVariants) -> some View { return stubView() }
 
 }
 
@@ -1232,7 +1072,7 @@ extension View {
 extension View {
 
     /// Adds a condition for whether the view's view hierarchy is movable.
-    @inlinable public func moveDisabled(_ isDisabled: Bool) -> some View { return never() }
+    @inlinable public func moveDisabled(_ isDisabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -1269,7 +1109,7 @@ extension View {
     ///     equal to `initialValue` when the view first appears, then is equal
     ///     to the end value of the previous keyframe animation on subsequent
     ///     calls.
-    public func keyframeAnimator<Value>(initialValue: Value, trigger: some Equatable, @ViewBuilder content: @escaping @Sendable (PlaceholderContentView<Self>, Value) -> some View, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> some Keyframes) -> some View { return never() }
+    public func keyframeAnimator<Value>(initialValue: Value, trigger: some Equatable, @ViewBuilder content: @escaping @Sendable (PlaceholderContentView<Self>, Value) -> some View, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> some Keyframes) -> some View { return stubView() }
 
 
     /// Loops the given keyframes continuously, updating
@@ -1294,193 +1134,7 @@ extension View {
     ///     equal to `initialValue` when the view first appears, then is equal
     ///     to the end value of the previous keyframe animation on subsequent
     ///     calls.
-    public func keyframeAnimator<Value>(initialValue: Value, repeating: Bool = true, @ViewBuilder content: @escaping @Sendable (PlaceholderContentView<Self>, Value) -> some View, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> some Keyframes) -> some View { return never() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Creates a new view that exposes the provided object to other views whose
-    /// whose state depends on the focused view hierarchy.
-    ///
-    /// Use this method instead of ``View/focusedSceneObject(_:)`` when your
-    /// scene includes multiple focusable views with their own associated data,
-    /// and you need an app- or scene-scoped element like a command or toolbar
-    /// item that operates on the data associated with whichever view currently
-    /// has focus. Each focusable view can supply its own object:
-    ///
-    ///     struct MessageView: View {
-    ///         @StateObject private var message = Message(...)
-    ///
-    ///         var body: some View {
-    ///             TextField(...)
-    ///                 .focusedObject(message)
-    ///         }
-    ///     }
-    ///
-    /// Interested views can then use the ``FocusedObject`` property wrapper to
-    /// observe and update the focused view's object. In this example, an app
-    /// command updates the focused view's data, and is automatically disabled
-    /// when focus is in an unrelated part of the scene:
-    ///
-    ///     struct MessageCommands: Commands {
-    ///         @FocusedObject private var message: Message?
-    ///
-    ///         var body: some Commands {
-    ///             CommandGroup(after: .pasteboard) {
-    ///                 Button("Add Duck to Message") {
-    ///                     message?.text.append(" 🦆")
-    ///                 }
-    ///                 .keyboardShortcut("d")
-    ///                 .disabled(message == nil)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - object: The observable object to associate with focus.
-    /// - Returns: A view that supplies an observable object when in focus.
-    @inlinable public func focusedObject<T>(_ object: T) -> some View where T : ObservableObject { return never() }
-
-
-    /// Creates a new view that exposes the provided object to other views whose
-    /// state depends on the focused view hierarchy.
-    ///
-    /// Use this method instead of ``View/focusedSceneObject(_:)`` when your
-    /// scene includes multiple focusable views with their own associated data,
-    /// and you need an app- or scene-scoped element like a command or toolbar
-    /// item that operates on the data associated with whichever view currently
-    /// has focus. Each focusable view can supply its own object:
-    ///
-    ///     struct MessageView: View {
-    ///         @StateObject private var message = Message(...)
-    ///
-    ///         var body: some View {
-    ///             TextField(...)
-    ///                 .focusedObject(message)
-    ///         }
-    ///     }
-    ///
-    /// Interested views can then use the ``FocusedObject`` property wrapper to
-    /// observe and update the focused view's object. In this example, an app
-    /// command updates the focused view's data, and is automatically disabled
-    /// when focus is in an unrelated part of the scene:
-    ///
-    ///     struct MessageCommands: Commands {
-    ///         @FocusedObject private var message: Message?
-    ///
-    ///         var body: some Commands {
-    ///             CommandGroup(after: .pasteboard) {
-    ///                 Button("Add Duck to Message") {
-    ///                     message?.text.append(" 🦆")
-    ///                 }
-    ///                 .keyboardShortcut("d")
-    ///                 .disabled(message == nil)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - object: The observable object to associate with focus, or `nil` if
-    ///     no object is currently available.
-    /// - Returns: A view that supplies an observable object when in focus.
-    @inlinable public func focusedObject<T>(_ object: T?) -> some View where T : ObservableObject { return never() }
-
-
-    /// Creates a new view that exposes the provided object to other views whose
-    /// whose state depends on the active scene.
-    ///
-    /// Use this method instead of ``View/focusedObject(_:)`` for observable
-    /// objects that must be visible regardless of where focus is located in the
-    /// active scene. This is sometimes needed for things like main menu and
-    /// discoverability HUD commands that observe and update data from the
-    /// active scene but aren't concerned with what the user is actually focused
-    /// on. The scene's root view can supply the scene's state object:
-    ///
-    ///     struct RootView: View {
-    ///         @StateObject private var sceneData = SceneData()
-    ///
-    ///         var body: some View {
-    ///             NavigationSplitView {
-    ///                 ...
-    ///             }
-    ///             .focusedSceneObject(sceneData)
-    ///         }
-    ///     }
-    ///
-    /// Interested views can then use the ``FocusedObject`` property wrapper to
-    /// observe and update the active scene's state object. In this example, an
-    /// app command updates the active scene's data, and is enabled as long as
-    /// any scene is active.
-    ///
-    ///     struct MessageCommands: Commands {
-    ///         @FocusedObject private var sceneData: SceneData?
-    ///
-    ///         var body: some Commands {
-    ///             CommandGroup(after: .newItem) {
-    ///                 Button("New Message") {
-    ///                     sceneData?.addMessage()
-    ///                 }
-    ///                 .keyboardShortcut("n", modifiers: [.option, .command])
-    ///                 .disabled(sceneData == nil)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - object: The observable object to associate with the scene.
-    /// - Returns: A view that supplies an observable object while the scene
-    ///   is active.
-    @inlinable public func focusedSceneObject<T>(_ object: T) -> some View where T : ObservableObject { return never() }
-
-
-    /// Creates a new view that exposes the provided object to other views whose
-    /// whose state depends on the active scene.
-    ///
-    /// Use this method instead of ``View/focusedObject(_:)`` for observable
-    /// objects that must be visible regardless of where focus is located in the
-    /// active scene. This is sometimes needed for things like main menu and
-    /// discoverability HUD commands that observe and update data from the
-    /// active scene but aren't concerned with what the user is actually focused
-    /// on. The scene's root view can supply the scene's state object:
-    ///
-    ///     struct RootView: View {
-    ///         @StateObject private var sceneData = SceneData()
-    ///
-    ///         var body: some View {
-    ///             NavigationSplitView {
-    ///                 ...
-    ///             }
-    ///             .focusedSceneObject(sceneData)
-    ///         }
-    ///     }
-    ///
-    /// Interested views can then use the ``FocusedObject`` property wrapper to
-    /// observe and update the active scene's state object. In this example, an
-    /// app command updates the active scene's data, and is enabled as long as
-    /// any scene is active.
-    ///
-    ///     struct MessageCommands: Commands {
-    ///         @FocusedObject private var sceneData: SceneData?
-    ///
-    ///         var body: some Commands {
-    ///             CommandGroup(after: .newItem) {
-    ///                 Button("New Message") {
-    ///                     sceneData?.addMessage()
-    ///                 }
-    ///                 .keyboardShortcut("n", modifiers: [.option, .command])
-    ///                 .disabled(sceneData == nil)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - object: The observable object to associate with the scene, or `nil`
-    ///     if no object is currently available.
-    /// - Returns: A view that supplies an observable object while the scene
-    ///   is active.
-    @inlinable public func focusedSceneObject<T>(_ object: T?) -> some View where T : ObservableObject { return never() }
+    public func keyframeAnimator<Value>(initialValue: Value, repeating: Bool = true, @ViewBuilder content: @escaping @Sendable (PlaceholderContentView<Self>, Value) -> some View, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> some Keyframes) -> some View { return stubView() }
 
 }
 
@@ -1549,7 +1203,7 @@ extension View {
     ///
     /// - Returns: A view that occupies the specified number of columns in a
     ///   grid row.
-    @inlinable public func gridCellColumns(_ count: Int) -> some View { return never() }
+    @inlinable public func gridCellColumns(_ count: Int) -> some View { return stubView() }
 
 
     /// Specifies a custom alignment anchor for a view that acts as a grid cell.
@@ -1660,7 +1314,7 @@ extension View {
     ///
     /// - Returns: A view that uses the specified anchor point to align its
     ///   content.
-    @inlinable public func gridCellAnchor(_ anchor: UnitPoint) -> some View { return never() }
+    @inlinable public func gridCellAnchor(_ anchor: UnitPoint) -> some View { return stubView() }
 
 
     /// Overrides the default horizontal alignment of the grid column that
@@ -1726,7 +1380,7 @@ extension View {
     /// - Returns: A view that uses the specified horizontal alignment, and
     ///   that causes all cells in the same column of a grid to use the
     ///   same alignment.
-    @inlinable public func gridColumnAlignment(_ guide: HorizontalAlignment) -> some View { return never() }
+    @inlinable public func gridColumnAlignment(_ guide: HorizontalAlignment) -> some View { return stubView() }
 
 
     /// Asks grid layouts not to offer the view extra size in the specified
@@ -1788,7 +1442,7 @@ extension View {
     ///
     /// - Returns: A view that doesn't ask an enclosing grid for extra size
     ///   in one or more axes.
-    @inlinable public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return never() }
+    @inlinable public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return stubView() }
 
 }
 
@@ -1810,7 +1464,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - invalidatable: Whether the receiver content might be invalidated.
-    public func invalidatableContent(_ invalidatable: Bool = true) -> some View { return never() }
+    public func invalidatableContent(_ invalidatable: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -1866,7 +1520,7 @@ extension View {
     ///             }
     ///     }
     ///
-    public func accessibilityAction<Label>(action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label : View { return never() }
+    public func accessibilityAction<Label>(action: @escaping () -> Void, @ViewBuilder label: () -> Label) -> some View where Label : View { return stubView() }
 
 }
 
@@ -1902,7 +1556,7 @@ extension View {
     ///                 }
     ///             }
     ///
-    public func accessibilityActions<Content>(@ViewBuilder _ content: () -> Content) -> some View where Content : View { return never() }
+    public func accessibilityActions<Content>(@ViewBuilder _ content: () -> Content) -> some View where Content : View { return stubView() }
 
 }
 
@@ -1946,7 +1600,7 @@ extension View {
     /// Sets the style for the tab view within the current environment.
     ///
     /// - Parameter style: The style to apply to this tab view.
-    public func tabViewStyle<S>(_ style: S) -> some View where S : TabViewStyle { return never() }
+    public func tabViewStyle<S>(_ style: S) -> some View where S : TabViewStyle { return stubView() }
 
 }
 
@@ -1990,7 +1644,7 @@ extension View {
     ///   - entries: Content used to generate Rotor entries. This can
     ///     include AccessibilityRotorEntry structs, as well as constructs such
     ///     as if and ForEach.
-    public func accessibilityRotor<Content>(_ label: Text, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return never() }
+    public func accessibilityRotor<Content>(_ label: Text, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return stubView() }
 
 
     /// Create an Accessibility Rotor replacing the specified system-provided
@@ -2029,7 +1683,7 @@ extension View {
     ///   - entries: Content used to generate Rotor entries. This can
     ///     include AccessibilityRotorEntry structs, as well as constructs such
     ///     as if and ForEach.
-    public func accessibilityRotor<Content>(_ systemRotor: AccessibilitySystemRotor, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return never() }
+    public func accessibilityRotor<Content>(_ systemRotor: AccessibilitySystemRotor, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2073,7 +1727,7 @@ extension View {
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel>(_ rotorLabel: Text, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return never() }
+    public func accessibilityRotor<EntryModel>(_ rotorLabel: Text, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2118,7 +1772,7 @@ extension View {
     ///   - entryLabel: Key path on the entry type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel, ID>(_ rotorLabel: Text, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return never() }
+    public func accessibilityRotor<EntryModel, ID>(_ rotorLabel: Text, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return stubView() }
 
 
     /// Create an Accessibility Rotor replacing the specified system-provided
@@ -2168,7 +1822,7 @@ extension View {
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel>(_ systemRotor: AccessibilitySystemRotor, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return never() }
+    public func accessibilityRotor<EntryModel>(_ systemRotor: AccessibilitySystemRotor, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return stubView() }
 
 
     /// Create an Accessibility Rotor replacing the specified system-provided
@@ -2223,7 +1877,7 @@ extension View {
     ///   - entryLabel: Key path on the entry type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel, ID>(_ systemRotor: AccessibilitySystemRotor, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return never() }
+    public func accessibilityRotor<EntryModel, ID>(_ systemRotor: AccessibilitySystemRotor, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2256,7 +1910,7 @@ extension View {
     ///   - label: Localized label identifying this Rotor to the user.
     ///   - textRanges: An array of ranges that will be used to generate
     ///     the entries of the Rotor.
-    public func accessibilityRotor(_ label: Text, textRanges: [Range<String.Index>]) -> some View { return never() }
+    public func accessibilityRotor(_ label: Text, textRanges: [Range<String.Index>]) -> some View { return stubView() }
 
 
     /// Create an Accessibility Rotor replacing the specified system-provided
@@ -2290,7 +1944,7 @@ extension View {
     ///     by this custom Rotor.
     ///   - textRanges: An array of ranges that will be used to generate
     ///     the entries of the Rotor.
-    public func accessibilityRotor(_ systemRotor: AccessibilitySystemRotor, textRanges: [Range<String.Index>]) -> some View { return never() }
+    public func accessibilityRotor(_ systemRotor: AccessibilitySystemRotor, textRanges: [Range<String.Index>]) -> some View { return stubView() }
 
 }
 
@@ -2334,7 +1988,7 @@ extension View {
     ///   - entries: Content used to generate Rotor entries. This can
     ///     include AccessibilityRotorEntry structs, as well as constructs such
     ///     as if and ForEach.
-    public func accessibilityRotor<Content>(_ labelKey: LocalizedStringKey, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return never() }
+    public func accessibilityRotor<Content>(_ labelKey: LocalizedStringKey, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where Content : AccessibilityRotorContent { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label,
@@ -2374,7 +2028,7 @@ extension View {
     ///   - entries: Content used to generate Rotor entries. This can
     ///     include AccessibilityRotorEntry structs, as well as constructs such
     ///     as if and ForEach.
-    public func accessibilityRotor<L, Content>(_ label: L, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where L : StringProtocol, Content : AccessibilityRotorContent { return never() }
+    public func accessibilityRotor<L, Content>(_ label: L, @AccessibilityRotorContentBuilder entries: @escaping () -> Content) -> some View where L : StringProtocol, Content : AccessibilityRotorContent { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2419,7 +2073,7 @@ extension View {
     ///   - entryLabel: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel>(_ rotorLabelKey: LocalizedStringKey, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return never() }
+    public func accessibilityRotor<EntryModel>(_ rotorLabelKey: LocalizedStringKey, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where EntryModel : Identifiable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2463,7 +2117,7 @@ extension View {
     ///   - entry: Key path on the `Identifiable` type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<L, EntryModel>(_ rotorLabel: L, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where L : StringProtocol, EntryModel : Identifiable { return never() }
+    public func accessibilityRotor<L, EntryModel>(_ rotorLabel: L, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View where L : StringProtocol, EntryModel : Identifiable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2508,7 +2162,7 @@ extension View {
     ///   - entryLabel: Key path on the entry type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<EntryModel, ID>(_ rotorLabelKey: LocalizedStringKey, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return never() }
+    public func accessibilityRotor<EntryModel, ID>(_ rotorLabelKey: LocalizedStringKey, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where ID : Hashable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2552,7 +2206,7 @@ extension View {
     ///   - entryLabel: Key path on the entry type that can be
     ///     used to get a user-visible label for every Rotor entry. This is used
     ///     on macOS when the user opens the list of entries for the Rotor.
-    public func accessibilityRotor<L, EntryModel, ID>(_ rotorLabel: L, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where L : StringProtocol, ID : Hashable { return never() }
+    public func accessibilityRotor<L, EntryModel, ID>(_ rotorLabel: L, entries: [EntryModel], entryID: KeyPath<EntryModel, ID>, entryLabel: KeyPath<EntryModel, String>) -> some View where L : StringProtocol, ID : Hashable { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2585,7 +2239,7 @@ extension View {
     ///   - labelKey: Localized label identifying this Rotor to the user.
     ///   - textRanges: An array of ranges that will be used to generate
     ///     the entries of the Rotor.
-    public func accessibilityRotor(_ labelKey: LocalizedStringKey, textRanges: [Range<String.Index>]) -> some View { return never() }
+    public func accessibilityRotor(_ labelKey: LocalizedStringKey, textRanges: [Range<String.Index>]) -> some View { return stubView() }
 
 
     /// Create an Accessibility Rotor with the specified user-visible label
@@ -2618,7 +2272,7 @@ extension View {
     ///   - label: Localized label identifying this Rotor to the user.
     ///   - textRanges: An array of ranges that will be used to generate
     ///     the entries of the Rotor.
-    public func accessibilityRotor<L>(_ label: L, textRanges: [Range<String.Index>]) -> some View where L : StringProtocol { return never() }
+    public func accessibilityRotor<L>(_ label: L, textRanges: [Range<String.Index>]) -> some View where L : StringProtocol { return stubView() }
 
 }
 
@@ -2656,386 +2310,7 @@ extension View {
     /// - Parameter isDisabled: A Boolean value that determines whether users can
     ///   select this view.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func selectionDisabled(_ isDisabled: Bool = true) -> some View { return never() }
-
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension View {
-
-    /// Modifies this view by binding its focus state to the given state value.
-    ///
-    /// Use this modifier to cause the view to receive focus whenever the
-    /// the `binding` equals the `value`. Typically, you create an enumeration
-    /// of fields that may receive focus, bind an instance of this enumeration,
-    /// and assign its cases to focusable views.
-    ///
-    /// The following example uses the cases of a `LoginForm` enumeration to
-    /// bind the focus state of two ``TextField`` views. A sign-in button
-    /// validates the fields and sets the bound `focusedField` value to
-    /// any field that requires the user to correct a problem.
-    ///
-    ///     struct LoginForm {
-    ///         enum Field: Hashable {
-    ///             case usernameField
-    ///             case passwordField
-    ///         }
-    ///
-    ///         @State private var username = ""
-    ///         @State private var password = ""
-    ///         @FocusState private var focusedField: Field?
-    ///
-    ///         var body: some View {
-    ///             Form {
-    ///                 TextField("Username", text: $username)
-    ///                     .focused($focusedField, equals: .usernameField)
-    ///
-    ///                 SecureField("Password", text: $password)
-    ///                     .focused($focusedField, equals: .passwordField)
-    ///
-    ///                 Button("Sign In") {
-    ///                     if username.isEmpty {
-    ///                         focusedField = .usernameField
-    ///                     } else if password.isEmpty {
-    ///                         focusedField = .passwordField
-    ///                     } else {
-    ///                         handleLogin(username, password)
-    ///                     }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// To control focus using a Boolean, use the ``View/focused(_:)`` method
-    /// instead.
-    ///
-    /// - Parameters:
-    ///   - binding: The state binding to register. When focus moves to the
-    ///     modified view, the binding sets the bound value to the corresponding
-    ///     match value. If a caller sets the state value programmatically to the
-    ///     matching value, then focus moves to the modified view. When focus
-    ///     leaves the modified view, the binding sets the bound value to
-    ///     `nil`. If a caller sets the value to `nil`, SkipUI automatically
-    ///     dismisses focus.
-    ///   - value: The value to match against when determining whether the
-    ///     binding should change.
-    /// - Returns: The modified view.
-    public func focused<Value>(_ binding: FocusState<Value>.Binding, equals value: Value) -> some View where Value : Hashable { return never() }
-
-
-    /// Modifies this view by binding its focus state to the given Boolean state
-    /// value.
-    ///
-    /// Use this modifier to cause the view to receive focus whenever the
-    /// the `condition` value is `true`. You can use this modifier to
-    /// observe the focus state of a single view, or programmatically set and
-    /// remove focus from the view.
-    ///
-    /// In the following example, a single ``TextField`` accepts a user's
-    /// desired `username`. The text field binds its focus state to the
-    /// Boolean value `usernameFieldIsFocused`. A "Submit" button's action
-    /// verifies whether the name is available. If the name is unavailable, the
-    /// button sets `usernameFieldIsFocused` to `true`, which causes focus to
-    /// return to the text field, so the user can enter a different name.
-    ///
-    ///     @State private var username: String = ""
-    ///     @FocusState private var usernameFieldIsFocused: Bool
-    ///     @State private var showUsernameTaken = false
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             TextField("Choose a username.", text: $username)
-    ///                 .focused($usernameFieldIsFocused)
-    ///             if showUsernameTaken {
-    ///                 Text("That username is taken. Please choose another.")
-    ///             }
-    ///             Button("Submit") {
-    ///                 showUsernameTaken = false
-    ///                 if !isUserNameAvailable(username: username) {
-    ///                     usernameFieldIsFocused = true
-    ///                     showUsernameTaken = true
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// To control focus by matching a value, use the
-    /// ``View/focused(_:equals:)`` method instead.
-    ///
-    /// - Parameter condition: The focus state to bind. When focus moves
-    ///   to the view, the binding sets the bound value to `true`. If a caller
-    ///   sets the value to  `true` programmatically, then focus moves to the
-    ///   modified view. When focus leaves the modified view, the binding
-    ///   sets the value to `false`. If a caller sets the value to `false`,
-    ///   SkipUI automatically dismisses focus.
-    ///
-    /// - Returns: The modified view.
-    public func focused(_ condition: FocusState<Bool>.Binding) -> some View { return never() }
-
-}
-
-@available(iOS 13.0, macOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Hides the navigation bar for this view.
-    ///
-    /// Use `navigationBarHidden(_:)` to hide the navigation bar. This modifier
-    /// only takes effect when this view is inside of and visible within a
-    /// ``NavigationView``.
-    ///
-    /// - Parameter hidden: A Boolean value that indicates whether to hide the
-    ///   navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    public func navigationBarHidden(_ hidden: Bool) -> some View { return never() }
-
-
-    /// Sets the title in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar.
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// The example below shows setting the title of the navigation bar using a
-    /// ``Text`` view:
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(Text("Today's Flavors"))
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![A screenshot showing the title of a navigation bar configured using a
-    /// text view.](SkipUI-navigationBarTitle-Text.png)
-    ///
-    /// - Parameter title: A description of this view to display in the
-    ///   navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle(_ title: Text) -> some View { return never() }
-
-
-    /// Sets the title of this view's navigation bar with a localized string.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
-    /// using a ``LocalizedStringKey`` that will be used to search for a
-    /// matching localized string in the application's localizable strings
-    /// assets.
-    ///
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, a string constant is used to access a
-    /// ``LocalizedStringKey`` that will be resolved at run time to provide a
-    /// title for the navigation bar. If the localization key cannot be
-    /// resolved, the text of the key name will be used as the title text.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle("Today's Flavors")
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameter titleKey: A key to a localized description of this view to
-    ///   display in the navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle(_ titleKey: LocalizedStringKey) -> some View { return never() }
-
-
-    /// Sets the title of this view's navigation bar with a string.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
-    /// using a `String`. This modifier only takes effect when this view is
-    /// inside of and visible within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a string:
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         let text = "Today's Flavors"
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(text)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameter title: A title for this view to display in the navigation
-    ///   bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle<S>(_ title: S) -> some View where S : StringProtocol { return never() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the title
-    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
-    /// modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a ``Text`` view. The navigation bar title's
-    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
-    /// the navigation bar title in the bounds of the navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///        let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                     "Pistachio"]
-    ///        var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(Text("Today's Flavors", displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: A title for this view to display in the navigation bar.
-    ///   - displayMode: The style to use for displaying the navigation bar title.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle(_ title: Text, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return never() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the title
-    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
-    /// modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a string. The navigation bar title's
-    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
-    /// the navigation bar title in the bounds of the navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle("Today's Flavors", displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// If the `titleKey` can't be found, the title uses the text of the key
-    /// name instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: A key to a localized description of this view to display
-    ///     in the navigation bar.
-    ///   - displayMode: The style to use for displaying the navigation bar
-    ///     title.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle(_ titleKey: LocalizedStringKey, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return never() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the
-    /// title from one of the `NavigationBarItem.Title.DisplayMode`
-    /// styles. This modifier only takes effect when this view is inside of and
-    /// visible within a `NavigationView`.
-    ///
-    /// In the example below, `navigationBarTitle(_:displayMode:)` uses a
-    /// string to provide a title for the navigation bar. Setting the title's
-    /// `displayMode` to `.inline` places the navigation bar title within the
-    /// bounds of the navigation bar.
-    ///
-    /// In the example below, text for the navigation bar title is provided using
-    /// a string. The navigation bar title's `displayMode` is set to
-    /// `.inline` which places the navigation bar title in the bounds of the
-    /// navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         let title = "Today's Flavors"
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(title, displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![A screenshot of a navigation bar, showing the title within the bounds
-    ///  of the navigation bar]
-    /// (SkipUI-navigationBarTitle-stringProtocol.png)
-    ///
-    /// - Parameters:
-    ///   - title: A title for this view to display in the navigation bar.
-    ///   - displayMode: The way to display the title.
-    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle<S>(_ title: S, displayMode: NavigationBarItem.TitleDisplayMode) -> some View where S : StringProtocol { return never() }
-
-
-    /// Hides the navigation bar back button for the view.
-    ///
-    /// Use `navigationBarBackButtonHidden(_:)` to hide the back button for this
-    /// view.
-    ///
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// - Parameter hidesBackButton: A Boolean value that indicates whether to
-    ///   hide the back button. The default value is `true`.
-    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View { return never() }
+    public func selectionDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -3109,7 +2384,7 @@ extension View {
     ///         var shape: RoundedRectangle { RoundedRectangle(cornerRadius: 20) }
     ///     }
     ///
-    @inlinable public func containerShape<T>(_ shape: T) -> some View where T : InsettableShape { return never() }
+    @inlinable public func containerShape<T>(_ shape: T) -> some View where T : InsettableShape { return stubView() }
 
 }
 
@@ -3141,7 +2416,7 @@ extension View {
     ///
     /// - Parameter content: The content associated to the toolbar title menu.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarTitleMenu<C>(@ViewBuilder content: () -> C) -> some View where C : View { return never() }
+    public func toolbarTitleMenu<C>(@ViewBuilder content: () -> C) -> some View where C : View { return stubView() }
 
 }
 
@@ -3156,7 +2431,7 @@ extension View {
     ///
     /// - Parameter active: A true value ignores the system Smart Invert
     ///   setting. A false value follows the system setting.
-    @inlinable public func accessibilityIgnoresInvertColors(_ active: Bool = true) -> some View { return never() }
+    @inlinable public func accessibilityIgnoresInvertColors(_ active: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -3166,7 +2441,7 @@ extension View {
 extension View {
 
     /// Sets the style for text editors within this view.
-    public func textEditorStyle(_ style: some TextEditorStyle) -> some View { return never() }
+    public func textEditorStyle(_ style: some TextEditorStyle) -> some View { return stubView() }
 
 }
 
@@ -3174,7 +2449,7 @@ extension View {
 extension View {
 
     /// Configures whether this view participates in hit test operations.
-    @inlinable public func allowsHitTesting(_ enabled: Bool) -> some View { return never() }
+    @inlinable public func allowsHitTesting(_ enabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -3192,7 +2467,7 @@ extension View {
     ///   call has no effect.
     ///
     /// - Returns: A view that triggers `action` before it appears.
-    @inlinable public func onAppear(perform action: (() -> Void)? = nil) -> some View { return never() }
+    @inlinable public func onAppear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
 
 
     /// Adds an action to perform after this view disappears.
@@ -3206,7 +2481,7 @@ extension View {
     ///   call has no effect.
     ///
     /// - Returns: A view that triggers `action` after it disappears.
-    @inlinable public func onDisappear(perform action: (() -> Void)? = nil) -> some View { return never() }
+    @inlinable public func onDisappear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
 
 }
 
@@ -3262,7 +2537,7 @@ extension View {
     ///     }
     ///
     /// - Parameter effect: The type of effect to apply when a palette item is selected.
-    public func paletteSelectionEffect(_ effect: PaletteSelectionEffect) -> some View { return never() }
+    public func paletteSelectionEffect(_ effect: PaletteSelectionEffect) -> some View { return stubView() }
 
 }
 
@@ -3274,248 +2549,6 @@ extension View where Self : Equatable {
     @inlinable public func equatable() -> EquatableView<Self> { fatalError() }
 }
 
-@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Sets the style for menus within this view.
-    ///
-    /// To set a specific style for all menu instances within a view, use the
-    /// `menuStyle(_:)` modifier:
-    ///
-    ///     Menu("PDF") {
-    ///         Button("Open in Preview", action: openInPreview)
-    ///         Button("Save as PDF", action: saveAsPDF)
-    ///     }
-    ///     .menuStyle(ButtonMenuStyle())
-    ///
-    public func menuStyle<S>(_ style: S) -> some View where S : MenuStyle { return never() }
-
-}
-
-@available(iOS 17.0, watchOS 10.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Sets the spacing between adjacent sections in a List.
-    ///
-    /// Pass `.default` for the default spacing, or use `.compact` for
-    /// a compact appearance between sections.
-    ///
-    /// The following example creates a List with compact spacing between
-    /// sections:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///     .listSectionSpacing(.compact)
-    @inlinable public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { return never() }
-
-
-    /// Sets the spacing to a custom value between adjacent sections in a List.
-    ///
-    /// The following example creates a List with 5 pts of spacing between
-    /// sections:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///     .listSectionSpacing(5.0)
-    ///
-    /// Spacing can also be specified on a per-section basis. The following
-    /// example creates a List with compact spacing for its second section:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Borders") {
-    ///             Text("Dashed")
-    ///             Text("Solid")
-    ///         }
-    ///         .listSectionSpacing(.compact)
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///
-    /// If adjacent sections have different spacing value, the smaller value on
-    /// the shared edge is used. Spacing specified inside the List is preferred
-    /// over any List-wide value.
-    ///
-    /// - Parameter spacing: the amount of spacing to apply.
-    @inlinable public func listSectionSpacing(_ spacing: CGFloat) -> some View { return never() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Attaches a gesture to the view with a lower precedence than gestures
-    /// defined by the view.
-    ///
-    /// Use this method when you need to attach a gesture to a view. The
-    /// example below defines a custom gesture that prints a message to the
-    /// console and attaches it to the view's ``VStack``. Inside the ``VStack``
-    /// a red heart ``Image`` defines its own ``TapGesture``
-    /// handler that also prints a message to the console, and blue rectangle
-    /// with no custom gesture handlers. Tapping or clicking the image
-    /// prints a message to the console from the tap gesture handler on the
-    /// image, while tapping or clicking  the rectangle inside the ``VStack``
-    /// prints a message in the console from the enclosing vertical stack
-    /// gesture handler.
-    ///
-    ///     struct GestureExample: View {
-    ///         @State private var message = "Message"
-    ///         let newGesture = TapGesture().onEnded {
-    ///             print("Tap on VStack.")
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing:25) {
-    ///                 Image(systemName: "heart.fill")
-    ///                     .resizable()
-    ///                     .frame(width: 75, height: 75)
-    ///                     .padding()
-    ///                     .foregroundColor(.red)
-    ///                     .onTapGesture {
-    ///                         print("Tap on image.")
-    ///                     }
-    ///                 Rectangle()
-    ///                     .fill(Color.blue)
-    ///             }
-    ///             .gesture(newGesture)
-    ///             .frame(width: 200, height: 200)
-    ///             .border(Color.purple)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///    - gesture: A gesture to attach to the view.
-    ///    - mask: A value that controls how adding this gesture to the view
-    ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SkipUI/GestureMask/all``.
-    public func gesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
-
-
-    /// Attaches a gesture to the view with a higher precedence than gestures
-    /// defined by the view.
-    ///
-    /// Use this method when you need to define a high priority gesture
-    /// to take precedence over the view's existing gestures. The
-    /// example below defines a custom gesture that prints a message to the
-    /// console and attaches it to the view's ``VStack``. Inside the ``VStack``
-    /// a red heart ``Image`` defines its own ``TapGesture`` handler that
-    /// also prints a message to the console, and a blue rectangle
-    /// with no custom gesture handlers. Tapping or clicking any of the
-    /// views results in a console message from the high priority gesture
-    /// attached to the enclosing ``VStack``.
-    ///
-    ///     struct HighPriorityGestureExample: View {
-    ///         @State private var message = "Message"
-    ///         let newGesture = TapGesture().onEnded {
-    ///             print("Tap on VStack.")
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing:25) {
-    ///                 Image(systemName: "heart.fill")
-    ///                     .resizable()
-    ///                     .frame(width: 75, height: 75)
-    ///                     .padding()
-    ///                     .foregroundColor(.red)
-    ///                     .onTapGesture {
-    ///                         print("Tap on image.")
-    ///                     }
-    ///                 Rectangle()
-    ///                     .fill(Color.blue)
-    ///             }
-    ///             .highPriorityGesture(newGesture)
-    ///             .frame(width: 200, height: 200)
-    ///             .border(Color.purple)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///    - gesture: A gesture to attach to the view.
-    ///    - mask: A value that controls how adding this gesture to the view
-    ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SkipUI/GestureMask/all``.
-    public func highPriorityGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
-
-
-    /// Attaches a gesture to the view to process simultaneously with gestures
-    /// defined by the view.
-    ///
-    /// Use this method when you need to define and process  a view specific
-    /// gesture simultaneously with the same priority as the
-    /// view's existing gestures. The example below defines a custom gesture
-    /// that prints a message to the console and attaches it to the view's
-    /// ``VStack``. Inside the ``VStack`` is a red heart ``Image`` defines its
-    /// own ``TapGesture`` handler that also prints a message to the console
-    /// and a blue rectangle with no custom gesture handlers.
-    ///
-    /// Tapping or clicking the "heart" image sends two messages to the
-    /// console: one for the image's tap gesture handler, and the other from a
-    /// custom gesture handler attached to the enclosing vertical stack.
-    /// Tapping or clicking on the blue rectangle results only in the single
-    /// message to the console from the tap recognizer attached to the
-    /// ``VStack``:
-    ///
-    ///     struct SimultaneousGestureExample: View {
-    ///         @State private var message = "Message"
-    ///         let newGesture = TapGesture().onEnded {
-    ///             print("Gesture on VStack.")
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing:25) {
-    ///                 Image(systemName: "heart.fill")
-    ///                     .resizable()
-    ///                     .frame(width: 75, height: 75)
-    ///                     .padding()
-    ///                     .foregroundColor(.red)
-    ///                     .onTapGesture {
-    ///                         print("Gesture on image.")
-    ///                     }
-    ///                 Rectangle()
-    ///                     .fill(Color.blue)
-    ///             }
-    ///             .simultaneousGesture(newGesture)
-    ///             .frame(width: 200, height: 200)
-    ///             .border(Color.purple)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///    - gesture: A gesture to attach to the view.
-    ///    - mask: A value that controls how adding this gesture to the view
-    ///      affects other gestures recognized by the view and its subviews.
-    ///      Defaults to ``SkipUI/GestureMask/all``.
-    public func simultaneousGesture<T>(_ gesture: T, including mask: GestureMask = .all) -> some View where T : Gesture { return never() }
-
-}
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension View {
 
@@ -3543,7 +2576,7 @@ extension View {
     ///   - animation: A closure that returns the animation to use when
     ///     transitioning to the next phase. If `nil` is returned, the
     ///     transition will not be animated.
-    public func phaseAnimator<Phase>(_ phases: some Sequence, trigger: some Equatable, @ViewBuilder content: @escaping (PlaceholderContentView<Self>, Phase) -> some View, animation: @escaping (Phase) -> Animation? = { _ in .default }) -> some View where Phase : Equatable { return never() }
+    public func phaseAnimator<Phase>(_ phases: some Sequence, trigger: some Equatable, @ViewBuilder content: @escaping (PlaceholderContentView<Self>, Phase) -> some View, animation: @escaping (Phase) -> Animation? = { _ in .default }) -> some View where Phase : Equatable { return stubView() }
 
 
     /// Cycles through the given phases continuously, updating the content
@@ -3569,7 +2602,7 @@ extension View {
     ///   - animation: A closure that returns the animation to use when
     ///     transitioning to the next phase. If `nil` is returned, the
     ///     transition will not be animated.
-    public func phaseAnimator<Phase>(_ phases: some Sequence, @ViewBuilder content: @escaping (PlaceholderContentView<Self>, Phase) -> some View, animation: @escaping (Phase) -> Animation? = { _ in .default }) -> some View where Phase : Equatable { return never() }
+    public func phaseAnimator<Phase>(_ phases: some Sequence, @ViewBuilder content: @escaping (PlaceholderContentView<Self>, Phase) -> some View, animation: @escaping (Phase) -> Animation? = { _ in .default }) -> some View where Phase : Equatable { return stubView() }
 
 }
 
@@ -3592,7 +2625,7 @@ extension View {
     ///
     /// - Parameter spacing: The spacing value to use. A value of `nil` uses
     ///   the default spacing.
-    @inlinable public func listRowSpacing(_ spacing: CGFloat?) -> some View { return never() }
+    @inlinable public func listRowSpacing(_ spacing: CGFloat?) -> some View { return stubView() }
 
 }
 
@@ -3610,7 +2643,7 @@ extension View {
     ///   - transform: the function to produce the preference value.
     ///
     /// - Returns: a new version of the view that writes the preference.
-    @inlinable public func transformAnchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (inout K.Value, Anchor<A>) -> Void) -> some View where K : PreferenceKey { return never() }
+    @inlinable public func transformAnchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (inout K.Value, Anchor<A>) -> Void) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -3621,11 +2654,11 @@ extension View {
     ///
     /// Adding a redaction is an additive process: any redaction
     /// provided will be added to the reasons provided by the parent.
-    public func redacted(reason: RedactionReasons) -> some View { return never() }
+    public func redacted(reason: RedactionReasons) -> some View { return stubView() }
 
 
     /// Removes any reason to apply a redaction to this view hierarchy.
-    public func unredacted() -> some View { return never() }
+    public func unredacted() -> some View { return stubView() }
 
 }
 
@@ -3676,7 +2709,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
-    @inlinable public func background<Background>(_ background: Background, alignment: Alignment = .center) -> some View where Background : View { return never() }
+    @inlinable public func background<Background>(_ background: Background, alignment: Alignment = .center) -> some View where Background : View { return stubView() }
 
 }
 
@@ -3807,7 +2840,7 @@ extension View {
     ///     The last view that you list appears at the front of the stack.
     ///
     /// - Returns: A view that uses the specified content as a background.
-    @inlinable public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    @inlinable public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Sets the view's background to the default background style.
@@ -3847,7 +2880,7 @@ extension View {
     ///
     /// - Returns: A view with the ``ShapeStyle/background`` shape style
     ///   drawn behind it.
-    @inlinable public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View { return never() }
+    @inlinable public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View { return stubView() }
 
 
     /// Sets the view's background to a style.
@@ -3909,7 +2942,7 @@ extension View {
     ///     Specify an empty set to respect safe area insets on all edges.
     ///
     /// - Returns: A view with the specified style drawn behind it.
-    @inlinable public func background<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func background<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the view's background to a shape filled with the
@@ -3959,7 +2992,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn behind it.
-    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : Shape { return never() }
+    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
 
 
     /// Sets the view's background to a shape filled with a style.
@@ -4004,7 +3037,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn behind it.
-    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return never() }
+    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
 
 
     /// Sets the view's background to an insettable shape filled with the
@@ -4046,7 +3079,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified insettable shape drawn behind it.
-    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : InsettableShape { return never() }
+    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : InsettableShape { return stubView() }
 
 
     /// Sets the view's background to an insettable shape filled with a style.
@@ -4083,7 +3116,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified insettable shape drawn behind it.
-    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : InsettableShape { return never() }
+    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : InsettableShape { return stubView() }
 
 }
 
@@ -4114,7 +3147,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
-    @inlinable public func overlay<Overlay>(_ overlay: Overlay, alignment: Alignment = .center) -> some View where Overlay : View { return never() }
+    @inlinable public func overlay<Overlay>(_ overlay: Overlay, alignment: Alignment = .center) -> some View where Overlay : View { return stubView() }
 
 
     /// Adds a border to this view with the specified style and width.
@@ -4149,7 +3182,7 @@ extension View {
     ///
     /// - Returns: A view that adds a border with the specified style and width
     ///   to this view.
-    @inlinable public func border<S>(_ content: S, width: CGFloat = 1) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func border<S>(_ content: S, width: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -4271,7 +3304,7 @@ extension View {
     ///     The last view that you list appears at the front of the stack.
     ///
     /// - Returns: A view that uses the specified content as a foreground.
-    @inlinable public func overlay<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    @inlinable public func overlay<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Layers the specified style in front of this view.
@@ -4330,7 +3363,7 @@ extension View {
     ///     Specify an empty set to respect safe area insets on all edges.
     ///
     /// - Returns: A view with the specified style drawn in front of it.
-    @inlinable public func overlay<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func overlay<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Layers a shape that you specify in front of this view.
@@ -4369,65 +3402,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn in front of it.
-    @inlinable public func overlay<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return never() }
-
-}
-
-extension View {
-
-    /// Tells a menu whether to dismiss after performing an action.
-    ///
-    /// Use this modifier to control the dismissal behavior of a menu.
-    /// In the example below, the menu doesn't dismiss after someone
-    /// chooses either the increase or decrease action:
-    ///
-    ///     Menu("Font size") {
-    ///         Button(action: increase) {
-    ///             Label("Increase", systemImage: "plus.magnifyingglass")
-    ///         }
-    ///         .menuActionDismissBehavior(.disabled)
-    ///
-    ///         Button("Reset", action: reset)
-    ///
-    ///         Button(action: decrease) {
-    ///             Label("Decrease", systemImage: "minus.magnifyingglass")
-    ///         }
-    ///         .menuActionDismissBehavior(.disabled)
-    ///     }
-    ///
-    /// You can use this modifier on any controls that present a menu, like a
-    /// ``Picker`` that uses the ``PickerStyle/menu`` style or a
-    /// ``ControlGroup``. For example, the code below creates a picker that
-    /// disables dismissal when someone selects one of the options:
-    ///
-    ///     Picker("Flavor", selection: $selectedFlavor) {
-    ///         ForEach(Flavor.allCases) { flavor in
-    ///             Text(flavor.rawValue.capitalized)
-    ///                 .tag(flavor)
-    ///         }
-    ///     }
-    ///     .pickerStyle(.menu)
-    ///     .menuActionDismissBehavior(.disabled)
-    ///
-    /// You can also use this modifier on context menus. The example below
-    /// creates a context menu that stays presented after someone selects an
-    /// action to run:
-    ///
-    ///     Text("Favorite Card Suit")
-    ///         .padding()
-    ///         .contextMenu {
-    ///             Button("♥️ - Hearts", action: increaseHeartsCount)
-    ///             Button("♣️ - Clubs", action: increaseClubsCount)
-    ///             Button("♠️ - Spades", action: increaseSpadesCount)
-    ///             Button("♦️ - Diamonds", action: increaseDiamondsCount)
-    ///         }
-    ///         .menuActionDismissBehavior(.disabled)
-    ///
-    /// - Parameter dismissal: The menu action dismissal behavior to apply.
-    ///
-    /// - Returns: A view that has the specified menu dismissal behavior.
-    @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-    public func menuActionDismissBehavior(_ behavior: MenuActionDismissBehavior) -> some View { return never() }
+    @inlinable public func overlay<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
 
 }
 
@@ -4463,7 +3438,7 @@ extension View {
     ///
     /// - Returns: A view that constrains this view's dimensions to the aspect
     ///   ratio of the given size using `contentMode` as its scaling algorithm.
-    @inlinable public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View { return never() }
+    @inlinable public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View { return stubView() }
 
 
     /// Constrains this view's dimensions to the aspect ratio of the given size.
@@ -4493,7 +3468,7 @@ extension View {
     ///
     /// - Returns: A view that constrains this view's dimensions to
     ///   `aspectRatio`, using `contentMode` as its scaling algorithm.
-    @inlinable public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View { return never() }
+    @inlinable public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View { return stubView() }
 
 
     /// Scales this view to fit its parent.
@@ -4516,7 +3491,7 @@ extension View {
     ///
     /// - Returns: A view that scales this view to fit its parent, maintaining
     ///   this view's aspect ratio.
-    @inlinable public func scaledToFit() -> some View { return never() }
+    @inlinable public func scaledToFit() -> some View { return stubView() }
 
 
     /// Scales this view to fill its parent.
@@ -4539,7 +3514,7 @@ extension View {
     ///
     /// - Returns: A view that scales this view to fill its parent, maintaining
     ///   this view's aspect ratio.
-    @inlinable public func scaledToFill() -> some View { return never() }
+    @inlinable public func scaledToFill() -> some View { return stubView() }
 
 }
 
@@ -4598,7 +3573,7 @@ extension View {
     ///     the top most view, but the binding has a different view's identity.
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollPosition(id: Binding<(some Hashable)?>) -> some View { return never() }
+    public func scrollPosition(id: Binding<(some Hashable)?>) -> some View { return stubView() }
 
 }
 
@@ -4639,7 +3614,7 @@ extension View {
     /// modifier will have no effect.
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollPosition(initialAnchor: UnitPoint?) -> some View { return never() }
+    public func scrollPosition(initialAnchor: UnitPoint?) -> some View { return stubView() }
 
 }
 
@@ -4674,7 +3649,7 @@ extension View {
     ///
     /// - Returns: A view that fixes this view at its ideal size in the
     ///   dimensions specified by `horizontal` and `vertical`.
-    @inlinable public func fixedSize(horizontal: Bool, vertical: Bool) -> some View { return never() }
+    @inlinable public func fixedSize(horizontal: Bool, vertical: Bool) -> some View { return stubView() }
 
 
     /// Fixes this view at its ideal size.
@@ -4716,7 +3691,7 @@ extension View {
     /// vertical dimensions, see ``View/fixedSize(horizontal:vertical:)``.
     ///
     /// - Returns: A view that fixes this view at its ideal size.
-    @inlinable public func fixedSize() -> some View { return never() }
+    @inlinable public func fixedSize() -> some View { return stubView() }
 
 }
 
@@ -4761,7 +3736,7 @@ extension View {
     ///
     /// - Parameter behavior: Whether spring loading is enabled or not. If
     ///   unspecified, the default behavior is `.automatic.`
-    @inlinable public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some View { return never() }
+    @inlinable public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some View { return stubView() }
 
 }
 
@@ -4814,7 +3789,7 @@ extension View {
     ///   can deactivate the context menu by returning nothing from the closure.
     ///
     /// - Returns: A view that can display a context menu.
-    public func contextMenu<MenuItems>(@ViewBuilder menuItems: () -> MenuItems) -> some View where MenuItems : View { return never() }
+    public func contextMenu<MenuItems>(@ViewBuilder menuItems: () -> MenuItems) -> some View where MenuItems : View { return stubView() }
 
 }
 
@@ -4875,7 +3850,7 @@ extension View {
     ///   - preview: A view that the system displays along with the menu.
     ///
     /// - Returns: A view that can display a context menu with a preview.
-    public func contextMenu<M, P>(@ViewBuilder menuItems: () -> M, @ViewBuilder preview: () -> P) -> some View where M : View, P : View { return never() }
+    public func contextMenu<M, P>(@ViewBuilder menuItems: () -> M, @ViewBuilder preview: () -> P) -> some View where M : View, P : View { return stubView() }
 
 }
 
@@ -4924,7 +3899,7 @@ extension View {
     ///   present as menu items in a context menu.
     ///
     /// - Returns: A view that can show a context menu.
-    public func contextMenu<MenuItems>(_ contextMenu: ContextMenu<MenuItems>?) -> some View where MenuItems : View { return never() }
+    public func contextMenu<MenuItems>(_ contextMenu: ContextMenu<MenuItems>?) -> some View where MenuItems : View { return stubView() }
 
 }
 
@@ -4956,7 +3931,7 @@ extension View {
     /// - Returns: A view that limits the number of lines that ``Text``
     ///   instances display.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    @inlinable public func lineLimit(_ number: Int?) -> some View { return never() }
+    @inlinable public func lineLimit(_ number: Int?) -> some View { return stubView() }
 
 
     /// Sets to a partial range the number of lines that text can occupy in
@@ -4975,7 +3950,7 @@ extension View {
     ///
     /// - Parameter limit: The line limit.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View { return never() }
+    public func lineLimit(_ limit: PartialRangeFrom<Int>) -> some View { return stubView() }
 
 
     /// Sets to a partial range the number of lines that text can occupy
@@ -4997,7 +3972,7 @@ extension View {
     ///
     /// - Parameter limit: The line limit.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View { return never() }
+    public func lineLimit(_ limit: PartialRangeThrough<Int>) -> some View { return stubView() }
 
 
     /// Sets to a closed range the number of lines that text can occupy in
@@ -5016,7 +3991,7 @@ extension View {
     ///
     /// - Parameter limit: The line limit.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func lineLimit(_ limit: ClosedRange<Int>) -> some View { return never() }
+    public func lineLimit(_ limit: ClosedRange<Int>) -> some View { return stubView() }
 
 
     /// Sets a limit for the number of lines text can occupy in this view.
@@ -5043,7 +4018,7 @@ extension View {
     ///   it always occupies the height required to display the specified
     ///   number of lines.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View { return never() }
+    public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View { return stubView() }
 
 }
 
@@ -5064,7 +4039,7 @@ extension View {
     ///     .listStyle(.insetGrouped)
     ///
     /// - Parameter prominence: The prominence to apply.
-    public func headerProminence(_ prominence: Prominence) -> some View { return never() }
+    public func headerProminence(_ prominence: Prominence) -> some View { return stubView() }
 
 }
 
@@ -5072,46 +4047,10 @@ extension View {
 extension View {
 
     /// Sets the style for pickers within this view.
-    public func pickerStyle<S>(_ style: S) -> some View where S : PickerStyle { return never() }
+    public func pickerStyle<S>(_ style: S) -> some View where S : PickerStyle { return stubView() }
 
 }
 
-@available(iOS 15.0, macOS 12.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Sets the menu indicator visibility for controls within this view.
-    ///
-    /// Use this modifier to override the default menu indicator
-    /// visibility for controls in this view. For example, the code below
-    /// creates a menu without an indicator:
-    ///
-    ///     Menu {
-    ///         ForEach(history , id: \.self) { historyItem in
-    ///             Button(historyItem.title) {
-    ///                 self.openURL(historyItem.url)
-    ///             }
-    ///         }
-    ///     } label: {
-    ///         Label("Back", systemImage: "chevron.backward")
-    ///             .labelStyle(.iconOnly)
-    ///     } primaryAction: {
-    ///         if let last = history.last {
-    ///             self.openURL(last.url)
-    ///         }
-    ///     }
-    ///     .menuIndicator(.hidden)
-    ///
-    /// - Note: On tvOS, the standard button styles do not include a menu
-    ///         indicator, so this modifier will have no effect when using a
-    ///         built-in button style. You can implement an indicator in your
-    ///         own ``ButtonStyle`` implementation by checking the value of the
-    ///         `menuIndicatorVisibility` environment value.
-    ///
-    /// - Parameter visibility: The menu indicator visibility to apply.
-    @inlinable public func menuIndicator(_ visibility: Visibility) -> some View { return never() }
-
-}
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
@@ -5152,7 +4091,7 @@ extension View {
     ///   padding amounts for each edge.
     ///
     /// - Returns: A view that's padded by different amounts on each edge.
-    @inlinable public func padding(_ insets: EdgeInsets) -> some View { return never() }
+    @inlinable public func padding(_ insets: EdgeInsets) -> some View { return stubView() }
 
 
     /// Adds an equal padding amount to specific edges of this view.
@@ -5226,7 +4165,7 @@ extension View {
     ///
     /// - Returns: A view that's padded by the specified amount on the
     ///   specified edges.
-    @inlinable public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View { return never() }
+    @inlinable public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View { return stubView() }
 
 
     /// Adds a specific padding amount to each edge of this view.
@@ -5262,7 +4201,7 @@ extension View {
     ///   edges.
     ///
     /// - Returns: A view that's padded by the amount you specify.
-    @inlinable public func padding(_ length: CGFloat) -> some View { return never() }
+    @inlinable public func padding(_ length: CGFloat) -> some View { return stubView() }
 
 }
 
@@ -5332,7 +4271,7 @@ extension View {
     ///
     /// - Returns: A view that's padded on specified edges by a
     ///   scene-appropriate amount.
-    public func scenePadding(_ edges: Edge.Set = .all) -> some View { return never() }
+    public func scenePadding(_ edges: Edge.Set = .all) -> some View { return stubView() }
 
 
     /// Adds a specified kind of padding to the specified edges of this view
@@ -5390,7 +4329,7 @@ extension View {
     /// - Returns: A view that's padded on specified edges by a
     ///   scene-appropriate amount.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func scenePadding(_ padding: ScenePadding, edges: Edge.Set = .all) -> some View { return never() }
+    public func scenePadding(_ padding: ScenePadding, edges: Edge.Set = .all) -> some View { return stubView() }
 
 }
 
@@ -5418,7 +4357,7 @@ extension View {
     /// - Parameter offset: The distance to offset this view.
     ///
     /// - Returns: A view that offsets this view by `offset`.
-    @inlinable public func offset(_ offset: CGSize) -> some View { return never() }
+    @inlinable public func offset(_ offset: CGSize) -> some View { return stubView() }
 
 
     /// Offset this view by the specified horizontal and vertical distances.
@@ -5443,7 +4382,7 @@ extension View {
     ///   - y: The vertical distance to offset this view.
     ///
     /// - Returns: A view that offsets this view by `x` and `y`.
-    @inlinable public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some View { return never() }
+    @inlinable public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -5495,7 +4434,7 @@ extension View {
     ///     SkipUI uses to populate a ``Picker``.
     @available(iOS 16.0, macOS 13.0, tvOS 16.4, *)
     @available(watchOS, unavailable)
-    public func searchScopes<V, S>(_ scope: Binding<V>, @ViewBuilder scopes: () -> S) -> some View where V : Hashable, S : View { return never() }
+    public func searchScopes<V, S>(_ scope: Binding<V>, @ViewBuilder scopes: () -> S) -> some View where V : Hashable, S : View { return stubView() }
 
 }
 
@@ -5565,7 +4504,7 @@ extension View {
     ///     SkipUI uses to populate a ``Picker``.
     @available(iOS 16.4, macOS 13.3, tvOS 16.4, *)
     @available(watchOS, unavailable)
-    public func searchScopes<V, S>(_ scope: Binding<V>, activation: SearchScopeActivation, @ViewBuilder _ scopes: () -> S) -> some View where V : Hashable, S : View { return never() }
+    public func searchScopes<V, S>(_ scope: Binding<V>, activation: SearchScopeActivation, @ViewBuilder _ scopes: () -> S) -> some View where V : Hashable, S : View { return stubView() }
 
 }
 
@@ -5610,7 +4549,7 @@ extension View {
     ///
     /// - Returns: A view modified with respect to its horizontal alignment
     ///   according to the computation performed in the method's closure.
-    @inlinable public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return never() }
+    @inlinable public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
 
 
     /// Sets the view's vertical alignment.
@@ -5654,7 +4593,7 @@ extension View {
     ///
     /// - Returns: A view modified with respect to its vertical alignment
     ///   according to the computation performed in the method's closure.
-    @inlinable public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return never() }
+    @inlinable public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
 
 }
 
@@ -5674,7 +4613,7 @@ extension View {
     ///   restore the default allowed range.
     ///
     /// - Returns: a new view.
-    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View { return never() }
+    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View { return stubView() }
 
 }
 
@@ -5787,7 +4726,7 @@ extension View {
     ///     closure contains the set of items to act on.
     ///
     /// - Returns: A view that can display an item-based context menu.
-    public func contextMenu<I, M>(forSelectionType itemType: I.Type = I.self, @ViewBuilder menu: @escaping (Set<I>) -> M, primaryAction: ((Set<I>) -> Void)? = nil) -> some View where I : Hashable, M : View { return never() }
+    public func contextMenu<I, M>(forSelectionType itemType: I.Type = I.self, @ViewBuilder menu: @escaping (Set<I>) -> M, primaryAction: ((Set<I>) -> Void)? = nil) -> some View where I : Hashable, M : View { return stubView() }
 
 }
 
@@ -5854,7 +4793,7 @@ extension View {
     ///   - titleVisibility: The visibility of the dialog's title. The default
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
-    public func confirmationDialog<A>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where A : View { return never() }
+    public func confirmationDialog<A>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where A : View { return stubView() }
 
 
     /// Presents a confirmation dialog when a given condition is true, using a
@@ -5911,7 +4850,7 @@ extension View {
     ///   - titleVisibility: The visibility of the dialog's title. The default
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
-    public func confirmationDialog<S, A>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where S : StringProtocol, A : View { return never() }
+    public func confirmationDialog<S, A>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where S : StringProtocol, A : View { return stubView() }
 
 
     /// Presents a confirmation dialog when a given condition is true, using a
@@ -5964,7 +4903,7 @@ extension View {
     ///   - titleVisibility: The visibility of the dialog's title. The default
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
-    public func confirmationDialog<A>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where A : View { return never() }
+    public func confirmationDialog<A>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A) -> some View where A : View { return stubView() }
 
 }
 
@@ -6034,7 +4973,7 @@ extension View {
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
     ///   - message: A view builder returning the message for the dialog.
-    public func confirmationDialog<A, M>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return never() }
+    public func confirmationDialog<A, M>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return stubView() }
 
 
     /// Presents a confirmation dialog with a message when a given condition is
@@ -6094,7 +5033,7 @@ extension View {
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
     ///   - message: A view builder returning the message for the dialog.
-    public func confirmationDialog<S, A, M>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where S : StringProtocol, A : View, M : View { return never() }
+    public func confirmationDialog<S, A, M>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where S : StringProtocol, A : View, M : View { return stubView() }
 
 
     /// Presents a confirmation dialog with a message when a given condition is
@@ -6150,7 +5089,7 @@ extension View {
     ///     value is ``Visibility/automatic``.
     ///   - actions: A view builder returning the dialog's actions.
     ///   - message: A view builder returning the message for the dialog.
-    public func confirmationDialog<A, M>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return never() }
+    public func confirmationDialog<A, M>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> A, @ViewBuilder message: () -> M) -> some View where A : View, M : View { return stubView() }
 
 }
 
@@ -6242,7 +5181,7 @@ extension View {
     ///     that the system displays to the user.
     ///   - actions: A view builder returning the dialog's actions given the
     ///     currently available data.
-    public func confirmationDialog<A, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return never() }
+    public func confirmationDialog<A, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return stubView() }
 
 
     /// Presents a confirmation dialog using data to produce the dialog's
@@ -6325,7 +5264,7 @@ extension View {
     ///     that the system displays to the user.
     ///   - actions: A view builder returning the dialog's actions given the
     ///     currently available data.
-    public func confirmationDialog<S, A, T>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where S : StringProtocol, A : View { return never() }
+    public func confirmationDialog<S, A, T>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where S : StringProtocol, A : View { return stubView() }
 
 
     /// Presents a confirmation dialog using data to produce the dialog's
@@ -6407,7 +5346,7 @@ extension View {
     ///     that the system displays to the user.
     ///   - actions: A view builder returning the dialog's actions given the
     ///     currently available data.
-    public func confirmationDialog<A, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return never() }
+    public func confirmationDialog<A, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return stubView() }
 
 }
 
@@ -6504,7 +5443,7 @@ extension View {
     ///     currently available data.
     ///   - message: A view builder returning the message for the dialog given
     ///     the currently available data.
-    public func confirmationDialog<A, M, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return never() }
+    public func confirmationDialog<A, M, T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return stubView() }
 
 
     /// Presents a confirmation dialog with a message using data to produce the
@@ -6592,7 +5531,7 @@ extension View {
     ///     currently available data.
     ///   - message: A view builder returning the message for the dialog given
     ///     the currently available data.
-    public func confirmationDialog<S, A, M, T>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where S : StringProtocol, A : View, M : View { return never() }
+    public func confirmationDialog<S, A, M, T>(_ title: S, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where S : StringProtocol, A : View, M : View { return stubView() }
 
 
     /// Presents a confirmation dialog with a message using data to produce the
@@ -6679,7 +5618,7 @@ extension View {
     ///     currently available data.
     ///   - message: A view builder returning the message for the dialog given
     ///     the currently available data.
-    public func confirmationDialog<A, M, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return never() }
+    public func confirmationDialog<A, M, T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> A, @ViewBuilder message: (T) -> M) -> some View where A : View, M : View { return stubView() }
 
 }
 
@@ -6704,7 +5643,7 @@ extension View {
     /// - Returns: A view with the typesetting language set to the value you
     ///   supply.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func typesettingLanguage(_ language: Locale.Language, isEnabled: Bool = true) -> some View { return never() }
+    public func typesettingLanguage(_ language: Locale.Language, isEnabled: Bool = true) -> some View { return stubView() }
 
 
     /// Specifies the language for typesetting.
@@ -6726,7 +5665,7 @@ extension View {
     /// - Returns: A view with the typesetting language set to the value you
     ///   supply.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> some View { return never() }
+    public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -6749,7 +5688,7 @@ extension View {
     ///   view.
     ///
     /// - Returns: A view that fixes the center of this view at `position`.
-    @inlinable public func position(_ position: CGPoint) -> some View { return never() }
+    @inlinable public func position(_ position: CGPoint) -> some View { return stubView() }
 
 
     /// Positions the center of this view at the specified coordinates in its
@@ -6767,67 +5706,7 @@ extension View {
     ///   - y: The y-coordinate at which to place the center of this view.
     ///
     /// - Returns: A view that fixes the center of this view at `x` and `y`.
-    @inlinable public func position(x: CGFloat = 0, y: CGFloat = 0) -> some View { return never() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Sets a fixed, preferred width for the column containing this view.
-    ///
-    /// Apply this modifier to the content of a column in a
-    /// ``NavigationSplitView`` to specify a fixed preferred width for the
-    /// column. Use ``View/navigationSplitViewColumnWidth(min:ideal:max:)`` if
-    /// you need to specify a flexible width.
-    ///
-    /// The following example shows a three-column navigation split view where
-    /// the first column has a preferred width of 150 points, and the second
-    /// column has a flexible, preferred width between 150 and 400 points:
-    ///
-    ///     NavigationSplitView {
-    ///         MySidebar()
-    ///             .navigationSplitViewColumnWidth(150)
-    ///     } contents: {
-    ///         MyContents()
-    ///             .navigationSplitViewColumnWidth(
-    ///                 min: 150, ideal: 200, max: 400)
-    ///     } detail: {
-    ///         MyDetail()
-    ///     }
-    ///
-    /// Only some platforms enable resizing columns. If
-    /// you specify a width that the current presentation environment doesn't
-    /// support, SkipUI may use a different width for your column.
-    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View { return never() }
-
-
-    /// Sets a flexible, preferred width for the column containing this view.
-    ///
-    /// Apply this modifier to the content of a column in a
-    /// ``NavigationSplitView`` to specify a preferred flexible width for the
-    /// column. Use ``View/navigationSplitViewColumnWidth(_:)`` if you need to
-    /// specify a fixed width.
-    ///
-    /// The following example shows a three-column navigation split view where
-    /// the first column has a preferred width of 150 points, and the second
-    /// column has a flexible, preferred width between 150 and 400 points:
-    ///
-    ///     NavigationSplitView {
-    ///         MySidebar()
-    ///             .navigationSplitViewColumnWidth(150)
-    ///     } contents: {
-    ///         MyContents()
-    ///             .navigationSplitViewColumnWidth(
-    ///                 min: 150, ideal: 200, max: 400)
-    ///     } detail: {
-    ///         MyDetail()
-    ///     }
-    ///
-    /// Only some platforms enable resizing columns. If
-    /// you specify a width that the current presentation environment doesn't
-    /// support, SkipUI may use a different width for your column.
-    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return never() }
+    @inlinable public func position(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -6892,7 +5771,7 @@ extension View {
     ///     parameter can be elided to use the default suppression title.
     ///   - isSuppressed: Whether the suppression toggle is on or off in the
     ///     dialog.
-    public func dialogSuppressionToggle(_ titleKey: LocalizedStringKey, isSuppressed: Binding<Bool>) -> some View { return never() }
+    public func dialogSuppressionToggle(_ titleKey: LocalizedStringKey, isSuppressed: Binding<Bool>) -> some View { return stubView() }
 
 
     /// Enables user suppression of dialogs and alerts presented within `self`,
@@ -6944,7 +5823,7 @@ extension View {
     ///     parameter can be elided to use the default suppression title.
     ///   - isSuppressed: Whether the suppression toggle is on or off in the
     ///     dialog.
-    public func dialogSuppression<S>(_ title: S, isSuppressed: Binding<Bool>) -> some View where S : StringProtocol { return never() }
+    public func dialogSuppression<S>(_ title: S, isSuppressed: Binding<Bool>) -> some View where S : StringProtocol { return stubView() }
 
 
     /// Enables user suppression of dialogs and alerts presented within `self`,
@@ -6996,7 +5875,7 @@ extension View {
     ///     parameter can be elided to use the default suppression title.
     ///   - isSuppressed: Whether the suppression toggle is on or off in the
     ///     dialog.
-    public func dialogSuppressionToggle(_ label: Text, isSuppressed: Binding<Bool>) -> some View { return never() }
+    public func dialogSuppressionToggle(_ label: Text, isSuppressed: Binding<Bool>) -> some View { return stubView() }
 
 
     /// Enables user suppression of dialogs and alerts presented within `self`,
@@ -7043,7 +5922,7 @@ extension View {
     ///
     /// - Parameter isSuppressed: Whether the suppression toggle is on or off
     ///   in the dialog.
-    public func dialogSuppressionToggle(isSuppressed: Binding<Bool>) -> some View { return never() }
+    public func dialogSuppressionToggle(isSuppressed: Binding<Bool>) -> some View { return stubView() }
 
 }
 
@@ -7088,7 +5967,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
-    @inlinable public func edgesIgnoringSafeArea(_ edges: Edge.Set) -> some View { return never() }
+    @inlinable public func edgesIgnoringSafeArea(_ edges: Edge.Set) -> some View { return stubView() }
 
 }
 
@@ -7107,7 +5986,7 @@ extension View {
     ///
     /// - Returns: a new view with its safe area expanded.
     ///
-    @inlinable public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View { return never() }
+    @inlinable public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View { return stubView() }
 
 }
 
@@ -7154,7 +6033,7 @@ extension View {
     ///   - value: The new value to set for the item specified by `keyPath`.
     ///
     /// - Returns: A view that has the given value set in its environment.
-    @inlinable public func environment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, _ value: V) -> some View { return never() }
+    @inlinable public func environment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, _ value: V) -> some View { return stubView() }
 
 }
 
@@ -7188,7 +6067,7 @@ extension View {
     ///
     /// - Parameter value: A relative front-to-back ordering for this view; the
     ///   default is `0`.
-    @inlinable public func zIndex(_ value: Double) -> some View { return never() }
+    @inlinable public func zIndex(_ value: Double) -> some View { return stubView() }
 
 }
 
@@ -7209,7 +6088,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @inlinable public func foregroundColor(_ color: Color?) -> some View { return never() }
+    @inlinable public func foregroundColor(_ color: Color?) -> some View { return stubView() }
 
 }
 
@@ -7236,7 +6115,7 @@ extension View {
     ///
     /// - Parameters:
     ///   - text: A string to use as the view’s completion.
-    public func searchCompletion(_ completion: String) -> some View { return never() }
+    public func searchCompletion(_ completion: String) -> some View { return stubView() }
 
 }
 
@@ -7279,7 +6158,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchCompletion<T>(_ token: T) -> some View where T : Identifiable { return never() }
+    public func searchCompletion<T>(_ token: T) -> some View where T : Identifiable { return stubView() }
 
 
     /// Configures how to display search suggestions within this view.
@@ -7316,7 +6195,7 @@ extension View {
     ///   - placements: The set of locations in which to set the visibility of
     ///     search suggestions.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func searchSuggestions(_ visibility: Visibility, for placements: SearchSuggestionsPlacement.Set) -> some View { return never() }
+    public func searchSuggestions(_ visibility: Visibility, for placements: SearchSuggestionsPlacement.Set) -> some View { return stubView() }
 
 }
 
@@ -7363,7 +6242,7 @@ extension View {
     ///     ``LayoutValueKey/defaultValue`` property.
     ///
     /// - Returns: A view that has the specified value for the specified key.
-    @inlinable public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return never() }
+    @inlinable public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return stubView() }
 
 }
 
@@ -7418,7 +6297,7 @@ extension View {
     /// - Parameter transform: A
     ///  to
     /// apply to the view.
-    @inlinable public func transformEffect(_ transform: CGAffineTransform) -> some View { return never() }
+    @inlinable public func transformEffect(_ transform: CGAffineTransform) -> some View { return stubView() }
 
 }
 
@@ -7482,7 +6361,7 @@ extension View {
     @available(macOS, unavailable)
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `confirmationDialog(title:isPresented:titleVisibility:presenting:actions:)`instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `confirmationDialog(title:isPresented:titleVisibility:presenting:actions:)`instead.")
-    public func actionSheet<T>(item: Binding<T?>, content: (T) -> ActionSheet) -> some View where T : Identifiable { return never() }
+    public func actionSheet<T>(item: Binding<T?>, content: (T) -> ActionSheet) -> some View where T : Identifiable { return stubView() }
 
 
     /// Presents an action sheet when a given condition is true.
@@ -7534,7 +6413,7 @@ extension View {
     @available(macOS, unavailable)
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `confirmationDialog(title:isPresented:titleVisibility:presenting:actions:)`instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `confirmationDialog(title:isPresented:titleVisibility:presenting:actions:)`instead.")
-    public func actionSheet(isPresented: Binding<Bool>, content: () -> ActionSheet) -> some View { return never() }
+    public func actionSheet(isPresented: Binding<Bool>, content: () -> ActionSheet) -> some View { return stubView() }
 
 }
 
@@ -7559,7 +6438,7 @@ extension View {
     ///
     /// - Returns: A view that controls whether users can interact with this
     ///   view.
-    @inlinable public func disabled(_ disabled: Bool) -> some View { return never() }
+    @inlinable public func disabled(_ disabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -7611,7 +6490,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
-    @inlinable public func accentColor(_ accentColor: Color?) -> some View { return never() }
+    @inlinable public func accentColor(_ accentColor: Color?) -> some View { return stubView() }
 
 }
 
@@ -7635,72 +6514,7 @@ extension View {
     ///   - angle: The angle at which to rotate the view.
     ///   - anchor: The location with a default of ``UnitPoint/center`` that
     ///     defines a point at which the rotation is anchored.
-    @inlinable public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some View { return never() }
-
-}
-
-extension View {
-
-    /// Specifies if the view is focusable.
-    ///
-    /// - Parameters isFocusable: A Boolean value that indicates whether this
-    ///   view is focusable.
-    ///
-    /// - Returns: A view that sets whether a view is focusable.
-    @available(iOS 17.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func focusable(_ isFocusable: Bool = true) -> some View { return never() }
-
-
-    /// Specifies if the view is focusable, and if so, what focus-driven
-    /// interactions it supports.
-    ///
-    /// By default, SkipUI enables all possible focus interactions. However, on
-    /// macOS and iOS it is conventional for button-like views to only accept
-    /// focus when the user has enabled keyboard navigation system-wide in the
-    /// Settings app. Clients can reproduce this behavior with custom views by
-    /// only supporting `.activate` interactions.
-    ///
-    ///     MyTapGestureView(...)
-    ///         .focusable(interactions: .activate)
-    ///
-    /// - Note: The focus interactions allowed for custom views changed in
-    ///   macOS 14—previously, custom views could only become focused with
-    ///   keyboard navigation enabled system-wide. Clients built using older
-    ///   SDKs will continue to see the older focus behavior, while custom views
-    ///   in clients built using macOS 14 or later will always be focusable
-    ///   unless the client requests otherwise by specifying a restricted set of
-    ///   focus interactions.
-    ///
-    /// - Parameters:
-    ///   - isFocusable: `true` if the view should participate in focus;
-    ///     `false` otherwise. The default value is `true`.
-    ///   - interactions: The types of focus interactions supported by the view.
-    ///     The default value is `.automatic`.
-    /// - Returns: A view that sets whether its child is focusable.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func focusable(_ isFocusable: Bool = true, interactions: FocusInteractions) -> some View { return never() }
-
-
-    /// Adds a condition that controls whether this view can display focus
-    /// effects, such as a default focus ring or hover effect.
-    ///
-    /// The higher views in a view hierarchy can override the value you set on
-    /// this view. In the following example, the button does not display a focus
-    /// effect because the outer `focusEffectDisabled(_:)` modifier overrides
-    /// the inner one:
-    ///
-    ///     HStack {
-    ///         Button("Press") {}
-    ///             .focusEffectDisabled(false)
-    ///     }
-    ///     .focusEffectDisabled(true)
-    ///
-    /// - Parameter disabled: A Boolean value that determines whether this view
-    ///   can display focus effects.
-    /// - Returns: A view that controls whether focus effects can be displayed
-    ///   in this view.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func focusEffectDisabled(_ disabled: Bool = true) -> some View { return never() }
+    @inlinable public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some View { return stubView() }
 
 }
 
@@ -7729,7 +6543,7 @@ extension View {
     ///   - anchor: The point with a default of ``UnitPoint/center`` that
     ///     defines the location within the view from which to apply the
     ///     transformation.
-    @inlinable public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some View { return never() }
+    @inlinable public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some View { return stubView() }
 
 
     /// Scales this view's rendered output by the given amount in both the
@@ -7753,7 +6567,7 @@ extension View {
     ///     and vertical directions.
     ///   - anchor: The anchor point with a default of ``UnitPoint/center`` that
     ///     indicates the starting position for the scale operation.
-    @inlinable public func scaleEffect(_ s: CGFloat, anchor: UnitPoint = .center) -> some View { return never() }
+    @inlinable public func scaleEffect(_ s: CGFloat, anchor: UnitPoint = .center) -> some View { return stubView() }
 
 
     /// Scales this view's rendered output by the given horizontal and vertical
@@ -7779,7 +6593,7 @@ extension View {
     ///     The default value is `1.0`.
     ///   - anchor: The anchor point that indicates the starting position for
     ///     the scale operation.
-    @inlinable public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some View { return never() }
+    @inlinable public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some View { return stubView() }
 
 }
 
@@ -7821,7 +6635,7 @@ extension View {
     ///
     /// - Parameter value: The priority by which a parent layout apportions
     ///   space to the child.
-    @inlinable public func layoutPriority(_ value: Double) -> some View { return never() }
+    @inlinable public func layoutPriority(_ value: Double) -> some View { return stubView() }
 
 }
 
@@ -7858,7 +6672,7 @@ extension View {
     ///   - opaque: A Boolean value that indicates whether the blur renderer
     ///     permits transparency in the blur output. Set to `true` to create an
     ///     opaque blur, or set to `false` to permit transparency.
-    @inlinable public func blur(radius: CGFloat, opaque: Bool = false) -> some View { return never() }
+    @inlinable public func blur(radius: CGFloat, opaque: Bool = false) -> some View { return stubView() }
 
 }
 
@@ -7892,7 +6706,7 @@ extension View {
     ///   brightening) that represents the intensity of the brightness effect.
     ///
     /// - Returns: A view that brightens this view by the specified amount.
-    @inlinable public func brightness(_ amount: Double) -> some View { return never() }
+    @inlinable public func brightness(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -7946,7 +6760,7 @@ extension View {
     /// red and green colors.](SkipUI-View-colorInvert.png)
     ///
     /// - Returns: A view that inverts its colors.
-    @inlinable public func colorInvert() -> some View { return never() }
+    @inlinable public func colorInvert() -> some View { return stubView() }
 
 }
 
@@ -7966,7 +6780,7 @@ extension View {
     ///     to continue.
     /// - Returns: A modified view that binds hardware keyboard input
     ///   when focused.
-    public func onKeyPress(_ key: KeyEquivalent, action: @escaping () -> KeyPress.Result) -> some View { return never() }
+    public func onKeyPress(_ key: KeyEquivalent, action: @escaping () -> KeyPress.Result) -> some View { return stubView() }
 
 
     /// Performs an action if the user presses a key on a hardware keyboard
@@ -7984,7 +6798,7 @@ extension View {
     ///     to continue.
     /// - Returns: A modified view that binds hardware keyboard input
     ///   when focused.
-    public func onKeyPress(_ key: KeyEquivalent, phases: KeyPress.Phases, action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return never() }
+    public func onKeyPress(_ key: KeyEquivalent, phases: KeyPress.Phases, action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return stubView() }
 
 
     /// Performs an action if the user presses one or more keys on a hardware
@@ -8000,7 +6814,7 @@ extension View {
     ///     event and prevent further dispatch, or `.ignored` to allow dispatch
     ///     to continue.
     /// - Returns: A modified view that binds keyboard input when focused.
-    public func onKeyPress(keys: Set<KeyEquivalent>, phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return never() }
+    public func onKeyPress(keys: Set<KeyEquivalent>, phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return stubView() }
 
 
     /// Performs an action if the user presses one or more keys on a hardware
@@ -8017,7 +6831,7 @@ extension View {
     ///     to continue.
     /// - Returns: A modified view that binds hardware keyboard input
     ///   when focused.
-    public func onKeyPress(characters: CharacterSet, phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return never() }
+    public func onKeyPress(characters: CharacterSet, phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return stubView() }
 
 
     /// Performs an action if the user presses any key on a hardware keyboard
@@ -8032,7 +6846,7 @@ extension View {
     ///     to continue.
     /// - Returns: A modified view that binds hardware keyboard input
     ///   when focused.
-    public func onKeyPress(phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return never() }
+    public func onKeyPress(phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return stubView() }
 
 }
 
@@ -8083,7 +6897,7 @@ extension View {
     /// - Parameter color: The color to bias this view toward.
     ///
     /// - Returns: A view with a color multiplication effect.
-    @inlinable public func colorMultiply(_ color: Color) -> some View { return never() }
+    @inlinable public func colorMultiply(_ color: Color) -> some View { return stubView() }
 
 }
 
@@ -8136,7 +6950,7 @@ extension View {
     ///   values invert colors in addition to applying contrast.
     ///
     /// - Returns: A view that applies color contrast to this view.
-    @inlinable public func contrast(_ amount: Double) -> some View { return never() }
+    @inlinable public func contrast(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -8198,7 +7012,7 @@ extension View {
     ///   - suggestions: A view builder that produces content that
     ///     populates a list of suggestions.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func searchSuggestions<S>(@ViewBuilder _ suggestions: () -> S) -> some View where S : View { return never() }
+    public func searchSuggestions<S>(@ViewBuilder _ suggestions: () -> S) -> some View where S : View { return stubView() }
 
 }
 
@@ -8222,7 +7036,7 @@ extension View {
     @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
-    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder suggestions: () -> S) -> some View where S : View { return never() }
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder suggestions: () -> S) -> some View where S : View { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -8243,7 +7057,7 @@ extension View {
     @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
-    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder suggestions: () -> S) -> some View where S : View { return never() }
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder suggestions: () -> S) -> some View where S : View { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -8264,7 +7078,7 @@ extension View {
     @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
-    public func searchable<V, S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder suggestions: () -> V) -> some View where V : View, S : StringProtocol { return never() }
+    public func searchable<V, S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder suggestions: () -> V) -> some View where V : View, S : StringProtocol { return stubView() }
 
 }
 
@@ -8302,7 +7116,7 @@ extension View {
     ///   1.0 are less colorful.
     ///
     /// - Returns: A view that adds a grayscale effect to this view.
-    @inlinable public func grayscale(_ amount: Double) -> some View { return never() }
+    @inlinable public func grayscale(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -8340,7 +7154,7 @@ extension View {
     ///   view.
     ///
     /// - Returns: A view that applies a hue rotation effect to this view.
-    @inlinable public func hueRotation(_ angle: Angle) -> some View { return never() }
+    @inlinable public func hueRotation(_ angle: Angle) -> some View { return stubView() }
 
 }
 
@@ -8400,7 +7214,7 @@ extension View {
     /// - Parameter colorScheme: The preferred color scheme for this view.
     ///
     /// - Returns: A view that sets the color scheme.
-    @inlinable public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View { return never() }
+    @inlinable public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View { return stubView() }
 
 }
 
@@ -8467,7 +7281,7 @@ extension View {
     /// scanning in the same direction.](View-luminanceToAlpha-1-iOS)
     ///
     /// - Returns: A view with the luminance to alpha effect applied.
-    @inlinable public func luminanceToAlpha() -> some View { return never() }
+    @inlinable public func luminanceToAlpha() -> some View { return stubView() }
 
 }
 
@@ -8504,7 +7318,7 @@ extension View {
     /// - Parameter amount: The amount of saturation to apply to this view.
     ///
     /// - Returns: A view that adjusts the saturation of this view.
-    @inlinable public func saturation(_ amount: Double) -> some View { return never() }
+    @inlinable public func saturation(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -8549,7 +7363,7 @@ extension View {
     ///
     /// - Returns: A view that uses a tracking tag.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func interactionActivityTrackingTag(_ tag: String) -> some View { return never() }
+    public func interactionActivityTrackingTag(_ tag: String) -> some View { return stubView() }
 
 }
 
@@ -8581,7 +7395,7 @@ extension View {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a color filter.
-    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some View { return never() }
+    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some View { return stubView() }
 
 
     /// Returns a new view that applies `shader` to `self` as a
@@ -8611,7 +7425,7 @@ extension View {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a distortion effect.
-    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return never() }
+    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
 
 
     /// Returns a new view that applies `shader` to `self` as a filter
@@ -8646,7 +7460,7 @@ extension View {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a distortion effect.
-    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return never() }
+    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -8691,7 +7505,7 @@ extension View {
     @available(watchOS, introduced: 9.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
     @available(tvOS, unavailable)
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    public func onTapGesture(count: Int = 1, coordinateSpace: CoordinateSpace = .local, perform action: @escaping (CGPoint) -> Void) -> some View { return never() }
+    public func onTapGesture(count: Int = 1, coordinateSpace: CoordinateSpace = .local, perform action: @escaping (CGPoint) -> Void) -> some View { return stubView() }
 
 }
 
@@ -8733,7 +7547,7 @@ extension View {
     ///      that indicates where the interaction occurred.
     @available(iOS 17.0, macOS 14.0, watchOS 10.0, *)
     @available(tvOS, unavailable)
-    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> some View { return never() }
+    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> some View { return stubView() }
 
 }
 
@@ -8774,7 +7588,7 @@ extension View {
     ///   opaque).
     ///
     /// - Returns: A view that sets the transparency of this view.
-    @inlinable public func opacity(_ opacity: Double) -> some View { return never() }
+    @inlinable public func opacity(_ opacity: Double) -> some View { return stubView() }
 
 }
 
@@ -8810,7 +7624,7 @@ extension View {
 extension View {
 
     /// Sets a style for labeled content.
-    public func labeledContentStyle<S>(_ style: S) -> some View where S : LabeledContentStyle { return never() }
+    public func labeledContentStyle<S>(_ style: S) -> some View where S : LabeledContentStyle { return stubView() }
 
 }
 
@@ -8827,7 +7641,7 @@ extension View {
     ///
     /// - Returns: A view that applies `animation` to this view whenever `value`
     ///   changes.
-    @inlinable public func animation<V>(_ animation: Animation?, value: V) -> some View where V : Equatable { return never() }
+    @inlinable public func animation<V>(_ animation: Animation?, value: V) -> some View where V : Equatable { return stubView() }
 
 }
 
@@ -8842,7 +7656,7 @@ extension View where Self : Equatable {
     /// - Returns: A view that applies `animation` to this view whenever it
     ///   changes.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    @inlinable public func animation(_ animation: Animation?) -> some View { return never() }
+    @inlinable public func animation(_ animation: Animation?) -> some View { return stubView() }
 
 }
 
@@ -8895,7 +7709,7 @@ extension View {
     ///   value to use as the view's tag.
     ///
     /// - Returns: A view with the specified tag set.
-    @inlinable public func tag<V>(_ tag: V) -> some View where V : Hashable { return never() }
+    @inlinable public func tag<V>(_ tag: V) -> some View where V : Hashable { return stubView() }
 
 }
 
@@ -8936,7 +7750,7 @@ extension View {
     ///         some edges, typically the top edge. The default is
     ///         ``VerticalEdge/Set/all``.
     ///
-    public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View { return never() }
+    public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View { return stubView() }
 
 
     /// Sets the tint color associated with a row.
@@ -8971,7 +7785,7 @@ extension View {
     ///         The list style might decide to not display certain separators,
     ///         typically the top edge. The default is ``VerticalEdge/Set/all``.
     ///
-    public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View { return never() }
+    public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View { return stubView() }
 
 }
 
@@ -9016,7 +7830,7 @@ extension View {
     ///         The list style might already decide to not display separators for
     ///         some edges. The default is ``VerticalEdge/Set/all``.
     ///
-    public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View { return never() }
+    public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View { return stubView() }
 
 
     /// Sets the tint color associated with a section.
@@ -9057,7 +7871,7 @@ extension View {
     ///         The list style might decide to not display certain separators,
     ///         typically the top edge. The default is ``VerticalEdge/Set/all``.
     ///
-    public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View { return never() }
+    public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View { return stubView() }
 
 }
 
@@ -9096,7 +7910,7 @@ extension View {
     /// - Parameter blendMode: The ``BlendMode`` for compositing this view.
     ///
     /// - Returns: A view that applies `blendMode` to this view.
-    @inlinable public func blendMode(_ blendMode: BlendMode) -> some View { return never() }
+    @inlinable public func blendMode(_ blendMode: BlendMode) -> some View { return stubView() }
 
 }
 
@@ -9142,7 +7956,7 @@ extension View {
     ///   row view.
     ///
     /// - Returns: A list row view with `view` as its background view.
-    @inlinable public func listRowBackground<V>(_ view: V?) -> some View where V : View { return never() }
+    @inlinable public func listRowBackground<V>(_ view: V?) -> some View where V : View { return stubView() }
 
 }
 
@@ -9191,7 +8005,7 @@ extension View {
     ///
     /// - Returns: A view that composites this view's contents into an offscreen
     ///   image before display.
-    public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> some View { return never() }
+    public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> some View { return stubView() }
 
 }
 
@@ -9232,19 +8046,7 @@ extension View {
     /// rendered.](SkipUI-View-compositingGroup.png)
     ///
     /// - Returns: A view that wraps this view in a compositing group.
-    @inlinable public func compositingGroup() -> some View { return never() }
-
-}
-
-extension View {
-
-    /// Sets the style for navigation split views within this view.
-    ///
-    /// - Parameter style: The style to set.
-    ///
-    /// - Returns: A view that uses the specified navigation split view style.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func navigationSplitViewStyle<S>(_ style: S) -> some View where S : NavigationSplitViewStyle { return never() }
+    @inlinable public func compositingGroup() -> some View { return stubView() }
 
 }
 
@@ -9277,7 +8079,7 @@ extension View {
     ///
     /// - Note: Trailing column inspectors have their presentation state
     /// restored by the framework.
-    public func inspector<V>(isPresented: Binding<Bool>, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    public func inspector<V>(isPresented: Binding<Bool>, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Sets a flexible, preferred width for the inspector in a trailing-column
@@ -9309,7 +8111,7 @@ extension View {
     ///   user double-clicks the divider on the leading edge of the inspector.
     ///   clicks a divider to readjust
     ///   - max: The maximum allowed width for the trailing column inspector
-    public func inspectorColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return never() }
+    public func inspectorColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return stubView() }
 
 
     /// Sets a fixed, preferred width for the inspector containing this view
@@ -9338,7 +8140,7 @@ extension View {
     /// presented as a trailing column.
     /// - Note: A fixed width does not prevent the user collapsing the
     /// inspector on macOS. See ``View/interactiveDismissDisabled(_:)``.
-    public func inspectorColumnWidth(_ width: CGFloat) -> some View { return never() }
+    public func inspectorColumnWidth(_ width: CGFloat) -> some View { return stubView() }
 
 }
 
@@ -9356,7 +8158,7 @@ extension View {
     ///   - transform: the function to produce the preference value.
     ///
     /// - Returns: a new version of the view that writes the preference.
-    @inlinable public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return never() }
+    @inlinable public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -9366,7 +8168,7 @@ extension View {
 extension View {
 
     /// Sets the style for tables within this view.
-    public func tableStyle<S>(_ style: S) -> some View where S : TableStyle { return never() }
+    public func tableStyle<S>(_ style: S) -> some View where S : TableStyle { return stubView() }
 
 }
 
@@ -9402,7 +8204,7 @@ extension View {
     ///
     /// - Returns: A view that clips this view to `shape`, using `style` to
     ///   define the shape's rasterization.
-    @inlinable public func clipShape<S>(_ shape: S, style: FillStyle = FillStyle()) -> some View where S : Shape { return never() }
+    @inlinable public func clipShape<S>(_ shape: S, style: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
 
 
     /// Clips this view to its bounding rectangular frame.
@@ -9427,7 +8229,7 @@ extension View {
     ///   rectangle.
     ///
     /// - Returns: A view that clips this view to its bounding frame.
-    @inlinable public func clipped(antialiased: Bool = false) -> some View { return never() }
+    @inlinable public func clipped(antialiased: Bool = false) -> some View { return stubView() }
 
 
     /// Clips this view to its bounding frame, with the specified corner radius.
@@ -9459,7 +8261,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
-    @inlinable public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View { return never() }
+    @inlinable public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -9533,7 +8335,7 @@ extension View {
     ///   - y: An amount to offset the shadow vertically from the view.
     ///
     /// - Returns: A view that adds a shadow to this view.
-    @inlinable public func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return never() }
+    @inlinable public func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -9571,7 +8373,7 @@ extension View {
     ///
     /// - Returns: A view that has the specified rename action.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func renameAction(_ isFocused: FocusState<Bool>.Binding) -> some View { return never() }
+    public func renameAction(_ isFocused: FocusState<Bool>.Binding) -> some View { return stubView() }
 
 
     /// Sets a closure to run for the rename action.
@@ -9605,7 +8407,7 @@ extension View {
     ///
     /// - Returns: A view that has the specified rename action.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func renameAction(_ action: @escaping () -> Void) -> some View { return never() }
+    public func renameAction(_ action: @escaping () -> Void) -> some View { return stubView() }
 
 }
 
@@ -9625,7 +8427,7 @@ extension View {
     /// different kinds of display modes. This modifier has no effect
     /// on macOS.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View { return never() }
+    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View { return stubView() }
 
 }
 
@@ -9722,7 +8524,7 @@ extension View {
     ///
     /// - Returns: A view that uses the specified toggle style for itself
     ///   and its child views.
-    public func toggleStyle<S>(_ style: S) -> some View where S : ToggleStyle { return never() }
+    public func toggleStyle<S>(_ style: S) -> some View where S : ToggleStyle { return stubView() }
 
 }
 
@@ -9761,7 +8563,7 @@ extension View {
     /// - Parameter scale: One of the relative sizes provided by the image scale
     ///   enumeration.
     @available(macOS 11.0, *)
-    @inlinable public func imageScale(_ scale: Image.Scale) -> some View { return never() }
+    @inlinable public func imageScale(_ scale: Image.Scale) -> some View { return stubView() }
 
 
     /// Sets the default font for text in this view.
@@ -9797,7 +8599,7 @@ extension View {
     /// - Parameter font: The default font to use in this view.
     ///
     /// - Returns: A view with the default font set to the value you supply.
-    @inlinable public func font(_ font: Font?) -> some View { return never() }
+    @inlinable public func font(_ font: Font?) -> some View { return stubView() }
 
 
     /// Modifies the fonts of all child views to use fixed-width digits, if
@@ -9847,7 +8649,7 @@ extension View {
     /// - Returns: A view whose child views' fonts use fixed-width numeric
     /// characters, while leaving other characters proportionally spaced.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func monospacedDigit() -> some View { return never() }
+    public func monospacedDigit() -> some View { return stubView() }
 
 
     /// Modifies the fonts of all child views to use the fixed-width variant of
@@ -9859,7 +8661,7 @@ extension View {
     /// - Returns: A view whose child views' fonts use fixed-width characters,
     /// while leaving other characters proportionally spaced.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func monospaced(_ isActive: Bool = true) -> some View { return never() }
+    public func monospaced(_ isActive: Bool = true) -> some View { return stubView() }
 
 
     /// Sets the font weight of the text in this view.
@@ -9870,7 +8672,7 @@ extension View {
     ///
     /// - Returns: A view that uses the font weight you specify.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func fontWeight(_ weight: Font.Weight?) -> some View { return never() }
+    public func fontWeight(_ weight: Font.Weight?) -> some View { return stubView() }
 
 
     /// Sets the font width of the text in this view.
@@ -9881,7 +8683,7 @@ extension View {
     ///
     /// - Returns: A view that uses the font width you specify.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func fontWidth(_ width: Font.Width?) -> some View { return never() }
+    public func fontWidth(_ width: Font.Width?) -> some View { return stubView() }
 
 
     /// Applies a bold font weight to the text in this view.
@@ -9891,7 +8693,7 @@ extension View {
     ///
     /// - Returns: A view with bold text.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func bold(_ isActive: Bool = true) -> some View { return never() }
+    public func bold(_ isActive: Bool = true) -> some View { return stubView() }
 
 
     /// Applies italics to the text in this view.
@@ -9901,7 +8703,7 @@ extension View {
     ///
     /// - Returns: A View with italic text.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func italic(_ isActive: Bool = true) -> some View { return never() }
+    public func italic(_ isActive: Bool = true) -> some View { return stubView() }
 
 
     /// Sets the font design of the text in this view.
@@ -9912,7 +8714,7 @@ extension View {
     ///
     /// - Returns: A view that uses the font design you specify.
     @available(iOS 16.1, macOS 13.0, tvOS 16.1, watchOS 9.1, *)
-    public func fontDesign(_ design: Font.Design?) -> some View { return never() }
+    public func fontDesign(_ design: Font.Design?) -> some View { return stubView() }
 
 
     /// Sets the spacing, or kerning, between characters for the text in this view.
@@ -9922,7 +8724,7 @@ extension View {
     ///
     /// - Returns: A view where text has the specified amount of kerning.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func kerning(_ kerning: CGFloat) -> some View { return never() }
+    public func kerning(_ kerning: CGFloat) -> some View { return stubView() }
 
 
     /// Sets the tracking for the text in this view.
@@ -9933,7 +8735,7 @@ extension View {
     ///
     /// - Returns: A view where text has the specified amount of tracking.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func tracking(_ tracking: CGFloat) -> some View { return never() }
+    public func tracking(_ tracking: CGFloat) -> some View { return stubView() }
 
 
     /// Sets the vertical offset for the text relative to its baseline
@@ -9944,7 +8746,7 @@ extension View {
     ///
     /// - Returns: A view where text is above or below its baseline.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func baselineOffset(_ baselineOffset: CGFloat) -> some View { return never() }
+    public func baselineOffset(_ baselineOffset: CGFloat) -> some View { return stubView() }
 
 }
 
@@ -9956,7 +8758,7 @@ extension View {
     /// - Parameter style: The form style to set.
     /// - Returns: A view that uses the specified form style for itself
     ///   and its child views.
-    public func formStyle<S>(_ style: S) -> some View where S : FormStyle { return never() }
+    public func formStyle<S>(_ style: S) -> some View where S : FormStyle { return stubView() }
 
 }
 
@@ -9992,7 +8794,7 @@ extension View {
     ///
     /// - Returns: A view with the specified scroll indicator visibility.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View { return never() }
+    public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View { return stubView() }
 
 }
 
@@ -10033,7 +8835,7 @@ extension View {
     /// - Returns: A view that flashes any visible scroll indicators when a
     ///   value changes.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollIndicatorsFlash(trigger value: some Equatable) -> some View { return never() }
+    public func scrollIndicatorsFlash(trigger value: some Equatable) -> some View { return stubView() }
 
 
     /// Flashes the scroll indicators of a scrollable view when it appears.
@@ -10057,7 +8859,7 @@ extension View {
     /// - Returns: A view that flashes any visible scroll indicators when it
     ///   first appears.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollIndicatorsFlash(onAppear: Bool) -> some View { return never() }
+    public func scrollIndicatorsFlash(onAppear: Bool) -> some View { return stubView() }
 
 }
 
@@ -10099,7 +8901,7 @@ extension View {
     /// - Parameter disabled: A Boolean that indicates whether scrolling is
     ///   disabled.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func scrollDisabled(_ disabled: Bool) -> some View { return never() }
+    public func scrollDisabled(_ disabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -10164,7 +8966,7 @@ extension View {
     ///
     /// - Returns: A view that disables or enables scroll view clipping.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollClipDisabled(_ disabled: Bool = true) -> some View { return never() }
+    public func scrollClipDisabled(_ disabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -10206,7 +9008,7 @@ extension View {
     /// - Returns: A view that uses the specified keyboard dismissal mode.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     @available(xrOS, unavailable)
-    public func scrollDismissesKeyboard(_ mode: ScrollDismissesKeyboardMode) -> some View { return never() }
+    public func scrollDismissesKeyboard(_ mode: ScrollDismissesKeyboardMode) -> some View { return stubView() }
 
 }
 
@@ -10264,7 +9066,7 @@ extension View {
     /// - Returns: A view that's configured with the specified scroll bounce
     ///   behavior.
     @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View { return never() }
+    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View { return stubView() }
 
 }
 
@@ -10323,7 +9125,7 @@ extension View {
     ///
     /// - Returns: A view with fixed dimensions of `width` and `height`, for the
     ///   parameters that are non-`nil`.
-    @inlinable public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View { return never() }
+    @inlinable public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View { return stubView() }
 
 
     /// Positions this view within an invisible frame.
@@ -10332,7 +9134,7 @@ extension View {
     /// ``SkipUI/View/frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)``
     /// instead.
     @available(*, deprecated, message: "Please pass one or more parameters.")
-    @inlinable public func frame() -> some View { return never() }
+    @inlinable public func frame() -> some View { return stubView() }
 
 }
 
@@ -10379,7 +9181,7 @@ extension View {
     ///
     /// - Returns: A view with flexible dimensions given by the call's non-`nil`
     ///   parameters.
-    @inlinable public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View { return never() }
+    @inlinable public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View { return stubView() }
 
 }
 
@@ -10391,7 +9193,7 @@ extension View {
     /// Sets the style for group boxes within this view.
     ///
     /// - Parameter style: The style to apply to boxes within this view.
-    public func groupBoxStyle<S>(_ style: S) -> some View where S : GroupBoxStyle { return never() }
+    public func groupBoxStyle<S>(_ style: S) -> some View where S : GroupBoxStyle { return stubView() }
 
 }
 
@@ -10435,7 +9237,7 @@ extension View {
     /// view.](SkipUI-View-tabItem.png)
     ///
     /// - Parameter label: The tab bar item to associate with this view.
-    public func tabItem<V>(@ViewBuilder _ label: () -> V) -> some View where V : View { return never() }
+    public func tabItem<V>(@ViewBuilder _ label: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -10490,7 +9292,7 @@ extension View {
     ///   - content: A closure returning the content of the popover.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func popover<Item, Content>(item: Binding<Item?>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds), arrowEdge: Edge = .top, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return never() }
+    public func popover<Item, Content>(item: Binding<Item?>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds), arrowEdge: Edge = .top, @ViewBuilder content: @escaping (Item) -> Content) -> some View where Item : Identifiable, Content : View { return stubView() }
 
 
     /// Presents a popover when a given condition is true.
@@ -10531,7 +9333,7 @@ extension View {
     ///   - content: A closure returning the content of the popover.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func popover<Content>(isPresented: Binding<Bool>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds), arrowEdge: Edge = .top, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return never() }
+    public func popover<Content>(isPresented: Binding<Bool>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds), arrowEdge: Edge = .top, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View { return stubView() }
 
 }
 
@@ -10548,7 +9350,7 @@ extension View {
     ///     }
     ///     .labelStyle(MyCustomLabelStyle())
     ///
-    public func labelStyle<S>(_ style: S) -> some View where S : LabelStyle { return never() }
+    public func labelStyle<S>(_ style: S) -> some View where S : LabelStyle { return stubView() }
 
 }
 
@@ -10594,7 +9396,7 @@ extension View {
     ///
     /// - Returns: A view that triggers `action` when the pointer enters or
     ///   exits this view's frame.
-    @inlinable public func onHover(perform action: @escaping (Bool) -> Void) -> some View { return never() }
+    @inlinable public func onHover(perform action: @escaping (Bool) -> Void) -> some View { return stubView() }
 
 }
 
@@ -10643,7 +9445,7 @@ extension View {
     ///
     ///     SomeChartView()
     ///         .accessibilityChartDescriptor(MyChartDescriptorRepresentable())
-    public func accessibilityChartDescriptor<R>(_ representable: R) -> some View where R : AXChartDescriptorRepresentable { return never() }
+    public func accessibilityChartDescriptor<R>(_ representable: R) -> some View where R : AXChartDescriptorRepresentable { return stubView() }
 
 }
 
@@ -10665,7 +9467,7 @@ extension View {
     @available(iOS 13.4, tvOS 16.0, xrOS 1.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
-    public func hoverEffect(_ effect: HoverEffect = .automatic) -> some View { return never() }
+    public func hoverEffect(_ effect: HoverEffect = .automatic) -> some View { return stubView() }
 
 }
 
@@ -10684,7 +9486,7 @@ extension View {
     ///   - effect: The effect to apply to this view.
     ///   - isEnabled: Whether the effect is enabled or not.
     /// - Returns: A new view that applies a hover effect to `self`.
-    public func hoverEffect(_ effect: HoverEffect = .automatic, isEnabled: Bool = true) -> some View { return never() }
+    public func hoverEffect(_ effect: HoverEffect = .automatic, isEnabled: Bool = true) -> some View { return stubView() }
 
 
     /// Sets the default hover effect to use for views within this view.
@@ -10721,7 +9523,7 @@ extension View {
     /// - Parameter effect: The default hover effect to use for views within
     ///   this view.
     /// - Returns: A view that uses this effect as the default hover effect.
-    public func defaultHoverEffect(_ effect: HoverEffect?) -> some View { return never() }
+    public func defaultHoverEffect(_ effect: HoverEffect?) -> some View { return stubView() }
 
 
     /// Adds a condition that controls whether this view can display hover
@@ -10743,7 +9545,7 @@ extension View {
     ///
     /// - Returns: A view that controls whether hover effects can be displayed
     ///   in this view.
-    public func hoverEffectDisabled(_ disabled: Bool = true) -> some View { return never() }
+    public func hoverEffectDisabled(_ disabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -10798,7 +9600,7 @@ extension View {
     ///   above it: A, B, and D.](SkipUI-View-hidden-2.png)
     ///
     /// - Returns: A hidden view.
-    @inlinable public func hidden() -> some View { return never() }
+    @inlinable public func hidden() -> some View { return stubView() }
 
 }
 
@@ -10820,26 +9622,7 @@ extension View {
     ///
     /// - Parameters:
     ///    - visibility: the visibility to use for the background.
-    public func scrollContentBackground(_ visibility: Visibility) -> some View { return never() }
-
-}
-
-extension View {
-
-    /// Configures the view's document for purposes of navigation.
-    ///
-    /// In iOS, iPadOS, this populates the title menu with a header
-    /// previewing the document. In macOS, this populates a proxy icon.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation document modifiers.
-    ///
-    /// - Parameters:
-    ///   - document: The URL content associated to the
-    ///     navigation title.
-    ///   - preview: The preview of the document to use when sharing.
-    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-    public func navigationDocument(_ url: URL) -> some View { return never() }
+    public func scrollContentBackground(_ visibility: Visibility) -> some View { return stubView() }
 
 }
 
@@ -10859,7 +9642,7 @@ extension View {
     ///   - value: The value to match against when determining whether the
     ///     binding should change.
     /// - Returns: The modified view.
-    public func accessibilityFocused<Value>(_ binding: AccessibilityFocusState<Value>.Binding, equals value: Value) -> some View where Value : Hashable { return never() }
+    public func accessibilityFocused<Value>(_ binding: AccessibilityFocusState<Value>.Binding, equals value: Value) -> some View where Value : Hashable { return stubView() }
 
 
     /// Modifies this view by binding its accessibility element's focus state
@@ -10876,7 +9659,7 @@ extension View {
     ///     value is set to `false` programmatically.
     ///
     /// - Returns: The modified view.
-    public func accessibilityFocused(_ condition: AccessibilityFocusState<Bool>.Binding) -> some View { return never() }
+    public func accessibilityFocused(_ condition: AccessibilityFocusState<Bool>.Binding) -> some View { return stubView() }
 
 }
 
@@ -10902,7 +9685,7 @@ extension View {
     ///
     /// - Parameter autocapitalization: One of the capitalizing behaviors
     /// defined in the ``TextInputAutocapitalization`` struct or nil.
-    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View { return never() }
+    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View { return stubView() }
 
 }
 
@@ -10933,7 +9716,7 @@ extension View {
     ///
     /// - Returns: A view that sets the Dynamic Type size to the specified
     ///   `size`.
-    public func dynamicTypeSize(_ size: DynamicTypeSize) -> some View { return never() }
+    public func dynamicTypeSize(_ size: DynamicTypeSize) -> some View { return stubView() }
 
 
     /// Limits the Dynamic Type size within the view to the given range.
@@ -10965,7 +9748,7 @@ extension View {
     ///
     /// - Returns: A view that constrains the Dynamic Type size of this view
     ///   within the specified `range`.
-    public func dynamicTypeSize<T>(_ range: T) -> some View where T : RangeExpression, T.Bound == DynamicTypeSize { return never() }
+    public func dynamicTypeSize<T>(_ range: T) -> some View where T : RangeExpression, T.Bound == DynamicTypeSize { return stubView() }
 
 }
 
@@ -11009,7 +9792,7 @@ extension View {
     /// - Returns: A new view that defines an entry in the global
     ///   database of views synchronizing their geometry.
     ///
-    @inlinable public func matchedGeometryEffect<ID>(id: ID, in namespace: Namespace.ID, properties: MatchedGeometryProperties = .frame, anchor: UnitPoint = .center, isSource: Bool = true) -> some View where ID : Hashable { return never() }
+    @inlinable public func matchedGeometryEffect<ID>(id: ID, in namespace: Namespace.ID, properties: MatchedGeometryProperties = .frame, anchor: UnitPoint = .center, isSource: Bool = true) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -11071,7 +9854,7 @@ extension View {
     /// - Parameters:
     ///   - triggers: The triggers that should invoke the provided action.
     ///   - action: The action to perform on submission of a value.
-    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View { return never() }
+    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View { return stubView() }
 
 
     /// Prevents submission triggers originating from this view to invoke
@@ -11098,7 +9881,7 @@ extension View {
     /// - Parameter isBlocking: A Boolean that indicates whether this scope is
     ///   actively blocking submission triggers from reaching higher submission
     ///   actions.
-    public func submitScope(_ isBlocking: Bool = true) -> some View { return never() }
+    public func submitScope(_ isBlocking: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -11115,48 +9898,7 @@ extension View {
     ///
     /// - Returns: A view that triggers `action` when the value for `key`
     ///   changes.
-    @inlinable public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return never() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension View {
-
-    /// Sets the style for navigation views within this view.
-    ///
-    /// Use this modifier to change the appearance and behavior of navigation
-    /// views. For example, by default, navigation views appear with multiple
-    /// columns in wider environments, like iPad in landscape orientation:
-    ///
-    /// ![A screenshot of an iPad in landscape orientation mode showing a
-    /// multicolumn navigation view. The left column lists the colors Purple,
-    /// Pink, and Orange, with Purple selected. The right column presents a
-    /// detail view that shows a purple square.](View-navigationViewStyle-1)
-    ///
-    /// You can apply the ``NavigationViewStyle/stack`` style to force
-    /// single-column stack navigation in these environments:
-    ///
-    ///     NavigationView {
-    ///         List {
-    ///             NavigationLink("Purple", destination: ColorDetail(color: .purple))
-    ///             NavigationLink("Pink", destination: ColorDetail(color: .pink))
-    ///             NavigationLink("Orange", destination: ColorDetail(color: .orange))
-    ///         }
-    ///         .navigationTitle("Colors")
-    ///
-    ///         Text("Select a Color") // A placeholder to show before selection.
-    ///     }
-    ///     .navigationViewStyle(.stack)
-    ///
-    /// ![A screenshot of an iPad in landscape orientation mode showing a
-    /// single column containing the list Purple, Pink, and
-    /// Orange.](View-navigationViewStyle-2)
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    public func navigationViewStyle<S>(_ style: S) -> some View where S : NavigationViewStyle { return never() }
+    @inlinable public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return stubView() }
 
 }
 
@@ -11164,7 +9906,7 @@ extension View {
 extension View {
 
     /// Sets the style for lists within this view.
-    public func listStyle<S>(_ style: S) -> some View where S : ListStyle { return never() }
+    public func listStyle<S>(_ style: S) -> some View where S : ListStyle { return stubView() }
 
 }
 
@@ -11176,7 +9918,7 @@ extension View {
     /// - Parameter mode: The symbol rendering mode to use.
     ///
     /// - Returns: A view that uses the rendering mode you supply.
-    @inlinable public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> some View { return never() }
+    @inlinable public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> some View { return stubView() }
 
 }
 
@@ -11227,7 +9969,7 @@ extension View {
     ///   an update of model data displayed in the modified view. Use
     ///   `await` in front of any asynchronous calls inside the handler.
     /// - Returns: A view with a new refresh action in its environment.
-    public func refreshable(action: @escaping @Sendable () async -> Void) -> some View { return never() }
+    public func refreshable(action: @escaping @Sendable () async -> Void) -> some View { return stubView() }
 
 }
 
@@ -11235,7 +9977,7 @@ extension View {
 extension View {
 
     /// Applies a transformation to a preference value.
-    @inlinable public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return never() }
+    @inlinable public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -11261,7 +10003,7 @@ extension View {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     @available(xrOS, unavailable)
-    public func defersSystemGestures(on edges: Edge.Set) -> some View { return never() }
+    public func defersSystemGestures(on edges: Edge.Set) -> some View { return stubView() }
 
 }
 
@@ -11322,7 +10064,7 @@ extension View {
     /// name and email.](View-textSelection-2)
     ///
     /// - Note: ``Button`` views don't support text selection.
-    public func textSelection<S>(_ selectability: S) -> some View where S : TextSelectability { return never() }
+    public func textSelection<S>(_ selectability: S) -> some View where S : TextSelectability { return stubView() }
 
 }
 
@@ -11348,7 +10090,7 @@ extension View {
     ///
     /// - Returns: A view that conditionally mirrors its contents
     ///   horizontally when the layout direction is right-to-left.
-    @inlinable public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View { return never() }
+    @inlinable public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -11362,7 +10104,7 @@ extension View {
     ///     is unchanged.
     /// - Returns: A view with the specified text scale applied.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func textScale(_ scale: Text.Scale, isEnabled: Bool = true) -> some View { return never() }
+    public func textScale(_ scale: Text.Scale, isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -11387,7 +10129,7 @@ extension View {
     ///
     /// - Parameter value: A Boolean value that you set to `true` if
     ///   VoiceOver should speak all punctuation in the text. Defaults to `true`.
-    public func speechAlwaysIncludesPunctuation(_ value: Bool = true) -> some View { return never() }
+    public func speechAlwaysIncludesPunctuation(_ value: Bool = true) -> some View { return stubView() }
 
 
     /// Sets whether VoiceOver should speak the contents of the text view character by character.
@@ -11400,7 +10142,7 @@ extension View {
     /// - Parameter value: A Boolean value that when `true` indicates
     ///    VoiceOver should speak text as individual characters. Defaults
     ///    to `true`.
-    public func speechSpellsOutCharacters(_ value: Bool = true) -> some View { return never() }
+    public func speechSpellsOutCharacters(_ value: Bool = true) -> some View { return stubView() }
 
 
     /// Raises or lowers the pitch of spoken text.
@@ -11412,7 +10154,7 @@ extension View {
     ///   Values between `-1` and `0` result in a lower pitch while
     ///   values between `0` and `1` result in a higher pitch.
     ///   The method clamps values to the range `-1` to `1`.
-    public func speechAdjustedPitch(_ value: Double) -> some View { return never() }
+    public func speechAdjustedPitch(_ value: Double) -> some View { return stubView() }
 
 
     /// Controls whether to queue pending announcements behind existing speech rather than
@@ -11426,7 +10168,7 @@ extension View {
     /// - Parameter value: A Boolean value that determines if VoiceOver speaks
     ///   changes to text immediately or enqueues them behind existing speech.
     ///   Defaults to `true`.
-    public func speechAnnouncementsQueued(_ value: Bool = true) -> some View { return never() }
+    public func speechAnnouncementsQueued(_ value: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -11481,7 +10223,7 @@ extension View {
     ///
     /// - Returns: A view that presents the find and replace interface when
     ///   `isPresented` is `true`.
-    public func findNavigator(isPresented: Binding<Bool>) -> some View { return never() }
+    public func findNavigator(isPresented: Binding<Bool>) -> some View { return stubView() }
 
 
     /// Prevents find and replace operations in a text editor.
@@ -11521,7 +10263,7 @@ extension View {
     ///   disable the find and replace interface for a text editor.
     ///
     /// - Returns: A view that disables the find and replace interface.
-    public func findDisabled(_ isDisabled: Bool = true) -> some View { return never() }
+    public func findDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
 
 
     /// Prevents replace operations in a text editor.
@@ -11561,7 +10303,7 @@ extension View {
     ///
     /// - Returns: A view that disables the replace feature of a find and
     ///   replace interface.
-    public func replaceDisabled(_ isDisabled: Bool = true) -> some View { return never() }
+    public func replaceDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -11599,7 +10341,7 @@ extension View {
     ///   labels that are separate from the rest of the control's interface,
     ///   like they are for ``Toggle``, but not to controls like a bordered
     ///   button where the label is inside the button's border.
-    public func labelsHidden() -> some View { return never() }
+    public func labelsHidden() -> some View { return stubView() }
 
 }
 
@@ -11639,7 +10381,7 @@ extension View {
     ///
     /// - Parameter text: The explicit text value to use as a type select
     /// equivalent for a view in a collection.
-    @inlinable public func typeSelectEquivalent(_ text: Text?) -> some View { return never() }
+    @inlinable public func typeSelectEquivalent(_ text: Text?) -> some View { return stubView() }
 
 
     /// Sets an explicit type select equivalent text in a collection, such as
@@ -11676,7 +10418,7 @@ extension View {
     /// - Parameter stringKey: The localized string key to use as a type select
     /// equivalent for a view in a collection.
     @_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
-    @inlinable public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View { return never() }
+    @inlinable public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// Sets an explicit type select equivalent text in a collection, such as
@@ -11713,7 +10455,7 @@ extension View {
     /// - Parameter string: The string to use as a type select equivalent for a
     /// view in a collection.
     @_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
-    @inlinable public func typeSelectEquivalent<S>(_ string: S) -> some View where S : StringProtocol { return never() }
+    @inlinable public func typeSelectEquivalent<S>(_ string: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -11839,7 +10581,7 @@ extension View {
     ///     - allowsFullSwipe: A Boolean value that indicates whether a full swipe
     ///         automatically performs the first action. The default is `true`.
     ///     - content: The content of the swipe actions.
-    public func swipeActions<T>(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> T) -> some View where T : View { return never() }
+    public func swipeActions<T>(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> T) -> some View where T : View { return stubView() }
 
 }
 
@@ -11863,7 +10605,7 @@ extension View {
     ///     with the even-odd winding number rule.
     ///
     /// - Returns: A view that uses the given shape for the specified kind.
-    @inlinable public func contentShape<S>(_ kind: ContentShapeKinds, _ shape: S, eoFill: Bool = false) -> some View where S : Shape { return never() }
+    @inlinable public func contentShape<S>(_ kind: ContentShapeKinds, _ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
 
 }
 
@@ -11874,7 +10616,7 @@ extension View {
     /// Sets the style for control groups within this view.
     ///
     /// - Parameter style: The style to apply to controls within this view.
-    public func controlGroupStyle<S>(_ style: S) -> some View where S : ControlGroupStyle { return never() }
+    public func controlGroupStyle<S>(_ style: S) -> some View where S : ControlGroupStyle { return stubView() }
 
 }
 
@@ -11900,7 +10642,7 @@ extension View {
     /// one found is used.
     ///
     /// The default localization configuration is set to ``KeyboardShortcut/Localization-swift.struct/automatic``.
-    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command) -> some View { return never() }
+    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command) -> some View { return stubView() }
 
 
     /// Assigns a keyboard shortcut to the modified control.
@@ -11918,7 +10660,7 @@ extension View {
     ///
     /// If multiple controls are associated with the same shortcut, the first
     /// one found is used.
-    public func keyboardShortcut(_ shortcut: KeyboardShortcut) -> some View { return never() }
+    public func keyboardShortcut(_ shortcut: KeyboardShortcut) -> some View { return stubView() }
 
 
     /// Assigns an optional keyboard shortcut to the modified control.
@@ -11940,7 +10682,7 @@ extension View {
     @available(iOS 15.4, macOS 12.3, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func keyboardShortcut(_ shortcut: KeyboardShortcut?) -> some View { return never() }
+    public func keyboardShortcut(_ shortcut: KeyboardShortcut?) -> some View { return stubView() }
 
 }
 
@@ -12005,158 +10747,7 @@ extension View {
     /// disables
     /// the automatic localization for this shortcut to tell the system that
     /// internationalization is taken care of in a different way.
-    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command, localization: KeyboardShortcut.Localization) -> some View { return never() }
-
-}
-
-extension View {
-
-    /// Modifies this view by injecting a value that you provide for use by
-    /// other views whose state depends on the focused view hierarchy.
-    ///
-    /// - Parameters:
-    ///   - keyPath: The key path to associate `value` with when adding
-    ///     it to the existing table of exported focus values.
-    ///   - value: The focus value to export.
-    /// - Returns: A modified representation of this view.
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public func focusedValue<Value>(_ keyPath: WritableKeyPath<FocusedValues, Value?>, _ value: Value) -> some View { return never() }
-
-
-    /// Creates a new view that exposes the provided value to other views whose
-    /// state depends on the focused view hierarchy.
-    ///
-    /// Use this method instead of ``View/focusedSceneValue(_:_:)`` when your
-    /// scene includes multiple focusable views with their own associated
-    /// values, and you need an app- or scene-scoped element like a command or
-    /// toolbar item that operates on the value associated with whichever view
-    /// currently has focus. Each focusable view can supply its own value:
-    ///
-    ///
-    ///
-    /// - Parameters:
-    ///   - keyPath: The key path to associate `value` with when adding
-    ///     it to the existing table of exported focus values.
-    ///   - value: The focus value to export, or `nil` if no value is
-    ///     currently available.
-    /// - Returns: A modified representation of this view.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func focusedValue<Value>(_ keyPath: WritableKeyPath<FocusedValues, Value?>, _ value: Value?) -> some View { return never() }
-
-
-    /// Modifies this view by injecting a value that you provide for use by
-    /// other views whose state depends on the focused scene.
-    ///
-    /// Use this method instead of ``View/focusedValue(_:_:)`` for values that
-    /// must be visible regardless of where focus is located in the active
-    /// scene. For example, if an app needs a command for moving focus to a
-    /// particular text field in the sidebar, it could use this modifier to
-    /// publish a button action that's visible to command views as long as the
-    /// scene is active, and regardless of where focus happens to be in it.
-    ///
-    ///     struct Sidebar: View {
-    ///         @FocusState var isFiltering: Bool
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 TextField(...)
-    ///                     .focused(when: $isFiltering)
-    ///                     .focusedSceneValue(\.filterAction) {
-    ///                         isFiltering = true
-    ///                     }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    ///     struct NavigationCommands: Commands {
-    ///         @FocusedValue(\.filterAction) var filterAction
-    ///
-    ///         var body: some Commands {
-    ///             CommandMenu("Navigate") {
-    ///                 Button("Filter in Sidebar") {
-    ///                     filterAction?()
-    ///                 }
-    ///             }
-    ///             .disabled(filterAction == nil)
-    ///         }
-    ///     }
-    ///
-    ///     struct FilterActionKey: FocusedValuesKey {
-    ///         typealias Value = () -> Void
-    ///     }
-    ///
-    ///     extension FocusedValues {
-    ///         var filterAction: (() -> Void)? {
-    ///             get { self[FilterActionKey.self] }
-    ///             set { self[FilterActionKey.self] = newValue }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - keyPath: The key path to associate `value` with when adding
-    ///     it to the existing table of published focus values.
-    ///   - value: The focus value to publish.
-    /// - Returns: A modified representation of this view.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func focusedSceneValue<T>(_ keyPath: WritableKeyPath<FocusedValues, T?>, _ value: T) -> some View { return never() }
-
-
-    /// Creates a new view that exposes the provided value to other views whose
-    /// state depends on the active scene.
-    ///
-    /// Use this method instead of ``View/focusedValue(_:_:)`` for values that
-    /// must be visible regardless of where focus is located in the active
-    /// scene. For example, if an app needs a command for moving focus to a
-    /// particular text field in the sidebar, it could use this modifier to
-    /// publish a button action that's visible to command views as long as the
-    /// scene is active, and regardless of where focus happens to be in it.
-    ///
-    ///     struct Sidebar: View {
-    ///         @FocusState var isFiltering: Bool
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 TextField(...)
-    ///                     .focused(when: $isFiltering)
-    ///                     .focusedSceneValue(\.filterAction) {
-    ///                         isFiltering = true
-    ///                     }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    ///     struct NavigationCommands: Commands {
-    ///         @FocusedValue(\.filterAction) var filterAction
-    ///
-    ///         var body: some Commands {
-    ///             CommandMenu("Navigate") {
-    ///                 Button("Filter in Sidebar") {
-    ///                     filterAction?()
-    ///                 }
-    ///             }
-    ///             .disabled(filterAction == nil)
-    ///         }
-    ///     }
-    ///
-    ///     struct FilterActionKey: FocusedValuesKey {
-    ///         typealias Value = () -> Void
-    ///     }
-    ///
-    ///     extension FocusedValues {
-    ///         var filterAction: (() -> Void)? {
-    ///             get { self[FilterActionKey.self] }
-    ///             set { self[FilterActionKey.self] = newValue }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - keyPath: The key path to associate `value` with when adding
-    ///     it to the existing table of published focus values.
-    ///   - value: The focus value to publish, or `nil` if no value is
-    ///     currently available.
-    /// - Returns: A modified representation of this view.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func focusedSceneValue<T>(_ keyPath: WritableKeyPath<FocusedValues, T?>, _ value: T?) -> some View { return never() }
+    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command, localization: KeyboardShortcut.Localization) -> some View { return stubView() }
 
 }
 
@@ -12216,7 +10807,7 @@ extension View {
     ///
     /// - Returns: A view that aligns the lines of multiline ``Text`` instances
     ///   it contains.
-    @inlinable public func multilineTextAlignment(_ alignment: TextAlignment) -> some View { return never() }
+    @inlinable public func multilineTextAlignment(_ alignment: TextAlignment) -> some View { return stubView() }
 
 
     /// Sets the truncation mode for lines of text that are too long to fit in
@@ -12244,7 +10835,7 @@ extension View {
     ///
     /// - Returns: A view that truncates text at different points in a line
     ///   depending on the mode you select.
-    @inlinable public func truncationMode(_ mode: Text.TruncationMode) -> some View { return never() }
+    @inlinable public func truncationMode(_ mode: Text.TruncationMode) -> some View { return stubView() }
 
 
     /// Sets the amount of space between lines of text in this view.
@@ -12266,7 +10857,7 @@ extension View {
     ///
     /// - Parameter lineSpacing: The amount of space between the bottom of one
     ///   line and the top of the next line in points.
-    @inlinable public func lineSpacing(_ lineSpacing: CGFloat) -> some View { return never() }
+    @inlinable public func lineSpacing(_ lineSpacing: CGFloat) -> some View { return stubView() }
 
 
     /// Sets whether text in this view can compress the space between characters
@@ -12301,7 +10892,7 @@ extension View {
     ///
     /// - Returns: A view that can compress the space between characters when
     ///   necessary to fit text in a line.
-    @inlinable public func allowsTightening(_ flag: Bool) -> some View { return never() }
+    @inlinable public func allowsTightening(_ flag: Bool) -> some View { return stubView() }
 
 
     /// Sets the minimum amount that text in this view scales down to fit in the
@@ -12331,7 +10922,7 @@ extension View {
     ///   specify the minimum amount of text scaling that this view permits.
     ///
     /// - Returns: A view that limits the amount of text downscaling.
-    @inlinable public func minimumScaleFactor(_ factor: CGFloat) -> some View { return never() }
+    @inlinable public func minimumScaleFactor(_ factor: CGFloat) -> some View { return stubView() }
 
 
     /// Sets a transform for the case of the text contained in this view when
@@ -12344,7 +10935,7 @@ extension View {
     ///   default is `nil`.
     /// - Returns: A view that transforms the case of the text.
     @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    @inlinable public func textCase(_ textCase: Text.Case?) -> some View { return never() }
+    @inlinable public func textCase(_ textCase: Text.Case?) -> some View { return stubView() }
 
 }
 
@@ -12369,7 +10960,7 @@ extension View {
     ///
     /// - Returns: a copy of the view with its symbol effects either
     ///   removed or left unchanged.
-    public func symbolEffectsRemoved(_ isEnabled: Bool = true) -> some View { return never() }
+    public func symbolEffectsRemoved(_ isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -12411,7 +11002,7 @@ extension View {
     ///    - count: The number of taps or clicks required to trigger the action
     ///      closure provided in `action`. Defaults to `1`.
     ///    - action: The action to perform.
-    public func onTapGesture(count: Int = 1, perform action: @escaping () -> Void) -> some View { return never() }
+    public func onTapGesture(count: Int = 1, perform action: @escaping () -> Void) -> some View { return stubView() }
 
 }
 
@@ -12428,7 +11019,7 @@ extension View {
     ///
     /// - Returns: A view where text has a line running along its baseline.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View { return never() }
+    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View { return stubView() }
 
 
     /// Applies a strikethrough to the text in this view.
@@ -12442,7 +11033,7 @@ extension View {
     ///
     /// - Returns: A view where text has a line through its center.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View { return never() }
+    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View { return stubView() }
 
 }
 
@@ -12474,7 +11065,7 @@ extension View {
     /// - Parameters:
     ///   - feedback: Which type of feedback to play.
     ///   - trigger: A value to monitor for changes to determine when to play.
-    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T) -> some View where T : Equatable { return never() }
+    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T) -> some View where T : Equatable { return stubView() }
 
 
     /// Plays the specified `feedback` when the provided `trigger` value changes
@@ -12505,7 +11096,7 @@ extension View {
     ///   - trigger: A value to monitor for changes to determine when to play.
     ///   - condition: A closure to determine whether to play the feedback when
     ///     `trigger` changes.
-    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> some View where T : Equatable { return never() }
+    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> some View where T : Equatable { return stubView() }
 
 
     /// Plays feedback when returned from the `feedback` closure after the
@@ -12540,7 +11131,7 @@ extension View {
     ///   - trigger: A value to monitor for changes to determine when to play.
     ///   - feedback: A closure to determine whether to play the feedback and
     ///     what type of feedback to play when `trigger` changes.
-    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View where T : Equatable { return never() }
+    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View where T : Equatable { return stubView() }
 
 }
 
@@ -12557,7 +11148,7 @@ extension View {
     ///     }
     ///
     /// - Parameter submitLabel: One of the cases specified in ``SubmitLabel``.
-    public func submitLabel(_ submitLabel: SubmitLabel) -> some View { return never() }
+    public func submitLabel(_ submitLabel: SubmitLabel) -> some View { return stubView() }
 
 }
 
@@ -12605,7 +11196,7 @@ extension View {
     ///   - insets: The amount of margins to add.
     ///   - placement: Where the margins should be added.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func contentMargins(_ edges: Edge.Set = .all, _ insets: EdgeInsets, for placement: ContentMarginPlacement = .automatic) -> some View { return never() }
+    public func contentMargins(_ edges: Edge.Set = .all, _ insets: EdgeInsets, for placement: ContentMarginPlacement = .automatic) -> some View { return stubView() }
 
 
     /// Configures the content margin for a provided placement.
@@ -12650,7 +11241,7 @@ extension View {
     ///   - length: The amount of margins to add.
     ///   - placement: Where the margins should be added.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func contentMargins(_ edges: Edge.Set = .all, _ length: CGFloat?, for placement: ContentMarginPlacement = .automatic) -> some View { return never() }
+    public func contentMargins(_ edges: Edge.Set = .all, _ length: CGFloat?, for placement: ContentMarginPlacement = .automatic) -> some View { return stubView() }
 
 
     /// Configures the content margin for a provided placement.
@@ -12694,7 +11285,7 @@ extension View {
     ///   - length: The amount of margins to add on all edges.
     ///   - placement: Where the margins should be added.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func contentMargins(_ length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View { return never() }
+    public func contentMargins(_ length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View { return stubView() }
 
 }
 
@@ -12713,7 +11304,7 @@ extension View {
     ///     containing view hierarchy.
     ///   - prompt: A ``Text`` view representing the prompt of the search field
     ///     which provides users with guidance on what to search for.
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return never() }
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -12728,7 +11319,7 @@ extension View {
     ///     containing view hierarchy.
     ///   - prompt: The key for the localized prompt of the search field
     ///     which provides users with guidance on what to search for.
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return never() }
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -12743,7 +11334,7 @@ extension View {
     ///     containing view hierarchy.
     ///   - prompt: A string representing the prompt of the search field
     ///     which provides users with guidance on what to search for.
-    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return never() }
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -12768,7 +11359,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return never() }
+    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return stubView() }
 
 
     /// Marks this view as searchable with programmatic presentation of the
@@ -12790,7 +11381,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return never() }
+    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// Marks this view as searchable with programmatic presentation of the
@@ -12812,7 +11403,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<S>(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return never() }
+    public func searchable<S>(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -12849,7 +11440,7 @@ extension View {
     ///
     /// - Parameter style: The shape style to use as the presentation
     ///   background.
-    public func presentationBackground<S>(_ style: S) -> some View where S : ShapeStyle { return never() }
+    public func presentationBackground<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the presentation background of the enclosing sheet to a custom
@@ -12886,7 +11477,7 @@ extension View {
     ///     implicit ``ZStack`` that groups the background views. The default is
     ///     ``Alignment/center``.
     ///   - content: The view to use as the background of the presentation.
-    public func presentationBackground<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    public func presentationBackground<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -12940,7 +11531,7 @@ extension View {
     /// - Parameter controlSize: One of the control sizes specified in the
     ///   ``ControlSize`` enumeration.
     @available(tvOS, unavailable)
-    @inlinable public func controlSize(_ controlSize: ControlSize) -> some View { return never() }
+    @inlinable public func controlSize(_ controlSize: ControlSize) -> some View { return stubView() }
 
 }
 
@@ -12985,7 +11576,7 @@ extension View {
     ///   view.
     /// - Returns: A view that uses the given edge insets when used as a list
     ///   cell.
-    @inlinable public func listRowInsets(_ insets: EdgeInsets?) -> some View { return never() }
+    @inlinable public func listRowInsets(_ insets: EdgeInsets?) -> some View { return stubView() }
 
 }
 
@@ -13078,7 +11669,7 @@ extension View {
     ///
     /// - parameter transition: The transition to apply when animating the
     ///   content change.
-    public func contentTransition(_ transition: ContentTransition) -> some View { return never() }
+    public func contentTransition(_ transition: ContentTransition) -> some View { return stubView() }
 
 }
 
@@ -13102,7 +11693,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13124,7 +11715,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text and tokens.
@@ -13145,7 +11736,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13167,7 +11758,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text and tokens.
@@ -13188,7 +11779,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return never() }
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13210,7 +11801,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 }
 
@@ -13239,7 +11830,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13263,7 +11854,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text and tokens, as well as
@@ -13289,7 +11880,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13313,7 +11904,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text and tokens, as well as
@@ -13339,7 +11930,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return never() }
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable, which configures the display of a
@@ -13363,7 +11954,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return never() }
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
 
 }
 
@@ -13388,7 +11979,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text, tokens, and suggestions.
@@ -13410,7 +12001,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text, tokens, and suggestions.
@@ -13432,7 +12023,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return never() }
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text, tokens, and suggestions, as
@@ -13459,7 +12050,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text, tokens, and suggestions, as
@@ -13486,7 +12077,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return never() }
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
 
 
     /// Marks this view as searchable with text, tokens, and suggestions, as
@@ -13513,7 +12104,7 @@ extension View {
     @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return never() }
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
 
 }
 
@@ -13575,7 +12166,7 @@ extension View {
     ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
     ///
     /// - Parameter content: The views representing the content of the toolbar.
-    public func toolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content : View { return never() }
+    public func toolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content : View { return stubView() }
 
 
     /// Populates the toolbar or navigation bar with the specified items.
@@ -13641,7 +12232,7 @@ extension View {
     /// and spacing on each platform.
     ///
     /// - Parameter content: The items representing the content of the toolbar.
-    public func toolbar<Content>(@ToolbarContentBuilder content: () -> Content) -> some View where Content : ToolbarContent { return never() }
+    public func toolbar<Content>(@ToolbarContentBuilder content: () -> Content) -> some View where Content : ToolbarContent { return stubView() }
 
 
     /// Populates the toolbar or navigation bar with the specified items,
@@ -13747,7 +12338,7 @@ extension View {
     /// - Parameters:
     ///   - id: A unique identifier for this toolbar.
     ///   - content: The content representing the content of the toolbar.
-    public func toolbar<Content>(id: String, @ToolbarContentBuilder content: () -> Content) -> some View where Content : CustomizableToolbarContent { return never() }
+    public func toolbar<Content>(id: String, @ToolbarContentBuilder content: () -> Content) -> some View where Content : CustomizableToolbarContent { return stubView() }
 
 }
 
@@ -13787,7 +12378,7 @@ extension View {
     ///   modified view,
     ///   making space for the `content` view by vertically insetting
     ///   the modified view, adjusting the safe area of the result to match.
-    @inlinable public func safeAreaInset<V>(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    @inlinable public func safeAreaInset<V>(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Shows the specified content beside the modified view.
@@ -13822,7 +12413,7 @@ extension View {
     /// - Returns: A new view that displays `content` beside the modified view,
     ///   making space for the `content` view by horizontally insetting
     ///   the modified view.
-    @inlinable public func safeAreaInset<V>(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    @inlinable public func safeAreaInset<V>(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -13846,7 +12437,7 @@ extension View {
     /// modifier for adding to the safe area based on the size of a
     /// view.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func safeAreaPadding(_ insets: EdgeInsets) -> some View { return never() }
+    public func safeAreaPadding(_ insets: EdgeInsets) -> some View { return stubView() }
 
 
     /// Adds the provided insets into the safe area of this view.
@@ -13867,7 +12458,7 @@ extension View {
     /// modifier for adding to the safe area based on the size of a
     /// view.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func safeAreaPadding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View { return never() }
+    public func safeAreaPadding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View { return stubView() }
 
 
     /// Adds the provided insets into the safe area of this view.
@@ -13888,7 +12479,7 @@ extension View {
     /// modifier for adding to the safe area based on the size of a
     /// view.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func safeAreaPadding(_ length: CGFloat) -> some View { return never() }
+    public func safeAreaPadding(_ length: CGFloat) -> some View { return stubView() }
 
 }
 
@@ -13919,7 +12510,7 @@ extension View {
     ///     .environment(\.backgroundStyle, nil)
     ///
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    @inlinable public func backgroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func backgroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -13974,7 +12565,7 @@ extension View {
     @available(tvOS, introduced: 16.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
     @available(watchOS, unavailable)
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    public func onContinuousHover(coordinateSpace: CoordinateSpace = .local, perform action: @escaping (HoverPhase) -> Void) -> some View { return never() }
+    public func onContinuousHover(coordinateSpace: CoordinateSpace = .local, perform action: @escaping (HoverPhase) -> Void) -> some View { return stubView() }
 
 }
 
@@ -14026,7 +12617,7 @@ extension View {
     ///   moves within, or exits the view's bounds.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     @available(watchOS, unavailable)
-    public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (HoverPhase) -> Void) -> some View { return never() }
+    public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (HoverPhase) -> Void) -> some View { return stubView() }
 
 }
 
@@ -14037,7 +12628,7 @@ extension View {
     ///
     /// When the proxy value specified by the `id` parameter changes, the
     /// identity of the view — for example, its state — is reset.
-    @inlinable public func id<ID>(_ id: ID) -> some View where ID : Hashable { return never() }
+    @inlinable public func id<ID>(_ id: ID) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -14129,7 +12720,7 @@ extension View {
     @available(tvOS, deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(watchOS, deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(xrOS, deprecated: 1.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @inlinable public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable { return never() }
+    @inlinable public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
 
 }
 
@@ -14179,7 +12770,7 @@ extension View {
     ///   - newValue: The new value that failed the comparison check.
     ///
     /// - Returns: A view that fires an action when the specified value changes.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View where V : Equatable { return never() }
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
 
 
     /// Adds a modifier for this view that fires an action when a specific
@@ -14221,7 +12812,7 @@ extension View {
     ///   - action: A closure to run when the value changes.
     ///
     /// - Returns: A view that fires an action when the specified value changes.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View where V : Equatable { return never() }
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View where V : Equatable { return stubView() }
 
 }
 
@@ -14237,7 +12828,7 @@ extension View {
     ///         .progressViewStyle(.circular)
     ///
     /// - Parameter style: The progress view style to use for this view.
-    public func progressViewStyle<S>(_ style: S) -> some View where S : ProgressViewStyle { return never() }
+    public func progressViewStyle<S>(_ style: S) -> some View where S : ProgressViewStyle { return stubView() }
 
 }
 
@@ -14273,7 +12864,7 @@ extension View {
     ///   - style: The shape style to use as the container background.
     ///   - container: The container that will use the background.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, watchOS 10.0, *)
-    public func containerBackground<S>(_ style: S, for container: ContainerBackgroundPlacement) -> some View where S : ShapeStyle { return never() }
+    public func containerBackground<S>(_ style: S, for container: ContainerBackgroundPlacement) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the container background of the enclosing container using a view.
@@ -14307,7 +12898,7 @@ extension View {
     ///   - container: The container that will use the background.
     ///   - content: The view to use as the background of the container.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, watchOS 10.0, *)
-    public func containerBackground<V>(for container: ContainerBackgroundPlacement, alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return never() }
+    public func containerBackground<V>(for container: ContainerBackgroundPlacement, alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -14374,7 +12965,7 @@ extension View {
     ///     .scrollTargetBehavior(.viewAligned)
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTargetBehavior(_ behavior: some ScrollTargetBehavior) -> some View { return never() }
+    public func scrollTargetBehavior(_ behavior: some ScrollTargetBehavior) -> some View { return stubView() }
 
 }
 
@@ -14415,7 +13006,7 @@ extension View {
     ///     .scrollTargetLayout()
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTargetLayout(isEnabled: Bool = true) -> some View { return never() }
+    public func scrollTargetLayout(isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -14446,7 +13037,7 @@ extension View {
     /// the layout.
     ///
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTarget(isEnabled: Bool = true) -> some View { return never() }
+    public func scrollTarget(isEnabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -14493,7 +13084,7 @@ extension View {
     /// ``View/dynamicTypeSize(_:)-26aj0`` may require a
     /// large content view.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func accessibilityShowsLargeContentViewer<V>(@ViewBuilder _ largeContentView: () -> V) -> some View where V : View { return never() }
+    public func accessibilityShowsLargeContentViewer<V>(@ViewBuilder _ largeContentView: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Adds a default large content view to be shown by
@@ -14523,7 +13114,7 @@ extension View {
     /// ``View/dynamicTypeSize(_:)-26aj0`` may require a
     /// large content view.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func accessibilityShowsLargeContentViewer() -> some View { return never() }
+    public func accessibilityShowsLargeContentViewer() -> some View { return stubView() }
 
 }
 
@@ -14554,7 +13145,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View { return never() }
+    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View { return stubView() }
 
 
     /// Presents a system interface for allowing the user to move a collection
@@ -14579,7 +13170,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element == URL { return never() }
+    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element == URL { return stubView() }
 
 }
 
@@ -14638,7 +13229,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return never() }
+    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return stubView() }
 
 
     /// Presents a system dialog for allowing the user to move
@@ -14693,7 +13284,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View where C : Collection, C.Element == URL { return never() }
+    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View where C : Collection, C.Element == URL { return stubView() }
 
 }
 
@@ -14750,7 +13341,7 @@ extension View {
     ///
     /// - Returns: A view that runs the specified action asynchronously before
     ///   the view appears.
-    @inlinable public func task(priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View { return never() }
+    @inlinable public func task(priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View { return stubView() }
 
 
     /// Adds a task to perform before this view appears or when a specified
@@ -14820,7 +13411,7 @@ extension View {
     ///
     /// - Returns: A view that runs the specified action asynchronously before
     ///   the view appears, or restarts the task with the `id` value changes.
-    @inlinable public func task<T>(id value: T, priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View where T : Equatable { return never() }
+    @inlinable public func task<T>(id value: T, priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View where T : Equatable { return stubView() }
 
 }
 
@@ -14829,7 +13420,7 @@ extension View {
 extension View {
 
     /// Sets the style for gauges within this view.
-    public func gaugeStyle<S>(_ style: S) -> some View where S : GaugeStyle { return never() }
+    public func gaugeStyle<S>(_ style: S) -> some View where S : GaugeStyle { return stubView() }
 
 }
 
@@ -14845,7 +13436,7 @@ extension View {
     ///
     /// - Parameter tint: The tint effect to use, or nil to not override the
     ///   inherited tint.
-    @inlinable public func listItemTint(_ tint: ListItemTint?) -> some View { return never() }
+    @inlinable public func listItemTint(_ tint: ListItemTint?) -> some View { return stubView() }
 
 
     /// Sets a fixed tint color associated with specific content in a list.
@@ -14860,7 +13451,7 @@ extension View {
     ///
     /// - Parameter color: The color to use to tint the content, or nil to not
     ///   override the inherited tint.
-    @inlinable public func listItemTint(_ tint: Color?) -> some View { return never() }
+    @inlinable public func listItemTint(_ tint: Color?) -> some View { return stubView() }
 
 }
 
@@ -14962,7 +13553,7 @@ extension View {
     /// - Parameter isDisabled: A Boolean value that indicates whether to
     ///   prevent nonprogrammatic dismissal of the containing view hierarchy
     ///   when presented in a sheet or popover.
-    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View { return never() }
+    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -14985,7 +13576,7 @@ extension View {
     ///   - namespace: The namespace to use to organize linked accessibility
     ///     elements. All elements marked with `accessibilityLink` in this
     ///     namespace and with the specified `id` will be linked together.
-    public func accessibilityLinkedGroup<ID>(id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return never() }
+    public func accessibilityLinkedGroup<ID>(id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return stubView() }
 
 
     /// Pairs an accessibility element representing a label with the element
@@ -15007,7 +13598,7 @@ extension View {
     ///   - namespace: The namespace used to organize label and content. Label
     ///     and content under the same namespace with matching identifiers will
     ///     be paired together.
-    public func accessibilityLabeledPair<ID>(role: AccessibilityLabeledPairRole, id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return never() }
+    public func accessibilityLabeledPair<ID>(role: AccessibilityLabeledPairRole, id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -15046,7 +13637,7 @@ extension View {
     /// - Parameter representation: A hidden view that the accessibility
     ///   system uses to generate accessibility elements.
     ///
-    public func accessibilityRepresentation<V>(@ViewBuilder representation: () -> V) -> some View where V : View { return never() }
+    public func accessibilityRepresentation<V>(@ViewBuilder representation: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Replaces the existing accessibility element's children with one or
@@ -15100,7 +13691,7 @@ extension View {
     ///
     /// - Parameter children: A ``ViewBuilder`` that represents the replacement
     ///   child views the framework uses to generate accessibility elements.
-    public func accessibilityChildren<V>(@ViewBuilder children: () -> V) -> some View where V : View { return never() }
+    public func accessibilityChildren<V>(@ViewBuilder children: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -15112,7 +13703,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func disclosureGroupStyle<S>(_ style: S) -> some View where S : DisclosureGroupStyle { return never() }
+    public func disclosureGroupStyle<S>(_ style: S) -> some View where S : DisclosureGroupStyle { return stubView() }
 
 }
 
@@ -15139,7 +13730,7 @@ extension View {
     /// - Parameter visibility: A value of `visible` will show table columns,
     ///   `hidden` will remove them, and `automatic` will defer to default
     ///   behavior.
-    public func tableColumnHeaders(_ visibility: Visibility) -> some View { return never() }
+    public func tableColumnHeaders(_ visibility: Visibility) -> some View { return stubView() }
 
 }
 
@@ -15173,7 +13764,7 @@ extension View {
     ///     3D space about which the rotation is anchored.
     ///   - perspective: The relative vanishing point with a default of `1` for
     ///     this rotation.
-    @inlinable public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some View { return never() }
+    @inlinable public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some View { return stubView() }
 
 }
 
@@ -15182,7 +13773,7 @@ extension View {
 
     /// Transforms the environment value of the specified key path with the
     /// given function.
-    @inlinable public func transformEnvironment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, transform: @escaping (inout V) -> Void) -> some View { return never() }
+    @inlinable public func transformEnvironment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, transform: @escaping (inout V) -> Void) -> some View { return stubView() }
 
 }
 
@@ -15192,7 +13783,7 @@ extension View {
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
-    public func searchDictationBehavior(_ dictationBehavior: TextInputDictationBehavior) -> some View { return never() }
+    public func searchDictationBehavior(_ dictationBehavior: TextInputDictationBehavior) -> some View { return stubView() }
 
 }
 
@@ -15222,7 +13813,7 @@ extension View {
     ///
     /// - Parameter count: An integer value to display in the badge.
     ///   Set the value to zero to hide the badge.
-    public func badge(_ count: Int) -> some View { return never() }
+    public func badge(_ count: Int) -> some View { return stubView() }
 
 
     /// Generates a badge for the view from a text view.
@@ -15258,7 +13849,7 @@ extension View {
     ///
     /// - Parameter label: An optional ``Text`` view to display as a badge.
     ///   Set the value to `nil` to hide the badge.
-    public func badge(_ label: Text?) -> some View { return never() }
+    public func badge(_ label: Text?) -> some View { return stubView() }
 
 
     /// Generates a badge for the view from a localized string key.
@@ -15286,7 +13877,7 @@ extension View {
     ///
     /// - Parameter key: An optional string key to display as a badge.
     ///   Set the value to `nil` to hide the badge.
-    public func badge(_ key: LocalizedStringKey?) -> some View { return never() }
+    public func badge(_ key: LocalizedStringKey?) -> some View { return stubView() }
 
 
     /// Generates a badge for the view from a string.
@@ -15313,7 +13904,7 @@ extension View {
     ///
     /// - Parameter label: An optional string to display as a badge.
     ///   Set the value to `nil` to hide the badge.
-    public func badge<S>(_ label: S?) -> some View where S : StringProtocol { return never() }
+    public func badge<S>(_ label: S?) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -15358,7 +13949,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
-    @inlinable public func colorScheme(_ colorScheme: ColorScheme) -> some View { return never() }
+    @inlinable public func colorScheme(_ colorScheme: ColorScheme) -> some View { return stubView() }
 
 }
 
@@ -15417,7 +14008,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
-    @inlinable public func coordinateSpace<T>(name: T) -> some View where T : Hashable { return never() }
+    @inlinable public func coordinateSpace<T>(name: T) -> some View where T : Hashable { return stubView() }
 
 }
 
@@ -15472,7 +14063,7 @@ extension View {
     /// relative locations in that view.](SkipUI-View-coordinateSpace.png)
     ///
     /// - Parameter name: A name used to identify this coordinate space.
-    public func coordinateSpace(_ name: NamedCoordinateSpace) -> some View { return never() }
+    public func coordinateSpace(_ name: NamedCoordinateSpace) -> some View { return stubView() }
 
 }
 
@@ -15487,7 +14078,7 @@ extension View {
     ///     with the even-odd winding number rule.
     ///
     /// - Returns: A view that uses the given shape for hit testing.
-    @inlinable public func contentShape<S>(_ shape: S, eoFill: Bool = false) -> some View where S : Shape { return never() }
+    @inlinable public func contentShape<S>(_ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
 
 }
 
@@ -15495,7 +14086,7 @@ extension View {
 extension View {
 
     /// Sets a value for the given preference.
-    @inlinable public func preference<K>(key: K.Type = K.self, value: K.Value) -> some View where K : PreferenceKey { return never() }
+    @inlinable public func preference<K>(key: K.Type = K.self, value: K.Value) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -15570,7 +14161,7 @@ extension View {
     ///
     /// - Returns: A view that wraps this view and applies a transformation to
     ///   all transactions used within the view.
-    @inlinable public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some View { return never() }
+    @inlinable public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some View { return stubView() }
 
 
     /// Applies the given transaction mutation function to all animations used
@@ -15631,7 +14222,7 @@ extension View {
     /// - Returns: A view that wraps this view and applies a transformation to
     ///   all transactions used within the view whenever `value` changes.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func transaction(value: some Equatable, _ transform: @escaping (inout Transaction) -> Void) -> some View { return never() }
+    public func transaction(value: some Equatable, _ transform: @escaping (inout Transaction) -> Void) -> some View { return stubView() }
 
 
     /// Applies the given animation to all animatable values within this view.
@@ -15650,7 +14241,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 15.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 8.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @inlinable public func animation(_ animation: Animation?) -> some View { return never() }
+    @inlinable public func animation(_ animation: Animation?) -> some View { return stubView() }
 
 }
 
@@ -15676,7 +14267,7 @@ extension View {
     ///         }
     ///
     /// - See Also: `Transaction.disablesAnimations`
-    public func transaction<V>(_ transform: @escaping (inout Transaction) -> Void, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return never() }
+    public func transaction<V>(_ transform: @escaping (inout Transaction) -> Void, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return stubView() }
 
 
     /// Applies the given animation to all animatable values within the `body`
@@ -15694,7 +14285,7 @@ extension View {
     ///         .animation(.easeInOut) { content in
     ///             content.opacity(isActive ? 1.0 : 0.0)
     ///         }
-    public func animation<V>(_ animation: Animation?, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return never() }
+    public func animation<V>(_ animation: Animation?, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -15713,7 +14304,7 @@ extension View {
     ///     -   children: The behavior to use when creating or
     ///     transforming an accessibility element.
     ///     The default is ``AccessibilityChildBehavior/ignore``
-    public func accessibilityElement(children: AccessibilityChildBehavior = .ignore) -> some View { return never() }
+    public func accessibilityElement(children: AccessibilityChildBehavior = .ignore) -> some View { return stubView() }
 
 }
 
@@ -15734,7 +14325,7 @@ extension View {
     ///     to `true`.
     ///   - update: A function that modifies the passed-in activity for
     ///     advertisement.
-    public func userActivity(_ activityType: String, isActive: Bool = true, _ update: @escaping (NSUserActivity) -> ()) -> some View { return never() }
+    public func userActivity(_ activityType: String, isActive: Bool = true, _ update: @escaping (NSUserActivity) -> ()) -> some View { return stubView() }
 
 
     /// Advertises a user activity type.
@@ -15752,7 +14343,7 @@ extension View {
     ///     `guard element = element else { return }`.
     ///    - update: A function that modifies the passed-in activity for
     ///    advertisement.
-    public func userActivity<P>(_ activityType: String, element: P?, _ update: @escaping (P, NSUserActivity) -> ()) -> some View { return never() }
+    public func userActivity<P>(_ activityType: String, element: P?, _ update: @escaping (P, NSUserActivity) -> ()) -> some View { return stubView() }
 
 
     /// Registers a handler to invoke when the view receives the specified
@@ -15764,7 +14355,7 @@ extension View {
     ///
     ///     object as its parameter
     ///     when delivering the activity to the scene or window the view is in.
-    public func onContinueUserActivity(_ activityType: String, perform action: @escaping (NSUserActivity) -> ()) -> some View { return never() }
+    public func onContinueUserActivity(_ activityType: String, perform action: @escaping (NSUserActivity) -> ()) -> some View { return stubView() }
 
 
     /// Registers a handler to invoke when the view receives a url for the
@@ -15778,7 +14369,7 @@ extension View {
     ///
     ///  object as its parameter when delivering the URL to the scene or window
     ///  the view is in.
-    public func onOpenURL(perform action: @escaping (URL) -> ()) -> some View { return never() }
+    public func onOpenURL(perform action: @escaping (URL) -> ()) -> some View { return stubView() }
 
 }
 
@@ -15811,7 +14402,7 @@ extension View {
     /// the Scene this View is in allows handling the External Event.
     /// The empty Set and empty Strings never match. The String value
     /// "*" always matches.
-    public func handlesExternalEvents(preferring: Set<String>, allowing: Set<String>) -> some View { return never() }
+    public func handlesExternalEvents(preferring: Set<String>, allowing: Set<String>) -> some View { return stubView() }
 
 }
 
@@ -15819,7 +14410,7 @@ extension View {
 extension View {
 
     /// Sets the style for text fields within this view.
-    public func textFieldStyle<S>(_ style: S) -> some View where S : TextFieldStyle { return never() }
+    public func textFieldStyle<S>(_ style: S) -> some View where S : TextFieldStyle { return stubView() }
 
 }
 
@@ -15847,7 +14438,7 @@ extension View {
     ///     - alignment: The alignment for `mask` in relation to this view.
     ///     - mask: The view whose alpha the rendering system applies to
     ///       the specified view.
-    @inlinable public func mask<Mask>(alignment: Alignment = .center, @ViewBuilder _ mask: () -> Mask) -> some View where Mask : View { return never() }
+    @inlinable public func mask<Mask>(alignment: Alignment = .center, @ViewBuilder _ mask: () -> Mask) -> some View where Mask : View { return stubView() }
 
 }
 
@@ -15876,98 +14467,7 @@ extension View {
     @available(tvOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
     @available(watchOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
     @available(xrOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
-    @inlinable public func mask<Mask>(_ mask: Mask) -> some View where Mask : View { return never() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Configures the view's title for purposes of navigation.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The title to display.
-    public func navigationTitle(_ title: Text) -> some View { return never() }
-
-
-    /// Configures the view's title for purposes of navigation,
-    /// using a localized string.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter titleKey: The key to a localized string to display.
-    public func navigationTitle(_ titleKey: LocalizedStringKey) -> some View { return never() }
-
-
-    /// Configures the view's title for purposes of navigation, using a string.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The string to display.
-    public func navigationTitle<S>(_ title: S) -> some View where S : StringProtocol { return never() }
-
-}
-
-extension View {
-
-    /// Configures the view's title for purposes of navigation, using a string
-    /// binding.
-    ///
-    /// In iOS, iPadOS, and macOS, this allows editing the navigation title
-    /// when the title is displayed in the toolbar.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The text of the title.
-    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-    public func navigationTitle(_ title: Binding<String>) -> some View { return never() }
-
-}
-
-@available(iOS 14.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Configures the title display mode for this view.
-    ///
-    /// - Parameter displayMode: The style to use for displaying the title.
-    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return never() }
+    @inlinable public func mask<Mask>(_ mask: Mask) -> some View where Mask : View { return stubView() }
 
 }
 
@@ -15992,7 +14492,7 @@ extension View {
     ///
     /// - Returns: A view that conditionally mirrors its contents
     ///   horizontally in a given layout direction.
-    @inlinable public func layoutDirectionBehavior(_ behavior: LayoutDirectionBehavior) -> some View { return never() }
+    @inlinable public func layoutDirectionBehavior(_ behavior: LayoutDirectionBehavior) -> some View { return stubView() }
 
 }
 
@@ -16098,7 +14598,7 @@ extension View {
     ///   semantic styles, like ``ShapeStyle/primary``.
     ///
     /// - Returns: A view that uses the given foreground style.
-    @inlinable public func foregroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func foregroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the primary and secondary levels of the foreground
@@ -16124,7 +14624,7 @@ extension View {
     ///     filling in the foreground elements.
     ///
     /// - Returns: A view that uses the given foreground styles.
-    @inlinable public func foregroundStyle<S1, S2>(_ primary: S1, _ secondary: S2) -> some View where S1 : ShapeStyle, S2 : ShapeStyle { return never() }
+    @inlinable public func foregroundStyle<S1, S2>(_ primary: S1, _ secondary: S2) -> some View where S1 : ShapeStyle, S2 : ShapeStyle { return stubView() }
 
 
     /// Sets the primary, secondary, and tertiary levels of
@@ -16152,7 +14652,7 @@ extension View {
     ///     filling in the foreground elements.
     ///
     /// - Returns: A view that uses the given foreground styles.
-    @inlinable public func foregroundStyle<S1, S2, S3>(_ primary: S1, _ secondary: S2, _ tertiary: S3) -> some View where S1 : ShapeStyle, S2 : ShapeStyle, S3 : ShapeStyle { return never() }
+    @inlinable public func foregroundStyle<S1, S2, S3>(_ primary: S1, _ secondary: S2, _ tertiary: S3) -> some View where S1 : ShapeStyle, S2 : ShapeStyle, S3 : ShapeStyle { return stubView() }
 
 }
 
@@ -16193,78 +14693,10 @@ extension View {
     ///
     /// - Parameter store: The user defaults to use as the default
     ///   store for `AppStorage`.
-    public func defaultAppStorage(_ store: UserDefaults) -> some View { return never() }
+    public func defaultAppStorage(_ store: UserDefaults) -> some View { return stubView() }
 
 }
 
-extension View {
-
-    /// Sets the preferred order of items for menus presented from this view.
-    ///
-    /// Use this modifier to override the default menu order. On supported
-    /// platforms, ``MenuOrder/priority`` order keeps the first items closer
-    /// to the user’s point of interaction, whereas ``MenuOrder/fixed`` order
-    /// always orders items from top to bottom.
-    ///
-    /// On iOS, the ``MenuOrder/automatic`` order resolves to
-    /// ``MenuOrder/fixed`` for menus presented within scrollable content.
-    /// Pickers that use the ``PickerStyle/menu`` style also default to
-    /// ``MenuOrder/fixed`` order. In all other cases, menus default to
-    /// ``MenuOrder/priority`` order.
-    ///
-    /// On macOS, tvOS and watchOS, the ``MenuOrder/automatic`` order always
-    /// resolves to ``MenuOrder/fixed`` order.
-    ///
-    /// The following example creates a menu that presents its content in a
-    /// fixed order from top to bottom:
-    ///
-    ///     Menu {
-    ///         Button("Select", action: selectFolders)
-    ///         Button("New Folder", action: createFolder)
-    ///         Picker("Appearance", selection: $appearance) {
-    ///             Label("Icons", systemImage: "square.grid.2x2").tag(Appearance.icons)
-    ///             Label("List", systemImage: "list.bullet").tag(Appearance.list)
-    ///         }
-    ///     } label: {
-    ///         Label("Settings", systemImage: "ellipsis.circle")
-    ///     }
-    ///     .menuOrder(.fixed)
-    ///
-    /// You can use this modifier on controls that present a menu.
-    /// For example, the code below creates a ``Picker`` using the
-    /// ``PickerStyle/menu`` style with a priority-based order:
-    ///
-    ///     Picker("Flavor", selection: $selectedFlavor) {
-    ///         Text("Chocolate").tag(Flavor.chocolate)
-    ///         Text("Vanilla").tag(Flavor.vanilla)
-    ///         Text("Strawberry").tag(Flavor.strawberry)
-    ///     }
-    ///     .pickerStyle(.menu)
-    ///     .menuOrder(.priority)
-    ///
-    /// You can also use this modifier on context menus. The example below
-    /// creates a context menu that presents its content in a fixed order:
-    ///
-    ///     Text("Favorite Card Suit")
-    ///         .padding()
-    ///         .contextMenu {
-    ///             Button("♥️ - Hearts", action: selectHearts)
-    ///             Button("♣️ - Clubs", action: selectClubs)
-    ///             Button("♠️ - Spades", action: selectSpades)
-    ///             Button("♦️ - Diamonds", action: selectDiamonds)
-    ///         }
-    ///         .menuOrder(.fixed)
-    ///
-    /// The modifier has no effect when applied to a subsection or
-    /// submenu of a menu.
-    ///
-    /// - Parameter order: The menu item ordering strategy to apply.
-    ///
-    /// - Returns: A view that uses the specified menu ordering strategy.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func menuOrder(_ order: MenuOrder) -> some View { return never() }
-
-}
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension View {
@@ -16293,7 +14725,7 @@ extension View {
     ///     }
     ///
     /// - Parameter tint: The tint to apply.
-    @inlinable public func tint<S>(_ tint: S?) -> some View where S : ShapeStyle { return never() }
+    @inlinable public func tint<S>(_ tint: S?) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -16331,51 +14763,7 @@ extension View {
     ///     }
     ///
     /// - Parameter tint: The tint ``Color`` to apply.
-    @inlinable public func tint(_ tint: Color?) -> some View { return never() }
-
-}
-
-extension View {
-
-    /// Defines a region of the window in which default focus is evaluated by
-    /// assigning a value to a given focus state binding.
-    ///
-    /// By default, SkipUI evaluates default focus when the window first
-    /// appears, and when a focus state binding update moves focus
-    /// automatically, but not when responding to user-driven navigation
-    /// commands.
-    ///
-    /// Clients can override the default behavior by specifying an evaluation
-    /// priority of ``DefaultFocusEvaluationPriority/userInitiated``, which
-    /// causes SkipUI to use the client's preferred default focus in response
-    /// to user-driven focus navigation as well as automatic changes.
-    ///
-    /// In the following example, focus automatically goes to the second of the
-    /// two text fields when the view is first presented in the window.
-    ///
-    ///     WindowGroup {
-    ///         VStack {
-    ///             TextField(...)
-    ///                 .focused($focusedField, equals: .firstField)
-    ///             TextField(...)
-    ///                 .focused($focusedField, equals: .secondField)
-    ///         }
-    ///         .defaultFocus($focusedField, .secondField)
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - binding: A focus state binding to update when evaluating default
-    ///     focus in the modified view hierarchy.
-    ///   - value: The value to set the binding to during evaluation.
-    ///   - priority: An indication of how to prioritize the preferred default
-    ///     focus target when focus moves into the modified view hierarchy.
-    ///     The default value is `automatic`, which means the preference will
-    ///     be given priority when focus is being initialized or relocated
-    ///     programmatically, but not when responding to user-directed
-    ///     navigation commands.
-    /// - Returns: The modified view.
-    @available(iOS 17.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func defaultFocus<V>(_ binding: FocusState<V>.Binding, _ value: V, priority: DefaultFocusEvaluationPriority = .automatic) -> some View where V : Hashable { return never() }
+    @inlinable public func tint(_ tint: Color?) -> some View { return stubView() }
 
 }
 
@@ -16404,7 +14792,7 @@ extension View {
     ///     .badgeProminence(.decreased)
     ///
     /// - Parameter prominence: The prominence to apply to badges.
-    @inlinable public func badgeProminence(_ prominence: BadgeProminence) -> some View { return never() }
+    @inlinable public func badgeProminence(_ prominence: BadgeProminence) -> some View { return stubView() }
 
 }
 
@@ -16462,7 +14850,7 @@ extension View {
     /// out of the screen.](SkipUI-View-projectionEffect.png)
     ///
     /// - Parameter transform: A ``ProjectionTransform`` to apply to the view.
-    @inlinable public func projectionEffect(_ transform: ProjectionTransform) -> some View { return never() }
+    @inlinable public func projectionEffect(_ transform: ProjectionTransform) -> some View { return stubView() }
 
 }
 
@@ -16520,7 +14908,7 @@ extension View {
     ///     .help("Compose a new message")
     ///
     /// - Parameter textKey: The key for the localized text to use as help.
-    public func help(_ textKey: LocalizedStringKey) -> some View { return never() }
+    public func help(_ textKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// Adds help text to a view using a text view that you provide.
@@ -16532,7 +14920,7 @@ extension View {
     ///         .help(Text("Adjust the opacity of the selected \(selectedShape.name)"))
     ///
     /// - Parameter text: The Text view to use as help.
-    public func help(_ text: Text) -> some View { return never() }
+    public func help(_ text: Text) -> some View { return stubView() }
 
 
     /// Adds help text to a view using a string that you provide.
@@ -16545,7 +14933,7 @@ extension View {
     ///         .help(pointOfInterest.name)
     ///
     /// - Parameter text: The text to use as help.
-    public func help<S>(_ text: S) -> some View where S : StringProtocol { return never() }
+    public func help<S>(_ text: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -16564,7 +14952,7 @@ extension View {
     /// when initializing an AccessibilityRotorEntry.
     /// - Parameter namespace: A namespace created with `@Namespace()`. Pass this
     /// same namespace when initializing an `AccessibilityRotorEntry`.
-    public func accessibilityRotorEntry<ID>(id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return never() }
+    public func accessibilityRotorEntry<ID>(id: ID, in namespace: Namespace.ID) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -16587,7 +14975,7 @@ extension View {
     ///
     /// - Parameter role: The role of the toolbar.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarRole(_ role: ToolbarRole) -> some View { return never() }
+    public func toolbarRole(_ role: ToolbarRole) -> some View { return stubView() }
 
 }
 
@@ -16601,7 +14989,7 @@ extension View {
     @available(macOS, unavailable)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func statusBarHidden(_ hidden: Bool = true) -> some View { return never() }
+    public func statusBarHidden(_ hidden: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -16618,7 +15006,7 @@ extension View {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "statusBarHidden(_:)")
-    public func statusBar(hidden: Bool) -> some View { return never() }
+    public func statusBar(hidden: Bool) -> some View { return stubView() }
 
 }
 
@@ -16631,7 +15019,7 @@ extension View {
     ///
     /// - Parameter object: the object to store and make available to
     ///     the view's subhierarchy.
-    @inlinable public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject { return never() }
+    @inlinable public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
 
 }
 
@@ -16688,7 +15076,7 @@ extension View {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
-    public func alert<Item>(item: Binding<Item?>, content: (Item) -> Alert) -> some View where Item : Identifiable { return never() }
+    public func alert<Item>(item: Binding<Item?>, content: (Item) -> Alert) -> some View where Item : Identifiable { return stubView() }
 
 
     /// Presents an alert to the user.
@@ -16725,7 +15113,7 @@ extension View {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
-    public func alert(isPresented: Binding<Bool>, content: () -> Alert) -> some View { return never() }
+    public func alert(isPresented: Binding<Bool>, content: () -> Alert) -> some View { return stubView() }
 
 }
 

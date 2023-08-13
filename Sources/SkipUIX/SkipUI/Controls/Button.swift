@@ -124,22 +124,7 @@ public struct Button<Label> : View where Label : View {
     ///   - label: A view that describes the purpose of the button's `action`.
     public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -341,7 +326,7 @@ public struct BorderlessButtonStyle : PrimitiveButtonStyle {
     /// hierarchy where this style is the current button style.
     ///
     /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: BorderlessButtonStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: BorderlessButtonStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a button.
@@ -448,7 +433,7 @@ public struct BorderedButtonStyle : PrimitiveButtonStyle {
     /// hierarchy where this style is the current button style.
     ///
     /// - Parameter configuration: The properties of the button.
-    public func makeBody(configuration: BorderedButtonStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: BorderedButtonStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a button.
@@ -471,7 +456,7 @@ public struct BorderedProminentButtonStyle : PrimitiveButtonStyle {
     /// hierarchy where this style is the current button style.
     ///
     /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: BorderedProminentButtonStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: BorderedProminentButtonStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a button.
@@ -493,7 +478,7 @@ public struct DefaultButtonStyle : PrimitiveButtonStyle {
     /// hierarchy where this style is the current button style.
     ///
     /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: DefaultButtonStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultButtonStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a button.
@@ -517,7 +502,7 @@ public struct PlainButtonStyle : PrimitiveButtonStyle {
     /// hierarchy where this style is the current button style.
     ///
     /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: PlainButtonStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: PlainButtonStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view that represents the body of a button.
@@ -693,7 +678,7 @@ extension View {
     ///     }
     ///     .buttonStyle(.bordered)
     ///
-    public func buttonStyle<S>(_ style: S) -> some View where S : PrimitiveButtonStyle { return never() }
+    public func buttonStyle<S>(_ style: S) -> some View where S : PrimitiveButtonStyle { return stubView() }
 
 }
 
@@ -725,7 +710,7 @@ extension View {
     /// - Parameter behavior: A value of `enabled` means that buttons should
     ///   enable repeating behavior and a value of `disabled` means that buttons
     ///   should disallow repeating behavior.
-    public func buttonRepeatBehavior(_ behavior: ButtonRepeatBehavior) -> some View { return never() }
+    public func buttonRepeatBehavior(_ behavior: ButtonRepeatBehavior) -> some View { return stubView() }
 
 }
 
@@ -768,7 +753,7 @@ extension View {
     /// buttons. Finally, `.buttonStyle(.bordered)` says that the menu,
     /// both toggles, and the Sign In button all render with the
     /// bordered button style.```
-    public func buttonStyle<S>(_ style: S) -> some View where S : ButtonStyle { return never() }
+    public func buttonStyle<S>(_ style: S) -> some View where S : ButtonStyle { return stubView() }
 
 }
 
@@ -786,7 +771,7 @@ extension View {
     /// - Note:This will only reflect on explicitly-set `.bordered` or
     ///   `borderedProminent` styles. Setting a shape without
     ///   explicitly setting the above styles will have no effect.
-    @inlinable public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return never() }
+    @inlinable public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return stubView() }
 
 }
 

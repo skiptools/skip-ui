@@ -4,6 +4,12 @@
 
 #if !SKIP
 
+/// No-op
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@usableFromInline func stubVisualEffect() -> some VisualEffect {
+    return never()
+}
+
 /// Visual Effects change the visual appearance of a view without changing its
 /// ancestors or descendents.
 ///
@@ -46,7 +52,7 @@ extension VisualEffect {
     ///   - y: The vertical distance to offset the view.
     ///
     /// - Returns: An effect that offsets the view by `x` and `y`.
-    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some VisualEffect { return never() }
+    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -65,7 +71,7 @@ extension VisualEffect {
     ///
     /// - Returns: An effect that applies a projection transformation to the
     ///   view's rendered output.
-    public func transformEffect(_ transform: ProjectionTransform) -> some VisualEffect { return never() }
+    public func transformEffect(_ transform: ProjectionTransform) -> some VisualEffect { return stubVisualEffect() }
 
 
     /// Applies an affine transformation to the view's rendered output.
@@ -81,7 +87,7 @@ extension VisualEffect {
     /// - Returns: An effect that applies an affine transformation to the
     ///   view's rendered output.
     ///
-    public func transformEffect(_ transform: CGAffineTransform) -> some VisualEffect { return never() }
+    public func transformEffect(_ transform: CGAffineTransform) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -95,7 +101,7 @@ extension VisualEffect {
     ///   - anchor: The location with a default of ``UnitPoint/center`` that
     ///     defines a point at which the rotation is anchored.
     /// - Returns: An effect that rotates the view's rendered output.
-    public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
+    public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -113,7 +119,7 @@ extension VisualEffect {
     ///     transformation.
     ///
     /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
+    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some VisualEffect { return stubVisualEffect() }
 
 
     /// Scales the view's rendered output by the given amount in both the
@@ -127,7 +133,7 @@ extension VisualEffect {
     ///     transformation.
     ///
     /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(_ scale: CGFloat, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
+    public func scaleEffect(_ scale: CGFloat, anchor: UnitPoint = .center) -> some VisualEffect { return stubVisualEffect() }
 
 
     /// Scales the view's rendered output by the given horizontal and vertical
@@ -143,7 +149,7 @@ extension VisualEffect {
     ///     transformation.
     ///
     /// - Returns: An effect that scales the view's rendered output.
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some VisualEffect { return never() }
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -163,7 +169,7 @@ extension VisualEffect {
     ///     opaque blur, or set to `false` to permit transparency.
     ///
     /// - Returns: An effect that blurs the view.
-    public func blur(radius: CGFloat, opaque: Bool = false) -> some VisualEffect { return never() }
+    public func blur(radius: CGFloat, opaque: Bool = false) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -176,7 +182,7 @@ extension VisualEffect {
     ///   brightening) that represents the intensity of the brightness effect.
     ///
     /// - Returns: An effect that brightens the view by the specified amount.
-    public func brightness(_ amount: Double) -> some VisualEffect { return never() }
+    public func brightness(_ amount: Double) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -192,7 +198,7 @@ extension VisualEffect {
     ///   values invert colors in addition to applying contrast.
     ///
     /// - Returns: An effect that applies color contrast to the view.
-    public func contrast(_ amount: Double) -> some VisualEffect { return never() }
+    public func contrast(_ amount: Double) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -208,7 +214,7 @@ extension VisualEffect {
     ///   1.0 are less colorful.
     ///
     /// - Returns: An effect that reduces the intensity of colors in the view.
-    public func grayscale(_ amount: Double) -> some VisualEffect { return never() }
+    public func grayscale(_ amount: Double) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -224,7 +230,7 @@ extension VisualEffect {
     ///   view.
     ///
     /// - Returns: An effect that shifts all of the colors in the view.
-    public func hueRotation(_ angle: Angle) -> some VisualEffect { return never() }
+    public func hueRotation(_ angle: Angle) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -240,7 +246,7 @@ extension VisualEffect {
     /// - Parameter amount: The amount of saturation to apply to the view.
     ///
     /// - Returns: An effect that adjusts the saturation of the view.
-    public func saturation(_ amount: Double) -> some VisualEffect { return never() }
+    public func saturation(_ amount: Double) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -272,7 +278,7 @@ extension VisualEffect {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a color filter.
-    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some VisualEffect { return never() }
+    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some VisualEffect { return stubVisualEffect() }
 
 
     /// Returns a new visual effect that applies `shader` to `self` as
@@ -302,7 +308,7 @@ extension VisualEffect {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a distortion effect.
-    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return never() }
+    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return stubVisualEffect() }
 
 
     /// Returns a new visual effect that applies `shader` to `self` as
@@ -337,7 +343,7 @@ extension VisualEffect {
     ///
     /// - Returns: A new view that renders `self` with the shader
     ///   applied as a distortion effect.
-    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return never() }
+    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -354,7 +360,7 @@ extension VisualEffect {
     ///   opaque).
     ///
     /// - Returns: An effect that sets the transparency of the view.
-    public func opacity(_ opacity: Double) -> some VisualEffect { return never() }
+    public func opacity(_ opacity: Double) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -381,7 +387,7 @@ extension VisualEffect {
     ///
     /// - Returns: An effect that rotates the view's rendered output in three
     ///   dimensions.
-    public func rotation3D(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some VisualEffect { return never() }
+    public func rotation3D(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some VisualEffect { return stubVisualEffect() }
 
 }
 
@@ -418,7 +424,7 @@ extension View {
     ///     visibility is evaluated within. Defaults to `.scrollView`.
     ///   - transition: A closure that applies visual effects as a function of
     ///     the provided phase.
-    public func scrollTransition(_ configuration: ScrollTransitionConfiguration = .interactive, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return never() }
+    public func scrollTransition(_ configuration: ScrollTransitionConfiguration = .interactive, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return stubView() }
 
 
     /// Applies the given transition, animating between the phases
@@ -437,7 +443,7 @@ extension View {
     ///   - axis: The axis over which the transition should be applied.
     ///   - transition: A closure that applies visual effects as a function of
     ///     the provided phase.
-    public func scrollTransition(topLeading: ScrollTransitionConfiguration, bottomTrailing: ScrollTransitionConfiguration, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return never() }
+    public func scrollTransition(topLeading: ScrollTransitionConfiguration, bottomTrailing: ScrollTransitionConfiguration, axis: Axis = .vertical, transition: @escaping @Sendable (EmptyVisualEffect, ScrollTransitionPhase) -> some VisualEffect) -> some View { return stubView() }
 
 }
 
@@ -463,7 +469,7 @@ extension View {
     ///     argument provided to the closure is a placeholder representing
     ///     this view. The second argument is a `GeometryProxy`.
     /// - Returns: A view with the effect applied.
-    public func visualEffect(_ effect: @escaping @Sendable (EmptyVisualEffect, GeometryProxy) -> some VisualEffect) -> some View { return never() }
+    public func visualEffect(_ effect: @escaping @Sendable (EmptyVisualEffect, GeometryProxy) -> some VisualEffect) -> some View { return stubView() }
 
 }
 

@@ -127,22 +127,7 @@ import class Foundation.Progress
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, CurrentValueLabel : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -645,7 +630,7 @@ public struct CircularProgressViewStyle : ProgressViewStyle {
     ///
     /// - Parameter configuration: The properties of the progress view, such as
     ///  its preferred progress type.
-    public func makeBody(configuration: CircularProgressViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: CircularProgressViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a progress view.
@@ -657,22 +642,7 @@ public struct CircularProgressViewStyle : ProgressViewStyle {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct DefaultDateProgressLabel : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -701,7 +671,7 @@ public struct DefaultProgressViewStyle : ProgressViewStyle {
     ///
     /// - Parameter configuration: The properties of the progress view, such as
     ///  its preferred progress type.
-    public func makeBody(configuration: DefaultProgressViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultProgressViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a progress view.
@@ -735,7 +705,7 @@ public struct LinearProgressViewStyle : ProgressViewStyle {
     ///
     /// - Parameter configuration: The properties of the progress view, such as
     ///  its preferred progress type.
-    public func makeBody(configuration: LinearProgressViewStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: LinearProgressViewStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the body of a progress view.

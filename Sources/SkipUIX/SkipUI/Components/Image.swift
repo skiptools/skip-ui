@@ -62,25 +62,25 @@ import class Foundation.Bundle
 }
 
 
-#if canImport(CoreTransferable)
-import protocol CoreTransferable.Transferable
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Image : Transferable {
-
-    /// The representation used to import and export the item.
-    ///
-    /// A ``transferRepresentation`` can contain multiple representations
-    /// for different content types.
-    public static var transferRepresentation: Representation { get { return never() } }
-
-    /// The type of the representation used to import and export the item.
-    ///
-    /// Swift infers this type from the return value of the
-    /// ``transferRepresentation`` property.
-    public typealias Representation = Never
-}
-#endif
+//#if canImport(CoreTransferable)
+//import protocol CoreTransferable.Transferable
+//
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+//extension Image : Transferable {
+//
+//    /// The representation used to import and export the item.
+//    ///
+//    /// A ``transferRepresentation`` can contain multiple representations
+//    /// for different content types.
+//    public static var transferRepresentation: Representation { get { return never() } }
+//
+//    /// The type of the representation used to import and export the item.
+//    ///
+//    /// Swift infers this type from the return value of the
+//    /// ``transferRepresentation`` property.
+//    public typealias Representation = Never
+//}
+//#endif
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {

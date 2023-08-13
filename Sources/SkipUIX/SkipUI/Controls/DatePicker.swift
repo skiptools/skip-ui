@@ -7,6 +7,11 @@ import struct Foundation.Date
 import struct Foundation.DateComponents
 import struct Foundation.DateInterval
 
+/// No-op
+@usableFromInline func stubDatePickerStyle() -> DefaultDatePickerStyle {
+    fatalError()
+}
+
 /// A control for selecting an absolute date.
 ///
 /// Use a `DatePicker` when you want to provide a view that allows the user to
@@ -88,22 +93,7 @@ public struct DatePicker<Label> : View where Label : View {
 
     public typealias Components = DatePickerComponents
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -475,7 +465,7 @@ public struct DefaultDatePickerStyle : DatePickerStyle {
     ///
     /// - Parameter configuration : The properties of the date picker.
     @available(iOS 16.0, macOS 13.0, *)
-    public func makeBody(configuration: DefaultDatePickerStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: DefaultDatePickerStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the appearance and interaction of a `DatePicker`.
@@ -543,22 +533,7 @@ public struct DefaultDatePickerStyle : DatePickerStyle {
 @available(watchOS, unavailable)
 public struct MultiDatePicker<Label> : View where Label : View {
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -710,11 +685,10 @@ public struct WheelDatePickerStyle : DatePickerStyle {
     ///
     /// - Parameter configuration : The properties of the date picker.
     @available(iOS 16.0, watchOS 10.0, *)
-    public func makeBody(configuration: WheelDatePickerStyle.Configuration) -> Body { return never() }
-
+    public func makeBody(configuration: WheelDatePickerStyle.Configuration) -> some View { return stubView() }
 
     /// A view representing the appearance and interaction of a `DatePicker`.
-    public typealias Body = NeverView
+    //public typealias Body = NeverView
 }
 
 /// A date picker style that displays the components in a compact, textual
@@ -736,7 +710,7 @@ public struct CompactDatePickerStyle : DatePickerStyle {
     ///
     /// - Parameter configuration : The properties of the date picker.
     @available(iOS 16.0, macOS 13.0, *)
-    public func makeBody(configuration: CompactDatePickerStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: CompactDatePickerStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the appearance and interaction of a `DatePicker`.
@@ -771,7 +745,7 @@ public struct GraphicalDatePickerStyle : DatePickerStyle {
     ///
     /// - Parameter configuration : The properties of the date picker.
     @available(iOS 16.0, macOS 13.0, *)
-    public func makeBody(configuration: GraphicalDatePickerStyle.Configuration) -> some View { return never() }
+    public func makeBody(configuration: GraphicalDatePickerStyle.Configuration) -> some View { return stubView() }
 
 
     /// A view representing the appearance and interaction of a `DatePicker`.

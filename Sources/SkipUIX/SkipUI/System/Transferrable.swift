@@ -9,6 +9,17 @@ import class Foundation.NSItemProvider
 import struct UniformTypeIdentifiers.UTType
 import Foundation // import class Foundation.Predicate // ambiguous
 
+#if canImport(CoreTransferable)
+import protocol CoreTransferable.Transferable
+import protocol CoreTransferable.TransferRepresentation
+
+/// No-op
+@usableFromInline func stubTransferRepresentation() -> some TransferRepresentation {
+    return never()
+}
+#endif
+
+
 
 /// An interface that you implement to interact with a drop operation in a view
 /// modified to accept drops.
@@ -393,7 +404,7 @@ extension DynamicViewContent {
     /// - Returns: A view that calls `action` when elements are inserted into
     ///   the original view.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping ([T], Int) -> Void) -> some DynamicViewContent where T : Transferable { return never() }
+    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping ([T], Int) -> Void) -> some DynamicViewContent where T : Transferable { return stubDynamicViewContent() }
 
 }
 
@@ -469,22 +480,7 @@ public struct PasteButton : View {
     @available(iOS 16.0, macOS 13.0, *)
     public init<T>(payloadType: T.Type, onPaste: @escaping ([T]) -> Void) where T : Transferable { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -547,22 +543,7 @@ public struct EditButton : View {
     /// Creates an Edit button instance.
     public init() { fatalError() }
 
-    /// The content and behavior of the view.
-    ///
-    /// When you implement a custom view, you must implement a computed
-    /// `body` property to provide the content for your view. Return a view
-    /// that's composed of built-in views that SkipUI provides, plus other
-    /// composite views that you've already defined:
-    ///
-    ///     struct MyView: View {
-    ///         var body: some View {
-    ///             Text("Hello, World!")
-    ///         }
-    ///     }
-    ///
-    /// For more information about composing views and a view hierarchy,
-    /// see <doc:Declaring-a-Custom-View>.
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { return stubView() } }
 
     /// The type of view representing the body of this view.
     ///
@@ -589,7 +570,7 @@ extension View {
     ///
     /// - Returns: A view that activates this view as the source of a drag and
     ///   drop operation, beginning with user gesture input.
-    public func draggable<T>(_ payload: @autoclosure @escaping () -> T) -> some View where T : Transferable { return never() }
+    public func draggable<T>(_ payload: @autoclosure @escaping () -> T) -> some View where T : Transferable { return stubView() }
 
 
     /// Activates this view as the source of a drag and drop operation.
@@ -616,7 +597,7 @@ extension View {
     ///
     /// - Returns: A view that activates this view as the source of a drag and
     ///   drop operation, beginning with user gesture input.
-    public func draggable<V, T>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: () -> V) -> some View where V : View, T : Transferable { return never() }
+    public func draggable<V, T>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: () -> V) -> some View where V : View, T : Transferable { return stubView() }
 
 }
 
@@ -634,7 +615,7 @@ extension View {
     ///   - document: The transferable content associated to the
     ///     navigation title.
     @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-    public func navigationDocument<D>(_ document: D) -> some View where D : Transferable { return never() }
+    public func navigationDocument<D>(_ document: D) -> some View where D : Transferable { return stubView() }
 
 
     /// Configures the view's document for purposes of navigation.
@@ -651,7 +632,7 @@ extension View {
     ///   - preview: The preview of the document to use when sharing.
     @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
     @available(tvOS, unavailable)
-    public func navigationDocument<D>(_ document: D, preview: SharePreview<Never, Never>) -> some View where D : Transferable { return never() }
+    public func navigationDocument<D>(_ document: D, preview: SharePreview<Never, Never>) -> some View where D : Transferable { return stubView() }
 
 
     /// Configures the view's document for purposes of navigation.
@@ -668,7 +649,7 @@ extension View {
     ///   - preview: The preview of the document to use when sharing.
     @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
     @available(tvOS, unavailable)
-    public func navigationDocument<D, I>(_ document: D, preview: SharePreview<Never, I>) -> some View where D : Transferable, I : Transferable { return never() }
+    public func navigationDocument<D, I>(_ document: D, preview: SharePreview<Never, I>) -> some View where D : Transferable, I : Transferable { return stubView() }
 
 
     /// Configures the view's document for purposes of navigation.
@@ -685,7 +666,7 @@ extension View {
     ///   - preview: The preview of the document to use when sharing.
     @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
     @available(tvOS, unavailable)
-    public func navigationDocument<D, I>(_ document: D, preview: SharePreview<I, Never>) -> some View where D : Transferable, I : Transferable { return never() }
+    public func navigationDocument<D, I>(_ document: D, preview: SharePreview<I, Never>) -> some View where D : Transferable, I : Transferable { return stubView() }
 
 
     /// Configures the view's document for purposes of navigation.
@@ -702,7 +683,7 @@ extension View {
     ///   - preview: The preview of the document to use when sharing.
     @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
     @available(tvOS, unavailable)
-    public func navigationDocument<D, I1, I2>(_ document: D, preview: SharePreview<I1, I2>) -> some View where D : Transferable, I1 : Transferable, I2 : Transferable { return never() }
+    public func navigationDocument<D, I1, I2>(_ document: D, preview: SharePreview<I1, I2>) -> some View where D : Transferable, I1 : Transferable, I2 : Transferable { return stubView() }
 
 }
 
@@ -730,7 +711,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the operation was cancelled.
-    public func fileExporter<T>(isPresented: Binding<Bool>, item: T?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = { }) -> some View where T : Transferable { return never() }
+    public func fileExporter<T>(isPresented: Binding<Bool>, item: T?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = { }) -> some View where T : Transferable { return stubView() }
 
 
     /// Presents a system interface allowing the user to export
@@ -755,7 +736,7 @@ extension View {
     ///     has succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the operation was cancelled.
-    public func fileExporter<C, T>(isPresented: Binding<Bool>, items: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = { }) -> some View where C : Collection, T : Transferable, T == C.Element { return never() }
+    public func fileExporter<C, T>(isPresented: Binding<Bool>, items: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = { }) -> some View where C : Collection, T : Transferable, T == C.Element { return stubView() }
 
 
     /// Presents a system interface for allowing the user to export a
@@ -781,7 +762,7 @@ extension View {
     ///     the operation succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where D : FileDocument { return never() }
+    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where D : FileDocument { return stubView() }
 
 
     /// Presents a system dialog for allowing the user to export a
@@ -807,7 +788,7 @@ extension View {
     ///     the operation succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where D : ReferenceFileDocument { return never() }
+    public func fileExporter<D>(isPresented: Binding<Bool>, document: D?, contentTypes: [UTType] = [], defaultFilename: String? = nil, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where D : ReferenceFileDocument { return stubView() }
 
 
     /// Presents a system dialog for allowing the user to export a
@@ -831,7 +812,7 @@ extension View {
     ///     the operation succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where C : Collection, C.Element : FileDocument { return never() }
+    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where C : Collection, C.Element : FileDocument { return stubView() }
 
 
     /// Presents a system dialog for allowing the user to export a
@@ -855,7 +836,7 @@ extension View {
     ///     the operation succeeded or failed.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where C : Collection, C.Element : ReferenceFileDocument { return never() }
+    public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentTypes: [UTType] = [], onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void = {}) -> some View where C : Collection, C.Element : ReferenceFileDocument { return stubView() }
 
 }
 
@@ -871,7 +852,7 @@ extension View {
     ///   the system file dialog launches. If the given file dialog has
     ///   a `fileDialogCustomizationID` if stores the user-chosen directory and subsequently
     ///   opens with it, ignoring the default value provided in this modifier.
-    public func fileDialogDefaultDirectory(_ defaultDirectory: URL?) -> some View { return never() }
+    public func fileDialogDefaultDirectory(_ defaultDirectory: URL?) -> some View { return stubView() }
 
 
     /// On macOS, configures the `fileExporter`, `fileImporter`,
@@ -889,7 +870,7 @@ extension View {
     /// uses the default configuration.
     ///
     /// - Parameter id: An identifier of the configuration.
-    public func fileDialogCustomizationID(_ id: String) -> some View { return never() }
+    public func fileDialogCustomizationID(_ id: String) -> some View { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``, or ``fileMover``
@@ -897,7 +878,7 @@ extension View {
     /// similar to a title.
     ///
     /// - Parameter message: The optional text to use as the file dialog message.
-    public func fileDialogMessage(_ message: Text?) -> some View { return never() }
+    public func fileDialogMessage(_ message: Text?) -> some View { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
@@ -905,7 +886,7 @@ extension View {
     /// similar to a title.
     ///
     /// - Parameter messageKey: The key to a localized string to display.
-    public func fileDialogMessage(_ messageKey: LocalizedStringKey) -> some View { return never() }
+    public func fileDialogMessage(_ messageKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
@@ -913,46 +894,46 @@ extension View {
     /// similar to a title.
     ///
     /// - Parameter message: The string to use as the file dialog message.
-    public func fileDialogMessage<S>(_ message: S) -> some View where S : StringProtocol { return never() }
+    public func fileDialogMessage<S>(_ message: S) -> some View where S : StringProtocol { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
     /// or ``fileMover`` with a custom confirmation button label.
     ///
     /// - Parameter label: The string to use as the label for the confirmation button.
-    public func fileDialogConfirmationLabel<S>(_ label: S) -> some View where S : StringProtocol { return never() }
+    public func fileDialogConfirmationLabel<S>(_ label: S) -> some View where S : StringProtocol { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
     /// or ``fileMover`` with custom text as a confirmation button label.
     ///
     /// - Parameter label: The optional text to use as the label for the confirmation button.
-    public func fileDialogConfirmationLabel(_ label: Text?) -> some View { return never() }
+    public func fileDialogConfirmationLabel(_ label: Text?) -> some View { return stubView() }
 
 
     /// On macOS, configures the the ``fileExporter``, ``fileImporter``,
     /// or ``fileMover`` with a custom confirmation button label.
     ///
     /// - Parameter labelKey: The key to a localized string to display.
-    public func fileDialogConfirmationLabel(_ labelKey: LocalizedStringKey) -> some View { return never() }
+    public func fileDialogConfirmationLabel(_ labelKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// On macOS, configures the ``fileExporter``
     /// with a text to use as a label for the file name field.
     /// - Parameter label: The optional text to use as the label for the file name field.
-    public func fileExporterFilenameLabel(_ label: Text?) -> some View { return never() }
+    public func fileExporterFilenameLabel(_ label: Text?) -> some View { return stubView() }
 
 
     /// On macOS, configures the ``fileExporter``
     /// with a label for the file name field.
     /// - Parameter labelKey: The key to a localized string to display.
-    public func fileExporterFilenameLabel(_ labelKey: LocalizedStringKey) -> some View { return never() }
+    public func fileExporterFilenameLabel(_ labelKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// On macOS, configures the ``fileExporter``
     /// with a label for the file name field.
     /// - Parameter label: The string to use as the label for the file name field.
-    public func fileExporterFilenameLabel<S>(_ label: S) -> some View where S : StringProtocol { return never() }
+    public func fileExporterFilenameLabel<S>(_ label: S) -> some View where S : StringProtocol { return stubView() }
 
 
     /// On macOS, configures the the ``fileImporter``
@@ -963,7 +944,7 @@ extension View {
     ///    The implementation is expected to have constant complexity
     ///    and should not access the files contents or metadata. A common use case
     ///    is inspecting the path or the file name.
-    public func fileDialogURLEnabled(_ predicate: Predicate<URL>) -> some View { return never() }
+    public func fileDialogURLEnabled(_ predicate: Predicate<URL>) -> some View { return stubView() }
 
 
     /// On macOS, configures the ``fileExporter``, ``fileImporter``,
@@ -976,7 +957,7 @@ extension View {
     /// - Parameter imports: A Boolean value that indicates
     ///     if the application receives unresolved or resolved URLs
     ///     when a user chooses aliases.
-    public func fileDialogImportsUnresolvedAliases(_ imports: Bool) -> some View { return never() }
+    public func fileDialogImportsUnresolvedAliases(_ imports: Bool) -> some View { return stubView() }
 
 
     /// On macOS, configures the ``fileExporter``, ``fileImporter``,
@@ -984,7 +965,7 @@ extension View {
     /// hidden files, allow searching by tag, etc.
     ///
     /// - Parameter options: The search options to apply to a given file dialog.
-    public func fileDialogBrowserOptions(_ options: FileDialogBrowserOptions) -> some View { return never() }
+    public func fileDialogBrowserOptions(_ options: FileDialogBrowserOptions) -> some View { return stubView() }
 
 }
 
@@ -1014,7 +995,7 @@ extension View {
     ///
     /// - Returns: A view that provides a drop destination for a drag
     ///   operation of the specified types.
-    public func onDrop(of supportedContentTypes: [UTType], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View { return never() }
+    public func onDrop(of supportedContentTypes: [UTType], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View { return stubView() }
 
 
     /// Defines the destination of a drag and drop operation that handles the
@@ -1040,7 +1021,7 @@ extension View {
     ///
     /// - Returns: A view that provides a drop destination for a drag
     ///   operation of the specified types.
-    public func onDrop(of supportedContentTypes: [UTType], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View { return never() }
+    public func onDrop(of supportedContentTypes: [UTType], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View { return stubView() }
 
 
     /// Defines the destination of a drag and drop operation using behavior
@@ -1060,7 +1041,7 @@ extension View {
     ///
     /// - Returns: A view that provides a drop destination for a drag
     ///   operation of the specified types.
-    public func onDrop(of supportedContentTypes: [UTType], delegate: DropDelegate) -> some View { return never() }
+    public func onDrop(of supportedContentTypes: [UTType], delegate: DropDelegate) -> some View { return stubView() }
 
 }
 
@@ -1106,7 +1087,7 @@ extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping (_ items: [T], _ location: CGPoint) -> Bool, isTargeted: @escaping (Bool) -> Void = { _ in }) -> some View where T : Transferable { return never() }
+    public func dropDestination<T>(for payloadType: T.Type = T.self, action: @escaping (_ items: [T], _ location: CGPoint) -> Bool, isTargeted: @escaping (Bool) -> Void = { _ in }) -> some View where T : Transferable { return stubView() }
 
 }
 
@@ -1139,7 +1120,7 @@ extension View {
     ///   operation of the specified types.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View { return never() }
+    public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View { return stubView() }
 
 
     /// Defines the destination for a drag and drop operation with the same size
@@ -1166,7 +1147,7 @@ extension View {
     ///   operation of the specified types.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View { return never() }
+    public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?, perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View { return stubView() }
 
 
     /// Defines the destination for a drag and drop operation with the same size
@@ -1186,7 +1167,7 @@ extension View {
     ///   operation of the specified types.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func onDrop(of supportedTypes: [String], delegate: DropDelegate) -> some View { return never() }
+    public func onDrop(of supportedTypes: [String], delegate: DropDelegate) -> some View { return stubView() }
 
 }
 
@@ -1209,7 +1190,7 @@ extension DynamicViewContent {
     /// - Returns: A view that calls `action` when elements are inserted into
     ///   the original view.
     @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public func onInsert(of supportedContentTypes: [UTType], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> some DynamicViewContent { return never() }
+    public func onInsert(of supportedContentTypes: [UTType], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> some DynamicViewContent { return stubDynamicViewContent() }
 
 
     /// Sets the insert action for the dynamic view.
@@ -1230,7 +1211,7 @@ extension DynamicViewContent {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
-    public func onInsert(of acceptedTypeIdentifiers: [String], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> some DynamicViewContent { return never() }
+    public func onInsert(of acceptedTypeIdentifiers: [String], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> some DynamicViewContent { return stubDynamicViewContent() }
 
 }
 
@@ -1301,7 +1282,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View { return never() }
+    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View { return stubView() }
 
 
     /// Presents a system interface for allowing the user to import multiple
@@ -1371,7 +1352,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - result: A `Result` indicating whether the operation succeeded or
     ///     failed.
-    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], allowsMultipleSelection: Bool, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View { return never() }
+    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], allowsMultipleSelection: Bool, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View { return stubView() }
 
 }
 
@@ -1448,7 +1429,7 @@ extension View {
     ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
     ///   - onCancellation: A callback that will be invoked
     ///     if the user cancels the operation.
-    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], allowsMultipleSelection: Bool, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return never() }
+    public func fileImporter(isPresented: Binding<Bool>, allowedContentTypes: [UTType], allowsMultipleSelection: Bool, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return stubView() }
 
 }
 
@@ -1457,7 +1438,7 @@ extension View {
 
     /// Provides a closure that vends the drag representation to be used for a
     /// particular data element.
-    @inlinable public func itemProvider(_ action: (() -> NSItemProvider?)?) -> some View { return never() }
+    @inlinable public func itemProvider(_ action: (() -> NSItemProvider?)?) -> some View { return stubView() }
 
 }
 
@@ -1480,7 +1461,7 @@ extension View {
     ///   drop operation, beginning with user gesture input.
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
-    public func onDrag(_ data: @escaping () -> NSItemProvider) -> some View { return never() }
+    public func onDrag(_ data: @escaping () -> NSItemProvider) -> some View { return stubView() }
 
 }
 
@@ -1503,7 +1484,7 @@ extension View {
     ///
     /// - Returns: A view that activates this view as the source of a drag-and-
     ///   drop operation, beginning with user gesture input.
-    public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return never() }
+    public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return stubView() }
 
 }
 
