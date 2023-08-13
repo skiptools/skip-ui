@@ -729,4 +729,65 @@ extension View {
 
 }
 
+
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Sets the style for buttons within this view to a button style with a
+    /// custom appearance and standard interaction behavior.
+    ///
+    /// Use this modifier to set a specific style for all button instances
+    /// within a view:
+    ///
+    ///     HStack {
+    ///         Button("Sign In", action: signIn)
+    ///         Button("Register", action: register)
+    ///     }
+    ///     .buttonStyle(.bordered)
+    ///
+    /// You can also use this modifier to set the style for controls with a button
+    /// style through composition:
+    ///
+    ///     VStack {
+    ///         Menu("Terms and Conditions") {
+    ///             Button("Open in Preview", action: openInPreview)
+    ///             Button("Save as PDF", action: saveAsPDF)
+    ///         }
+    ///         Toggle("Remember Password", isOn: $isToggleOn)
+    ///         Toggle("Flag", isOn: $flagged)
+    ///         Button("Sign In", action: signIn)
+    ///     }
+    ///     .menuStyle(.button)
+    ///     .toggleStyle(.button)
+    ///     .buttonStyle(.bordered)
+    ///
+    /// In this example, `.menuStyle(.button)` says that the Terms and
+    /// Conditions menu renders as a button, while
+    /// `.toggleStyle(.button)` says that the two toggles also render as
+    /// buttons. Finally, `.buttonStyle(.bordered)` says that the menu,
+    /// both toggles, and the Sign In button all render with the
+    /// bordered button style.```
+    public func buttonStyle<S>(_ style: S) -> some View where S : ButtonStyle { return never() }
+
+}
+
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension View {
+
+    /// Sets the border shape for buttons in this view.
+    ///
+    /// The border shape is used to draw the platter for a bordered button.
+    /// On macOS, the specified border shape is only applied to bordered
+    /// buttons in widgets.
+    ///
+    /// - Parameter shape: the shape to use.
+    /// - Note:This will only reflect on explicitly-set `.bordered` or
+    ///   `borderedProminent` styles. Setting a shape without
+    ///   explicitly setting the above styles will have no effect.
+    @inlinable public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return never() }
+
+}
+
 #endif

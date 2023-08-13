@@ -1374,7 +1374,7 @@ public struct TextEditingCommands : Commands {
     /// that defines the scene as a composition of other scenes. You can
     /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
-    public var body: Body { get { return never() } }
+    public var body: Body { fatalError() }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
