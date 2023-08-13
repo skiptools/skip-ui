@@ -26,7 +26,7 @@ jobs:
             xcodebuild build \
               -configuration Build \
               -skipPackagePluginValidation \
-              -scheme "SkipUIX" \
+              -scheme "skip-uix-Package" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
       - name: Test (SkipUI / Debug)
@@ -34,7 +34,7 @@ jobs:
             xcodebuild test \
               -configuration Debug \
               -skipPackagePluginValidation \
-              -scheme "SkipUIX" \
+              -scheme "skip-uix-Package" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
       - name: Test (SwiftUI / Release)
@@ -42,7 +42,7 @@ jobs:
             xcodebuild test \
               -configuration Release \
               -skipPackagePluginValidation \
-              -scheme "SkipUIX" \
+              -scheme "skip-uix-Package" \
               -sdk "iphonesimulator" \
               -destination "platform=iOS Simulator,name=iPhone 14"
 

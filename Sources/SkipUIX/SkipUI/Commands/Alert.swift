@@ -682,7 +682,7 @@ extension View {
     ///     displays to the user.
     ///   - actions: A ``ViewBuilder`` returning the alert's actions given the
     ///     currently available data.
-    public func alert<A, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return never() }
+    public func alert<A, T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> A) -> some View where A : View { return EmptyView() }
 
 }
 
