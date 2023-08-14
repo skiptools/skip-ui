@@ -67,7 +67,7 @@ final class SkipUITests: XCTestCase {
 
         XCTAssertEqual(#"Text(storage: SwiftUI.Text.Storage.verbatim("XYZ"), modifiers: [])"#, "\(Text(verbatim: "XYZ"))")
         XCTAssertEqual("HorizontalAlignment(key: SwiftUI.AlignmentKey(bits: 2))", "\(HorizontalAlignment.center)")
-        XCTAssertEqual("VerticalAlignment(key: SwiftUI.AlignmentKey(bits: 3))", "\(VerticalAlignment.top)")
+        XCTAssertEqual("VerticalAlignment(key: SwiftUI.AlignmentKey(bits: 5))", "\(VerticalAlignment.top)")
         #endif
     }
     #endif
