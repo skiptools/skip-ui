@@ -1048,4 +1048,98 @@ extension View {
 
 }
 
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Presents an alert to the user.
+    ///
+    /// Use this method when you need to show an alert that contains
+    /// information from a binding to an optional data source that you provide.
+    /// The example below shows a custom data source `FileInfo` whose
+    /// properties configure the alert's `message` field:
+    ///
+    ///     struct FileInfo: Identifiable {
+    ///         var id: String { name }
+    ///         let name: String
+    ///         let fileType: UTType
+    ///     }
+    ///
+    ///     struct ConfirmImportAlert: View {
+    ///         @State private var alertDetails: FileInfo?
+    ///         var body: some View {
+    ///             Button("Show Alert") {
+    ///                 alertDetails = FileInfo(name: "MyImageFile.png",
+    ///                                         fileType: .png)
+    ///             }
+    ///             .alert(item: $alertDetails) { details in
+    ///                 Alert(title: Text("Import Complete"),
+    ///                       message: Text("""
+    ///                         Imported \(details.name) \n File
+    ///                         type: \(details.fileType.description).
+    ///                         """),
+    ///                       dismissButton: .default(Text("Dismiss")))
+    ///             }
+    ///         }
+    ///     }
+    ///
+    ///
+    /// ![An alert showing information from a data source that describes the
+    /// result of a file import process. The alert displays the name of the
+    /// file imported, MyImageFile.png and its file type, the PNG image
+    /// file format along with a default OK button for dismissing the
+    /// alert.](SkipUI-View-AlertItemContent.png)
+    ///
+    /// - Parameters:
+    ///   - item: A binding to an optional source of truth for the alert.
+    ///     if `item` is non-`nil`, the system passes the contents to
+    ///     the modifier's closure. You use this content to populate the fields
+    ///     of an alert that you create that the system displays to the user.
+    ///     If `item` changes, the system dismisses the currently displayed
+    ///     alert and replaces it with a new one using the same process.
+    ///   - content: A closure returning the alert to present.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    public func alert<Item>(item: Binding<Item?>, content: (Item) -> Alert) -> some View where Item : Identifiable { return stubView() }
+
+
+    /// Presents an alert to the user.
+    ///
+    /// Use this method when you need to show an alert to the user. The example
+    /// below displays an alert that is shown when the user toggles a
+    /// Boolean value that controls the presentation of the alert:
+    ///
+    ///     struct OrderCompleteAlert: View {
+    ///         @State private var isPresented = false
+    ///         var body: some View {
+    ///             Button("Show Alert", action: {
+    ///                 isPresented = true
+    ///             })
+    ///             .alert(isPresented: $isPresented) {
+    ///                 Alert(title: Text("Order Complete"),
+    ///                       message: Text("Thank you for shopping with us."),
+    ///                       dismissButton: .default(Text("OK")))
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// ![An alert whose title reads Order Complete, with the
+    /// message, Thank you for shopping with us placed underneath. The alert
+    /// also includes an OK button for dismissing the
+    /// alert.](SkipUI-View-AlertIsPresentedContent.png)
+    /// - Parameters:
+    ///   - isPresented: A binding to a Boolean value that determines whether
+    ///     to present the alert that you create in the modifier's `content` closure. When the
+    ///      user presses or taps OK the system sets `isPresented` to `false`
+    ///     which dismisses the alert.
+    ///   - content: A closure returning the alert to present.
+    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use `alert(title:isPresented:presenting::actions:) instead.")
+    public func alert(isPresented: Binding<Bool>, content: () -> Alert) -> some View { return stubView() }
+
+}
+
 #endif

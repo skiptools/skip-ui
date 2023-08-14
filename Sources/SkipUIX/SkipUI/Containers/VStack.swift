@@ -46,7 +46,7 @@
     ///     want the stack to choose a default distance for each pair of
     ///     subviews.
     ///   - content: A view builder that creates the content of this stack.
-    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { fatalError() }
+    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { }
 
     /// The type of view representing the body of this view.
     ///
@@ -81,7 +81,7 @@
     ///       has the same horizontal screen coordinate for all subviews.
     ///     - spacing: The distance between adjacent subviews. Set this value
     ///       to `nil` to use default distances between subviews.
-    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil) { fatalError() }
+    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil) { }
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData

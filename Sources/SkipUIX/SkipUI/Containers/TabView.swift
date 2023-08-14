@@ -58,7 +58,7 @@ public struct TabView<SelectionValue, Content> : View where SelectionValue : Has
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
 extension TabView where SelectionValue == Int {
 
-    public init(@ViewBuilder content: () -> Content) { fatalError() }
+    public init(@ViewBuilder content: () -> Content) { }
 }
 
 /// A specification for the appearance and interaction of a `TabView`.

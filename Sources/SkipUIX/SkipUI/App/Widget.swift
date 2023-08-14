@@ -173,7 +173,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Widget where C0 : Widget, C1 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Widget where C0 : Widget, C1 : Widget { stubWidget() }
 
 }
 

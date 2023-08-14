@@ -1231,4 +1231,313 @@ extension CustomizableToolbarContent {
 }
 
 
+extension View {
+
+    /// Configure the title menu of a toolbar.
+    ///
+    /// A title menu represent common functionality that can be done on the
+    /// content represented by your app's toolbar or navigation title. This
+    /// menu may be populated from your app's commands like
+    /// ``CommandGroupPlacement/saveItem`` or
+    /// ``CommandGroupPlacement/printItem``.
+    ///
+    ///     ContentView()
+    ///         .toolbar {
+    ///             ToolbarTitleMenu()
+    ///         }
+    ///
+    /// You can provide your own set of actions to override this behavior.
+    ///
+    ///     ContentView()
+    ///         .toolbarTitleMenu {
+    ///             DuplicateButton()
+    ///             PrintButton()
+    ///         }
+    ///
+    /// In iOS and iPadOS, this will construct a menu that can be presented by
+    /// tapping the navigation title in the app's navigation bar.
+    ///
+    /// - Parameter content: The content associated to the toolbar title menu.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func toolbarTitleMenu<C>(@ViewBuilder content: () -> C) -> some View where C : View { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the toolbar title display mode for this view.
+    ///
+    /// Use this modifier to override the default toolbar title display
+    /// mode.
+    ///
+    ///     NavigationStack {
+    ///         ContentView()
+    ///             .toolbarTitleDisplayMode(.inlineLarge)
+    ///     }
+    ///
+    /// See ``ToolbarTitleDisplayMode`` for more information on the
+    /// different kinds of display modes. This modifier has no effect
+    /// on macOS.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View { return stubView() }
+
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension View {
+
+    /// Populates the toolbar or navigation bar with the views you provide.
+    ///
+    /// Use this modifier to add content to the toolbar. The toolbar modifier
+    /// expects a collection of toolbar items that you can provide either by
+    /// supplying a collection of views with each view wrapped in a
+    /// ``ToolbarItem``, or by providing a collection of views as a
+    /// ``ToolbarItemGroup``. The example below adds views to using a toolbar
+    /// item group to support text editing features:
+    ///
+    ///     struct StructToolbarItemGroupView: View {
+    ///         @State private var text = ""
+    ///         @State private var bold = false
+    ///         @State private var italic = false
+    ///         @State private var fontSize = 12.0
+    ///
+    ///         var displayFont: Font {
+    ///             let font = Font.system(size: CGFloat(fontSize),
+    ///                                    weight: bold == true ? .bold : .regular)
+    ///             return italic == true ? font.italic() : font
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             TextEditor(text: $text)
+    ///                 .font(displayFont)
+    ///                 .toolbar {
+    ///                     ToolbarItemGroup {
+    ///                         Slider(
+    ///                             value: $fontSize,
+    ///                             in: 8...120,
+    ///                             minimumValueLabel:
+    ///                                 Text("A").font(.system(size: 8)),
+    ///                             maximumValueLabel:
+    ///                                 Text("A").font(.system(size: 16))
+    ///                         ) {
+    ///                             Text("Font Size (\(Int(fontSize)))")
+    ///                         }
+    ///                         .frame(width: 150)
+    ///                         Toggle(isOn: $bold) {
+    ///                             Image(systemName: "bold")
+    ///                         }
+    ///                         Toggle(isOn: $italic) {
+    ///                             Image(systemName: "italic")
+    ///                         }
+    ///                     }
+    ///                 }
+    ///                 .navigationTitle("My Note")
+    ///         }
+    ///     }
+    ///
+    /// ![A window showing a font size selector, and toggles for bold, italic.
+    ///   and underlined text styling installed in the toolbar to
+    ///   support text editing in
+    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
+    ///
+    /// - Parameter content: The views representing the content of the toolbar.
+    public func toolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content : View { return stubView() }
+
+
+    /// Populates the toolbar or navigation bar with the specified items.
+    ///
+    /// Use this method to populate a toolbar with a collection of views that
+    /// you provide to a toolbar view builder.
+    ///
+    /// The toolbar modifier expects a collection of toolbar items which you can
+    /// provide either by supplying a collection of views with each view
+    /// wrapped in a ``ToolbarItem``, or by providing a collection of views as
+    /// a ``ToolbarItemGroup``. The example below uses a collection of
+    /// ``ToolbarItem`` views to create a macOS toolbar that supports text
+    /// editing features:
+    ///
+    ///     struct StructToolbarItemGroupView: View {
+    ///         @State private var text = ""
+    ///         @State private var bold = false
+    ///         @State private var italic = false
+    ///         @State private var fontSize = 12.0
+    ///
+    ///         var displayFont: Font {
+    ///             let font = Font.system(size: CGFloat(fontSize),
+    ///                                    weight: bold == true ? .bold : .regular)
+    ///             return italic == true ? font.italic() : font
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             TextEditor(text: $text)
+    ///                 .font(displayFont)
+    ///                 .toolbar {
+    ///                     ToolbarItemGroup {
+    ///                         Slider(
+    ///                             value: $fontSize,
+    ///                             in: 8...120,
+    ///                             minimumValueLabel:
+    ///                                 Text("A").font(.system(size: 8)),
+    ///                             maximumValueLabel:
+    ///                                 Text("A").font(.system(size: 16))
+    ///                         ) {
+    ///                             Text("Font Size (\(Int(fontSize)))")
+    ///                         }
+    ///                         .frame(width: 150)
+    ///                         Toggle(isOn: $bold) {
+    ///                             Image(systemName: "bold")
+    ///                         }
+    ///                         Toggle(isOn: $italic) {
+    ///                             Image(systemName: "italic")
+    ///                         }
+    ///                     }
+    ///                 }
+    ///                 .navigationTitle("My Note")
+    ///         }
+    ///     }
+    ///
+    /// ![A window showing a font size selector, and toggles for bold, italic.
+    ///   and underlined text styling installed in the toolbar to
+    ///   support text editing in
+    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
+    ///
+    /// Although it's not mandatory, wrapping a related group of toolbar
+    /// items together in a ``ToolbarItemGroup`` provides a one-to-one mapping
+    /// between controls and toolbar items which results in the correct layout
+    /// and spacing on each platform.
+    ///
+    /// - Parameter content: The items representing the content of the toolbar.
+    public func toolbar<Content>(@ToolbarContentBuilder content: () -> Content) -> some View where Content : ToolbarContent { return stubView() }
+
+
+    /// Populates the toolbar or navigation bar with the specified items,
+    /// allowing for user customization.
+    ///
+    /// Use this modifier when you want to allow the user to customize the
+    /// components and layout of elements in the toolbar. The toolbar modifier
+    /// expects a collection of toolbar items which you can provide either by
+    /// supplying a collection of views with each view wrapped in a
+    /// ``ToolbarItem``.
+    ///
+    /// > Note: Customizable toolbars will be displayed on both macOS and iOS,
+    ///   but only apps running on iPadOS 16.0 and later will support
+    ///   user customization.
+    ///
+    /// The example below creates a view that represents each
+    /// ``ToolbarItem`` along with an ID that uniquely identifies the toolbar
+    /// item to the customization editor:
+    ///
+    ///     struct ToolsEditorView: View {
+    ///         @State private var text = ""
+    ///         @State private var bold = false
+    ///         @State private var italic = false
+    ///         @State private var fontSize = 12.0
+    ///
+    ///         var displayFont: Font {
+    ///             let font = Font.system(
+    ///                size: CGFloat(fontSize),
+    ///                  weight: bold == true ? .bold : .regular)
+    ///             return italic == true ? font.italic() : font
+    ///         }
+    ///
+    ///         var body: some View {
+    ///             TextEditor(text: $text)
+    ///                 .font(displayFont)
+    ///                 .toolbar(id: "editingtools") {
+    ///                     ToolbarItem(
+    ///                         id: "sizeSelector", placement: .secondaryAction
+    ///                     ) {
+    ///                         Slider(
+    ///                             value: $fontSize,
+    ///                             in: 8...120,
+    ///                             minimumValueLabel:
+    ///                                 Text("A").font(.system(size: 8)),
+    ///                             maximumValueLabel:
+    ///                                 Text("A").font(.system(size: 16))
+    ///                         ) {
+    ///                             Text("Font Size (\(Int(fontSize)))")
+    ///                         }
+    ///                         .frame(width: 150)
+    ///                     }
+    ///                     ToolbarItem(
+    ///                         id: "bold", placement: .secondaryAction
+    ///                     ) {
+    ///                         Toggle(isOn: $bold) {
+    ///                             Image(systemName: "bold")
+    ///                         }
+    ///                     }
+    ///                     ToolbarItem(
+    ///                         id: "italic", placement: .secondaryAction
+    ///                     ) {
+    ///                         Toggle(isOn: $italic) {
+    ///                             Image(systemName: "italic")
+    ///                         }
+    ///                     }
+    ///                 }
+    ///                 .navigationTitle("My Note")
+    ///         }
+    ///     }
+    ///
+    /// ![A window showing the macOS toolbar customization
+    ///   editor.](SkipUI-View-Styling-ToolbarCustomization.png)
+    ///
+    /// > Note: Only ``ToolbarItemPlacement/secondaryAction`` items support
+    ///   customization in iPadOS. Other items follow the normal
+    ///   placement rules and can't be customized by the user.
+    ///
+    /// In macOS you can enable menu support for toolbar customization by
+    /// adding a ``ToolbarCommands`` instance to a scene using the
+    /// ``Scene/commands(content:)`` scene modifier:
+    ///
+    ///     @main
+    ///     struct ToolbarContent_macOSApp: App {
+    ///         var body: some Scene {
+    ///             WindowGroup {
+    ///                 ToolsEditorView()
+    ///                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    ///             }
+    ///             .commands {
+    ///                 ToolbarCommands()
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// When you add the toolbar commands, the system adds a menu item to
+    /// your app's main menu to provide toolbar customization support.
+    /// This is in addition to the ability to Control-click on the
+    /// toolbar to open the toolbar customization editor.
+    ///
+    /// ![A screenshot of the toolbar editor support for the macOS view
+    /// menu.](SkipUI-View-Styling-ToolbarCustomizationMenu.png)
+    ///
+    /// - Parameters:
+    ///   - id: A unique identifier for this toolbar.
+    ///   - content: The content representing the content of the toolbar.
+    public func toolbar<Content>(id: String, @ToolbarContentBuilder content: () -> Content) -> some View where Content : CustomizableToolbarContent { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the semantic role for the content populating the toolbar.
+    ///
+    /// Use this modifier to configure the semantic role for content
+    /// populating your app's toolbar. SkipUI uses this role when
+    /// rendering the content of your app's toolbar.
+    ///
+    ///     ContentView()
+    ///         .navigationTitle("Browser")
+    ///         .toolbarRole(.browser)
+    ///         .toolbar {
+    ///             ToolbarItem(placement: .primaryAction) {
+    ///                 AddButton()
+    ///             }
+    ///          }
+    ///
+    /// - Parameter role: The role of the toolbar.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func toolbarRole(_ role: ToolbarRole) -> some View { return stubView() }
+
+}
+
 #endif

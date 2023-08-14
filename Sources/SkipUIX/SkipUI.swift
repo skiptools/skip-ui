@@ -14,7 +14,12 @@ public typealias Nothing = Never
 
 /// No-op
 @usableFromInline func stubView() -> some View {
-    return never()
+    struct StubView : View {
+        var body: some View {
+            EmptyView()
+        }
+    }
+    return StubView()
 }
 #endif
 

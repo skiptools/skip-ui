@@ -1984,5 +1984,18 @@ public protocol EnvironmentalModifier : ViewModifier where Self.Body == Never {
     func resolve(in environment: EnvironmentValues) -> Self.ResolvedModifier
 }
 
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Supplies an `ObservableObject` to a view subhierarchy.
+    ///
+    /// The object can be read by any child by using `EnvironmentObject`.
+    ///
+    /// - Parameter object: the object to store and make available to
+    ///     the view's subhierarchy.
+    @inlinable public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
+
+}
+
 #endif
 

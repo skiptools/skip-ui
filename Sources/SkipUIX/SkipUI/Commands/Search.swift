@@ -266,4 +266,925 @@ public struct SearchUnavailableContent {
     }
 }
 
+
+extension View {
+
+    /// Configures the search scopes for this view.
+    ///
+    /// To enable people to narrow the scope of their searches, you can
+    /// create a type that represents the possible scopes, and then create a
+    /// state variable to hold the current selection. For example, you can
+    /// scope the product search to just fruits or just vegetables:
+    ///
+    ///     enum ProductScope {
+    ///         case fruit
+    ///         case vegetable
+    ///     }
+    ///
+    ///     @State private var scope: ProductScope = .fruit
+    ///
+    /// Provide a binding to the scope, as well as a view that represents each
+    /// scope:
+    ///
+    ///     ProductList()
+    ///         .searchable(text: $text, tokens: $tokens) { token in
+    ///             switch token {
+    ///             case .apple: Text("Apple")
+    ///             case .pear: Text("Pear")
+    ///             case .banana: Text("Banana")
+    ///             }
+    ///         }
+    ///         .searchScopes($scope) {
+    ///             Text("Fruit").tag(ProductScope.fruit)
+    ///             Text("Vegetable").tag(ProductScope.vegetable)
+    ///         }
+    ///
+    /// SkipUI uses this binding and view to add a ``Picker`` with the search
+    /// field. In iOS, iPadOS, macOS, and tvOS, the picker appears below the
+    /// search field when search is active. To ensure that the picker operates
+    /// correctly, match the type of the scope binding with the type of each
+    /// view's tag. Then modify your search to account for the current value of
+    /// the `scope` state property.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - scope: The active scope of the search field.
+    ///   - scopes: A view builder that represents the scoping options
+    ///     SkipUI uses to populate a ``Picker``.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.4, *)
+    @available(watchOS, unavailable)
+    public func searchScopes<V, S>(_ scope: Binding<V>, @ViewBuilder scopes: () -> S) -> some View where V : Hashable, S : View { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the search scopes for this view with the specified
+    /// activation strategy.
+    ///
+    /// To enable people to narrow the scope of their searches, you can
+    /// create a type that represents the possible scopes, and then create a
+    /// state variable to hold the current selection. For example, you can
+    /// scope the product search to just fruits or just vegetables:
+    ///
+    ///     enum ProductScope {
+    ///         case fruit
+    ///         case vegetable
+    ///     }
+    ///
+    ///     @State private var scope: ProductScope = .fruit
+    ///
+    /// Provide a binding to the scope, as well as a view that represents each
+    /// scope:
+    ///
+    ///     ProductList()
+    ///         .searchable(text: $text, tokens: $tokens) { token in
+    ///             switch token {
+    ///             case .apple: Text("Apple")
+    ///             case .pear: Text("Pear")
+    ///             case .banana: Text("Banana")
+    ///             }
+    ///         }
+    ///         .searchScopes($scope) {
+    ///             Text("Fruit").tag(ProductScope.fruit)
+    ///             Text("Vegetable").tag(ProductScope.vegetable)
+    ///         }
+    ///
+    /// SkipUI uses this binding and view to add a ``Picker`` below the search
+    /// field. In iOS, macOS, and tvOS, the picker appears below the search
+    /// field when search is active. To ensure that the picker operates
+    /// correctly, match the type of the scope binding with the type of each
+    /// view's tag. Then condition your search on the current value of the
+    /// `scope` state property.
+    ///
+    /// By default, the appearance of scopes varies by platform:
+    ///   - In iOS and iPadOS, search scopes appear when someone enters text
+    ///     into the search field and disappear when someone cancels the search.
+    ///   - In macOS, search scopes appear when SkipUI presents search and
+    ///     disappear when someone cancels the search.
+    ///
+    /// However, you can use the `activation` parameter with a value of
+    /// ``SearchScopeActivation/onTextEntry`` or
+    /// ``SearchScopeActivation/onSearchPresentation`` to configure this
+    /// behavior:
+    ///
+    ///     .searchScopes($scope, activation: .onSearchPresentation) {
+    ///         Text("Fruit").tag(ProductScope.fruit)
+    ///         Text("Vegetable").tag(ProductScope.vegetable)
+    ///     }
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - scope: The active scope of the search field.
+    ///   - activation: The activation style of the search field's scopes.
+    ///   - scopes: A view builder that represents the scoping options
+    ///     SkipUI uses to populate a ``Picker``.
+    @available(iOS 16.4, macOS 13.3, tvOS 16.4, *)
+    @available(watchOS, unavailable)
+    public func searchScopes<V, S>(_ scope: Binding<V>, activation: SearchScopeActivation, @ViewBuilder _ scopes: () -> S) -> some View where V : Hashable, S : View { return stubView() }
+
+}
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension View {
+
+    /// Associates a fully formed string with the value of this view.
+    ///
+    /// Use this method to associate a fully formed string with a
+    /// view that is within a search suggestion list context. The system
+    /// uses this value when the view is selected to replace the
+    /// partial text being currently edited of the associated search field.
+    ///
+    /// On tvOS, the string that you provide to the this modifier is
+    /// used when displaying the associated suggestion and when
+    /// replacing the partial text of the search field.
+    ///
+    ///     SearchPlaceholderView()
+    ///         .searchable(text: $text) {
+    ///             Text("🍎").searchCompletion("apple")
+    ///             Text("🍐").searchCompletion("pear")
+    ///             Text("🍌").searchCompletion("banana")
+    ///         }
+    ///
+    /// - Parameters:
+    ///   - text: A string to use as the view’s completion.
+    public func searchCompletion(_ completion: String) -> some View { return stubView() }
+
+}
+
+extension View {
+
+    /// Associates a search token with the value of this view.
+    ///
+    /// Use this method to associate a search token with a view that is
+    /// within a search suggestion list context. The system uses this value
+    /// when the view is selected to replace the partial text being currently
+    /// edited of the associated search field.
+    ///
+    ///     enum FruitToken: Hashable, Identifiable, CaseIterable {
+    ///         case apple
+    ///         case pear
+    ///         case banana
+    ///
+    ///         var id: Self { self }
+    ///     }
+    ///
+    ///     @State private var text = ""
+    ///     @State private var tokens: [FruitToken] = []
+    ///
+    ///     SearchPlaceholderView()
+    ///         .searchable(text: $text, tokens: $tokens) { token in
+    ///             switch token {
+    ///             case .apple: Text("Apple")
+    ///             case .pear: Text("Pear")
+    ///             case .banana: Text("Banana")
+    ///             }
+    ///         }
+    ///         .searchSuggestions {
+    ///             Text("🍎").searchCompletion(FruitToken.apple)
+    ///             Text("🍐").searchCompletion(FruitToken.pear)
+    ///             Text("🍌").searchCompletion(FruitToken.banana)
+    ///         }
+    ///
+    /// - Parameters:
+    ///   - token: Data to use as the view’s completion.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchCompletion<T>(_ token: T) -> some View where T : Identifiable { return stubView() }
+
+
+    /// Configures how to display search suggestions within this view.
+    ///
+    /// SkipUI presents search suggestions differently depending on several
+    /// factors, like the platform, the position of the search field, and the
+    /// size class. Use this modifier when you want to only display suggestions
+    /// in certain ways under certain conditions. For example, you might choose
+    /// to display suggestions in a menu when possible, but directly filter
+    /// your data source otherwise.
+    ///
+    ///     enum FruitSuggestion: String, Identifiable {
+    ///         case apple, banana, orange
+    ///         var id: Self { self }
+    ///     }
+    ///
+    ///     @State private var text = ""
+    ///     @State private var suggestions: [FruitSuggestion] = []
+    ///
+    ///     var body: some View {
+    ///         MainContent()
+    ///             .searchable(text: $text) {
+    ///                 ForEach(suggestions) { suggestion
+    ///                     Text(suggestion.rawValue)
+    ///                         .searchCompletion(suggestion.rawValue)
+    ///                 }
+    ///                 .searchSuggestions(.hidden, for: .content)
+    ///             }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - visibility: The visibility of the search suggestions
+    ///     for the specified locations.
+    ///   - placements: The set of locations in which to set the visibility of
+    ///     search suggestions.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func searchSuggestions(_ visibility: Visibility, for placements: SearchSuggestionsPlacement.Set) -> some View { return stubView() }
+
+}
+
+extension View {
+
+    /// Configures the search suggestions for this view.
+    ///
+    /// You can suggest search terms during a search operation by providing a
+    /// collection of view to this modifier. The interface presents the
+    /// suggestion views as a list of choices when someone activates the
+    /// search interface. Associate a string with each suggestion
+    /// view by adding the ``View/searchCompletion(_:)-2uaf3`` modifier to
+    /// the view. For example, you can suggest fruit types by displaying their
+    /// emoji, and provide the corresponding search string as a search
+    /// completion in each case:
+    ///
+    ///     ProductList()
+    ///         .searchable(text: $text)
+    ///         .searchSuggestions {
+    ///             Text("🍎").searchCompletion("apple")
+    ///             Text("🍐").searchCompletion("pear")
+    ///             Text("🍌").searchCompletion("banana")
+    ///         }
+    ///
+    /// When someone chooses a suggestion, SkipUI replaces the text in the
+    /// search field with the search completion string. If you omit the search
+    /// completion modifier for a particular suggestion view, SkipUI displays
+    /// the suggestion, but the suggestion view doesn't react to taps or clicks.
+    ///
+    /// > Important: In tvOS, searchable modifiers only support suggestion views
+    /// of type ``Text``, like in the above example. Other platforms can use any
+    /// view for the suggestions, including custom views.
+    ///
+    /// You can update the suggestions that you provide as conditions change.
+    ///
+    /// For example, you can specify an array of suggestions that you store
+    /// in a model:
+    ///
+    ///     ProductList()
+    ///         .searchable(text: $text)
+    ///         .searchSuggestions {
+    ///             ForEach(model.suggestedSearches) { suggestion in
+    ///                 Label(suggestion.title,  image: suggestion.image)
+    ///                     .searchCompletion(suggestion.text)
+    ///             }
+    ///         }
+    ///
+    /// If the model's `suggestedSearches` begins as an empty array, the
+    /// interface doesn't display any suggestions to start. You can then provide
+    /// logic that updates the array based on some condition. For example, you
+    /// might update the completions based on the current search text. Note that
+    /// certain events or actions, like when someone moves a macOS window, might
+    /// dismiss the suggestion view.
+    ///
+    /// For more information about using search modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - suggestions: A view builder that produces content that
+    ///     populates a list of suggestions.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public func searchSuggestions<S>(@ViewBuilder _ suggestions: () -> S) -> some View where S : View { return stubView() }
+
+}
+
+extension View {
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: Where the search field should attempt to be
+    ///     placed based on the containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - suggestions: A view builder that produces content that
+    ///     populates a list of suggestions.
+    @available(iOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder suggestions: () -> S) -> some View where S : View { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: Where the search field should attempt to be
+    ///     placed based on the containing view hierarchy.
+    ///   - prompt: A key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - suggestions: A view builder that produces content that
+    ///     populates a list of suggestions.
+    @available(iOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder suggestions: () -> S) -> some View where S : View { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: Where the search field should attempt to be
+    ///     placed based on the containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - suggestions: A view builder that produces content that
+    ///     populates a list of suggestions.
+    @available(iOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(macOS, introduced: 12.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
+    public func searchable<V, S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder suggestions: () -> V) -> some View where V : View, S : StringProtocol { return stubView() }
+
+}
+
+@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+extension View {
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return stubView() }
+
+}
+
+extension View {
+
+    /// Marks this view as searchable with programmatic presentation of the
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return stubView() }
+
+
+    /// Marks this view as searchable with programmatic presentation of the
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return stubView() }
+
+
+    /// Marks this view as searchable with programmatic presentation of the
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<S>(text: Binding<String>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return stubView() }
+
+}
+
+extension View {
+
+    /// Marks this view as searchable with text and tokens.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text and tokens.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text and tokens.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+}
+
+extension View {
+
+    /// Marks this view as searchable with text and tokens, as well as
+    /// programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` which controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text and tokens, as well as
+    /// programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` which controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text and tokens, as well as
+    /// programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable, which configures the display of a
+    /// search field.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - editableTokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - isPresenting: A ``Binding`` which controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C>(text: Binding<String>, editableTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: some StringProtocol, @ViewBuilder token: @escaping (Binding<C.Element>) -> some View) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, C.Element : Identifiable { return stubView() }
+
+}
+
+extension View {
+
+    /// Marks this view as searchable with text, tokens, and suggestions.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text, tokens, and suggestions.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text, tokens, and suggestions.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 16.0, macOS 13.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text, tokens, and suggestions, as
+    /// well as programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A ``Text`` view representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text, tokens, and suggestions, as
+    /// well as programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: The key for the localized prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, C.Element : Identifiable { return stubView() }
+
+
+    /// Marks this view as searchable with text, tokens, and suggestions, as
+    /// well as programmatic presentation.
+    ///
+    /// For more information about using searchable modifiers, see
+    /// <doc:Adding-a-search-interface-to-your-app>.
+    /// For information about presenting a search field programmatically, see
+    /// <doc:Managing-search-interface-activation>.
+    ///
+    /// - Parameters:
+    ///   - text: The text to display and edit in the search field.
+    ///   - tokens: A collection of tokens to display and edit in the
+    ///     search field.
+    ///   - suggestedTokens: A collection of tokens to display as suggestions.
+    ///   - isPresenting: A ``Binding`` that controls the presented state
+    ///     of search.
+    ///   - placement: The preferred placement of the search field within the
+    ///     containing view hierarchy.
+    ///   - prompt: A string representing the prompt of the search field
+    ///     which provides users with guidance on what to search for.
+    ///   - token: A view builder that creates a view given an element in
+    ///     tokens.
+    @available(iOS 17.0, macOS 14.0, *)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
+    public func searchable<C, T, S>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder token: @escaping (C.Element) -> T) -> some View where C : MutableCollection, C : RandomAccessCollection, C : RangeReplaceableCollection, T : View, S : StringProtocol, C.Element : Identifiable { return stubView() }
+
+}
+
+extension View {
+
+    @available(iOS 17.0, xrOS 1.0, *)
+    @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(tvOS, unavailable)
+    public func searchDictationBehavior(_ dictationBehavior: TextInputDictationBehavior) -> some View { return stubView() }
+
+}
+
 #endif

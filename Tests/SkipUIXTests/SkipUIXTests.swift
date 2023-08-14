@@ -5,6 +5,7 @@ import XCTest
 // the CI workflow at .github/workflows/ci.yml will run with both Debug "import SkipUI" and Release "import SwiftUI"
 #if DEBUG
 import SkipUIX
+//import SwiftUI
 #else
 import SwiftUI
 #endif
@@ -65,14 +66,16 @@ final class SkipUITests: XCTestCase {
 
 
         XCTAssertEqual(#"Text(storage: SwiftUI.Text.Storage.verbatim("XYZ"), modifiers: [])"#, "\(Text(verbatim: "XYZ"))")
+        XCTAssertEqual("HorizontalAlignment(key: SwiftUI.AlignmentKey(bits: 2))", "\(HorizontalAlignment.center)")
+        XCTAssertEqual("VerticalAlignment(key: SwiftUI.AlignmentKey(bits: 3))", "\(VerticalAlignment.top)")
         #endif
     }
     #endif
 
     #if !SKIP
     @MainActor func testExample() throws {
-        if ({ false }()) {
-            _ = VStack {
+        do {
+            let _ = VStack {
                 Text("Hello")
                     .foregroundStyle(.primary)
                     .font(.title)
@@ -80,8 +83,10 @@ final class SkipUITests: XCTestCase {
                     .opacity(0.5)
                     .font(.title2)
             }
+        }
 
-            _ = TabView {
+        do {
+            let _ = TabView {
                 List {
                     ForEach(1..<100) { i in
                         HStack(spacing: 6.0) {

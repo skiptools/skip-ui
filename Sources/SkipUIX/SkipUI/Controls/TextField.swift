@@ -1218,4 +1218,12 @@ public struct DefaultTextFieldStyle : TextFieldStyle {
     public init() { fatalError() }
 }
 
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Sets the style for text fields within this view.
+    public func textFieldStyle<S>(_ style: S) -> some View where S : TextFieldStyle { return stubView() }
+
+}
+
 #endif

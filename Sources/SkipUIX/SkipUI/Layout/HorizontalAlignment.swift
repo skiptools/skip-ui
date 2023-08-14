@@ -145,6 +145,12 @@
 /// edge of each set's left-most rectangle.](HorizontalAlignment-3-iOS)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct HorizontalAlignment : Equatable {
+    /// The underlying identifier for the alignment
+    private let key: String
+
+    init(key: String) {
+        self.key = key
+    }
 
     /// Creates a custom horizontal alignment of the specified type.
     ///
@@ -208,7 +214,7 @@ extension HorizontalAlignment {
     ///         }
     ///     }
     ///
-    public static let leading: HorizontalAlignment = { fatalError() }()
+    public static let leading: HorizontalAlignment = HorizontalAlignment(key: "leading")
 
     /// A guide that marks the horizontal center of the view.
     ///
@@ -230,7 +236,7 @@ extension HorizontalAlignment {
     ///         }
     ///     }
     ///
-    public static let center: HorizontalAlignment = { fatalError() }()
+    public static let center: HorizontalAlignment = HorizontalAlignment(key: "center")
 
     /// A guide that marks the trailing edge of the view.
     ///
@@ -254,7 +260,7 @@ extension HorizontalAlignment {
     ///         }
     ///     }
     ///
-    public static let trailing: HorizontalAlignment = { fatalError() }()
+    public static let trailing: HorizontalAlignment = HorizontalAlignment(key: "trailing")
 }
 
 @available(iOS 16.0, macOS 13.0, *)
