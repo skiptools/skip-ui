@@ -9,10 +9,10 @@ let package = Package(
         .library(name: "SkipUIKt", targets: ["SkipUIKt"]),
     ],
     dependencies: [ 
-        .package(url: "https://skip.tools/skiptools/skip.git", from: "0.0.0"),
-        .package(url: "https://skip.tools/skiptools/skip-unit.git", from: "0.0.0"),
-        .package(url: "https://skip.tools/skiptools/skip-lib.git", from: "0.0.0"),
-        .package(url: "https://skip.tools/skiptools/skip-foundation.git", from: "0.0.0"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.0.0"),
+        .package(url: "https://source.skip.tools/skip-unit.git", from: "0.0.0"),
+        .package(url: "https://source.skip.tools/skip-lib.git", from: "0.0.0"),
+        .package(url: "https://source.skip.tools/skip-foundation.git", from: "0.0.0"),
     ],
     targets: [
         .target(name: "SkipUI",
@@ -21,11 +21,22 @@ let package = Package(
             plugins: [.plugin(name: "preflight", package: "skip")]),
 
         .target(name: "SkipUIKt",
-            dependencies: [ "SkipUI", .product(name: "SkipUIKt", package: "skiphub") ],
+            dependencies: [
+                "SkipUI",
+                .product(name: "SkipUnitKt", package: "skip-unit"),
+                .product(name: "SkipLibKt", package: "skip-lib"),
+                .product(name: "SkipFoundationKt", package: "skip-foundation"),
+            ],
             resources: [.process("Skip")],
             plugins: [.plugin(name: "transpile", package: "skip")]),
         .testTarget(name: "SkipUIKtTests",
-            dependencies: ["SkipUIKt", .product(name: "SkipUnitKt", package: "skiphub")], resources: [.process("Skip")], plugins: [
+            dependencies: [
+                "SkipUIKt",
+                .product(name: "SkipUnit", package: "skip-unit"),
+                .product(name: "SkipUnitKt", package: "skip-unit"),
+                .product(name: "SkipLibKt", package: "skip-lib"),
+                .product(name: "SkipFoundationKt", package: "skip-foundation"),
+            ], resources: [.process("Skip")], plugins: [
             .plugin(name: "transpile", package: "skip")
         ]),
     ]

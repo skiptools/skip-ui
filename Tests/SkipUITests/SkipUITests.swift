@@ -4,7 +4,7 @@
 import XCTest
 // the CI workflow at .github/workflows/ci.yml will run with both Debug "import SkipUI" and Release "import SwiftUI"
 #if DEBUG
-import SkipUIX
+import SkipUI
 //import SwiftUI
 #else
 import SwiftUI
