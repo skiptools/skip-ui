@@ -1,0 +1,16 @@
+name: skip-ui
+on:
+  push:
+    branches: '*'
+    tags: "[0-9]+.[0-9]+.[0-9]+"
+  schedule:
+    - cron:  '0 1,11 * * *'
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  call-workflow:
+    uses: skiptools/skip/.github/workflows/skiplib.yml@main
