@@ -17,10 +17,12 @@
         self.set = projectedValue.set
     }
 
-    @available(*, unavailable)
-    public init(get: @escaping () -> Value, set: @escaping (Value, Transaction) -> Void) {
-        fatalError()
-    }
+    //~~~
+//    @available(*, unavailable)
+//    public init(get: @escaping () -> Value, set: @escaping (Value, Any /* Transaction */) -> Void) {
+//        self.get = get
+//        self.set = { _ in }
+//    }
 
     public var wrappedValue: Value {
         get {
@@ -36,7 +38,7 @@
     }
 
     @available(*, unavailable)
-    public var transaction: Transaction {
+    public var transaction: Any /* Transaction */ {
         fatalError()
     }
 

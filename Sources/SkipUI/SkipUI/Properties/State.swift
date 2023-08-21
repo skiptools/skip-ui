@@ -8,10 +8,11 @@
 @propertyWrapper public final class State<Value> {
     private var onUpdate: ((Value) -> Void)?
 
-    @available(*, unavailable)
-    public init() {
-        fatalError()
-    }
+    //~~~
+//    @available(*, unavailable)
+//    public init() {
+//        fatalError()
+//    }
 
     public init(initialValue: Value) {
         wrappedValue = initialValue

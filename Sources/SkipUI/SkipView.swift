@@ -23,47 +23,6 @@
 //import SwiftUI
 #endif
 
-public struct Button<Label> : View where Label : View {
-    let action: () -> Void
-    let label: Label
-
-    public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) {
-        self.action = action
-        self.label = label()
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Button.kt
-     @Composable
-     fun Button(
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-        enabled: Boolean = true,
-        shape: Shape = ButtonDefaults.shape,
-        colors: ButtonColors = ButtonDefaults.buttonColors(),
-        elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
-        border: BorderStroke? = null,
-        contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-        content: @Composable RowScope.() -> Unit
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.material3.Button(modifier: ctx.modifier, onClick: action, content: {
-            label.Compose(ctx.child())
-        })
-    }
-    #else
-    public var body: some View {
-        stubView()
-        //SwiftUI.Button(action: action) {
-        //    label
-        //}
-    }
-    #endif
-}
-
 public struct Divider : View {
     public init() {
     }

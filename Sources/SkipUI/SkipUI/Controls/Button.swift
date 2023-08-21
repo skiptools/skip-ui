@@ -2,171 +2,62 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+// SKIP INSERT: import androidx.compose.material3.Button
+// SKIP INSERT: import androidx.compose.runtime.Composable
+#endif
+
+public struct Button<Label> : View where Label : View {
+    let action: () -> Void
+    let label: Label
+
+    public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) {
+        self.action = action
+        self.label = label()
+    }
+
+    #if SKIP
+    /*
+     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Button.kt
+     @Composable
+     fun Button(
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier,
+        enabled: Boolean = true,
+        shape: Shape = ButtonDefaults.shape,
+        colors: ButtonColors = ButtonDefaults.buttonColors(),
+        elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+        border: BorderStroke? = null,
+        contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
+        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+        content: @Composable RowScope.() -> Unit
+     )
+     */
+    @Composable public override func Compose(ctx: ComposeContext) {
+        androidx.compose.material3.Button(modifier: ctx.modifier, onClick: action, content: {
+            label.Compose(ctx.child())
+        })
+    }
+    #else
+    public var body: some View {
+        Never()
+    }
+    #endif
+}
+
+//~~~
+//#if SKIP
+//extension Button /* where Label == Text */ {
+//    // TODO: LocalizedStringKey vs. StringProtocol
+//    public init(_ title: String, action: @escaping () -> Void) {
+//        self.init(action: action, label: { Text(title) })
+//    }
+//}
+//#endif
 
 #if !SKIP
 
-
-/// A control that initiates an action.
-///
-/// You create a button by providing an action and a label. The action is either
-/// a method or closure property that does something when a user clicks or taps
-/// the button. The label is a view that describes the button's action --- for
-/// example, by showing text, an icon, or both:
-///
-///     Button(action: signIn) {
-///         Text("Sign In")
-///     }
-///
-/// For the common case of text-only labels, you can use the convenience
-/// initializer that takes a title string or ``LocalizedStringKey`` as its first
-/// parameter, instead of a trailing closure:
-///
-///     Button("Sign In", action: signIn)
-///
-/// How the user activates the button varies by platform:
-/// - In iOS and watchOS, the user taps the button.
-/// - In macOS, the user clicks the button.
-/// - In tvOS, the user presses "select" on an
-///   external remote, like the Siri Remote, while focusing on the button.
-///
-/// The appearance of the button depends on factors like where you
-/// place it, whether you assign it a role, and how you style it.
-///
-/// ### Adding buttons to containers
-///
-/// Use buttons for any user interface element that initiates an action.
-/// Buttons automatically adapt their visual style to match the expected style
-/// within these different containers and contexts. For example, to create a
-/// ``List`` cell that initiates an action when selected by the user, add a
-/// button to the list's content:
-///
-///     List {
-///         // Cells that show all the current folders.
-///         ForEach(folders) { folder in
-///             Text(folder.title)
-///         }
-///
-///         // A cell that, when selected, adds a new folder.
-///         Button(action: addItem) {
-///             Label("Add Folder", systemImage: "folder.badge.plus")
-///         }
-///     }
-///
-/// ![A screenshot of a list of four items. The first three items use a
-/// grayscale foreground color and have the text Documents, Downloads,
-/// and Recents. The last item has a blue foreground color and shows
-/// a folder icon with the text Add Folder.](Button-1)
-///
-/// Similarly, to create a context menu item that initiates an action, add a
-/// button to the ``View/contextMenu(_:)`` modifier's content closure:
-///
-///     .contextMenu {
-///         Button("Cut", action: cut)
-///         Button("Copy", action: copy)
-///         Button("Paste", action: paste)
-///     }
-///
-/// ![A screenshot of a context menu that contains the three items Cut, Copy,
-/// and Paste.](Button-2)
-///
-/// This pattern extends to most other container views in SkipUI that have
-/// customizable, interactive content, like ``Form`` instances.
-///
-/// ### Assigning a role
-///
-/// You can optionally initialize a button with a ``ButtonRole`` that
-/// characterizes the button's purpose. For example, you can create a
-/// ``ButtonRole/destructive`` button for a deletion action:
-///
-///      Button("Delete", role: .destructive, action: delete)
-///
-/// The system uses the button's role to style the button appropriately
-/// in every context. For example, a destructive button in a contextual menu
-/// appears with a red foreground color:
-///
-/// ![A screenshot of a context menu that contains the four items Cut, Copy,
-/// Paste, and Delete. The last item uses a foreground color of red.](Button-3)
-///
-/// If you don't specify a role for a button, the system applies an
-/// appropriate default appearance.
-///
-/// ### Styling buttons
-///
-/// You can customize a button's appearance using one of the standard button
-/// styles, like ``PrimitiveButtonStyle/bordered``, and apply the style with the
-/// ``View/buttonStyle(_:)-66fbx`` modifier:
-///
-///     HStack {
-///         Button("Sign In", action: signIn)
-///         Button("Register", action: register)
-///     }
-///     .buttonStyle(.bordered)
-///
-/// If you apply the style to a container view, as in the example above,
-/// all the buttons in the container use the style:
-///
-/// ![A screenshot of two buttons, side by side, each with a capsule shaped
-/// background. The label for the first button is Sign In; the right button is
-/// Register.](Button-4)
-///
-/// You can also create custom styles. To add a custom appearance with
-/// standard interaction behavior, create a style that conforms to the
-/// ``ButtonStyle`` protocol. To customize both appearance and interaction
-/// behavior, create a style that conforms to the ``PrimitiveButtonStyle``
-/// protocol. Custom styles can also read the button's role and use it to
-/// adjust the button's appearance.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct Button<Label> : View where Label : View {
-
-    /// Creates a button that displays a custom label.
-    ///
-    /// - Parameters:
-    ///   - action: The action to perform when the user triggers the button.
-    ///   - label: A view that describes the purpose of the button's `action`.
-    public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Button where Label == Text {
-
-    /// Creates a button that generates its label from a localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// ``Text`` for more information about localizing strings.
-    ///
-    /// To initialize a button with a string variable, use
-    /// ``Button/init(_:action:)-lpm7`` instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the button's localized title, that describes
-    ///     the purpose of the button's `action`.
-    ///   - action: The action to perform when the user triggers the button.
-    public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) { fatalError() }
-
-    /// Creates a button that generates its label from a string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See ``Text`` for more
-    /// information about localizing strings.
-    ///
-    /// To initialize a button with a localized string key, use
-    /// ``Button/init(_:action:)-1asy`` instead.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the button's `action`.
-    ///   - action: The action to perform when the user triggers the button.
-    public init<S>(_ title: S, action: @escaping () -> Void) where S : StringProtocol { fatalError() }
-}
+// TODO: Process for use in SkipUI
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
