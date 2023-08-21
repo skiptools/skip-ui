@@ -403,11 +403,6 @@ extension LabelStyleConfiguration.Icon : View {
 public struct LabeledContent<Label, Content> {
 }
 
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension LabeledContent : PlatformView where Label : PlatformView, Content : PlatformView {
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension LabeledContent : View where Label : View, Content : View {
 

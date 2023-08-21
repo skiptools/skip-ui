@@ -12,10 +12,6 @@
 public struct EditableCollectionContent<Content, Data> {
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension EditableCollectionContent : PlatformView where Content : PlatformView {
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension EditableCollectionContent : View where Content : View {
 

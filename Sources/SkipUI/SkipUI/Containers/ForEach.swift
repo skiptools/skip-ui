@@ -210,10 +210,6 @@ extension ForEach {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ForEach : PlatformView where Content : PlatformView {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ForEach : View where Content : View {
 
     public typealias Body = NeverView

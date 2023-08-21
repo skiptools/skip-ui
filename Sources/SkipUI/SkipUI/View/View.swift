@@ -32,13 +32,6 @@ extension View {
 }
 #else
 
-public protocol PlatformView {
-}
-
-// View.kt:53 testSkipModule(): One type argument expected for interface View<Body>
-// Fail: interface View<Body>: PlatformView where Body: View
-// Need: interface View<Body: View<Body>>: PlatformView
-
 /// A type that represents part of your app's user interface and provides
 /// modifiers that you use to configure views.
 ///
@@ -75,9 +68,8 @@ public protocol PlatformView {
 /// and respond to <doc:View-Input-and-Events>.
 /// You can also collect groups of default modifiers into new,
 /// custom view modifiers for easy reuse.
-// SKIP DECLARE: interface View<Body: View<Body>>: PlatformView
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol View : PlatformView {
+public protocol View {
 
     /// The type of view representing the body of this view.
     ///
@@ -86,10 +78,6 @@ public protocol View : PlatformView {
     associatedtype Body : View
 
     @ViewBuilder @MainActor var body: Body { get }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Optional : PlatformView where Wrapped : PlatformView {
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

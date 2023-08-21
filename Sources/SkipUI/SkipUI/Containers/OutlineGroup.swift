@@ -355,13 +355,6 @@ extension OutlineGroup where Parent : View, Parent == Leaf, Subgroup == Disclosu
 
 }
 
-
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension OutlineGroup : PlatformView where Parent : PlatformView, Leaf : PlatformView, Subgroup : PlatformView {
-}
-
 @available(iOS 14.0, macOS 11.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)

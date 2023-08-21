@@ -110,10 +110,6 @@ extension ModifiedContent : Equatable where Content : Equatable, Modifier : Equa
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ModifiedContent : PlatformView where Content : PlatformView, Modifier : ViewModifier {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ModifiedContent : View where Content : View, Modifier : ViewModifier {
 
     @MainActor public var body: ModifiedContent<Content, Modifier>.Body { get { fatalError() } }
