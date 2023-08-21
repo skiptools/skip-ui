@@ -2,7 +2,36 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+public final class State<V> {
+    private var onUpdate: ((V) -> Void)?
+
+    public init(initialValue: V) {
+        wrappedValue = initialValue
+    }
+
+    public init(wrappedValue: V) {
+        self.wrappedValue = wrappedValue
+    }
+
+    public var wrappedValue: V {
+        didSet {
+            onUpdate?(newValue)
+        }
+    }
+
+    public var projectedValue: Binding<V> {
+        return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
+    }
+
+    /// Used to keep the state value synchronized with an external Compose value.
+    public func sync(value: V, onUpdate: (V) -> Void) {
+        self.wrappedValue = value
+        self.onUpdate = onUpdate
+    }
+}
+#else
+
 import Observation
 //import protocol Observation.Observable
 

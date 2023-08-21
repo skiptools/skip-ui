@@ -31,7 +31,10 @@ public typealias Nothing = Never
 
 public typealias NeverView = Never
 
-#if !SKIP
+#if SKIP
+public typealias CGFloat = Double
+#else
+
 import struct CoreGraphics.CGFloat
 public typealias CGFloat = CoreGraphics.CGFloat
 
@@ -56,7 +59,6 @@ public typealias CGAffineTransform = CoreGraphics.CGAffineTransform
 
 import struct QuartzCore.CATransform3D
 public typealias CATransform3D = QuartzCore.CATransform3D
-
 
 import struct CoreGraphics.CGVector
 public typealias CGVector = CoreGraphics.CGVector

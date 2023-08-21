@@ -2,7 +2,25 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+public struct Binding<V> {
+    public let get: () -> V
+    public let set: (V) -> Void
+
+    public var wrappedValue: V {
+        get {
+            return get()
+        }
+        set {
+            set(newValue)
+        }
+    }
+
+    public var projectedValue: Binding<V> {
+        return self
+    }
+}
+#else
 
 /// A property wrapper type that can read and write a value owned by a source of
 /// truth.
