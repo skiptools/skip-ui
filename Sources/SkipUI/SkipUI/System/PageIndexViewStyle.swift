@@ -2,8 +2,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+// TODO: Process for use in SkipUI
 
+#if !SKIP
 
 /// An index view style that places a page index view over its content.
 ///

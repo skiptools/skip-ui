@@ -2,8 +2,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+// TODO: Process for use in SkipUI
 
+#if !SKIP
 
 /// An attachment anchor for a popover.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -16,6 +17,5 @@ public enum PopoverAttachmentAnchor {
     /// describes possible alignments relative to a SkipUI view.
     case point(UnitPoint)
 }
-
 
 #endif

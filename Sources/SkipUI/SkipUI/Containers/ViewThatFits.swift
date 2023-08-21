@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// TODO: Process for use in SkipUI
+
 #if !SKIP
 
 /// A view that adapts to the available space by providing the first

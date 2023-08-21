@@ -2,8 +2,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+// TODO: Process for use in SkipUI
 
+#if !SKIP
 
 /// A set of symbolic safe area regions.
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)

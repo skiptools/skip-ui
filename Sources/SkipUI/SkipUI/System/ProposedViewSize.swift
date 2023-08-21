@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// TODO: Process for use in SkipUI
+
 #if !SKIP
 
 /// A proposal for the size of a view.
@@ -99,13 +101,10 @@
     ///
     /// - Returns: A new, fully specified size proposal.
     @inlinable public func replacingUnspecifiedDimensions(by size: CGSize = CGSize(width: 10, height: 10)) -> CGSize { fatalError() }
-
-    
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension ProposedViewSize : Sendable {
 }
-
 
 #endif
