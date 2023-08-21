@@ -13,7 +13,7 @@ build:
             - 'compose = true'
         - block: 'composeOptions'
           contents:
-            - 'kotlinCompilerExtensionVersion = "1.4.7"'
+            - 'kotlinCompilerExtensionVersion = "1.5.1"'
 
     - block: 'dependencies'
       contents:
@@ -27,7 +27,7 @@ build:
         - 'implementation("androidx.compose.material3:material3")'
         - 'implementation("androidx.compose.foundation:foundation")'
 
-        - 'implementation("androidx.navigation:navigation-compose:2.6.0")'
+        - 'implementation("androidx.navigation:navigation-compose:2.7.0")'
         - 'implementation("androidx.appcompat:appcompat:1.6.1")'
         - 'implementation("androidx.appcompat:appcompat-resources:1.6.1")'
 

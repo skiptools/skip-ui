@@ -2,6 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
 
 //import protocol SwiftUI.View
 // SKIP INSERT: import androidx.compose.runtime.Composable
@@ -64,8 +65,6 @@ public protocol View : PlatformView {
 
     @ViewBuilder @MainActor var body: Body { get }
 }
-
-#if !SKIP
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Optional : PlatformView where Wrapped : PlatformView {
