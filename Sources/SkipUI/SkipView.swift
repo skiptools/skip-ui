@@ -95,7 +95,7 @@ struct ComposeContextView: View {
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
 struct ComposeStateSaver: Saver<Any, Any> {
     // TODO: Discard state when popped / dismissed
-    private var state: MutableMap<Key, Any> = mutableMapOf()
+    private let state: MutableMap<Key, Any> = mutableMapOf()
 
     override func restore(value: Any) -> Any? {
         if let key = value as? Key {
@@ -116,9 +116,8 @@ struct ComposeStateSaver: Saver<Any, Any> {
         }
     }
 
-    //~~~ make private when fix private val constructor bug
     /// Key under which to save values that cannot be stored directly in the Bundle.
-    struct Key: Parcelable {
+    private struct Key: Parcelable {
         private static var keyValue = 0
 
         static func next() -> Key {
@@ -144,7 +143,7 @@ struct ComposeStateSaver: Saver<Any, Any> {
             return 0
         }
 
-        private static let CREATOR: Parcelable.Creator<Key> = Creator()
+        static let CREATOR: Parcelable.Creator<Key> = Creator()
 
         private class Creator: Parcelable.Creator<Key> {
             override func createFromParcel(parcel: Parcel) -> Key {

@@ -25,8 +25,8 @@ public typealias CGFloat = Double
 
 #if SKIP
 public struct Binding<V> {
-    let get: () -> V
-    let set: (V) -> Void
+    public let get: () -> V
+    public let set: (V) -> Void
 
     public var wrappedValue: V {
         get {
