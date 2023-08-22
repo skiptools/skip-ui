@@ -29,6 +29,12 @@ public typealias NeverView = Never
 
 #if SKIP
 public typealias CGFloat = Double
+
+public struct CGSize: Hashable {
+    public static let zero = CGSize()
+    public var width = 0.0
+    public var height = 0.0
+}
 #else
 
 import struct CoreGraphics.CGFloat

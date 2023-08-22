@@ -3,30 +3,125 @@
 // as published by the Free Software Foundation https://fsf.org
 
 extension View {
-    public func foregroundColor(_ color: Color?) -> some View {
-        #if SKIP
-        return ComposeContextView(self) {
-            $0.color = color
-        }
-        #else
-        return EmptyView()
-        #endif
-    }
-    
-    public func foregroundStyle(_ color: Color) -> some View {
-        foregroundColor(color)
-    }
-}
-
-extension View {
     public func background(_ color: Color) -> some View {
         #if SKIP
         return ComposeContextView(self) {
             $0.modifier = $0.modifier.background(color.colorImpl())
         }
         #else
-        return EmptyView()
+        return self
         #endif
+    }
+}
+
+extension View {
+    public func foregroundColor(_ color: Color?) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.color = color
+        }
+        #else
+        return self
+        #endif
+    }
+    
+    public func foregroundStyle(_ color: Color) -> some View {
+        return foregroundColor(color)
+    }
+}
+
+extension View {
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            if let width {
+                $0.modifier = $0.modifier.width(width.dp)
+            }
+            if let height {
+                $0.modifier = $0.modifier.height(height.dp)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+    
+    @available(*, unavailable)
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment) -> some View {
+        return frame(width: width, height: height)
+    }
+
+    @available(*, unavailable)
+    public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
+        return self
+    }
+}
+
+extension View {
+    public func opacity(_ opacity: Double) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.alpha(Float(opacity))
+        }
+        #else
+        return stubView()
+        #endif
+    }
+}
+
+extension View {
+    public func rotationEffect(_ angle: Angle) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.rotate(Float(angle.degrees))
+        }
+        #else
+        return stubView()
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> some View {
+        #if SKIP
+        fatalError()
+        #else
+        return stubView()
+        #endif
+    }
+}
+
+extension View {
+    public func scaleEffect(_ scale: CGSize) -> some View {
+        return scaleEffect(x: scale.width, y: scale.height)
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: scale.width, y: scale.height)
+    }
+
+    public func scaleEffect(_ s: CGFloat) -> some View {
+        return scaleEffect(x: s, y: s)
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: s, y: s)
+    }
+
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
+        }
+        #else
+        return stubView()
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: x, y: y)
     }
 }
 
@@ -5306,109 +5401,6 @@ extension View {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
 
-    /// Rotates this view's rendered output around the specified point.
-    ///
-    /// Use `rotationEffect(_:anchor:)` to rotate the view by a specific amount.
-    ///
-    /// In the example below, the text is rotated by 22˚.
-    ///
-    ///     Text("Rotation by passing an angle in degrees")
-    ///         .rotationEffect(.degrees(22))
-    ///         .border(Color.gray)
-    ///
-    /// ![A screenshot showing rotation effect rotating the text 22 degrees with
-    /// respect to its view.](SkipUI-View-rotationEffect.png)
-    ///
-    /// - Parameters:
-    ///   - angle: The angle at which to rotate the view.
-    ///   - anchor: The location with a default of ``UnitPoint/center`` that
-    ///     defines a point at which the rotation is anchored.
-    @inlinable public func rotationEffect(_ angle: Angle, anchor: UnitPoint = .center) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Scales this view's rendered output by the given vertical and horizontal
-    /// size amounts, relative to an anchor point.
-    ///
-    /// Use `scaleEffect(_:anchor:)` to scale a view by applying a scaling
-    /// transform of a specific size, specified by `scale`.
-    ///
-    ///     Image(systemName: "envelope.badge.fill")
-    ///         .resizable()
-    ///         .frame(width: 100, height: 100, alignment: .center)
-    ///         .foregroundColor(Color.red)
-    ///         .scaleEffect(CGSize(x: 0.9, y: 1.3), anchor: .leading)
-    ///         .border(Color.gray)
-    ///
-    /// ![A screenshot showing a red envelope scaled to a size of 90x130
-    /// pixels.](SkipUI-View-scaleEffect.png)
-    ///
-    /// - Parameters:
-    ///   - scale: A  that
-    ///     represents the horizontal and vertical amount to scale the view.
-    ///   - anchor: The point with a default of ``UnitPoint/center`` that
-    ///     defines the location within the view from which to apply the
-    ///     transformation.
-    @inlinable public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some View { return stubView() }
-
-
-    /// Scales this view's rendered output by the given amount in both the
-    /// horizontal and vertical directions, relative to an anchor point.
-    ///
-    /// Use `scaleEffect(_:anchor:)` to apply a horizontally and vertically
-    /// scaling transform to a view.
-    ///
-    ///     Image(systemName: "envelope.badge.fill")
-    ///         .resizable()
-    ///         .frame(width: 100, height: 100, alignment: .center)
-    ///         .foregroundColor(Color.red)
-    ///         .scaleEffect(2, anchor: .leading)
-    ///         .border(Color.gray)
-    ///
-    /// ![A screenshot showing a 100x100 pixel red envelope scaled up to 2x the
-    /// size of its view.](SkipUI-View-scaleEffect-cgfloat.png)
-    ///
-    /// - Parameters:
-    ///   - s: The amount to scale the view in the view in both the horizontal
-    ///     and vertical directions.
-    ///   - anchor: The anchor point with a default of ``UnitPoint/center`` that
-    ///     indicates the starting position for the scale operation.
-    @inlinable public func scaleEffect(_ s: CGFloat, anchor: UnitPoint = .center) -> some View { return stubView() }
-
-
-    /// Scales this view's rendered output by the given horizontal and vertical
-    /// amounts, relative to an anchor point.
-    ///
-    /// Use `scaleEffect(x:y:anchor:)` to apply a scaling transform to a view by
-    /// a specific horizontal and vertical amount.
-    ///
-    ///     Image(systemName: "envelope.badge.fill")
-    ///         .resizable()
-    ///         .frame(width: 100, height: 100, alignment: .center)
-    ///         .foregroundColor(Color.red)
-    ///         .scaleEffect(x: 0.5, y: 0.5, anchor: .bottomTrailing)
-    ///         .border(Color.gray)
-    ///
-    /// ![A screenshot showing a 100x100 pixel red envelope scaled down 50% in
-    /// both the x and y axes.](SkipUI-View-scaleEffect-xy.png)
-    ///
-    /// - Parameters:
-    ///   - x: An amount that represents the horizontal amount to scale the
-    ///     view. The default value is `1.0`.
-    ///   - y: An amount that represents the vertical amount to scale the view.
-    ///     The default value is `1.0`.
-    ///   - anchor: The anchor point that indicates the starting position for
-    ///     the scale operation.
-    @inlinable public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
     /// Sets the priority by which a parent layout should apportion space to
     /// this child.
     ///
@@ -6229,47 +6221,6 @@ extension View {
     @available(iOS 17.0, macOS 14.0, watchOS 10.0, *)
     @available(tvOS, unavailable)
     public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets the transparency of this view.
-    ///
-    /// Apply opacity to reveal views that are behind another view or to
-    /// de-emphasize a view.
-    ///
-    /// When applying the `opacity(_:)` modifier to a view that has already had
-    /// its opacity transformed, the modifier multiplies the effect of the
-    /// underlying opacity transformation.
-    ///
-    /// The example below shows yellow and red rectangles configured to overlap.
-    /// The top yellow rectangle has its opacity set to 50%, allowing the
-    /// occluded portion of the bottom rectangle to be visible:
-    ///
-    ///     struct Opacity: View {
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Color.yellow.frame(width: 100, height: 100, alignment: .center)
-    ///                     .zIndex(1)
-    ///                     .opacity(0.5)
-    ///
-    ///                 Color.red.frame(width: 100, height: 100, alignment: .center)
-    ///                     .padding(-40)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![Two overlaid rectangles, where the topmost has its opacity set to 50%,
-    /// which allows the occluded portion of the bottom rectangle to be
-    /// visible.](SkipUI-View-opacity.png)
-    ///
-    /// - Parameter opacity: A value between 0 (fully transparent) and 1 (fully
-    ///   opaque).
-    ///
-    /// - Returns: A view that sets the transparency of this view.
-    @inlinable public func opacity(_ opacity: Double) -> some View { return stubView() }
 
 }
 
@@ -7675,121 +7626,6 @@ extension View {
     ///   behavior.
     @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
     public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Positions this view within an invisible frame with the specified size.
-    ///
-    /// Use this method to specify a fixed size for a view's width, height, or
-    /// both. If you only specify one of the dimensions, the resulting view
-    /// assumes this view's sizing behavior in the other dimension.
-    ///
-    /// For example, the following code lays out an ellipse in a fixed 200 by
-    /// 100 frame. Because a shape always occupies the space offered to it by
-    /// the layout system, the first ellipse is 200x100 points. The second
-    /// ellipse is laid out in a frame with only a fixed height, so it occupies
-    /// that height, and whatever width the layout system offers to its parent.
-    ///
-    ///     VStack {
-    ///         Ellipse()
-    ///             .fill(Color.purple)
-    ///             .frame(width: 200, height: 100)
-    ///         Ellipse()
-    ///             .fill(Color.blue)
-    ///             .frame(height: 100)
-    ///     }
-    ///
-    /// ![A screenshot showing the effect of frame size options: a purple
-    /// ellipse shows the effect of a fixed frame size, while a blue ellipse
-    /// shows the effect of constraining a view in one
-    /// dimension.](SkipUI-View-frame-1.png)
-    ///
-    /// `The alignment` parameter specifies this view's alignment within the
-    /// frame.
-    ///
-    ///     Text("Hello world!")
-    ///         .frame(width: 200, height: 30, alignment: .topLeading)
-    ///         .border(Color.gray)
-    ///
-    /// In the example above, the text is positioned at the top, leading corner
-    /// of the frame. If the text is taller than the frame, its bounds may
-    /// extend beyond the bottom of the frame's bounds.
-    ///
-    /// ![A screenshot showing the effect of frame size options on a text view
-    /// showing a fixed frame size with a specified
-    /// alignment.](SkipUI-View-frame-2.png)
-    ///
-    /// - Parameters:
-    ///   - width: A fixed width for the resulting view. If `width` is `nil`,
-    ///     the resulting view assumes this view's sizing behavior.
-    ///   - height: A fixed height for the resulting view. If `height` is `nil`,
-    ///     the resulting view assumes this view's sizing behavior.
-    ///   - alignment: The alignment of this view inside the resulting frame.
-    ///     Note that most alignment values have no apparent effect when the
-    ///     size of the frame happens to match that of this view.
-    ///
-    /// - Returns: A view with fixed dimensions of `width` and `height`, for the
-    ///   parameters that are non-`nil`.
-    @inlinable public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View { return stubView() }
-
-
-    /// Positions this view within an invisible frame.
-    ///
-    /// Use ``SkipUI/View/frame(width:height:alignment:)`` or
-    /// ``SkipUI/View/frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)``
-    /// instead.
-    @available(*, deprecated, message: "Please pass one or more parameters.")
-    @inlinable public func frame() -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Positions this view within an invisible frame having the specified size
-    /// constraints.
-    ///
-    /// Always specify at least one size characteristic when calling this
-    /// method. Pass `nil` or leave out a characteristic to indicate that the
-    /// frame should adopt this view's sizing behavior, constrained by the other
-    /// non-`nil` arguments.
-    ///
-    /// The size proposed to this view is the size proposed to the frame,
-    /// limited by any constraints specified, and with any ideal dimensions
-    /// specified replacing any corresponding unspecified dimensions in the
-    /// proposal.
-    ///
-    /// If no minimum or maximum constraint is specified in a given dimension,
-    /// the frame adopts the sizing behavior of its child in that dimension. If
-    /// both constraints are specified in a dimension, the frame unconditionally
-    /// adopts the size proposed for it, clamped to the constraints. Otherwise,
-    /// the size of the frame in either dimension is:
-    ///
-    /// - If a minimum constraint is specified and the size proposed for the
-    ///   frame by the parent is less than the size of this view, the proposed
-    ///   size, clamped to that minimum.
-    /// - If a maximum constraint is specified and the size proposed for the
-    ///   frame by the parent is greater than the size of this view, the
-    ///   proposed size, clamped to that maximum.
-    /// - Otherwise, the size of this view.
-    ///
-    /// - Parameters:
-    ///   - minWidth: The minimum width of the resulting frame.
-    ///   - idealWidth: The ideal width of the resulting frame.
-    ///   - maxWidth: The maximum width of the resulting frame.
-    ///   - minHeight: The minimum height of the resulting frame.
-    ///   - idealHeight: The ideal height of the resulting frame.
-    ///   - maxHeight: The maximum height of the resulting frame.
-    ///   - alignment: The alignment of this view inside the resulting frame.
-    ///     Note that most alignment values have no apparent effect when the
-    ///     size of the frame happens to match that of this view.
-    ///
-    /// - Returns: A view with flexible dimensions given by the call's non-`nil`
-    ///   parameters.
-    @inlinable public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View { return stubView() }
 
 }
 

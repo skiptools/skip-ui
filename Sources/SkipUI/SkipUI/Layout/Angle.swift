@@ -2,63 +2,64 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public struct Angle: Hashable {
+    public static var zero = Angle()
+
+    public var radians: Double
+    public var degrees: Double {
+        get {
+            return Self.radiansToDegrees(radians)
+        }
+        set {
+            radians = Self.degreesToRadians(newValue)
+        }
+    }
+
+    public init() {
+        self.radians = 0.0
+    }
+
+    public init(radians: Double) {
+        self.radians = radians
+    }
+
+    public init(degrees: Double) {
+        self.radians = Self.degreesToRadians(degrees)
+    }
+
+    public static func radians(_ radians: Double) -> Angle {
+        return Angle(radians: radians)
+    }
+
+    public static func degrees(_ degrees: Double) -> Angle {
+        return Angle(degrees: degrees)
+    }
+
+    private static func radiansToDegrees(_ radians: Double) -> Double {
+        return radians * 180 / Double.pi
+    }
+
+    private static func degreesToRadians(_ degrees: Double) -> Double {
+        return degrees * Double.pi / 180
+    }
+}
+
+extension Angle: Comparable {
+    public static func < (lhs: Angle, rhs: Angle) -> Bool {
+        return lhs.radians < rhs.radians
+    }
+}
+
+extension Angle: Sendable {
+}
 
 #if !SKIP
 
-/// A geometric angle whose value you access in either radians or degrees.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Angle {
+// Stubs needed to compile this package:
 
-    public var radians: Double { get { fatalError() } }
-
-    @inlinable public var degrees: Double { get { fatalError() } }
-
-    @inlinable public init() { fatalError() }
-
-    @inlinable public init(radians: Double) { fatalError() }
-
-    @inlinable public init(degrees: Double) { fatalError() }
-
-    @inlinable public static func radians(_ radians: Double) -> Angle { fatalError() }
-
-    @inlinable public static func degrees(_ degrees: Double) -> Angle { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Angle : Hashable, Comparable {
-
-    /// Returns a Boolean value indicating whether the value of the first
-    /// argument is less than that of the second argument.
-    ///
-    /// This function is the only requirement of the `Comparable` protocol. The
-    /// remainder of the relational operator functions are implemented by the
-    /// standard library for any type that conforms to `Comparable`.
-    ///
-    /// - Parameters:
-    ///   - lhs: A value to compare.
-    ///   - rhs: Another value to compare.
-    @inlinable public static func < (lhs: Angle, rhs: Angle) -> Bool { fatalError() }
-
-    
-
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Angle : Animatable {
-
-    /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
-
-    @inlinable public static var zero: Angle { get { fatalError() } }
-
-    /// The type defining the data to animate.
     public typealias AnimatableData = Double
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Angle : Sendable {
 }
 
 #endif

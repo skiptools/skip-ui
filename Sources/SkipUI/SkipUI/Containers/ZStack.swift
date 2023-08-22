@@ -12,7 +12,7 @@ public struct ZStack<Content> : View where Content : View {
     }
 
     @available(*, unavailable)
-    public init(alignment: Any /* Alignment = .center */, @ViewBuilder content: () -> Content) {
+    public init(alignment: Alignment, @ViewBuilder content: () -> Content) {
         self.content = content()
     }
 

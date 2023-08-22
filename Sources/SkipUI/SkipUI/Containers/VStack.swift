@@ -15,7 +15,7 @@ public struct VStack<Content> : View where Content : View {
     }
 
     @available(*, unavailable)
-    public init(alignment: Any /* HorizontalAlignment = .center */, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    public init(alignment: HorizontalAlignment, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
         self.spacing = spacing
         self.content = content()
     }
