@@ -22,6 +22,7 @@
     }
 
     public var projectedValue: Binding<Value> {
+        // SKIP NOWARN
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 

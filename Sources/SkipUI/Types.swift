@@ -4,12 +4,12 @@
 
 // TODO: Process for use in SkipUI
 
+#if !SKIP
 /// No-op
 @usableFromInline func stub<T>() -> T {
     fatalError("stub")
 }
 
-#if !SKIP
 // SkipUI.kt:13:14 'Nothing' return type can't be specified with type alias
 public typealias Nothing = Never
 
@@ -24,7 +24,6 @@ public typealias Nothing = Never
 //    return StubView()
     return never()
 }
-#endif
 
 /// No-op
 @usableFromInline func never() -> Nothing {
@@ -32,6 +31,7 @@ public typealias Nothing = Never
 }
 
 public typealias NeverView = Never
+#endif
 
 #if SKIP
 public typealias CGFloat = Double

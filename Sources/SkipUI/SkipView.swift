@@ -24,43 +24,6 @@
 #endif
 
 
-public struct Slider : View {
-    private let value: Binding<Double>
-    private let range: ClosedRange<Double>
-
-    public init(value: Binding<Double>, in range: ClosedRange<Double>) {
-        self.value = value
-        self.range = range
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Slider.kt
-     @Composable
-     fun Slider(
-        value: Float,
-        onValueChange: (Float) -> Unit,
-        modifier: Modifier = Modifier,
-        enabled: Boolean = true,
-        valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
-        @IntRange(from = 0)
-        steps: Int = 0,
-        onValueChangeFinished: (() -> Unit)? = null,
-        colors: SliderColors = SliderDefaults.colors(),
-        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: ctx.modifier, valueRange: Float(self.range.start)...Float(self.range.endInclusive))
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.Slider(value: value, in: range)
-        stubView()
-    }
-    #endif
-}
-
 public struct Text: View {
     let text: String
 
