@@ -17,12 +17,11 @@
         self.set = projectedValue.set
     }
 
-    //~~~
-//    @available(*, unavailable)
-//    public init(get: @escaping () -> Value, set: @escaping (Value, Any /* Transaction */) -> Void) {
-//        self.get = get
-//        self.set = { _ in }
-//    }
+    @available(*, unavailable)
+    public init(get: @escaping () -> Value, set: @escaping (Value, Any /* Transaction */) -> Void) {
+        self.get = get
+        self.set = { _ in }
+    }
 
     public var wrappedValue: Value {
         get {
@@ -43,11 +42,27 @@
     }
 
     public static func constant(_ value: Value) -> Binding<Value> {
+        // SKIP NOWARN
         return Binding(get: { value }, set: { _ in })
     }
 
 //    public subscript<Subject>(dynamicMember keyPath: WritableKeyPath<Value, Subject>) -> Binding<Subject> { get { fatalError() } }
 }
+
+#if SKIP
+/// This type is used to implement `@Bindable` in Kotlin.
+public struct InstanceBinding<Object, Value> {
+    let object: Object
+    let get: (Object) -> Value
+    let set: (Object, Value) -> Void
+
+    public init(object: Object, get: @escaping (Object) -> Value, set: @escaping (Object, Value) -> Void) {
+        self.object = object
+        self.get = get
+        self.set = set
+    }
+}
+#endif
 
 #if !SKIP
 

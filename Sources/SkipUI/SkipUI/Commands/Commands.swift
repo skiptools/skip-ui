@@ -42,19 +42,19 @@ public protocol Commands {
 extension Never : Commands {
 }
 
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Group : Commands where Content : Commands {
-
-    /// Creates a group of commands.
-    ///
-    /// - Parameter content: A ``SkipUI/CommandsBuilder`` that produces the
-    /// commands to group.
-    @inlinable public init(@CommandsBuilder content: () -> Content) { fatalError() }
-
-    public var body: Never { fatalError() }
-}
+//@available(iOS 14.0, macOS 11.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension Group : Commands where Content : Commands {
+//
+//    /// Creates a group of commands.
+//    ///
+//    /// - Parameter content: A ``SkipUI/CommandsBuilder`` that produces the
+//    /// commands to group.
+//    @inlinable public init(@CommandsBuilder content: () -> Content) { fatalError() }
+//
+//    public var body: Never { fatalError() }
+//}
 
 @available(iOS 16.0, macOS 13.0, *)
 @available(tvOS, unavailable)

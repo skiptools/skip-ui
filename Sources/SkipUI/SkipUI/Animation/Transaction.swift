@@ -2,13 +2,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if SKIP
-@available(*, unavailable)
-public struct Transaction {
-}
-#else
-
 // TODO: Process for use in SkipUI
+
+#if !SKIP
 
 /// The context of the current state-processing update.
 ///

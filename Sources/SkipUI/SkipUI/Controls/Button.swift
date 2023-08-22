@@ -3,14 +3,18 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-// SKIP INSERT: import androidx.compose.material3.Button
 // SKIP INSERT: import androidx.compose.runtime.Composable
 #endif
 
+// Erase the generic Label on Button to facilitate specialized extension constructor support.
+//
+// SKIP DECLARE: class Button: View
 public struct Button<Label> : View where Label : View {
     let action: () -> Void
+    // SKIP DECLARE: internal val label: View
     let label: Label
 
+    // SKIP DECLARE: constructor(action: () -> Unit, label: () -> View)
     public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) {
         self.action = action
         self.label = label()
@@ -45,15 +49,13 @@ public struct Button<Label> : View where Label : View {
     #endif
 }
 
-//~~~
-//#if SKIP
-//extension Button /* where Label == Text */ {
-//    // TODO: LocalizedStringKey vs. StringProtocol
-//    public init(_ title: String, action: @escaping () -> Void) {
-//        self.init(action: action, label: { Text(title) })
-//    }
-//}
-//#endif
+#if SKIP
+extension Button {
+    public init(_ title: String, action: @escaping () -> Void) {
+        self.init(action: action, label: { Text(title) })
+    }
+}
+#endif
 
 #if !SKIP
 

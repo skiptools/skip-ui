@@ -23,94 +23,6 @@
 //import SwiftUI
 #endif
 
-public struct Divider : View {
-    public init() {
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Divider.kt
-     @Composable
-     fun Divider(
-        modifier: Modifier = Modifier,
-        thickness: Dp = DividerDefaults.Thickness,
-        color: Color = DividerDefaults.color,
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        let dividerColor = ctx.color?.colorImpl.composeColor?.invoke()
-        androidx.compose.material3.Divider(modifier: ctx.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.Unspecified)
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.Divider()
-        stubView()
-    }
-    #endif
-}
-
-public struct EmptyView : View {
-    #if SKIP
-    @Composable public override func Compose(ctx: ComposeContext) {
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.EmptyView()
-        stubView()
-    }
-    #endif
-}
-
-public struct Group<Content> : View where Content : View {
-    private let content: Content
-
-    public init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    #if SKIP
-    @Composable public override func Compose(ctx: ComposeContext) {
-        content.Compose(ctx)
-    }
-    #else
-    public var body: some View {
-        content
-    }
-    #endif
-}
-
-public struct HStack<Content> : View where Content : View {
-    private let spacing: CGFloat?
-    private let content: Content
-
-    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
-        self.spacing = spacing
-        self.content = content()
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Row.kt
-     @Composable
-     inline fun Row(
-         modifier: Modifier = Modifier,
-         horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-         verticalAlignment: Alignment.Vertical = Alignment.Top,
-         content: @Composable RowScope.() -> Unit
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Row(modifier: ctx.modifier, horizontalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp)) {
-            content.Compose(ctx.child())
-        }
-    }
-    #else
-    public var body: some View {
-        stubView()
-        //SwiftUI.HStack(spacing: spacing) { content }
-    }
-    #endif
-}
 
 public struct Slider : View {
     private let value: Binding<Double>
@@ -144,30 +56,6 @@ public struct Slider : View {
     #else
     public var body: some View {
         //SwiftUI.Slider(value: value, in: range)
-        stubView()
-    }
-    #endif
-}
-
-public struct Spacer : View {
-    public var minLength: CGFloat?
-
-    public init(minLength: CGFloat? = nil) {
-        self.minLength = minLength
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Spacer.kt
-     @Composable
-     fun Spacer(modifier: Modifier)
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Spacer(modifier: ctx.modifier) // TODO distribute space : .weight(1.0f)
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.Spacer(minLength: minLength)
         stubView()
     }
     #endif
@@ -218,69 +106,6 @@ public struct Text: View {
     #endif
 }
 
-public struct VStack<Content> : View where Content : View {
-    private let spacing: CGFloat?
-    private let content: Content
-
-    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
-        self.spacing = spacing
-        self.content = content()
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Column.kt
-     @Composable
-     inline fun Column(
-         modifier: Modifier = Modifier,
-         verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-         horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-         content: @Composable ColumnScope.() -> Unit
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Column(modifier: ctx.modifier, verticalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-            content.Compose(ctx.child())
-        }
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.VStack(spacing: spacing) { content }
-        stubView()
-    }
-    #endif
-}
-
-public struct ZStack<Content> : View where Content : View {
-    private let content: Content
-
-    public init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Box.kt
-     @Composable
-     inline fun Box(
-        modifier: Modifier = Modifier,
-        contentAlignment: Alignment = Alignment.TopStart,
-        propagateMinConstraints: Boolean = false,
-        content: @Composable BoxScope.() -> Unit
-     )
-     */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Box(modifier: ctx.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-            content.Compose(ctx.child())
-        }
-    }
-    #else
-    public var body: some View {
-        //SwiftUI.ZStack { content }
-        stubView()
-    }
-    #endif
-}
 
 // MARK: Common Compose Functions
 // Wrapping the components from https://developer.android.com/reference/kotlin/androidx/compose/material/package-summary

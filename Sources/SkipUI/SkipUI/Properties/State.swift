@@ -2,17 +2,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// We model State as a class rather than struct to avoid copy overhead on mutation
-
+// Model State as a class rather than struct to avoid copy overhead on mutation
 // SKIP NOWARN
 @propertyWrapper public final class State<Value> {
     private var onUpdate: ((Value) -> Void)?
-
-    //~~~
-//    @available(*, unavailable)
-//    public init() {
-//        fatalError()
-//    }
 
     public init(initialValue: Value) {
         wrappedValue = initialValue
@@ -38,3 +31,13 @@
         self.onUpdate = onUpdate
     }
 }
+
+#if SKIP
+// extension State where Value : ExpressibleByNilLiteral {
+    // public init() {
+    @available(*, unavailable)
+    public func State() {
+        fatalError()
+    }
+// }
+#endif

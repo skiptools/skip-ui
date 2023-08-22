@@ -1699,19 +1699,19 @@ extension AXChartDescriptorRepresentable {
     public func updateChartDescriptor(_ descriptor: AXChartDescriptor) { fatalError() }
 }
 
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Group : AccessibilityRotorContent where Content : AccessibilityRotorContent {
-
-    /// The internal content of this `AccessibilityRotorContent`.
-    public var body: Never { get { fatalError() } }
-
-    /// Creates an instance that generates Rotor content by combining, in order,
-    /// all the Rotor content specified in the passed-in result builder.
-    ///
-    /// - Parameter content: The result builder that generates Rotor content for
-    ///   the group.
-    public init(@AccessibilityRotorContentBuilder content: () -> Content) { fatalError() }
-}
+//@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//extension Group : AccessibilityRotorContent where Content : AccessibilityRotorContent {
+//
+//    /// The internal content of this `AccessibilityRotorContent`.
+//    public var body: Never { get { fatalError() } }
+//
+//    /// Creates an instance that generates Rotor content by combining, in order,
+//    /// all the Rotor content specified in the passed-in result builder.
+//    ///
+//    /// - Parameter content: The result builder that generates Rotor content for
+//    ///   the group.
+//    public init(@AccessibilityRotorContentBuilder content: () -> Content) { fatalError() }
+//}
 
 
 

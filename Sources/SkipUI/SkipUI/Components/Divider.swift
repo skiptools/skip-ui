@@ -2,26 +2,29 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
 
-#if !SKIP
-
-/// A visual element that can be used to separate other content.
-///
-/// When contained in a stack, the divider extends across the minor axis of the
-/// stack, or horizontally when not in a stack.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct Divider : View {
+    public init() {
+    }
 
-    public init() { fatalError() }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = NeverView
-
-    public var body: Body { fatalError() }
+    #if SKIP
+    /*
+     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Divider.kt
+     @Composable
+     fun Divider(
+        modifier: Modifier = Modifier,
+        thickness: Dp = DividerDefaults.Thickness,
+        color: Color = DividerDefaults.color,
+     )
+     */
+    @Composable public override func Compose(ctx: ComposeContext) {
+        let dividerColor = ctx.color?.colorImpl.composeColor?.invoke()
+        androidx.compose.material3.Divider(modifier: ctx.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.Unspecified)
+    }
+    #else
+    public var body: some View {
+        Never()
+    }
+    #endif
 }
-
-#endif

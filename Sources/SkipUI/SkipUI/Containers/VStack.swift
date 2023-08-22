@@ -2,61 +2,50 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.unit.dp
+
+public struct VStack<Content> : View where Content : View {
+    let spacing: CGFloat?
+    let content: Content
+
+    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    @available(*, unavailable)
+    public init(alignment: Any /* HorizontalAlignment = .center */, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    #if SKIP
+    /*
+     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Column.kt
+     @Composable
+     inline fun Column(
+         modifier: Modifier = Modifier,
+         verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+         horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+         content: @Composable ColumnScope.() -> Unit
+     )
+     */
+    @Composable public override func Compose(ctx: ComposeContext) {
+        androidx.compose.foundation.layout.Column(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+            content.Compose(ctx.child())
+        }
+    }
+    #else
+    public var body: some View {
+        Never()
+    }
+    #endif
+}
 
 #if !SKIP
 
-/// A view that arranges its subviews in a vertical line.
-///
-/// Unlike ``LazyVStack``, which only renders the views when your app needs to
-/// display them, a `VStack` renders the views all at once, regardless
-/// of whether they are on- or offscreen. Use the regular `VStack` when you have
-/// a small number of subviews or don't want the delayed rendering behavior
-/// of the "lazy" version.
-///
-/// The following example shows a simple vertical stack of 10 text views:
-///
-///     var body: some View {
-///         VStack(
-///             alignment: .leading,
-///             spacing: 10
-///         ) {
-///             ForEach(
-///                 1...10,
-///                 id: \.self
-///             ) {
-///                 Text("Item \($0)")
-///             }
-///         }
-///     }
-///
-/// ![Ten text views, named Item 1 through Item 10, arranged in a
-/// vertical line.](SkipUI-VStack-simple.png)
-///
-/// > Note: If you need a vertical stack that conforms to the ``Layout``
-/// protocol, like when you want to create a conditional layout using
-/// ``AnyLayout``, use ``VStackLayout`` instead.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct VStack<Content> : View where Content : View {
-
-    /// Creates an instance with the given spacing and horizontal alignment.
-    ///
-    /// - Parameters:
-    ///   - alignment: The guide for aligning the subviews in this stack. This
-    ///     guide has the same vertical screen coordinate for every subview.
-    ///   - spacing: The distance between adjacent subviews, or `nil` if you
-    ///     want the stack to choose a default distance for each pair of
-    ///     subviews.
-    ///   - content: A view builder that creates the content of this stack.
-    @inlinable public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
+// TODO: Process for use in SkipUI
 
 /// A vertical container that you can use in conditional layouts.
 ///
