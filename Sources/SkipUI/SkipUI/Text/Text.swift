@@ -2,9 +2,59 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
+
+public struct Text: View, Equatable {
+    let text: String
+
+    public init(_ text: String) {
+        self.text = text
+    }
+
+    public init(verbatim: String) {
+        self.text = verbatim
+    }
+
+    #if SKIP
+    /*
+     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Text.kt
+     @Composable
+     fun Text(
+         text: String,
+         modifier: Modifier = Modifier,
+         color: Color = Color.Unspecified,
+         fontSize: TextUnit = TextUnit.Unspecified,
+         fontStyle: FontStyle? = null,
+         fontWeight: FontWeight? = null,
+         fontFamily: FontFamily? = null,
+         letterSpacing: TextUnit = TextUnit.Unspecified,
+         textDecoration: TextDecoration? = null,
+         textAlign: TextAlign? = null,
+         lineHeight: TextUnit = TextUnit.Unspecified,
+         overflow: TextOverflow = TextOverflow.Clip,
+         softWrap: Boolean = true,
+         maxLines: Int = Int.MAX_VALUE,
+         minLines: Int = 1,
+         onTextLayout: ((TextLayoutResult) -> Unit)? = null,
+         style: TextStyle = LocalTextStyle.current
+     )
+     */
+    @Composable public override func Compose(ctx: ComposeContext) {
+        let modifier = ctx.modifier
+        let textStyle = ctx.font?.fontImpl.composeTextStyle?.invoke()
+        let textColor = ctx.color?.colorImpl.composeColor?.invoke()
+        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: textStyle ?? androidx.compose.material3.LocalTextStyle.current)
+    }
+    #else
+    public var body: some View {
+        Never()
+    }
+    #endif
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct Foundation.AttributedString
 import struct Foundation.Date
@@ -25,155 +75,6 @@ import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 import protocol Foundation.FormatStyle
 import protocol Foundation.ReferenceConvertible
-
-/// A view that displays one or more lines of read-only text.
-///
-/// A text view draws a string in your app's user interface using a
-/// ``Font/body`` font that's appropriate for the current platform. You can
-/// choose a different standard font, like ``Font/title`` or ``Font/caption``,
-/// using the ``View/font(_:)`` view modifier.
-///
-///     Text("Hamlet")
-///         .font(.title)
-///
-/// ![A text view showing the name "Hamlet" in a title
-/// font.](SkipUI-Text-title.png)
-///
-/// If you need finer control over the styling of the text, you can use the same
-/// modifier to configure a system font or choose a custom font. You can also
-/// apply view modifiers like ``Text/bold()`` or ``Text/italic()`` to further
-/// adjust the formatting.
-///
-///     Text("by William Shakespeare")
-///         .font(.system(size: 12, weight: .light, design: .serif))
-///         .italic()
-///
-/// ![A text view showing by William Shakespeare in a 12 point, light, italic,
-/// serif font.](SkipUI-Text-font.png)
-///
-/// To apply styling within specific portions of the text, you can create
-/// the text view from an
-/// ,
-/// which in turn allows you to use Markdown to style runs of text. You can
-/// mix string attributes and SkipUI modifiers, with the string attributes
-/// taking priority.
-///
-///     let attributedString = try! AttributedString(
-///         markdown: "_Hamlet_ by William Shakespeare")
-///
-///     var body: some View {
-///         Text(attributedString)
-///             .font(.system(size: 12, weight: .light, design: .serif))
-///     }
-///
-/// ![A text view showing Hamlet by William Shakespeare in a 12 point, light,
-/// serif font, with the title Hamlet in italics.](SkipUI-Text-attributed.png)
-///
-/// A text view always uses exactly the amount of space it needs to display its
-/// rendered contents, but you can affect the view's layout. For example, you
-/// can use the ``View/frame(width:height:alignment:)`` modifier to propose
-/// specific dimensions to the view. If the view accepts the proposal but the
-/// text doesn't fit into the available space, the view uses a combination of
-/// wrapping, tightening, scaling, and truncation to make it fit. With a width
-/// of `100` points but no constraint on the height, a text view might wrap a
-/// long string:
-///
-///     Text("To be, or not to be, that is the question:")
-///         .frame(width: 100)
-///
-/// ![A text view showing a quote from Hamlet split over three
-/// lines.](SkipUI-Text-split.png)
-///
-/// Use modifiers like ``View/lineLimit(_:)-513mb``, ``View/allowsTightening(_:)``,
-/// ``View/minimumScaleFactor(_:)``, and ``View/truncationMode(_:)`` to
-/// configure how the view handles space constraints. For example, combining a
-/// fixed width and a line limit of `1` results in truncation for text that
-/// doesn't fit in that space:
-///
-///     Text("Brevity is the soul of wit.")
-///         .frame(width: 100)
-///         .lineLimit(1)
-///
-/// ![A text view showing a truncated quote from Hamlet starting Brevity is t
-/// and ending with three dots.](SkipUI-Text-truncated.png)
-///
-/// ### Localizing strings
-///
-/// If you initialize a text view with a string literal, the view uses the
-/// ``Text/init(_:tableName:bundle:comment:)`` initializer, which interprets the
-/// string as a localization key and searches for the key in the table you
-/// specify, or in the default table if you don't specify one.
-///
-///     Text("pencil") // Searches the default table in the main bundle.
-///
-/// For an app localized in both English and Spanish, the above view displays
-/// "pencil" and "lápiz" for English and Spanish users, respectively. If the
-/// view can't perform localization, it displays the key instead. For example,
-/// if the same app lacks Danish localization, the view displays "pencil" for
-/// users in that locale. Similarly, an app that lacks any localization
-/// information displays "pencil" in any locale.
-///
-/// To explicitly bypass localization for a string literal, use the
-/// ``Text/init(verbatim:)`` initializer.
-///
-///     Text(verbatim: "pencil") // Displays the string "pencil" in any locale.
-///
-/// If you intialize a text view with a variable value, the view uses the
-/// ``Text/init(_:)-9d1g4`` initializer, which doesn't localize the string. However,
-/// you can request localization by creating a ``LocalizedStringKey`` instance
-/// first, which triggers the ``Text/init(_:tableName:bundle:comment:)``
-/// initializer instead:
-///
-///     // Don't localize a string variable...
-///     Text(writingImplement)
-///
-///     // ...unless you explicitly convert it to a localized string key.
-///     Text(LocalizedStringKey(writingImplement))
-///
-/// When localizing a string variable, you can use the default table by omitting
-/// the optional initialization parameters — as in the above example — just like
-/// you might for a string literal.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Text : Equatable, Sendable {
-
-    /// Creates a text view that displays a string literal without localization.
-    ///
-    /// Use this initializer to create a text view with a string literal without
-    /// performing localization:
-    ///
-    ///     Text(verbatim: "pencil") // Displays the string "pencil" in any locale.
-    ///
-    /// If you want to localize a string literal before displaying it, use the
-    /// ``Text/init(_:tableName:bundle:comment:)`` initializer instead. If you
-    /// want to display a string variable, use the ``Text/init(_:)-9d1g4``
-    /// initializer, which also bypasses localization.
-    ///
-    /// - Parameter content: A string to display without localization.
-    @inlinable public init(verbatim content: String) { fatalError() }
-
-    /// Creates a text view that displays a stored string without localization.
-    ///
-    /// Use this initializer to create a text view that displays — without
-    /// localization — the text in a string variable.
-    ///
-    ///     Text(someString) // Displays the contents of `someString` without localization.
-    ///
-    /// SkipUI doesn't call the `init(_:)` method when you initialize a text
-    /// view with a string literal as the input. Instead, a string literal
-    /// triggers the ``Text/init(_:tableName:bundle:comment:)`` method — which
-    /// treats the input as a ``LocalizedStringKey`` instance — and attempts to
-    /// perform localization.
-    ///
-    /// By default, SkipUI assumes that you don't want to localize stored
-    /// strings, but if you do, you can first create a localized string key from
-    /// the value, and initialize the text view with that. Using a key as input
-    /// triggers the ``Text/init(_:tableName:bundle:comment:)`` method instead.
-    ///
-    /// - Parameter content: The string value to display without localization.
-    public init<S>(_ content: S) where S : StringProtocol { fatalError() }
-
-    
-}
 
 extension Text {
 
@@ -710,17 +611,6 @@ extension Text {
         
 
         }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text : View {
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
