@@ -44,7 +44,7 @@ public struct Button<Label> : View where Label : View {
     }
     #else
     public var body: some View {
-        Never()
+        stubView()
     }
     #endif
 }

@@ -2,9 +2,38 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+extension View {
+    public func foregroundColor(_ color: Color?) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.color = color
+        }
+        #else
+        return EmptyView()
+        #endif
+    }
+    
+    public func foregroundStyle(_ color: Color) -> some View {
+        foregroundColor(color)
+    }
+}
+
+extension View {
+    public func background(_ color: Color) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.background(color.colorImpl())
+        }
+        #else
+        return EmptyView()
+        #endif
+    }
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
+
 import struct Foundation.URL
 import struct Foundation.CharacterSet
 import struct Foundation.Locale
@@ -5007,27 +5036,6 @@ extension View {
 
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets the color of the foreground elements displayed by this view.
-    ///
-    /// - Parameter color: The foreground color to use when displaying this
-    ///   view. Pass `nil` to remove any custom foreground color and to allow
-    ///   the system or the container to provide its own foreground color.
-    ///   If a container-specific override doesn't exist, the system uses
-    ///   the primary color.
-    ///
-    /// - Returns: A view that uses the foreground color you supply.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @inlinable public func foregroundColor(_ color: Color?) -> some View { return stubView() }
-
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension View {
 
@@ -6955,7 +6963,7 @@ extension View {
     ///   - y: An amount to offset the shadow vertically from the view.
     ///
     /// - Returns: A view that adds a shadow to this view.
-    @inlinable public func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
+    @inlinable public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 

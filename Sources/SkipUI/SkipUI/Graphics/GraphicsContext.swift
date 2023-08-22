@@ -616,7 +616,7 @@ import struct CoreGraphics.CGFloat
         ///     process of adding the shadow. Use one or more of the options
         ///     in ``GraphicsContext/ShadowOptions``.
         /// - Returns: A filter that adds a shadow style.
-        public static func shadow(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0, blendMode: GraphicsContext.BlendMode = .normal, options: GraphicsContext.ShadowOptions = ShadowOptions()) -> GraphicsContext.Filter { fatalError() }
+        public static func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0, blendMode: GraphicsContext.BlendMode = .normal, options: GraphicsContext.ShadowOptions = ShadowOptions()) -> GraphicsContext.Filter { fatalError() }
 
         /// Returns a filter that multiplies each color component by
         /// the matching component of a given color.

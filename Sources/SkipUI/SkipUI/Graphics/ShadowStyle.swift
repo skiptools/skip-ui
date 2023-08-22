@@ -26,7 +26,7 @@ public struct ShadowStyle : Equatable, Sendable {
     ///     relative to this view.
     ///
     /// - Returns: A new shadow style.
-    public static func drop(color: Color = .init(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
+    public static func drop(color: Color = .init(/* .sRGBLinear, */ white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
 
     /// Creates a custom inner shadow style.
     ///
@@ -42,7 +42,7 @@ public struct ShadowStyle : Equatable, Sendable {
     ///     relative to this view.
     ///
     /// - Returns: A new shadow style.
-    public static func inner(color: Color = .init(.sRGBLinear, white: 0, opacity: 0.55), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
+    public static func inner(color: Color = .init(/* .sRGBLinear, */ white: 0, opacity: 0.55), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle { fatalError() }
 
     
 }

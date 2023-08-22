@@ -13,7 +13,7 @@ public struct EmptyView : View {
     }
     #else
     public var body: some View {
-        Never()
+        stubView()
     }
     #endif
 }

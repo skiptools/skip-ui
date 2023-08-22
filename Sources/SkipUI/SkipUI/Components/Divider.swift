@@ -19,12 +19,12 @@ public struct Divider : View {
      )
      */
     @Composable public override func Compose(ctx: ComposeContext) {
-        let dividerColor = ctx.color?.colorImpl.composeColor?.invoke()
+        let dividerColor = ctx.color?.colorImpl()
         androidx.compose.material3.Divider(modifier: ctx.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.Unspecified)
     }
     #else
     public var body: some View {
-        Never()
+        stubView()
     }
     #endif
 }

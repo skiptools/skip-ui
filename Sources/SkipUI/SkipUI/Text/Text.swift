@@ -42,12 +42,12 @@ public struct Text: View, Equatable {
     @Composable public override func Compose(ctx: ComposeContext) {
         let modifier = ctx.modifier
         let textStyle = ctx.font?.fontImpl.composeTextStyle?.invoke()
-        let textColor = ctx.color?.colorImpl.composeColor?.invoke()
+        let textColor = ctx.color?.colorImpl()
         androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: textStyle ?? androidx.compose.material3.LocalTextStyle.current)
     }
     #else
     public var body: some View {
-        Never()
+        stubView()
     }
     #endif
 }

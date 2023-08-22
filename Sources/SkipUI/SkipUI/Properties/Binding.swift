@@ -66,7 +66,7 @@ public struct InstanceBinding<Object, Value> {
 
 #if !SKIP
 
-// These stubs are necessary to compile this package:
+// Stubs needed to compile this package:
 
 extension Binding : Identifiable where Value : Identifiable {
     public var id: Value.ID { get { fatalError() } }
@@ -99,7 +99,7 @@ extension Binding : BidirectionalCollection where Value : BidirectionalCollectio
 extension Binding : RandomAccessCollection where Value : MutableCollection, Value : RandomAccessCollection {
 }
 
-// Unused stubs:
+// Unneeded stubs:
 
 //@frozen @propertyWrapper @dynamicMemberLookup public struct Binding<Value> {
 //}

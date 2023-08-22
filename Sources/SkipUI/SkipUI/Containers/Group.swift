@@ -17,7 +17,7 @@ public struct Group<Content> : View where Content : View {
     }
     #else
     public var body: some View {
-        Never()
+        stubView()
     }
     #endif
 }

@@ -4,7 +4,8 @@ SwiftUI support for [Skip](https://skip.tools) apps.
 
 ## Helpful Compose components
 
-See [androidx.compose.material](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary)
+[androidx.compose.material package](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary)
+[androidx.compose.ui.Modifier list](https://developer.android.com/jetpack/compose/modifiers-list)
 
 - Text (androidx.compose.material3.Text): Displays a text element on the screen.
 - Button (androidx.compose.material3.Button): Creates a clickable button.

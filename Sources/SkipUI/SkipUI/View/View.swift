@@ -38,10 +38,12 @@ extension View {
 
 #if !SKIP
 
-// These conformances are necessary to compile this package.
+// Stubs needed to compile this package:
 
 extension Optional : View where Wrapped : View {
-    public var body: some View { Never() }
+    public var body: some View {
+        stubView()
+    }
 }
 
 extension Never : View {
