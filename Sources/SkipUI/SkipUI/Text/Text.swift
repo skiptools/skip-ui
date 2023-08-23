@@ -41,7 +41,7 @@ public struct Text: View, Equatable {
      */
     @Composable public override func Compose(ctx: ComposeContext) {
         let modifier = ctx.modifier
-        let textStyle = ctx.font?.fontImpl.composeTextStyle?.invoke()
+        let textStyle = ctx.font?.fontImpl()
         let textColor = ctx.color?.colorImpl()
         androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: textStyle ?? androidx.compose.material3.LocalTextStyle.current)
     }
