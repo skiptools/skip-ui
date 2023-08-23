@@ -5,14 +5,11 @@
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct ZStack<Content> : View where Content : View {
+    let alignment: Alignment
     let content: Content
 
-    public init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    @available(*, unavailable)
-    public init(alignment: Alignment, @ViewBuilder content: () -> Content) {
+    public init(alignment: Alignment = .center, @ViewBuilder content: () -> Content) {
+        self.alignment = alignment
         self.content = content()
     }
 
@@ -28,7 +25,28 @@ public struct ZStack<Content> : View where Content : View {
      )
      */
     @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Box(modifier: ctx.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+        let boxAlignment: androidx.compose.ui.Alignment
+        switch alignment {
+        case .leading, .leadingFirstTextBaseline, .leadingLastTextBaseline:
+            boxAlignment = androidx.compose.ui.Alignment.CenterStart
+        case .trailing, .trailingFirstTextBaseline, .trailingLastTextBaseline:
+            boxAlignment = androidx.compose.ui.Alignment.CenterEnd
+        case .top:
+            boxAlignment = androidx.compose.ui.Alignment.TopCenter
+        case .bottom:
+            boxAlignment = androidx.compose.ui.Alignment.BottomCenter
+        case .topLeading:
+            boxAlignment = androidx.compose.ui.Alignment.TopStart
+        case .topTrailing:
+            boxAlignment = androidx.compose.ui.Alignment.TopEnd
+        case .bottomLeading:
+            boxAlignment = androidx.compose.ui.Alignment.BottomStart
+        case .bottomTrailing:
+            boxAlignment = androidx.compose.ui.Alignment.BottomEnd
+        default:
+            boxAlignment = androidx.compose.ui.Alignment.Center
+        }
+        androidx.compose.foundation.layout.Box(modifier: ctx.modifier, contentAlignment: boxAlignment) {
             content.Compose(ctx.child())
         }
     }

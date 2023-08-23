@@ -6,16 +6,12 @@
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
 public struct HStack<Content> : View where Content : View {
+    let alignment: VerticalAlignment
     let spacing: CGFloat?
     let content: Content
 
-    public init(spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
-        self.spacing = spacing
-        self.content = content()
-    }
-
-    @available(*, unavailable)
-    public init(alignment: VerticalAlignment, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+        self.alignment = alignment
         self.spacing = spacing
         self.content = content()
     }
@@ -32,7 +28,16 @@ public struct HStack<Content> : View where Content : View {
      )
      */
     @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Row(modifier: ctx.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp)) {
+        let rowAlignment: androidx.compose.ui.Alignment.Vertical
+        switch alignment {
+        case .bottom:
+            rowAlignment = androidx.compose.ui.Alignment.Bottom
+        case .top:
+            rowAlignment = androidx.compose.ui.Alignment.Top
+        default:
+            rowAlignment = androidx.compose.ui.Alignment.CenterVertically
+        }
+        androidx.compose.foundation.layout.Row(modifier: ctx.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
             content.Compose(ctx.child())
         }
     }
