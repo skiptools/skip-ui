@@ -267,30 +267,6 @@ extension Font {
 // MARK: - Other modifiers
 // https://developer.android.com/jetpack/compose/modifiers-list
 
-#if SKIP
-extension View {
-    public func accessibilityIdentifier(_ identifier: String) -> some View {
-        return ComposeContextView(self) {
-            $0.modifier = $0.modifier.testTag(identifier)
-        }
-    }
-}
-#endif
 
-#if SKIP
-extension View {
-    public func accessibilityLabel(_ label: Text) -> some View {
-        return ComposeContextView(self) {
-            $0.modifier = $0.modifier.semantics { contentDescription = label.text }
-        }
-    }
-
-    public func accessibilityLabel(_ label: String) -> some View {
-        return ComposeContextView(self) {
-            $0.modifier = $0.modifier.semantics { contentDescription = label }
-        }
-    }
-}
-#endif
 
 #endif

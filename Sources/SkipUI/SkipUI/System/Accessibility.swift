@@ -2,9 +2,43 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+extension View {
+    public func accessibilityIdentifier(_ identifier: String) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.testTag(identifier)
+        }
+        #else
+        return self
+        #endif
+    }
+}
+
+extension View {
+    public func accessibilityLabel(_ label: Text) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.semantics { contentDescription = label.text }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func accessibilityLabel(_ label: String) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.semantics { contentDescription = label }
+        }
+        #else
+        return self
+        #endif
+    }
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import class Accessibility.AXCustomContent
 import class Accessibility.AXChartDescriptor
@@ -2130,19 +2164,6 @@ extension View {
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityHidden(_:)")
     public func accessibility(hidden: Bool) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
 
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an accessibility label for a view that doesn't display text, like an icon.
-    /// For example, you could use this method to label a button that plays music with the text "Play".
-    /// Don't include text in the label that repeats information that users already have. For example,
-    /// don't use the label "Play button" because a button already has a trait that identifies it as a button.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    public func accessibility(label: Text) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
-
     /// Communicates to the user what happens after performing the view's
     /// action.
     ///
@@ -2171,16 +2192,6 @@ extension View {
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
     public func accessibility(inputLabels: [Text]) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
-
-    /// Uses the specified string to identify the view.
-    ///
-    /// Use this value for testing. It isn't visible to the user.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    public func accessibility(identifier: String) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
 
     /// Sets a selection identifier for this view's accessibility element.
     ///
@@ -3035,14 +3046,7 @@ extension View {
 
 }
 
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
 
-    /// Uses the string you specify to identify the view.
-    ///
-    /// Use this value for testing. It isn't visible to the user.
-    public func accessibilityIdentifier(_ identifier: String) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
-}
 
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
 extension View {
@@ -3072,33 +3076,6 @@ extension View {
     public func accessibilityZoomAction(_ handler: @escaping (AccessibilityZoomGestureAction) -> Void) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
 }
 
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an accessibility label for a view that doesn't display text, like an icon.
-    /// For example, you could use this method to label a button that plays music with the text "Play".
-    /// Don't include text in the label that repeats information that users already have. For example,
-    /// don't use the label "Play button" because a button already has a trait that identifies it as a button.
-    public func accessibilityLabel(_ label: Text) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an accessibility label for a view that doesn't display text, like an icon.
-    /// For example, you could use this method to label a button that plays music with the text "Play".
-    /// Don't include text in the label that repeats information that users already have. For example,
-    /// don't use the label "Play button" because a button already has a trait that identifies it as a button.
-    public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> ModifiedContent<Self, AccessibilityAttachmentModifier> { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an accessibility label for a view that doesn't display text, like an icon.
-    /// For example, you could use this method to label a button that plays music with the text "Play".
-    /// Don't include text in the label that repeats information that users already have. For example,
-    /// don't use the label "Play button" because a button already has a trait that identifies it as a button.
-    public func accessibilityLabel<S>(_ label: S) -> ModifiedContent<Self, AccessibilityAttachmentModifier> where S : StringProtocol { fatalError() }
-}
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension View {
 
