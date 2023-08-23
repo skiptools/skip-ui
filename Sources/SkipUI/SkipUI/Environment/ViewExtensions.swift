@@ -18,7 +18,7 @@ extension View {
     public func font(_ font: Font) -> some View {
         #if SKIP
         return ComposeContextView(self) {
-            $0.font = font
+            $0.style.font = font
         }
         #else
         return self
@@ -38,7 +38,7 @@ extension View {
     public func fontWeight(_ weight: Font.Weight?) -> some View {
         #if SKIP
         return ComposeContextView(self) {
-            $0.font = ($0.font ?? .body).weight(weight ?? .regular)
+            $0.style.fontWeight = weight
         }
         #else
         return self
@@ -51,13 +51,13 @@ extension View {
     }
 
     public func bold(_ isActive: Bool = true) -> some View {
-        return fontWeight(.bold)
+        return fontWeight(isActive ? .bold : nil)
     }
 
     public func italic(_ isActive: Bool = true) -> some View {
         #if SKIP
         return ComposeContextView(self) {
-            $0.font = ($0.font ?? .body).italic()
+            $0.style.isItalic = isActive
         }
         #else
         return self
@@ -89,7 +89,7 @@ extension View {
     public func foregroundColor(_ color: Color?) -> some View {
         #if SKIP
         return ComposeContextView(self) {
-            $0.color = color
+            $0.style.color = color
         }
         #else
         return self

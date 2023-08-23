@@ -10,18 +10,23 @@
 /// Context to provide modifiers, environment, etc to composables.
 public struct ComposeContext {
     public var modifier: Modifier = Modifier
-    public var tag: AnyHashable? = nil
+    public var tag: AnyHashable?
 
     // TODO: Environment
-    public var font: Font? = nil
-    public var color: Color? = nil
+    public struct Style {
+        public var color: Color?
+        public var font: Font?
+        public var fontWeight: Font.Weight?
+        public var isItalic = false
+    }
+    public var style = Style()
 
     /// Use in conjunction with `rememberSaveable` to store view state.
     public var stateSaver: Saver<Any, Any> = ComposeStateSaver()
 
     /// The context to pass to child views.
     public func child() -> ComposeContext {
-        return ComposeContext(font: font, color: color, stateSaver: stateSaver)
+        return ComposeContext(style: style, stateSaver: stateSaver)
     }
 }
 

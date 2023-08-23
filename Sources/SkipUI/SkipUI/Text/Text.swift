@@ -41,9 +41,15 @@ public struct Text: View, Equatable {
      */
     @Composable public override func Compose(ctx: ComposeContext) {
         let modifier = ctx.modifier
-        let textStyle = ctx.font?.fontImpl()
-        let textColor = ctx.color?.colorImpl()
-        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: textStyle ?? androidx.compose.material3.LocalTextStyle.current)
+        var font = ctx.style.font ?? Font(fontImpl: { androidx.compose.material3.LocalTextStyle.current })
+        if let weight = ctx.style.fontWeight {
+            font = font.weight(weight)
+        }
+        if ctx.style.isItalic {
+            font = font.italic()
+        }
+        let textColor = ctx.style.color?.colorImpl()
+        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: font.fontImpl() )
     }
     #else
     public var body: some View {

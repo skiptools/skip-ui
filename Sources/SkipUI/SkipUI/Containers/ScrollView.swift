@@ -2,9 +2,43 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.foundation.horizontalScroll
+// SKIP INSERT: import androidx.compose.foundation.verticalScroll
+// SKIP INSERT: import androidx.compose.runtime.Composable
+
+public struct ScrollView<Content> : View where Content : View {
+    let content: Content
+    let axes: Axis.Set
+
+    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> Content) {
+        self.axes = axes
+        self.content = content()
+    }
+
+    #if SKIP
+    @Composable public override func Compose(ctx: ComposeContext) {
+        let scrollState = androidx.compose.foundation.rememberScrollState()
+        var modifier = ctx.modifier
+        if axes.contains(.vertical) {
+            modifier = modifier.verticalScroll(scrollState)
+        }
+        if axes.contains(.horizontal) {
+            modifier = modifier.horizontalScroll(scrollState)
+        }
+        androidx.compose.foundation.layout.Box(modifier: modifier) {
+            content.Compose(ctx.child())
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 /// The ways that a scrollable view can bounce when it reaches the end of its
 /// content.
@@ -535,10 +569,6 @@ extension ScrollTransitionConfiguration {
     /// Returns -1.0 when in the topLeading phase, zero when in the identity
     /// phase, and 1.0 when in the bottomTrailing phase.
     public var value: Double { get { fatalError() } }
-
-    
-
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -547,134 +577,6 @@ extension ScrollTransitionPhase : Equatable {
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ScrollTransitionPhase : Hashable {
-}
-
-/// A scrollable view.
-///
-/// The scroll view displays its content within the scrollable content region.
-/// As the user performs platform-appropriate scroll gestures, the scroll view
-/// adjusts what portion of the underlying content is visible. `ScrollView` can
-/// scroll horizontally, vertically, or both, but does not provide zooming
-/// functionality.
-///
-/// In the following example, a `ScrollView` allows the user to scroll through
-/// a ``VStack`` containing 100 ``Text`` views. The image after the listing
-/// shows the scroll view's temporarily visible scrollbar at the right; you can
-/// disable it with the `showsIndicators` parameter of the `ScrollView`
-/// initializer.
-///
-///     var body: some View {
-///         ScrollView {
-///             VStack(alignment: .leading) {
-///                 ForEach(0..<100) {
-///                     Text("Row \($0)")
-///                 }
-///             }
-///         }
-///     }
-/// ![A scroll view with a series of vertically arranged rows, reading
-/// Row 1, Row 2, and so on. At the right, a scrollbar indicates that
-/// this is the top of the scrollable
-/// area.](SkipUI-ScrollView-rows-with-indicator.png)
-///
-/// ### Controlling Scroll Position
-///
-/// You can influence where a scroll view is initially scrolled
-/// by using the ``View/scrollPosition(initialAnchor:)`` view modifier.
-///
-/// Provide a value of `UnitPoint/center`` to have the scroll
-/// view start in the center of its content when a scroll view
-/// is scrollable in both axes.
-///
-///     ScrollView([.horizontal, .vertical]) {
-///         // initially centered content
-///     }
-///     .scrollPosition(initialAnchor: .center)
-///
-/// Or provide an alignment of `UnitPoint/bottom`` to have the
-/// scroll view start at the bottom of its content when a scroll
-/// view is scrollable in its vertical axes.
-///
-///     ScrollView {
-///         // initially bottom aligned content
-///     }
-///     .scrollPosition(initialAnchor: .bottom)
-///
-/// After the scroll view initially renders, the user may scroll
-/// the content of the scroll view at which point the alignment
-/// of the scroll view will no longer have any affect.
-///
-/// The default initial anchor of a scroll view depends on the scrollable
-/// axes of that scroll view and the version of SkipUI your app links against:
-/// - When linked on or after iOS 17.0, macOS 14.0, tvOS 17.0 or watchOS 10.0,
-///   a scroll view defaults to the top leading anchor regardless
-///   of the scrollable axes.
-/// - When linked on iOS 16.0, macOS 13.0, tvOS 16.0, or watchOS 9.0,
-///   a scroll view defaults to the top leading anchor for vertically or
-///   horizontally scrollable scroll views. For scroll views scrollable
-///   vertically and horizontally, it defaults to the center anchor.
-/// - When linked on iOS 15.0, macOS 12.0, tvOS 15.0, or watchOS 8.0
-///   or previous releases, scroll views default to the top leading anchor
-///   again.
-///
-/// To perform programmatic scrolling, wrap one or more scroll views with a
-/// ``ScrollViewReader``.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct ScrollView<Content> : View where Content : View {
-
-    /// The scroll view's content.
-    public var content: Content { get { fatalError() } }
-
-    /// The scrollable axes of the scroll view.
-    ///
-    /// The default value is ``Axis/vertical``.
-    public var axes: Axis.Set { get { fatalError() } }
-
-    /// A value that indicates whether the scroll view displays the scrollable
-    /// component of the content offset, in a way that's suitable for the
-    /// platform.
-    ///
-    /// The default is `true`.
-    public var showsIndicators: Bool { get { fatalError() } }
-
-    /// Creates a new instance that's scrollable in the direction of the given
-    /// axis and can show indicators while scrolling.
-    ///
-    /// - Parameters:
-    ///   - axes: The scroll view's scrollable axis. The default axis is the
-    ///     vertical axis.
-    ///   - showsIndicators: A Boolean value that indicates whether the scroll
-    ///     view displays the scrollable component of the content offset, in a way
-    ///     suitable for the platform. The default value for this parameter is
-    ///     `true`.
-    ///   - content: The view builder that creates the scrollable view.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use the ScrollView(_:content:) initializer and the scrollIndicators(:_) modifier")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Use the ScrollView(_:content:) initializer and the scrollIndicators(:_) modifier")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use the ScrollView(_:content:) initializer and the scrollIndicators(:_) modifier")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use the ScrollView(_:content:) initializer and the scrollIndicators(:_) modifier")
-    public init(_ axes: Axis.Set = .vertical, showsIndicators: Bool = true, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// The content and behavior of the scroll view.
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-extension ScrollView {
-
-    /// Creates a new instance that's scrollable in the direction of the given
-    /// axis and can show indicators while scrolling.
-    ///
-    /// - Parameters:
-    ///   - axes: The scroll view's scrollable axis. The default axis is the
-    ///     vertical axis.
-    ///   - content: The view builder that creates the scrollable view.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> Content) { fatalError() }
 }
 
 /// A proxy value that supports programmatic scrolling of the scrollable

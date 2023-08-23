@@ -44,7 +44,7 @@ extension Font {
     public static let subheadline = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.bodyLarge })
     public static let body = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.bodyMedium })
     public static let callout = Font(fontImpl:  { androidx.compose.material3.MaterialTheme.typography.bodySmall })
-    public static let footnote = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.displaySmall })
+    public static let footnote = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.labelSmall })
     public static let caption = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.labelMedium })
     public static let caption2 = Font(fontImpl:  { androidx.compose.material3.MaterialTheme.typography.labelSmall })
     #endif
