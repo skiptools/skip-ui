@@ -13,8 +13,8 @@ public struct Color: View, Hashable, Sendable {
         self.colorImpl = colorImpl
     }
 
-    @Composable public override func Compose(ctx: ComposeContext) {
-        let modifier = ctx.modifier.background(colorImpl())
+    @Composable public override func Compose(context: ComposeContext) {
+        let modifier = context.modifier.background(colorImpl())
         androidx.compose.foundation.layout.Box(modifier: modifier)
     }
     #else

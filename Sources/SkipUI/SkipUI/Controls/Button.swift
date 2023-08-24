@@ -37,9 +37,10 @@ public struct Button<Label> : View where Label : View {
         content: @Composable RowScope.() -> Unit
      )
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.material3.Button(modifier: ctx.modifier, onClick: action, content: {
-            label.Compose(ctx.child())
+    @Composable public override func Compose(context: ComposeContext) {
+        let contentContext = context.content(of: self)
+        androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
+            label.Eval(context: contentContext)
         })
     }
     #else

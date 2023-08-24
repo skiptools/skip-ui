@@ -24,7 +24,7 @@ public struct ZStack<Content> : View where Content : View {
         content: @Composable BoxScope.() -> Unit
      )
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
+    @Composable public override func Compose(context: ComposeContext) {
         let boxAlignment: androidx.compose.ui.Alignment
         switch alignment {
         case .leading, .leadingFirstTextBaseline, .leadingLastTextBaseline:
@@ -46,8 +46,10 @@ public struct ZStack<Content> : View where Content : View {
         default:
             boxAlignment = androidx.compose.ui.Alignment.Center
         }
-        androidx.compose.foundation.layout.Box(modifier: ctx.modifier, contentAlignment: boxAlignment) {
-            content.Compose(ctx.child())
+        var contentContext = context.content(of: self)
+        contentContext.style.primaryAxis = nil
+        androidx.compose.foundation.layout.Box(modifier: context.modifier, contentAlignment: boxAlignment) {
+            content.Eval(context: contentContext)
         }
     }
     #else

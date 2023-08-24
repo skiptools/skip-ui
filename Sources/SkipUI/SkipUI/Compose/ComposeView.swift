@@ -15,8 +15,12 @@ public struct ComposeView: View {
         self.content = content
     }
 
-    @Composable public override func Compose(ctx: ComposeContext) {
-        content(ctx)
+    @Composable public override func Compose(context: ComposeContext) {
+        content(context)
+    }
+
+    @Composable public override func Eval(context: ComposeContext) {
+        Compose(context)
     }
 }
 #endif

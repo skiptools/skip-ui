@@ -9,8 +9,11 @@
 
 /// Context to provide modifiers, environment, etc to composables.
 public struct ComposeContext {
+    /// The parent view, or nil.
+    public var parent: View? // Will probably have to expand this to ancestor chain
+
+    /// Modifiers to apply.
     public var modifier: Modifier = Modifier
-    public var tag: AnyHashable?
 
     // TODO: Environment
     public struct Style {
@@ -18,15 +21,19 @@ public struct ComposeContext {
         public var font: Font?
         public var fontWeight: Font.Weight?
         public var isItalic = false
+        public var primaryAxis: Axis?
     }
     public var style = Style()
 
     /// Use in conjunction with `rememberSaveable` to store view state.
     public var stateSaver: Saver<Any, Any> = ComposeStateSaver()
 
-    /// The context to pass to child views.
-    public func child() -> ComposeContext {
-        return ComposeContext(style: style, stateSaver: stateSaver)
+    /// The context to pass to child content of a container view.
+    public func content(of view: View) -> ComposeContext {
+        var context = self
+        context.parent = view
+        context.modifier = Modifier // Consume modifier
+        return context
     }
 }
 
@@ -40,10 +47,10 @@ struct ComposeContextView: View {
         self.contextTransform = contextTransform
     }
 
-    @Composable override func Compose(ctx: ComposeContext) {
-        var ctx = ctx
-        contextTransform(&ctx)
-        view.Compose(ctx)
+    @Composable override func Compose(context: ComposeContext) {
+        var context = context
+        contextTransform(&context)
+        view.Compose(context)
     }
 }
 #endif

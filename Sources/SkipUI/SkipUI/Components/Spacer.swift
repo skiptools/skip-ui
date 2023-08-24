@@ -19,8 +19,8 @@ public struct Spacer : View {
      @Composable
      fun Spacer(modifier: Modifier)
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        androidx.compose.foundation.layout.Spacer(modifier: ctx.modifier) // TODO distribute space : .weight(1.0f)
+    @Composable public override func Compose(context: ComposeContext) {
+        androidx.compose.foundation.layout.Spacer(modifier: context.modifier)
     }
     #else
     public var body: some View {

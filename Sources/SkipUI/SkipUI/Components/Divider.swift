@@ -18,9 +18,9 @@ public struct Divider : View {
         color: Color = DividerDefaults.color,
      )
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
-        let dividerColor = ctx.style.color?.colorImpl()
-        androidx.compose.material3.Divider(modifier: ctx.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.LightGray)
+    @Composable public override func Compose(context: ComposeContext) {
+        let dividerColor = context.style.color?.colorImpl()
+        androidx.compose.material3.Divider(modifier: context.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.LightGray)
     }
     #else
     public var body: some View {

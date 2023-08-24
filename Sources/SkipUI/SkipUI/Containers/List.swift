@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.verticalScroll
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -36,23 +37,24 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     #if SKIP
-    @Composable public override func Compose(ctx: ComposeContext) {
-        let childContext = ctx.child()
+    @Composable public override func Compose(context: ComposeContext) {
+        let modifier = androidx.compose.ui.Modifier.fillMaxWidth().then(context.modifier)
+        let itemContext = context.content(of: self)
         if let fixedContent {
             let scrollState = androidx.compose.foundation.rememberScrollState()
-            androidx.compose.foundation.layout.Column(modifier: ctx.modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
-                fixedContent.Compose(childContext)
+            androidx.compose.foundation.layout.Column(modifier: modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                fixedContent.Eval(context: itemContext)
             }
         } else if let indexRange {
-            androidx.compose.foundation.lazy.LazyColumn(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+            androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                 items(indexRange.endExclusive - indexRange.start) {
-                    indexedContent!(indexRange.start + $0).Compose(childContext)
+                    indexedContent!(indexRange.start + $0).Eval(context: itemContext)
                 }
             }
         } else if let objects {
-            androidx.compose.foundation.lazy.LazyColumn(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+            androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                 items(count: objects.count, key: { identifier!(objects[$0]) }) {
-                    objectContent!(objects[$0]).Compose(childContext)
+                    objectContent!(objects[$0]).Eval(context: itemContext)
                 }
             }
         }

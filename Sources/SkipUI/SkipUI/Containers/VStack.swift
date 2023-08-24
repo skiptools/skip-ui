@@ -27,7 +27,7 @@ public struct VStack<Content> : View where Content : View {
          content: @Composable ColumnScope.() -> Unit
      )
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
+    @Composable public override func Compose(context: ComposeContext) {
         let columnAlignment: androidx.compose.ui.Alignment.Horizontal
         switch alignment {
         case .leading:
@@ -37,8 +37,10 @@ public struct VStack<Content> : View where Content : View {
         default:
             columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         }
-        androidx.compose.foundation.layout.Column(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
-            content.Compose(ctx.child())
+        var contentContext = context.content(of: self)
+        contentContext.style.primaryAxis = .vertical
+        androidx.compose.foundation.layout.Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
+            content.Eval(context: contentContext)
         }
     }
     #else

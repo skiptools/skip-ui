@@ -27,7 +27,7 @@ public struct HStack<Content> : View where Content : View {
          content: @Composable RowScope.() -> Unit
      )
      */
-    @Composable public override func Compose(ctx: ComposeContext) {
+    @Composable public override func Compose(context: ComposeContext) {
         let rowAlignment: androidx.compose.ui.Alignment.Vertical
         switch alignment {
         case .bottom:
@@ -37,8 +37,10 @@ public struct HStack<Content> : View where Content : View {
         default:
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
-        androidx.compose.foundation.layout.Row(modifier: ctx.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
-            content.Compose(ctx.child())
+        var contentContext = context.content(of: self)
+        contentContext.style.primaryAxis = .horizontal
+        androidx.compose.foundation.layout.Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
+            content.Eval(context: contentContext)
         }
     }
     #else
