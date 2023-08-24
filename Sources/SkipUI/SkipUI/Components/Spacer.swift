@@ -19,7 +19,7 @@ public struct Spacer : View {
      @Composable
      fun Spacer(modifier: Modifier)
      */
-    @Composable public override func Compose(context: ComposeContext) {
+    @Composable public override func ComposeContent(context: ComposeContext) {
         androidx.compose.foundation.layout.Spacer(modifier: context.modifier)
     }
     #else

@@ -12,12 +12,12 @@ public struct Group<Content> : View where Content : View {
     }
 
     #if SKIP
-    @Composable public override func Compose(context: ComposeContext) {
-        content.Eval(context: context)
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        content.Compose(context: context)
     }
 
-    @Composable public override func Eval(context: ComposeContext) {
-        Compose(context: context)
+    @Composable public override func Compose(context: ComposeContext) {
+        ComposeContent(context: context)
     }
     #else
     public var body: some View {

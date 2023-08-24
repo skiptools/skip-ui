@@ -16,7 +16,7 @@ public struct ScrollView<Content> : View where Content : View {
     }
 
     #if SKIP
-    @Composable public override func Compose(context: ComposeContext) {
+    @Composable public override func ComposeContent(context: ComposeContext) {
         let scrollState = androidx.compose.foundation.rememberScrollState()
         var modifier = context.modifier
         if axes.contains(.vertical) {
@@ -27,7 +27,7 @@ public struct ScrollView<Content> : View where Content : View {
         }
         let contentContext = context.content(of: self)
         androidx.compose.foundation.layout.Box(modifier: modifier) {
-            content.Eval(context: contentContext)
+            content.Compose(context: contentContext)
         }
     }
     #else

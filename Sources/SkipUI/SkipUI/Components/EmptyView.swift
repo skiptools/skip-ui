@@ -9,7 +9,7 @@ public struct EmptyView : View {
     }
     
     #if SKIP
-    @Composable public override func Compose(context: ComposeContext) {
+    @Composable public override func ComposeContent(context: ComposeContext) {
     }
     #else
     public var body: some View {

@@ -47,10 +47,10 @@ struct ComposeContextView: View {
         self.contextTransform = contextTransform
     }
 
-    @Composable override func Compose(context: ComposeContext) {
+    @Composable override func ComposeContent(context: ComposeContext) {
         var context = context
         contextTransform(&context)
-        view.Compose(context)
+        view.ComposeContent(context)
     }
 }
 #endif

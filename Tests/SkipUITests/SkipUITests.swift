@@ -188,7 +188,7 @@ final class SkipUITests: XCTestCase {
         throw XCTSkip("headless UI testing not available for SwiftUI")
         #else
         composeRule.setContent {
-            view().Compose(ComposeContext())
+            view().Compose()
         }
         eval(composeRule)
         #endif

@@ -28,31 +28,31 @@ public protocol View {
 #if SKIP
 extension View {
     /// Compose this view without an existing context - typically called when integrating a SwiftUI view tree into pure Compose.
-    @Composable public func Eval() {
-        Eval(context: ComposeContext())
+    @Composable public func Compose() {
+        Compose(context: ComposeContext())
     }
 
-    /// Calls to `Eval` are added by the transpiler.
-    @Composable public func Eval(context: ComposeContext) {
+    /// Calls to `Compose` are added by the transpiler.
+    @Composable public func Compose(context: ComposeContext) {
         if let parent = context.parent {
-            parent.Compose(view: self, context: context)
+            parent.ComposeContent(view: self, context: context)
         } else {
-            Compose(context: context)
+            ComposeContent(context: context)
         }
     }
 
-    /// Compose this view.
-    @Composable public func Compose(context: ComposeContext) {
+    /// Compose this view's content.
+    @Composable public func ComposeContent(context: ComposeContext) {
         var context = context
         context.parent = self
-        body.Compose(context)
+        body.ComposeContent(context)
     }
 
-    /// Called on parent views to optionally influence how their children are rendered.
+    /// Called on parent views to optionally influence how their children are composed.
     ///
     /// E.g. a `List` placing its child views into rows with separators.
-    @Composable public func Compose(view: any View, context: ComposeContext) {
-        view.Compose(context: context)
+    @Composable public func ComposeContent(view: any View, context: ComposeContext) {
+        view.ComposeContent(context: context)
     }
 }
 #endif

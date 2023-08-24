@@ -37,24 +37,24 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     #if SKIP
-    @Composable public override func Compose(context: ComposeContext) {
+    @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = androidx.compose.ui.Modifier.fillMaxWidth().then(context.modifier)
         let itemContext = context.content(of: self)
         if let fixedContent {
             let scrollState = androidx.compose.foundation.rememberScrollState()
             androidx.compose.foundation.layout.Column(modifier: modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
-                fixedContent.Eval(context: itemContext)
+                fixedContent.Compose(context: itemContext)
             }
         } else if let indexRange {
             androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                 items(indexRange.endExclusive - indexRange.start) {
-                    indexedContent!(indexRange.start + $0).Eval(context: itemContext)
+                    indexedContent!(indexRange.start + $0).Compose(context: itemContext)
                 }
             }
         } else if let objects {
             androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                 items(count: objects.count, key: { identifier!(objects[$0]) }) {
-                    objectContent!(objects[$0]).Eval(context: itemContext)
+                    objectContent!(objects[$0]).Compose(context: itemContext)
                 }
             }
         }
