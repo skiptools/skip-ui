@@ -2,315 +2,96 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.foundation.verticalScroll
+// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.unit.dp
+
+// Erase the SelectionValue because it is currently unused in Kotlin, the compiler won't be able to calculate it
+//
+// SKIP DECLARE: class List<Content>: View where Content: View
+public struct List<SelectionValue, Content> : View where SelectionValue: Hashable, Content : View {
+    let fixedContent: Content?
+    let indexedContent: ((Int) -> Content)?
+    let indexRange: Range<Int>?
+    let objectContent: ((Any) -> Content)?
+    let objects: (any RandomAccessCollection<Any>)?
+    let identifier: ((Any) -> AnyHashable)?
+
+    init(fixedContent: Content? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, identifier: ((Any) -> AnyHashable)? = nil, objectContent: ((Any) -> Content)? = nil) {
+        self.fixedContent = fixedContent
+        self.indexRange = indexRange
+        self.indexedContent = indexedContent
+        self.objects = objects
+        self.identifier = identifier
+        self.objectContent = objectContent
+    }
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.init(fixedContent: content())
+    }
+
+    @available(*, unavailable)
+    public init(selection: Binding<Any>, @ViewBuilder content: () -> Content) {
+        self.init(fixedContent: content())
+    }
+
+    #if SKIP
+    @Composable public override func Compose(ctx: ComposeContext) {
+        let childContext = ctx.child()
+        if let fixedContent {
+            let scrollState = androidx.compose.foundation.rememberScrollState()
+            androidx.compose.foundation.layout.Column(modifier: ctx.modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                fixedContent.Compose(childContext)
+            }
+        } else if let indexRange {
+            androidx.compose.foundation.lazy.LazyColumn(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                items(indexRange.endExclusive - indexRange.start) {
+                    indexedContent!(indexRange.start + $0).Compose(childContext)
+                }
+            }
+        } else if let objects {
+            androidx.compose.foundation.lazy.LazyColumn(modifier: ctx.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                items(count: objects.count, key: { identifier!(objects[$0]) }) {
+                    objectContent!(objects[$0]).Compose(childContext)
+                }
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+
+extension List {
+    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
+        self.init(indexRange: data, indexedContent: rowContent)
+    }
+}
+
+// Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
+
+//extension List {
+//    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
+//}
+// SKIP INSERT:
+// fun <ObjectType, Content> List(data: RandomAccessCollection<ObjectType>, rowContent: (ObjectType) -> Content): List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
+//      return List(objects = data as RandomAccessCollection<Any>, identifier = { (it as ObjectType).id }, objectContent = { rowContent(it as ObjectType) })
+// }
+
+//extension List {
+//    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
+//}
+// SKIP INSERT:
+// fun <ObjectType, Content> List(data: RandomAccessCollection<ObjectType>, id: (ObjectType) -> Hashable, rowContent: (ObjectType) -> Content): List<Content> where Content: View {
+//      return List(objects = data as RandomAccessCollection<Any>, identifier = { id(it as ObjectType) }, objectContent = { rowContent(it as ObjectType) })
+// }
 
 #if !SKIP
 
-
-/// A container that presents rows of data arranged in a single column,
-/// optionally providing the ability to select one or more members.
-///
-/// In its simplest form, a `List` creates its contents statically, as shown in
-/// the following example:
-///
-///     var body: some View {
-///         List {
-///             Text("A List Item")
-///             Text("A Second List Item")
-///             Text("A Third List Item")
-///         }
-///     }
-///
-/// ![A vertical list with three text views.](List-1-iOS)
-///
-/// More commonly, you create lists dynamically from an underlying collection
-/// of data. The following example shows how to create a simple list from an
-/// array of an `Ocean` type which conforms to
-/// :
-///
-///     struct Ocean: Identifiable {
-///         let name: String
-///         let id = UUID()
-///     }
-///
-///     private var oceans = [
-///         Ocean(name: "Pacific"),
-///         Ocean(name: "Atlantic"),
-///         Ocean(name: "Indian"),
-///         Ocean(name: "Southern"),
-///         Ocean(name: "Arctic")
-///     ]
-///
-///     var body: some View {
-///         List(oceans) {
-///             Text($0.name)
-///         }
-///     }
-///
-/// ![A vertical list with five text views, each with the name of an
-/// ocean.](List-2-iOS)
-///
-/// ### Supporting selection in lists
-///
-/// To make members of a list selectable, provide a binding to a selection
-/// variable. Binding to a single instance of the list data's `Identifiable.ID`
-/// type creates a single-selection list. Binding to a
-///  creates a list that
-/// supports multiple selections. The following example shows how to add
-/// multiselect to the previous example:
-///
-///     struct Ocean: Identifiable, Hashable {
-///         let name: String
-///         let id = UUID()
-///     }
-///
-///     private var oceans = [
-///         Ocean(name: "Pacific"),
-///         Ocean(name: "Atlantic"),
-///         Ocean(name: "Indian"),
-///         Ocean(name: "Southern"),
-///         Ocean(name: "Arctic")
-///     ]
-///
-///     @State private var multiSelection = Set<UUID>()
-///
-///     var body: some View {
-///         NavigationView {
-///             List(oceans, selection: $multiSelection) {
-///                 Text($0.name)
-///             }
-///             .navigationTitle("Oceans")
-///             .toolbar { EditButton() }
-///         }
-///         Text("\(multiSelection.count) selections")
-///     }
-///
-/// When people make a single selection by tapping or clicking, the selected
-/// cell changes its appearance to indicate the selection. To enable multiple
-/// selections with tap gestures, put the list into edit mode by either
-/// modifying the ``EnvironmentValues/editMode`` value, or adding an
-/// ``EditButton`` to your app's interface. When you put the list into edit
-/// mode, the list shows a circle next to each list item. The circle contains
-/// a checkmark when the user selects the associated item. The example above
-/// uses an Edit button, which changes its title to Done while in edit mode:
-///
-/// ![A navigation view with the title Oceans and a vertical list that contains
-/// five text views, each with the name of an ocean. The second and third items
-/// are highlighted to indicate that they are selected. At the bottom, a text
-/// view reads 2 selections.](List-3-iOS)
-///
-/// People can make multiple selections without needing to enter edit mode on
-/// devices that have a keyboard and mouse or trackpad, like Mac and iPad.
-///
-/// ### Refreshing the list content
-///
-/// To make the content of the list refreshable using the standard refresh
-/// control, use the ``View/refreshable(action:)`` modifier.
-///
-/// The following example shows how to add a standard refresh control to a list.
-/// When the user drags the top of the list downward, SkipUI reveals the refresh
-/// control and executes the specified action. Use an `await` expression
-/// inside the `action` closure to refresh your data. The refresh indicator remains
-/// visible for the duration of the awaited operation.
-///
-///     struct Ocean: Identifiable, Hashable {
-///          let name: String
-///          let id = UUID()
-///          let stats: [String: String]
-///      }
-///
-///      class OceanStore: ObservableObject {
-///          @Published var oceans = [Ocean]()
-///          func loadStats() async {}
-///      }
-///
-///      @EnvironmentObject var store: OceanStore
-///
-///      var body: some View {
-///          NavigationView {
-///              List(store.oceans) { ocean in
-///                  HStack {
-///                      Text(ocean.name)
-///                      StatsSummary(stats: ocean.stats) // A custom view for showing statistics.
-///                  }
-///              }
-///              .refreshable {
-///                  await store.loadStats()
-///              }
-///              .navigationTitle("Oceans")
-///          }
-///      }
-///
-/// ### Supporting multidimensional lists
-///
-/// To create two-dimensional lists, group items inside ``Section`` instances.
-/// The following example creates sections named after the world's oceans,
-/// each of which has ``Text`` views named for major seas attached to those
-/// oceans. The example also allows for selection of a single list item,
-/// identified by the `id` of the example's `Sea` type.
-///
-///     struct ContentView: View {
-///         struct Sea: Hashable, Identifiable {
-///             let name: String
-///             let id = UUID()
-///         }
-///
-///         struct OceanRegion: Identifiable {
-///             let name: String
-///             let seas: [Sea]
-///             let id = UUID()
-///         }
-///
-///         private let oceanRegions: [OceanRegion] = [
-///             OceanRegion(name: "Pacific",
-///                         seas: [Sea(name: "Australasian Mediterranean"),
-///                                Sea(name: "Philippine"),
-///                                Sea(name: "Coral"),
-///                                Sea(name: "South China")]),
-///             OceanRegion(name: "Atlantic",
-///                         seas: [Sea(name: "American Mediterranean"),
-///                                Sea(name: "Sargasso"),
-///                                Sea(name: "Caribbean")]),
-///             OceanRegion(name: "Indian",
-///                         seas: [Sea(name: "Bay of Bengal")]),
-///             OceanRegion(name: "Southern",
-///                         seas: [Sea(name: "Weddell")]),
-///             OceanRegion(name: "Arctic",
-///                         seas: [Sea(name: "Greenland")])
-///         ]
-///
-///         @State private var singleSelection: UUID?
-///
-///         var body: some View {
-///             NavigationView {
-///                 List(selection: $singleSelection) {
-///                     ForEach(oceanRegions) { region in
-///                         Section(header: Text("Major \(region.name) Ocean Seas")) {
-///                             ForEach(region.seas) { sea in
-///                                 Text(sea.name)
-///                             }
-///                         }
-///                     }
-///                 }
-///                 .navigationTitle("Oceans and Seas")
-///             }
-///         }
-///     }
-///
-/// Because this example uses single selection, people can make selections
-/// outside of edit mode on all platforms.
-///
-/// ![A vertical list split into sections titled Major Pacific Ocean Seas,
-/// Major Atlantic Ocean Seas, and so on. Each section has a different number of
-/// rows, with the names of various seas. Within the Major Atlantic Ocean
-/// Seas section, the row Sargasso is selected.](List-4-iOS)
-///
-/// > Note: In iOS 15, iPadOS 15, and tvOS 15 and earlier, lists support
-///   selection only in edit mode, even for single selections.
-///
-/// ### Creating hierarchical lists
-///
-/// You can also create a hierarchical list of arbitrary depth by providing
-/// tree-structured data and a `children` parameter that provides a key path to
-/// get the child nodes at any level. The following example uses a deeply-nested
-/// collection of a custom `FileItem` type to simulate the contents of a
-/// file system. The list created from this data uses collapsing cells to allow
-/// the user to navigate the tree structure.
-///
-///     struct ContentView: View {
-///         struct FileItem: Hashable, Identifiable, CustomStringConvertible {
-///             var id: Self { self }
-///             var name: String
-///             var children: [FileItem]? = nil
-///             var description: String {
-///                 switch children {
-///                 case nil:
-///                     return "📄 \(name)"
-///                 case .some(let children):
-///                     return children.isEmpty ? "📂 \(name)" : "📁 \(name)"
-///                 }
-///             }
-///         }
-///         let fileHierarchyData: [FileItem] = [
-///           FileItem(name: "users", children:
-///             [FileItem(name: "user1234", children:
-///               [FileItem(name: "Photos", children:
-///                 [FileItem(name: "photo001.jpg"),
-///                  FileItem(name: "photo002.jpg")]),
-///                FileItem(name: "Movies", children:
-///                  [FileItem(name: "movie001.mp4")]),
-///                   FileItem(name: "Documents", children: [])
-///               ]),
-///              FileItem(name: "newuser", children:
-///                [FileItem(name: "Documents", children: [])
-///                ])
-///             ]),
-///             FileItem(name: "private", children: nil)
-///         ]
-///         var body: some View {
-///             List(fileHierarchyData, children: \.children) { item in
-///                 Text(item.description)
-///             }
-///         }
-///     }
-///
-/// ![A list providing an expanded view of a tree structure. Some rows have a
-/// chevron on the right to indicate that they have child rows. The chevron
-/// points right when the row's child rows are hidden and points down when they
-/// are visible. Row content that is slightly indented from the content in the
-/// previous row indicates that the row is a child of the row above. The first
-/// three rows, titled users, user1234, and Photos, have downward facing
-/// chevrons and are progressively indented. The next two rows, indented
-/// together from Photos and titled photo001.jpg and photo002.jpg, have no
-/// chevron. The next two rows, titled Movies and Documents have right facing
-/// chevrons and align with the Photos row. The next row, titled newuser, has a
-/// right facing chevron and is aligned with user1234. The last row is titled
-/// private, has no chevron, and is aligned with users.](List-5-iOS)
-///
-/// ### Styling lists
-///
-/// SkipUI chooses a display style for a list based on the platform and the
-/// view type in which it appears. Use the ``View/listStyle(_:)`` modifier to
-/// apply a different ``ListStyle`` to all lists within a view. For example,
-/// adding `.listStyle(.plain)` to the example shown in the
-/// "Creating Multidimensional Lists" topic applies the
-/// ``ListStyle/plain`` style, the following screenshot shows:
-///
-/// ![A vertical list split into sections titled Major Pacific Ocean Seas,
-/// Major Atlantic Ocean Seas, etc. Each section has a different number of
-/// rows, with the names of various seas. Within the Major Atlantic Ocean
-/// Seas section, the row Sargasso is selected.](List-6-iOS)
-///
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@MainActor public struct List<SelectionValue, Content> : View where SelectionValue : Hashable, Content : View {
-
-    /// Creates a list with the given content that supports selecting multiple
-    /// rows.
-    ///
-    /// - Parameters:
-    ///   - selection: A binding to a set that identifies selected rows.
-    ///   - content: The content of the list.
-    @available(watchOS, unavailable)
-    @MainActor public init(selection: Binding<Set<SelectionValue>>?, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// Creates a list with the given content that supports selecting a single
-    /// row.
-    ///
-    /// - Parameters:
-    ///   - selection: A binding to a selected row.
-    ///   - content: The content of the list.
-    @available(watchOS 10.0, *)
-    @MainActor public init(selection: Binding<SelectionValue?>?, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// The content of the list.
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
+// TODO: Process for use in SkipUI
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension List {
@@ -480,21 +261,6 @@ extension List {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension List where SelectionValue == Never {
-
-    /// Creates a list with the given content.
-    ///
-    /// - Parameter content: The content of the list.
-    @MainActor public init(@ViewBuilder content: () -> Content) { fatalError() }
-
-    /// Creates a list that computes its rows on demand from an underlying
-    /// collection of identifiable data.
-    ///
-    /// - Parameters:
-    ///   - data: A collection of identifiable data for computing the list.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
-
     /// Creates a hierarchical list that computes its rows on demand from an
     /// underlying collection of identifiable data.
     ///
@@ -512,16 +278,6 @@ extension List where SelectionValue == Never {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
-
-    /// Creates a list that identifies its rows based on a key path to the
-    /// identifier of the underlying data.
-    ///
-    /// - Parameters:
-    ///   - data: The data for populating the list.
-    ///   - id: The key path to the data model's identifier.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data.
@@ -541,18 +297,6 @@ extension List where SelectionValue == Never {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
-
-    /// Creates a list that computes its views on demand over a constant range.
-    ///
-    /// This instance only reads the initial value of `data` and doesn't need to
-    /// identify views across updates. To compute views on demand over a dynamic
-    /// range, use ``List/init(_:id:rowContent:)-4s0aj``.
-    ///
-    /// - Parameters:
-    ///   - data: A constant range of data to populate the list.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-    @MainActor public init<RowContent>(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, RowContent>, RowContent : View { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
