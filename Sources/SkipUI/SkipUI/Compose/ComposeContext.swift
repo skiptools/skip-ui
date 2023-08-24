@@ -21,7 +21,8 @@ public struct ComposeContext {
         public var font: Font?
         public var fontWeight: Font.Weight?
         public var isItalic = false
-        public var primaryAxis: Axis?
+        public var fillWidth: Modifier?
+        public var fillHeight: Modifier?
     }
     public var style = Style()
 

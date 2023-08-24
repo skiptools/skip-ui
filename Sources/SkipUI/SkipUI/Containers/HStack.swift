@@ -2,6 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// SKIP INSERT: import androidx.compose.foundation.layout.Row
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -38,8 +39,9 @@ public struct HStack<Content> : View where Content : View {
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
         var contentContext = context.content(of: self)
-        contentContext.style.primaryAxis = .horizontal
-        androidx.compose.foundation.layout.Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
+        Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
+            contentContext.style.fillWidth = androidx.compose.ui.Modifier.weight(Float(1.0))
+            contentContext.style.fillHeight = nil
             content.Compose(context: contentContext)
         }
     }

@@ -2,6 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// SKIP INSERT: import androidx.compose.foundation.layout.Column
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -38,8 +39,9 @@ public struct VStack<Content> : View where Content : View {
             columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         }
         var contentContext = context.content(of: self)
-        contentContext.style.primaryAxis = .vertical
-        androidx.compose.foundation.layout.Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
+        Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
+            contentContext.style.fillHeight = androidx.compose.ui.Modifier.weight(Float(1.0))
+            contentContext.style.fillWidth = nil
             content.Compose(context: contentContext)
         }
     }

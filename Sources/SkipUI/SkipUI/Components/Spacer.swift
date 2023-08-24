@@ -2,6 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -20,7 +22,9 @@ public struct Spacer : View {
      fun Spacer(modifier: Modifier)
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        androidx.compose.foundation.layout.Spacer(modifier: context.modifier)
+        var modifier: androidx.compose.ui.Modifier = context.style.fillWidth ?? context.style.fillHeight ?? androidx.compose.ui.Modifier
+        modifier = modifier.then(context.modifier)
+        androidx.compose.foundation.layout.Spacer(modifier: modifier)
     }
     #else
     public var body: some View {

@@ -106,9 +106,11 @@ extension View {
         #if SKIP
         return ComposeContextView(self) {
             if let width {
+                $0.style.fillWidth = nil
                 $0.modifier = $0.modifier.width(width.dp)
             }
             if let height {
+                $0.style.fillHeight = nil
                 $0.modifier = $0.modifier.height(height.dp)
             }
         }

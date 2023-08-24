@@ -47,7 +47,8 @@ public struct ZStack<Content> : View where Content : View {
             boxAlignment = androidx.compose.ui.Alignment.Center
         }
         var contentContext = context.content(of: self)
-        contentContext.style.primaryAxis = nil
+        contentContext.style.fillWidth = nil
+        contentContext.style.fillHeight = nil
         androidx.compose.foundation.layout.Box(modifier: context.modifier, contentAlignment: boxAlignment) {
             content.Compose(context: contentContext)
         }
