@@ -6,8 +6,6 @@
 import struct CoreGraphics.CGFloat
 #endif
 
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 

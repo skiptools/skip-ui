@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.background
+// SKIP INSERT: import androidx.compose.foundation.border
 // SKIP INSERT: import androidx.compose.foundation.layout.height
 // SKIP INSERT: import androidx.compose.foundation.layout.padding
 // SKIP INSERT: import androidx.compose.foundation.layout.width

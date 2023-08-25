@@ -22,6 +22,18 @@ extension View {
 }
 
 extension View {
+    public func border(_ color: Color, width: CGFloat = 1.0) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.border(width: width.dp, color: color.colorImpl())
+        }
+        #else
+        return self
+        #endif
+    }
+}
+
+extension View {
     public func font(_ font: Font) -> some View {
         #if SKIP
         return ComposeContextView(self) {
@@ -160,9 +172,9 @@ extension View {
         #endif
     }
 
-    public func padding(_ edges: Edge.Set, _ length: CGFloat? = nil) -> some View {
+    public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
         #if SKIP
-        let amount = (length ?? CGFloat(8.0)).dp
+        let amount = (length ?? CGFloat(16.0)).dp
         let start = edges.contains(.leading) ? amount : 0.dp
         let end = edges.contains(.trailing) ? amount : 0.dp
         let top = edges.contains(.top) ? amount : 0.dp
@@ -2424,7 +2436,7 @@ extension View {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension View {
-
+    
     /// Layers a secondary view in front of this view.
     ///
     /// When you apply an overlay to a view, the original view continues to
@@ -2450,42 +2462,6 @@ extension View {
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @inlinable public func overlay<Overlay>(_ overlay: Overlay, alignment: Alignment = .center) -> some View where Overlay : View { return stubView() }
-
-
-    /// Adds a border to this view with the specified style and width.
-    ///
-    /// Use this modifier to draw a border of a specified width around the
-    /// view's frame. By default, the border appears inside the bounds of this
-    /// view. For example, you can add a four-point wide border covers the text:
-    ///
-    ///     Text("Purple border inside the view bounds.")
-    ///         .border(Color.purple, width: 4)
-    ///
-    /// ![A screenshot showing the text Purple border inside the view bounds.
-    /// The text is surrounded by a purple border that outlines the text,
-    /// but isn't quite big enough and encroaches on the text.](View-border-1)
-    ///
-    /// To place a border around the outside of this view, apply padding of the
-    /// same width before adding the border:
-    ///
-    ///     Text("Purple border outside the view bounds.")
-    ///         .padding(4)
-    ///         .border(Color.purple, width: 4)
-    ///
-    /// ![A screenshot showing the text Purple border outside the view bounds.
-    /// The text is surrounded by a purple border that outlines the text
-    /// without touching the text.](View-border-2)
-    ///
-    /// - Parameters:
-    ///   - content: A value that conforms to the ``ShapeStyle`` protocol,
-    ///     like a ``Color`` or ``HierarchicalShapeStyle``, that SkipUI
-    ///     uses to fill the border.
-    ///   - width: The thickness of the border. The default is 1 pixel.
-    ///
-    /// - Returns: A view that adds a border with the specified style and width
-    ///   to this view.
-    @inlinable public func border<S>(_ content: S, width: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
-
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
