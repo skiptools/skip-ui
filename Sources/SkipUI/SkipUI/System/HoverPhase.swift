@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGPoint
+
 /// The current hovering state and value of the pointer.
 ///
 /// When you use the ``View/onContinuousHover(coordinateSpace:perform:)``

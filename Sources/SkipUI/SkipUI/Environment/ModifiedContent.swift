@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGPoint
+
 /// A value with a modifier applied to it.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct ModifiedContent<Content, Modifier> {

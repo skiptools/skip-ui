@@ -7,6 +7,7 @@
 #if !SKIP
 
 import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGRect
 
 /// No-op
 @usableFromInline func stubShapeStyle() -> some ShapeStyle {

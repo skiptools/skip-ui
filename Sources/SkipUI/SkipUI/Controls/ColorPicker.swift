@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import class CoreGraphics.CGColor
+
 /// A control used to select a color from the system color picker UI.
 ///
 /// The color picker provides a color well that shows the currently selected

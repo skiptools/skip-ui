@@ -6,6 +6,10 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGAffineTransform
+import struct CoreGraphics.CGFloat
+import struct QuartzCore.CATransform3D
+
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct ProjectionTransform {
 

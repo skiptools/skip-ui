@@ -6,6 +6,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGSize
+
 /// A proposal for the size of a view.
 ///
 /// During layout in SkipUI, views choose their own size, but they do that

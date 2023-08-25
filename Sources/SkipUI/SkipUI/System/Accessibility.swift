@@ -2,6 +2,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+import struct CoreGraphics.CGPoint
+#endif
+
 extension View {
     public func accessibilityIdentifier(_ identifier: String) -> some View {
         #if SKIP
@@ -1544,11 +1548,7 @@ public struct AccessibilityZoomGestureAction {
 
         /// The gesture direction that represents zooming out.
         case zoomOut
-
-        
-
-    
-        }
+    }
 
     /// The zoom gesture's direction.
     public let direction: AccessibilityZoomGestureAction.Direction = { fatalError() }()

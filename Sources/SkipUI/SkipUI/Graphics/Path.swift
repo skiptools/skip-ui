@@ -6,8 +6,13 @@
 
 #if !SKIP
 
-import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGAffineTransform
+import struct CoreGraphics.CGFloat
+import class CoreGraphics.CGPath
+import struct CoreGraphics.CGPoint
+import class CoreGraphics.CGMutablePath
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 
 /// The outline of a 2D shape.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

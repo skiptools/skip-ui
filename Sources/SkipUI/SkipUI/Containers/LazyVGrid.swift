@@ -6,6 +6,7 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
 
 /// A container view that arranges its child views in a grid that
 /// grows vertically, creating items only as needed.

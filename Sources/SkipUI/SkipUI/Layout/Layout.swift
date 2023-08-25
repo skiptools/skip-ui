@@ -6,6 +6,11 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
+
 /// A type that defines the geometry of a collection of views.
 ///
 /// You traditionally arrange views in your app's user interface using built-in

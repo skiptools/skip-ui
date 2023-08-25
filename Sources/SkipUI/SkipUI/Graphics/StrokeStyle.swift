@@ -7,6 +7,8 @@
 #if !SKIP
 
 import struct CoreGraphics.CGFloat
+import enum CoreGraphics.CGLineCap
+import enum CoreGraphics.CGLineJoin
 
 /// The characteristics of a stroke that traces a path.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

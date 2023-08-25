@@ -2,6 +2,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+import struct CoreGraphics.CGFloat
+#endif
+
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct Font : Hashable, Sendable {
@@ -130,7 +134,6 @@ extension Font {
     public func uppercaseSmallCaps() -> Font {
         fatalError()
     }
-
 
     @available(*, unavailable)
     public func monospacedDigit() -> Font {

@@ -39,6 +39,10 @@ public struct ScrollView<Content> : View where Content : View {
 
 #if !SKIP
 
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
+import struct CoreGraphics.CGVector
+
 // TODO: Process for use in SkipUI
 
 /// The ways that a scrollable view can bounce when it reaches the end of its

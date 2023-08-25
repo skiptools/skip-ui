@@ -2,7 +2,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-public struct VerticalAlignment : Equatable {
+#if !SKIP
+import struct CoreGraphics.CGFloat
+#endif
+
+public struct VerticalAlignment : Equatable, Sendable {
     let key: String
 
     init(key: String) {
@@ -27,7 +31,4 @@ extension VerticalAlignment {
     public static let bottom = VerticalAlignment(key: "bottom")
     public static let firstTextBaseline = VerticalAlignment(key: "firstTextBaseline")
     public static let lastTextBaseline = VerticalAlignment(key: "lastTextBaseline")
-}
-
-extension VerticalAlignment : Sendable {
 }

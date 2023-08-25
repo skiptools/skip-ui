@@ -6,7 +6,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGSize
 
 /// No-op
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

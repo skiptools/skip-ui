@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// Strategies for adapting a presentation to a different size class.
 ///
 /// Use values of this type with the ``View/presentationCompactAdaptation(_:)``

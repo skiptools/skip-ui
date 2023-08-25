@@ -6,7 +6,12 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGAffineTransform
+import class CoreGraphics.CGContext
 import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 
 /// An immediate mode drawing destination, and its current state.
 ///

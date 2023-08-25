@@ -6,6 +6,7 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGSize
 import class Foundation.UserDefaults
 

@@ -6,6 +6,7 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGPoint
 import typealias Foundation.TimeInterval
 
 /// A collection of events that target a specific view.

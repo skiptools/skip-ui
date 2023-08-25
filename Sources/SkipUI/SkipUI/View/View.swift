@@ -4,6 +4,7 @@
 
 // SKIP INSERT: import androidx.compose.foundation.background
 // SKIP INSERT: import androidx.compose.foundation.layout.height
+// SKIP INSERT: import androidx.compose.foundation.layout.padding
 // SKIP INSERT: import androidx.compose.foundation.layout.width
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.Modifier

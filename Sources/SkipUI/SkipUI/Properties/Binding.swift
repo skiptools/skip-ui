@@ -45,8 +45,6 @@
         // SKIP NOWARN
         return Binding(get: { value }, set: { _ in })
     }
-
-//    public subscript<Subject>(dynamicMember keyPath: WritableKeyPath<Value, Subject>) -> Binding<Subject> { get { fatalError() } }
 }
 
 #if SKIP
@@ -100,6 +98,10 @@ extension Binding : RandomAccessCollection where Value : MutableCollection, Valu
 }
 
 // Unneeded stubs:
+
+//extension Binding {
+//    public subscript<Subject>(dynamicMember keyPath: WritableKeyPath<Value, Subject>) -> Binding<Subject> { get { fatalError() } }
+//}
 
 //@frozen @propertyWrapper @dynamicMemberLookup public struct Binding<Value> {
 //}

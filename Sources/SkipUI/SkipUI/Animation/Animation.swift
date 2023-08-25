@@ -10,6 +10,10 @@ public func withAnimation(_ body: () -> Void) {
 }
 #else
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 

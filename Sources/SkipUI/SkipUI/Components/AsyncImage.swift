@@ -6,6 +6,7 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
 import struct Foundation.URL
 
 /// A view that asynchronously loads and displays an image.

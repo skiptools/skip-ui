@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGSize
+
 /// A view type that supports immediate mode drawing.
 ///
 /// Use a canvas to draw rich and dynamic 2D graphics inside a SkipUI view.

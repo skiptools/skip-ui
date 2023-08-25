@@ -18,15 +18,15 @@ import protocol UIKit.UIConfigurationState
 import class Foundation.NSObject
 import class Foundation.UndoManager
 import class Foundation.NSCoder
-
 import class UIKit.UIView
 import class UIKit.UIColor
 import class UIKit.UITraitCollection
 import class UIKit.UIKeyCommand
 import class UIKit.UIViewController
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGSize
 import struct ObjectiveC.Selector
-
 import struct UIKit.UITextContentType
 import struct UIKit.UIRectEdge
 import struct UIKit.UIContentSizeCategory

@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// A type that you use to create custom alignment guides.
 ///
 /// Every built-in alignment guide that ``VerticalAlignment`` or

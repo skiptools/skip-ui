@@ -6,7 +6,11 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 
 /// No-op
 @usableFromInline func stubShape() -> some Shape {

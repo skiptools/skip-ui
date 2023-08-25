@@ -2,7 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-public struct Alignment : Equatable {
+public struct Alignment : Equatable, Sendable {
     public var horizontal: HorizontalAlignment
     public var vertical: VerticalAlignment
 }
@@ -26,7 +26,4 @@ extension Alignment {
     public static var leadingLastTextBaseline = Alignment(horizontal: .leading, vertical: .lastTextBaseline)
     public static var trailingFirstTextBaseline = Alignment(horizontal: .trailing, vertical: .firstTextBaseline)
     public static var trailingLastTextBaseline = Alignment(horizontal: .trailing, vertical: .lastTextBaseline)
-}
-
-extension Alignment : Sendable {
 }

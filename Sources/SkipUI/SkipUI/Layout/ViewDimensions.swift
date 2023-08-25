@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// A view's size and alignment guides in its own coordinate space.
 ///
 /// This structure contains the size and alignment guides of a view.

@@ -2,6 +2,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
+#endif
+
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct ZStack<Content> : View where Content : View {

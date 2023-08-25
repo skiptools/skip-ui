@@ -2,7 +2,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-public struct HorizontalAlignment : Equatable {
+#if !SKIP
+import struct CoreGraphics.CGFloat
+#endif
+
+public struct HorizontalAlignment : Equatable, Sendable {
     let key: String
 
     init(key: String) {
@@ -13,9 +17,7 @@ public struct HorizontalAlignment : Equatable {
     public init(_ id: Any /* AlignmentID.Type */) {
         key = ""
     }
-}
 
-extension HorizontalAlignment {
     @available(*, unavailable)
     public func combineExplicit(_ values: any Sequence<CGFloat?>) -> CGFloat? {
         fatalError()
@@ -28,7 +30,4 @@ extension HorizontalAlignment {
     public static let trailing: HorizontalAlignment = HorizontalAlignment(key: "trailing")
     public static let listRowSeparatorLeading = HorizontalAlignment(key: "listRowSeparatorLeading")
     public static let listRowSeparatorTrailing = HorizontalAlignment(key: "listRowSeparatorTrailing")
-}
-
-extension HorizontalAlignment : Sendable {
 }

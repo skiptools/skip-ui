@@ -6,10 +6,11 @@
 
 #if !SKIP
 
+import protocol Combine.ObservableObject
+import struct CoreGraphics.CGFloat
 import struct Foundation.Calendar
 import struct Foundation.TimeZone
 import struct Foundation.Locale
-import protocol Combine.ObservableObject
 import Observation
 
 extension View {

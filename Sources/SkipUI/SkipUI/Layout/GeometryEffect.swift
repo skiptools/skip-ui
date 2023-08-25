@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGSize
+
 /// An effect that changes the visual appearance of a view, largely without
 /// changing its ancestors or descendants.
 ///

@@ -6,6 +6,8 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+
 /// for each of the top, bottom, leading, and trailing edges,
 /// and can also record different values for different kinds of adjacent
 /// views. For example, it might contain one value for the spacing to the next

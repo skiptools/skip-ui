@@ -5,6 +5,9 @@
 // TODO: Process for use in SkipUI
 
 #if !SKIP
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGSize
+import struct CoreGraphics.CGVector
 import struct Foundation.Data
 import struct Foundation.URL
 import class Foundation.Bundle

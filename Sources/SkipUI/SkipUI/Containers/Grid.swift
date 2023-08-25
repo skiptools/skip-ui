@@ -7,6 +7,8 @@
 #if !SKIP
 
 import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 
 /// A container view that arranges other views in a two dimensional layout.
 ///

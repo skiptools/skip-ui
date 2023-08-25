@@ -6,6 +6,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGSize
 import struct Foundation.Date
 
 /// No-op

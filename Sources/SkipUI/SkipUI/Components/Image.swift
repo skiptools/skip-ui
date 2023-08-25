@@ -6,6 +6,11 @@
 
 #if !SKIP
 
+import class CoreGraphics.CGContext
+import struct CoreGraphics.CGFloat
+import class CoreGraphics.CGImage
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 import class Foundation.Bundle
 
 /// A view that displays an image.

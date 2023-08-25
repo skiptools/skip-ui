@@ -2,6 +2,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+import struct CoreGraphics.CGAffineTransform
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGSize
+#endif
+
 extension View {
     public func background(_ color: Color) -> some View {
         #if SKIP
@@ -137,8 +144,39 @@ extension View {
             $0.modifier = $0.modifier.alpha(Float(opacity))
         }
         #else
-        return stubView()
+        return self
         #endif
+    }
+}
+
+extension View {
+    public func padding(_ insets: EdgeInsets) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.padding(start: insets.leading.dp, top: insets.top.dp, end: insets.trailing.dp, bottom: insets.bottom.dp)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func padding(_ edges: Edge.Set, _ length: CGFloat? = nil) -> some View {
+        #if SKIP
+        let amount = (length ?? CGFloat(8.0)).dp
+        let start = edges.contains(.leading) ? amount : 0.dp
+        let end = edges.contains(.trailing) ? amount : 0.dp
+        let top = edges.contains(.top) ? amount : 0.dp
+        let bottom = edges.contains(.bottom) ? amount : 0.dp
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func padding(_ length: CGFloat) -> some View {
+        return padding(.all, length)
     }
 }
 
@@ -3312,160 +3350,6 @@ extension View {
 
     /// Sets the style for pickers within this view.
     public func pickerStyle<S>(_ style: S) -> some View where S : PickerStyle { return stubView() }
-
-}
-
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Adds a different padding amount to each edge of this view.
-    ///
-    /// Use this modifier to add a different amount of padding on each edge
-    /// of a view:
-    ///
-    ///     VStack {
-    ///         Text("Text padded by different amounts on each edge.")
-    ///             .padding(EdgeInsets(top: 10, leading: 20, bottom: 40, trailing: 0))
-    ///             .border(.gray)
-    ///         Text("Unpadded text for comparison.")
-    ///             .border(.yellow)
-    ///     }
-    ///
-    /// The order in which you apply modifiers matters. The example above
-    /// applies the padding before applying the border to ensure that the
-    /// border encompasses the padded region:
-    ///
-    /// ![A screenshot of two text strings arranged vertically, each surrounded
-    /// by a border, with a small space between the two borders.
-    /// The first string says Text padded by different amounts on each edge.
-    /// Its border is gray, and there are different amounts of space between
-    /// the string and its border on each edge: 40 points on the bottom, 10
-    /// points on the top, 20 points on the leading edge, and no space on
-    /// the trailing edge.
-    /// The second string says Unpadded text for comparison.
-    /// Its border is yellow, and there's no space between the string
-    /// and its border.](View-padding-3-iOS)
-    ///
-    /// To pad a view on specific edges with equal padding for all padded
-    /// edges, use ``View/padding(_:_:)``. To pad all edges of a view
-    /// equally, use ``View/padding(_:)-68shk``.
-    ///
-    /// - Parameter insets: An ``EdgeInsets`` instance that contains
-    ///   padding amounts for each edge.
-    ///
-    /// - Returns: A view that's padded by different amounts on each edge.
-    @inlinable public func padding(_ insets: EdgeInsets) -> some View { return stubView() }
-
-
-    /// Adds an equal padding amount to specific edges of this view.
-    ///
-    /// Use this modifier to add a specified amount of padding to one or more
-    /// edges of the view. Indicate the edges to pad by naming either a single
-    /// value from ``Edge/Set``, or by specifying an
-    /// that contains edge values:
-    ///
-    ///     VStack {
-    ///         Text("Text padded by 20 points on the bottom and trailing edges.")
-    ///             .padding([.bottom, .trailing], 20)
-    ///             .border(.gray)
-    ///         Text("Unpadded text for comparison.")
-    ///             .border(.yellow)
-    ///     }
-    ///
-    /// The order in which you apply modifiers matters. The example above
-    /// applies the padding before applying the border to ensure that the
-    /// border encompasses the padded region:
-    ///
-    /// ![A screenshot of two text strings arranged vertically, each surrounded
-    /// by a border, with a small space between the two borders.
-    /// The first string says Text padded by 20 points
-    /// on the bottom and trailing edges.
-    /// Its border is gray, and there are 20 points of space between the bottom
-    /// and trailing edges of the string and its border.
-    /// There's no space between the string and the border on the other edges.
-    /// The second string says Unpadded text for comparison.
-    /// Its border is yellow, and there's no space between the string
-    /// and its border.](View-padding-2-iOS)
-    ///
-    /// You can omit either or both of the parameters. If you omit the `length`,
-    /// SkipUI uses a default amount of padding. If you
-    /// omit the `edges`, SkipUI applies the padding to all edges. Omit both
-    /// to add a default padding all the way around a view. SkipUI chooses a
-    /// default amount of padding that's appropriate for the platform and
-    /// the presentation context.
-    ///
-    ///     VStack {
-    ///         Text("Text with default padding.")
-    ///             .padding()
-    ///             .border(.gray)
-    ///         Text("Unpadded text for comparison.")
-    ///             .border(.yellow)
-    ///     }
-    ///
-    /// The example above looks like this in iOS under typical conditions:
-    ///
-    /// ![A screenshot of two text strings arranged vertically, each surrounded
-    /// by a border, with a small space between the two borders.
-    /// The first string says Text with default padding.
-    /// Its border is gray, and there is padding on all sides
-    /// between the border and the string it encloses in an amount that's
-    /// similar to the height of the text.
-    /// The second string says Unpadded text for comparison.
-    /// Its border is yellow, and there's no space between the string
-    /// and its border.](View-padding-2a-iOS)
-    ///
-    /// To control the amount of padding independently for each edge, use
-    /// ``View/padding(_:)-6pgqq``. To pad all outside edges of a view by a
-    /// specified amount, use ``View/padding(_:)-68shk``.
-    ///
-    /// - Parameters:
-    ///   - edges: The set of edges to pad for this view. The default
-    ///     is ``Edge/Set/all``.
-    ///   - length: An amount, given in points, to pad this view on the
-    ///     specified edges. If you set the value to `nil`, SkipUI uses
-    ///     a platform-specific default amount. The default value of this
-    ///     parameter is `nil`.
-    ///
-    /// - Returns: A view that's padded by the specified amount on the
-    ///   specified edges.
-    @inlinable public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View { return stubView() }
-
-
-    /// Adds a specific padding amount to each edge of this view.
-    ///
-    /// Use this modifier to add padding all the way around a view.
-    ///
-    ///     VStack {
-    ///         Text("Text padded by 10 points on each edge.")
-    ///             .padding(10)
-    ///             .border(.gray)
-    ///         Text("Unpadded text for comparison.")
-    ///             .border(.yellow)
-    ///     }
-    ///
-    /// The order in which you apply modifiers matters. The example above
-    /// applies the padding before applying the border to ensure that the
-    /// border encompasses the padded region:
-    ///
-    /// ![A screenshot of two text strings arranged vertically, each surrounded
-    /// by a border, with a small space between the two borders.
-    /// The first string says Text padded by 10 points on each edge.
-    /// Its border is gray, and there are 10 points of space on all sides
-    /// between the string and its border.
-    /// The second string says Unpadded text for comparison.
-    /// Its border is yellow, and there's no space between the string
-    /// and its border.](View-padding-1-iOS)
-    ///
-    /// To independently control the amount of padding for each edge, use
-    /// ``View/padding(_:)-6pgqq``. To pad a select set of edges by the
-    /// same amount, use ``View/padding(_:_:)``.
-    ///
-    /// - Parameter length: The amount, given in points, to pad this view on all
-    ///   edges.
-    ///
-    /// - Returns: A view that's padded by the amount you specify.
-    @inlinable public func padding(_ length: CGFloat) -> some View { return stubView() }
 
 }
 

@@ -6,6 +6,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGRect
+
 /// An opaque value derived from an anchor source and a particular view.
 ///
 /// You can convert the anchor to a `Value` in the coordinate space of a target

@@ -6,6 +6,9 @@
 
 #if !SKIP
 
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
+
 /// A proxy for access to the size and coordinate space (for anchor resolution)
 /// of the container view.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
