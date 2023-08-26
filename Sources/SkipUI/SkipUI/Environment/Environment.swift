@@ -26,8 +26,12 @@ public class EnvironmentValues {
     static let shared = EnvironmentValues()
 
     #if SKIP
-    let compositionLocals: MutableMap<Any, Any> = mutableMapOf()
-    let lastSetValues: MutableMap<Any, Any> = mutableMapOf()
+    // We type erase all values to Any and all class keys to KClass<*>. The alternative would be to reify these functions.
+
+    // SKIP DECLARE: val compositionLocals = mutableMapOf<KClass<*>, androidx.compose.runtime.ProvidableCompositionLocal<Any>>()
+    let compositionLocals: MutableMap<AnyHashable, Any> = mutableMapOf()
+    // SKIP DECLARE: val lastSetValues = mutableMapOf<androidx.compose.runtime.ProvidableCompositionLocal<Any>, Any>()
+    let lastSetValues: MutableMap<AnyHashable, Any> = mutableMapOf()
 
     // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
     public func get(key: AnyHashable) -> Any {
@@ -35,8 +39,8 @@ public class EnvironmentValues {
         return compositionLocal.current as! Value
      }
 
-    // On set we populate our `lastSetCompositionLocals` map, which our `environment` view modifiers read from and then clear
-    // after transferring the values to the Compose runtime for downstream Composables. This should be safe to do even on this
+    // On set we populate our `lastSetValues` map, which our `environment` view modifier reads from and then clears after
+    // transferring the values to the Compose runtime for downstream Composables. This should be safe to do even on this
     // effectively global object because it should only be occurring sequentially on the main thread.
     //
     // SKIP DECLARE: @Composable operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
@@ -48,7 +52,7 @@ public class EnvironmentValues {
     // SKIP DECLARE: fun valueCompositionLocal(key: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
     public func valueCompositionLocal(key: AnyHashable) -> Any {
         if let value = compositionLocals[key] {
-            return value as! androidx.compose.runtime.ProvidableCompositionLocal<Any>
+            return value
         }
         // SKIP INSERT: val value = androidx.compose.runtime.compositionLocalOf { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue as Any }
         compositionLocals[key] = value
@@ -58,7 +62,7 @@ public class EnvironmentValues {
     // SKIP DECLARE: fun objectCompositionLocal(type: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
     public func objectCompositionLocal(type: AnyHashable) -> Any {
         if let value = compositionLocals[type] {
-            return value as! androidx.compose.runtime.ProvidableCompositionLocal<Any>
+            return value
         }
         let value = androidx.compose.runtime.compositionLocalOf { fatalError() as! Any }
         compositionLocals[type] = value
@@ -93,12 +97,14 @@ extension View {
         #endif
     }
 
+    // We rely on the transpiler to turn the `WriteableKeyPath` provided in code into a `setValue` closure
     public func environment<V>(_ setValue: (EnvironmentValues, V) -> Void, _ value: V) -> some View {
         #if SKIP
         return ComposeView { context in
+            // Set the value in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
             setValue(EnvironmentValues.shared, value)
             let provided = EnvironmentValues.shared.lastSetValues.map { entry in
-                // SKIP INSERT: val element = (entry.key as androidx.compose.runtime.ProvidableCompositionLocal<Any>) provides (entry.value as Any)
+                // SKIP INSERT: val element = entry.key provides entry.value
                 element
             }.toTypedArray()
             EnvironmentValues.shared.lastSetValues.clear()
