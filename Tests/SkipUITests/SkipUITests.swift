@@ -9,6 +9,8 @@ import XCTest
 import Foundation
 
 // SKIP INSERT: import android.os.Build
+// SKIP INSERT: import android.graphics.Bitmap
+// SKIP INSERT: import android.graphics.Canvas
 
 // SKIP INSERT: import androidx.compose.foundation.ExperimentalFoundationApi
 // SKIP INSERT: import androidx.compose.foundation.background
@@ -31,8 +33,8 @@ import Foundation
 // SKIP INSERT: import androidx.compose.foundation.layout.width
 // SKIP INSERT: import androidx.compose.foundation.layout.wrapContentSize
 
-// SKIP INSERT: import androidx.compose.material.Text
-// SKIP INSERT: import androidx.compose.material.Button
+// SKIP INSERT: import androidx.compose.material3.Text
+// SKIP INSERT: import androidx.compose.material3.Button
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.runtime.CompositionLocalProvider
@@ -49,12 +51,12 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.focus.onFocusChanged
 // SKIP INSERT: import androidx.compose.ui.geometry.Offset
 // SKIP INSERT: import androidx.compose.ui.geometry.Rect
-// SKIP INSERT: import androidx.compose.ui.graphics.Color
 // SKIP INSERT: import androidx.compose.ui.graphics.ImageBitmap
 // SKIP INSERT: import androidx.compose.ui.graphics.RectangleShape
 // SKIP INSERT: import androidx.compose.ui.graphics.Shadow
 // SKIP INSERT: import androidx.compose.ui.graphics.SolidColor
 // SKIP INSERT: import androidx.compose.ui.graphics.toPixelMap
+// SKIP INSERT: import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 // SKIP INSERT: import androidx.compose.ui.input.key.KeyEvent
 // SKIP INSERT: import androidx.compose.ui.input.key.NativeKeyEvent
@@ -104,12 +106,13 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.unit.em
 // SKIP INSERT: import androidx.compose.ui.unit.sp
 
-
+// SKIP INSERT: import androidx.compose.ui.platform.ComposeView
 // SKIP INSERT: import androidx.compose.ui.platform.LocalDensity
 // SKIP INSERT: import androidx.compose.ui.platform.LocalFocusManager
 // SKIP INSERT: import androidx.compose.ui.platform.LocalFontFamilyResolver
 // SKIP INSERT: import androidx.compose.ui.platform.LocalTextInputService
 // SKIP INSERT: import androidx.compose.ui.platform.LocalTextToolbar
+// SKIP INSERT: import androidx.compose.ui.platform.LocalView
 // SKIP INSERT: import androidx.compose.ui.platform.TextToolbar
 // SKIP INSERT: import androidx.compose.ui.platform.TextToolbarStatus
 // SKIP INSERT: import androidx.compose.ui.platform.testTag
@@ -152,6 +155,9 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.test.performGesture
 // SKIP INSERT: import androidx.compose.ui.test.*
 
+// SKIP INSERT: import androidx.compose.ui.graphics.asAndroidBitmap
+
+
 // SKIP INSERT: import androidx.test.ext.junit.runners.AndroidJUnit4
 
 // SKIP INSERT: import kotlin.test.assertFailsWith
@@ -161,6 +167,8 @@ import Foundation
 // SKIP INSERT: import org.junit.Ignore
 // SKIP INSERT: import org.junit.Rule
 // SKIP INSERT: import org.junit.Test
+
+// SKIP INSERT: import kotlinx.coroutines.runBlocking
 
 // needed to override M3.Text
 // SKIP INSERT: import skip.ui.Text
@@ -262,7 +270,7 @@ final class SkipUITests: XCTestCase {
     func testCompose() {
         #if SKIP
         composeRule.setContent {
-            androidx.compose.material.Text(text: "ABC")
+            androidx.compose.material3.Text(text: "ABC")
         }
 
         //composeRule.onRoot().printToLog("TAG")
@@ -275,17 +283,173 @@ final class SkipUITests: XCTestCase {
         #endif
     }
 
+    func checkPixmapSupport() throws {
+        #if !SKIP
+        throw XCTSkip("TODO: SwiftUI pixmap rendering")
+        #endif
+    }
+
+    func testRenderBlack() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.black).frame(width: 2.0, height: 2.0)), """
+        #000000#000000
+        #000000#000000
+        """)
+    }
+
+    func testRenderWhite() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.white).frame(width: 2.0, height: 2.0)), """
+        #FFFFFF#FFFFFF
+        #FFFFFF#000000
+        """)
+    }
+
+    func testRenderRed() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.red).frame(width: 1.0, height: 1.0)), """
+        #FF0000
+        """)
+    }
+
+    func testRenderGreen() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.green).frame(width: 5.0, height: 5.0)), """
+        #00FF00#00FF00#00FF00#00FF00#00FF00
+        #00FF00#000000#000000#000000#000000
+        #00FF00#000000#000000#000000#000000
+        #00FF00#000000#000000#000000#000000
+        #00FF00#000000#000000#000000#000000
+        """)
+    }
+
+    func testRenderBlue() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.blue).frame(width: 1.0, height: 7.0)), """
+        #0000FF
+        #0000FF
+        #0000FF
+        #0000FF
+        #0000FF
+        #0000FF
+        #0000FF
+        """)
+    }
+
+    func testRenderOrange() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(view: ZStack { }.background(Color.orange).frame(width: 3.0, height: 3.0)), """
+        #FF9F0A#FF9F0A#FF9F0A
+        #FF9F0A#000000#000000
+        #FF9F0A#000000#000000
+        """)
+    }
+
+    func testRenderStacks() throws {
+        try checkPixmapSupport()
+        XCTAssertEqual(try render(outputFile: "/tmp/testScreenshot.png", view: VStack {
+            HStack {
+                ZStack { }.frame(width: 5.0, height: 5.0).background(Color.purple)
+                ZStack { }.frame(width: 5.0, height: 5.0).background(Color.orange)
+            }
+            HStack {
+                ZStack { }.frame(width: 5.0, height: 5.0).background(Color.blue)
+                ZStack { }.frame(width: 5.0, height: 5.0).background(Color.red)
+            }
+        }
+        .frame(width: 10.0, height: 10.0)), """
+            #FF0000#0000FF#0000FF#0000FF#0000FF#0000FF#000000#000000#000000#000000
+            #FF9F0A#000000#000000#000000#000000#AF52DE#000000#000000#000000#000000
+            #FF9F0A#000000#000000#000000#000000#AF52DE#000000#000000#000000#000000
+            #FF9F0A#000000#000000#000000#000000#AF52DE#000000#000000#000000#000000
+            #FF9F0A#000000#000000#000000#000000#AF52DE#000000#000000#000000#000000
+            #FF9F0A#AF52DE#AF52DE#AF52DE#AF52DE#AF52DE#000000#000000#000000#000000
+            #000000#000000#000000#000000#000000#000000#000000#000000#000000#000000
+            #000000#000000#000000#000000#000000#000000#000000#000000#000000#000000
+            #000000#000000#000000#000000#000000#000000#000000#000000#000000#000000
+            #000000#000000#000000#000000#000000#000000#000000#000000#000000#000000
+            """)
+    }
+
+    func render<V: View>(outputFile: String? = nil, view: V) throws -> String {
+        #if !SKIP
+        throw XCTSkip("TODO: generate bitmap string on SwiftUI side")
+        #else
+        // SKIP INSERT: lateinit
+        var renderView: android.view.View
+        composeRule.setContent {
+            //androidx.compose.material3.Text(text: "ABCDEF")
+            renderView = LocalView.current
+            // render the compose view to the canvas
+            view.Compose(ComposeContext())
+        }
+
+        // https://github.com/robolectric/robolectric/issues/8071
+        // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
+        // runBlocking {
+        //     onRoot().captureToImage().asAndroidBitmap()
+        // }
+
+        let width = renderView.width
+        let height = renderView.height
+
+        // draw the view onto a canvas
+        let bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        let canvas = Canvas(bitmap)
+        renderView.draw(canvas)
+
+        var pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        let pixmap = createPixmap(pixels: Array(pixels.toList()), width: Int64(width))
+
+        if let outputFile = outputFile {
+            let out = java.io.FileOutputStream(outputFile)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            out.close()
+        }
+
+        return pixmap
+        #endif
+    }
+
+    /// Creates an ASCII representation of an array of pixels, averaging each color into one of 26 letters
+    private func createPixmap(pixels: [Int], width: Int64) -> String {
+        func rgb(_ packedColor: Int) -> String {
+            let red = (packedColor >> 16) & 0xFF
+            let green = (packedColor >> 8) & 0xFF
+            let blue = packedColor & 0xFF
+            let fmt = "#%02X%02X%02X"
+            #if SKIP
+            return fmt.format(red, green, blue)
+            #else
+            return String(format: fmt, red, green, blue)
+            #endif
+        }
+
+        var desc = ""
+        var i = 0
+        for (i, p) in pixels.enumerated() {
+            if !desc.isEmpty && i % Int(width) == 0 {
+                // add in a newline for each width
+                desc += "\n"
+            }
+            desc += rgb(p)
+        }
+
+        return desc
+    }
+
     func testPressButton() {
         #if SKIP
         composeRule.setContent {
             // SKIP INSERT: var counter by remember { mutableStateOf(0) }
 
-            androidx.compose.material.Text(
+            androidx.compose.material3.Text(
                 text: counter.toString(),
                 modifier: Modifier.testTag("Counter")
             )
-            androidx.compose.material.Button(onClick = { counter++ }) {
-                androidx.compose.material.Text("Increment")
+            androidx.compose.material3.Button(onClick = { counter++ }) {
+                androidx.compose.material3.Text("Increment")
             }
         }
 
