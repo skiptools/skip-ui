@@ -2,23 +2,123 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+import Observation
+
+// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import kotlin.reflect.KClass
+// SKIP INSERT: import kotlin.reflect.full.companionObjectInstance
+
+public protocol EnvironmentKey {
+    associatedtype Value
+}
+
+#if SKIP
+/// Added to `EnvironmentKey` companion objects.
+public protocol EnvironmentKeyCompanion {
+    associatedtype Value
+    var defaultValue: Value { get }
+}
+#endif
+
+// Model as a class because our implementation only holds the global environment keys, and so does not need to copy.
+// Each key handles its own scoping of values using Android's `CompositionLocal` system
+public class EnvironmentValues {
+    static let shared = EnvironmentValues()
+
+    #if SKIP
+    let compositionLocals: MutableMap<Any, Any> = mutableMapOf()
+    let lastSetValues: MutableMap<Any, Any> = mutableMapOf()
+
+    // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
+    public func get(key: AnyHashable) -> Any {
+        let compositionLocal = valueCompositionLocal(key: key)
+        return compositionLocal.current as! Value
+     }
+
+    // On set we populate our `lastSetCompositionLocals` map, which our `environment` view modifiers read from and then clear
+    // after transferring the values to the Compose runtime for downstream Composables. This should be safe to do even on this
+    // effectively global object because it should only be occurring sequentially on the main thread.
+    //
+    // SKIP DECLARE: @Composable operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
+    public func set(key: AnyHashable, value: Any) {
+        let compositionLocal = valueCompositionLocal(key: key)
+        lastSetValues[compositionLocal] = value
+    }
+
+    // SKIP DECLARE: fun valueCompositionLocal(key: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
+    public func valueCompositionLocal(key: AnyHashable) -> Any {
+        if let value = compositionLocals[key] {
+            return value as! androidx.compose.runtime.ProvidableCompositionLocal<Any>
+        }
+        // SKIP INSERT: val value = androidx.compose.runtime.compositionLocalOf { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue as Any }
+        compositionLocals[key] = value
+        return value
+    }
+
+    // SKIP DECLARE: fun objectCompositionLocal(type: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
+    public func objectCompositionLocal(type: AnyHashable) -> Any {
+        if let value = compositionLocals[type] {
+            return value as! androidx.compose.runtime.ProvidableCompositionLocal<Any>
+        }
+        let value = androidx.compose.runtime.compositionLocalOf { fatalError() as! Any }
+        compositionLocals[type] = value
+        return value
+    }
+    #endif
+}
+
+extension View {
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func environment<T>(_ object: T?) -> any View where T : AnyObject, T : Observable {
+        if let object {
+            return commonEnvironmentObject(object)
+        } else {
+            return self
+        }
+    }
+
+    public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject {
+        return commonEnvironmentObject(object)
+    }
+
+    private func commonEnvironmentObject(_ object: AnyObject) -> some View {
+        #if SKIP
+        return ComposeView { context in
+            let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type(of: object))
+            // SKIP INSERT: val provided = compositionLocal provides object_
+            androidx.compose.runtime.CompositionLocalProvider(provided) { self.Compose(context) }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func environment<V>(_ setValue: (EnvironmentValues, V) -> Void, _ value: V) -> some View {
+        #if SKIP
+        return ComposeView { context in
+            setValue(EnvironmentValues.shared, value)
+            let provided = EnvironmentValues.shared.lastSetValues.map { entry in
+                // SKIP INSERT: val element = (entry.key as androidx.compose.runtime.ProvidableCompositionLocal<Any>) provides (entry.value as Any)
+                element
+            }.toTypedArray()
+            EnvironmentValues.shared.lastSetValues.clear()
+            androidx.compose.runtime.CompositionLocalProvider(*provided) { self.Compose(context) }
+        }
+        #else
+        return self
+        #endif
+    }
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import protocol Combine.ObservableObject
 import struct CoreGraphics.CGFloat
 import struct Foundation.Calendar
 import struct Foundation.TimeZone
 import struct Foundation.Locale
-import Observation
-
-extension View {
-
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func environment<T>(_ object: T?) -> some View where T : AnyObject, T : Observable { return stubView() }
-
-}
 
 /// A property wrapper that reads a value from a view's environment.
 ///
@@ -106,72 +206,6 @@ extension Environment {
     public init<T>(_ objectType: T.Type) where Value == T?, T : AnyObject, T : Observable { fatalError() }
 }
 
-/// A key for accessing values in the environment.
-///
-/// You can create custom environment values by extending the
-/// ``EnvironmentValues`` structure with new properties.
-/// First declare a new environment key type and specify a value for the
-/// required ``defaultValue`` property:
-///
-///     private struct MyEnvironmentKey: EnvironmentKey {
-///         static let defaultValue: String = "Default value"
-///     }
-///
-/// The Swift compiler automatically infers the associated ``Value`` type as the
-/// type you specify for the default value. Then use the key to define a new
-/// environment value property:
-///
-///     extension EnvironmentValues {
-///         var myCustomValue: String {
-///             get { self[MyEnvironmentKey.self] }
-///             set { self[MyEnvironmentKey.self] = newValue }
-///         }
-///     }
-///
-/// Clients of your environment value never use the key directly.
-/// Instead, they use the key path of your custom environment value property.
-/// To set the environment value for a view and all its subviews, add the
-/// ``View/environment(_:_:)`` view modifier to that view:
-///
-///     MyView()
-///         .environment(\.myCustomValue, "Another string")
-///
-/// As a convenience, you can also define a dedicated view modifier to
-/// apply this environment value:
-///
-///     extension View {
-///         func myCustomValue(_ myCustomValue: String) -> some View {
-///             environment(\.myCustomValue, myCustomValue)
-///         }
-///     }
-///
-/// This improves clarity at the call site:
-///
-///     MyView()
-///         .myCustomValue("Another string")
-///
-/// To read the value from inside `MyView` or one of its descendants, use the
-/// ``Environment`` property wrapper:
-///
-///     struct MyView: View {
-///         @Environment(\.myCustomValue) var customValue: String
-///
-///         var body: some View {
-///             Text(customValue) // Displays "Another string".
-///         }
-///     }
-///
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol EnvironmentKey {
-
-    /// The associated type representing the type of the environment key's
-    /// value.
-    associatedtype Value
-
-    /// The default value for the environment key.
-    static var defaultValue: Self.Value { get }
-}
-
 /// A property wrapper type for an observable object supplied by a parent or
 /// ancestor view.
 ///
@@ -216,125 +250,8 @@ public protocol EnvironmentKey {
     public init() { fatalError() }
 }
 
-/// A collection of environment values propagated through a view hierarchy.
-///
-/// SkipUI exposes a collection of values to your app's views in an
-/// `EnvironmentValues` structure. To read a value from the structure,
-/// declare a property using the ``Environment`` property wrapper and
-/// specify the value's key path. For example, you can read the current locale:
-///
-///     @Environment(\.locale) var locale: Locale
-///
-/// Use the property you declare to dynamically control a view's layout.
-/// SkipUI automatically sets or updates many environment values, like
-/// ``EnvironmentValues/pixelLength``, ``EnvironmentValues/scenePhase``, or
-/// ``EnvironmentValues/locale``, based on device characteristics, system state,
-/// or user settings. For others, like ``EnvironmentValues/lineLimit``, SkipUI
-/// provides a reasonable default value.
-///
-/// You can set or override some values using the ``View/environment(_:_:)``
-/// view modifier:
-///
-///     MyView()
-///         .environment(\.lineLimit, 2)
-///
-/// The value that you set affects the environment for the view that you modify
-/// --- including its descendants in the view hierarchy --- but only up to the
-/// point where you apply a different environment modifier.
-///
-/// SkipUI provides dedicated view modifiers for setting some values, which
-/// typically makes your code easier to read. For example, rather than setting
-/// the ``EnvironmentValues/lineLimit`` value directly, as in the previous
-/// example, you should instead use the ``View/lineLimit(_:)-513mb`` modifier:
-///
-///     MyView()
-///         .lineLimit(2)
-///
-/// In some cases, using a dedicated view modifier provides additional
-/// functionality. For example, you must use the
-/// ``View/preferredColorScheme(_:)`` modifier rather than setting
-/// ``EnvironmentValues/colorScheme`` directly to ensure that the new
-/// value propagates up to the presenting container when presenting a view
-/// like a popover:
-///
-///     MyView()
-///         .popover(isPresented: $isPopped) {
-///             PopoverContent()
-///                 .preferredColorScheme(.dark)
-///         }
-///
-/// Create custom environment values by defining a type that
-/// conforms to the ``EnvironmentKey`` protocol, and then extending the
-/// environment values structure with a new property. Use your key to get and
-/// set the value, and provide a dedicated modifier for clients to use when
-/// setting the value:
-///
-///     private struct MyEnvironmentKey: EnvironmentKey {
-///         static let defaultValue: String = "Default value"
-///     }
-///
-///     extension EnvironmentValues {
-///         var myCustomValue: String {
-///             get { self[MyEnvironmentKey.self] }
-///             set { self[MyEnvironmentKey.self] = newValue }
-///         }
-///     }
-///
-///     extension View {
-///         func myCustomValue(_ myCustomValue: String) -> some View {
-///             environment(\.myCustomValue, myCustomValue)
-///         }
-///     }
-///
-/// Clients of your value then access the value in the usual way, reading it
-/// with the ``Environment`` property wrapper, and setting it with the
-/// `myCustomValue` view modifier.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct EnvironmentValues : CustomStringConvertible {
-
-    /// Creates an environment values instance.
-    ///
-    /// You don't typically create an instance of ``EnvironmentValues``
-    /// directly. Doing so would provide access only to default values that
-    /// don't update based on system settings or device characteristics.
-    /// Instead, you rely on an environment values' instance
-    /// that SkipUI manages for you when you use the ``Environment``
-    /// property wrapper and the ``View/environment(_:_:)`` view modifier.
-    public init() { fatalError() }
-
-    /// Accesses the environment value associated with a custom key.
-    ///
-    /// Create custom environment values by defining a key
-    /// that conforms to the ``EnvironmentKey`` protocol, and then using that
-    /// key with the subscript operator of the ``EnvironmentValues`` structure
-    /// to get and set a value for that key:
-    ///
-    ///     private struct MyEnvironmentKey: EnvironmentKey {
-    ///         static let defaultValue: String = "Default value"
-    ///     }
-    ///
-    ///     extension EnvironmentValues {
-    ///         var myCustomValue: String {
-    ///             get { self[MyEnvironmentKey.self] }
-    ///             set { self[MyEnvironmentKey.self] = newValue }
-    ///         }
-    ///     }
-    ///
-    /// You use custom environment values the same way you use system-provided
-    /// values, setting a value with the ``View/environment(_:_:)`` view
-    /// modifier, and reading values with the ``Environment`` property wrapper.
-    /// You can also provide a dedicated view modifier as a convenience for
-    /// setting the value:
-    ///
-    ///     extension View {
-    ///         func myCustomValue(_ myCustomValue: String) -> some View {
-    ///             environment(\.myCustomValue, myCustomValue)
-    ///         }
-    ///     }
-    ///
-    public subscript<K>(key: K.Type) -> K.Value where K : EnvironmentKey { get { fatalError() } }
-
-    #if canImport(UIKit)
+extension EnvironmentValues {
+#if canImport(UIKit)
     /// Accesses the environment value associated with a custom key.
     ///
     /// Create custom environment values by defining a key
@@ -370,10 +287,6 @@ public struct EnvironmentValues : CustomStringConvertible {
     @available(watchOS, unavailable)
     public subscript<K>(key: K.Type) -> K.Value where K : UITraitBridgedEnvironmentKey { get { fatalError() } }
     #endif
-    
-    /// A string that represents the contents of the environment values
-    /// instance.
-    public var description: String { get { fatalError() } }
 }
 
 extension EnvironmentValues {
@@ -899,7 +812,6 @@ extension EnvironmentValues {
     /// Writing to the horizontal size class in the environment
     /// before macOS 14.0, tvOS 17.0, and watchOS 10.0 is not supported.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    @_backDeploy(before: macOS 14.0, tvOS 17.0, watchOS 10.0)
     public var horizontalSizeClass: UserInterfaceSizeClass? { get { fatalError() } }
 
     /// The vertical size class of this environment.
@@ -929,7 +841,6 @@ extension EnvironmentValues {
     /// Writing to the vertical size class in the environment
     /// before macOS 14.0, tvOS 17.0, and watchOS 10.0 is not supported.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    @_backDeploy(before: macOS 14.0, tvOS 17.0, watchOS 10.0)
     public var verticalSizeClass: UserInterfaceSizeClass? { get { fatalError() } }
 }
 
@@ -1985,19 +1896,6 @@ public protocol EnvironmentalModifier : ViewModifier where Self.Body == Never {
 
     /// Resolve to a concrete modifier in the given `environment`.
     func resolve(in environment: EnvironmentValues) -> Self.ResolvedModifier
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Supplies an `ObservableObject` to a view subhierarchy.
-    ///
-    /// The object can be read by any child by using `EnvironmentObject`.
-    ///
-    /// - Parameter object: the object to store and make available to
-    ///     the view's subhierarchy.
-    @inlinable public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
-
 }
 
 #endif

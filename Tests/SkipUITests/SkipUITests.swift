@@ -207,6 +207,7 @@ final class SkipUITests: XCTestCase {
         try testUI(view: {
             // SKIP REPLACE: var counter by remember { mutableStateOf(1) }
             var counter = 1
+            // SKIP NOWARN
             let binding = Binding(get: { counter }, set: { counter = $0 })
 
             VStack {
