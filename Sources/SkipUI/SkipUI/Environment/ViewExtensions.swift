@@ -36,9 +36,7 @@ extension View {
 extension View {
     public func font(_ font: Font) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
-            $0.style.font = font
-        }
+        return environment(\.font, font)
         #else
         return self
         #endif

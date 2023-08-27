@@ -43,7 +43,7 @@ public class EnvironmentValues {
     // transferring the values to the Compose runtime for downstream Composables. This should be safe to do even on this
     // effectively global object because it should only be occurring sequentially on the main thread.
     //
-    // SKIP DECLARE: @Composable operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
+    // SKIP DECLARE: operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
     public func set(key: AnyHashable, value: Any) {
         let compositionLocal = valueCompositionLocal(key: key)
         lastSetValues[compositionLocal] = value
@@ -66,6 +66,17 @@ public class EnvironmentValues {
         }
         let value = androidx.compose.runtime.compositionLocalOf { fatalError() as! Any }
         compositionLocals[type] = value
+        return value
+    }
+
+    // SKIP DECLARE: fun builtinCompositionLocal(key: KClass<*>, defaultValue: Any?): androidx.compose.runtime.ProvidableCompositionLocal<Any>
+    func builtinCompositionLocal(key: AnyHashable, defaultValue: Any?) {
+        if let value = compositionLocals[key] {
+            return value
+        }
+        let defaultValue = defaultValue ?? Unit
+        // SKIP INSERT: val value = androidx.compose.runtime.compositionLocalOf { defaultValue }
+        compositionLocals[key] = value
         return value
     }
     #endif
@@ -98,11 +109,11 @@ extension View {
     }
 
     // We rely on the transpiler to turn the `WriteableKeyPath` provided in code into a `setValue` closure
-    public func environment<V>(_ setValue: (EnvironmentValues, V) -> Void, _ value: V) -> some View {
+    public func environment<V>(_ setValue: (V) -> Void, _ value: V) -> some View {
         #if SKIP
         return ComposeView { context in
             // Set the value in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
-            setValue(EnvironmentValues.shared, value)
+            setValue(value)
             let provided = EnvironmentValues.shared.lastSetValues.map { entry in
                 // SKIP INSERT: val element = entry.key provides entry.value
                 element
@@ -115,6 +126,22 @@ extension View {
         #endif
     }
 }
+
+#if SKIP
+extension EnvironmentValues {
+    public var font: Font? {
+        get {
+            let compositionLocal = builtinCompositionLocal(key: Font.self, defaultValue: nil)
+            let current = compositionLocal.current
+            return current == Unit ? nil : current as! Font
+        }
+        set {
+            let compositionLocal = builtinCompositionLocal(key: Font.self, defaultValue: nil)
+            lastSetValues[compositionLocal] = newValue == nil ? Unit : newValue
+        }
+    }
+}
+#endif
 
 #if !SKIP
 
@@ -751,9 +778,6 @@ extension EnvironmentValues {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EnvironmentValues {
-
-    /// The default font of this environment.
-    public var font: Font? { get { fatalError() } }
 
     /// The display scale of this environment.
     public var displayScale: CGFloat { get { fatalError() } }
