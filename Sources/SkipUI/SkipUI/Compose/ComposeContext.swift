@@ -15,10 +15,9 @@ public struct ComposeContext {
     /// Modifiers to apply.
     public var modifier: Modifier = Modifier
 
-    // TODO: Environment
+    //~~~
     public struct Style {
         public var color: Color?
-        public var font: Font?
         public var fontWeight: Font.Weight?
         public var isItalic = false
         public var fillWidth: Modifier?

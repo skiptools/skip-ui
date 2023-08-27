@@ -127,6 +127,17 @@ extension View {
     }
 }
 
+// The transpiler translates the `EnvironmentValues` extension vars we add (or when apps add their own) from a get/set
+// var into a get-only @Composable var and a setter function. @Composable vars cannot have setters
+
+// Internal extensions
+
+extension EnvironmentValues {
+    //~~~
+}
+
+// SwiftUI extensions
+
 #if SKIP
 extension EnvironmentValues {
     public var font: Font? {

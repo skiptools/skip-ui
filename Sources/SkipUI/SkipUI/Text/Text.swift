@@ -45,7 +45,7 @@ public struct Text: View, Equatable {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier
-        var font = context.style.font ?? Font(fontImpl: { androidx.compose.material3.LocalTextStyle.current })
+        var font = EnvironmentValues.shared.font ?? Font(fontImpl: { androidx.compose.material3.LocalTextStyle.current })
         if let weight = context.style.fontWeight {
             font = font.weight(weight)
         }
