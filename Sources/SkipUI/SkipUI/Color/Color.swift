@@ -131,7 +131,14 @@ extension Color {
 #if SKIP
 extension Color {
     public static let red = Color(colorImpl: { androidx.compose.ui.graphics.Color.Red })
-    public static let orange = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFFFF9F0A) })
+    public static let orange = Color(colorImpl: {
+//        if EnvrionmentValues.shared.colorMode == .dark {
+//            return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
+//        } else {
+//            return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
+//        }
+        return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
+    })
     public static let yellow = Color(colorImpl: { androidx.compose.ui.graphics.Color.Yellow })
     public static let green = Color(colorImpl: { androidx.compose.ui.graphics.Color.Green })
     public static let mint = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFF5AC8FA) })
