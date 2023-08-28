@@ -445,9 +445,14 @@ final class SkipUITests: XCTestCase {
         #if !os(macOS)
         throw XCTSkip("TODO: calculate platform-dependent values")
         #endif
+        #if os(iOS)
+        throw XCTSkip("TODO: calculate platform-dependent values")
+        #endif
         #if SKIP
         throw XCTSkip("TODO: fix layout on Skip")
         #endif
+
+        // this is never run (yet)
         XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", view: VStack {
             HStack {
                 Spacer().background(Color.purple)
