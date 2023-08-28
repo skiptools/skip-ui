@@ -24,7 +24,7 @@ public struct Spacer : View {
      fun Spacer(modifier: Modifier)
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        var modifier: androidx.compose.ui.Modifier = context.style.fillWidth ?? context.style.fillHeight ?? androidx.compose.ui.Modifier
+        var modifier: androidx.compose.ui.Modifier = EnvironmentValues.shared._fillWidth ?? EnvironmentValues.shared._fillHeight ?? androidx.compose.ui.Modifier
         modifier = modifier.then(context.modifier)
         androidx.compose.foundation.layout.Spacer(modifier: modifier)
     }

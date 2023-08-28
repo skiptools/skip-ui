@@ -7,23 +7,13 @@
 // SKIP INSERT: import androidx.compose.runtime.saveable.Saver
 // SKIP INSERT: import androidx.compose.ui.Modifier
 
-/// Context to provide modifiers, environment, etc to composables.
+/// Context to provide modifiers, parent, etc to composables.
 public struct ComposeContext {
     /// The parent view, or nil.
     public var parent: View? // Will probably have to expand this to ancestor chain
 
     /// Modifiers to apply.
     public var modifier: Modifier = Modifier
-
-    //~~~
-    public struct Style {
-        public var color: Color?
-        public var fontWeight: Font.Weight?
-        public var isItalic = false
-        public var fillWidth: Modifier?
-        public var fillHeight: Modifier?
-    }
-    public var style = Style()
 
     /// Use in conjunction with `rememberSaveable` to store view state.
     public var stateSaver: Saver<Any, Any> = ComposeStateSaver()

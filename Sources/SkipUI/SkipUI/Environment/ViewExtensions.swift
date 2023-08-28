@@ -54,9 +54,7 @@ extension View {
 
     public func fontWeight(_ weight: Font.Weight?) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
-            $0.style.fontWeight = weight
-        }
+        return environment(\._fontWeight, weight)
         #else
         return self
         #endif
@@ -73,9 +71,7 @@ extension View {
 
     public func italic(_ isActive: Bool = true) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
-            $0.style.isItalic = isActive
-        }
+        return environment(\._isItalic, isActive)
         #else
         return self
         #endif
@@ -105,9 +101,7 @@ extension View {
 extension View {
     public func foregroundColor(_ color: Color?) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
-            $0.style.color = color
-        }
+        return environment(\._color, color)
         #else
         return self
         #endif
@@ -121,14 +115,23 @@ extension View {
 extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeView { context in
+            var context = context
             if let width {
-                $0.style.fillWidth = nil
-                $0.modifier = $0.modifier.width(width.dp)
+                context.modifier = context.modifier.width(width.dp)
             }
             if let height {
-                $0.style.fillHeight = nil
-                $0.modifier = $0.modifier.height(height.dp)
+                context.modifier = context.modifier.height(height.dp)
+            }
+            EnvironmentValues.shared.setValues {
+                if width != nil {
+                    $0.set_fillWidth(nil)
+                }
+                if height != nil {
+                    $0.set_fillHeight(nil)
+                }
+            } in: {
+                self.Compose(context: context)
             }
         }
         #else

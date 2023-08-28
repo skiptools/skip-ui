@@ -51,11 +51,14 @@ public struct ZStack<Content> : View where Content : View {
         default:
             boxAlignment = androidx.compose.ui.Alignment.Center
         }
-        var contentContext = context.content(of: self)
-        contentContext.style.fillWidth = nil
-        contentContext.style.fillHeight = nil
+        let contentContext = context.content(of: self)
         androidx.compose.foundation.layout.Box(modifier: context.modifier, contentAlignment: boxAlignment) {
-            content.Compose(context: contentContext)
+            EnvironmentValues.shared.setValues {
+                $0.set_fillWidth(nil)
+                $0.set_fillHeight(nil)
+            } in: {
+                content.Compose(context: contentContext)
+            }
         }
     }
     #else

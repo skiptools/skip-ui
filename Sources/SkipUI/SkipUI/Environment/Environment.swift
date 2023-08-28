@@ -5,7 +5,6 @@
 import Observation
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import kotlin.reflect.KClass
 // SKIP INSERT: import kotlin.reflect.full.companionObjectInstance
 
 public protocol EnvironmentKey {
@@ -28,7 +27,7 @@ public class EnvironmentValues {
     #if SKIP
     // We type erase all values to Any and all class keys to KClass<*>. The alternative would be to reify these functions.
 
-    // SKIP DECLARE: val compositionLocals = mutableMapOf<KClass<*>, androidx.compose.runtime.ProvidableCompositionLocal<Any>>()
+    // SKIP DECLARE: val compositionLocals = mutableMapOf<Any, androidx.compose.runtime.ProvidableCompositionLocal<Any>>()
     let compositionLocals: MutableMap<AnyHashable, Any> = mutableMapOf()
     // SKIP DECLARE: val lastSetValues = mutableMapOf<androidx.compose.runtime.ProvidableCompositionLocal<Any>, Any>()
     let lastSetValues: MutableMap<AnyHashable, Any> = mutableMapOf()
@@ -39,9 +38,33 @@ public class EnvironmentValues {
         return compositionLocal.current as! Value
      }
 
-    // On set we populate our `lastSetValues` map, which our `environment` view modifier reads from and then clears after
-    // transferring the values to the Compose runtime for downstream Composables. This should be safe to do even on this
-    // effectively global object because it should only be occurring sequentially on the main thread.
+    // SKIP DECLARE: @Composable fun <ObjectType> environmentObject(type: KClass<ObjectType>): ObjectType where ObjectType: Any
+    public func environmentObject<ObjectType>(type: ObjectType.Type) -> ObjectType {
+        let compositionLocal = objectCompositionLocal(type: type)
+        return compositionLocal.current as! ObjectType
+     }
+
+    /// Set environment values.
+    ///
+    /// - Seealso: ``View/environment(_:)``
+    /// - Warning: Setting environment values should only be done within the `execute` block of this function.
+    @Composable func setValues(_ execute: (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
+        // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
+        execute(self)
+        let provided = lastSetValues.map { entry in
+            // SKIP INSERT: val element = entry.key provides entry.value
+            element
+        }.toTypedArray()
+        lastSetValues.clear()
+        androidx.compose.runtime.CompositionLocalProvider(*provided) {
+            content()
+        }
+    }
+
+
+    // On set we populate our `lastSetValues` map, which our `setValues` function reads from and then clears after
+    // packaging the values for sending to downstream Composables. This should be safe to do even on this effectively
+    // global object because it should only be occurring sequentially on the main thread.
     //
     // SKIP DECLARE: operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
     public func set(key: AnyHashable, value: Any) {
@@ -51,31 +74,20 @@ public class EnvironmentValues {
 
     // SKIP DECLARE: fun valueCompositionLocal(key: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
     public func valueCompositionLocal(key: AnyHashable) -> Any {
-        if let value = compositionLocals[key] {
-            return value
-        }
-        // SKIP INSERT: val value = androidx.compose.runtime.compositionLocalOf { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue as Any }
-        compositionLocals[key] = value
-        return value
+        // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
+        return compositionLocal(key: key, defaultValue: defaultValue)
     }
 
     // SKIP DECLARE: fun objectCompositionLocal(type: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
     public func objectCompositionLocal(type: AnyHashable) -> Any {
-        if let value = compositionLocals[type] {
-            return value
-        }
-        let value = androidx.compose.runtime.compositionLocalOf { fatalError() as! Any }
-        compositionLocals[type] = value
-        return value
+        return compositionLocal(key: type, defaultValue: { nil })
     }
 
-    // SKIP DECLARE: fun builtinCompositionLocal(key: KClass<*>, defaultValue: Any?): androidx.compose.runtime.ProvidableCompositionLocal<Any>
-    func builtinCompositionLocal(key: AnyHashable, defaultValue: Any?) {
+    func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
         if let value = compositionLocals[key] {
             return value
         }
-        let defaultValue = defaultValue ?? Unit
-        // SKIP INSERT: val value = androidx.compose.runtime.compositionLocalOf { defaultValue }
+        let value = androidx.compose.runtime.compositionLocalOf { defaultValue() ?? Unit }
         compositionLocals[key] = value
         return value
     }
@@ -112,14 +124,11 @@ extension View {
     public func environment<V>(_ setValue: (V) -> Void, _ value: V) -> some View {
         #if SKIP
         return ComposeView { context in
-            // Set the value in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
-            setValue(value)
-            let provided = EnvironmentValues.shared.lastSetValues.map { entry in
-                // SKIP INSERT: val element = entry.key provides entry.value
-                element
-            }.toTypedArray()
-            EnvironmentValues.shared.lastSetValues.clear()
-            androidx.compose.runtime.CompositionLocalProvider(*provided) { self.Compose(context) }
+            EnvironmentValues.shared.setValues {
+                _ in setValue(value)
+            } in: {
+                self.Compose(context)
+            }
         }
         #else
         return self
@@ -130,26 +139,55 @@ extension View {
 // The transpiler translates the `EnvironmentValues` extension vars we add (or when apps add their own) from a get/set
 // var into a get-only @Composable var and a setter function. @Composable vars cannot have setters
 
-// Internal extensions
+// Internal values
 
+#if SKIP
 extension EnvironmentValues {
-    //~~~
-}
+    @Composable private func builtinValue(key: AnyHashable, defaultValue: () -> Any?) -> Any? {
+        let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
+        let current = compositionLocal.current
+        return current == Unit ? nil : current
+    }
 
-// SwiftUI extensions
+    private func setBuiltinValue(key: AnyHashable, value: Any?, defaultValue: () -> Any?) {
+        let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
+        lastSetValues[compositionLocal] = value ?? Unit
+    }
+
+    var _color: Color? {
+        get { builtinValue(key: "_color", defaultValue: { nil }) as! Color? }
+        set { setBuiltinValue(key: "_color", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _fillHeight: androidx.compose.ui.Modifier? {
+        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! androidx.compose.ui.Modifier? }
+        set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _fillWidth: androidx.compose.ui.Modifier? {
+        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! androidx.compose.ui.Modifier? }
+        set { setBuiltinValue(key: "_fillWidth", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _fontWeight: Font.Weight? {
+        get { builtinValue(key: "_fontWeight", defaultValue: { nil }) as! Font.Weight? }
+        set { setBuiltinValue(key: "_fontWeight", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _isItalic: Bool {
+        get { builtinValue(key: "_isItalic", defaultValue: { false }) as! Bool }
+        set { setBuiltinValue(key: "_isItalic", value: newValue, defaultValue: { false }) }
+    }
+}
+#endif
+
+// SwiftUI values
 
 #if SKIP
 extension EnvironmentValues {
     public var font: Font? {
-        get {
-            let compositionLocal = builtinCompositionLocal(key: Font.self, defaultValue: nil)
-            let current = compositionLocal.current
-            return current == Unit ? nil : current as! Font
-        }
-        set {
-            let compositionLocal = builtinCompositionLocal(key: Font.self, defaultValue: nil)
-            lastSetValues[compositionLocal] = newValue == nil ? Unit : newValue
-        }
+        get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
+        set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
     }
 }
 #endif
