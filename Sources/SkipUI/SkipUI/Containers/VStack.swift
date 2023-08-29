@@ -115,7 +115,6 @@ public struct VStack<Content> : View where Content : View {
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Never) {
-        fatalError()
     }
 }
 

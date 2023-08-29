@@ -95,8 +95,8 @@ public class EnvironmentValues {
 }
 
 extension View {
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func environment<T>(_ object: T?) -> any View where T : AnyObject, T : Observable {
+    public func environment(_ object: Any?) -> any View {
+        //~~~ TODO: Handle nil
         if let object {
             return commonEnvironmentObject(object)
         } else {
@@ -104,11 +104,11 @@ extension View {
         }
     }
 
-    public func environmentObject<T>(_ object: T) -> some View where T : ObservableObject {
+    public func environmentObject(_ object: Any) -> some View {
         return commonEnvironmentObject(object)
     }
 
-    private func commonEnvironmentObject(_ object: AnyObject) -> some View {
+    private func commonEnvironmentObject(_ object: Any) -> some View {
         #if SKIP
         return ComposeView { context in
             let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type(of: object))

@@ -4,9 +4,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
+import Observation
 import SwiftUI
 import XCTest
-import Foundation
 
 // SKIP INSERT: import android.os.Build
 // SKIP INSERT: import android.graphics.Bitmap
@@ -43,6 +44,7 @@ import Foundation
 // SKIP INSERT: import androidx.compose.runtime.mutableStateOf
 // SKIP INSERT: import androidx.compose.runtime.remember
 // SKIP INSERT: import androidx.compose.runtime.rememberCoroutineScope
+// SKIP INSERT: import androidx.compose.runtime.saveable.Saver
 // SKIP INSERT: import androidx.compose.runtime.saveable.rememberSaveable
 // SKIP INSERT: import androidx.compose.runtime.setValue
 
@@ -51,17 +53,66 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.focus.onFocusChanged
 // SKIP INSERT: import androidx.compose.ui.geometry.Offset
 // SKIP INSERT: import androidx.compose.ui.geometry.Rect
+// SKIP INSERT: import androidx.compose.ui.graphics.asAndroidBitmap
 // SKIP INSERT: import androidx.compose.ui.graphics.ImageBitmap
 // SKIP INSERT: import androidx.compose.ui.graphics.RectangleShape
 // SKIP INSERT: import androidx.compose.ui.graphics.Shadow
 // SKIP INSERT: import androidx.compose.ui.graphics.SolidColor
 // SKIP INSERT: import androidx.compose.ui.graphics.toPixelMap
 // SKIP INSERT: import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-
 // SKIP INSERT: import androidx.compose.ui.input.key.KeyEvent
 // SKIP INSERT: import androidx.compose.ui.input.key.NativeKeyEvent
 // SKIP INSERT: import androidx.compose.ui.layout.onGloballyPositioned
-
+// SKIP INSERT: import androidx.compose.ui.platform.ComposeView
+// SKIP INSERT: import androidx.compose.ui.platform.LocalDensity
+// SKIP INSERT: import androidx.compose.ui.platform.LocalFocusManager
+// SKIP INSERT: import androidx.compose.ui.platform.LocalFontFamilyResolver
+// SKIP INSERT: import androidx.compose.ui.platform.LocalTextInputService
+// SKIP INSERT: import androidx.compose.ui.platform.LocalTextToolbar
+// SKIP INSERT: import androidx.compose.ui.platform.LocalView
+// SKIP INSERT: import androidx.compose.ui.platform.TextToolbar
+// SKIP INSERT: import androidx.compose.ui.platform.TextToolbarStatus
+// SKIP INSERT: import androidx.compose.ui.platform.testTag
+// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsActions
+// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsNode
+// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsConfiguration
+// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsProperties
+// SKIP INSERT: import androidx.compose.ui.semantics.getOrNull
+// SKIP INSERT: import androidx.compose.ui.test.ExperimentalTestApi
+// SKIP INSERT: import androidx.compose.ui.test.SemanticsMatcher
+// SKIP INSERT: import androidx.compose.ui.test.SemanticsNodeInteraction
+// SKIP INSERT: import androidx.compose.ui.test.assert
+// SKIP INSERT: import androidx.compose.ui.test.assertHasClickAction
+// SKIP INSERT: import androidx.compose.ui.test.assertIsFocused
+// SKIP INSERT: import androidx.compose.ui.test.assertIsDisplayed
+// SKIP INSERT: import androidx.compose.ui.test.assertTextEquals
+// SKIP INSERT: import androidx.compose.ui.test.captureToImage
+// SKIP INSERT: import androidx.compose.ui.test.click
+// SKIP INSERT: import androidx.compose.ui.test.down
+// SKIP INSERT: import androidx.compose.ui.test.hasText
+// SKIP INSERT: import androidx.compose.ui.test.hasImeAction
+// SKIP INSERT: import androidx.compose.ui.test.hasSetTextAction
+// SKIP INSERT: import androidx.compose.ui.test.isFocused
+// SKIP INSERT: import androidx.compose.ui.test.isNotFocused
+// SKIP INSERT: import androidx.compose.ui.test.junit4.StateRestorationTester
+// SKIP INSERT: import androidx.compose.ui.test.junit4.createComposeRule
+// SKIP INSERT: import androidx.compose.ui.test.junit4.ComposeContentTestRule
+// SKIP INSERT: import androidx.compose.ui.test.longClick
+// SKIP INSERT: import androidx.compose.ui.test.moveTo
+// SKIP INSERT: import androidx.compose.ui.test.onNodeWithTag
+// SKIP INSERT: import androidx.compose.ui.test.onNodeWithText
+// SKIP INSERT: import androidx.compose.ui.test.onRoot
+// SKIP INSERT: import androidx.compose.ui.test.performClick
+// SKIP INSERT: import androidx.compose.ui.test.printToLog
+// SKIP INSERT: import androidx.compose.ui.test.performImeAction
+// SKIP INSERT: import androidx.compose.ui.test.performKeyPress
+// SKIP INSERT: import androidx.compose.ui.test.performSemanticsAction
+// SKIP INSERT: import androidx.compose.ui.test.performTextClearance
+// SKIP INSERT: import androidx.compose.ui.test.performTextInput
+// SKIP INSERT: import androidx.compose.ui.test.performTextInputSelection
+// SKIP INSERT: import androidx.compose.ui.test.performTouchInput
+// SKIP INSERT: import androidx.compose.ui.test.performGesture
+// SKIP INSERT: import androidx.compose.ui.test.up
 // SKIP INSERT: import androidx.compose.ui.text.AnnotatedString
 // SKIP INSERT: import androidx.compose.ui.text.ExperimentalTextApi
 // SKIP INSERT: import androidx.compose.ui.text.ParagraphStyle
@@ -98,7 +149,6 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.text.toUpperCase
 // SKIP INSERT: import androidx.compose.ui.text.withAnnotation
 // SKIP INSERT: import androidx.compose.ui.text.withStyle
-
 // SKIP INSERT: import androidx.compose.ui.unit.Density
 // SKIP INSERT: import androidx.compose.ui.unit.IntSize
 // SKIP INSERT: import androidx.compose.ui.unit.toSize
@@ -106,73 +156,19 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.unit.em
 // SKIP INSERT: import androidx.compose.ui.unit.sp
 
-// SKIP INSERT: import androidx.compose.ui.platform.ComposeView
-// SKIP INSERT: import androidx.compose.ui.platform.LocalDensity
-// SKIP INSERT: import androidx.compose.ui.platform.LocalFocusManager
-// SKIP INSERT: import androidx.compose.ui.platform.LocalFontFamilyResolver
-// SKIP INSERT: import androidx.compose.ui.platform.LocalTextInputService
-// SKIP INSERT: import androidx.compose.ui.platform.LocalTextToolbar
-// SKIP INSERT: import androidx.compose.ui.platform.LocalView
-// SKIP INSERT: import androidx.compose.ui.platform.TextToolbar
-// SKIP INSERT: import androidx.compose.ui.platform.TextToolbarStatus
-// SKIP INSERT: import androidx.compose.ui.platform.testTag
-// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsActions
-// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsNode
-// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsConfiguration
-// SKIP INSERT: import androidx.compose.ui.semantics.SemanticsProperties
-// SKIP INSERT: import androidx.compose.ui.semantics.getOrNull
-// SKIP INSERT: import androidx.compose.ui.test.ExperimentalTestApi
-// SKIP INSERT: import androidx.compose.ui.test.SemanticsMatcher
-// SKIP INSERT: import androidx.compose.ui.test.SemanticsNodeInteraction
-// SKIP INSERT: import androidx.compose.ui.test.assert
-// SKIP INSERT: import androidx.compose.ui.test.assertHasClickAction
-// SKIP INSERT: import androidx.compose.ui.test.assertIsFocused
-// SKIP INSERT: import androidx.compose.ui.test.assertTextEquals
-// SKIP INSERT: import androidx.compose.ui.test.captureToImage
-// SKIP INSERT: import androidx.compose.ui.test.click
-// SKIP INSERT: import androidx.compose.ui.test.hasText
-// SKIP INSERT: import androidx.compose.ui.test.hasImeAction
-// SKIP INSERT: import androidx.compose.ui.test.hasSetTextAction
-// SKIP INSERT: import androidx.compose.ui.test.isFocused
-// SKIP INSERT: import androidx.compose.ui.test.isNotFocused
-// SKIP INSERT: import androidx.compose.ui.test.junit4.StateRestorationTester
-// SKIP INSERT: import androidx.compose.ui.test.junit4.createComposeRule
-// SKIP INSERT: import androidx.compose.ui.test.junit4.ComposeContentTestRule
-// SKIP INSERT: import androidx.compose.ui.test.longClick
-// SKIP INSERT: import androidx.compose.ui.test.assertIsDisplayed
-// SKIP INSERT: import androidx.compose.ui.test.onNodeWithTag
-// SKIP INSERT: import androidx.compose.ui.test.onNodeWithText
-// SKIP INSERT: import androidx.compose.ui.test.performClick
-// SKIP INSERT: import androidx.compose.ui.test.onRoot
-// SKIP INSERT: import androidx.compose.ui.test.printToLog
-// SKIP INSERT: import androidx.compose.ui.test.performImeAction
-// SKIP INSERT: import androidx.compose.ui.test.performKeyPress
-// SKIP INSERT: import androidx.compose.ui.test.performSemanticsAction
-// SKIP INSERT: import androidx.compose.ui.test.performTextClearance
-// SKIP INSERT: import androidx.compose.ui.test.performTextInput
-// SKIP INSERT: import androidx.compose.ui.test.performTextInputSelection
-// SKIP INSERT: import androidx.compose.ui.test.performTouchInput
-// SKIP INSERT: import androidx.compose.ui.test.performGesture
-// SKIP INSERT: import androidx.compose.ui.test.*
-
-// SKIP INSERT: import androidx.compose.ui.graphics.asAndroidBitmap
-
-
 // SKIP INSERT: import androidx.test.ext.junit.runners.AndroidJUnit4
 
 // SKIP INSERT: import kotlin.test.assertFailsWith
 // SKIP INSERT: import kotlinx.coroutines.CoroutineScope
 // SKIP INSERT: import kotlinx.coroutines.launch
+// SKIP INSERT: import kotlinx.coroutines.runBlocking
 
 // SKIP INSERT: import org.junit.Ignore
 // SKIP INSERT: import org.junit.Rule
 // SKIP INSERT: import org.junit.Test
 
-// SKIP INSERT: import kotlinx.coroutines.runBlocking
-
 // needed to override M3.Text
 // SKIP INSERT: import skip.ui.Text
-
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 // SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
@@ -183,17 +179,16 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual(3, 1 + 2)
     }
 
-    #if !SKIP
-    typealias Evaluator = Never
-    #else
+    #if SKIP
     typealias Evaluator = ComposeContentTestRule
+    #else
+    typealias Evaluator = Never
     #endif
 
-    // SKIP DECLARE: internal fun testUI(view: () -> View, eval: (ComposeContentTestRule) -> Unit)
     func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (Evaluator) throws -> ()) throws {
         #if !SKIP
         let v = try view()
-        throw XCTSkip("headless UI testing not available for SwiftUI")
+        throw XCTSkip("Headless UI testing not available for SwiftUI")
         #else
         composeRule.setContent {
             view().Compose()
@@ -202,63 +197,45 @@ final class SkipUITests: XCTestCase {
         #endif
     }
 
+    // MARK: -
 
-    func testSkipUIButton() throws {
+    func testButton() throws {
         try testUI(view: {
-            // SKIP REPLACE: var counter by remember { mutableStateOf(1) }
-            var counter = 1
-            // SKIP NOWARN
-            let binding = Binding(get: { counter }, set: { counter = $0 })
-
-            VStack {
-                Text("Counter: \(binding.wrappedValue.description)")
-                    .accessibilityIdentifier("counter-label")
-                    .accessibilityLabel(Text("Counter Label"))
-
-                Button {
-                    binding.wrappedValue += 1
-                } label: {
-                    Text("Increment")
-                }
-                .accessibilityIdentifier("increment-button")
-            }
-            .accessibilityIdentifier("vstack-container")
+            ButtonTestView().accessibilityIdentifier("test-view")
         }, eval: { rule in
             #if SKIP
-            rule.onNodeWithTag("counter-label").assert(hasText("Counter: 1"))
-            //rule.onNodeWithText("Increment").performClick()
-            rule.onNodeWithTag("increment-button").performClick()
-            rule.onNodeWithTag("counter-label").assert(hasText("Counter: 2"))
-
-            //rule.onNodeWithTag("vstack-container").onNodeWithTag("increment-button").performClick()
-            //rule.onNodeWithTag("counter-label").assert(hasText("Counter: 3"))
-            //rule.onNodeWithContentDescription("Counter Label").assert(hasText("Counter: 3"))
+            rule.onNodeWithTag("label").assert(hasText("Counter: 1"))
+            rule.onNodeWithTag("button").performClick()
+            rule.onNodeWithTag("label").assert(hasText("Counter: 2"))
             #endif
         })
     }
+    struct ButtonTestView: View {
+        @State var counter = 1
+        var body: some View {
+            VStack {
+                Text("Counter: \(counter)")
+                    .accessibilityIdentifier("label")
+                Button("Increment") {
+                    counter += 1
+                }
+                .accessibilityIdentifier("button")
+            }
+        }
+    }
 
-    func testSkipUISlider() throws {
+    func testSlider() throws {
         // TODO: https://github.com/tikurahul/androidx/blob/ccac66729a5e461b3a05944014f42e2dc55337d6/compose/material/material/src/androidAndroidTest/kotlin/androidx/compose/material/ButtonTest.kt#L48
         // https://github.com/tikurahul/androidx/blob/ccac66729a5e461b3a05944014f42e2dc55337d6/compose/material/material/src/androidAndroidTest/kotlin/androidx/compose/material/SliderTest.kt
 
         try testUI(view: {
-            // SKIP REPLACE: var sliderValue by remember { mutableStateOf(0.0) }
-            var sliderValue = 0.0
-            let binding = Binding(get: { sliderValue }, set: { sliderValue = $0 })
-
-            VStack {
-                Text("\(binding.wrappedValue.description)")
-                    .accessibilityIdentifier("label")
-                Slider(value: binding, in: 0.0...1.0)
-                    .accessibilityIdentifier("slider")
-            }
+            SliderTestView().accessibilityIdentifier("test-view")
         }, eval: { rule in
             #if SKIP
             // https://developer.android.com/jetpack/compose/testing-cheatsheet
             rule.onNodeWithTag("label").assertIsDisplayed()
             rule.onNodeWithTag("label").assert(hasText("0.0"))
             rule.onNodeWithTag("slider").performGesture {
-                //swipeRight(Offset(Float(0.0), Float(0.0)), Offset(Float(1000.0), Float(0.0)))
                 down(Offset(Float(0.0), Float(0.0)))
                 moveTo(Offset(Float(1000.0), Float(0.0)))
                 up()
@@ -267,6 +244,139 @@ final class SkipUITests: XCTestCase {
             #endif
         })
     }
+    struct SliderTestView: View {
+        @State var sliderValue = 0.0
+        var body: some View {
+            VStack {
+                Text("\(sliderValue)")
+                    .accessibilityIdentifier("label")
+                Slider(value: $sliderValue, in: 0.0...1.0)
+                    .accessibilityIdentifier("slider")
+            }
+        }
+    }
+
+    func testEnvironmentObject() throws {
+        try testUI(view: {
+            EnvironmentObjectOuterView()
+                .environmentObject(TestEnvironmentObject(text: "outer"))
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            #if SKIP
+            rule.onNodeWithTag("outer-label").assert(hasText("outer"))
+            rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+            #endif
+        })
+    }
+    class TestEnvironmentObject: ObservableObject {
+        let text: String
+        init(text: String) {
+            self.text = text
+        }
+    }
+    struct EnvironmentObjectOuterView: View {
+        @EnvironmentObject var object: TestEnvironmentObject
+        var body: some View {
+            VStack {
+                Text(object.text)
+                    .accessibilityIdentifier("outer-label")
+                EnvironmentObjectInnerView()
+                    .environmentObject(TestEnvironmentObject(text: "inner"))
+            }
+        }
+    }
+    struct EnvironmentObjectInnerView: View {
+        @EnvironmentObject var object: TestEnvironmentObject
+        var body: some View {
+            Text(object.text)
+                .accessibilityIdentifier("inner-label")
+        }
+    }
+
+    func testEnvironmentObservable() throws {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            try testUI(view: {
+                EnvironmentObservableOuterView()
+                    .environment(TestEnvironmentObservable(text: "outer"))
+                    .accessibilityIdentifier("test-view")
+            }, eval: { rule in
+                #if SKIP
+                rule.onNodeWithTag("outer-label").assert(hasText("outer"))
+                rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+                #endif
+            })
+        }
+    }
+    @Observable class TestEnvironmentObservable {
+        let text: String
+        init(text: String) {
+            self.text = text
+        }
+    }
+    @available(iOS 17.0, macOS 14.0, *)
+    struct EnvironmentObservableOuterView: View {
+        @Environment(SkipUITests.TestEnvironmentObservable.self) var object
+        var body: some View {
+            VStack {
+                Text(object.text)
+                    .accessibilityIdentifier("outer-label")
+                EnvironmentObservableInnerView()
+                    .environment(TestEnvironmentObservable(text: "inner"))
+            }
+        }
+    }
+    @available(iOS 17.0, macOS 14.0, *)
+    struct EnvironmentObservableInnerView: View {
+        @Environment(SkipUITests.TestEnvironmentObservable.self) var object
+        var body: some View {
+            Text(object.text)
+                .accessibilityIdentifier("inner-label")
+        }
+    }
+
+    func testCustomEnvironmentValue() throws {
+        try testUI(view: {
+            EnvironmentValueDefaultView()
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            #if SKIP
+            rule.onNodeWithTag("default-label").assert(hasText("default"))
+            rule.onNodeWithTag("outer-label").assert(hasText("outer"))
+            rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+            #endif
+        })
+    }
+    struct EnvironmentValueDefaultView: View {
+        @Environment(\.testValue) var environmentValue
+        var body: some View {
+            VStack {
+                Text(environmentValue)
+                    .accessibilityIdentifier("default-label")
+                EnvironmentValueOuterView()
+                    .environment(\.testValue, "outer")
+            }
+        }
+    }
+    struct EnvironmentValueOuterView: View {
+        @Environment(\.testValue) var environmentValue
+        var body: some View {
+            VStack {
+                Text(environmentValue)
+                    .accessibilityIdentifier("outer-label")
+                EnvironmentValueInnerView()
+                    .environment(\.testValue, "inner")
+            }
+        }
+    }
+    struct EnvironmentValueInnerView: View {
+        @Environment(\.testValue) var environmentValue
+        var body: some View {
+            Text(environmentValue)
+                .accessibilityIdentifier("inner-label")
+        }
+    }
+
+    // MARK: -
 
     func testCompose() {
         #if SKIP
@@ -354,3 +464,14 @@ extension SemanticsNode {
 }
 
 #endif
+
+// Used in `testCustomEnvironmentValue`
+private struct EnvironmentValueTestKey: EnvironmentKey {
+  static let defaultValue = "default"
+}
+extension EnvironmentValues {
+    fileprivate var testValue: String {
+        get { self[EnvironmentValueTestKey.self] }
+        set { self[EnvironmentValueTestKey.self] = newValue }
+    }
+}
