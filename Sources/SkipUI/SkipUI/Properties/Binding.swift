@@ -12,6 +12,14 @@
         self.set = set
     }
 
+    #if SKIP
+    /// Used to implement @Bindable.
+    public static func instance<ObjectType, Value>(_ object: ObjectType, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
+        let capturedObject = object
+        return Binding(get: { get(capturedObject) }, set: { value in set(capturedObject, value) })
+    }
+    #endif
+
     public init(projectedValue: Binding<Value>) {
         self.get = projectedValue.get
         self.set = projectedValue.set
@@ -46,21 +54,6 @@
         return Binding(get: { value }, set: { _ in })
     }
 }
-
-#if SKIP
-/// This type is used to implement `@Bindable` in Kotlin.
-public struct InstanceBinding<Object, Value> {
-    let object: Object
-    let get: (Object) -> Value
-    let set: (Object, Value) -> Void
-
-    public init(object: Object, get: @escaping (Object) -> Value, set: @escaping (Object, Value) -> Void) {
-        self.object = object
-        self.get = get
-        self.set = set
-    }
-}
-#endif
 
 #if !SKIP
 

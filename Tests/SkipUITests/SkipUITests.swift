@@ -269,7 +269,7 @@ final class SkipUITests: XCTestCase {
         })
     }
     class TestEnvironmentObject: ObservableObject {
-        let text: String
+        @Published var text: String
         init(text: String) {
             self.text = text
         }
@@ -297,40 +297,44 @@ final class SkipUITests: XCTestCase {
         if #available(iOS 17.0, macOS 14.0, *) {
             try testUI(view: {
                 EnvironmentObservableOuterView()
-                    .environment(TestEnvironmentObservable(text: "outer"))
+                    .environment(TestObservable(text: "outer"))
                     .accessibilityIdentifier("test-view")
             }, eval: { rule in
                 #if SKIP
                 rule.onNodeWithTag("outer-label").assert(hasText("outer"))
                 rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+                rule.onNodeWithTag("null-label").assert(hasText("null"))
                 #endif
             })
         }
     }
-    @Observable class TestEnvironmentObservable {
-        let text: String
+    @Observable class TestObservable {
+        var text = ""
         init(text: String) {
             self.text = text
         }
     }
     @available(iOS 17.0, macOS 14.0, *)
     struct EnvironmentObservableOuterView: View {
-        @Environment(SkipUITests.TestEnvironmentObservable.self) var object
+        @Environment(TestObservable.self) var object
         var body: some View {
             VStack {
                 Text(object.text)
                     .accessibilityIdentifier("outer-label")
-                EnvironmentObservableInnerView()
-                    .environment(TestEnvironmentObservable(text: "inner"))
+                EnvironmentObservableInnerView(identifier: "inner-label")
+                    .environment(TestObservable(text: "inner"))
+                EnvironmentObservableInnerView(identifier: "null-label")
+                    .environment(nil as TestObservable?)
             }
         }
     }
     @available(iOS 17.0, macOS 14.0, *)
     struct EnvironmentObservableInnerView: View {
-        @Environment(SkipUITests.TestEnvironmentObservable.self) var object
+        let identifier: String
+        @Environment(TestObservable.self) var object: TestObservable?
         var body: some View {
-            Text(object.text)
-                .accessibilityIdentifier("inner-label")
+            Text(object?.text ?? "null")
+                .accessibilityIdentifier(identifier)
         }
     }
 
@@ -375,6 +379,73 @@ final class SkipUITests: XCTestCase {
                 .accessibilityIdentifier("inner-label")
         }
     }
+
+//    func testObservability() throws {
+//        try testUI(view: {
+//            ObservablesOuterView()
+//                .environmentObject(TestEnvironmentObject(text: "initialEnvironment"))
+//                .accessibilityIdentifier("test-view")
+//        }, eval: { rule in
+//            #if SKIP
+//            rule.onNodeWithTag("state-label").assert(hasText("initialState"))
+//            rule.onNodeWithTag("environment-label").assert(hasText("initialEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasText("initialState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasText("initialEnvironment"))
+//
+//            rule.onNodeWithTag("observable-button").performClick()
+//            rule.onNodeWithTag("state-label").assert(hasText("observableState"))
+//            rule.onNodeWithTag("environment-label").assert(hasText("observableEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasText("observableState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasText("observableEnvironment"))
+//
+//            rule.onNodeWithTag("binding-button").performClick()
+//            rule.onNodeWithTag("state-label").assert(hasText("bindingState"))
+//            rule.onNodeWithTag("environment-label").assert(hasText("observableEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasText("bindingState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasText("observableEnvironment"))
+//            #endif
+//        })
+//    }
+//    struct ObservablesOuterView: View {
+//        @State var stateObject = TestObservable(text: "initialState")
+//        @EnvironmentObject var environmentObject: TestEnvironmentObject
+//        var body: some View {
+//            VStack {
+//                Text(stateObject.text)
+//                    .accessibilityIdentifier("state-label")
+//                Text(environmentObject.text)
+//                    .accessibilityIdentifier("environment-label")
+//                ObservablesObservableView(observable: stateObject)
+//                    .accessibilityIdentifier("observable-view")
+//                ObservablesBindingView(text: $stateObject.text)
+//                    .accessibilityIdentifier("binding-view")
+//            }
+//        }
+//    }
+//    struct ObservablesObservableView: View {
+//        let observable: TestObservable
+//        @EnvironmentObject var environmentObject: TestEnvironmentObject
+//        var body: some View {
+//            Text(observable.text)
+//                .accessibilityIdentifier("observable-state-label")
+//            Text(environmentObject.text)
+//                .accessibilityIdentifier("observable-environment-label")
+//            Button("Button") {
+//                observable.text = "observableState"
+//                environmentObject.text = "observableEnvironment"
+//            }
+//            .accessibilityIdentifier("observable-button")
+//        }
+//    }
+//    struct ObservablesBindingView: View {
+//        @Binding var text: String
+//        var body: some View {
+//            Button("Button") {
+//                text = "bindingState"
+//            }
+//            .accessibilityIdentifier("binding-button")
+//        }
+//    }
 
     // MARK: -
 

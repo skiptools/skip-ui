@@ -22,7 +22,7 @@ public protocol EnvironmentKeyCompanion {
 // Model as a class because our implementation only holds the global environment keys, and so does not need to copy.
 // Each key handles its own scoping of values using Android's `CompositionLocal` system
 public class EnvironmentValues {
-    static let shared = EnvironmentValues()
+    public static let shared = EnvironmentValues()
 
     #if SKIP
     // We type erase all values to Any and all class keys to KClass<*>. The alternative would be to reify these functions.
@@ -38,11 +38,12 @@ public class EnvironmentValues {
         return compositionLocal.current as! Value
      }
 
-    // SKIP DECLARE: @Composable fun <ObjectType> environmentObject(type: KClass<ObjectType>): ObjectType where ObjectType: Any
-    public func environmentObject<ObjectType>(type: ObjectType.Type) -> ObjectType {
+    // SKIP DECLARE: @Composable fun <ObjectType> environmentObject(type: KClass<ObjectType>): ObjectType? where ObjectType: Any
+    public func environmentObject<ObjectType>(type: ObjectType.Type) -> ObjectType? {
         let compositionLocal = objectCompositionLocal(type: type)
-        return compositionLocal.current as! ObjectType
-     }
+        let value = compositionLocal.current
+        return value == Unit ? nil : value as! ObjectType
+    }
 
     /// Set environment values.
     ///
@@ -60,7 +61,6 @@ public class EnvironmentValues {
             content()
         }
     }
-
 
     // On set we populate our `lastSetValues` map, which our `setValues` function reads from and then clears after
     // packaging the values for sending to downstream Composables. This should be safe to do even on this effectively
@@ -94,25 +94,32 @@ public class EnvironmentValues {
     #endif
 }
 
+
 extension View {
-    public func environment(_ object: Any?) -> any View {
-        //~~~ TODO: Handle nil
-        if let object {
-            return commonEnvironmentObject(object)
-        } else {
-            return self
-        }
+    #if SKIP
+    // Use inline final func to get reified generic type
+    @inline(__always) public final func environment<T>(_ object: T?) -> some View {
+        return environmentObject(type: T.self, object: object)
     }
+    #else
+    public func environment<T>(_ object: T?) -> some View {
+        return self
+    }
+    #endif
 
     public func environmentObject(_ object: Any) -> some View {
-        return commonEnvironmentObject(object)
+        return environmentObject(type: type(of: object), object: object)
     }
 
-    private func commonEnvironmentObject(_ object: Any) -> some View {
+    // Must be public to allow access from our inline `environment` function.
+    //
+    // SKIP DECLARE: public fun environmentObject(type: KClass<*>, object_: Any?): View
+    private func environmentObject(type: Any.Type, object: Any?) -> some View {
         #if SKIP
         return ComposeView { context in
-            let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type(of: object))
-            // SKIP INSERT: val provided = compositionLocal provides object_
+            let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type)
+            let value = object ?? Unit
+            // SKIP INSERT: val provided = compositionLocal provides value
             androidx.compose.runtime.CompositionLocalProvider(provided) { self.Compose(context) }
         }
         #else
