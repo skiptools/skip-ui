@@ -130,31 +130,69 @@ extension Color {
 
 #if SKIP
 extension Color {
-    public static let red = Color(colorImpl: { androidx.compose.ui.graphics.Color.Red })
-    public static let orange = Color(colorImpl: {
-//        if EnvrionmentValues.shared.colorMode == .dark {
-//            return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
-//        } else {
-//            return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
-//        }
-        return androidx.compose.ui.graphics.Color(0xFFFF9F0A)
+    public static let clear = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.Transparent
     })
-    public static let yellow = Color(colorImpl: { androidx.compose.ui.graphics.Color.Yellow })
-    public static let green = Color(colorImpl: { androidx.compose.ui.graphics.Color.Green })
-    public static let mint = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFF5AC8FA) })
-    public static let teal = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFF64D2FF) })
-    public static let cyan = Color(colorImpl: { androidx.compose.ui.graphics.Color.Cyan })
-    public static let blue = Color(colorImpl: { androidx.compose.ui.graphics.Color.Blue })
-    public static let indigo = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFF5856D6) })
-    public static let purple = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFFAF52DE) })
-    public static let pink = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFFFF2D55) })
-    public static let brown = Color(colorImpl: { androidx.compose.ui.graphics.Color(0xFFA2845E) })
-    public static let white = Color(colorImpl: { androidx.compose.ui.graphics.Color.White })
-    public static let gray = Color(colorImpl: { androidx.compose.ui.graphics.Color.Gray })
-    public static let black = Color(colorImpl: { androidx.compose.ui.graphics.Color.Black })
-    public static let clear = Color(colorImpl: { androidx.compose.ui.graphics.Color.Transparent })
-    public static let primary = Color(colorImpl: { androidx.compose.material3.MaterialTheme.colorScheme.onSurface })
-    public static let secondary = Color(colorImpl: { androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant })
+    public static let white = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.White
+    })
+    public static let black = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.Black
+    })
+
+    public static let primary = Color(colorImpl: {
+        androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+    })
+    
+    public static let secondary = Color(colorImpl: {
+        androidx.compose.material3.MaterialTheme.colorScheme.onSecondary
+    })
+
+    /// Returns the given color value based on whether the view is in dark mode or light mode
+    @Composable private static func color(light: Int64, dark: Int64) -> androidx.compose.ui.graphics.Color {
+        // TODO: EnvironmentValues.shared.colorMode == .dark ? dark : light
+        androidx.compose.ui.graphics.Color(androidx.compose.foundation.isSystemInDarkTheme() ? dark : light)
+    }
+
+    public static let gray = Color(colorImpl: {
+        color(light: 0xFF8E8E93, dark: 0xFF8E8E93)
+    })
+    public static let red = Color(colorImpl: {
+        color(light: 0xFFFF3B30, dark: 0xFFFF453A)
+    })
+    public static let orange = Color(colorImpl: {
+        color(light: 0xFFFF9500, dark: 0xFFFF9F0A)
+    })
+    public static let yellow = Color(colorImpl: {
+        color(light: 0xFFFFCC00, dark: 0xFFFFD60A)
+    })
+    public static let green = Color(colorImpl: {
+        color(light: 0xFF34C759, dark: 0xFF30D158)
+    })
+    public static let mint = Color(colorImpl: {
+        color(light: 0xFF00C7BE, dark: 0xFF63E6E2)
+    })
+    public static let teal = Color(colorImpl: {
+        color(light: 0xFF30B0C7, dark: 0xFF40C8E0)
+    })
+    public static let cyan = Color(colorImpl: {
+        color(light: 0xFF32ADE6, dark: 0xFF64D2FF)
+    })
+    public static let blue = Color(colorImpl: {
+        color(light: 0xFF007AFF, dark: 0xFF0A84FF)
+    })
+    public static let indigo = Color(colorImpl: {
+        color(light: 0xFF5856D6, dark: 0xFF5E5CE6)
+    })
+    public static let purple = Color(colorImpl: {
+        color(light: 0xFFAF52DE, dark: 0xFFBF5AF2)
+    })
+    public static let pink = Color(colorImpl: {
+        color(light: 0xFFFF2D55, dark: 0xFFFF375F)
+    })
+    public static let brown = Color(colorImpl: {
+        color(light: 0xFFA2845E, dark: 0xFFAC8E68)
+    })
 }
 #endif
 
