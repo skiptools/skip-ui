@@ -73,7 +73,10 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.text.UrlAnnotation
 // SKIP INSERT: import androidx.compose.ui.text.VerbatimTtsAnnotation
 // SKIP INSERT: import androidx.compose.ui.text.buildAnnotatedString
-// SKIP INSERT: import androidx.compose.ui.text.font.Font
+
+// DO NOT IMPORT! conflicts with SwiftUI.Font
+// SKIP INSERT: //import androidx.compose.ui.text.font.Font
+
 // SKIP INSERT: import androidx.compose.ui.text.font.FontStyle
 // SKIP INSERT: import androidx.compose.ui.text.font.FontSynthesis
 // SKIP INSERT: import androidx.compose.ui.text.font.FontWeight
@@ -188,8 +191,8 @@ final class SnapshotTests: XCTestCase {
     ///   - android: the Android string
     /// - Returns: the string according to the platform
     func plaf(_ ios: String, macos: String? = nil, android: String? = nil) -> String {
-        precondition(ios != macos, "strings should differ for platform-specific values")
-        precondition(ios != android, "strings should differ for platform-specific values")
+        precondition(ios != macos || macos?.isEmpty == true, "strings should differ for platform-specific values")
+        precondition(ios != android || android?.isEmpty == true, "strings should differ for platform-specific values")
         #if SKIP
         return android ?? ios
         #elseif canImport(UIKit)
@@ -491,69 +494,37 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
-    func testDrawBar() throws {
+    func testDrawCourierBar() throws {
         XCTAssertEqual(try render(compact: false, view: ZStack {
-            Text("|")
-        }.background(Color.white)),
+            Text("|").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
+        }.frame(width: 7.0, height: 8.0).background(Color.white)),
         plaf("""
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF ADADAD 707070 FFFFFF
-        FFFFFF 909090 3E3E3E FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 939393 434343 FFFFFF
-        FFFFFF 8F8F8F 3D3D3D FFFFFF
-        FFFFFF B2B2B2 7A7A7A FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF F6F6F6 A5A5A5 FFFFFF FFFFFF FFFFFF
         """, macos: """
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF C2C2C2 EEEEEE FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF 3A3A3A C4C4C4 FFFFFF
-        FFFFFF C7C7C7 EEEEEE FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 747474 FFFFFF FFFFFF FFFFFF
         """, android: """
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF 5B5B5B D8D8D8
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 505050 D5D5D5
-        FFFFFF 727272 DCDCDC
-        FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF A9A9A9 FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF AAAAAA FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
         """))
     }
 
@@ -624,34 +595,37 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testDrawTextMonospacedFont() throws {
-        #if SKIP
-        throw XCTSkip("Android custom font TODO")
-        #else
-        // note that Android needs "courier" not "Courier" (Darwin will find either)
-        // FIXME: Kotlin error: “Unresolved reference: custom”
         XCTAssertEqual(try render(compact: false, antiAlias: false, view: ZStack {
             Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
-        }.background(Color.white)),
+        }.frame(width: 8.0, height: 8.0).background(Color.white)),
         plaf("""
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        E2E2E2 9C9C9C 9B9B9B A1A1A1 F0F0F0
-        A9A9A9 8D8D8D 737373 878787 C8C8C8
-        E0E0E0 E0E0E0 8E8E8E E5E5E5 E9E9E9
-        FFFFFF F4F4F4 828282 FFFFFF FFFFFF
-        FFFFFF A8A8A8 5A5A5A BFBFBF FFFFFF
-        FFFFFF FAFAFA FBFBFB FAFAFA FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF E2E2E2 9C9C9C 9B9B9B A1A1A1 F0F0F0 FFFFFF
+        FFFFFF FFFFFF A9A9A9 8D8D8D 737373 878787 C8C8C8 FFFFFF
+        FFFFFF FFFFFF E0E0E0 E0E0E0 8E8E8E E5E5E5 E9E9E9 FFFFFF
+        FFFFFF FFFFFF FFFFFF F4F4F4 828282 FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF A8A8A8 5A5A5A BFBFBF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FAFAFA FBFBFB FAFAFA FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
         """, macos: """
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        5F5F5F 505050 181818 404040 929292
-        565656 FFFFFF 4D4D4D CFCFCF 878787
-        DFDFDF FFFFFF 4D4D4D F9F9F9 E5E5E5
-        FFFFFF FFFFFF 4D4D4D FFFFFF FFFFFF
-        FFFFFF 5E5E5E 191919 7F7F7F FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF 5F5F5F 505050 181818 404040 929292 FFFFFF
+        FFFFFF FFFFFF 565656 FFFFFF 4D4D4D CFCFCF 878787 FFFFFF
+        FFFFFF FFFFFF DFDFDF FFFFFF 4D4D4D F9F9F9 E5E5E5 FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF 4D4D4D FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF 5E5E5E 191919 7F7F7F FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        """, android: """
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF 979797 000000 000000 000000 B9B9B9 FFFFFF
+        FFFFFF FFFFFF B6B6B6 FFFFFF B6B6B6 FEFEFE B7B7B7 FFFFFF
+        FFFFFF FFFFFF F8F8F8 FFFFFF B6B6B6 FFFFFF F8F8F8 FFFFFF
+        FFFFFF FFFFFF FFFFFF 404040 000000 707070 FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
         """))
-        #endif
     }
 
 
@@ -866,7 +840,6 @@ final class SnapshotTests: XCTestCase {
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
     func render<V: View>(outputFile: String? = nil, compact: Bool = false, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
-
         // SKIP INSERT: lateinit
         var renderView: android.view.View
         composeRule.setContent {
@@ -991,7 +964,13 @@ final class SnapshotTests: XCTestCase {
         }
 
         //view.draw(bounds) // always just a white square
-        AliasView(frame: view.bounds, containing: view, antiAlias: antiAlias).cacheDisplay(in: bounds, to: bitmap)
+
+        // manually specifying antiAlias will wrap the view in a containing view
+        if let antiAlias = antiAlias {
+            AliasView(frame: view.bounds, containing: view, antiAlias: antiAlias).cacheDisplay(in: bounds, to: bitmap)
+        } else {
+            view.cacheDisplay(in: bounds, to: bitmap)
+        }
 
         // save PNG to the output file base if specified
         if let outputFile = outputFile, let data = bitmap.representation(using: .png, properties: [:]) {

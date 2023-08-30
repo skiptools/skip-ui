@@ -272,7 +272,7 @@ extension Font {
         #if SKIP
         return Font(fontImpl: {
             // note that Android can find "courier" but not "Courier"
-            androidx.compose.ui.text.TextStyle(fontFamily: androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create(name, android.graphics.Typeface.NORMAL)), fontSize: androidx.compose.ui.unit.TextUnit(Float(size), androidx.compose.ui.unit.TextUnitType.Em))
+            androidx.compose.ui.text.TextStyle(fontFamily: androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create(name, android.graphics.Typeface.NORMAL)), fontSize: androidx.compose.ui.unit.TextUnit(Float(size), androidx.compose.ui.unit.TextUnitType.Sp))
         })
         #else
         fatalError()
