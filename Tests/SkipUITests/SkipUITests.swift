@@ -172,6 +172,7 @@ import XCTest
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 // SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
+// SKIP INSERT: @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 final class SkipUITests: XCTestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
 
@@ -293,6 +294,7 @@ final class SkipUITests: XCTestCase {
         }
     }
 
+    #if os(iOS) // TODO: enable on macOS once 14 is released
     func testEnvironmentObservable() throws {
         if #available(iOS 17.0, macOS 14.0, *) {
             try testUI(view: {
@@ -308,6 +310,7 @@ final class SkipUITests: XCTestCase {
             })
         }
     }
+    @available(iOS 17.0, macOS 14.0, *)
     @Observable class TestObservable {
         var text = ""
         init(text: String) {
@@ -337,6 +340,7 @@ final class SkipUITests: XCTestCase {
                 .accessibilityIdentifier(identifier)
         }
     }
+    #endif
 
     func testCustomEnvironmentValue() throws {
         try testUI(view: {

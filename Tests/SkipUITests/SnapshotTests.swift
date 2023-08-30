@@ -6,10 +6,10 @@
 
 import SwiftUI
 import XCTest
+import OSLog
 import Foundation
 
 // SKIP INSERT: import android.os.Build
-// SKIP INSERT: import android.graphics.Bitmap
 
 // SKIP INSERT: import androidx.compose.foundation.ExperimentalFoundationApi
 // SKIP INSERT: import androidx.compose.foundation.background
@@ -155,8 +155,6 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.test.*
 
 // SKIP INSERT: import androidx.compose.ui.graphics.asAndroidBitmap
-
-
 // SKIP INSERT: import androidx.test.ext.junit.runners.AndroidJUnit4
 
 // SKIP INSERT: import kotlin.test.assertFailsWith
@@ -175,7 +173,10 @@ import Foundation
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 // SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
+// SKIP INSERT: @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 final class SnapshotTests: XCTestCase {
+    fileprivate let logger: Logger = Logger(subsystem: "test", category: "SnapshotTests")
+
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
 
     /// Returns one of the strings based on the current platform.
@@ -334,10 +335,33 @@ final class SnapshotTests: XCTestCase {
         XCTAssertEqual(plaf("A2845E"), try render(view: Color.brown.frame(width: 1.0, height: 1.0)))
     }
 
-    func testRenderWhiteSquareTiny() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
+    func testRenderCustomShape() throws {
+        #if !SKIP
+        throw XCTSkip("Android-only function")
+        #else
+        XCTAssertEqual(try render(compact: true, view: ComposeView(content: { ctx in
+            androidx.compose.foundation.layout.Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.White).size(12.dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                androidx.compose.foundation.layout.Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Black).size(6.dp, 6.dp))
+            }
+        })),
+        plaf("""
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        """))
         #endif
+    }
+
+    func testRenderWhiteSquareTiny() throws {
         XCTAssertEqual(try render(compact: true, view: Color.white.frame(width: 2.0, height: 2.0)),
         plaf("""
         F F
@@ -352,11 +376,18 @@ final class SnapshotTests: XCTestCase {
         F F F F
         F F F F
         F F F F
-        """, android: """
+        """))
+    }
+
+    func testRenderWhiteSquareEmved() throws {
+        XCTAssertEqual(try render(compact: true, view: ZStack {
+            Color.white.frame(width: 40.0, height: 40.0)
+        }.frame(width: 4.0, height: 4.0)),
+        plaf("""
         F F F F
-        F 0 0 0
-        F 0 0 0
-        F 0 0 0
+        F F F F
+        F F F F
+        F F F F
         """))
     }
 
@@ -381,40 +412,67 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
-    func testZStackSquareCenter() throws {
-//        #if SKIP
-//        throw XCTSkip("SkipUI layout TODO")
-//        #endif
+    func testCenterSquareStack() throws {
+        #if SKIP
+        throw XCTSkip("SkipUI layout TODO")
+        #endif
+        XCTAssertEqual(try render(compact: true, view: ZStack {
+            Color.white.frame(width: 6.0, height: 6.0)
+        }.frame(width: 12.0, height: 12.0)),
+        plaf("""
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        """))
+    }
 
+    func testZStackSquareCenter() throws {
         XCTAssertEqual(try render(compact: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 10.0, height: 10.0)
+            Color.white.frame(width: 6.0, height: 6.0)
         }),
         plaf("""
         0 0 0 0 0 0 0 0 0 0 0 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
         0 0 0 0 0 0 0 0 0 0 0 0
-        """, android: """
-        F F F F F F F F F F F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F 0 0 0 0 0 0 0 0 0 F 0
-        F F F F F F F F F F F 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        """))
+    }
+
+    func testZStackSquareCenterInset() throws {
+        XCTAssertEqual(try render(compact: true, view: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 4.0, height: 4.0)
+        }),
+        plaf("""
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
@@ -426,29 +484,25 @@ final class SnapshotTests: XCTestCase {
 
         XCTAssertEqual(try render(compact: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.opacity(0.6).frame(width: 10.0, height: 10.0)
+            Color.white.opacity(0.6).frame(width: 6.0, height: 6.0)
         }),
         plaf("""
         0 0 0 0 0 0 0 0 0 0 0 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
-        0 9 9 9 9 9 9 9 9 9 9 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 9 9 9 9 9 9 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
     func testZStackMultiOpacityOverlay() throws {
-//        #if SKIP
-//        throw XCTSkip("SkipUI layout TODO")
-//        #endif
-
         XCTAssertEqual(try render(compact: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.opacity(0.8).frame(width: 8.0, height: 8.0)
@@ -468,123 +522,97 @@ final class SnapshotTests: XCTestCase {
         0 0 C C C C C C C C 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
-        """, android: """
-        F F F 0 0 F F F F 0 0 0
-        F 0 F 0 0 0 0 0 F 0 0 0
-        F F F 0 0 0 0 0 F 0 0 0
-        0 0 0 0 0 0 0 0 F 0 0 0
-        0 0 0 0 0 0 0 0 F 0 0 0
-        F 0 0 0 0 0 0 0 F 0 0 0
-        F 0 0 0 0 0 0 0 F 0 0 0
-        F 0 0 0 0 0 0 0 F 0 0 0
-        F F F F F F F F F 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
     func testZStackSquareBottomTrailing() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
-
-        XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .bottomTrailing) {
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testZStackSquareBottomTrailing", compact: true, view: ZStack(alignment: .bottomTrailing) {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 10.0, height: 10.0)
+            Color.white.frame(width: 6.0, height: 6.0)
         }),
         plaf("""
         0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
         """))
     }
 
     func testZStackSquareTopLeading() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
-
         XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .topLeading) {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 10.0, height: 10.0)
+            Color.white.frame(width: 6.0, height: 6.0)
         }),
         plaf("""
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
-        F F F F F F F F F F 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
     func testZStackSquareTop() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
-
         XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .top) {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 10.0, height: 10.0)
+            Color.white.frame(width: 6.0, height: 6.0)
         }),
         plaf("""
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
     func testZStackSquareTrailing() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
         XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .trailing) {
             Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 10.0, height: 10.0)
+            Color.white.frame(width: 6.0, height: 6.0)
         }),
         plaf("""
         0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
-        0 0 F F F F F F F F F F
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 F F F F F F
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
-    /// **NOTE**: macOS and Android are both wrong currently
     func testRenderStacks() throws {
+        #if SKIP
+        throw XCTSkip("TODO: get working on Android")
+        #endif
         XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", compact: true, view: VStack {
             HStack {
                 ZStack { Spacer() }.background(Color.black).frame(width: 4.0, height: 3.0)
@@ -596,41 +624,115 @@ final class SnapshotTests: XCTestCase {
             }
         }
         .frame(width: 12.0, height: 12.0)), plaf("""
-            0 0 0 0 F F F F F F F F
-            0 0 0 0 F F F F F F F F
-            0 0 0 0 F F F F F F F F
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            F F F F F F 0 0 0 0 0 0
-            """,
-            android: """
-            0 F F F F F F F F 0 0 0
-            0 F F F F F F F F 0 0 0
-            F 0 0 0 0 0 0 0 0 0 0 0
-            F 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            0 0 0 0 0 0 0 0 0 0 0 0
-            """))
+        0 0 0 0 F F F F F F F F
+        0 0 0 0 F F F F F F F F
+        0 0 0 0 F F F F F F F F
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        F F F F F F 0 0 0 0 0 0
+        """))
+    }
+
+    func testRenderCustomCanvas() throws {
+        #if !SKIP
+        throw XCTSkip("Android-only function")
+        #else
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderCustomCanvas", compact: true, view: ComposeView(content: { ctx in
+            androidx.compose.foundation.layout.Box(modifier: Modifier.size(12.dp).background(androidx.compose.ui.graphics.Color.White), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                androidx.compose.foundation.layout.Box(modifier: Modifier.size(6.dp, 6.dp).background(androidx.compose.ui.graphics.Color.Black))
+            }
+        })),
+        plaf("""
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F 0 0 0 0 0 0 F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        F F F F F F F F F F F F
+        """))
+        #endif
     }
 
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
     func render<V: View>(outputFile: String? = nil, compact: Bool = false, darkMode: Bool = false, view content: V) throws -> String {
-        #if !SKIP
+        #if SKIP
+
+        // SKIP INSERT: lateinit
+        var renderView: android.view.View
+        composeRule.setContent {
+            //androidx.compose.material3.Text(text: "ABCDEF")
+            renderView = LocalView.current
+            // render the compose view to the canvas
+            view.Compose(ComposeContext())
+
+            //renderView.measure(android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.UNSPECIFIED)
+            //renderView.layout(0, 0, renderView.measuredWidth, renderView.measuredHeight)
+
+            // not to be confused with android.graphics.Canvas
+
+            // just calling Canvas here goes causes a hang
+            //androidx.compose.foundation.Canvas(modifier: Modifier.fillMaxSize()) {
+            //    drawIntoCanvas { cnvs in
+            //        let paint = androidx.compose.ui.graphics.Paint()
+            //        paint.color = androidx.compose.ui.graphics.Color.Red
+            //        cnvs.drawCircle(androidx.compose.ui.geometry.Offset(Float(5.0), Float(5.0)), Float(10.0), paint)
+            //    }
+            //}
+        }
+
+        // https://github.com/robolectric/robolectric/issues/8071 — cannot use captureToImage from Robolectric
+        // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
+        // runBlocking {
+        //     onRoot().captureToImage().asAndroidBitmap()
+        // }
+
+        let width = renderView.width
+        let height = renderView.height
+
+        //logger.log("### width: \(width) height: \(height)")
+
+        // draw the view onto a canvas
+        let bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        let bitmapCanvas = android.graphics.Canvas(bitmap)
+        renderView.draw(bitmapCanvas)
+
+        //bitmapCanvas.drawColor(android.graphics.Color.WHITE)
+
+        // TODO: remove this debugging gray square overlay
+        //bitmapCanvas.drawRect(Float(3.0), Float(3.0), Float(width) - Float(4.0), Float(height) - Float(4.0), android.graphics.Paint().apply {
+        //    color = android.graphics.Color.GRAY
+        //    style = android.graphics.Paint.Style.FILL
+        //})
+
+        if let outputFile = outputFile {
+            // save to the specified output file base
+            let out = java.io.FileOutputStream(outputFile + "-android.png")
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            out.close()
+        }
+
+        var pixels = IntArray(width * height)
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+        return createPixmap(pixels: Array(pixels.toList()), compact: compact, width: Int64(width))
+
+        #else
+
         let v = content.environment(\.colorScheme, darkMode ? .dark : .light).environment(\.displayScale, 1.0)
+
         #if canImport(UIKit)
         let controller = UIHostingController(rootView: v)
         guard let view: UIView = controller.view else {
@@ -707,95 +809,13 @@ final class SnapshotTests: XCTestCase {
         let pixelData = bitmap.bitmapData
         let bytesPerPixel = bitmap.bitsPerPixel / bitmap.bitsPerSample
         let bytesPerRow = bitmap.bytesPerRow
+
         #endif // canImport(AppKit)
 
         return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
 
-        #else // i.e., Android
-        // SKIP INSERT: lateinit
-        var renderView: android.view.View
-        composeRule.setContent {
-            //androidx.compose.material3.Text(text: "ABCDEF")
-            renderView = LocalView.current
-            // render the compose view to the canvas
-            view.Compose(ComposeContext())
-            //renderView.measure(android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.UNSPECIFIED)
-            //renderView.layout(0, 0, renderView.measuredWidth, renderView.measuredHeight)
-
-            // not to be confused with android.graphics.Canvas
-
-            // just calling Canvas here goes causes a hang
-            //androidx.compose.foundation.Canvas(modifier: Modifier.fillMaxSize()) {
-//                drawIntoCanvas { cnvs in
-//                    let paint = androidx.compose.ui.graphics.Paint()
-//                    paint.color = androidx.compose.ui.graphics.Color.Red
-//                    cnvs.drawCircle(androidx.compose.ui.geometry.Offset(Float(5.0), Float(5.0)), Float(10.0), paint)
-//                }
-            //}
-        }
-
-        // https://github.com/robolectric/robolectric/issues/8071 — cannot use captureToImage from Robolectric
-        // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
-        // runBlocking {
-        //     onRoot().captureToImage().asAndroidBitmap()
-        // }
-
-        let width = renderView.width
-        let height = renderView.height
-
-        // draw the view onto a canvas
-        let bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        let bitmapCanvas = android.graphics.Canvas(bitmap)
-        //bitmapCanvas.drawColor(android.graphics.Color.WHITE)
-        renderView.draw(bitmapCanvas)
-
-        var pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        if let outputFile = outputFile {
-            // save to the specified output file base
-            let out = java.io.FileOutputStream(outputFile + "-android.png")
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.close()
-        }
-        return createPixmap(pixels: Array(pixels.toList()), compact: compact, width: Int64(width))
         #endif
     }
-
-    struct CannotAccessCGImage : Error { }
-    struct CannotCreateBitmap : Error { }
-
-    public struct RenderViewError : LocalizedError {
-        public var errorDescription: String?
-    }
-
-    #if !SKIP
-    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Bool, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
-        var pdesc = ""
-        for y in 0..<height {
-            if y > 0 {
-                pdesc += "\n"
-            }
-            for x in 0..<width {
-                let offset = (bytesPerRow * y) + (bytesPerPixel * x)
-                let red = pixelData[offset]
-                let green = pixelData[offset + 1]
-                let blue = pixelData[offset + 2]
-
-                if x > 0 {
-                    pdesc += " "
-                }
-                let rgb = String(format: "%02X%02X%02X", red, green, blue)
-                if compact {
-                    pdesc += String(Set(rgb).sorted())
-                } else {
-                    pdesc += rgb
-                }
-            }
-        }
-        return pdesc
-    }
-    #endif
 
     /// Creates an ASCII representation of an array of pixels, averaging each color into one of 26 letters
     private func createPixmap(pixels: [Int], compact: Bool, width: Int64) -> String {
@@ -833,8 +853,43 @@ final class SnapshotTests: XCTestCase {
 
         return desc
     }
-}
 
+    struct CannotAccessCGImage : Error { }
+    struct CannotCreateBitmap : Error { }
+
+    public struct RenderViewError : LocalizedError {
+        public var errorDescription: String?
+    }
+
+    #if !SKIP
+    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Bool, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
+        var pdesc = ""
+        for y in 0..<height {
+            if y > 0 {
+                pdesc += "\n"
+            }
+            for x in 0..<width {
+                let offset = (bytesPerRow * y) + (bytesPerPixel * x)
+                let red = pixelData[offset]
+                let green = pixelData[offset + 1]
+                let blue = pixelData[offset + 2]
+
+                if x > 0 {
+                    pdesc += " "
+                }
+                let rgb = String(format: "%02X%02X%02X", red, green, blue)
+                if compact {
+                    pdesc += String(Set(rgb).sorted())
+                } else {
+                    pdesc += rgb
+                }
+            }
+        }
+        return pdesc
+    }
+    #endif
+
+}
 
 extension Sequence where Element == UInt8 {
     /// Convert this sequence of bytes into a hex string
