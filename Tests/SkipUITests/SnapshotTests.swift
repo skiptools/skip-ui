@@ -205,11 +205,11 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testColorBlackCompact() throws {
-        XCTAssertEqual("0", try render(compact: true, view: Color.black.frame(width: 1.0, height: 1.0)))
+        XCTAssertEqual("0", try render(compact: 1, view: Color.black.frame(width: 1.0, height: 1.0)))
     }
 
     func testColorWhiteCompact() throws {
-        XCTAssertEqual("F", try render(compact: true, view: Color.white.frame(width: 1.0, height: 1.0)))
+        XCTAssertEqual("F", try render(compact: 1, view: Color.white.frame(width: 1.0, height: 1.0)))
     }
 
     func testColorClearDark() throws {
@@ -344,7 +344,7 @@ final class SnapshotTests: XCTestCase {
         #if !SKIP
         throw XCTSkip("Android-only function")
         #else
-        XCTAssertEqual(try render(compact: true, view: ComposeView(content: { ctx in
+        XCTAssertEqual(try render(compact: 1, view: ComposeView(content: { ctx in
             androidx.compose.foundation.layout.Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.White).size(12.dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Black).size(6.dp, 6.dp))
             }
@@ -367,7 +367,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testRenderWhiteSquareTiny() throws {
-        XCTAssertEqual(try render(compact: true, view: Color.white.frame(width: 2.0, height: 2.0)),
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)),
         plaf("""
         F F
         F F
@@ -375,7 +375,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testRenderWhiteSquare() throws {
-        XCTAssertEqual(try render(compact: true, view: Color.white.frame(width: 4.0, height: 4.0)),
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)),
         plaf("""
         F F F F
         F F F F
@@ -385,7 +385,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testRenderWhiteSquareBig() throws {
-        XCTAssertEqual(try render(compact: true, view: Color.white.frame(width: 12.0, height: 12.0)),
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 12.0, height: 12.0)),
         plaf("""
         F F F F F F F F F F F F
         F F F F F F F F F F F F
@@ -403,7 +403,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackSquareCenter() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack {
+        XCTAssertEqual(try render(compact: 1, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }),
@@ -425,212 +425,212 @@ final class SnapshotTests: XCTestCase {
 
     func testRotatedSquareAliased() throws {
         // shadow effect of a rotated shape is slightly different on Android and iOS
-        XCTAssertEqual(try render(compact: false, antiAlias: true, view: ZStack {
+        XCTAssertEqual(try render(compact: 2, antiAlias: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
         }),
         plaf("""
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 070707 070707 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 070707 B6B6B6 B6B6B6 070707 000000 000000 000000 000000
-        000000 000000 000000 070707 B6B6B6 FFFFFF FFFFFF B6B6B6 070707 000000 000000 000000
-        000000 000000 070707 B6B6B6 FFFFFF FFFFFF FFFFFF FFFFFF B6B6B6 070707 000000 000000
-        000000 070707 B6B6B6 FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF B6B6B6 070707 000000
-        000000 070707 B6B6B6 FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF B6B6B6 070707 000000
-        000000 000000 070707 B6B6B6 FFFFFF FFFFFF FFFFFF FFFFFF B6B6B6 070707 000000 000000
-        000000 000000 000000 070707 B6B6B6 FFFFFF FFFFFF B6B6B6 070707 000000 000000 000000
-        000000 000000 000000 000000 070707 B6B6B6 B6B6B6 070707 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 070707 070707 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 07 07 00 00 00 00 00
+        00 00 00 00 07 B6 B6 07 00 00 00 00
+        00 00 00 07 B6 FF FF B6 07 00 00 00
+        00 00 07 B6 FF FF FF FF B6 07 00 00
+        00 07 B6 FF FF FF FF FF FF B6 07 00
+        00 07 B6 FF FF FF FF FF FF B6 07 00
+        00 00 07 B6 FF FF FF FF B6 07 00 00
+        00 00 00 07 B6 FF FF B6 07 00 00 00
+        00 00 00 00 07 B6 B6 07 00 00 00 00
+        00 00 00 00 00 07 07 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
         """, android: """
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 A0A0A0 9F9F9F 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 A0A0A0 FFFFFF FFFFFF 9F9F9F 000000 000000 000000 000000
-        000000 000000 000000 A0A0A0 FFFFFF FFFFFF FFFFFF FFFFFF 9F9F9F 000000 000000 000000
-        000000 000000 A0A0A0 FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF 9F9F9F 000000 000000
-        000000 000000 A0A0A0 FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF A0A0A0 000000 000000
-        000000 000000 000000 A0A0A0 FFFFFF FFFFFF FFFFFF FFFFFF A0A0A0 000000 000000 000000
-        000000 000000 000000 000000 A0A0A0 FFFFFF FFFFFF A0A0A0 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 A0A0A0 A0A0A0 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 A0 9F 00 00 00 00 00
+        00 00 00 00 A0 FF FF 9F 00 00 00 00
+        00 00 00 A0 FF FF FF FF 9F 00 00 00
+        00 00 A0 FF FF FF FF FF FF 9F 00 00
+        00 00 A0 FF FF FF FF FF FF A0 00 00
+        00 00 00 A0 FF FF FF FF A0 00 00 00
+        00 00 00 00 A0 FF FF A0 00 00 00 00
+        00 00 00 00 00 A0 A0 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
         """))
     }
 
     func testRotatedSquare() throws {
         // aliasing effect of a rotated shape is slightly different on Android and iOS so disable
         // TODO: anti-aliasing on Android doesn't yet work
-        XCTAssertEqual(try render(compact: true, antiAlias: false, view: ZStack {
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
         }),
         plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 F F 0 0 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 F F F F F F F F 0 0
-        0 F F F F F F F F F F 0
-        0 F F F F F F F F F F 0
-        0 0 F F F F F F F F 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 0 0 F F 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 FF FF 00 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 FF FF FF FF FF FF 00 00 00
+        00 00 FF FF FF FF FF FF FF FF 00 00
+        00 FF FF FF FF FF FF FF FF FF FF 00
+        00 FF FF FF FF FF FF FF FF FF FF 00
+        00 00 FF FF FF FF FF FF FF FF 00 00
+        00 00 00 FF FF FF FF FF FF 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 00 FF FF 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
         """, android: """
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0A 9F 0 0 0 0 0
-        0 0 0 0 0A F F 9F 0 0 0 0
-        0 0 0 0A F F F F 9F 0 0 0
-        0 0 0A F F F F F F 9F 0 0
-        0 0 0A F F F F F F 0A 0 0
-        0 0 0 0A F F F F 0A 0 0 0
-        0 0 0 0 0A F F 0A 0 0 0 0
-        0 0 0 0 0 0A 0A 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 A0 9F 00 00 00 00 00
+        00 00 00 00 A0 FF FF 9F 00 00 00 00
+        00 00 00 A0 FF FF FF FF 9F 00 00 00
+        00 00 A0 FF FF FF FF FF FF 9F 00 00
+        00 00 A0 FF FF FF FF FF FF A0 00 00
+        00 00 00 A0 FF FF FF FF A0 00 00 00
+        00 00 00 00 A0 FF FF A0 00 00 00 00
+        00 00 00 00 00 A0 A0 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
         """))
     }
 
     func testDrawCourierBar() throws {
-        XCTAssertEqual(try render(compact: false, view: ZStack {
+        XCTAssertEqual(try render(compact: 2, view: ZStack {
             Text("|").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
         }.frame(width: 7.0, height: 8.0).background(Color.white)),
         plaf("""
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F5F5F5 9F9F9F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF F6F6F6 A5A5A5 FFFFFF FFFFFF FFFFFF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F5 9F FF FF FF
+        FF FF F6 A5 FF FF FF
         """, macos: """
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 6F6F6F FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 747474 FFFFFF FFFFFF FFFFFF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 6F FF FF FF
+        FF FF FF 74 FF FF FF
         """, android: """
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF A9A9A9 FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF A1A1A1 FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF AAAAAA FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF
+        FF FF FF A9 FF FF FF
+        FF FF FF A1 FF FF FF
+        FF FF FF A1 FF FF FF
+        FF FF FF A1 FF FF FF
+        FF FF FF AA FF FF FF
+        FF FF FF FF FF FF FF
         """))
     }
 
     func testDrawTextDefaultFont() throws {
-        XCTAssertEqual(try render(compact: false, view: ZStack {
+        XCTAssertEqual(try render(compact: 2, view: ZStack {
             Text("T").foregroundColor(Color.white)
         }.background(Color.black)),
         plaf("""
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        0A0A0A B1B1B1 CECECE CDCDCD C9C9C9 C2C2C2 CBCBCB CDCDCD CFCFCF 919191 000000
-        070707 797979 8C8C8C 8A8A8A B3B3B3 FFFFFF 9F9F9F 8B8B8B 8D8D8D 646464 000000
-        000000 000000 000000 000000 4A4A4A FCFCFC 1D1D1D 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 515151 FCFCFC 262626 000000 000000 000000 000000
-        000000 000000 000000 000000 535353 FFFFFF 272727 000000 000000 000000 000000
-        000000 000000 000000 000000 414141 CBCBCB 1F1F1F 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        0A B1 CE CD C9 C2 CB CD CF 91 00
+        07 79 8C 8A B3 FF 9F 8B 8D 64 00
+        00 00 00 00 4A FC 1D 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 51 FC 26 00 00 00 00
+        00 00 00 00 53 FF 27 00 00 00 00
+        00 00 00 00 41 CB 1F 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00
         """, macos: """
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
-        535353 929292 929292 929292 929292 929292 929292 767676 000000
-        8F8F8F F6F6F6 F6F6F6 FFFFFF FFFFFF F6F6F6 F6F6F6 C9C9C9 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A8A8A8 E5E5E5 000000 000000 000000 000000
-        000000 000000 000000 A2A2A2 E0E0E0 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000 000000
+        00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00
+        53 92 92 92 92 92 92 76 00
+        8F F6 F6 FF FF F6 F6 C9 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A8 E5 00 00 00 00
+        00 00 00 A2 E0 00 00 00 00
+        00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00
         """, android: """
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        B6B6B6 F7F7F7 F7F7F7 F7F7F7 F7F7F7 F7F7F7 F7F7F7 F7F7F7
-        2A2A2A 393939 393939 A3A3A3 E3E3E3 393939 393939 393939
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 949494 DFDFDF 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
-        000000 000000 000000 000000 000000 000000 000000 000000
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        B6 F7 F7 F7 F7 F7 F7 F7
+        2A 39 39 A3 E3 39 39 39
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 94 DF 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
         """))
     }
 
     func testDrawTextMonospacedFont() throws {
-        XCTAssertEqual(try render(compact: false, antiAlias: false, view: ZStack {
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: ZStack {
             Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
         }.frame(width: 8.0, height: 8.0).background(Color.white)),
         plaf("""
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF E2E2E2 9C9C9C 9B9B9B A1A1A1 F0F0F0 FFFFFF
-        FFFFFF FFFFFF A9A9A9 8D8D8D 737373 878787 C8C8C8 FFFFFF
-        FFFFFF FFFFFF E0E0E0 E0E0E0 8E8E8E E5E5E5 E9E9E9 FFFFFF
-        FFFFFF FFFFFF FFFFFF F4F4F4 828282 FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF A8A8A8 5A5A5A BFBFBF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FAFAFA FBFBFB FAFAFA FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FF FF FF FF FF FF FF FF
+        FF FF E2 9C 9B A1 F0 FF
+        FF FF A9 8D 73 87 C8 FF
+        FF FF E0 E0 8E E5 E9 FF
+        FF FF FF F4 82 FF FF FF
+        FF FF FF A8 5A BF FF FF
+        FF FF FF FA FB FA FF FF
+        FF FF FF FF FF FF FF FF
         """, macos: """
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF 5F5F5F 505050 181818 404040 929292 FFFFFF
-        FFFFFF FFFFFF 565656 FFFFFF 4D4D4D CFCFCF 878787 FFFFFF
-        FFFFFF FFFFFF DFDFDF FFFFFF 4D4D4D F9F9F9 E5E5E5 FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF 4D4D4D FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF 5E5E5E 191919 7F7F7F FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FF FF FF FF FF FF FF FF
+        FF FF 5F 50 18 40 92 FF
+        FF FF 56 FF 4D CF 87 FF
+        FF FF DF FF 4D F9 E5 FF
+        FF FF FF FF 4D FF FF FF
+        FF FF FF 5E 19 7F FF FF
+        FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF
         """, android: """
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
-        FFFFFF FFFFFF 979797 000000 000000 000000 B9B9B9 FFFFFF
-        FFFFFF FFFFFF B6B6B6 FFFFFF B6B6B6 FEFEFE B7B7B7 FFFFFF
-        FFFFFF FFFFFF F8F8F8 FFFFFF B6B6B6 FFFFFF F8F8F8 FFFFFF
-        FFFFFF FFFFFF FFFFFF 404040 000000 707070 FFFFFF FFFFFF
-        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF
+        FF FF 97 00 00 00 B9 FF
+        FF FF B6 FF B6 FE B7 FF
+        FF FF F8 FF B6 FF F8 FF
+        FF FF FF 40 00 70 FF FF
+        FF FF FF FF FF FF FF FF
         """))
     }
 
 
     func testZStackSquareCenterInset() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack {
+        XCTAssertEqual(try render(compact: 1, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 4.0, height: 4.0)
         }),
@@ -651,7 +651,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackOpacityOverlay() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack {
+        XCTAssertEqual(try render(compact: 1, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.opacity(0.6).frame(width: 6.0, height: 6.0)
         }),
@@ -672,7 +672,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackMultiOpacityOverlay() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack {
+        XCTAssertEqual(try render(compact: 1, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.opacity(0.8).frame(width: 8.0, height: 8.0)
             Color.black.opacity(0.5).frame(width: 4.0, height: 4.0)
@@ -695,7 +695,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackSquareBottomTrailing() throws {
-        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testZStackSquareBottomTrailing", compact: true, view: ZStack(alignment: .bottomTrailing) {
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testZStackSquareBottomTrailing", compact: 1, view: ZStack(alignment: .bottomTrailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }),
@@ -716,7 +716,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackSquareTopLeading() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .topLeading) {
+        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .topLeading) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }),
@@ -737,7 +737,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackSquareTop() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .top) {
+        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .top) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }),
@@ -758,7 +758,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackSquareTrailing() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack(alignment: .trailing) {
+        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .trailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }),
@@ -779,7 +779,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testRenderStacks() throws {
-        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", compact: true, view: VStack(spacing: 0.0) {
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", compact: 1, view: VStack(spacing: 0.0) {
             HStack(spacing: 0.0) {
                 VStack(spacing: 0.0) {
                     (Color.black).frame(width: 1.0, height: 2.0)
@@ -813,7 +813,7 @@ final class SnapshotTests: XCTestCase {
         #if !SKIP
         throw XCTSkip("Android-only function")
         #else
-        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderCustomCanvas", compact: true, view: ComposeView(content: { ctx in
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderCustomCanvas", compact: 1, view: ComposeView(content: { ctx in
             androidx.compose.foundation.layout.Box(modifier: Modifier.size(12.dp).background(androidx.compose.ui.graphics.Color.White), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: Modifier.size(6.dp, 6.dp).background(androidx.compose.ui.graphics.Color.Black))
             }
@@ -838,7 +838,7 @@ final class SnapshotTests: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Bool = false, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -1015,8 +1015,8 @@ final class SnapshotTests: XCTestCase {
     }
     #endif
 
-    /// Creates an ASCII representation of an array of pixels, averaging each color into one of 26 letters
-    private func createPixmap(pixels: [Int], compact: Bool, width: Int64) -> String {
+    /// Creates an ASCII representation of an array of pixels
+    private func createPixmap(pixels: [Int], compact: Int?, width: Int64) -> String {
         func rgb(_ packedColor: Int) -> String {
             let red = (packedColor >> 16) & 0xFF
             let green = (packedColor >> 8) & 0xFF
@@ -1029,12 +1029,17 @@ final class SnapshotTests: XCTestCase {
             let rgb = String(format: fmt, red, green, blue)
             #endif
 
-            if compact {
+            if let compact = compact {
                 #if SKIP
-                return rgb.toCharArray().toSet().sorted().joinToString("")
+                let parts = Set(rgb.toCharArray().toSet())
                 #else
-                return String(Set(rgb).sorted())
+                let parts = Set(rgb)
                 #endif
+                if parts.count > compact {
+                    return rgb // overflow will return the full string
+                } else {
+                    return rgb.dropLast(rgb.count - compact).description
+                }
             } else {
                 return rgb
             }
@@ -1060,7 +1065,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     #if !SKIP
-    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Bool, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
+    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
         var pdesc = ""
         for y in 0..<height {
             if y > 0 {
@@ -1076,8 +1081,13 @@ final class SnapshotTests: XCTestCase {
                     pdesc += " "
                 }
                 let rgb = String(format: "%02X%02X%02X", red, green, blue)
-                if compact {
-                    pdesc += String(Set(rgb).sorted())
+                if let compact = compact {
+                    let parts = Set(rgb)
+                    if parts.count > compact {
+                        pdesc += rgb // overflow will return the full string
+                    } else {
+                        pdesc += String(rgb.dropLast(rgb.count - compact))
+                    }
                 } else {
                     pdesc += rgb
                 }
