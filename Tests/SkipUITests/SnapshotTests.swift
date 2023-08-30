@@ -809,6 +809,42 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
+    func testHStackAlignment() throws {
+        // TODO: Android HStack Color elements do not seem to expand to fill the space
+        XCTAssertEqual(try render(compact: 2, view: HStack(alignment: .bottom, spacing: 0.0) {
+            Color.black.frame(height: 10.0)
+            Color.white.opacity(0.8).frame(height: 12.0)
+            Color.black.frame(height: 10.0)
+        }.background(Color.white).frame(width: 12.0, height: 12.0)),
+        plaf("""
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        00 00 00 00 FF FF FF FF 00 00 00 00
+        """, android: """
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF
+        """))
+    }
+
     func testRenderCustomCanvas() throws {
         #if !SKIP
         throw XCTSkip("Android-only function")
