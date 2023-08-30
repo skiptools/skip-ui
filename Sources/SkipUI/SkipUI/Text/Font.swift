@@ -20,37 +20,66 @@ public struct Font : Hashable, Sendable {
 
 extension Font {
     #if SKIP
-    /*
-     Default typography scale for Material Design 3
-     
-     M3    Default Font Size/Line Height
-     displayLarge    Roboto 57/64
-     displayMedium    Roboto 45/52
-     displaySmall    Roboto 36/44
-     headlineLarge    Roboto 32/40
-     headlineMedium    Roboto 28/36
-     headlineSmall    Roboto 24/32
-     titleLarge    New-Roboto Medium 22/28
-     titleMedium    Roboto Medium 16/24
-     titleSmall    Roboto Medium 14/20
-     bodyLarge    Roboto 16/24
-     bodyMedium    Roboto 14/20
-     bodySmall    Roboto 12/16
-     labelLarge    Roboto Medium 14/20
-     labelMedium    Roboto Medium 12/16
-     labelSmall    New Roboto Medium, 11/16
-     */
-    public static let largeTitle = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.displaySmall })
-    public static let title = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.titleLarge })
-    public static let title2 = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.titleMedium })
-    public static let title3 = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.titleSmall })
-    public static let headline = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.headlineSmall })
-    public static let subheadline = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.bodyLarge })
-    public static let body = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.bodyMedium })
-    public static let callout = Font(fontImpl:  { androidx.compose.material3.MaterialTheme.typography.bodySmall })
-    public static let footnote = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.labelSmall })
-    public static let caption = Font(fontImpl: { androidx.compose.material3.MaterialTheme.typography.labelMedium })
-    public static let caption2 = Font(fontImpl:  { androidx.compose.material3.MaterialTheme.typography.labelSmall })
+    // M3: Default Font Size/Line Height
+    // displayLarge: Roboto 57/64
+    // displayMedium: Roboto 45/52
+    // displaySmall: Roboto 36/44
+    // headlineLarge: Roboto 32/40
+    // headlineMedium: Roboto 28/36
+    // headlineSmall: Roboto 24/32
+    // titleLarge: New-Roboto Medium 22/28
+    // titleMedium: Roboto Medium 16/24
+    // titleSmall: Roboto Medium 14/20
+    // bodyLarge: Roboto 16/24
+    // bodyMedium: Roboto 14/20
+    // bodySmall: Roboto 12/16
+    // labelLarge: Roboto Medium 14/20
+    // labelMedium: Roboto Medium 12/16
+    // labelSmall: New Roboto Medium 11/16
+
+    public static let largeTitle = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.displaySmall
+    })
+
+    public static let title = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.titleLarge
+    })
+
+    public static let title2 = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.titleMedium
+    })
+
+    public static let title3 = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.titleSmall
+    })
+
+    public static let headline = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.headlineSmall
+    })
+
+    public static let subheadline = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.bodyLarge
+    })
+
+    public static let body = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.bodyMedium
+    })
+
+    public static let callout = Font(fontImpl:  {
+        androidx.compose.material3.MaterialTheme.typography.bodySmall
+    })
+
+    public static let footnote = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.labelSmall
+    })
+
+    public static let caption = Font(fontImpl: {
+        androidx.compose.material3.MaterialTheme.typography.labelMedium
+    })
+
+    public static let caption2 = Font(fontImpl:  {
+        androidx.compose.material3.MaterialTheme.typography.labelSmall
+    })
     #endif
 
     public enum TextStyle : CaseIterable, Hashable, Sendable {
@@ -239,19 +268,25 @@ extension Font {
 }
 
 extension Font {
-    @available(*, unavailable)
     public static func custom(_ name: String, size: CGFloat) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            // note that Android can find "courier" but not "Courier"
+            androidx.compose.ui.text.TextStyle(fontFamily: androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create(name, android.graphics.Typeface.NORMAL)), fontSize: androidx.compose.ui.unit.TextUnit(Float(size), androidx.compose.ui.unit.TextUnitType.Em))
+        })
+        #else
         fatalError()
+        #endif
     }
 
-    @available(*, unavailable)
     public static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
-        fatalError()
+        // TODO: handle textStyle
+        return Font.custom(name, size: size)
     }
 
-    @available(*, unavailable)
     public static func custom(_ name: String, fixedSize: CGFloat) -> Font {
-        fatalError()
+        // TODO: handle fixed size (somehow)
+        return Font.custom(name, size: fixedSize)
     }
 
     @available(*, unavailable)

@@ -56,6 +56,8 @@ import Foundation
 // SKIP INSERT: import androidx.compose.ui.graphics.SolidColor
 // SKIP INSERT: import androidx.compose.ui.graphics.toPixelMap
 // SKIP INSERT: import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+// SKIP INSERT: import androidx.compose.ui.graphics.nativeCanvas
+// SKIP INSERT: import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 // SKIP INSERT: import androidx.compose.ui.input.key.KeyEvent
 // SKIP INSERT: import androidx.compose.ui.input.key.NativeKeyEvent
@@ -418,9 +420,9 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
-    func testRotatedSquare() throws {
+    func testRotatedSquareAliased() throws {
         // shadow effect of a rotated shape is slightly different on Android and iOS
-        XCTAssertEqual(try render(compact: false, view: ZStack {
+        XCTAssertEqual(try render(compact: false, antiAlias: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
         }),
@@ -450,6 +452,42 @@ final class SnapshotTests: XCTestCase {
         000000 000000 000000 000000 000000 A0A0A0 A0A0A0 000000 000000 000000 000000 000000
         000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
         000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000 000000
+        """))
+    }
+
+    func testRotatedSquare() throws {
+        // aliasing effect of a rotated shape is slightly different on Android and iOS so disable
+        // TODO: anti-aliasing on Android doesn't yet work
+        XCTAssertEqual(try render(compact: true, antiAlias: false, view: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
+        }),
+        plaf("""
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 F F 0 0 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 F F F F F F F F 0 0
+        0 F F F F F F F F F F 0
+        0 F F F F F F F F F F 0
+        0 0 F F F F F F F F 0 0
+        0 0 0 F F F F F F 0 0 0
+        0 0 0 0 F F F F 0 0 0 0
+        0 0 0 0 0 F F 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        """, android: """
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0A 9F 0 0 0 0 0
+        0 0 0 0 0A F F 9F 0 0 0 0
+        0 0 0 0A F F F F 9F 0 0 0
+        0 0 0A F F F F F F 9F 0 0
+        0 0 0A F F F F F F 0A 0 0
+        0 0 0 0A F F F F 0A 0 0 0
+        0 0 0 0 0A F F 0A 0 0 0 0
+        0 0 0 0 0 0A 0A 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
@@ -519,7 +557,7 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
-    func testDrawT() throws {
+    func testDrawTextDefaultFont() throws {
         XCTAssertEqual(try render(compact: false, view: ZStack {
             Text("T").foregroundColor(Color.white)
         }.background(Color.black)),
@@ -584,6 +622,38 @@ final class SnapshotTests: XCTestCase {
         000000 000000 000000 000000 000000 000000 000000 000000
         """))
     }
+
+    func testDrawTextMonospacedFont() throws {
+        #if SKIP
+        throw XCTSkip("Android custom font TODO")
+        #else
+        // note that Android needs "courier" not "Courier" (Darwin will find either)
+        // FIXME: Kotlin error: “Unresolved reference: custom”
+        XCTAssertEqual(try render(compact: false, antiAlias: false, view: ZStack {
+            Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
+        }.background(Color.white)),
+        plaf("""
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        E2E2E2 9C9C9C 9B9B9B A1A1A1 F0F0F0
+        A9A9A9 8D8D8D 737373 878787 C8C8C8
+        E0E0E0 E0E0E0 8E8E8E E5E5E5 E9E9E9
+        FFFFFF F4F4F4 828282 FFFFFF FFFFFF
+        FFFFFF A8A8A8 5A5A5A BFBFBF FFFFFF
+        FFFFFF FAFAFA FBFBFB FAFAFA FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        """, macos: """
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        5F5F5F 505050 181818 404040 929292
+        565656 FFFFFF 4D4D4D CFCFCF 878787
+        DFDFDF FFFFFF 4D4D4D F9F9F9 E5E5E5
+        FFFFFF FFFFFF 4D4D4D FFFFFF FFFFFF
+        FFFFFF 5E5E5E 191919 7F7F7F FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        FFFFFF FFFFFF FFFFFF FFFFFF FFFFFF
+        """))
+        #endif
+    }
+
 
     func testZStackSquareCenterInset() throws {
         XCTAssertEqual(try render(compact: true, view: ZStack {
@@ -794,47 +864,38 @@ final class SnapshotTests: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Bool = false, darkMode: Bool = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Bool = false, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
 
         // SKIP INSERT: lateinit
         var renderView: android.view.View
         composeRule.setContent {
-            //androidx.compose.material3.Text(text: "ABCDEF")
-            renderView = LocalView.current
             // render the compose view to the canvas
-            view.Compose(ComposeContext())
-
-            //renderView.measure(android.view.View.MeasureSpec.UNSPECIFIED, android.view.View.MeasureSpec.UNSPECIFIED)
-            //renderView.layout(0, 0, renderView.measuredWidth, renderView.measuredHeight)
-
-            // not to be confused with android.graphics.Canvas
-
-            // just calling Canvas here goes causes a hang
-            //androidx.compose.foundation.Canvas(modifier: Modifier.fillMaxSize()) {
-            //    drawIntoCanvas { cnvs in
-            //        let paint = androidx.compose.ui.graphics.Paint()
-            //        paint.color = androidx.compose.ui.graphics.Color.Red
-            //        cnvs.drawCircle(androidx.compose.ui.geometry.Offset(Float(5.0), Float(5.0)), Float(10.0), paint)
-            //    }
-            //}
+            renderView = LocalView.current
+            let ctx = ComposeContext()
+            view.Compose(ctx)
         }
 
         // https://github.com/robolectric/robolectric/issues/8071 — cannot use captureToImage from Robolectric
         // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
-        // runBlocking {
-        //     onRoot().captureToImage().asAndroidBitmap()
-        // }
+        // runBlocking { onRoot().captureToImage().asAndroidBitmap() }
 
         let width = renderView.width
         let height = renderView.height
 
-        //logger.log("### width: \(width) height: \(height)")
-
         // draw the view onto a canvas
         let bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         let bitmapCanvas = android.graphics.Canvas(bitmap)
-        renderView.draw(bitmapCanvas)
+
+        let paint = androidx.compose.ui.graphics.Paint().asFrameworkPaint()
+        if let antiAlias = antiAlias {
+            // doesn't seem to work
+            paint.isAntiAlias = antiAlias
+            paint.isFilterBitmap = antiAlias
+        }
+        bitmapCanvas.drawPaint(paint)
+
+        renderView.draw(bitmapCanvas) // perform the draw
 
         //bitmapCanvas.drawColor(android.graphics.Color.WHITE)
 
@@ -897,6 +958,10 @@ final class SnapshotTests: XCTestCase {
         let image: UIImage = renderer.image { ctx in
             // doesn't work for SwiftUI shape/color views
             //view.drawHierarchy(in: bounds, afterScreenUpdates: true)
+            if let antiAlias = antiAlias, let context = UIGraphicsGetCurrentContext() {
+                context.setShouldAntialias(antiAlias)
+                context.setAllowsAntialiasing(antiAlias)
+            }
             view.layer.render(in: ctx.cgContext)
         }
 
@@ -916,16 +981,17 @@ final class SnapshotTests: XCTestCase {
 
         #elseif canImport(AppKit) // i.e., macOS
 
-        //view.layer?.contentsScale = 0.5
-        //view.layer?.rasterizationScale = 2.0
         view.needsDisplay = true
         view.needsLayout = true
+
         let scaledSize = bounds.size
+
         guard let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(scaledSize.width), pixelsHigh: Int(scaledSize.height), bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else {
             throw RenderViewError(errorDescription: "cannot create bitmap")
         }
 
-        view.cacheDisplay(in: bounds, to: bitmap)
+        //view.draw(bounds) // always just a white square
+        AliasView(frame: view.bounds, containing: view, antiAlias: antiAlias).cacheDisplay(in: bounds, to: bitmap)
 
         // save PNG to the output file base if specified
         if let outputFile = outputFile, let data = bitmap.representation(using: .png, properties: [:]) {
@@ -942,6 +1008,33 @@ final class SnapshotTests: XCTestCase {
 
         #endif
     }
+
+    #if canImport(AppKit)
+    /// A view that renders its subviews with anti-aliasing explicitly enabled or diabled.
+    class AliasView : NSView {
+        let antiAlias: Bool?
+
+        init(frame: NSRect, containing subview: NSView, antiAlias: Bool?) {
+            self.antiAlias = antiAlias
+            super.init(frame: frame)
+            addSubview(subview)
+        }
+        
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) unavailable")
+        }
+        
+        override func draw(_ dirtyRect: NSRect) {
+            guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+            if let antiAlias = antiAlias {
+                ctx.setShouldAntialias(antiAlias)
+                ctx.setAllowsAntialiasing(antiAlias)
+            }
+
+            super.draw(dirtyRect)
+        }
+    }
+    #endif
 
     /// Creates an ASCII representation of an array of pixels, averaging each color into one of 26 letters
     private func createPixmap(pixels: [Int], compact: Bool, width: Int64) -> String {

@@ -133,9 +133,11 @@ extension Color {
     public static let clear = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.Transparent
     })
+
     public static let white = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.White
     })
+
     public static let black = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.Black
     })
