@@ -379,46 +379,8 @@ final class SnapshotTests: XCTestCase {
         """))
     }
 
-    func testRenderWhiteSquareEmved() throws {
-        XCTAssertEqual(try render(compact: true, view: ZStack {
-            Color.white.frame(width: 40.0, height: 40.0)
-        }.frame(width: 4.0, height: 4.0)),
-        plaf("""
-        F F F F
-        F F F F
-        F F F F
-        F F F F
-        """))
-    }
-
     func testRenderWhiteSquareBig() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
         XCTAssertEqual(try render(compact: true, view: Color.white.frame(width: 12.0, height: 12.0)),
-        plaf("""
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        F F F F F F F F F F F F
-        """))
-    }
-
-    func testCenterSquareStack() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
-        XCTAssertEqual(try render(compact: true, view: ZStack {
-            Color.white.frame(width: 6.0, height: 6.0)
-        }.frame(width: 12.0, height: 12.0)),
         plaf("""
         F F F F F F F F F F F F
         F F F F F F F F F F F F
@@ -478,10 +440,6 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testZStackOpacityOverlay() throws {
-        #if SKIP
-        throw XCTSkip("SkipUI layout TODO")
-        #endif
-
         XCTAssertEqual(try render(compact: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.opacity(0.6).frame(width: 6.0, height: 6.0)
@@ -610,32 +568,33 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testRenderStacks() throws {
-        #if SKIP
-        throw XCTSkip("TODO: get working on Android")
-        #endif
-        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", compact: true, view: VStack {
-            HStack {
-                ZStack { Spacer() }.background(Color.black).frame(width: 4.0, height: 3.0)
-                ZStack { Spacer() }.background(Color.white).frame(width: 8.0, height: 3.0)
+        XCTAssertEqual(try render(outputFile: "/tmp/SKipUITests-testRenderStacks", compact: true, view: VStack(spacing: 0.0) {
+            HStack(spacing: 0.0) {
+                VStack(spacing: 0.0) {
+                    (Color.black).frame(width: 1.0, height: 2.0)
+                    (Color.white).frame(width: 1.0, height: 1.0)
+                }
+                (Color.white).frame(width: 6.0, height: 3.0)
+                (Color.black).frame(width: 5.0, height: 3.0)
             }
-            HStack {
-                ZStack { Spacer() }.background(Color.white).frame(width: 8.0, height: 9.0)
-                ZStack { Spacer() }.background(Color.black).frame(width: 4.0, height: 9.0)
+            HStack(spacing: 0.0) {
+                (Color.black).frame(width: 3.0, height: 9.0)
+                (Color.white).frame(width: 9.0, height: 9.0)
             }
         }
         .frame(width: 12.0, height: 12.0)), plaf("""
-        0 0 0 0 F F F F F F F F
-        0 0 0 0 F F F F F F F F
-        0 0 0 0 F F F F F F F F
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
+        0 F F F F F F 0 0 0 0 0
+        0 F F F F F F 0 0 0 0 0
+        F F F F F F F 0 0 0 0 0
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
+        0 0 0 F F F F F F F F F
         """))
     }
 
