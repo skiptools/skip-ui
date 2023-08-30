@@ -2,9 +2,94 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.navigation.NavController
+// SKIP INSERT: import androidx.navigation.compose.NavHost
+// SKIP INSERT: import androidx.navigation.compose.rememberNavController
+
+#if SKIP
+let LocalNavController = compositionLocalOf { null as NavController? }
+#endif
+
+public struct NavigationStack<Root> : View where Root: View {
+    private let root: Root
+
+    public init(@ViewBuilder root: () -> Root) {
+        self.root = root()
+    }
+
+    @available(*, unavailable)
+    public init(path: Any, @ViewBuilder root: () -> Root) {
+        self.root = root()
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        root.Compose(context.content(of: self))
+    }
+
+    @Composable public override func ComposeContent(view: any View, context: ComposeContext) {
+        let destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
+        let navController = rememberNavController()
+        let navigationStack = self
+        // SKIP INSERT: val providedNavController = LocalNavController provides navController
+        CompositionLocalProvider(providedNavController) {
+            NavHost(navController: navController, startDestination: "_root_", modifier: context.modifier) {
+                composable(route: "_root_") {
+                    Box {
+                        view.ComposeContent(ComposeContext())
+                    }
+                }
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+extension View {
+    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D : Hashable, V : View {
+        #if SKIP
+        return NavigationDestination(view: self, dataType: data, destination: destination)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View {
+        return self
+    }
+}
+
+#if SKIP
+struct NavigationDestination {
+    let view: any View
+    let destinationMap: [String: (Any) -> any View]
+
+    init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
+        self.view = view
+        if let navigationDestination = view as? NavigationDestination {
+            var combinedDestinationMap = navigationDestination.destinationMap
+            combinedDestinationMap[String(describing: dataType)] = destination
+            self.destinationMap = combinedDestinationMap
+        } else {
+            self.destinationMap = [String(describing: dataType): destination]
+        }
+    }
+
+    override func ComposeContent(context: ComposeContext) {
+        view.Compose(context)
+    }
+}
+#endif
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
 import struct Foundation.URL
@@ -1280,135 +1365,6 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     public init(from decoder: Decoder) throws { fatalError() }
 }
 
-/// A view that displays a root view and enables you to present additional
-/// views over the root view.
-///
-/// Use a navigation stack to present a stack of views over a root view.
-/// People can add views to the top of the stack by clicking or tapping a
-/// ``NavigationLink``, and remove views using built-in, platform-appropriate
-/// controls, like a Back button or a swipe gesture. The stack always displays
-/// the most recently added view that hasn't been removed, and doesn't allow
-/// the root view to be removed.
-///
-/// To create navigation links, associate a view with a data type by adding a
-/// ``View/navigationDestination(for:destination:)`` modifier inside
-/// the stack's view hierarchy. Then initialize a ``NavigationLink`` that
-/// presents an instance of the same kind of data. The following stack displays
-/// a `ParkDetails` view for navigation links that present data of type `Park`:
-///
-///     NavigationStack {
-///         List(parks) { park in
-///             NavigationLink(park.name, value: park)
-///         }
-///         .navigationDestination(for: Park.self) { park in
-///             ParkDetails(park: park)
-///         }
-///     }
-///
-/// In this example, the ``List`` acts as the root view and is always
-/// present. Selecting a navigation link from the list adds a `ParkDetails`
-/// view to the stack, so that it covers the list. Navigating back removes
-/// the detail view and reveals the list again. The system disables backward
-/// navigation controls when the stack is empty and the root view, namely
-/// the list, is visible.
-///
-/// ### Manage navigation state
-///
-/// By default, a navigation stack manages state to keep track of the views on
-/// the stack. However, your code can share control of the state by initializing
-/// the stack with a binding to a collection of data values that you create.
-/// The stack adds items to the collection as it adds views to the stack and
-/// removes items when it removes views. For example, you can create a ``State``
-/// property to manage the navigation for the park detail view:
-///
-///     @State private var presentedParks: [Park] = []
-///
-/// Initializing the state as an empty array indicates a stack with no views.
-/// Provide a ``Binding`` to this state property using the dollar sign (`$`)
-/// prefix when you create a stack using the ``init(path:root:)-3bt4q``
-/// initializer:
-///
-///     NavigationStack(path: $presentedParks) {
-///         List(parks) { park in
-///             NavigationLink(park.name, value: park)
-///         }
-///         .navigationDestination(for: Park.self) { park in
-///             ParkDetails(park: park)
-///         }
-///     }
-///
-/// Like before, when someone taps or clicks the navigation link for a
-/// park, the stack displays the `ParkDetails` view using the associated park
-/// data. However, now the stack also puts the park data in the `presentedParks`
-/// array. Your code can observe this array to read the current stack state. It
-/// can also modify the array to change the views on the stack. For example, you
-/// can create a method that configures the stack with a specific set of parks:
-///
-///     func showParks() {
-///         presentedParks = [Park("Yosemite"), Park("Sequoia")]
-///     }
-///
-/// The `showParks` method replaces the stack's display with a view that shows
-/// details for Sequoia, the last item in the new `presentedParks` array.
-/// Navigating back from that view removes Sequoia from the array, which
-/// reveals a view that shows details for Yosemite. Use a path to support
-/// deep links, state restoration, or other kinds of programmatic navigation.
-///
-/// ### Navigate to different view types
-///
-/// To create a stack that can present more than one kind of view, you can add
-/// multiple ``View/navigationDestination(for:destination:)`` modifiers
-/// inside the stack's view hierarchy, with each modifier presenting a
-/// different data type. The stack matches navigation links with navigation
-/// destinations based on their respective data types.
-///
-/// To create a path for programmatic navigation that contains more than one
-/// kind of data, you can use a ``NavigationPath`` instance as the path.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@MainActor public struct NavigationStack<Data, Root> : View where Root : View {
-
-    /// Creates a navigation stack that manages its own navigation state.
-    ///
-    /// If you want to access the navigation state, use
-    /// ``init(path:root:)-3bt4q`` instead.
-    ///
-    /// - Parameters:
-    ///   - root: The view to display when the stack is empty.
-    @MainActor public init(@ViewBuilder root: () -> Root) where Data == NavigationPath { fatalError() }
-
-    /// Creates a navigation stack with heterogeneous navigation state that you
-    /// can control.
-    ///
-    /// If you prefer to store the navigation state as a collection of data
-    /// values, use ``init(path:root:)-3bt4q`` instead. If you don't need
-    /// access to the navigation state, use ``init(root:)``.
-    ///
-    /// - Parameters:
-    ///   - path: A ``Binding`` to the navigation state for this stack.
-    ///   - root: The view to display when the stack is empty.
-    @MainActor public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> Root) where Data == NavigationPath { fatalError() }
-
-    /// Creates a navigation stack with homogeneous navigation state that you
-    /// can control.
-    ///
-    /// If you prefer to store the navigation state as a ``NavigationPath``,
-    /// use ``init(path:root:)-63x0h`` instead. If you don't need
-    /// access to the navigation state, use ``init(root:)``.
-    ///
-    /// - Parameters:
-    ///   - path: A ``Binding`` to the navigation state for this stack.
-    ///   - root: The view to display when the stack is empty.
-    @MainActor public init(path: Binding<Data>, @ViewBuilder root: () -> Root) where Data : MutableCollection, Data : RandomAccessCollection, Data : RangeReplaceableCollection, Data.Element : Hashable { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
 /// A view for presenting a stack of views that represents a visible path in a
 /// navigation hierarchy.
 ///
@@ -1725,88 +1681,6 @@ extension View {
     @available(watchOS, unavailable)
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
     public func navigationBarItems<T>(trailing: T) -> some View where T : View { return stubView() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Associates a destination view with a presented data type for use within
-    /// a navigation stack.
-    ///
-    /// Add this view modifer to a view inside a ``NavigationStack`` to
-    /// describe the view that the stack displays when presenting
-    /// a particular kind of data. Use a ``NavigationLink`` to present
-    /// the data. For example, you can present a `ColorDetail` view for
-    /// each presentation of a ``Color`` instance:
-    ///
-    ///     NavigationStack {
-    ///         List {
-    ///             NavigationLink("Mint", value: Color.mint)
-    ///             NavigationLink("Pink", value: Color.pink)
-    ///             NavigationLink("Teal", value: Color.teal)
-    ///         }
-    ///         .navigationDestination(for: Color.self) { color in
-    ///             ColorDetail(color: color)
-    ///         }
-    ///         .navigationTitle("Colors")
-    ///     }
-    ///
-    /// You can add more than one navigation destination modifier to the stack
-    /// if it needs to present more than one kind of data.
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation stack can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - data: The type of data that this destination matches.
-    ///   - destination: A view builder that defines a view to display
-    ///     when the stack's navigation state contains a value of
-    ///     type `data`. The closure takes one argument, which is the value
-    ///     of the data to present.
-    public func navigationDestination<D, C>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return stubView() }
-
-
-    /// Associates a destination view with a binding that can be used to push
-    /// the view onto a ``NavigationStack``.
-    ///
-    /// In general, favor binding a path to a navigation stack for programmatic
-    /// navigation. Add this view modifer to a view inside a ``NavigationStack``
-    /// to programmatically push a single view onto the stack. This is useful
-    /// for building components that can push an associated view. For example,
-    /// you can present a `ColorDetail` view for a particular color:
-    ///
-    ///     @State private var showDetails = false
-    ///     var favoriteColor: Color
-    ///
-    ///     NavigationStack {
-    ///         VStack {
-    ///             Circle()
-    ///                 .fill(favoriteColor)
-    ///             Button("Show details") {
-    ///                 showDetails = true
-    ///             }
-    ///         }
-    ///         .navigationDestination(isPresented: $showDetails) {
-    ///             ColorDetail(color: favoriteColor)
-    ///         }
-    ///         .navigationTitle("My Favorite Color")
-    ///     }
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation stack can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to a Boolean value that indicates whether
-    ///     `destination` is currently presented.
-    ///   - destination: A view to present.
-    public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View { return stubView() }
 
 }
 
