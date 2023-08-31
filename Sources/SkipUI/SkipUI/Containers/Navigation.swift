@@ -4,11 +4,11 @@
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.navigation.NavController
-// SKIP INSERT: import androidx.navigation.compose.NavHost
+// SKIP INSERT: import androidx.navigation.compose.composable
 // SKIP INSERT: import androidx.navigation.compose.rememberNavController
 
 #if SKIP
-let LocalNavController = compositionLocalOf { null as NavController? }
+let LocalNavController: androidx.compose.runtime.ProvidableCompositionLocal<NavController?> = androidx.compose.runtime.compositionLocalOf { nil as NavController? }
 #endif
 
 public struct NavigationStack<Root> : View where Root: View {
@@ -31,13 +31,12 @@ public struct NavigationStack<Root> : View where Root: View {
     @Composable public override func ComposeContent(view: any View, context: ComposeContext) {
         let destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
         let navController = rememberNavController()
-        let navigationStack = self
         // SKIP INSERT: val providedNavController = LocalNavController provides navController
-        CompositionLocalProvider(providedNavController) {
-            NavHost(navController: navController, startDestination: "_root_", modifier: context.modifier) {
+        androidx.compose.runtime.CompositionLocalProvider(providedNavController) {
+            androidx.navigation.compose.NavHost(navController: navController, startDestination: "_root_", modifier: context.modifier) {
                 composable(route: "_root_") {
-                    Box {
-                        view.ComposeContent(ComposeContext())
+                    androidx.compose.foundation.layout.Box {
+                        view.ComposeContent(context: ComposeContext())
                     }
                 }
             }
@@ -51,9 +50,9 @@ public struct NavigationStack<Root> : View where Root: View {
 }
 
 extension View {
-    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D : Hashable, V : View {
+    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D : Hashable, D : Any, V : View {
         #if SKIP
-        return NavigationDestination(view: self, dataType: data, destination: destination)
+        return NavigationDestination(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
         #else
         return self
         #endif
@@ -66,9 +65,9 @@ extension View {
 }
 
 #if SKIP
-struct NavigationDestination {
+struct NavigationDestination: View {
     let view: any View
-    let destinationMap: [String: (Any) -> any View]
+    var destinationMap: [String: (Any) -> any View] = [:]
 
     init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
         self.view = view
@@ -77,11 +76,11 @@ struct NavigationDestination {
             combinedDestinationMap[String(describing: dataType)] = destination
             self.destinationMap = combinedDestinationMap
         } else {
-            self.destinationMap = [String(describing: dataType): destination]
+            self.destinationMap[String(describing: dataType)] = destination
         }
     }
 
-    override func ComposeContent(context: ComposeContext) {
+    @Composable override func ComposeContent(context: ComposeContext) {
         view.Compose(context)
     }
 }

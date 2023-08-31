@@ -16,6 +16,7 @@
     /// Used to implement @Bindable.
     public static func instance<ObjectType, Value>(_ object: ObjectType, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
         let capturedObject = object
+        // SKIP NOWARN
         return Binding(get: { get(capturedObject) }, set: { value in set(capturedObject, value) })
     }
     #endif
