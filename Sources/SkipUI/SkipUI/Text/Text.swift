@@ -4,6 +4,9 @@
 
 #if !SKIP
 import struct CoreGraphics.CGFloat
+import struct Foundation.LocalizedStringResource
+#else
+// SKIP INSERT: import skip.foundation.LocalizedStringResource
 #endif
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
@@ -17,6 +20,11 @@ public struct Text: View, Equatable {
 
     public init(verbatim: String) {
         self.text = verbatim
+    }
+
+    public init(_ resource: LocalizedStringResource) {
+        // TODO: handle LocalizedStringResource
+        self.text = resource.key
     }
 
     #if SKIP
@@ -497,8 +505,8 @@ extension Text {
     ///     var object = LocalizedStringResource("pencil")
     ///     Text(object) // Localizes the resource if possible, or displays "pencil" if not.
     ///
-    @available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
-    public init(_ resource: LocalizedStringResource) { fatalError() }
+    //@available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
+    //public init(_ resource: LocalizedStringResource) { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
