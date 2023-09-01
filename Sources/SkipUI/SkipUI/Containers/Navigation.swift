@@ -2,8 +2,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// SKIP INSERT: import androidx.compose.foundation.clickable
+// SKIP INSERT: import androidx.compose.runtime.getValue
+// SKIP INSERT: import androidx.compose.runtime.mutableStateOf
+// SKIP INSERT: import androidx.compose.runtime.remember
+// SKIP INSERT: import androidx.compose.runtime.setValue
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.navigation.NavController
+// SKIP INSERT: import androidx.navigation.navArgument
 // SKIP INSERT: import androidx.navigation.compose.composable
 // SKIP INSERT: import androidx.navigation.compose.rememberNavController
 
@@ -11,8 +17,14 @@
 let LocalNavController: androidx.compose.runtime.ProvidableCompositionLocal<NavController?> = androidx.compose.runtime.compositionLocalOf { nil as NavController? }
 #endif
 
+private typealias DestinationMap = Dictionary<String, (Any) -> any View>
+
+// SKIP ATTRIBUTES: nocopy
 public struct NavigationStack<Root> : View where Root: View {
     private let root: Root
+    #if SKIP
+    private var destinationMap: DestinationMap?
+    #endif
 
     public init(@ViewBuilder root: () -> Root) {
         self.root = root()
@@ -25,21 +37,41 @@ public struct NavigationStack<Root> : View where Root: View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        root.Compose(context.content(of: self))
-    }
+        // SKIP INSERT: var rememberedDestinationMap by remember { mutableStateOf(destinationMap) }
+        destinationMap = rememberedDestinationMap
+        if destinationMap == nil {
+            root.Compose(context.content(of: self))
+            rememberedDestinationMap = destinationMap
+        }
 
-    @Composable public override func ComposeContent(view: any View, context: ComposeContext) {
-        let destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
         let navController = rememberNavController()
         // SKIP INSERT: val providedNavController = LocalNavController provides navController
         androidx.compose.runtime.CompositionLocalProvider(providedNavController) {
-            androidx.navigation.compose.NavHost(navController: navController, startDestination: "_root_", modifier: context.modifier) {
-                composable(route: "_root_") {
+            androidx.navigation.compose.NavHost(navController: navController, startDestination: "navigationroot", modifier: context.modifier) {
+                composable(route: "navigationroot") {
                     androidx.compose.foundation.layout.Box {
-                        view.ComposeContent(context: ComposeContext())
+                        root.Compose(context: ComposeContext())
+                    }
+                }
+                if let destinationMap {
+                    for (route, viewBuilder) in destinationMap {
+                        composable(route: route + "/{value}", arguments = listOf(navArgument("value") { type = androidx.navigation.NavType.StringType })) {
+                            let value = $0.arguments?.getString("value") ?? ""
+                            androidx.compose.foundation.layout.Box {
+                                viewBuilder(value).Compose(context: ComposeContext())
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+
+    @Composable public override func ComposeContent(view: any View, context: ComposeContext) {
+        if destinationMap == nil {
+            destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
+        } else {
+            super.ComposeContent(view: view, context: context)
         }
     }
     #else
@@ -50,7 +82,8 @@ public struct NavigationStack<Root> : View where Root: View {
 }
 
 extension View {
-    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D : Hashable, D : Any, V : View {
+    // SKIP DECLARE: fun <D> navigationDestination(for_: KClass<D>, destination: (D) -> View): View where D: Any
+    public func navigationDestination<V>(for data: Any, @ViewBuilder destination: @escaping (Any) -> V) -> some View where V : View {
         #if SKIP
         return NavigationDestination(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
         #else
@@ -67,7 +100,7 @@ extension View {
 #if SKIP
 struct NavigationDestination: View {
     let view: any View
-    var destinationMap: [String: (Any) -> any View] = [:]
+    let destinationMap: [String: (Any) -> any View]
 
     init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
         self.view = view
@@ -76,7 +109,7 @@ struct NavigationDestination: View {
             combinedDestinationMap[String(describing: dataType)] = destination
             self.destinationMap = combinedDestinationMap
         } else {
-            self.destinationMap[String(describing: dataType)] = destination
+            self.destinationMap = [String(describing: dataType): destination]
         }
     }
 
@@ -86,607 +119,63 @@ struct NavigationDestination: View {
 }
 #endif
 
+public struct NavigationLink : View {
+    let value: Any?
+    let label: any View
+    var route: String {
+        guard let value else {
+            return ""
+        }
+        let base = String(describing: type(of: value))
+        return base + "/" + String(describing: value)
+    }
+
+    public init(value: Any?, @ViewBuilder label: () -> any View) {
+        self.value = value
+        self.label = label()
+    }
+
+    public init(_ title: String, value: Any?) {
+        self.init(value: value, label: { Text(title) })
+    }
+
+    @available(*, unavailable)
+    public init(@ViewBuilder destination: () -> any View, @ViewBuilder label: () -> any View) {
+        self.value = nil
+        self.label = label()
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, @ViewBuilder destination: () -> any View) {
+        self.label = EmptyView()
+        self.value = nil
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let navController = LocalNavController.current
+        var context = context
+        context.parent = self
+        context.modifier = context.modifier.clickable(enabled: value != nil) {
+            if let navController  {
+                navController.navigate(route)
+            }
+        }
+        label.Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
 #if !SKIP
 
 // TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
 import struct Foundation.URL
-
-/// A view that controls a navigation presentation.
-///
-/// People click or tap a navigation link to present a view inside a
-/// ``NavigationStack`` or ``NavigationSplitView``. You control the visual
-/// appearance of the link by providing view content in the link's `label`
-/// closure. For example, you can use a ``Label`` to display a link:
-///
-///     NavigationLink {
-///         FolderDetail(id: workFolder.id)
-///     } label: {
-///         Label("Work Folder", systemImage: "folder")
-///     }
-///
-/// For a link composed only of text, you can use one of the convenience
-/// initializers that takes a string and creates a ``Text`` view for you:
-///
-///     NavigationLink("Work Folder") {
-///         FolderDetail(id: workFolder.id)
-///     }
-///
-/// ### Link to a destination view
-///
-/// You can perform navigation by initializing a link with a destination view
-/// that you provide in the `destination` closure. For example, consider a
-/// `ColorDetail` view that fills itself with a color:
-///
-///     struct ColorDetail: View {
-///         var color: Color
-///
-///         var body: some View {
-///             color.navigationTitle(color.description)
-///         }
-///     }
-///
-/// The following ``NavigationStack`` presents three links to color detail
-/// views:
-///
-///     NavigationStack {
-///         List {
-///             NavigationLink("Mint") { ColorDetail(color: .mint) }
-///             NavigationLink("Pink") { ColorDetail(color: .pink) }
-///             NavigationLink("Teal") { ColorDetail(color: .teal) }
-///         }
-///         .navigationTitle("Colors")
-///     }
-///
-/// ### Create a presentation link
-///
-/// Alternatively, you can use a navigation link to perform navigation based
-/// on a presented data value. To support this, use the
-/// ``View/navigationDestination(for:destination:)`` view modifier
-/// inside a navigation stack to associate a view with a kind of data, and
-/// then present a value of that data type from a navigation link. The
-/// following example reimplements the previous example as a series of
-/// presentation links:
-///
-///     NavigationStack {
-///         List {
-///             NavigationLink("Mint", value: Color.mint)
-///             NavigationLink("Pink", value: Color.pink)
-///             NavigationLink("Teal", value: Color.teal)
-///         }
-///         .navigationDestination(for: Color.self) { color in
-///             ColorDetail(color: color)
-///         }
-///         .navigationTitle("Colors")
-///     }
-///
-/// Separating the view from the data facilitates programmatic navigation
-/// because you can manage navigation state by recording the presented data.
-///
-/// ### Control a presentation link programmatically
-///
-/// To navigate programmatically, introduce a state variable that tracks the
-/// items on a stack. For example, you can create an array of colors to
-/// store the stack state from the previous example, and initialize it as
-/// an empty array to start with an empty stack:
-///
-///     @State private var colors: [Color] = []
-///
-/// Then pass a ``Binding`` to the state to the navigation stack:
-///
-///     NavigationStack(path: $colors) {
-///         // ...
-///     }
-///
-/// You can use the array to observe the current state of the stack. You can
-/// also modify the array to change the contents of the stack. For example,
-/// you can programmatically add ``ShapeStyle/blue`` to the array, and
-/// navigation to a new color detail view using the following method:
-///
-///     func showBlue() {
-///         colors.append(.blue)
-///     }
-///
-/// ### Coordinate with a list
-///
-/// You can also use a navigation link to control ``List`` selection in a
-/// ``NavigationSplitView``:
-///
-///     let colors: [Color] = [.mint, .pink, .teal]
-///     @State private var selection: Color? // Nothing selected by default.
-///
-///     var body: some View {
-///         NavigationSplitView {
-///             List(colors, id: \.self, selection: $selection) { color in
-///                 NavigationLink(color.description, value: color)
-///             }
-///         } detail: {
-///             if let color = selection {
-///                 ColorDetail(color: color)
-///             } else {
-///                 Text("Pick a color")
-///             }
-///         }
-///     }
-///
-/// The list coordinates with the navigation logic so that changing the
-/// selection state variable in another part of your code activates the
-/// navigation link with the corresponding color. Similarly, if someone
-/// chooses the navigation link associated with a particular color, the
-/// list updates the selection value that other parts of your code can read.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct NavigationLink<Label, Destination> : View where Label : View, Destination : View {
-
-    /// Creates a navigation link that presents the destination view.
-    /// - Parameters:
-    ///   - destination: A view for the navigation link to present.
-    ///   - label: A view builder to produce a label describing the `destination`
-    ///    to present.
-    public init(@ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a navigation link that presents the destination view when active.
-    /// - Parameters:
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    ///   - destination: A view for the navigation link to present.
-    ///   - label: A view builder to produce a label describing the `destination`
-    ///    to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init(isActive: Binding<Bool>, @ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a navigation link that presents the destination view when
-    /// a bound selection variable equals a given tag value.
-    /// - Parameters:
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    ///   - destination: A view for the navigation link to present.
-    ///   - label: A view builder to produce a label describing the
-    ///   `destination` to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<V>(tag: V, selection: Binding<V?>, @ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) where V : Hashable { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// Creates a navigation link that presents the destination view.
-    /// - Parameters:
-    ///   - destination: A view for the navigation link to present.
-    ///   - label: A view builder to produce a label describing the `destination`
-    ///    to present.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    public init(destination: Destination, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a navigation link that presents the destination view when active.
-    /// - Parameters:
-    ///   - destination: A view for the navigation link to present.
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    ///   - label: A view builder to produce a label describing the `destination`
-    ///    to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init(destination: Destination, isActive: Binding<Bool>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a navigation link that presents the destination view when
-    /// a bound selection variable equals a given tag value.
-    /// - Parameters:
-    ///   - destination: A view for the navigation link to present.
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    ///   - label: A view builder to produce a label describing the
-    ///   `destination` to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<V>(destination: Destination, tag: V, selection: Binding<V?>, @ViewBuilder label: () -> Label) where V : Hashable { fatalError() }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationLink where Destination == Never {
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// value.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// If you want to be able to serialize a ``NavigationPath`` that includes
-    /// this link, use use a `value` that conforms to the
-    ///  protocol.
-    ///
-    /// - Parameters:
-    ///   - value: An optional value to present.
-    ///     When the user selects the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    ///   - label: A label that describes the view that this link presents.
-    public init<P>(value: P?, @ViewBuilder label: () -> Label) where P : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// value, with a text label that the link generates from a
-    /// localized string key.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// If you want to be able to serialize a ``NavigationPath`` that includes
-    /// this link, use use a `value` that conforms to the
-    ///  protocol.
-    ///
-    /// - Parameters:
-    ///   - titleKey: A localized string that describes the view that this link
-    ///     presents.
-    ///   - value: An optional value to present.
-    ///     When the user selects the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    public init<P>(_ titleKey: LocalizedStringKey, value: P?) where Label == Text, P : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// value, with a text label that the link generates from a
-    /// title string.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// If you want to be able to serialize a ``NavigationPath`` that includes
-    /// this link, use use a `value` that conforms to the
-    ///  protocol.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the view that this link presents.
-    ///   - value: An optional value to present.
-    ///     When the user selects the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    public init<S, P>(_ title: S, value: P?) where Label == Text, S : StringProtocol, P : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// codable value.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// Because this initializer takes a value that conforms to the
-    ///  protocol,
-    /// you ensure that a ``NavigationPath`` that includes this link can produce
-    /// a non-`nil` value for its ``NavigationPath/codable`` property. This
-    /// helps to make the path serializable.
-    ///
-    /// - Parameters:
-    ///   - value: An optional value to present.
-    ///     When the user selects the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    ///   - label: A label that describes the view that this link presents.
-    public init<P>(value: P?, @ViewBuilder label: () -> Label) where P : Decodable, P : Encodable, P : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// codable value, with a text label that the link generates from a
-    /// localized string key.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// Because this initializer takes a value that conforms to the
-    ///  protocol,
-    /// you ensure that a ``NavigationPath`` that includes this link can produce
-    /// a non-`nil` value for its ``NavigationPath/codable`` property. This
-    /// helps to make the path serializable.
-    ///
-    /// - Parameters:
-    ///   - titleKey: A localized string that describes the view that this link
-    ///     presents.
-    ///   - value: An optional value to present. When someone
-    ///     taps or clicks the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    public init<P>(_ titleKey: LocalizedStringKey, value: P?) where Label == Text, P : Decodable, P : Encodable, P : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents the view corresponding to a
-    /// codable value, with a text label that the link generates from a
-    /// title string.
-    ///
-    /// When someone activates the navigation link that this initializer
-    /// creates, SkipUI looks for a nearby
-    /// ``View/navigationDestination(for:destination:)`` view modifier
-    /// with a `data` input parameter that matches the type of this
-    /// initializer's `value` input, with one of the following outcomes:
-    ///
-    /// * If SkipUI finds a matching modifier within the view hierarchy of an
-    ///   enclosing ``NavigationStack``, it pushes the modifier's corresponding
-    ///   `destination` view onto the stack.
-    /// * If SkipUI finds a matching modifier in the view hierarchy of a stack
-    ///   that's in a later column of a ``NavigationSplitView``, it puts the
-    ///   modifier's destination view as the first and only item onto the stack
-    ///   while preserving the stack's root view.
-    /// * If there's no matching modifier, but the link appears in a ``List``
-    ///   with selection inside a leading column of a navigation split view,
-    ///   the link updates the selection, which might affect the appearance of
-    ///   a trailing view. For an example of this, see ``NavigationLink``.
-    /// * In other cases, the link doesn't do anything.
-    ///
-    /// Because this initializer takes a value that conforms to the
-    ///  protocol,
-    /// you ensure that a ``NavigationPath`` that includes this link can produce
-    /// a non-`nil` value for its ``NavigationPath/codable`` property. This
-    /// helps to make the path serializable.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the view that this link presents.
-    ///   - value: An optional value to present.
-    ///     When the user selects the link, SkipUI stores a copy of the value.
-    ///     Pass a `nil` value to disable the link.
-    public init<S, P>(_ title: S, value: P?) where Label == Text, S : StringProtocol, P : Decodable, P : Encodable, P : Hashable { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension NavigationLink where Label == Text {
-
-    /// Creates a navigation link that presents a destination view, with a text label
-    /// that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> Destination) { fatalError() }
-
-    /// Creates a navigation link that presents a destination view, with a text label
-    /// that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    public init<S>(_ title: S, @ViewBuilder destination: () -> Destination) where S : StringProtocol { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when active, with a
-    /// text label that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init(_ titleKey: LocalizedStringKey, isActive: Binding<Bool>, @ViewBuilder destination: () -> Destination) { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when active, with a
-    /// text label that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<S>(_ title: S, isActive: Binding<Bool>, @ViewBuilder destination: () -> Destination) where S : StringProtocol { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when a bound
-    /// selection variable matches a value you provide, using a text label
-    /// that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<V>(_ titleKey: LocalizedStringKey, tag: V, selection: Binding<V?>, @ViewBuilder destination: () -> Destination) where V : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when a bound
-    /// selection variable matches a value you provide, using a text label
-    /// that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<S, V>(_ title: S, tag: V, selection: Binding<V?>, @ViewBuilder destination: () -> Destination) where S : StringProtocol, V : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents a destination view, with a text
-    /// label that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    public init(_ titleKey: LocalizedStringKey, destination: Destination) { fatalError() }
-
-    /// Creates a navigation link that presents a destination view, with a text
-    /// label that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Pass a closure as the destination")
-    public init<S>(_ title: S, destination: Destination) where S : StringProtocol { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when active, with a
-    /// text label that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init(_ titleKey: LocalizedStringKey, destination: Destination, isActive: Binding<Bool>) { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when active, with a
-    /// text label that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    ///   - isActive: A binding to a Boolean value that indicates whether
-    ///   `destination` is currently presented.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<S>(_ title: S, destination: Destination, isActive: Binding<Bool>) where S : StringProtocol { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when a bound
-    /// selection variable matches a value you provide, using a text label
-    /// that the link generates from a localized string key.
-    /// - Parameters:
-    ///   - titleKey: A localized string key for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<V>(_ titleKey: LocalizedStringKey, destination: Destination, tag: V, selection: Binding<V?>) where V : Hashable { fatalError() }
-
-    /// Creates a navigation link that presents a destination view when a bound
-    /// selection variable matches a value you provide, using a text label
-    /// that the link generates from a title string.
-    /// - Parameters:
-    ///   - title: A string for creating a text label.
-    ///   - destination: A view for the navigation link to present.
-    ///   - tag: The value of `selection` that causes the link to present
-    ///   `destination`.
-    ///   - selection: A bound variable that causes the link to present
-    ///   `destination` when `selection` becomes equal to `tag`.
-    @available(iOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(macOS, introduced: 10.15, deprecated: 13.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(tvOS, introduced: 13.0, deprecated: 16.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(watchOS, introduced: 6.0, deprecated: 9.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "use NavigationLink(value:label:), or navigationDestination(isPresented:destination:), inside a NavigationStack or NavigationSplitView")
-    public init<S, V>(_ title: S, destination: Destination, tag: V, selection: Binding<V?>) where S : StringProtocol, V : Hashable { fatalError() }
-}
 
 @available(iOS 13.0, *)
 @available(macOS, unavailable)
