@@ -8,6 +8,7 @@ import struct CoreGraphics.CGFloat
 
 // SKIP INSERT: import androidx.compose.foundation.verticalScroll
 // SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -42,7 +43,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = androidx.compose.ui.Modifier.fillMaxWidth().then(context.modifier)
+        let modifier = androidx.compose.ui.Modifier.fillMaxWidth().fillMaxHeight().then(context.modifier)
         let itemContext = context.content()
         if let fixedContent {
             let scrollState = androidx.compose.foundation.rememberScrollState()
@@ -79,21 +80,21 @@ extension List {
 
 // Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
 
+#if SKIP
 //extension List {
 //    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
 //}
-// SKIP INSERT:
-// fun <ObjectType, Content> List(data: RandomAccessCollection<ObjectType>, rowContent: (ObjectType) -> Content): List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
-//      return List(objects = data as RandomAccessCollection<Any>, identifier = { (it as ObjectType).id }, objectContent = { rowContent(it as ObjectType) })
-// }
+public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
+    return List(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! ObjectType).id }, objectContent: { rowContent($0 as! ObjectType) })
+}
 
 //extension List {
 //    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
 //}
-// SKIP INSERT:
-// fun <ObjectType, Content> List(data: RandomAccessCollection<ObjectType>, id: (ObjectType) -> Hashable, rowContent: (ObjectType) -> Content): List<Content> where Content: View {
-//      return List(objects = data as RandomAccessCollection<Any>, identifier = { id(it as ObjectType) }, objectContent = { rowContent(it as ObjectType) })
-// }
+public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Any, Content: View {
+    return List(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! ObjectType) }, objectContent: { rowContent($0 as! ObjectType) })
+}
+#endif
 
 #if !SKIP
 

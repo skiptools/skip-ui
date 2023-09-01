@@ -51,8 +51,14 @@ class Navigator {
 
     private func route(for type: Any.Type, value: Any) -> String {
         let baseString = String(describing: type)
-        //~~~
-        let valueString = String(describing: value)
+        let valueString: String
+        if let identifiable = value as? Identifiable {
+            valueString = String(describing: identifiable.id)
+        } else if let rawRepresentable = value as? RawRepresentable {
+            valueString = String(describing: rawRepresentable.rawValue)
+        } else {
+            valueString = String(describing: value)
+        }
         return baseString + "/" + valueString
     }
 }
@@ -116,8 +122,7 @@ public struct NavigationStack<Root> : View where Root: View {
 }
 
 extension View {
-    // SKIP DECLARE: fun <D> navigationDestination(for_: KClass<D>, destination: (D) -> View): View where D: Any
-    public func navigationDestination<V>(for data: Any, @ViewBuilder destination: @escaping (Any) -> V) -> some View where V : View {
+    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
         #if SKIP
         return NavigationDestinationView(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
         #else
