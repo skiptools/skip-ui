@@ -9,8 +9,8 @@
 
 /// Context to provide modifiers, parent, etc to composables.
 public struct ComposeContext {
-    /// The parent view, or nil.
-    public var parent: View? // Will probably have to expand this to ancestor chain
+    /// Mechanism for a parent view to change how a child view is composed.
+    public var composer: (@Composable (inout View, ComposeContext) -> Void)?
 
     /// Modifiers to apply.
     public var modifier: Modifier = Modifier
@@ -19,9 +19,9 @@ public struct ComposeContext {
     public var stateSaver: Saver<Any, Any> = ComposeStateSaver()
 
     /// The context to pass to child content of a container view.
-    public func content(of view: View) -> ComposeContext {
+    public func content(composer: (@Composable (inout View, ComposeContext) -> Void)? = nil) -> ComposeContext {
         var context = self
-        context.parent = view
+        context.composer = composer
         context.modifier = Modifier // Consume modifier
         return context
     }

@@ -15,16 +15,11 @@
 
 #if SKIP
 let LocalNavController: androidx.compose.runtime.ProvidableCompositionLocal<NavController?> = androidx.compose.runtime.compositionLocalOf { nil as NavController? }
+private typealias DestinationMap = Dictionary<String, (Any) -> any View>
 #endif
 
-private typealias DestinationMap = Dictionary<String, (Any) -> any View>
-
-// SKIP ATTRIBUTES: nocopy
 public struct NavigationStack<Root> : View where Root: View {
     private let root: Root
-    #if SKIP
-    private var destinationMap: DestinationMap?
-    #endif
 
     public init(@ViewBuilder root: () -> Root) {
         self.root = root()
@@ -37,11 +32,14 @@ public struct NavigationStack<Root> : View where Root: View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // SKIP INSERT: var rememberedDestinationMap by remember { mutableStateOf(destinationMap) }
-        destinationMap = rememberedDestinationMap
+        // Check to see if we've initialized our destination map from our root view's .navigationDestination modifiers. If we haven't,
+        // compose the root view with a custom composer that will capture the map. Note that 'root' is a reference to the enclosing
+        // ComposeView, so a custom composer is the only way to access our actual child view(s)
+        // SKIP INSERT: var destinationMap by remember { mutableStateOf<DestinationMap?>(null) }
         if destinationMap == nil {
-            root.Compose(context.content(of: self))
-            rememberedDestinationMap = destinationMap
+            root.Compose(context.content(composer: { view, context in
+                destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
+            }))
         }
 
         let navController = rememberNavController()
@@ -64,14 +62,6 @@ public struct NavigationStack<Root> : View where Root: View {
                     }
                 }
             }
-        }
-    }
-
-    @Composable public override func ComposeContent(view: any View, context: ComposeContext) {
-        if destinationMap == nil {
-            destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
-        } else {
-            super.ComposeContent(view: view, context: context)
         }
     }
     #else
@@ -100,7 +90,7 @@ extension View {
 #if SKIP
 struct NavigationDestination: View {
     let view: any View
-    let destinationMap: [String: (Any) -> any View]
+    let destinationMap: DestinationMap
 
     init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
         self.view = view
@@ -155,7 +145,6 @@ public struct NavigationLink : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         let navController = LocalNavController.current
         var context = context
-        context.parent = self
         context.modifier = context.modifier.clickable(enabled: value != nil) {
             if let navController  {
                 navController.navigate(route)

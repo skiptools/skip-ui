@@ -44,7 +44,7 @@ public struct VStack<Content> : View where Content : View {
         default:
             columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         }
-        let contentContext = context.content(of: self)
+        let contentContext = context.content()
         Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillHeight(androidx.compose.ui.Modifier.weight(Float(1.0)))

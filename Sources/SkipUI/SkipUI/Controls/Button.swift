@@ -41,7 +41,7 @@ public struct Button<Label> : View where Label : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let contentContext = context.content(of: self)
+        let contentContext = context.content()
         androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
             label.Compose(context: contentContext)
         })

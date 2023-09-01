@@ -43,7 +43,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = androidx.compose.ui.Modifier.fillMaxWidth().then(context.modifier)
-        let itemContext = context.content(of: self)
+        let itemContext = context.content()
         if let fixedContent {
             let scrollState = androidx.compose.foundation.rememberScrollState()
             androidx.compose.foundation.layout.Column(modifier: modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {

@@ -44,7 +44,7 @@ public struct HStack<Content> : View where Content : View {
         default:
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
-        let contentContext = context.content(of: self)
+        let contentContext = context.content()
         Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillWidth(androidx.compose.ui.Modifier.weight(Float(1.0)))

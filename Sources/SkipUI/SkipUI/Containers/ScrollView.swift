@@ -27,7 +27,7 @@ public struct ScrollView<Content> : View where Content : View {
         if axes.contains(.horizontal) {
             modifier = modifier.fillMaxWidth().horizontalScroll(scrollState)
         }
-        let contentContext = context.content(of: self)
+        let contentContext = context.content()
         androidx.compose.foundation.layout.Box(modifier: modifier) {
             content.Compose(context: contentContext)
         }
