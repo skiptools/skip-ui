@@ -8,14 +8,56 @@
 // SKIP INSERT: import androidx.compose.runtime.remember
 // SKIP INSERT: import androidx.compose.runtime.setValue
 // SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.navigation.NavController
 // SKIP INSERT: import androidx.navigation.navArgument
 // SKIP INSERT: import androidx.navigation.compose.composable
 // SKIP INSERT: import androidx.navigation.compose.rememberNavController
 
 #if SKIP
-let LocalNavController: androidx.compose.runtime.ProvidableCompositionLocal<NavController?> = androidx.compose.runtime.compositionLocalOf { nil as NavController? }
-private typealias DestinationMap = Dictionary<String, (Any) -> any View>
+typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
+
+class Navigator {
+    private let navController: androidx.navigation.NavController
+    private let destinations: NavigationDestinations
+
+    init(navController: androidx.navigation.NavController, destinations: NavigationDestinations) {
+        self.navController = navController
+        self.destinations = destinations
+    }
+
+    /// The value being navigated to.
+    private(set) var targetValue: Any?
+
+    /// Navigate to a target value specified in a `NavigationLink`.
+    func navigate(to targetValue: Any) {
+        let _ = navigate(to: targetValue, type: type(of: targetValue))
+    }
+
+    private func navigate(to targetValue: Any, type: Any.Type?) -> Bool {
+        guard let type else {
+            return false
+        }
+        guard destinations[type] == nil else {
+            self.targetValue = targetValue
+            navController.navigate(route(for: type, value: targetValue))
+            return true
+        }
+        for supertype in type.supertypes {
+            if navigate(to: targetValue, type: supertype as? Any.Type) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private func route(for type: Any.Type, value: Any) -> String {
+        let baseString = String(describing: type)
+        //~~~
+        let valueString = String(describing: value)
+        return baseString + "/" + valueString
+    }
+}
+
+let LocalNavigator: androidx.compose.runtime.ProvidableCompositionLocal<Navigator?> = androidx.compose.runtime.compositionLocalOf { nil as Navigator? }
 #endif
 
 public struct NavigationStack<Root> : View where Root: View {
@@ -32,31 +74,33 @@ public struct NavigationStack<Root> : View where Root: View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // Check to see if we've initialized our destination map from our root view's .navigationDestination modifiers. If we haven't,
-        // compose the root view with a custom composer that will capture the map. Note that 'root' is a reference to the enclosing
-        // ComposeView, so a custom composer is the only way to access our actual child view(s)
-        // SKIP INSERT: var destinationMap by remember { mutableStateOf<DestinationMap?>(null) }
-        if destinationMap == nil {
+        // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
+        // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
+        // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view
+        // SKIP INSERT: var destinations by remember { mutableStateOf<NavigationDestinations?>(null) }
+        if destinations == nil {
             root.Compose(context.content(composer: { view, context in
-                destinationMap = (view as? NavigationDestination)?.destinationMap ?? [:]
+                destinations = (view as? NavigationDestinationView)?.destinations ?? [:]
             }))
         }
 
         let navController = rememberNavController()
-        // SKIP INSERT: val providedNavController = LocalNavController provides navController
-        androidx.compose.runtime.CompositionLocalProvider(providedNavController) {
+        let navigator = Navigator(navController: navController, destinations: destinations ?? [:])
+        // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
+        androidx.compose.runtime.CompositionLocalProvider(providedNavigator) {
             androidx.navigation.compose.NavHost(navController: navController, startDestination: "navigationroot", modifier: context.modifier) {
                 composable(route: "navigationroot") {
                     androidx.compose.foundation.layout.Box {
                         root.Compose(context: ComposeContext())
                     }
                 }
-                if let destinationMap {
-                    for (route, viewBuilder) in destinationMap {
-                        composable(route: route + "/{value}", arguments = listOf(navArgument("value") { type = androidx.navigation.NavType.StringType })) {
-                            let value = $0.arguments?.getString("value") ?? ""
-                            androidx.compose.foundation.layout.Box {
-                                viewBuilder(value).Compose(context: ComposeContext())
+                if let destinations {
+                    for (targetType, viewBuilder) in destinations {
+                        composable(route: String(describing: targetType) + "/{identifier}", arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) {
+                            if let targetValue = LocalNavigator.current?.targetValue {
+                                androidx.compose.foundation.layout.Box {
+                                    viewBuilder(targetValue).Compose(context: ComposeContext())
+                                }
                             }
                         }
                     }
@@ -75,7 +119,7 @@ extension View {
     // SKIP DECLARE: fun <D> navigationDestination(for_: KClass<D>, destination: (D) -> View): View where D: Any
     public func navigationDestination<V>(for data: Any, @ViewBuilder destination: @escaping (Any) -> V) -> some View where V : View {
         #if SKIP
-        return NavigationDestination(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
+        return NavigationDestinationView(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
         #else
         return self
         #endif
@@ -88,18 +132,18 @@ extension View {
 }
 
 #if SKIP
-struct NavigationDestination: View {
+struct NavigationDestinationView: View {
     let view: any View
-    let destinationMap: DestinationMap
+    let destinations: NavigationDestinations
 
     init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
         self.view = view
-        if let navigationDestination = view as? NavigationDestination {
-            var combinedDestinationMap = navigationDestination.destinationMap
-            combinedDestinationMap[String(describing: dataType)] = destination
-            self.destinationMap = combinedDestinationMap
+        if let navigationDestination = view as? NavigationDestinationView {
+            var combinedDestinations = navigationDestination.destinations
+            combinedDestinations[dataType] = destination
+            self.destinations = combinedDestinations
         } else {
-            self.destinationMap = [String(describing: dataType): destination]
+            self.destinations = [dataType: destination]
         }
     }
 
@@ -112,13 +156,6 @@ struct NavigationDestination: View {
 public struct NavigationLink : View {
     let value: Any?
     let label: any View
-    var route: String {
-        guard let value else {
-            return ""
-        }
-        let base = String(describing: type(of: value))
-        return base + "/" + String(describing: value)
-    }
 
     public init(value: Any?, @ViewBuilder label: () -> any View) {
         self.value = value
@@ -143,11 +180,11 @@ public struct NavigationLink : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let navController = LocalNavController.current
+        let navigator = LocalNavigator.current
         var context = context
         context.modifier = context.modifier.clickable(enabled: value != nil) {
-            if let navController  {
-                navController.navigate(route)
+            if let value, let navigator  {
+                navigator.navigate(to: value)
             }
         }
         label.Compose(context: context)

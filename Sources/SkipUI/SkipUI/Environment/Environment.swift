@@ -25,12 +25,10 @@ public class EnvironmentValues {
     public static let shared = EnvironmentValues()
 
     #if SKIP
-    // We type erase all values to Any and all class keys to KClass<*>. The alternative would be to reify these functions.
+    // We type erase all keys and values. The alternative would be to reify these functions.
 
-    // SKIP DECLARE: val compositionLocals = mutableMapOf<Any, androidx.compose.runtime.ProvidableCompositionLocal<Any>>()
-    let compositionLocals: MutableMap<AnyHashable, Any> = mutableMapOf()
-    // SKIP DECLARE: val lastSetValues = mutableMapOf<androidx.compose.runtime.ProvidableCompositionLocal<Any>, Any>()
-    let lastSetValues: MutableMap<AnyHashable, Any> = mutableMapOf()
+    let compositionLocals: MutableMap<Any, androidx.compose.runtime.ProvidableCompositionLocal<Any>> = mutableMapOf()
+    let lastSetValues: MutableMap<androidx.compose.runtime.ProvidableCompositionLocal<Any>, Any> = mutableMapOf()
 
     // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
     public func get(key: AnyHashable) -> Any {
@@ -72,14 +70,12 @@ public class EnvironmentValues {
         lastSetValues[compositionLocal] = value
     }
 
-    // SKIP DECLARE: fun valueCompositionLocal(key: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
-    public func valueCompositionLocal(key: AnyHashable) -> Any {
+    public func valueCompositionLocal(key: Any.Type) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
         // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
         return compositionLocal(key: key, defaultValue: defaultValue)
     }
 
-    // SKIP DECLARE: fun objectCompositionLocal(type: KClass<*>): androidx.compose.runtime.ProvidableCompositionLocal<Any>
-    public func objectCompositionLocal(type: AnyHashable) -> Any {
+    public func objectCompositionLocal(type: Any.Type) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
         return compositionLocal(key: type, defaultValue: { nil })
     }
 
@@ -112,9 +108,7 @@ extension View {
     }
 
     // Must be public to allow access from our inline `environment` function.
-    //
-    // SKIP DECLARE: public fun environmentObject(type: KClass<*>, object_: Any?): View
-    private func environmentObject(type: Any.Type, object: Any?) -> some View {
+    public func environmentObject(type: Any.Type, object: Any?) -> some View {
         #if SKIP
         return ComposeView { context in
             let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type)
