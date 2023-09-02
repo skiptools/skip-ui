@@ -16,7 +16,6 @@
     /// Used to implement @Bindable.
     public static func instance<ObjectType, Value>(_ object: ObjectType, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
         let capturedObject = object
-        // SKIP NOWARN
         return Binding(get: { get(capturedObject) }, set: { value in set(capturedObject, value) })
     }
     #endif
@@ -24,12 +23,6 @@
     public init(projectedValue: Binding<Value>) {
         self.get = projectedValue.get
         self.set = projectedValue.set
-    }
-
-    @available(*, unavailable)
-    public init(get: @escaping () -> Value, set: @escaping (Value, Any /* Transaction */) -> Void) {
-        self.get = get
-        self.set = { _ in }
     }
 
     public var wrappedValue: Value {
@@ -51,12 +44,19 @@
     }
 
     public static func constant(_ value: Value) -> Binding<Value> {
-        // SKIP NOWARN
         return Binding(get: { value }, set: { _ in })
     }
 }
 
 #if !SKIP
+
+extension Binding {
+    // We don't mark this unavailable and include it in the #if SKIP section becuase Skip can't differentiate it from
+    // the standard get/set constructor
+    public init(get: @escaping () -> Value, set: @escaping (Value, Transaction) -> Void) {
+        fatalError()
+    }
+}
 
 // Stubs needed to compile this package:
 
