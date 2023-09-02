@@ -3,9 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // Model State as a class rather than struct to avoid copy overhead on mutation
-//
-// SKIP NOWARN
-@propertyWrapper public final class State<Value> {
+public final class State<Value> {
     private var onUpdate: ((Value) -> Void)?
 
     public init(initialValue: Value) {

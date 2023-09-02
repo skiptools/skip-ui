@@ -2,8 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP NOWARN
-@propertyWrapper public struct Binding<Value> {
+public struct Binding<Value> {
     let get: () -> Value
     let set: (Value) -> Void
 
