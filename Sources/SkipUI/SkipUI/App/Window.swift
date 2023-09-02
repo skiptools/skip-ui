@@ -353,11 +353,11 @@ public struct WindowGroup<Content> : Scene where Content : View {
 //        fatalError()
 //    }
 //
-//    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Never) -> CGSize {
+//    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
 //        fatalError()
 //    }
 //
-//    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Never) {
+//    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
 //        fatalError()
 //    }
 

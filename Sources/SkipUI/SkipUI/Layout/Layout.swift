@@ -188,7 +188,7 @@ public protocol Layout : Animatable {
     /// the places where you work with the cache.
     ///
     /// See ``makeCache(subviews:)-23agy`` for more information.
-    associatedtype Cache = Void
+    associatedtype Cache = Any
 
     /// A collection of proxies for the subviews of a layout view.
     ///

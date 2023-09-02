@@ -49,7 +49,12 @@ import class Accessibility.AXChartDescriptor
 
 /// No-op
 func stubAccessibilityRotorContent() -> some AccessibilityRotorContent {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+
+    struct NeverAccessibilityRotorContent : AccessibilityRotorContent {
+        typealias Body = Never
+    }
+    return NeverAccessibilityRotorContent()
 }
 
 /// The structure that defines the kinds of available accessibility actions.

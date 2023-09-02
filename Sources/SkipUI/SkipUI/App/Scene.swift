@@ -12,7 +12,12 @@ import class Foundation.UserDefaults
 
 /// No-op
 func stubScene() -> some Scene {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverScene : Scene {
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverScene()
 }
 
 /// A part of an app's user interface with a life cycle managed by the

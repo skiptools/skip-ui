@@ -10,7 +10,14 @@ import struct Foundation.IndexSet
 
 /// No-op
 func stubDynamicViewContent() -> some DynamicViewContent {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverDynamicViewContent : DynamicViewContent {
+        typealias Body = Never
+        var body: Body { fatalError() }
+        typealias Data = [Never]
+        var data: Data { fatalError() }
+    }
+    return NeverDynamicViewContent()
 }
 
 /// A type of view that generates views from an underlying collection of data.

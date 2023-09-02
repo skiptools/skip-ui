@@ -103,17 +103,17 @@ public struct HStack<Content> : View where Content : View {
     /// the places where you work with the cache.
     ///
     /// See ``makeCache(subviews:)-23agy`` for more information.
-    public typealias Cache = Never
+    public typealias Cache = Any
 
-    public func makeCache(subviews: Subviews) -> Never {
+    public func makeCache(subviews: Subviews) -> Cache {
         fatalError()
     }
 
-    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Never) -> CGSize {
+    public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
         fatalError()
     }
 
-    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Never) {
+    public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
     }
 }
 

@@ -19,7 +19,12 @@ import class UIKit.NSItemProvider
 
 /// No-op
 func stubTableRowContent() -> some TableRowContent {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverTableRowContent : TableRowContent {
+        typealias TableRowBody = Never
+        var tableRowBody: Never { fatalError() }
+    }
+    return NeverTableRowContent()
 }
 
 /// A container that presents rows of data arranged in one or more columns,

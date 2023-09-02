@@ -13,7 +13,14 @@ import struct CoreGraphics.CGSize
 /// No-op
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 func stubVisualEffect() -> some VisualEffect {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverVisualEffect : VisualEffect {
+        typealias AnimatableData = Never
+        
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverVisualEffect()
 }
 
 /// Visual Effects change the visual appearance of a view without changing its

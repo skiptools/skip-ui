@@ -8,7 +8,12 @@
 
 /// No-op
 func stubCommands() -> some Commands {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverCommands : Commands {
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverCommands()
 }
 
 

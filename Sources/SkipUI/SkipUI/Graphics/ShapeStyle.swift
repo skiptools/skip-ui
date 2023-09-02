@@ -11,7 +11,12 @@ import struct CoreGraphics.CGRect
 
 /// No-op
 func stubShapeStyle() -> some ShapeStyle {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverShapeStyle : ShapeStyle {
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverShapeStyle()
 }
 
 /// A color or pattern to use when rendering a shape.

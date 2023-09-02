@@ -34,4 +34,12 @@ func stubView() -> some View {
 
 public typealias NeverView = Never
 
+/// A stub view
+public struct StubView : View {
+    public typealias Body = Never
+    public var body: Body {
+        fatalError()
+    }
+}
+
 #endif

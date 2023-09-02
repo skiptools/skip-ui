@@ -14,7 +14,14 @@ import struct CoreGraphics.CGSize
 
 /// No-op
 func stubShape() -> some Shape {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverShape : Shape {
+        typealias AnimatableData = Never
+        typealias Body = Never
+        var body: Body { fatalError() }
+        func path(in rect: CGRect) -> Path { fatalError() }
+    }
+    return NeverShape()
 }
 
 /// A 2D shape that you can use when drawing a view.

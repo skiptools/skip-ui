@@ -8,12 +8,23 @@
 
 /// No-op
 func stubToolbarContent() -> some ToolbarContent {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverToolbarContent : ToolbarContent {
+        typealias Body = Never
+        var body: Body { return stub() }
+
+    }
+    return NeverToolbarContent()
 }
 
 /// No-op
 func stubToolbar() -> some CustomizableToolbarContent {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverCustomizableToolbarContent : CustomizableToolbarContent {
+        typealias Body = Never
+        var body: Body { return stub() }
+    }
+    return NeverCustomizableToolbarContent()
 }
 
 

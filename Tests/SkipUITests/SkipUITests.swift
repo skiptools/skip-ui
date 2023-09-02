@@ -189,6 +189,7 @@ final class SkipUITests: XCTestCase {
     func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (Evaluator) throws -> ()) throws {
         #if !SKIP
         let v = try view()
+        _ = v
         throw XCTSkip("Headless UI testing not available for SwiftUI")
         #else
         composeRule.setContent {

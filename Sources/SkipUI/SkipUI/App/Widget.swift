@@ -8,12 +8,22 @@
 
 /// No-op
 func stubWidget() -> some Widget {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverWidget : Widget {
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverWidget()
 }
 
 /// No-op
 func stubWidgetConfiguration() -> some WidgetConfiguration {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverWidgetConfiguration : WidgetConfiguration {
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverWidgetConfiguration()
 }
 
 /// The configuration and content of a widget to display on the Home screen or

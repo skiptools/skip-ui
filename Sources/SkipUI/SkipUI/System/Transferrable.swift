@@ -17,7 +17,14 @@ import protocol CoreTransferable.TransferRepresentation
 
 /// No-op
 func stubTransferRepresentation() -> some TransferRepresentation {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverTransferRepresentation : TransferRepresentation {
+        typealias Item = Never
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverTransferRepresentation()
+
 }
 #endif
 

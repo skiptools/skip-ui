@@ -13,7 +13,13 @@ import struct Foundation.Date
 
 /// No-op
 func stubGesture() -> some Gesture {
-    return never()
+    //return never() // raises warning: “A call to a never-returning function”
+    struct NeverGesture : Gesture {
+        typealias Value = Never
+        typealias Body = Never
+        var body: Body { fatalError() }
+    }
+    return NeverGesture()
 }
 
 /// An instance that matches a sequence of events to a gesture, and returns a

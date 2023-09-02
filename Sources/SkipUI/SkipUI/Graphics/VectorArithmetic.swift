@@ -73,8 +73,8 @@ extension CGFloat : VectorArithmetic {
 }
 
 extension Never : VectorArithmetic {
-    public static func - (lhs: Never, rhs: Never) -> Never { fatalError() }
-    public static func + (lhs: Never, rhs: Never) -> Never { fatalError() }
+    public static func - (lhs: Never, rhs: Never) -> Never { }
+    public static func + (lhs: Never, rhs: Never) -> Never { }
     public mutating func scale(by rhs: Double) { fatalError() }
     public var magnitudeSquared: Double { fatalError() }
     public static var zero: Never { fatalError() }

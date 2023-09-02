@@ -43,7 +43,7 @@
     public static let identity: EmptyModifier = { fatalError() }()
 
     /// The type of view representing the body.
-    public typealias Body = NeverView
+    public typealias Body = Content
 
     @inlinable public init() { fatalError() }
 
@@ -51,7 +51,7 @@
     ///
     /// `content` is a proxy for the view that will have the modifier
     /// represented by `Self` applied to it.
-    @MainActor public func body(content: EmptyModifier.Content) -> EmptyModifier.Body { fatalError() }
+    @MainActor public func body() -> EmptyModifier.Body { fatalError() }
     public typealias Content = Never
 }
 
