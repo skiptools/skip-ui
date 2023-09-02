@@ -9,7 +9,7 @@
 import struct Foundation.IndexSet
 
 /// No-op
-@usableFromInline func stubDynamicViewContent() -> some DynamicViewContent {
+func stubDynamicViewContent() -> some DynamicViewContent {
     return never()
 }
 
@@ -36,7 +36,7 @@ extension DynamicViewContent {
     ///
     /// - Returns: A view that calls `action` when elements are deleted from the
     ///   original view.
-    @inlinable public func onDelete(perform action: ((IndexSet) -> Void)?) -> some DynamicViewContent { return stubDynamicViewContent() }
+    public func onDelete(perform action: ((IndexSet) -> Void)?) -> some DynamicViewContent { stubDynamicViewContent() }
 
 }
 
@@ -53,7 +53,7 @@ extension DynamicViewContent {
     ///
     /// - Returns: A view that calls `action` when elements are moved within the
     ///   original view.
-    @inlinable public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> some DynamicViewContent { return stubDynamicViewContent() }
+    public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> some DynamicViewContent { stubDynamicViewContent() }
 
 }
 

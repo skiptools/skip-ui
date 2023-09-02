@@ -2218,8 +2218,8 @@ extension KeyframeTrackContentBuilder {
 
     /// A conditional result from the result builder.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public struct Conditional<Value, First, Second> : KeyframeTrackContent where Value == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value {
-        public typealias Value = Value
+    public struct Conditional<ConditionalValue, First, Second> : KeyframeTrackContent where ConditionalValue == First.Value, First : KeyframeTrackContent, Second : KeyframeTrackContent, First.Value == Second.Value {
+        public typealias Value = ConditionalValue
         public typealias Body = KeyframeTrackContentBuilder<Value>.Conditional<Value, First, Second>
         public var body: Body { fatalError() }
     }
@@ -2304,7 +2304,7 @@ extension CGPoint : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
 
     /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2320,7 +2320,7 @@ extension CGSize : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
 
     /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2330,7 +2330,7 @@ extension CGRect : Animatable {
     public typealias AnimatableData = Never // AnimatablePair<CGPoint.AnimatableData, CGSize.AnimatableData>
 
     /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2340,7 +2340,7 @@ extension UnitPoint : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, CGFloat>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -2348,7 +2348,7 @@ extension Double : Animatable {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = Double
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -2356,7 +2356,7 @@ extension CGFloat : Animatable {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = CGFloat
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2366,7 +2366,7 @@ extension EdgeInsets : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -2376,7 +2376,7 @@ extension StrokeStyle : Animatable {
     public typealias AnimatableData = AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 /// An empty type for animatable data.
@@ -2519,7 +2519,7 @@ public struct PhaseAnimator<Phase, Content> : View where Phase : Equatable, Cont
     ///     transition will not be animated.
     public init(_ phases: some Sequence<Phase>, @ViewBuilder content: @escaping (Phase) -> Content, animation: @escaping (Phase) -> Animation? = { _ in .default }) { fatalError() }
 
-    @MainActor public var body: some View { get { return never() } }
+    @MainActor public var body: some View { get { stubView() } }
 
     /// The type of view representing the body of this view.
     ///

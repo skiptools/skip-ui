@@ -14,7 +14,7 @@ public struct CGSize: Hashable {
 #else
 
 /// No-op
-@usableFromInline func stub<T>() -> T {
+func stub<T>() -> T {
     fatalError("stub")
 }
 
@@ -23,7 +23,7 @@ public typealias Nothing = Never
 
 
 /// No-op
-@usableFromInline func stubView() -> some View {
+func stubView() -> some View {
     return EmptyView()
 }
 

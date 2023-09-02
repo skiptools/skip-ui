@@ -7,12 +7,12 @@
 #if !SKIP
 
 /// No-op
-@usableFromInline func stubWidget() -> some Widget {
+func stubWidget() -> some Widget {
     return never()
 }
 
 /// No-op
-@usableFromInline func stubWidgetConfiguration() -> some WidgetConfiguration {
+func stubWidgetConfiguration() -> some WidgetConfiguration {
     return never()
 }
 
@@ -141,12 +141,12 @@ public protocol WidgetBundle {
     public static func buildExpression<Content>(_ content: Content) -> Content where Content : Widget { fatalError() }
 
     /// Builds an empty Widget from a block containing no statements, `{ }`.
-    public static func buildBlock() -> some Widget { return stubWidget() }
+    public static func buildBlock() -> some Widget { stubWidget() }
 
 
     /// Builds a single Widget written as a child view (e..g, `{ MyWidget() }`)
     /// through unmodified.
-    public static func buildBlock<Content>(_ content: Content) -> some Widget where Content : Widget { return stubWidget() }
+    public static func buildBlock<Content>(_ content: Content) -> some Widget where Content : Widget { stubWidget() }
 
 }
 
@@ -181,7 +181,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget { stubWidget() }
 
 }
 
@@ -189,7 +189,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget { stubWidget() }
 
 }
 
@@ -197,7 +197,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget { stubWidget() }
 
 }
 
@@ -205,7 +205,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget { stubWidget() }
 
 }
 
@@ -213,7 +213,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget { stubWidget() }
 
 }
 
@@ -221,7 +221,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget { stubWidget() }
 
 }
 
@@ -229,7 +229,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget, C8 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget, C8 : Widget { stubWidget() }
 
 }
 
@@ -237,7 +237,7 @@ extension WidgetBundleBuilder {
 @available(tvOS, unavailable)
 extension WidgetBundleBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget, C8 : Widget, C9 : Widget { return stubWidget() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Widget where C0 : Widget, C1 : Widget, C2 : Widget, C3 : Widget, C4 : Widget, C5 : Widget, C6 : Widget, C7 : Widget, C8 : Widget, C9 : Widget { stubWidget() }
 
 }
 
@@ -273,7 +273,7 @@ extension WidgetConfiguration {
     ///    - task: The type of task the action responds to.
     ///    - action: The closure that is called when the system provides
     ///      a task matching the provided task.
-    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some WidgetConfiguration where D : Sendable, R : Sendable { return stubWidgetConfiguration() }
+    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some WidgetConfiguration where D : Sendable, R : Sendable { stubWidgetConfiguration() }
 
 }
 

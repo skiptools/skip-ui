@@ -89,7 +89,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view in front of the view.
-    @inlinable public func overlayPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
+    public func overlayPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
 
 
     /// Reads the specified preference value from the view, using it to
@@ -107,7 +107,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view behind the view.
-    @inlinable public func backgroundPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
+    public func backgroundPreferenceValue<K, V>(_ key: K.Type, alignment: Alignment = .center, @ViewBuilder _ transform: @escaping (K.Value) -> V) -> some View where K : PreferenceKey, V : View { return stubView() }
 
 }
 
@@ -124,7 +124,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view in front of the view.
-    @inlinable public func overlayPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
+    public func overlayPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
 
 
     /// Reads the specified preference value from the view, using it to
@@ -137,7 +137,7 @@ extension View {
     ///     the preference value read from the original view.
     ///
     /// - Returns: A view that layers a second view behind the view.
-    @inlinable public func backgroundPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
+    public func backgroundPreferenceValue<Key, T>(_ key: Key.Type = Key.self, @ViewBuilder _ transform: @escaping (Key.Value) -> T) -> some View where Key : PreferenceKey, T : View { return stubView() }
 
 }
 
@@ -155,7 +155,7 @@ extension View {
     ///   - transform: the function to produce the preference value.
     ///
     /// - Returns: a new version of the view that writes the preference.
-    @inlinable public func transformAnchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (inout K.Value, Anchor<A>) -> Void) -> some View where K : PreferenceKey { return stubView() }
+    public func transformAnchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (inout K.Value, Anchor<A>) -> Void) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -173,7 +173,7 @@ extension View {
     ///   - transform: the function to produce the preference value.
     ///
     /// - Returns: a new version of the view that writes the preference.
-    @inlinable public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return stubView() }
+    public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -190,7 +190,7 @@ extension View {
     ///
     /// - Returns: A view that triggers `action` when the value for `key`
     ///   changes.
-    @inlinable public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return stubView() }
+    public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return stubView() }
 
 }
 
@@ -198,7 +198,7 @@ extension View {
 extension View {
 
     /// Applies a transformation to a preference value.
-    @inlinable public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return stubView() }
+    public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return stubView() }
 
 }
 
@@ -206,7 +206,7 @@ extension View {
 extension View {
 
     /// Sets a value for the given preference.
-    @inlinable public func preference<K>(key: K.Type = K.self, value: K.Value) -> some View where K : PreferenceKey { return stubView() }
+    public func preference<K>(key: K.Type = K.self, value: K.Value) -> some View where K : PreferenceKey { return stubView() }
 
 }
 

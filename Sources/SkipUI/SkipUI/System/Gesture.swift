@@ -12,7 +12,7 @@ import struct CoreGraphics.CGSize
 import struct Foundation.Date
 
 /// No-op
-@usableFromInline func stubGesture() -> some Gesture {
+func stubGesture() -> some Gesture {
     return never()
 }
 
@@ -45,7 +45,7 @@ extension Gesture {
     ///   create a new, sequenced gesture.
     ///
     /// - Returns: A gesture that's a sequence of two gestures.
-    @inlinable public func sequenced<Other>(before other: Other) -> SequenceGesture<Self, Other> where Other : Gesture { fatalError() }
+    public func sequenced<Other>(before other: Other) -> SequenceGesture<Self, Other> where Other : Gesture { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -58,7 +58,7 @@ extension Gesture {
     ///   to create a new, combined gesture.
     ///
     /// - Returns: A gesture with two simultaneous gestures.
-    @inlinable public func simultaneously<Other>(with other: Other) -> SimultaneousGesture<Self, Other> where Other : Gesture { fatalError() }
+    public func simultaneously<Other>(with other: Other) -> SimultaneousGesture<Self, Other> where Other : Gesture { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -107,7 +107,7 @@ extension Gesture {
     /// - Returns: A gesture that's the result of combining two gestures where
     ///   only one of them can succeed. SkipUI gives precedence to the first
     ///   gesture.
-    @inlinable public func exclusively<Other>(before other: Other) -> ExclusiveGesture<Self, Other> where Other : Gesture { fatalError() }
+    public func exclusively<Other>(before other: Other) -> ExclusiveGesture<Self, Other> where Other : Gesture { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -130,7 +130,7 @@ extension Gesture {
     ///   the originating gesture's value changes and that resets the `state`
     ///   to its initial value when the user or the system ends or cancels the
     ///   gesture.
-    @inlinable public func updating<State>(_ state: GestureState<State>, body: @escaping (Self.Value, inout State, inout Transaction) -> Void) -> GestureStateGesture<Self, State> { fatalError() }
+    public func updating<State>(_ state: GestureState<State>, body: @escaping (Self.Value, inout State, inout Transaction) -> Void) -> GestureStateGesture<Self, State> { fatalError() }
 }
 
 /// Options that control how adding a gesture to a view affects other gestures
@@ -1052,7 +1052,7 @@ extension Optional : Gesture where Wrapped : Gesture {
     public typealias Value = Wrapped.Value
 
     //public typealias Body = Never
-    public var body: some Gesture { return stubGesture() }
+    public var body: some Gesture { stubGesture() }
 }
 
 

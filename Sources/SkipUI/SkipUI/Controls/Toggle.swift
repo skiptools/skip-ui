@@ -624,7 +624,7 @@ public struct ToggleStyleConfiguration {
     ///         // Draw the toggle.
     ///     }
     ///
-//    @Binding public var isOn: Bool { get { fatalError() } nonmutating set { fatalError() } }
+//    @Binding public var isOn: Bool { get { fatalError() } nonmutating set { } }
 
 //    public var $isOn: Binding<Bool> { get { fatalError() } }
 

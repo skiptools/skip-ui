@@ -12,7 +12,7 @@ import struct CoreGraphics.CGSize
 
 /// No-op
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-@usableFromInline func stubVisualEffect() -> some VisualEffect {
+func stubVisualEffect() -> some VisualEffect {
     return never()
 }
 
@@ -409,7 +409,7 @@ public struct EmptyVisualEffect : VisualEffect {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

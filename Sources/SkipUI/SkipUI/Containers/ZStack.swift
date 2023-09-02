@@ -92,7 +92,7 @@ public struct ZStack<Content> : View where Content : View {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// Cached values associated with the layout instance.
     ///

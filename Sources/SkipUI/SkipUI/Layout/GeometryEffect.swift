@@ -29,7 +29,7 @@ extension GeometryEffect {
     /// Use this method to disable layout changes during transitions. The view
     /// ignores the transform returned by this method while the view is
     /// performing its layout calculations.
-//    @inlinable public func ignoredByLayout() -> _IgnoredByLayoutEffect<Self> { fatalError() }
+//    public func ignoredByLayout() -> _IgnoredByLayoutEffect<Self> { fatalError() }
 }
 
 

@@ -1164,7 +1164,7 @@ extension View {
 extension View {
 
     /// Adds a condition for whether the view's view hierarchy is deletable.
-    @inlinable public func deleteDisabled(_ isDisabled: Bool) -> some View { return stubView() }
+    public func deleteDisabled(_ isDisabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -1250,7 +1250,7 @@ extension View {
 extension View {
 
     /// Adds a condition for whether the view's view hierarchy is movable.
-    @inlinable public func moveDisabled(_ isDisabled: Bool) -> some View { return stubView() }
+    public func moveDisabled(_ isDisabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -1381,7 +1381,7 @@ extension View {
     ///
     /// - Returns: A view that occupies the specified number of columns in a
     ///   grid row.
-    @inlinable public func gridCellColumns(_ count: Int) -> some View { return stubView() }
+    public func gridCellColumns(_ count: Int) -> some View { return stubView() }
 
 
     /// Specifies a custom alignment anchor for a view that acts as a grid cell.
@@ -1492,7 +1492,7 @@ extension View {
     ///
     /// - Returns: A view that uses the specified anchor point to align its
     ///   content.
-    @inlinable public func gridCellAnchor(_ anchor: UnitPoint) -> some View { return stubView() }
+    public func gridCellAnchor(_ anchor: UnitPoint) -> some View { return stubView() }
 
 
     /// Overrides the default horizontal alignment of the grid column that
@@ -1558,7 +1558,7 @@ extension View {
     /// - Returns: A view that uses the specified horizontal alignment, and
     ///   that causes all cells in the same column of a grid to use the
     ///   same alignment.
-    @inlinable public func gridColumnAlignment(_ guide: HorizontalAlignment) -> some View { return stubView() }
+    public func gridColumnAlignment(_ guide: HorizontalAlignment) -> some View { return stubView() }
 
 
     /// Asks grid layouts not to offer the view extra size in the specified
@@ -1620,7 +1620,7 @@ extension View {
     ///
     /// - Returns: A view that doesn't ask an enclosing grid for extra size
     ///   in one or more axes.
-    @inlinable public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return stubView() }
+    public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return stubView() }
 
 }
 
@@ -1739,7 +1739,7 @@ extension View {
     ///  rectangle.](SkipUI-View-ViewModifier.png)
     ///
     /// - Parameter modifier: The modifier to apply to this view.
-    @inlinable public func modifier<T>(_ modifier: T) -> ModifiedContent<Self, T> { fatalError() }
+    public func modifier<T>(_ modifier: T) -> ModifiedContent<Self, T> { fatalError() }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -1764,7 +1764,7 @@ extension View {
     ///         var shape: RoundedRectangle { RoundedRectangle(cornerRadius: 20) }
     ///     }
     ///
-    @inlinable public func containerShape<T>(_ shape: T) -> some View where T : InsettableShape { return stubView() }
+    public func containerShape<T>(_ shape: T) -> some View where T : InsettableShape { return stubView() }
 
 }
 
@@ -1782,7 +1782,7 @@ extension View {
 extension View {
 
     /// Configures whether this view participates in hit test operations.
-    @inlinable public func allowsHitTesting(_ enabled: Bool) -> some View { return stubView() }
+    public func allowsHitTesting(_ enabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -1800,7 +1800,7 @@ extension View {
     ///   call has no effect.
     ///
     /// - Returns: A view that triggers `action` before it appears.
-    @inlinable public func onAppear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
+    public func onAppear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
 
 
     /// Adds an action to perform after this view disappears.
@@ -1814,7 +1814,7 @@ extension View {
     ///   call has no effect.
     ///
     /// - Returns: A view that triggers `action` after it disappears.
-    @inlinable public func onDisappear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
+    public func onDisappear(perform action: (() -> Void)? = nil) -> some View { return stubView() }
 
 }
 
@@ -1879,7 +1879,7 @@ extension View where Self : Equatable {
 
     /// Prevents the view from updating its child view when its new value is the
     /// same as its old value.
-    @inlinable public func equatable() -> EquatableView<Self> { fatalError() }
+    public func equatable() -> EquatableView<Self> { fatalError() }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -1958,7 +1958,7 @@ extension View {
     ///
     /// - Parameter spacing: The spacing value to use. A value of `nil` uses
     ///   the default spacing.
-    @inlinable public func listRowSpacing(_ spacing: CGFloat?) -> some View { return stubView() }
+    public func listRowSpacing(_ spacing: CGFloat?) -> some View { return stubView() }
 
 }
 
@@ -2024,7 +2024,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `background(alignment:content:)` instead.")
-    @inlinable public func background<Background>(_ background: Background, alignment: Alignment = .center) -> some View where Background : View { return stubView() }
+    public func background<Background>(_ background: Background, alignment: Alignment = .center) -> some View where Background : View { return stubView() }
 
 }
 
@@ -2155,7 +2155,7 @@ extension View {
     ///     The last view that you list appears at the front of the stack.
     ///
     /// - Returns: A view that uses the specified content as a background.
-    @inlinable public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
+    public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Sets the view's background to the default background style.
@@ -2195,7 +2195,7 @@ extension View {
     ///
     /// - Returns: A view with the ``ShapeStyle/background`` shape style
     ///   drawn behind it.
-    @inlinable public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View { return stubView() }
+    public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View { return stubView() }
 
 
     /// Sets the view's background to a style.
@@ -2257,7 +2257,7 @@ extension View {
     ///     Specify an empty set to respect safe area insets on all edges.
     ///
     /// - Returns: A view with the specified style drawn behind it.
-    @inlinable public func background<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
+    public func background<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the view's background to a shape filled with the
@@ -2307,7 +2307,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn behind it.
-    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
+    public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
 
 
     /// Sets the view's background to a shape filled with a style.
@@ -2352,7 +2352,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn behind it.
-    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
+    public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
 
 
     /// Sets the view's background to an insettable shape filled with the
@@ -2394,7 +2394,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified insettable shape drawn behind it.
-    @inlinable public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : InsettableShape { return stubView() }
+    public func background<S>(in shape: S, fillStyle: FillStyle = FillStyle()) -> some View where S : InsettableShape { return stubView() }
 
 
     /// Sets the view's background to an insettable shape filled with a style.
@@ -2431,7 +2431,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified insettable shape drawn behind it.
-    @inlinable public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : InsettableShape { return stubView() }
+    public func background<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : InsettableShape { return stubView() }
 
 }
 
@@ -2462,7 +2462,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `overlay(alignment:content:)` instead.")
-    @inlinable public func overlay<Overlay>(_ overlay: Overlay, alignment: Alignment = .center) -> some View where Overlay : View { return stubView() }
+    public func overlay<Overlay>(_ overlay: Overlay, alignment: Alignment = .center) -> some View where Overlay : View { return stubView() }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -2583,7 +2583,7 @@ extension View {
     ///     The last view that you list appears at the front of the stack.
     ///
     /// - Returns: A view that uses the specified content as a foreground.
-    @inlinable public func overlay<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
+    public func overlay<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Layers the specified style in front of this view.
@@ -2642,7 +2642,7 @@ extension View {
     ///     Specify an empty set to respect safe area insets on all edges.
     ///
     /// - Returns: A view with the specified style drawn in front of it.
-    @inlinable public func overlay<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
+    public func overlay<S>(_ style: S, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Layers a shape that you specify in front of this view.
@@ -2681,7 +2681,7 @@ extension View {
     ///     antialiasing.
     ///
     /// - Returns: A view with the specified shape drawn in front of it.
-    @inlinable public func overlay<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
+    public func overlay<S, T>(_ style: S, in shape: T, fillStyle: FillStyle = FillStyle()) -> some View where S : ShapeStyle, T : Shape { return stubView() }
 
 }
 
@@ -2717,7 +2717,7 @@ extension View {
     ///
     /// - Returns: A view that constrains this view's dimensions to the aspect
     ///   ratio of the given size using `contentMode` as its scaling algorithm.
-    @inlinable public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View { return stubView() }
+    public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View { return stubView() }
 
 
     /// Constrains this view's dimensions to the aspect ratio of the given size.
@@ -2747,7 +2747,7 @@ extension View {
     ///
     /// - Returns: A view that constrains this view's dimensions to
     ///   `aspectRatio`, using `contentMode` as its scaling algorithm.
-    @inlinable public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View { return stubView() }
+    public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View { return stubView() }
 
 
     /// Scales this view to fit its parent.
@@ -2770,7 +2770,7 @@ extension View {
     ///
     /// - Returns: A view that scales this view to fit its parent, maintaining
     ///   this view's aspect ratio.
-    @inlinable public func scaledToFit() -> some View { return stubView() }
+    public func scaledToFit() -> some View { return stubView() }
 
 
     /// Scales this view to fill its parent.
@@ -2793,7 +2793,7 @@ extension View {
     ///
     /// - Returns: A view that scales this view to fill its parent, maintaining
     ///   this view's aspect ratio.
-    @inlinable public func scaledToFill() -> some View { return stubView() }
+    public func scaledToFill() -> some View { return stubView() }
 
 }
 
@@ -2928,7 +2928,7 @@ extension View {
     ///
     /// - Returns: A view that fixes this view at its ideal size in the
     ///   dimensions specified by `horizontal` and `vertical`.
-    @inlinable public func fixedSize(horizontal: Bool, vertical: Bool) -> some View { return stubView() }
+    public func fixedSize(horizontal: Bool, vertical: Bool) -> some View { return stubView() }
 
 
     /// Fixes this view at its ideal size.
@@ -2970,7 +2970,7 @@ extension View {
     /// vertical dimensions, see ``View/fixedSize(horizontal:vertical:)``.
     ///
     /// - Returns: A view that fixes this view at its ideal size.
-    @inlinable public func fixedSize() -> some View { return stubView() }
+    public func fixedSize() -> some View { return stubView() }
 
 }
 
@@ -3015,7 +3015,7 @@ extension View {
     ///
     /// - Parameter behavior: Whether spring loading is enabled or not. If
     ///   unspecified, the default behavior is `.automatic.`
-    @inlinable public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some View { return stubView() }
+    public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some View { return stubView() }
 
 }
 
@@ -3210,7 +3210,7 @@ extension View {
     /// - Returns: A view that limits the number of lines that ``Text``
     ///   instances display.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    @inlinable public func lineLimit(_ number: Int?) -> some View { return stubView() }
+    public func lineLimit(_ number: Int?) -> some View { return stubView() }
 
 
     /// Sets to a partial range the number of lines that text can occupy in
@@ -3482,7 +3482,7 @@ extension View {
     /// - Parameter offset: The distance to offset this view.
     ///
     /// - Returns: A view that offsets this view by `offset`.
-    @inlinable public func offset(_ offset: CGSize) -> some View { return stubView() }
+    public func offset(_ offset: CGSize) -> some View { return stubView() }
 
 
     /// Offset this view by the specified horizontal and vertical distances.
@@ -3507,7 +3507,7 @@ extension View {
     ///   - y: The vertical distance to offset this view.
     ///
     /// - Returns: A view that offsets this view by `x` and `y`.
-    @inlinable public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
+    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -3552,7 +3552,7 @@ extension View {
     ///
     /// - Returns: A view modified with respect to its horizontal alignment
     ///   according to the computation performed in the method's closure.
-    @inlinable public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
+    public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
 
 
     /// Sets the view's vertical alignment.
@@ -3596,7 +3596,7 @@ extension View {
     ///
     /// - Returns: A view modified with respect to its vertical alignment
     ///   according to the computation performed in the method's closure.
-    @inlinable public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
+    public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
 
 }
 
@@ -4691,7 +4691,7 @@ extension View {
     ///   view.
     ///
     /// - Returns: A view that fixes the center of this view at `position`.
-    @inlinable public func position(_ position: CGPoint) -> some View { return stubView() }
+    public func position(_ position: CGPoint) -> some View { return stubView() }
 
 
     /// Positions the center of this view at the specified coordinates in its
@@ -4709,7 +4709,7 @@ extension View {
     ///   - y: The y-coordinate at which to place the center of this view.
     ///
     /// - Returns: A view that fixes the center of this view at `x` and `y`.
-    @inlinable public func position(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
+    public func position(x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -4961,7 +4961,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use ignoresSafeArea(_:edges:) instead.")
-    @inlinable public func edgesIgnoringSafeArea(_ edges: Edge.Set) -> some View { return stubView() }
+    public func edgesIgnoringSafeArea(_ edges: Edge.Set) -> some View { return stubView() }
 
 }
 
@@ -4980,7 +4980,7 @@ extension View {
     ///
     /// - Returns: a new view with its safe area expanded.
     ///
-    @inlinable public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View { return stubView() }
+    public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View { return stubView() }
 
 }
 
@@ -5014,7 +5014,7 @@ extension View {
     ///
     /// - Parameter value: A relative front-to-back ordering for this view; the
     ///   default is `0`.
-    @inlinable public func zIndex(_ value: Double) -> some View { return stubView() }
+    public func zIndex(_ value: Double) -> some View { return stubView() }
 
 }
 
@@ -5061,7 +5061,7 @@ extension View {
     ///     ``LayoutValueKey/defaultValue`` property.
     ///
     /// - Returns: A view that has the specified value for the specified key.
-    @inlinable public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return stubView() }
+    public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return stubView() }
 
 }
 
@@ -5088,7 +5088,7 @@ extension View {
     /// - Parameter transform: A
     ///  to
     /// apply to the view.
-    @inlinable public func transformEffect(_ transform: CGAffineTransform) -> some View { return stubView() }
+    public func transformEffect(_ transform: CGAffineTransform) -> some View { return stubView() }
 
 }
 
@@ -5229,7 +5229,7 @@ extension View {
     ///
     /// - Returns: A view that controls whether users can interact with this
     ///   view.
-    @inlinable public func disabled(_ disabled: Bool) -> some View { return stubView() }
+    public func disabled(_ disabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -5281,7 +5281,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use the asset catalog's accent color or View.tint(_:) instead.")
-    @inlinable public func accentColor(_ accentColor: Color?) -> some View { return stubView() }
+    public func accentColor(_ accentColor: Color?) -> some View { return stubView() }
 
 }
 
@@ -5323,7 +5323,7 @@ extension View {
     ///
     /// - Parameter value: The priority by which a parent layout apportions
     ///   space to the child.
-    @inlinable public func layoutPriority(_ value: Double) -> some View { return stubView() }
+    public func layoutPriority(_ value: Double) -> some View { return stubView() }
 
 }
 
@@ -5360,7 +5360,7 @@ extension View {
     ///   - opaque: A Boolean value that indicates whether the blur renderer
     ///     permits transparency in the blur output. Set to `true` to create an
     ///     opaque blur, or set to `false` to permit transparency.
-    @inlinable public func blur(radius: CGFloat, opaque: Bool = false) -> some View { return stubView() }
+    public func blur(radius: CGFloat, opaque: Bool = false) -> some View { return stubView() }
 
 }
 
@@ -5394,7 +5394,7 @@ extension View {
     ///   brightening) that represents the intensity of the brightness effect.
     ///
     /// - Returns: A view that brightens this view by the specified amount.
-    @inlinable public func brightness(_ amount: Double) -> some View { return stubView() }
+    public func brightness(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -5448,7 +5448,7 @@ extension View {
     /// red and green colors.](SkipUI-View-colorInvert.png)
     ///
     /// - Returns: A view that inverts its colors.
-    @inlinable public func colorInvert() -> some View { return stubView() }
+    public func colorInvert() -> some View { return stubView() }
 
 }
 
@@ -5585,7 +5585,7 @@ extension View {
     /// - Parameter color: The color to bias this view toward.
     ///
     /// - Returns: A view with a color multiplication effect.
-    @inlinable public func colorMultiply(_ color: Color) -> some View { return stubView() }
+    public func colorMultiply(_ color: Color) -> some View { return stubView() }
 
 }
 
@@ -5638,7 +5638,7 @@ extension View {
     ///   values invert colors in addition to applying contrast.
     ///
     /// - Returns: A view that applies color contrast to this view.
-    @inlinable public func contrast(_ amount: Double) -> some View { return stubView() }
+    public func contrast(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -5676,7 +5676,7 @@ extension View {
     ///   1.0 are less colorful.
     ///
     /// - Returns: A view that adds a grayscale effect to this view.
-    @inlinable public func grayscale(_ amount: Double) -> some View { return stubView() }
+    public func grayscale(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -5714,7 +5714,7 @@ extension View {
     ///   view.
     ///
     /// - Returns: A view that applies a hue rotation effect to this view.
-    @inlinable public func hueRotation(_ angle: Angle) -> some View { return stubView() }
+    public func hueRotation(_ angle: Angle) -> some View { return stubView() }
 
 }
 
@@ -5774,7 +5774,7 @@ extension View {
     /// - Parameter colorScheme: The preferred color scheme for this view.
     ///
     /// - Returns: A view that sets the color scheme.
-    @inlinable public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View { return stubView() }
+    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View { return stubView() }
 
 }
 
@@ -5841,7 +5841,7 @@ extension View {
     /// scanning in the same direction.](View-luminanceToAlpha-1-iOS)
     ///
     /// - Returns: A view with the luminance to alpha effect applied.
-    @inlinable public func luminanceToAlpha() -> some View { return stubView() }
+    public func luminanceToAlpha() -> some View { return stubView() }
 
 }
 
@@ -5878,7 +5878,7 @@ extension View {
     /// - Parameter amount: The amount of saturation to apply to this view.
     ///
     /// - Returns: A view that adjusts the saturation of this view.
-    @inlinable public func saturation(_ amount: Double) -> some View { return stubView() }
+    public func saturation(_ amount: Double) -> some View { return stubView() }
 
 }
 
@@ -6132,7 +6132,7 @@ extension View {
     ///
     /// - Returns: A view that applies `animation` to this view whenever `value`
     ///   changes.
-    @inlinable public func animation<V>(_ animation: Animation?, value: V) -> some View where V : Equatable { return stubView() }
+    public func animation<V>(_ animation: Animation?, value: V) -> some View where V : Equatable { return stubView() }
 
 }
 
@@ -6147,7 +6147,7 @@ extension View where Self : Equatable {
     /// - Returns: A view that applies `animation` to this view whenever it
     ///   changes.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    @inlinable public func animation(_ animation: Animation?) -> some View { return stubView() }
+    public func animation(_ animation: Animation?) -> some View { return stubView() }
 
 }
 
@@ -6200,7 +6200,7 @@ extension View {
     ///   value to use as the view's tag.
     ///
     /// - Returns: A view with the specified tag set.
-    @inlinable public func tag<V>(_ tag: V) -> some View where V : Hashable { return stubView() }
+    public func tag<V>(_ tag: V) -> some View where V : Hashable { return stubView() }
 
 }
 
@@ -6394,7 +6394,7 @@ extension View {
     /// - Parameter blendMode: The ``BlendMode`` for compositing this view.
     ///
     /// - Returns: A view that applies `blendMode` to this view.
-    @inlinable public func blendMode(_ blendMode: BlendMode) -> some View { return stubView() }
+    public func blendMode(_ blendMode: BlendMode) -> some View { return stubView() }
 
 }
 
@@ -6440,7 +6440,7 @@ extension View {
     ///   row view.
     ///
     /// - Returns: A list row view with `view` as its background view.
-    @inlinable public func listRowBackground<V>(_ view: V?) -> some View where V : View { return stubView() }
+    public func listRowBackground<V>(_ view: V?) -> some View where V : View { return stubView() }
 
 }
 
@@ -6530,7 +6530,7 @@ extension View {
     /// rendered.](SkipUI-View-compositingGroup.png)
     ///
     /// - Returns: A view that wraps this view in a compositing group.
-    @inlinable public func compositingGroup() -> some View { return stubView() }
+    public func compositingGroup() -> some View { return stubView() }
 
 }
 
@@ -6670,7 +6670,7 @@ extension View {
     ///
     /// - Returns: A view that clips this view to `shape`, using `style` to
     ///   define the shape's rasterization.
-    @inlinable public func clipShape<S>(_ shape: S, style: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
+    public func clipShape<S>(_ shape: S, style: FillStyle = FillStyle()) -> some View where S : Shape { return stubView() }
 
 
     /// Clips this view to its bounding rectangular frame.
@@ -6695,7 +6695,7 @@ extension View {
     ///   rectangle.
     ///
     /// - Returns: A view that clips this view to its bounding frame.
-    @inlinable public func clipped(antialiased: Bool = false) -> some View { return stubView() }
+    public func clipped(antialiased: Bool = false) -> some View { return stubView() }
 
 
     /// Clips this view to its bounding frame, with the specified corner radius.
@@ -6727,7 +6727,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use `clipShape` or `fill` instead.")
-    @inlinable public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View { return stubView() }
+    public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -6801,7 +6801,7 @@ extension View {
     ///   - y: An amount to offset the shadow vertically from the view.
     ///
     /// - Returns: A view that adds a shadow to this view.
-    @inlinable public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
+    public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some View { return stubView() }
 
 }
 
@@ -7009,7 +7009,7 @@ extension View {
     /// - Parameter scale: One of the relative sizes provided by the image scale
     ///   enumeration.
     @available(macOS 11.0, *)
-    @inlinable public func imageScale(_ scale: Image.Scale) -> some View { return stubView() }
+    public func imageScale(_ scale: Image.Scale) -> some View { return stubView() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -7518,7 +7518,7 @@ extension View {
     ///
     /// - Returns: A view that triggers `action` when the pointer enters or
     ///   exits this view's frame.
-    @inlinable public func onHover(perform action: @escaping (Bool) -> Void) -> some View { return stubView() }
+    public func onHover(perform action: @escaping (Bool) -> Void) -> some View { return stubView() }
 
 }
 
@@ -7673,7 +7673,7 @@ extension View {
     ///   above it: A, B, and D.](SkipUI-View-hidden-2.png)
     ///
     /// - Returns: A hidden view.
-    @inlinable public func hidden() -> some View { return stubView() }
+    public func hidden() -> some View { return stubView() }
 
 }
 
@@ -7828,7 +7828,7 @@ extension View {
     /// - Returns: A new view that defines an entry in the global
     ///   database of views synchronizing their geometry.
     ///
-    @inlinable public func matchedGeometryEffect<ID>(id: ID, in namespace: Namespace.ID, properties: MatchedGeometryProperties = .frame, anchor: UnitPoint = .center, isSource: Bool = true) -> some View where ID : Hashable { return stubView() }
+    public func matchedGeometryEffect<ID>(id: ID, in namespace: Namespace.ID, properties: MatchedGeometryProperties = .frame, anchor: UnitPoint = .center, isSource: Bool = true) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -7937,7 +7937,7 @@ extension View {
     /// - Parameter mode: The symbol rendering mode to use.
     ///
     /// - Returns: A view that uses the rendering mode you supply.
-    @inlinable public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> some View { return stubView() }
+    public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> some View { return stubView() }
 
 }
 
@@ -8088,7 +8088,7 @@ extension View {
     ///
     /// - Returns: A view that conditionally mirrors its contents
     ///   horizontally when the layout direction is right-to-left.
-    @inlinable public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View { return stubView() }
+    public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View { return stubView() }
 
 }
 
@@ -8379,7 +8379,7 @@ extension View {
     ///
     /// - Parameter text: The explicit text value to use as a type select
     /// equivalent for a view in a collection.
-    @inlinable public func typeSelectEquivalent(_ text: Text?) -> some View { return stubView() }
+    public func typeSelectEquivalent(_ text: Text?) -> some View { return stubView() }
 
 
     /// Sets an explicit type select equivalent text in a collection, such as
@@ -8415,8 +8415,8 @@ extension View {
     ///
     /// - Parameter stringKey: The localized string key to use as a type select
     /// equivalent for a view in a collection.
-    @_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
-    @inlinable public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View { return stubView() }
+    //@_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
+    public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View { return stubView() }
 
 
     /// Sets an explicit type select equivalent text in a collection, such as
@@ -8452,8 +8452,8 @@ extension View {
     ///
     /// - Parameter string: The string to use as a type select equivalent for a
     /// view in a collection.
-    @_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
-    @inlinable public func typeSelectEquivalent<S>(_ string: S) -> some View where S : StringProtocol { return stubView() }
+    //@_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
+    public func typeSelectEquivalent<S>(_ string: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 
@@ -8603,7 +8603,7 @@ extension View {
     ///     with the even-odd winding number rule.
     ///
     /// - Returns: A view that uses the given shape for the specified kind.
-    @inlinable public func contentShape<S>(_ kind: ContentShapeKinds, _ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
+    public func contentShape<S>(_ kind: ContentShapeKinds, _ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
 
 }
 
@@ -8805,7 +8805,7 @@ extension View {
     ///
     /// - Returns: A view that aligns the lines of multiline ``Text`` instances
     ///   it contains.
-    @inlinable public func multilineTextAlignment(_ alignment: TextAlignment) -> some View { return stubView() }
+    public func multilineTextAlignment(_ alignment: TextAlignment) -> some View { return stubView() }
 
 
     /// Sets the truncation mode for lines of text that are too long to fit in
@@ -8833,7 +8833,7 @@ extension View {
     ///
     /// - Returns: A view that truncates text at different points in a line
     ///   depending on the mode you select.
-    @inlinable public func truncationMode(_ mode: Text.TruncationMode) -> some View { return stubView() }
+    public func truncationMode(_ mode: Text.TruncationMode) -> some View { return stubView() }
 
 
     /// Sets the amount of space between lines of text in this view.
@@ -8855,7 +8855,7 @@ extension View {
     ///
     /// - Parameter lineSpacing: The amount of space between the bottom of one
     ///   line and the top of the next line in points.
-    @inlinable public func lineSpacing(_ lineSpacing: CGFloat) -> some View { return stubView() }
+    public func lineSpacing(_ lineSpacing: CGFloat) -> some View { return stubView() }
 
 
     /// Sets whether text in this view can compress the space between characters
@@ -8890,7 +8890,7 @@ extension View {
     ///
     /// - Returns: A view that can compress the space between characters when
     ///   necessary to fit text in a line.
-    @inlinable public func allowsTightening(_ flag: Bool) -> some View { return stubView() }
+    public func allowsTightening(_ flag: Bool) -> some View { return stubView() }
 
 
     /// Sets the minimum amount that text in this view scales down to fit in the
@@ -8920,7 +8920,7 @@ extension View {
     ///   specify the minimum amount of text scaling that this view permits.
     ///
     /// - Returns: A view that limits the amount of text downscaling.
-    @inlinable public func minimumScaleFactor(_ factor: CGFloat) -> some View { return stubView() }
+    public func minimumScaleFactor(_ factor: CGFloat) -> some View { return stubView() }
 
 
     /// Sets a transform for the case of the text contained in this view when
@@ -8933,7 +8933,7 @@ extension View {
     ///   default is `nil`.
     /// - Returns: A view that transforms the case of the text.
     @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    @inlinable public func textCase(_ textCase: Text.Case?) -> some View { return stubView() }
+    public func textCase(_ textCase: Text.Case?) -> some View { return stubView() }
 
 }
 
@@ -9411,7 +9411,7 @@ extension View {
     /// - Parameter controlSize: One of the control sizes specified in the
     ///   ``ControlSize`` enumeration.
     @available(tvOS, unavailable)
-    @inlinable public func controlSize(_ controlSize: ControlSize) -> some View { return stubView() }
+    public func controlSize(_ controlSize: ControlSize) -> some View { return stubView() }
 
 }
 
@@ -9456,7 +9456,7 @@ extension View {
     ///   view.
     /// - Returns: A view that uses the given edge insets when used as a list
     ///   cell.
-    @inlinable public func listRowInsets(_ insets: EdgeInsets?) -> some View { return stubView() }
+    public func listRowInsets(_ insets: EdgeInsets?) -> some View { return stubView() }
 
 }
 
@@ -9561,7 +9561,7 @@ extension View {
     ///   modified view,
     ///   making space for the `content` view by vertically insetting
     ///   the modified view, adjusting the safe area of the result to match.
-    @inlinable public func safeAreaInset<V>(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
+    public func safeAreaInset<V>(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 
     /// Shows the specified content beside the modified view.
@@ -9596,7 +9596,7 @@ extension View {
     /// - Returns: A new view that displays `content` beside the modified view,
     ///   making space for the `content` view by horizontally insetting
     ///   the modified view.
-    @inlinable public func safeAreaInset<V>(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
+    public func safeAreaInset<V>(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
 
 }
 
@@ -9693,7 +9693,7 @@ extension View {
     ///     .environment(\.backgroundStyle, nil)
     ///
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    @inlinable public func backgroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
+    public func backgroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -9811,7 +9811,7 @@ extension View {
     ///
     /// When the proxy value specified by the `id` parameter changes, the
     /// identity of the view — for example, its state — is reset.
-    @inlinable public func id<ID>(_ id: ID) -> some View where ID : Hashable { return stubView() }
+    public func id<ID>(_ id: ID) -> some View where ID : Hashable { return stubView() }
 
 }
 
@@ -9903,7 +9903,7 @@ extension View {
     @available(tvOS, deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(watchOS, deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
     @available(xrOS, deprecated: 1.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @inlinable public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
+    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
 
 }
 
@@ -10447,7 +10447,7 @@ extension View {
     ///
     /// - Returns: A view that runs the specified action asynchronously before
     ///   the view appears.
-    @inlinable public func task(priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View { return stubView() }
+    public func task(priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View { return stubView() }
 
 
     /// Adds a task to perform before this view appears or when a specified
@@ -10517,7 +10517,7 @@ extension View {
     ///
     /// - Returns: A view that runs the specified action asynchronously before
     ///   the view appears, or restarts the task with the `id` value changes.
-    @inlinable public func task<T>(id value: T, priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View where T : Equatable { return stubView() }
+    public func task<T>(id value: T, priority: TaskPriority = .userInitiated, _ action: @escaping @Sendable () async -> Void) -> some View where T : Equatable { return stubView() }
 
 }
 
@@ -10542,7 +10542,7 @@ extension View {
     ///
     /// - Parameter tint: The tint effect to use, or nil to not override the
     ///   inherited tint.
-    @inlinable public func listItemTint(_ tint: ListItemTint?) -> some View { return stubView() }
+    public func listItemTint(_ tint: ListItemTint?) -> some View { return stubView() }
 
 
     /// Sets a fixed tint color associated with specific content in a list.
@@ -10557,7 +10557,7 @@ extension View {
     ///
     /// - Parameter color: The color to use to tint the content, or nil to not
     ///   override the inherited tint.
-    @inlinable public func listItemTint(_ tint: Color?) -> some View { return stubView() }
+    public func listItemTint(_ tint: Color?) -> some View { return stubView() }
 
 }
 
@@ -10703,7 +10703,7 @@ extension View {
     ///     3D space about which the rotation is anchored.
     ///   - perspective: The relative vanishing point with a default of `1` for
     ///     this rotation.
-    @inlinable public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some View { return stubView() }
+    public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some View { return stubView() }
 
 }
 
@@ -10712,7 +10712,7 @@ extension View {
 
     /// Transforms the environment value of the specified key path with the
     /// given function.
-    @inlinable public func transformEnvironment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, transform: @escaping (inout V) -> Void) -> some View { return stubView() }
+    public func transformEnvironment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, transform: @escaping (inout V) -> Void) -> some View { return stubView() }
 
 }
 
@@ -10854,7 +10854,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "preferredColorScheme(_:)")
-    @inlinable public func colorScheme(_ colorScheme: ColorScheme) -> some View { return stubView() }
+    public func colorScheme(_ colorScheme: ColorScheme) -> some View { return stubView() }
 
 }
 
@@ -10913,7 +10913,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use coordinateSpace(_:) instead")
-    @inlinable public func coordinateSpace<T>(name: T) -> some View where T : Hashable { return stubView() }
+    public func coordinateSpace<T>(name: T) -> some View where T : Hashable { return stubView() }
 
 }
 
@@ -10983,7 +10983,7 @@ extension View {
     ///     with the even-odd winding number rule.
     ///
     /// - Returns: A view that uses the given shape for hit testing.
-    @inlinable public func contentShape<S>(_ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
+    public func contentShape<S>(_ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
 
 }
 
@@ -11044,7 +11044,7 @@ extension View {
     ///     - alignment: The alignment for `mask` in relation to this view.
     ///     - mask: The view whose alpha the rendering system applies to
     ///       the specified view.
-    @inlinable public func mask<Mask>(alignment: Alignment = .center, @ViewBuilder _ mask: () -> Mask) -> some View where Mask : View { return stubView() }
+    public func mask<Mask>(alignment: Alignment = .center, @ViewBuilder _ mask: () -> Mask) -> some View where Mask : View { return stubView() }
 
 }
 
@@ -11073,7 +11073,7 @@ extension View {
     @available(tvOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
     @available(watchOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
     @available(xrOS, deprecated: 100000.0, message: "Use overload where mask accepts a @ViewBuilder instead.")
-    @inlinable public func mask<Mask>(_ mask: Mask) -> some View where Mask : View { return stubView() }
+    public func mask<Mask>(_ mask: Mask) -> some View where Mask : View { return stubView() }
 
 }
 
@@ -11098,7 +11098,7 @@ extension View {
     ///
     /// - Returns: A view that conditionally mirrors its contents
     ///   horizontally in a given layout direction.
-    @inlinable public func layoutDirectionBehavior(_ behavior: LayoutDirectionBehavior) -> some View { return stubView() }
+    public func layoutDirectionBehavior(_ behavior: LayoutDirectionBehavior) -> some View { return stubView() }
 
 }
 
@@ -11204,7 +11204,7 @@ extension View {
     ///   semantic styles, like ``ShapeStyle/primary``.
     ///
     /// - Returns: A view that uses the given foreground style.
-    @inlinable public func foregroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
+    public func foregroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Sets the primary and secondary levels of the foreground
@@ -11230,7 +11230,7 @@ extension View {
     ///     filling in the foreground elements.
     ///
     /// - Returns: A view that uses the given foreground styles.
-    @inlinable public func foregroundStyle<S1, S2>(_ primary: S1, _ secondary: S2) -> some View where S1 : ShapeStyle, S2 : ShapeStyle { return stubView() }
+    public func foregroundStyle<S1, S2>(_ primary: S1, _ secondary: S2) -> some View where S1 : ShapeStyle, S2 : ShapeStyle { return stubView() }
 
 
     /// Sets the primary, secondary, and tertiary levels of
@@ -11258,7 +11258,7 @@ extension View {
     ///     filling in the foreground elements.
     ///
     /// - Returns: A view that uses the given foreground styles.
-    @inlinable public func foregroundStyle<S1, S2, S3>(_ primary: S1, _ secondary: S2, _ tertiary: S3) -> some View where S1 : ShapeStyle, S2 : ShapeStyle, S3 : ShapeStyle { return stubView() }
+    public func foregroundStyle<S1, S2, S3>(_ primary: S1, _ secondary: S2, _ tertiary: S3) -> some View where S1 : ShapeStyle, S2 : ShapeStyle, S3 : ShapeStyle { return stubView() }
 
 }
 
@@ -11290,7 +11290,7 @@ extension View {
     ///     }
     ///
     /// - Parameter tint: The tint to apply.
-    @inlinable public func tint<S>(_ tint: S?) -> some View where S : ShapeStyle { return stubView() }
+    public func tint<S>(_ tint: S?) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -11328,7 +11328,7 @@ extension View {
     ///     }
     ///
     /// - Parameter tint: The tint ``Color`` to apply.
-    @inlinable public func tint(_ tint: Color?) -> some View { return stubView() }
+    public func tint(_ tint: Color?) -> some View { return stubView() }
 
 }
 
@@ -11357,7 +11357,7 @@ extension View {
     ///     .badgeProminence(.decreased)
     ///
     /// - Parameter prominence: The prominence to apply to badges.
-    @inlinable public func badgeProminence(_ prominence: BadgeProminence) -> some View { return stubView() }
+    public func badgeProminence(_ prominence: BadgeProminence) -> some View { return stubView() }
 
 }
 
@@ -11383,7 +11383,7 @@ extension View {
     /// out of the screen.](SkipUI-View-projectionEffect.png)
     ///
     /// - Parameter transform: A ``ProjectionTransform`` to apply to the view.
-    @inlinable public func projectionEffect(_ transform: ProjectionTransform) -> some View { return stubView() }
+    public func projectionEffect(_ transform: ProjectionTransform) -> some View { return stubView() }
 
 }
 

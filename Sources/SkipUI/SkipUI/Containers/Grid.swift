@@ -820,7 +820,7 @@ extension GridLayout : Layout {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 }
 
 extension GridLayout {

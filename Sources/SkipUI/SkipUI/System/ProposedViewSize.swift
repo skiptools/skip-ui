@@ -103,7 +103,7 @@ import struct CoreGraphics.CGSize
     ///   for both dimensions.
     ///
     /// - Returns: A new, fully specified size proposal.
-    @inlinable public func replacingUnspecifiedDimensions(by size: CGSize = CGSize(width: 10, height: 10)) -> CGSize { fatalError() }
+    public func replacingUnspecifiedDimensions(by size: CGSize = CGSize(width: 10, height: 10)) -> CGSize { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)

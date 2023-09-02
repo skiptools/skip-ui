@@ -55,7 +55,7 @@ extension Angle: Comparable {
 // Stubs needed to compile this package:
 
 extension Angle : Animatable {
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias AnimatableData = Double
 }
 

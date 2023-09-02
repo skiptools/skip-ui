@@ -218,7 +218,7 @@ public struct DisclosureGroupStyleConfiguration {
 
     /// A binding to a Boolean that indicates whether the disclosure
     /// group is expanded.
-//    @Binding public var isExpanded: Bool { get { fatalError() } nonmutating set { fatalError() } }
+//    @Binding public var isExpanded: Bool { get { fatalError() } nonmutating set { } }
 
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }

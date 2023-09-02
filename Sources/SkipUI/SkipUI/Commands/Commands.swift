@@ -7,7 +7,7 @@
 #if !SKIP
 
 /// No-op
-@usableFromInline func stubCommands() -> some Commands {
+func stubCommands() -> some Commands {
     return never()
 }
 
@@ -62,7 +62,7 @@ extension Never : Commands {
 extension Optional : Commands where Wrapped : Commands {
 
     //public typealias Body = NeverView
-    public var body: some Commands { return stubCommands() }
+    public var body: some Commands { stubCommands() }
 }
 
 /// An empty group of commands.
@@ -111,7 +111,7 @@ public struct CommandGroup<Content> : Commands where Content : View {
     /// that defines the scene as a composition of other scenes. You can
     /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
-    public var body: some Commands { get { return stubCommands() } }
+    public var body: some Commands { get { stubCommands() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
@@ -306,7 +306,7 @@ public struct CommandMenu<Content> : Commands where Content : View {
     /// that defines the scene as a composition of other scenes. You can
     /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
-    public var body: some Commands { get { return stubCommands() } }
+    public var body: some Commands { get { stubCommands() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
@@ -355,7 +355,7 @@ extension CommandsBuilder {
     /// Provides support for "if" statements with `#available()` clauses in
     /// multi-statement closures, producing conditional content for the "then"
     /// branch, i.e. the conditionally-available branch.
-    public static func buildLimitedAvailability<C>(_ content: C) -> some Commands where C : Commands { return stubCommands() }
+    public static func buildLimitedAvailability<C>(_ content: C) -> some Commands where C : Commands { stubCommands() }
 
 }
 
@@ -364,7 +364,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Commands where C0 : Commands, C1 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Commands where C0 : Commands, C1 : Commands { stubCommands() }
 
 }
 
@@ -373,7 +373,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands { stubCommands() }
 
 }
 
@@ -382,7 +382,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands { stubCommands() }
 
 }
 
@@ -391,7 +391,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands { stubCommands() }
 
 }
 
@@ -400,7 +400,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands { stubCommands() }
 
 }
 
@@ -409,7 +409,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands { stubCommands() }
 
 }
 
@@ -418,7 +418,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands { stubCommands() }
 
 }
 
@@ -427,7 +427,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands, C8 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands, C8 : Commands { stubCommands() }
 
 }
 
@@ -436,7 +436,7 @@ extension CommandsBuilder {
 @available(watchOS, unavailable)
 extension CommandsBuilder {
 
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands, C8 : Commands, C9 : Commands { return stubCommands() }
+    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some Commands where C0 : Commands, C1 : Commands, C2 : Commands, C3 : Commands, C4 : Commands, C5 : Commands, C6 : Commands, C7 : Commands, C8 : Commands, C9 : Commands { stubCommands() }
 
 }
 
@@ -460,7 +460,7 @@ public struct TextFormattingCommands : Commands {
     /// that defines the scene as a composition of other scenes. You can
     /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
-    public var body: some Commands { get { return stubCommands() } }
+    public var body: some Commands { get { stubCommands() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///
@@ -488,7 +488,7 @@ public struct SidebarCommands : Commands {
     /// that defines the scene as a composition of other scenes. You can
     /// assemble a command hierarchy from built-in commands that SkipUI
     /// provides, as well as other commands that you've defined.
-    public var body: some Commands { get { return stubCommands() } }
+    public var body: some Commands { get { stubCommands() } }
 
     /// The type of commands that represents the body of this command hierarchy.
     ///

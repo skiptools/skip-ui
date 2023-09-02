@@ -465,14 +465,14 @@ public struct FetchedResults<Result> : RandomAccessCollection where Result : NSF
     /// If you want to use
     /// instances, set ``FetchedResults/sortDescriptors`` instead.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { fatalError() } }
+    public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { } }
 
     /// The request's predicate.
     ///
     /// Set this value to cause the associated ``FetchRequest`` to execute a
     /// fetch with a new predicate, producing an updated collection of results.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public var nsPredicate: NSPredicate? { get { fatalError() } nonmutating set { fatalError() } }
+    public var nsPredicate: NSPredicate? { get { fatalError() } nonmutating set { } }
 
     /// The index of the first entity in the results collection.
     public var startIndex: Int { get { fatalError() } }
@@ -526,7 +526,7 @@ extension FetchedResults where Result : NSManagedObject {
     ///
     /// If you want to use
     /// instances, set ``FetchedResults/nsSortDescriptors`` instead.
-    public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { fatalError() } }
+    public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { } }
 }
 
 
@@ -1056,14 +1056,14 @@ public struct SectionedFetchResults<SectionIdentifier, Result> : RandomAccessCol
     ///
     /// If you want to use
     /// instances, set ``SectionedFetchResults/sortDescriptors`` instead.
-    public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { fatalError() } }
+    public var nsSortDescriptors: [NSSortDescriptor] { get { fatalError() } nonmutating set { } }
 
     /// The request's predicate.
     ///
     /// Set this value to cause the associated ``SectionedFetchRequest`` to
     /// execute a fetch with a new predicate, producing an updated collection
     /// of results.
-    public var nsPredicate: NSPredicate? { get { fatalError() } nonmutating set { fatalError() } }
+    public var nsPredicate: NSPredicate? { get { fatalError() } nonmutating set { } }
 
     /// The key path that the system uses to group fetched results into sections.
     ///
@@ -1072,7 +1072,7 @@ public struct SectionedFetchResults<SectionIdentifier, Result> : RandomAccessCol
     /// collection of results. Changing this value produces a new set of
     /// sections. Use care to coordinate section and sort updates, as described
     /// in ``SectionedFetchRequest/Configuration``.
-    public var sectionIdentifier: KeyPath<Result, SectionIdentifier> { get { fatalError() } nonmutating set { fatalError() } }
+    public var sectionIdentifier: KeyPath<Result, SectionIdentifier> { get { fatalError() } nonmutating set { } }
 
     /// The index of the first section in the results collection.
     public var startIndex: Int { get { fatalError() } }
@@ -1126,7 +1126,7 @@ extension SectionedFetchResults where Result : NSManagedObject {
     ///
     /// If you want to use
     /// instances, set ``SectionedFetchResults/nsSortDescriptors`` instead.
-    public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { fatalError() } }
+    public var sortDescriptors: [SortDescriptor<Result>] { get { fatalError() } nonmutating set { } }
 }
 
 #endif

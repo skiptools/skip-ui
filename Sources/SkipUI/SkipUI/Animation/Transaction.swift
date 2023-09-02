@@ -303,7 +303,7 @@ extension View {
     ///
     /// - Returns: A view that wraps this view and applies a transformation to
     ///   all transactions used within the view.
-    @inlinable public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some View { return stubView() }
+    public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some View { return stubView() }
 
 
     /// Applies the given transaction mutation function to all animations used
@@ -383,7 +383,7 @@ extension View {
     @available(tvOS, introduced: 13.0, deprecated: 15.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 8.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @inlinable public func animation(_ animation: Animation?) -> some View { return stubView() }
+    public func animation(_ animation: Animation?) -> some View { return stubView() }
 
 }
 

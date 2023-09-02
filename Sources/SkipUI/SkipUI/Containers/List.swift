@@ -931,7 +931,7 @@ extension View {
     ///         }
     ///     }
     ///     .listSectionSpacing(.compact)
-    @inlinable public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { return stubView() }
+    public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { return stubView() }
 
 
     /// Sets the spacing to a custom value between adjacent sections in a List.
@@ -978,7 +978,7 @@ extension View {
     /// over any List-wide value.
     ///
     /// - Parameter spacing: the amount of spacing to apply.
-    @inlinable public func listSectionSpacing(_ spacing: CGFloat) -> some View { return stubView() }
+    public func listSectionSpacing(_ spacing: CGFloat) -> some View { return stubView() }
 
 }
 

@@ -180,7 +180,7 @@ public struct ButtonBorderShape : Equatable, Sendable {
 extension ButtonBorderShape : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -199,7 +199,7 @@ extension ButtonBorderShape : Shape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -670,7 +670,7 @@ extension View {
     /// - Note:This will only reflect on explicitly-set `.bordered` or
     ///   `borderedProminent` styles. Setting a shape without
     ///   explicitly setting the above styles will have no effect.
-    @inlinable public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return stubView() }
+    public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return stubView() }
 
 }
 

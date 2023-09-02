@@ -42,7 +42,7 @@ import struct Foundation.URL
     /// This works identically to `State.wrappedValue`.
     ///
     /// - SeeAlso: State.wrappedValue
-    public var wrappedValue: Value { get { fatalError() } nonmutating set { fatalError() } }
+    public var wrappedValue: Value { get { fatalError() } nonmutating set { } }
 
     /// A binding to the state value.
     ///

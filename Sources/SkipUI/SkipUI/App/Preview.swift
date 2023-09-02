@@ -359,7 +359,7 @@ extension View {
     /// - Parameter value: A device to use for preview, or `nil` to let Xcode
     ///   automatically choose a device based on the run destination.
     /// - Returns: A preview that uses the given device.
-    @inlinable public func previewDevice(_ value: PreviewDevice?) -> some View { return stubView() }
+    public func previewDevice(_ value: PreviewDevice?) -> some View { return stubView() }
 
 
     /// Overrides the size of the container for the preview.
@@ -379,7 +379,7 @@ extension View {
     ///
     /// - Parameter value: A layout to use for preview.
     /// - Returns: A preview that uses the given layout.
-    @inlinable public func previewLayout(_ value: PreviewLayout) -> some View { return stubView() }
+    public func previewLayout(_ value: PreviewLayout) -> some View { return stubView() }
 
 
     /// Sets a user visible name to show in the canvas for a preview.
@@ -404,14 +404,14 @@ extension View {
     ///
     /// - Parameter value: A name for the preview.
     /// - Returns: A preview that uses the given name.
-    @inlinable public func previewDisplayName(_ value: String?) -> some View { return stubView() }
+    public func previewDisplayName(_ value: String?) -> some View { return stubView() }
 
 
     /// Declares a context for the preview.
     ///
     /// - Parameter value: The context for the preview; the default is `nil`.
     @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    @inlinable public func previewContext<C>(_ value: C) -> some View where C : PreviewContext { return stubView() }
+    public func previewContext<C>(_ value: C) -> some View where C : PreviewContext { return stubView() }
 
 
     /// Overrides the orientation of the preview.

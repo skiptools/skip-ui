@@ -18,7 +18,7 @@ import class UIKit.NSItemProvider
 
 
 /// No-op
-@usableFromInline func stubTableRowContent() -> some TableRowContent {
+func stubTableRowContent() -> some TableRowContent {
     return never()
 }
 
@@ -3132,7 +3132,7 @@ public struct TableForEachContent<Data> : TableRowContent where Data : RandomAcc
     public typealias TableRowValue = Data.Element
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
+    public var tableRowBody: some TableRowContent { get { stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
     //public typealias TableRowBody = NeverView
@@ -3151,7 +3151,7 @@ public struct TableHeaderRowContent<Value, Content> : TableRowContent where Valu
     public typealias TableRowValue = Value
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
+    public var tableRowBody: some TableRowContent { get { stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
     //public typealias TableRowBody = NeverView
@@ -3172,7 +3172,7 @@ public struct TableOutlineGroupContent<Data> : TableRowContent where Data : Rand
     public typealias TableRowValue = Data.Element
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
+    public var tableRowBody: some TableRowContent { get { stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
     //public typealias TableRowBody = NeverView
@@ -3860,7 +3860,7 @@ public struct DisclosureTableRow<Label, Content> : TableRowContent where Label :
     public init<Value>(_ value: Value, isExpanded: Binding<Bool>? = nil, @TableRowBuilder<Value> content: @escaping () -> Content) where Label == TableRow<Value>, Value == Content.TableRowValue { fatalError() }
 
     /// The composition of content that comprise the table row content.
-    public var tableRowBody: some TableRowContent { get { return stubTableRowContent() } }
+    public var tableRowBody: some TableRowContent { get { stubTableRowContent() } }
 
     /// The type of content representing the body of this table row content.
     //public typealias TableRowBody = NeverView

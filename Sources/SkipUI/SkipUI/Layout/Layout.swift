@@ -660,7 +660,7 @@ public protocol Layout : Animatable {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = Never
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// Creates and initializes a cache for a layout instance.
     ///

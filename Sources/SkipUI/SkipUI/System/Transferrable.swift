@@ -16,7 +16,7 @@ import protocol CoreTransferable.Transferable
 import protocol CoreTransferable.TransferRepresentation
 
 /// No-op
-@usableFromInline func stubTransferRepresentation() -> some TransferRepresentation {
+func stubTransferRepresentation() -> some TransferRepresentation {
     return never()
 }
 #endif
@@ -1440,7 +1440,7 @@ extension View {
 
     /// Provides a closure that vends the drag representation to be used for a
     /// particular data element.
-    @inlinable public func itemProvider(_ action: (() -> NSItemProvider?)?) -> some View { return stubView() }
+    public func itemProvider(_ action: (() -> NSItemProvider?)?) -> some View { return stubView() }
 
 }
 

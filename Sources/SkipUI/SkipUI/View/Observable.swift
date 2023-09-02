@@ -21,7 +21,7 @@ extension View {
     ///
     /// - Returns: A view that triggers `action` when `publisher` emits an
     ///   event.
-    @inlinable public func onReceive<P>(_ publisher: P, perform action: @escaping (P.Output) -> Void) -> some View where P : Publisher, P.Failure == Never { return stubView() }
+    public func onReceive<P>(_ publisher: P, perform action: @escaping (P.Output) -> Void) -> some View where P : Publisher, P.Failure == Never { return stubView() }
 
 }
 

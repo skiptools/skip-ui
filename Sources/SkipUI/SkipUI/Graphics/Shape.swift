@@ -13,7 +13,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 
 /// No-op
-@usableFromInline func stubShape() -> some Shape {
+func stubShape() -> some Shape {
     return never()
 }
 
@@ -128,7 +128,7 @@ public protocol Shape : Sendable, Animatable, View {
     public typealias AnimatableData = Never
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -157,7 +157,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func intersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func intersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 
     /// Returns a new shape with filled regions in either this shape or
@@ -176,7 +176,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func union<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func union<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 
     /// Returns a new shape with filled regions from this shape that are
@@ -195,7 +195,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func subtracting<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func subtracting<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 
     /// Returns a new shape with filled regions either from this shape or
@@ -214,7 +214,7 @@ extension Shape {
     /// Any unclosed subpaths in either shape are assumed to be closed.
     /// The result of filling this shape using either even-odd or
     /// non-zero fill rules is identical.
-    public func symmetricDifference<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func symmetricDifference<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 
     /// Returns a new shape with a line from this shape that overlaps the
@@ -232,7 +232,7 @@ extension Shape {
     ///
     /// Intersected subpaths that are clipped create open subpaths.
     /// Closed subpaths that do not intersect `other` remain closed.
-    public func lineIntersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func lineIntersection<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 
     /// Returns a new shape with a line from this shape that does not
@@ -250,7 +250,7 @@ extension Shape {
     ///
     /// Intersected subpaths that are clipped create open subpaths.
     /// Closed subpaths that do not intersect `other` remain closed.
-    public func lineSubtraction<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { return stubShape() }
+    public func lineSubtraction<T>(_ other: T, eoFill: Bool = false) -> some Shape where T : Shape { stubShape() }
 
 }
 
@@ -298,7 +298,7 @@ extension Shape {
     ///   - endFraction: The fraction of the way through drawing this shape
     ///     where drawing ends.
     /// - Returns: A shape built by capturing a portion of this shape's path.
-    @inlinable public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { return stubShape() }
+    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { stubShape() }
 
 }
 
@@ -324,7 +324,7 @@ extension Shape {
     ///   to the right and down.
     ///
     /// - Returns: A shape offset by the specified amount.
-    @inlinable public func offset(_ offset: CGSize) -> OffsetShape<Self> { fatalError() }
+    public func offset(_ offset: CGSize) -> OffsetShape<Self> { fatalError() }
 
     /// Changes the relative position of this shape using the specified point.
     ///
@@ -345,7 +345,7 @@ extension Shape {
     ///   to the right and down.
     ///
     /// - Returns: A shape offset by the specified amount.
-    @inlinable public func offset(_ offset: CGPoint) -> OffsetShape<Self> { fatalError() }
+    public func offset(_ offset: CGPoint) -> OffsetShape<Self> { fatalError() }
 
     /// Changes the relative position of this shape using the specified point.
     ///
@@ -369,7 +369,7 @@ extension Shape {
     ///     Negative numbers are up and positive numbers are down.
     ///
     /// - Returns: A shape offset by the specified amount.
-    @inlinable public func offset(x: CGFloat = 0, y: CGFloat = 0) -> OffsetShape<Self> { fatalError() }
+    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> OffsetShape<Self> { fatalError() }
 
     /// Scales this shape without changing its bounding frame.
     ///
@@ -384,7 +384,7 @@ extension Shape {
     ///     y-axis.
     ///
     /// - Returns: A scaled form of this shape.
-    @inlinable public func scale(x: CGFloat = 1, y: CGFloat = 1, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
+    public func scale(x: CGFloat = 1, y: CGFloat = 1, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
 
     /// Scales this shape without changing its bounding frame.
     ///
@@ -394,7 +394,7 @@ extension Shape {
     ///   on.
     ///
     /// - Returns: A scaled form of this shape.
-    @inlinable public func scale(_ scale: CGFloat, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
+    public func scale(_ scale: CGFloat, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
 
     /// Rotates this shape around an anchor point at the angle you specify.
     ///
@@ -411,7 +411,7 @@ extension Shape {
     ///   - anchor: The point to rotate the shape around.
     ///
     /// - Returns: A rotated shape.
-    @inlinable public func rotation(_ angle: Angle, anchor: UnitPoint = .center) -> RotatedShape<Self> { fatalError() }
+    public func rotation(_ angle: Angle, anchor: UnitPoint = .center) -> RotatedShape<Self> { fatalError() }
 
     /// Applies an affine transform to this shape.
     ///
@@ -422,7 +422,7 @@ extension Shape {
     ///   shape.
     ///
     /// - Returns: A transformed shape, based on its matrix values.
-    @inlinable public func transform(_ transform: CGAffineTransform) -> TransformedShape<Self> { fatalError() }
+    public func transform(_ transform: CGAffineTransform) -> TransformedShape<Self> { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -505,14 +505,14 @@ extension Shape {
     /// that will ask it to create its path from a rect of `size`. This
     /// does not affect the layout properties of any views created from
     /// the shape (e.g. by filling it).
-    @inlinable public func size(_ size: CGSize) -> some Shape { return stubShape() }
+    public func size(_ size: CGSize) -> some Shape { stubShape() }
 
 
     /// Returns a new version of self representing the same shape, but
     /// that will ask it to create its path from a rect of size
     /// `(width, height)`. This does not affect the layout properties
     /// of any views created from the shape (e.g. by filling it).
-    @inlinable public func size(width: CGFloat, height: CGFloat) -> some Shape { return stubShape() }
+    public func size(width: CGFloat, height: CGFloat) -> some Shape { stubShape() }
 
 }
 
@@ -614,7 +614,7 @@ extension Shape {
     ///   - content: The color or gradient to use when filling this shape.
     ///   - style: The style options that determine how the fill renders.
     /// - Returns: A shape filled with the color or gradient you supply.
-    @inlinable public func fill<S>(_ content: S, style: FillStyle = FillStyle()) -> some View where S : ShapeStyle { return stubView() }
+    public func fill<S>(_ content: S, style: FillStyle = FillStyle()) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Fills this shape with the foreground color.
@@ -622,7 +622,7 @@ extension Shape {
     /// - Parameter style: The style options that determine how the fill
     ///   renders.
     /// - Returns: A shape filled with the foreground color.
-    @inlinable public func fill(style: FillStyle = FillStyle()) -> some View { return stubView() }
+    public func fill(style: FillStyle = FillStyle()) -> some View { return stubView() }
 
 
     /// Traces the outline of this shape with a color or gradient.
@@ -648,7 +648,7 @@ extension Shape {
     ///     whether the stroke is dashed --- that determine how to render this
     ///     shape.
     /// - Returns: A stroked shape.
-    @inlinable public func stroke<S>(_ content: S, style: StrokeStyle) -> some View where S : ShapeStyle { return stubView() }
+    public func stroke<S>(_ content: S, style: StrokeStyle) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Traces the outline of this shape with a color or gradient.
@@ -661,7 +661,7 @@ extension Shape {
     ///   - content: The color or gradient with which to stroke this shape.
     ///   - lineWidth: The width of the stroke that outlines this shape.
     /// - Returns: A stroked shape.
-    @inlinable public func stroke<S>(_ content: S, lineWidth: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
+    public func stroke<S>(_ content: S, lineWidth: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
 
 }
 
@@ -678,13 +678,13 @@ extension Shape {
 
     /// Returns a new shape that is a stroked copy of `self`, using the
     /// contents of `style` to define the stroke characteristics.
-    @inlinable public func stroke(style: StrokeStyle) -> some Shape { return stubShape() }
+    public func stroke(style: StrokeStyle) -> some Shape { stubShape() }
 
 
     /// Returns a new shape that is a stroked copy of `self` with
     /// line-width defined by `lineWidth` and all other properties of
     /// `StrokeStyle` having their default values.
-    @inlinable public func stroke(lineWidth: CGFloat = 1) -> some Shape { return stubShape() }
+    public func stroke(lineWidth: CGFloat = 1) -> some Shape { stubShape() }
 
 }
 
@@ -774,7 +774,7 @@ extension ShapeRole : Hashable {
     public typealias AnimatableData = Content.AnimatableData
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -816,7 +816,7 @@ extension ShapeRole : Hashable {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -830,7 +830,7 @@ extension ShapeRole : Hashable {
 extension Rectangle : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -868,7 +868,7 @@ extension Rectangle : InsettableShape {
     public typealias AnimatableData = AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     
 }
@@ -926,7 +926,7 @@ extension RectangleCornerRadii : Sendable {
     public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<Angle.AnimatableData, UnitPoint.AnimatableData>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -940,7 +940,7 @@ extension RectangleCornerRadii : Sendable {
 extension RotatedShape : InsettableShape where Content : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> RotatedShape<Content.InsetShape> { fatalError() }
+    public func inset(by amount: CGFloat) -> RotatedShape<Content.InsetShape> { fatalError() }
 
     /// The type of the inset shape.
     public typealias InsetShape = RotatedShape<Content.InsetShape>
@@ -995,7 +995,7 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type defining the data to animate.
     public typealias AnimatableData = Never // CGSize.AnimatableData
@@ -1012,7 +1012,7 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
 extension RoundedRectangle : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -1058,7 +1058,7 @@ extension RoundedRectangle : InsettableShape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1071,7 +1071,7 @@ extension RoundedRectangle : InsettableShape {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Capsule : InsettableShape {
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { stub() as Never }
+    public func inset(by amount: CGFloat) -> InsetShape { stub() as Never }
 
 
     /// The type of the inset shape.
@@ -1095,7 +1095,7 @@ extension Capsule : InsettableShape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1109,7 +1109,7 @@ extension Capsule : InsettableShape {
 extension ContainerRelativeShape : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -1151,7 +1151,7 @@ extension ContainerRelativeShape : InsettableShape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1186,7 +1186,7 @@ extension Circle {
 extension Circle : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -1242,7 +1242,7 @@ extension Circle : InsettableShape {
     public typealias AnimatableData = Never // AnimatablePair<Content.AnimatableData, AnimatablePair<CGSize.AnimatableData, UnitPoint.AnimatableData>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1281,7 +1281,7 @@ extension Circle : InsettableShape {
     public func path(in rect: CGRect) -> Path { fatalError() }
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type defining the data to animate.
     public typealias AnimatableData = RectangleCornerRadii.AnimatableData
@@ -1298,7 +1298,7 @@ extension Circle : InsettableShape {
 extension UnevenRoundedRectangle : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -1337,7 +1337,7 @@ extension UnevenRoundedRectangle : InsettableShape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1351,7 +1351,7 @@ extension UnevenRoundedRectangle : InsettableShape {
 extension Ellipse : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
+    public func inset(by amount: CGFloat) -> InsetShape { fatalError() }
 
 
     /// The type of the inset shape.
@@ -1375,27 +1375,27 @@ extension InsettableShape {
     /// Returns a view that is the result of insetting `self` by
     /// `style.lineWidth / 2`, stroking the resulting shape with
     /// `style`, and then filling with `content`.
-    @inlinable public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
+    public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Returns a view that is the result of insetting `self` by
     /// `style.lineWidth / 2`, stroking the resulting shape with
     /// `style`, and then filling with the foreground color.
-    @inlinable public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return stubView() }
+    public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return stubView() }
 
 
     /// Returns a view that is the result of filling the `lineWidth`-sized
     /// border (aka inner stroke) of `self` with `content`. This is
     /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
     /// resulting shape with `lineWidth` as the line-width.
-    @inlinable public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
+    public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
 
 
     /// Returns a view that is the result of filling the `lineWidth`-sized
     /// border (aka inner stroke) of `self` with the foreground color.
     /// This is equivalent to insetting `self` by `lineWidth / 2` and
     /// stroking the resulting shape with `lineWidth` as the line-width.
-    @inlinable public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return stubView() }
+    public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return stubView() }
 
 }
 
@@ -1461,7 +1461,7 @@ extension InsettableShape {
     public typealias AnimatableData = Never // AnimatablePair<Content.AnimatableData, CGSize.AnimatableData>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///
@@ -1475,7 +1475,7 @@ extension InsettableShape {
 extension OffsetShape : InsettableShape where Content : InsettableShape {
 
     /// Returns `self` inset by `amount`.
-    @inlinable public func inset(by amount: CGFloat) -> OffsetShape<Content.InsetShape> { fatalError() }
+    public func inset(by amount: CGFloat) -> OffsetShape<Content.InsetShape> { fatalError() }
 
     /// The type of the inset shape.
     public typealias InsetShape = OffsetShape<Content.InsetShape>
@@ -1483,7 +1483,7 @@ extension OffsetShape : InsettableShape where Content : InsettableShape {
 
 extension Never : Shape {
     public typealias AnimatableData = Never
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     public func path(in rect: CGRect) -> Path {
         fatalError()

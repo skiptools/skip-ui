@@ -10,7 +10,7 @@ import struct Foundation.DateComponents
 import struct Foundation.DateInterval
 
 /// No-op
-@usableFromInline func stubDatePickerStyle() -> DefaultDatePickerStyle {
+func stubDatePickerStyle() -> DefaultDatePickerStyle {
     fatalError()
 }
 
@@ -436,7 +436,7 @@ public struct DatePickerStyleConfiguration {
     public let label: DatePickerStyleConfiguration.Label = { fatalError() }()
 
     /// The date value being displayed and selected.
-//    @Binding public var selection: Date { get { fatalError() } nonmutating set { fatalError() } }
+//    @Binding public var selection: Date { get { fatalError() } nonmutating set { } }
 
 //    public var $selection: Binding<Date> { get { fatalError() } }
 

@@ -10,7 +10,7 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 
 /// No-op
-@usableFromInline func stubShapeStyle() -> some ShapeStyle {
+func stubShapeStyle() -> some ShapeStyle {
     return never()
 }
 
@@ -209,7 +209,7 @@ extension ShapeStyle {
     /// - Parameter rect: A rectangle that gives the absolute coordinates over
     ///   which to map the shape style.
     /// - Returns: A new shape style mapped to the coordinates given by `rect`.
-    @inlinable public func `in`(_ rect: CGRect) -> some ShapeStyle { return stubShapeStyle() }
+    public func `in`(_ rect: CGRect) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -227,7 +227,7 @@ extension ShapeStyle {
 
     /// Returns a new style based on `self` that multiplies by the
     /// specified opacity when drawing.
-    @inlinable public func opacity(_ opacity: Double) -> some ShapeStyle { return stubShapeStyle() }
+    public func opacity(_ opacity: Double) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -246,7 +246,7 @@ extension ShapeStyle where Self == AnyShapeStyle {
     ///
     ///     Circle().fill(.opacity(0.5))
     ///
-    public static func opacity(_ opacity: Double) -> some ShapeStyle { return stubShapeStyle() }
+    public static func opacity(_ opacity: Double) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -304,13 +304,13 @@ extension ShapeStyle where Self == HierarchicalShapeStyle {
 extension ShapeStyle {
 
     /// Returns the second level of this shape style.
-    public var secondary: some ShapeStyle { get { return stubShapeStyle() } }
+    public var secondary: some ShapeStyle { get { stubShapeStyle() } }
 
     /// Returns the third level of this shape style.
-    public var tertiary: some ShapeStyle { get { return stubShapeStyle() } }
+    public var tertiary: some ShapeStyle { get { stubShapeStyle() } }
 
     /// Returns the fourth level of this shape style.
-    public var quaternary: some ShapeStyle { get { return stubShapeStyle() } }
+    public var quaternary: some ShapeStyle { get { stubShapeStyle() } }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -375,7 +375,7 @@ extension ShapeStyle {
 
     /// Returns a new style based on `self` that applies the specified
     /// blend mode when drawing.
-    @inlinable public func blendMode(_ mode: BlendMode) -> some ShapeStyle { return stubShapeStyle() }
+    public func blendMode(_ mode: BlendMode) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -394,7 +394,7 @@ extension ShapeStyle where Self == AnyShapeStyle {
     ///
     ///     Circle().fill(.blendMode(.overlay))
     ///
-    public static func blendMode(_ mode: BlendMode) -> some ShapeStyle { return stubShapeStyle() }
+    public static func blendMode(_ mode: BlendMode) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -411,7 +411,7 @@ extension ShapeStyle {
     /// - Parameter style: The shadow style to apply.
     ///
     /// - Returns: A new shape style that uses the specified shadow style.
-    @inlinable public func shadow(_ style: ShadowStyle) -> some ShapeStyle { return stubShapeStyle() }
+    public func shadow(_ style: ShadowStyle) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -434,7 +434,7 @@ extension ShapeStyle where Self == AnyShapeStyle {
     ///
     /// - Returns: A new shape style based on the current style that uses the
     ///   specified shadow style.
-    public static func shadow(_ style: ShadowStyle) -> some ShapeStyle { return stubShapeStyle() }
+    public static func shadow(_ style: ShadowStyle) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -803,7 +803,7 @@ extension ShapeStyle where Self == LinearGradient {
     ///             startPoint: .top, endPoint: .bottom))
     ///
     /// For information about how to use shape styles, see ``ShapeStyle``.
-    public static func linearGradient(_ gradient: AnyGradient, startPoint: UnitPoint, endPoint: UnitPoint) -> some ShapeStyle { return stubShapeStyle() }
+    public static func linearGradient(_ gradient: AnyGradient, startPoint: UnitPoint, endPoint: UnitPoint) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -823,7 +823,7 @@ extension ShapeStyle where Self == RadialGradient {
     ///         .background(.radialGradient(.red.gradient, endRadius: 100))
     ///
     /// For information about how to use shape styles, see ``ShapeStyle``.
-    public static func radialGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startRadius: CGFloat = 0, endRadius: CGFloat) -> some ShapeStyle { return stubShapeStyle() }
+    public static func radialGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startRadius: CGFloat = 0, endRadius: CGFloat) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -843,7 +843,7 @@ extension ShapeStyle where Self == EllipticalGradient {
     ///         .background(.ellipticalGradient(.red.gradient))
     ///
     /// For information about how to use shape styles, see ``ShapeStyle``.
-    public static func ellipticalGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) -> some ShapeStyle { return stubShapeStyle() }
+    public static func ellipticalGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -874,7 +874,7 @@ extension ShapeStyle where Self == AngularGradient {
     ///     space into the bounding rectangle of the filled shape.
     ///   - startAngle: The angle that marks the beginning of the gradient.
     ///   - endAngle: The angle that marks the end of the gradient.
-    public static func angularGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startAngle: Angle, endAngle: Angle) -> some ShapeStyle { return stubShapeStyle() }
+    public static func angularGradient(_ gradient: AnyGradient, center: UnitPoint = .center, startAngle: Angle, endAngle: Angle) -> some ShapeStyle { stubShapeStyle() }
 
 
     /// A conic gradient that completes a full turn, optionally starting from
@@ -897,7 +897,7 @@ extension ShapeStyle where Self == AngularGradient {
     ///     space into the bounding rectangle of the filled shape.
     ///   - angle: The angle to offset the beginning of the gradient's full
     ///     turn.
-    public static func conicGradient(_ gradient: AnyGradient, center: UnitPoint = .center, angle: Angle = .zero) -> some ShapeStyle { return stubShapeStyle() }
+    public static func conicGradient(_ gradient: AnyGradient, center: UnitPoint = .center, angle: Angle = .zero) -> some ShapeStyle { stubShapeStyle() }
 
 }
 

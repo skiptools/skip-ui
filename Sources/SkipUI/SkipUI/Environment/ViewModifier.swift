@@ -80,7 +80,7 @@ extension ViewModifier {
 
     /// Returns a new modifier that is the result of concatenating
     /// `self` with `modifier`.
-    @inlinable public func concat<T>(_ modifier: T) -> ModifiedContent<Self, T> { fatalError() }
+    public func concat<T>(_ modifier: T) -> ModifiedContent<Self, T> { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -89,12 +89,12 @@ extension ViewModifier {
     /// Returns a new version of the modifier that will apply the
     /// transaction mutation function `transform` to all transactions
     /// within the modifier.
-//    @inlinable public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some ViewModifier { fatalError() }
+//    public func transaction(_ transform: @escaping (inout Transaction) -> Void) -> some ViewModifier { fatalError() }
 
 
     /// Returns a new version of the modifier that will apply
     /// `animation` to all animatable values within the modifier.
-//    @inlinable public func animation(_ animation: Animation?) -> some ViewModifier { fatalError() }
+//    public func animation(_ animation: Animation?) -> some ViewModifier { fatalError() }
 
 }
 

@@ -522,7 +522,7 @@ extension UIHostingConfiguration where Background == EmptyView {
 
     @MainActor override dynamic open func viewWillLayoutSubviews() { fatalError() }
 
-    @MainActor override dynamic open var isModalInPresentation: Bool { get { fatalError() } set { fatalError() } }
+    @MainActor override dynamic open var isModalInPresentation: Bool { get { fatalError() } set { } }
 
     /// The root view of the SkipUI view hierarchy managed by this view
     /// controller.
@@ -1421,7 +1421,7 @@ extension View {
     @available(iOS 13.0, tvOS 13.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
-    @inlinable public func textContentType(_ textContentType: UITextContentType?) -> some View { return stubView() }
+    public func textContentType(_ textContentType: UITextContentType?) -> some View { return stubView() }
 
 }
 

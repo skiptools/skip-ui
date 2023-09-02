@@ -648,7 +648,7 @@ extension View {
     ///         `menuIndicatorVisibility` environment value.
     ///
     /// - Parameter visibility: The menu indicator visibility to apply.
-    @inlinable public func menuIndicator(_ visibility: Visibility) -> some View { return stubView() }
+    public func menuIndicator(_ visibility: Visibility) -> some View { return stubView() }
 }
 
 extension View {

@@ -377,7 +377,7 @@ extension View {
     ///             isActive.toggle()
     ///         }
     ///     }
-    @inlinable public func transition(_ t: AnyTransition) -> some View { return stubView() }
+    public func transition(_ t: AnyTransition) -> some View { return stubView() }
 
 
     /// Associates a transition with the view.

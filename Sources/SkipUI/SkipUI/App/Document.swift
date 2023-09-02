@@ -397,7 +397,7 @@ public struct FileDocumentConfiguration<Document> where Document : FileDocument 
     ///
     /// If ``isEditable`` is `false`, setting a new value has no effect
     /// because the document is in viewing mode.
-//    @Binding public var document: Document { get { fatalError() } nonmutating set { fatalError() } }
+//    @Binding public var document: Document { get { fatalError() } nonmutating set { } }
 
 //    public var $document: Binding<Document> { get { fatalError() } }
 
@@ -633,7 +633,8 @@ extension ReferenceFileDocument {
     //@MainActor public var $document: ObservedObject<Document>.Wrapper { get { fatalError() } }
 
     /// The URL of the open file document.
-    @MainActor public var fileURL: URL?
+    //@MainActor 
+    public var fileURL: URL?
 
     /// A Boolean that indicates whether you can edit the document.
     ///

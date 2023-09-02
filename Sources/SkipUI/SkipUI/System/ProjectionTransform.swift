@@ -55,7 +55,7 @@ extension ProjectionTransform : Equatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ProjectionTransform {
 
-    @inlinable public func concatenating(_ rhs: ProjectionTransform) -> ProjectionTransform { fatalError() }
+    public func concatenating(_ rhs: ProjectionTransform) -> ProjectionTransform { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

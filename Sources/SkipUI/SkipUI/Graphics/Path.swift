@@ -219,7 +219,7 @@ extension Path : Shape {
 
     /// The type defining the data to animate.
     public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     /// The type of view representing the body of this view.
     ///

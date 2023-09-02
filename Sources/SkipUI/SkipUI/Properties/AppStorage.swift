@@ -14,7 +14,7 @@ import class Foundation.UserDefaults
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 @frozen @propertyWrapper public struct AppStorage<Value> : DynamicProperty {
 
-    public var wrappedValue: Value { get { fatalError() } nonmutating set { fatalError() } }
+    public var wrappedValue: Value { get { fatalError() } nonmutating set { } }
 
     public var projectedValue: Binding<Value> { get { fatalError() } }
 

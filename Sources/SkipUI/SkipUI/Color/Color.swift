@@ -283,7 +283,7 @@ extension Color.Resolved : ShapeStyle {
 //    public typealias AnimatableData = AnimatablePair<Float, AnimatablePair<Float, AnimatablePair<Float, Float>>>
 //
 //    /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { fatalError() } }
+//    public var animatableData: AnimatableData { get { fatalError() } set { } }
 //}
 
 //@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

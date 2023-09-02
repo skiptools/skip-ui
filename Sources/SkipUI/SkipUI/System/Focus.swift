@@ -189,7 +189,7 @@ public struct FocusInteractions : OptionSet, Sendable {
     @frozen @propertyWrapper public struct Binding {
 
         /// The underlying value referenced by the bound property.
-        public var wrappedValue: Value { get { fatalError() } nonmutating set { fatalError() } }
+        public var wrappedValue: Value { get { fatalError() } nonmutating set { } }
 
         /// A projection of the binding value that returns a binding.
         ///
@@ -207,7 +207,7 @@ public struct FocusInteractions : OptionSet, Sendable {
     /// When focus is not in any view that is bound to this state, the wrapped
     /// value will be `nil` (for optional-typed state) or `false` (for `Bool`-
     /// typed state).
-    public var wrappedValue: Value { get { fatalError() } nonmutating set { fatalError() } }
+    public var wrappedValue: Value { get { fatalError() } nonmutating set { } }
 
     /// A projection of the focus state value that returns a binding.
     ///
@@ -262,7 +262,7 @@ public struct FocusInteractions : OptionSet, Sendable {
 
     /// The unwrapped value for the focus key given the current scope and state
     /// of the focused view hierarchy.
-    @inlinable public var wrappedValue: Value? { get { fatalError() } nonmutating set { fatalError() } }
+    @inlinable public var wrappedValue: Value? { get { fatalError() } nonmutating set { } }
 
     /// A binding to the optional value.
     ///
@@ -795,7 +795,7 @@ extension View {
     /// - Parameters:
     ///   - object: The observable object to associate with focus.
     /// - Returns: A view that supplies an observable object when in focus.
-    @inlinable public func focusedObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
+    public func focusedObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
 
 
     /// Creates a new view that exposes the provided object to other views whose
@@ -839,7 +839,7 @@ extension View {
     ///   - object: The observable object to associate with focus, or `nil` if
     ///     no object is currently available.
     /// - Returns: A view that supplies an observable object when in focus.
-    @inlinable public func focusedObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
+    public func focusedObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
 
 
     /// Creates a new view that exposes the provided object to other views whose
@@ -886,7 +886,7 @@ extension View {
     ///   - object: The observable object to associate with the scene.
     /// - Returns: A view that supplies an observable object while the scene
     ///   is active.
-    @inlinable public func focusedSceneObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
+    public func focusedSceneObject<T>(_ object: T) -> some View where T : ObservableObject { return stubView() }
 
 
     /// Creates a new view that exposes the provided object to other views whose
@@ -934,7 +934,7 @@ extension View {
     ///     if no object is currently available.
     /// - Returns: A view that supplies an observable object while the scene
     ///   is active.
-    @inlinable public func focusedSceneObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
+    public func focusedSceneObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
 
 }
 
