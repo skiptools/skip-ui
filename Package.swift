@@ -16,9 +16,9 @@ let package = Package(
     ],
     targets: [
         .target(name: "SkipUI",
-            plugins: [.plugin(name: "preflight", package: "skip")]),
+            plugins: [.plugin(name: "skippy", package: "skip")]),
         .testTarget(name: "SkipUITests", dependencies: ["SkipUI"],
-            plugins: [.plugin(name: "preflight", package: "skip")]),
+            plugins: [.plugin(name: "skippy", package: "skip")]),
 
         .target(name: "SkipUIKt",
             dependencies: [
