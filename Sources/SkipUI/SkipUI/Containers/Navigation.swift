@@ -16,16 +16,33 @@
 typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
 
 class Navigator {
+    /// Route for the root of the navigation stack.
+    static let rootRoute = "navigatorroot"
+
+    /// Route for the given target type and value string.
+    static func route(for targetType: Any.Type, valueString: String) -> String {
+        return String(describing: targetType) + "/" + valueString
+    }
+
     private let navController: androidx.navigation.NavController
     private let destinations: NavigationDestinations
+
+    private var stack = [Entry(route: Self.rootRoute, targetValue: nil)]
+    struct Entry {
+        let route: String
+        let targetValue: Any?
+        let stateSaver = ComposeStateSaver()
+    }
 
     init(navController: androidx.navigation.NavController, destinations: NavigationDestinations) {
         self.navController = navController
         self.destinations = destinations
     }
 
-    /// The value being navigated to.
-    private(set) var targetValue: Any?
+    /// The entry being navigated to.
+    func entry(for route: String) -> Entry? {
+        return stack.first { $0.route == route }
+    }
 
     /// Navigate to a target value specified in a `NavigationLink`.
     func navigate(to targetValue: Any) {
@@ -37,8 +54,7 @@ class Navigator {
             return false
         }
         guard destinations[type] == nil else {
-            self.targetValue = targetValue
-            navController.navigate(route(for: type, value: targetValue))
+            navigate(route: route(for: type, value: targetValue), targetValue: targetValue)
             return true
         }
         for supertype in type.supertypes {
@@ -49,8 +65,22 @@ class Navigator {
         return false
     }
 
-    private func route(for type: Any.Type, value: Any) -> String {
-        let baseString = String(describing: type)
+    private func navigate(route: String, targetValue: Any) {
+        for i in 0..<stack.count {
+            if stack[i].route == route {
+                stack[i] = Entry(route: route, targetValue: targetValue)
+                stack = Array(stack[0...i])
+                navController.navigate(route)
+                return
+            }
+        }
+
+        let entry = Entry(route: route, targetValue: targetValue)
+        stack.append(entry)
+        navController.navigate(route)
+    }
+
+    private func route(for targetType: Any.Type, value: Any) -> String {
         let valueString: String
         if let identifiable = value as? Identifiable {
             valueString = String(describing: identifiable.id)
@@ -59,7 +89,7 @@ class Navigator {
         } else {
             valueString = String(describing: value)
         }
-        return baseString + "/" + valueString
+        return Self.route(for: targetType, valueString: valueString)
     }
 }
 
@@ -94,19 +124,24 @@ public struct NavigationStack<Root> : View where Root: View {
         let navigator = Navigator(navController: navController, destinations: destinations ?? [:])
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
         androidx.compose.runtime.CompositionLocalProvider(providedNavigator) {
-            androidx.navigation.compose.NavHost(navController: navController, startDestination: "navigationroot", modifier: context.modifier) {
-                composable(route: "navigationroot") {
-                    androidx.compose.foundation.layout.Box {
-                        root.Compose(context: ComposeContext())
+            androidx.navigation.compose.NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
+                composable(route: Navigator.rootRoute) {
+                    if let entry = navigator.entry(for: Navigator.rootRoute) {
+                        androidx.compose.foundation.layout.Box {
+                            root.Compose(context: ComposeContext(stateSaver: entry.stateSaver))
+                        }
                     }
                 }
                 if let destinations {
                     for (targetType, viewBuilder) in destinations {
-                        composable(route: String(describing: targetType) + "/{identifier}", arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) {
-                            if let targetValue = LocalNavigator.current?.targetValue {
+                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) {
+                            let route = Navigator.route(for: targetType, valueString: $0.arguments?.getString("identifier") ?? "")
+                            if let entry = navigator.entry(for: route), let targetValue = entry.targetValue {
                                 androidx.compose.foundation.layout.Box {
-                                    viewBuilder(targetValue).Compose(context: ComposeContext())
+                                    viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: entry.stateSaver))
                                 }
+                            } else {
+                                androidx.compose.material3.Text("Unknown route: \(route)")
                             }
                         }
                     }
