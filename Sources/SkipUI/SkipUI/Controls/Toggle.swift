@@ -2,102 +2,71 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
+
+// Erase the generic Label to facilitate specialized constructor support.
+//
+// SKIP DECLARE: class Toggle: View
+public struct Toggle<Label> : View where Label : View {
+    let isOn: Binding<Bool>
+    let label: any View
+
+    public init(isOn: Binding<Bool>, @ViewBuilder label: () -> any View) {
+        self.isOn = isOn
+        self.label = label()
+    }
+
+    @available(*, unavailable)
+    public init(sources: Any, isOn: (Any) -> Binding<Bool>, @ViewBuilder label: () -> any View) {
+        self.init(isOn: isOn(0), label: label)
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, sources: Any, isOn: (Any) -> Binding<Bool>) {
+        self.init(isOn: isOn(0), label: { Text(title) })
+    }
+
+    #if SKIP
+    public init(_ title: String, isOn: Binding<Bool>) {
+        self.init(isOn: isOn, label: { Text(title) })
+    }
+    
+    /*
+     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Switch.kt
+     @Composable
+     @Suppress("ComposableLambdaParameterNaming", "ComposableLambdaParameterPosition")
+     fun Switch(
+         checked: Boolean,
+         onCheckedChange: ((Boolean) -> Unit)?,
+         modifier: Modifier = Modifier,
+         thumbContent: (@Composable () -> Unit)? = null,
+         enabled: Boolean = true,
+         colors: SwitchColors = SwitchDefaults.colors(),
+         interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+     )
+     */
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        if label is EmptyView { // TODO: Support labelsHidden() modifier
+            androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChanged: { isOn.wrappedValue = $0 }, modifier: context.modifier)
+        } else {
+            let contentContext = context.content()
+            androidx.compose.foundation.layout.Row(modifier: context.modifier) {
+                label.Compose(contentContext)
+                androidx.compose.foundation.layout.Spacer(modifier: EnvironmentValues.shared._fillWidth ?? androidx.compose.ui.Modifier)
+                androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChanged: { isOn.wrappedValue = $0 })
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
 
-/// A control that toggles between on and off states.
-///
-/// You create a toggle by providing an `isOn` binding and a label. Bind `isOn`
-/// to a Boolean property that determines whether the toggle is on or off. Set
-/// the label to a view that visually describes the purpose of switching between
-/// toggle states. For example:
-///
-///     @State private var vibrateOnRing = false
-///
-///     var body: some View {
-///         Toggle(isOn: $vibrateOnRing) {
-///             Text("Vibrate on Ring")
-///         }
-///     }
-///
-/// For the common case of text-only labels, you can use the convenience
-/// initializer that takes a title string (or localized string key) as its first
-/// parameter, instead of a trailing closure:
-///
-///     @State private var vibrateOnRing = true
-///
-///     var body: some View {
-///         Toggle("Vibrate on Ring", isOn: $vibrateOnRing)
-///     }
-///
-/// ### Styling toggles
-///
-/// Toggles use a default style that varies based on both the platform and
-/// the context. For more information, read about the ``ToggleStyle/automatic``
-/// toggle style.
-///
-/// You can customize the appearance and interaction of toggles by applying
-/// styles using the ``View/toggleStyle(_:)`` modifier. You can apply built-in
-/// styles, like ``ToggleStyle/switch``, to either a toggle, or to a view
-/// hierarchy that contains toggles:
-///
-///     VStack {
-///         Toggle("Vibrate on Ring", isOn: $vibrateOnRing)
-///         Toggle("Vibrate on Silent", isOn: $vibrateOnSilent)
-///     }
-///     .toggleStyle(.switch)
-///
-/// You can also define custom styles by creating a type that conforms to the
-/// ``ToggleStyle`` protocol.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct Toggle<Label> : View where Label : View {
-
-    /// Creates a toggle that displays a custom label.
-    ///
-    /// - Parameters:
-    ///   - isOn: A binding to a property that determines whether the toggle is on
-    ///     or off.
-    ///   - label: A view that describes the purpose of the toggle.
-    public init(isOn: Binding<Bool>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    /// Creates a toggle representing a collection of values with a custom label.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle(sources: $alarms, isOn: \.isOn) {
-    ///         Text("Enable all alarms")
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - sources: A collection of values used as the source for rendering the
-    ///     Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    ///   - label: A view that describes the purpose of the toggle.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<C>(sources: C, isOn: KeyPath<C.Element, Binding<Bool>>, @ViewBuilder label: () -> Label) where C : RandomAccessCollection { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-//    public typealias Body = some View
-}
+// TODO: Process for use in SkipUI
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Toggle where Label == ToggleStyleConfiguration.Label {
@@ -125,106 +94,6 @@ extension Toggle where Label == ToggleStyleConfiguration.Label {
     ///   label and a binding to the toggle's state.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public init(_ configuration: ToggleStyleConfiguration) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Toggle where Label == Text {
-
-    /// Creates a toggle that generates its label from a localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    /// To initialize a toggle with a string variable, use
-    /// ``Toggle/init(_:isOn:)-2qurm`` instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the toggle's localized title, that describes
-    ///     the purpose of the toggle.
-    ///   - isOn: A binding to a property that indicates whether the toggle is
-    ///    on or off.
-    public init(_ titleKey: LocalizedStringKey, isOn: Binding<Bool>) { fatalError() }
-
-    /// Creates a toggle that generates its label from a string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    /// To initialize a toggle with a localized string key, use
-    /// ``Toggle/init(_:isOn:)-8qx3l`` instead.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the toggle.
-    ///   - isOn: A binding to a property that indicates whether the toggle is
-    ///    on or off.
-    public init<S>(_ title: S, isOn: Binding<Bool>) where S : StringProtocol { fatalError() }
-
-    /// Creates a toggle representing a collection of values that generates its
-    /// label from a localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle("Enable all alarms", sources: $alarms, isOn: \.isOn)
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the toggle's localized title, that describes
-    ///     the purpose of the toggle.
-    ///   - sources: A collection of values used as the source for rendering the
-    ///     Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<C>(_ titleKey: LocalizedStringKey, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) where C : RandomAccessCollection { fatalError() }
-
-    /// Creates a toggle representing a collection of values that generates its
-    /// label from a string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    /// The following example creates a single toggle that represents
-    /// the state of multiple alarms:
-    ///
-    ///     struct Alarm: Hashable, Identifiable {
-    ///         var id = UUID()
-    ///         var isOn = false
-    ///         var name = ""
-    ///     }
-    ///
-    ///     @State private var alarms = [
-    ///         Alarm(isOn: true, name: "Morning"),
-    ///         Alarm(isOn: false, name: "Evening")
-    ///     ]
-    ///
-    ///     Toggle("Enable all alarms", sources: $alarms, isOn: \.isOn)
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the toggle.
-    ///   - sources: A collection of values used as the source for rendering
-    ///     the Toggle's state.
-    ///   - isOn: The key path of the values that determines whether the toggle
-    ///     is on, mixed or off.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S, C>(_ title: S, sources: C, isOn: KeyPath<C.Element, Binding<Bool>>) where S : StringProtocol, C : RandomAccessCollection { fatalError() }
 }
 
 /// The appearance and behavior of a toggle.

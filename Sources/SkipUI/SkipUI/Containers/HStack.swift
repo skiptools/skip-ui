@@ -8,7 +8,6 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-// SKIP INSERT: import androidx.compose.foundation.layout.Row
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -45,7 +44,7 @@ public struct HStack<Content> : View where Content : View {
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
         let contentContext = context.content()
-        Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
+        androidx.compose.foundation.layout.Row(modifier: context.modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillWidth(androidx.compose.ui.Modifier.weight(Float(1.0)))
                 $0.set_fillHeight(nil)

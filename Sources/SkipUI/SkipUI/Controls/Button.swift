@@ -9,21 +9,23 @@ import struct CoreGraphics.CGRect
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
-// Erase the generic Label on Button to facilitate specialized extension constructor support.
+// Erase the generic Label to facilitate specialized constructor support.
 //
 // SKIP DECLARE: class Button: View
 public struct Button<Label> : View where Label : View {
     let action: () -> Void
-    // SKIP DECLARE: internal val label: View
-    let label: Label
+    let label: any View
 
-    // SKIP DECLARE: constructor(action: () -> Unit, label: () -> View)
-    public init(action: @escaping () -> Void, @ViewBuilder label: () -> Label) {
+    public init(action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
         self.action = action
         self.label = label()
     }
 
     #if SKIP
+    public init(_ title: String, action: @escaping () -> Void) {
+        self.init(action: action, label: { Text(title) })
+    }
+
     /*
      https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Button.kt
      @Composable
@@ -52,14 +54,6 @@ public struct Button<Label> : View where Label : View {
     }
     #endif
 }
-
-#if SKIP
-extension Button {
-    public init(_ title: String, action: @escaping () -> Void) {
-        self.init(action: action, label: { Text(title) })
-    }
-}
-#endif
 
 #if !SKIP
 

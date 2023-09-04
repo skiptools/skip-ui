@@ -8,7 +8,6 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-// SKIP INSERT: import androidx.compose.foundation.layout.Column
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
@@ -45,7 +44,7 @@ public struct VStack<Content> : View where Content : View {
             columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         }
         let contentContext = context.content()
-        Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
+        androidx.compose.foundation.layout.Column(modifier: context.modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillHeight(androidx.compose.ui.Modifier.weight(Float(1.0)))
                 $0.set_fillWidth(nil)
