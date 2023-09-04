@@ -3,21 +3,21 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.clickable
+// SKIP INSERT: import androidx.compose.runtime.collectAsState
 // SKIP INSERT: import androidx.compose.runtime.getValue
 // SKIP INSERT: import androidx.compose.runtime.mutableStateOf
-// SKIP INSERT: import androidx.compose.runtime.remember
 // SKIP INSERT: import androidx.compose.runtime.setValue
 // SKIP INSERT: import androidx.compose.runtime.Composable
 // SKIP INSERT: import androidx.navigation.navArgument
 // SKIP INSERT: import androidx.navigation.compose.composable
-// SKIP INSERT: import androidx.navigation.compose.rememberNavController
 
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
 
+@androidx.compose.runtime.Stable
 class Navigator {
     /// Route for the root of the navigation stack.
-    static let rootRoute = "navigatorroot"
+    static let rootRoute = "navigationroot"
 
     /// Route for the given target type and value string.
     static func route(for targetType: Any.Type, valueString: String) -> String {
@@ -27,11 +27,20 @@ class Navigator {
     private let navController: androidx.navigation.NavController
     private let destinations: NavigationDestinations
 
-    private var stack = [Entry(route: Self.rootRoute, targetValue: nil)]
-    struct Entry {
+    private var backStackState: [String: BackStackState] = [:]
+    private var navigatingToState: BackStackState? = BackStackState(route: Self.rootRoute)
+    struct BackStackState {
+        let id: String?
         let route: String
         let targetValue: Any?
-        let stateSaver = ComposeStateSaver()
+        let stateSaver: ComposeStateSaver
+
+        init(id: String? = nil, route: String, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+            self.id = id
+            self.route = route
+            self.targetValue = targetValue
+            self.stateSaver = stateSaver
+        }
     }
 
     init(navController: androidx.navigation.NavController, destinations: NavigationDestinations) {
@@ -39,14 +48,38 @@ class Navigator {
         self.destinations = destinations
     }
 
-    /// The entry being navigated to.
-    func entry(for route: String) -> Entry? {
-        return stack.first { $0.route == route }
-    }
-
     /// Navigate to a target value specified in a `NavigationLink`.
     func navigate(to targetValue: Any) {
         let _ = navigate(to: targetValue, type: type(of: targetValue))
+    }
+
+    /// The entry being navigated to.
+    func state(for entry: androidx.navigation.NavBackStackEntry) -> BackStackState? {
+        return backStackState[entry.id]
+    }
+
+    /// Sync back stack state with the navigation host's stack.
+    @Composable func syncState() {
+        // SKIP INSERT: val entryList by navController.currentBackStack.collectAsState()
+
+        // Fill in ID of state we were navigating to if possible
+        if let navigatingToState, let lastEntry = entryList.lastOrNull() {
+            let state = BackStackState(id: lastEntry.id, route: navigatingToState.route, targetValue: navigatingToState.targetValue, stateSaver: navigatingToState.stateSaver)
+            self.navigatingToState = nil
+            backStackState[lastEntry.id] = state
+        }
+
+        // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while animating away to find their state
+        androidx.compose.runtime.LaunchedEffect(entryList) {
+            kotlinx.coroutines.delay(1000) // 1 second
+            var syncedBackStackState: [String: BackStackState] = [:]
+            for entry in entryList {
+                if let state = backStackState[entry.id] {
+                    syncedBackStackState[entry.id] = state
+                }
+            }
+            backStackState = syncedBackStackState
+        }
     }
 
     private func navigate(to targetValue: Any, type: Any.Type?) -> Bool {
@@ -54,7 +87,9 @@ class Navigator {
             return false
         }
         guard destinations[type] == nil else {
-            navigate(route: route(for: type, value: targetValue), targetValue: targetValue)
+            let route = route(for: type, value: targetValue)
+            navigatingToState = BackStackState(route: route, targetValue: targetValue)
+            navController.navigate(route)
             return true
         }
         for supertype in type.supertypes {
@@ -63,21 +98,6 @@ class Navigator {
             }
         }
         return false
-    }
-
-    private func navigate(route: String, targetValue: Any) {
-        for i in 0..<stack.count {
-            if stack[i].route == route {
-                stack[i] = Entry(route: route, targetValue: targetValue)
-                stack = Array(stack[0...i])
-                navController.navigate(route)
-                return
-            }
-        }
-
-        let entry = Entry(route: route, targetValue: targetValue)
-        stack.append(entry)
-        navController.navigate(route)
     }
 
     private func route(for targetType: Any.Type, value: Any) -> String {
@@ -113,35 +133,34 @@ public struct NavigationStack<Root> : View where Root: View {
         // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
         // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
         // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view
-        // SKIP INSERT: var destinations by remember { mutableStateOf<NavigationDestinations?>(null) }
+        // SKIP INSERT: var destinations by androidx.compose.runtime.remember { mutableStateOf<NavigationDestinations?>(null) }
         if destinations == nil {
             root.Compose(context.content(composer: { view, context in
                 destinations = (view as? NavigationDestinationView)?.destinations ?? [:]
             }))
         }
 
-        let navController = rememberNavController()
-        let navigator = Navigator(navController: navController, destinations: destinations ?? [:])
+        let navController = androidx.navigation.compose.rememberNavController()
+        // SKIP INSERT: val navigator by androidx.compose.runtime.remember { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
+        navigator.syncState()
+
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
         androidx.compose.runtime.CompositionLocalProvider(providedNavigator) {
             androidx.navigation.compose.NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
-                composable(route: Navigator.rootRoute) {
-                    if let entry = navigator.entry(for: Navigator.rootRoute) {
+                composable(route: Navigator.rootRoute) { entry in
+                    if let state = navigator.state(for: entry) {
                         androidx.compose.foundation.layout.Box {
-                            root.Compose(context: ComposeContext(stateSaver: entry.stateSaver))
+                            root.Compose(context: ComposeContext(stateSaver: state.stateSaver))
                         }
                     }
                 }
                 if let destinations {
                     for (targetType, viewBuilder) in destinations {
-                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) {
-                            let route = Navigator.route(for: targetType, valueString: $0.arguments?.getString("identifier") ?? "")
-                            if let entry = navigator.entry(for: route), let targetValue = entry.targetValue {
+                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) { entry in
+                            if let state = navigator.state(for: entry), let targetValue = state.targetValue {
                                 androidx.compose.foundation.layout.Box {
-                                    viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: entry.stateSaver))
+                                    viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: state.stateSaver))
                                 }
-                            } else {
-                                androidx.compose.material3.Text("Unknown route: \(route)")
                             }
                         }
                     }

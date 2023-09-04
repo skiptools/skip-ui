@@ -10,7 +10,6 @@
 
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
 struct ComposeStateSaver: Saver<Any, Any> {
-    // TODO: Discard state when popped / dismissed
     private let state: MutableMap<Key, Any> = mutableMapOf()
 
     override func restore(value: Any) -> Any? {
