@@ -181,6 +181,11 @@ extension EnvironmentValues {
         get { builtinValue(key: "_isItalic", defaultValue: { false }) as! Bool }
         set { setBuiltinValue(key: "_isItalic", value: newValue, defaultValue: { false }) }
     }
+
+    var _labelsHidden: Bool {
+        get { builtinValue(key: "_labelsHidden", defaultValue: { false }) as! Bool }
+        set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
+    }
 }
 #endif
 

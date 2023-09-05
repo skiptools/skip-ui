@@ -2,9 +2,27 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+// SKIP INSERT: import androidx.compose.runtime.Composable
+
+/*
+
+ public struct TextField<Label> : View where Label : View {
+
+     @MainActor public var body: some View { get { return stubView() } }
+
+     /// The type of view representing the body of this view.
+     ///
+     /// When you create a custom view, Swift infers this type from your
+     /// implementation of the required ``View/body-swift.property`` property.
+ //    public typealias Body = some View
+ }
+
+ */
+
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle

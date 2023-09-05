@@ -46,14 +46,14 @@ public struct Toggle<Label> : View where Label : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        if label is EmptyView { // TODO: Support labelsHidden() modifier
-            androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChanged: { isOn.wrappedValue = $0 }, modifier: context.modifier)
+        if EnvironmentValues.shared._labelsHidden {
+            androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, modifier: context.modifier)
         } else {
             let contentContext = context.content()
-            androidx.compose.foundation.layout.Row(modifier: context.modifier) {
+            androidx.compose.foundation.layout.Row(modifier: context.modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                 label.Compose(contentContext)
-                androidx.compose.foundation.layout.Spacer(modifier: EnvironmentValues.shared._fillWidth ?? androidx.compose.ui.Modifier)
-                androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChanged: { isOn.wrappedValue = $0 })
+                androidx.compose.foundation.layout.Spacer(modifier: androidx.compose.ui.Modifier.weight(Float(1.0)))
+                androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 })
             }
         }
     }
