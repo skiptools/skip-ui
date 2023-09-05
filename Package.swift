@@ -9,7 +9,7 @@ let package = Package(
     ],
     dependencies: [ 
         .package(url: "https://source.skip.tools/skip.git", from: "0.6.38"),
-        .package(url: "https://source.skip.tools/skip-foundation.git", from: "0.1.7"),
+        .package(url: "https://source.skip.tools/skip-foundation.git", from: "0.1.8"),
     ],
     targets: [
         .target(name: "SkipUI", dependencies: [.product(name: "SkipFoundation", package: "skip-foundation", condition: .when(platforms: [.macOS]))],
