@@ -3,10 +3,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-// SKIP INSERT: import android.os.Parcel
-// SKIP INSERT: import android.os.Parcelable
-// SKIP INSERT: import androidx.compose.runtime.saveable.Saver
-// SKIP INSERT: import androidx.compose.runtime.saveable.SaverScope
+// SKIP INSERT: 
+// import android.os.Parcel
+// import android.os.Parcelable
+// import androidx.compose.runtime.saveable.Saver
+// import androidx.compose.runtime.saveable.SaverScope
 
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
 struct ComposeStateSaver: Saver<Any, Any> {

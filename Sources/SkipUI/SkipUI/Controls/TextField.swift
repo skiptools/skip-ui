@@ -2,8 +2,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
+// SKIP INSERT: 
+// import androidx.compose.runtime.Composable
+// import androidx.compose.foundation.layout.fillMaxWidth
 
 // Erase the generic Label to facilitate specialized constructor support.
 //

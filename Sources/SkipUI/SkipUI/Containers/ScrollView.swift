@@ -2,13 +2,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import androidx.compose.foundation.horizontalScroll
-// SKIP INSERT: import androidx.compose.foundation.rememberScrollState
-// SKIP INSERT: import androidx.compose.foundation.verticalScroll
-// SKIP INSERT: import androidx.compose.foundation.layout.Box
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: 
+// import androidx.compose.foundation.horizontalScroll
+// import androidx.compose.foundation.rememberScrollState
+// import androidx.compose.foundation.verticalScroll
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.foundation.layout.fillMaxHeight
+// import androidx.compose.foundation.layout.fillMaxWidth
+// import androidx.compose.runtime.Composable
 
 public struct ScrollView<Content> : View where Content : View {
     let content: Content

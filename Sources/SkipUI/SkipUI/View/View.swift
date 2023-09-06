@@ -2,20 +2,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import androidx.compose.foundation.background
-// SKIP INSERT: import androidx.compose.foundation.border
-// SKIP INSERT: import androidx.compose.foundation.layout.height
-// SKIP INSERT: import androidx.compose.foundation.layout.padding
-// SKIP INSERT: import androidx.compose.foundation.layout.width
-// SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.compose.ui.Modifier
-// SKIP INSERT: import androidx.compose.ui.draw.alpha
-// SKIP INSERT: import androidx.compose.ui.draw.rotate
-// SKIP INSERT: import androidx.compose.ui.draw.scale
-// SKIP INSERT: import androidx.compose.ui.platform.testTag
-// SKIP INSERT: import androidx.compose.ui.semantics.contentDescription
-// SKIP INSERT: import androidx.compose.ui.semantics.semantics
-// SKIP INSERT: import androidx.compose.ui.unit.dp
+// SKIP INSERT:
+// import androidx.compose.foundation.background
+// import androidx.compose.foundation.border
+// import androidx.compose.foundation.layout.height
+// import androidx.compose.foundation.layout.padding
+// import androidx.compose.foundation.layout.width
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.draw.alpha
+// import androidx.compose.ui.draw.rotate
+// import androidx.compose.ui.draw.scale
+// import androidx.compose.ui.platform.testTag
+// import androidx.compose.ui.semantics.contentDescription
+// import androidx.compose.ui.semantics.semantics
+// import androidx.compose.ui.unit.dp
 
 public protocol View {
     #if SKIP

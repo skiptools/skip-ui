@@ -2,28 +2,29 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import androidx.compose.foundation.clickable
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
-// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
-// SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.compose.runtime.CompositionLocalProvider
-// SKIP INSERT: import androidx.compose.runtime.LaunchedEffect
-// SKIP INSERT: import androidx.compose.runtime.ProvidableCompositionLocal
-// SKIP INSERT: import androidx.compose.runtime.collectAsState
-// SKIP INSERT: import androidx.compose.runtime.compositionLocalOf
-// SKIP INSERT: import androidx.compose.runtime.getValue
-// SKIP INSERT: import androidx.compose.runtime.mutableStateOf
-// SKIP INSERT: import androidx.compose.runtime.remember
-// SKIP INSERT: import androidx.compose.runtime.setValue
-// SKIP INSERT: import androidx.compose.ui.unit.dp
-// SKIP INSERT: import androidx.navigation.NavBackStackEntry
-// SKIP INSERT: import androidx.navigation.NavController
-// SKIP INSERT: import androidx.navigation.NavType
-// SKIP INSERT: import androidx.navigation.navArgument
-// SKIP INSERT: import androidx.navigation.compose.NavHost
-// SKIP INSERT: import androidx.navigation.compose.composable
-// SKIP INSERT: import androidx.navigation.compose.rememberNavController
-// SKIP INSERT: import kotlinx.coroutines.delay
+// SKIP INSERT: 
+// import androidx.compose.foundation.clickable
+// import androidx.compose.foundation.layout.fillMaxWidth
+// import androidx.compose.foundation.layout.fillMaxHeight
+// import androidx.compose.runtime.Composable
+// import androidx.compose.runtime.CompositionLocalProvider
+// import androidx.compose.runtime.LaunchedEffect
+// import androidx.compose.runtime.ProvidableCompositionLocal
+// import androidx.compose.runtime.collectAsState
+// import androidx.compose.runtime.compositionLocalOf
+// import androidx.compose.runtime.getValue
+// import androidx.compose.runtime.mutableStateOf
+// import androidx.compose.runtime.remember
+// import androidx.compose.runtime.setValue
+// import androidx.compose.ui.unit.dp
+// import androidx.navigation.NavBackStackEntry
+// import androidx.navigation.NavController
+// import androidx.navigation.NavType
+// import androidx.navigation.navArgument
+// import androidx.navigation.compose.NavHost
+// import androidx.navigation.compose.composable
+// import androidx.navigation.compose.rememberNavController
+// import kotlinx.coroutines.delay
 
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>

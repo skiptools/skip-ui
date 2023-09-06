@@ -8,11 +8,12 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-// SKIP INSERT: import androidx.compose.foundation.layout.Arrangement
-// SKIP INSERT: import androidx.compose.foundation.layout.Row
-// SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.compose.ui.Modifier
-// SKIP INSERT: import androidx.compose.ui.unit.dp
+// SKIP INSERT: 
+// import androidx.compose.foundation.layout.Arrangement
+// import androidx.compose.foundation.layout.Row
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.unit.dp
 
 public struct HStack<Content> : View where Content : View {
     let alignment: VerticalAlignment

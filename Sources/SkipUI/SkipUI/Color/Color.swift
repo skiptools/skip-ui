@@ -2,11 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: import androidx.compose.foundation.background
-// SKIP INSERT: import androidx.compose.foundation.isSystemInDarkTheme
-// SKIP INSERT: import androidx.compose.foundation.layout.Box
-// SKIP INSERT: import androidx.compose.material3.MaterialTheme
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: 
+// import androidx.compose.foundation.background
+// import androidx.compose.foundation.isSystemInDarkTheme
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.material3.MaterialTheme
+// import androidx.compose.runtime.Composable
 
 public struct Color: View, Hashable, Sendable {
     #if SKIP

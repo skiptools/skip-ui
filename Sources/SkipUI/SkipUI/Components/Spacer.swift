@@ -6,9 +6,10 @@
 import struct CoreGraphics.CGFloat
 #endif
 
-// SKIP INSERT: import androidx.compose.runtime.Composable
-// SKIP INSERT: import androidx.compose.ui.Modifier
-// SKIP INSERT: import androidx.compose.ui.unit.dp
+// SKIP INSERT: 
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.unit.dp
 
 public struct Spacer : View {
     public init() {

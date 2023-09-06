@@ -5,12 +5,12 @@
 #if !SKIP
 import struct CoreGraphics.CGFloat
 import struct Foundation.LocalizedStringResource
-#else
-// SKIP INSERT: import skip.foundation.LocalizedStringResource
 #endif
 
-// SKIP INSERT: import androidx.compose.material3.LocalTextStyle
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: 
+// import androidx.compose.material3.LocalTextStyle
+// import androidx.compose.runtime.Composable
+// import skip.foundation.LocalizedStringResource
 
 public struct Text: View, Equatable {
     let text: String

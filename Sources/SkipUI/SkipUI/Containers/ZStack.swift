@@ -7,8 +7,9 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-// SKIP INSERT: import androidx.compose.foundation.layout.Box
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT:
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.runtime.Composable
 
 public struct ZStack<Content> : View where Content : View {
     let alignment: Alignment
