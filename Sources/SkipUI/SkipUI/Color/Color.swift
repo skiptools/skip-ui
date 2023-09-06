@@ -3,6 +3,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.background
+// SKIP INSERT: import androidx.compose.foundation.isSystemInDarkTheme
+// SKIP INSERT: import androidx.compose.foundation.layout.Box
+// SKIP INSERT: import androidx.compose.material3.MaterialTheme
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct Color: View, Hashable, Sendable {
@@ -15,7 +18,7 @@ public struct Color: View, Hashable, Sendable {
 
     @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier.background(colorImpl())
-        androidx.compose.foundation.layout.Box(modifier: modifier)
+        Box(modifier: modifier)
     }
     #else
     public var body: some View {
@@ -121,7 +124,7 @@ extension Color {
 extension Color {
     public static var accentColor: Color {
         #if SKIP
-        return Color(colorImpl: { androidx.compose.material3.MaterialTheme.colorScheme.primary })
+        return Color(colorImpl: { MaterialTheme.colorScheme.primary })
         #else
         fatalError()
         #endif
@@ -143,17 +146,17 @@ extension Color {
     })
 
     public static let primary = Color(colorImpl: {
-        androidx.compose.material3.MaterialTheme.colorScheme.onPrimary
+        MaterialTheme.colorScheme.onPrimary
     })
     
     public static let secondary = Color(colorImpl: {
-        androidx.compose.material3.MaterialTheme.colorScheme.onSecondary
+        MaterialTheme.colorScheme.onSecondary
     })
 
     /// Returns the given color value based on whether the view is in dark mode or light mode
     @Composable private static func color(light: Int64, dark: Int64) -> androidx.compose.ui.graphics.Color {
         // TODO: EnvironmentValues.shared.colorMode == .dark ? dark : light
-        androidx.compose.ui.graphics.Color(androidx.compose.foundation.isSystemInDarkTheme() ? dark : light)
+        androidx.compose.ui.graphics.Color(isSystemInDarkTheme() ? dark : light)
     }
 
     public static let gray = Color(colorImpl: {

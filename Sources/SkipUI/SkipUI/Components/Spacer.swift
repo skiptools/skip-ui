@@ -7,6 +7,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.Modifier
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
 public struct Spacer : View {
@@ -24,7 +25,7 @@ public struct Spacer : View {
      fun Spacer(modifier: Modifier)
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        var modifier: androidx.compose.ui.Modifier = EnvironmentValues.shared._fillWidth ?? EnvironmentValues.shared._fillHeight ?? androidx.compose.ui.Modifier
+        var modifier: Modifier = EnvironmentValues.shared._fillWidth ?? EnvironmentValues.shared._fillHeight ?? Modifier
         modifier = modifier.then(context.modifier)
         androidx.compose.foundation.layout.Spacer(modifier: modifier)
     }

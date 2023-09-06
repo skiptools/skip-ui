@@ -3,7 +3,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.horizontalScroll
+// SKIP INSERT: import androidx.compose.foundation.rememberScrollState
 // SKIP INSERT: import androidx.compose.foundation.verticalScroll
+// SKIP INSERT: import androidx.compose.foundation.layout.Box
 // SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
 // SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
 // SKIP INSERT: import androidx.compose.runtime.Composable
@@ -19,7 +21,7 @@ public struct ScrollView<Content> : View where Content : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let scrollState = androidx.compose.foundation.rememberScrollState()
+        let scrollState = rememberScrollState()
         var modifier = context.modifier
         if axes.contains(.vertical) {
             modifier = modifier.fillMaxHeight().verticalScroll(scrollState)
@@ -28,7 +30,7 @@ public struct ScrollView<Content> : View where Content : View {
             modifier = modifier.fillMaxWidth().horizontalScroll(scrollState)
         }
         let contentContext = context.content()
-        androidx.compose.foundation.layout.Box(modifier: modifier) {
+        Box(modifier: modifier) {
             content.Compose(context: contentContext)
         }
     }

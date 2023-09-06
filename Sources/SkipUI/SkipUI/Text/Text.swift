@@ -9,6 +9,7 @@ import struct Foundation.LocalizedStringResource
 // SKIP INSERT: import skip.foundation.LocalizedStringResource
 #endif
 
+// SKIP INSERT: import androidx.compose.material3.LocalTextStyle
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct Text: View, Equatable {
@@ -53,7 +54,7 @@ public struct Text: View, Equatable {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier
-        var font = EnvironmentValues.shared.font ?? Font(fontImpl: { androidx.compose.material3.LocalTextStyle.current })
+        var font = EnvironmentValues.shared.font ?? Font(fontImpl: { LocalTextStyle.current })
         if let weight = EnvironmentValues.shared._fontWeight {
             font = font.weight(weight)
         }

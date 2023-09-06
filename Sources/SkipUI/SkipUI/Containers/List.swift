@@ -6,10 +6,23 @@
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP INSERT: import androidx.compose.foundation.background
+// SKIP INSERT: import androidx.compose.foundation.rememberScrollState
 // SKIP INSERT: import androidx.compose.foundation.verticalScroll
+// SKIP INSERT: import androidx.compose.foundation.layout.Box
+// SKIP INSERT: import androidx.compose.foundation.layout.Column
+// SKIP INSERT: import androidx.compose.foundation.layout.Row
 // SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
 // SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
+// SKIP INSERT: import androidx.compose.foundation.layout.height
+// SKIP INSERT: import androidx.compose.foundation.layout.offset
+// SKIP INSERT: import androidx.compose.foundation.layout.padding
+// SKIP INSERT: import androidx.compose.foundation.layout.requiredHeightIn
+// SKIP INSERT: import androidx.compose.foundation.lazy.LazyColumn
+// SKIP INSERT: import androidx.compose.material3.MaterialTheme
 // SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.Modifier
+// SKIP INSERT: import androidx.compose.ui.zIndex
 // SKIP INSERT: import androidx.compose.ui.unit.dp
 
 // Erase the SelectionValue because it is currently unused in Kotlin, the compiler won't be able to calculate it
@@ -43,25 +56,107 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = androidx.compose.ui.Modifier.fillMaxWidth().fillMaxHeight().then(context.modifier)
-        let itemContext = context.content()
+        let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
+        let itemContext = context.content(composer: { view, context in ComposeItem(view: &view, context: context, style: style) })
+        let modifier = context.modifier.fillMaxWidth().fillMaxHeight().background(BackgroundColor(style: style))
+        Box(modifier: modifier) {
+            ComposeList(itemContext: itemContext, style: style)
+        }
+    }
+
+    @Composable private func ComposeList(itemContext: ComposeContext, style: ListStyle) {
+        var modifier: Modifier = Modifier
+        if style != .plain {
+            modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
+        }
+        modifier = modifier.fillMaxWidth()
         if let fixedContent {
-            let scrollState = androidx.compose.foundation.rememberScrollState()
-            androidx.compose.foundation.layout.Column(modifier: modifier.verticalScroll(scrollState), verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+            let scrollState = rememberScrollState()
+            Column(modifier: modifier.verticalScroll(scrollState)) {
+                ComposeHeader(style: style)
                 fixedContent.Compose(context: itemContext)
+                ComposeFooter(style: style)
             }
         } else if let indexRange {
-            androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+            LazyColumn(modifier: modifier) {
+                item {
+                    ComposeHeader(style: style)
+                }
                 items(indexRange.endExclusive - indexRange.start) {
                     indexedContent!(indexRange.start + $0).Compose(context: itemContext)
                 }
+                item {
+                    ComposeFooter(style: style)
+                }
             }
         } else if let objects {
-            androidx.compose.foundation.lazy.LazyColumn(modifier: modifier, verticalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.0.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+            LazyColumn(modifier: modifier) {
+                item {
+                    ComposeHeader(style: style)
+                }
                 items(count: objects.count, key: { identifier!(objects[$0]) }) {
                     objectContent!(objects[$0]).Compose(context: itemContext)
                 }
+                item {
+                    ComposeFooter(style: style)
+                }
             }
+        }
+    }
+
+    private static let horizontalInset = 16.0
+    private static let verticalInset = 32.0
+    private static let minimumItemHeight = 44.0
+    private static let horizontalItemInset = 16.0
+
+    @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
+        let itemBoxModifier = Modifier.fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
+        var itemViewContext = context.content()
+        itemViewContext.modifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp).fillMaxWidth()
+        Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
+            Box(modifier: itemBoxModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                if let listItemAdapting = view as? ListItemAdapting {
+                    listItemAdapting.ComposeListItem(context: itemViewContext)
+                } else {
+                    view.ComposeContent(context: itemViewContext)
+                }
+            }
+            ComposeSeparator()
+        }
+    }
+
+    @Composable private func ComposeSeparator() {
+        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+    }
+
+    @Composable private func ComposeHeader(style: ListStyle) {
+        if style == .plain {
+            ComposeSeparator()
+        } else {
+            let modifier = Modifier.background(BackgroundColor(style: style))
+                .fillMaxWidth()
+                .height(Self.verticalInset.dp)
+            Box(modifier: modifier)
+        }
+    }
+
+    @Composable private func ComposeFooter(style: ListStyle) {
+        guard style != .plain else {
+            return
+        }
+        let modifier = Modifier.fillMaxWidth()
+            .height(Self.verticalInset.dp)
+            .offset(y: -1.dp) // Cover last row's divider
+            .zIndex(Float(2.0))
+            .background(BackgroundColor(style: style))
+        Box(modifier: modifier)
+    }
+
+    @Composable private func BackgroundColor(style: ListStyle) -> androidx.compose.ui.graphics.Color {
+        if style == .plain {
+            return MaterialTheme.colorScheme.surface
+        } else {
+            return MaterialTheme.colorScheme.surfaceVariant
         }
     }
     #else
@@ -71,6 +166,15 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #endif
 }
 
+/// Adopted by views that adapt when used as a list item.
+protocol ListItemAdapting {
+    #if SKIP
+    /// Compose as a list item.
+    ///
+    /// The modifiers of the given context are the default modifiers applied to pad and fill list content.
+    @Composable func ComposeListItem(context: ComposeContext)
+    #endif
+}
 
 extension List {
     public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
@@ -95,6 +199,31 @@ public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectT
     return List(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! ObjectType) }, objectContent: { rowContent($0 as! ObjectType) })
 }
 #endif
+
+// Model `ListStyle` as a struct. Kotlin does not support static members of protocols
+public struct ListStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = ListStyle(rawValue: 0)
+
+    @available(*, unavailable)
+    public static let sidebar = ListStyle(rawValue: 1)
+
+    @available(*, unavailable)
+    public static let insetGrouped = ListStyle(rawValue: 2)
+    
+    @available(*, unavailable)
+    public static let grouped = ListStyle(rawValue: 3)
+
+    @available(*, unavailable)
+    public static let inset = ListStyle(rawValue: 4)
+
+    public static let plain = ListStyle(rawValue: 5)
+}
 
 #if !SKIP
 
@@ -757,154 +886,6 @@ public struct ListSectionSpacing : Sendable {
     /// - Parameter spacing: the amount of spacing to use.
     public static func custom(_ spacing: CGFloat) -> ListSectionSpacing { fatalError() }
 }
-
-/// A protocol that describes the behavior and appearance of a list.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol ListStyle {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ListStyle where Self == DefaultListStyle {
-
-    /// The list style that describes a platform's default behavior and
-    /// appearance for a list.
-    public static var automatic: DefaultListStyle { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension ListStyle where Self == SidebarListStyle {
-
-    /// The list style that describes the behavior and appearance of a
-    /// sidebar list.
-    ///
-    /// On macOS and iOS, the sidebar list style displays disclosure indicators in
-    /// the section headers that allow the user to collapse and expand sections.
-    public static var sidebar: SidebarListStyle { get { fatalError() } }
-}
-
-@available(iOS 14.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension ListStyle where Self == InsetGroupedListStyle {
-
-    /// The list style that describes the behavior and appearance of an inset
-    /// grouped list.
-    ///
-    /// On iOS, the inset grouped list style displays a continuous background color
-    /// that extends from the section header, around both sides of list items in the
-    /// section, and down to the section footer. This visually groups the items
-    /// to a greater degree than either the ``ListStyle/inset`` or
-    /// ``ListStyle/grouped`` styles do.
-    public static var insetGrouped: InsetGroupedListStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, tvOS 13.0, *)
-@available(macOS, unavailable)
-@available(watchOS, unavailable)
-extension ListStyle where Self == GroupedListStyle {
-
-    /// The list style that describes the behavior and appearance of a grouped
-    /// list.
-    ///
-    /// On iOS, the grouped list style displays a larger header and footer than
-    /// the ``ListStyle/plain`` style, which visually distances the members of
-    /// different sections.
-    public static var grouped: GroupedListStyle { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension ListStyle where Self == InsetListStyle {
-
-    /// The list style that describes the behavior and appearance of an inset
-    /// list.
-    public static var inset: InsetListStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ListStyle where Self == PlainListStyle {
-
-    /// The list style that describes the behavior and appearance of a plain
-    /// list.
-    public static var plain: PlainListStyle { get { fatalError() } }
-}
-
-/// The list style that describes the behavior and appearance of a grouped list.
-///
-/// You can also use ``ListStyle/grouped`` to construct this style.
-@available(iOS 13.0, tvOS 13.0, *)
-@available(macOS, unavailable)
-@available(watchOS, unavailable)
-public struct GroupedListStyle : ListStyle {
-
-    /// Creates a grouped list style.
-    public init() { fatalError() }
-}
-
-/// The list style that describes a platform's default behavior and appearance
-/// for a list.
-///
-/// You can also use ``ListStyle/automatic`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct DefaultListStyle : ListStyle {
-
-    /// Creates a default list style.
-    public init() { fatalError() }
-}
-
-/// The list style that describes the behavior and appearance of an inset
-/// grouped list.
-///
-/// You can also use ``ListStyle/insetGrouped`` to construct this style.
-@available(iOS 14.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct InsetGroupedListStyle : ListStyle {
-
-    /// Creates an inset grouped list style.
-    public init() { fatalError() }
-}
-
-/// The list style that describes the behavior and appearance of an inset list.
-///
-/// You can also use ``ListStyle/inset`` to construct this style.
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct InsetListStyle : ListStyle {
-
-    /// Creates an inset list style.
-    public init() { fatalError() }
-}
-
-/// The list style that describes the behavior and appearance of a plain list.
-///
-/// You can also use ``ListStyle/plain`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct PlainListStyle : ListStyle {
-
-    /// Creates a plain list style.
-    public init() { fatalError() }
-}
-
-/// The list style that describes the behavior and appearance of a
-/// sidebar list.
-///
-/// You can also use ``ListStyle/sidebar`` to construct this style.
-@available(iOS 14.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct SidebarListStyle : ListStyle {
-
-    /// Creates a sidebar list style.
-    public init() { fatalError() }
-}
-
 
 @available(iOS 17.0, watchOS 10.0, *)
 @available(macOS, unavailable)

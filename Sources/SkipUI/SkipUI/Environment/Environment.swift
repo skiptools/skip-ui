@@ -7,6 +7,7 @@ import Observation
 #endif
 
 // SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.Modifier
 // SKIP INSERT: import kotlin.reflect.full.companionObjectInstance
 
 public protocol EnvironmentKey {
@@ -162,13 +163,13 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_color", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillHeight: androidx.compose.ui.Modifier? {
-        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! androidx.compose.ui.Modifier? }
+    var _fillHeight: Modifier? {
+        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! Modifier? }
         set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillWidth: androidx.compose.ui.Modifier? {
-        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! androidx.compose.ui.Modifier? }
+    var _fillWidth: Modifier? {
+        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! Modifier? }
         set { setBuiltinValue(key: "_fillWidth", value: newValue, defaultValue: { nil }) }
     }
 
@@ -185,6 +186,16 @@ extension EnvironmentValues {
     var _labelsHidden: Bool {
         get { builtinValue(key: "_labelsHidden", defaultValue: { false }) as! Bool }
         set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
+    }
+
+    var _listRowSeparator: Visibility? {
+        get { builtinValue(key: "_listRowSeparator", defaultValue: { nil }) as! Visibility? }
+        set { setBuiltinValue(key: "_listRowSeparator", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _listStyle: ListStyle? {
+        get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
+        set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
 }
 #endif

@@ -2,7 +2,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+// SKIP INSERT: import androidx.compose.foundation.layout.Row
+// SKIP INSERT: import androidx.compose.material3.Switch
 // SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.Modifier
 
 // Erase the generic Label to facilitate specialized constructor support.
 //
@@ -47,13 +50,13 @@ public struct Toggle<Label> : View where Label : View {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         if EnvironmentValues.shared._labelsHidden {
-            androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, modifier: context.modifier)
+            Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, modifier: context.modifier)
         } else {
             let contentContext = context.content()
-            androidx.compose.foundation.layout.Row(modifier: context.modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            Row(modifier: context.modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                 label.Compose(contentContext)
-                androidx.compose.foundation.layout.Spacer(modifier: androidx.compose.ui.Modifier.weight(Float(1.0)))
-                androidx.compose.material3.Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 })
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 })
             }
         }
     }

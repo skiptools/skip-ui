@@ -7,6 +7,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP INSERT: import androidx.compose.foundation.layout.Box
 // SKIP INSERT: import androidx.compose.runtime.Composable
 
 public struct ZStack<Content> : View where Content : View {
@@ -52,7 +53,7 @@ public struct ZStack<Content> : View where Content : View {
             boxAlignment = androidx.compose.ui.Alignment.Center
         }
         let contentContext = context.content()
-        androidx.compose.foundation.layout.Box(modifier: context.modifier, contentAlignment: boxAlignment) {
+        Box(modifier: context.modifier, contentAlignment: boxAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillWidth(nil)
                 $0.set_fillHeight(nil)

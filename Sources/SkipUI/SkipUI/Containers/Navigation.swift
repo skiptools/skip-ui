@@ -3,13 +3,27 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // SKIP INSERT: import androidx.compose.foundation.clickable
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxWidth
+// SKIP INSERT: import androidx.compose.foundation.layout.fillMaxHeight
+// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.runtime.CompositionLocalProvider
+// SKIP INSERT: import androidx.compose.runtime.LaunchedEffect
+// SKIP INSERT: import androidx.compose.runtime.ProvidableCompositionLocal
 // SKIP INSERT: import androidx.compose.runtime.collectAsState
+// SKIP INSERT: import androidx.compose.runtime.compositionLocalOf
 // SKIP INSERT: import androidx.compose.runtime.getValue
 // SKIP INSERT: import androidx.compose.runtime.mutableStateOf
+// SKIP INSERT: import androidx.compose.runtime.remember
 // SKIP INSERT: import androidx.compose.runtime.setValue
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: import androidx.compose.ui.unit.dp
+// SKIP INSERT: import androidx.navigation.NavBackStackEntry
+// SKIP INSERT: import androidx.navigation.NavController
+// SKIP INSERT: import androidx.navigation.NavType
 // SKIP INSERT: import androidx.navigation.navArgument
+// SKIP INSERT: import androidx.navigation.compose.NavHost
 // SKIP INSERT: import androidx.navigation.compose.composable
+// SKIP INSERT: import androidx.navigation.compose.rememberNavController
+// SKIP INSERT: import kotlinx.coroutines.delay
 
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
@@ -24,7 +38,7 @@ class Navigator {
         return String(describing: targetType) + "/" + valueString
     }
 
-    private let navController: androidx.navigation.NavController
+    private let navController: NavController
     private let destinations: NavigationDestinations
 
     private var backStackState: [String: BackStackState] = [:]
@@ -43,7 +57,7 @@ class Navigator {
         }
     }
 
-    init(navController: androidx.navigation.NavController, destinations: NavigationDestinations) {
+    init(navController: NavController, destinations: NavigationDestinations) {
         self.navController = navController
         self.destinations = destinations
     }
@@ -54,7 +68,7 @@ class Navigator {
     }
 
     /// The entry being navigated to.
-    func state(for entry: androidx.navigation.NavBackStackEntry) -> BackStackState? {
+    func state(for entry: NavBackStackEntry) -> BackStackState? {
         return backStackState[entry.id]
     }
 
@@ -70,8 +84,8 @@ class Navigator {
         }
 
         // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while animating away to find their state
-        androidx.compose.runtime.LaunchedEffect(entryList) {
-            kotlinx.coroutines.delay(1000) // 1 second
+        LaunchedEffect(entryList) {
+            delay(1000) // 1 second
             var syncedBackStackState: [String: BackStackState] = [:]
             for entry in entryList {
                 if let state = backStackState[entry.id] {
@@ -113,7 +127,7 @@ class Navigator {
     }
 }
 
-let LocalNavigator: androidx.compose.runtime.ProvidableCompositionLocal<Navigator?> = androidx.compose.runtime.compositionLocalOf { nil as Navigator? }
+let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
 
 public struct NavigationStack<Root> : View where Root: View {
@@ -133,20 +147,20 @@ public struct NavigationStack<Root> : View where Root: View {
         // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
         // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
         // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view
-        // SKIP INSERT: var destinations by androidx.compose.runtime.remember { mutableStateOf<NavigationDestinations?>(null) }
+        // SKIP INSERT: var destinations by remember { mutableStateOf<NavigationDestinations?>(null) }
         if destinations == nil {
             root.Compose(context.content(composer: { view, context in
                 destinations = (view as? NavigationDestinationView)?.destinations ?? [:]
             }))
         }
 
-        let navController = androidx.navigation.compose.rememberNavController()
-        // SKIP INSERT: val navigator by androidx.compose.runtime.remember { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
+        let navController = rememberNavController()
+        // SKIP INSERT: val navigator by remember { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
         navigator.syncState()
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
-        androidx.compose.runtime.CompositionLocalProvider(providedNavigator) {
-            androidx.navigation.compose.NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
+        CompositionLocalProvider(providedNavigator) {
+            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
                 composable(route: Navigator.rootRoute) { entry in
                     if let state = navigator.state(for: entry) {
                         androidx.compose.foundation.layout.Box {
@@ -156,7 +170,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 }
                 if let destinations {
                     for (targetType, viewBuilder) in destinations {
-                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = androidx.navigation.NavType.StringType })) { entry in
+                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
                             if let state = navigator.state(for: entry), let targetValue = state.targetValue {
                                 androidx.compose.foundation.layout.Box {
                                     viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: state.stateSaver))
@@ -212,7 +226,7 @@ struct NavigationDestinationView: View {
 }
 #endif
 
-public struct NavigationLink : View {
+public struct NavigationLink : View, ListItemAdapting {
     let value: Any?
     let label: any View
 
@@ -239,14 +253,27 @@ public struct NavigationLink : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let navigator = LocalNavigator.current
         var context = context
-        context.modifier = context.modifier.clickable(enabled: value != nil) {
+        context.modifier = NavigationModifier(modifier: context.modifier)
+        label.Compose(context: context)
+    }
+
+    @Composable func ComposeListItem(context: ComposeContext) {
+        let modifier = NavigationModifier(modifier: androidx.compose.ui.Modifier.fillMaxWidth().fillMaxHeight())
+        androidx.compose.foundation.layout.Row(modifier: modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            label.Compose(context: context.content())
+            androidx.compose.foundation.layout.Spacer(modifier: androidx.compose.ui.Modifier.weight(Float(1.0)))
+            androidx.compose.material3.Text(">>>")
+        }
+    }
+
+    @Composable private func NavigationModifier(modifier: androidx.compose.ui.Modifier) -> androidx.compose.ui.Modifier {
+        let navigator = LocalNavigator.current
+        return modifier.clickable(enabled: value != nil) {
             if let value, let navigator  {
                 navigator.navigate(to: value)
             }
         }
-        label.Compose(context: context)
     }
     #else
     public var body: some View {
