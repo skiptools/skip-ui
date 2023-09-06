@@ -4,7 +4,6 @@
 
 // SKIP INSERT: 
 // import androidx.compose.runtime.Composable
-// import androidx.compose.foundation.layout.fillMaxWidth
 
 // Erase the generic Label to facilitate specialized constructor support.
 //
@@ -57,7 +56,7 @@ public struct TextField<Label> : View where Label : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         // TODO: Form styling support
         let contentContext = context.content()
-        androidx.compose.material3.TextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillMaxWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true)
+        androidx.compose.material3.TextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true)
     }
 
     @Composable private func Placeholder(context: ComposeContext) {

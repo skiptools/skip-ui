@@ -13,7 +13,6 @@ import struct CoreGraphics.CGFloat
 // import androidx.compose.foundation.layout.Box
 // import androidx.compose.foundation.layout.Column
 // import androidx.compose.foundation.layout.Row
-// import androidx.compose.foundation.layout.fillMaxHeight
 // import androidx.compose.foundation.layout.fillMaxWidth
 // import androidx.compose.foundation.layout.height
 // import androidx.compose.foundation.layout.offset
@@ -59,7 +58,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let itemContext = context.content(composer: { view, context in ComposeItem(view: &view, context: context, style: style) })
-        let modifier = context.modifier.fillMaxWidth().fillMaxHeight().background(BackgroundColor(style: style))
+        let modifier = context.modifier.fillSize().background(BackgroundColor(style: style))
         Box(modifier: modifier) {
             ComposeList(itemContext: itemContext, style: style)
         }

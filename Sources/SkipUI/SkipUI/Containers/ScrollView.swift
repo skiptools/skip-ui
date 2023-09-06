@@ -7,8 +7,6 @@
 // import androidx.compose.foundation.rememberScrollState
 // import androidx.compose.foundation.verticalScroll
 // import androidx.compose.foundation.layout.Box
-// import androidx.compose.foundation.layout.fillMaxHeight
-// import androidx.compose.foundation.layout.fillMaxWidth
 // import androidx.compose.runtime.Composable
 
 public struct ScrollView<Content> : View where Content : View {
@@ -25,10 +23,10 @@ public struct ScrollView<Content> : View where Content : View {
         let scrollState = rememberScrollState()
         var modifier = context.modifier
         if axes.contains(.vertical) {
-            modifier = modifier.fillMaxHeight().verticalScroll(scrollState)
+            modifier = modifier.fillHeight().verticalScroll(scrollState)
         }
         if axes.contains(.horizontal) {
-            modifier = modifier.fillMaxWidth().horizontalScroll(scrollState)
+            modifier = modifier.fillWidth().horizontalScroll(scrollState)
         }
         let contentContext = context.content()
         Box(modifier: modifier) {
