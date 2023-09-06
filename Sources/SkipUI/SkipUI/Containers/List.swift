@@ -13,8 +13,8 @@ import struct CoreGraphics.CGFloat
 // import androidx.compose.foundation.layout.Box
 // import androidx.compose.foundation.layout.Column
 // import androidx.compose.foundation.layout.Row
-// import androidx.compose.foundation.layout.fillMaxWidth
 // import androidx.compose.foundation.layout.fillMaxHeight
+// import androidx.compose.foundation.layout.fillMaxWidth
 // import androidx.compose.foundation.layout.height
 // import androidx.compose.foundation.layout.offset
 // import androidx.compose.foundation.layout.padding
@@ -111,15 +111,13 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let horizontalItemInset = 16.0
 
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
-        let itemBoxModifier = Modifier.fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
-        var itemViewContext = context.content()
-        itemViewContext.modifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp).fillMaxWidth()
+        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
-            Box(modifier: itemBoxModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                if let listItemAdapting = view as? ListItemAdapting {
-                    listItemAdapting.ComposeListItem(context: itemViewContext)
-                } else {
-                    view.ComposeContent(context: itemViewContext)
+            if let listItemAdapting = view as? ListItemAdapting {
+                listItemAdapting.ComposeListItem(context: context, contentModifier: contentModifier)
+            } else {
+                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    view.ComposeContent(context: context)
                 }
             }
             ComposeSeparator()
@@ -171,9 +169,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 protocol ListItemAdapting {
     #if SKIP
     /// Compose as a list item.
-    ///
-    /// The modifiers of the given context are the default modifiers applied to pad and fill list content.
-    @Composable func ComposeListItem(context: ComposeContext)
+    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
     #endif
 }
 

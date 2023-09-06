@@ -2,10 +2,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// SKIP INSERT: 
+// SKIP INSERT:
 // import androidx.compose.foundation.clickable
+// import androidx.compose.foundation.layout.Arrangement
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.foundation.layout.Row
 // import androidx.compose.foundation.layout.fillMaxWidth
-// import androidx.compose.foundation.layout.fillMaxHeight
+// import androidx.compose.material3.MaterialTheme
 // import androidx.compose.runtime.Composable
 // import androidx.compose.runtime.CompositionLocalProvider
 // import androidx.compose.runtime.LaunchedEffect
@@ -16,6 +19,7 @@
 // import androidx.compose.runtime.mutableStateOf
 // import androidx.compose.runtime.remember
 // import androidx.compose.runtime.setValue
+// import androidx.compose.ui.Modifier
 // import androidx.compose.ui.unit.dp
 // import androidx.navigation.NavBackStackEntry
 // import androidx.navigation.NavController
@@ -254,21 +258,20 @@ public struct NavigationLink : View, ListItemAdapting {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        var context = context
-        context.modifier = NavigationModifier(modifier: context.modifier)
-        label.Compose(context: context)
+        label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
     }
 
-    @Composable func ComposeListItem(context: ComposeContext) {
-        let modifier = NavigationModifier(modifier: androidx.compose.ui.Modifier.fillMaxWidth().fillMaxHeight())
-        androidx.compose.foundation.layout.Row(modifier: modifier, horizontalArrangement: androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            label.Compose(context: context.content())
-            androidx.compose.foundation.layout.Spacer(modifier: androidx.compose.ui.Modifier.weight(Float(1.0)))
-            androidx.compose.material3.Text(">>>")
+    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
+        Box(modifier: NavigationModifier(modifier: Modifier)) {
+            Row(modifier: contentModifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                label.Compose(context: context.content(modifier: Modifier.weight(Float(1.0))))
+                // Chevron
+                androidx.compose.material3.Text("\u{203A}", color: androidx.compose.ui.graphics.Color.LightGray, fontWeight: androidx.compose.ui.text.font.FontWeight.Bold, style: MaterialTheme.typography.titleLarge)
+            }
         }
     }
 
-    @Composable private func NavigationModifier(modifier: androidx.compose.ui.Modifier) -> androidx.compose.ui.Modifier {
+    @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {
         let navigator = LocalNavigator.current
         return modifier.clickable(enabled: value != nil) {
             if let value, let navigator  {

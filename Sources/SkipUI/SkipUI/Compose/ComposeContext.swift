@@ -20,10 +20,10 @@ public struct ComposeContext {
     public var stateSaver: Saver<Any, Any> = ComposeStateSaver()
 
     /// The context to pass to child content of a container view.
-    public func content(composer: (@Composable (inout View, ComposeContext) -> Void)? = nil) -> ComposeContext {
+    public func content(modifier: Modifier = Modifier, composer: (@Composable (inout View, ComposeContext) -> Void)? = nil) -> ComposeContext {
         var context = self
+        context.modifier = modifier
         context.composer = composer
-        context.modifier = Modifier // Consume modifier
         return context
     }
 }

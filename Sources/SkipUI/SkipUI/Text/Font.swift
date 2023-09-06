@@ -6,7 +6,9 @@
 import struct CoreGraphics.CGFloat
 #endif
 
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT: 
+// import androidx.compose.material3.MaterialTheme
+// import androidx.compose.runtime.Composable
 
 public struct Font : Hashable, Sendable {
     #if SKIP
@@ -38,47 +40,47 @@ extension Font {
     // labelSmall: New Roboto Medium 11/16
 
     public static let largeTitle = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.displaySmall
+        MaterialTheme.typography.displaySmall
     })
 
     public static let title = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.titleLarge
+        MaterialTheme.typography.titleLarge
     })
 
     public static let title2 = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.titleMedium
+        MaterialTheme.typography.titleMedium
     })
 
     public static let title3 = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.titleSmall
+        MaterialTheme.typography.titleSmall
     })
 
     public static let headline = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.headlineSmall
+        MaterialTheme.typography.headlineSmall
     })
 
     public static let subheadline = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.bodyLarge
+        MaterialTheme.typography.bodyLarge
     })
 
     public static let body = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.bodyMedium
+        MaterialTheme.typography.bodyMedium
     })
 
     public static let callout = Font(fontImpl:  {
-        androidx.compose.material3.MaterialTheme.typography.bodySmall
+        MaterialTheme.typography.bodySmall
     })
 
     public static let footnote = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.labelSmall
+        MaterialTheme.typography.labelSmall
     })
 
     public static let caption = Font(fontImpl: {
-        androidx.compose.material3.MaterialTheme.typography.labelMedium
+        MaterialTheme.typography.labelMedium
     })
 
     public static let caption2 = Font(fontImpl:  {
-        androidx.compose.material3.MaterialTheme.typography.labelSmall
+        MaterialTheme.typography.labelSmall
     })
     #endif
 
@@ -292,7 +294,7 @@ extension Font {
     @available(*, unavailable)
     public init(_ font: Any /* CTFont */) {
         #if SKIP
-        fontImpl = { androidx.compose.material3.MaterialTheme.typography.bodyMedium }
+        fontImpl = { MaterialTheme.typography.bodyMedium }
         #endif
     }
 }
