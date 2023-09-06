@@ -1,0 +1,19 @@
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - skipbuilder
+  categories:
+    - title: Breaking Change
+      labels:
+        - Semver-Major
+        - breaking-change
+    - title: Enhancement
+      labels:
+        - Semver-Minor
+        - enhancement
+    - title: Other Changes
+      labels:
+        - "*"
+
