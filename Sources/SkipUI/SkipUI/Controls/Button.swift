@@ -7,12 +7,16 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
-// SKIP INSERT: import androidx.compose.runtime.Composable
+// SKIP INSERT:
+// import androidx.compose.foundation.clickable
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Modifier
 
 // Erase the generic Label to facilitate specialized constructor support.
 //
-// SKIP DECLARE: class Button: View
-public struct Button<Label> : View where Label : View {
+// SKIP DECLARE: class Button: View, ListItemAdapting
+public struct Button<Label> : View, ListItemAdapting where Label : View {
     let action: () -> Void
     let label: any View
 
@@ -47,6 +51,14 @@ public struct Button<Label> : View where Label : View {
         androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
             label.Compose(context: contentContext)
         })
+    }
+
+    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
+        Box(modifier: Modifier.clickable(onClick: action)) {
+            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                label.Compose(context)
+            }
+        }
     }
     #else
     public var body: some View {

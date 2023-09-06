@@ -189,11 +189,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
     }
 
-    var _listRowSeparator: Visibility? {
-        get { builtinValue(key: "_listRowSeparator", defaultValue: { nil }) as! Visibility? }
-        set { setBuiltinValue(key: "_listRowSeparator", value: newValue, defaultValue: { nil }) }
-    }
-
     var _listStyle: ListStyle? {
         get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }

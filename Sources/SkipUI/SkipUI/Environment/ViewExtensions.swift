@@ -149,12 +149,9 @@ extension View {
         #endif
     }
 
+    @available(*, unavailable)
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
-        #if SKIP
-        return environment(\._listRowSeparator, visibility)
-        #else
         return self
-        #endif
     }
 
     @available(*, unavailable)
