@@ -261,6 +261,10 @@ public struct NavigationLink : View, ListItemAdapting {
         label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
     }
 
+    @Composable func shouldComposeListItem() -> Bool {
+        return true
+    }
+
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: NavigationModifier(modifier: Modifier)) {
             Row(modifier: contentModifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {

@@ -47,16 +47,35 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let contentContext = context.content()
-        androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
-            label.Compose(context: contentContext)
-        })
+        let buttonStyle = EnvironmentValues.shared._buttonStyle
+        if buttonStyle == .bordered || buttonStyle == .borderedProminent {
+            androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
+                label.Compose(context: context.content())
+            })
+        } else {
+            ComposePlain(context: context.content(modifier: Modifier.clickable(onClick: action)))
+        }
+    }
+
+    @Composable private func ComposePlain(context: ComposeContext) {
+        EnvironmentValues.shared.setValues {
+            if $0._color == nil {
+                $0.set_color(Color.accentColor)
+            }
+        } in: {
+            label.Compose(context: context)
+        }
+    }
+
+    @Composable func shouldComposeListItem() -> Bool {
+        let buttonStyle = EnvironmentValues.shared._buttonStyle
+        return buttonStyle == nil || buttonStyle == .automatic
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: Modifier.clickable(onClick: action)) {
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                label.Compose(context)
+                ComposePlain(context: context)
             }
         }
     }
@@ -65,6 +84,41 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
         stubView()
     }
     #endif
+}
+
+// Model `ButtonStyle` as a struct. Kotlin does not support static members of protocols
+public struct ButtonStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = ButtonStyle(rawValue: 0)
+    public static let plain = ButtonStyle(rawValue: 1)
+    public static let borderless = ButtonStyle(rawValue: 2)
+    public static let bordered = ButtonStyle(rawValue: 3)
+    public static let borderedProminent = ButtonStyle(rawValue: 4)
+}
+
+extension View {
+    public func buttonStyle(_ style: ButtonStyle) -> some View {
+        #if SKIP
+        return environment(\._buttonStyle, style)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func buttonRepeatBehavior(_ behavior: Any) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func buttonBorderShape(_ shape: Any) -> some View {
+        return self
+    }
 }
 
 #if !SKIP
@@ -247,7 +301,7 @@ public struct BorderlessButtonStyle : PrimitiveButtonStyle {
 /// interaction behavior defined for each platform. To create a button with
 /// custom interaction behavior, use ``PrimitiveButtonStyle`` instead.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol ButtonStyle {
+public protocol ButtonStyleProtocol /* ButtonStyle */ {
 
     /// A view that represents the body of a button.
     associatedtype Body : View
@@ -566,118 +620,6 @@ public struct PrimitiveButtonStyleConfiguration {
 
     /// Performs the button's action.
     public func trigger() { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets the style for buttons within this view to a button style with a
-    /// custom appearance and custom interaction behavior.
-    ///
-    /// Use this modifier to set a specific style for button instances
-    /// within a view:
-    ///
-    ///     HStack {
-    ///         Button("Sign In", action: signIn)
-    ///         Button("Register", action: register)
-    ///     }
-    ///     .buttonStyle(.bordered)
-    ///
-    public func buttonStyle<S>(_ style: S) -> some View where S : PrimitiveButtonStyle { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Sets whether buttons in this view should repeatedly trigger their
-    /// actions on prolonged interactions.
-    ///
-    /// Apply this to buttons that increment or decrement a value or perform
-    /// some other inherently iterative operation. Interactions such as
-    /// pressing-and-holding on the button, holding the button's keyboard
-    /// shortcut, or holding down the space key while the button is focused will
-    /// trigger this repeat behavior.
-    ///
-    ///     Button {
-    ///         playbackSpeed.advance(by: 1)
-    ///     } label: {
-    ///         Label("Speed up", systemImage: "hare")
-    ///     }
-    ///     .buttonRepeatBehavior(.enabled)
-    ///
-    /// This affects all system button styles, as well as automatically
-    /// affects custom `ButtonStyle` conforming types. This does not
-    /// automatically apply to custom `PrimitiveButtonStyle` conforming types,
-    /// and the ``EnvironmentValues.buttonRepeatBehavior`` value should be used
-    /// to adjust their custom gestures as appropriate.
-    ///
-    /// - Parameter behavior: A value of `enabled` means that buttons should
-    ///   enable repeating behavior and a value of `disabled` means that buttons
-    ///   should disallow repeating behavior.
-    public func buttonRepeatBehavior(_ behavior: ButtonRepeatBehavior) -> some View { return stubView() }
-
-}
-
-
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets the style for buttons within this view to a button style with a
-    /// custom appearance and standard interaction behavior.
-    ///
-    /// Use this modifier to set a specific style for all button instances
-    /// within a view:
-    ///
-    ///     HStack {
-    ///         Button("Sign In", action: signIn)
-    ///         Button("Register", action: register)
-    ///     }
-    ///     .buttonStyle(.bordered)
-    ///
-    /// You can also use this modifier to set the style for controls with a button
-    /// style through composition:
-    ///
-    ///     VStack {
-    ///         Menu("Terms and Conditions") {
-    ///             Button("Open in Preview", action: openInPreview)
-    ///             Button("Save as PDF", action: saveAsPDF)
-    ///         }
-    ///         Toggle("Remember Password", isOn: $isToggleOn)
-    ///         Toggle("Flag", isOn: $flagged)
-    ///         Button("Sign In", action: signIn)
-    ///     }
-    ///     .menuStyle(.button)
-    ///     .toggleStyle(.button)
-    ///     .buttonStyle(.bordered)
-    ///
-    /// In this example, `.menuStyle(.button)` says that the Terms and
-    /// Conditions menu renders as a button, while
-    /// `.toggleStyle(.button)` says that the two toggles also render as
-    /// buttons. Finally, `.buttonStyle(.bordered)` says that the menu,
-    /// both toggles, and the Sign In button all render with the
-    /// bordered button style.```
-    public func buttonStyle<S>(_ style: S) -> some View where S : ButtonStyle { return stubView() }
-
-}
-
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension View {
-
-    /// Sets the border shape for buttons in this view.
-    ///
-    /// The border shape is used to draw the platter for a bordered button.
-    /// On macOS, the specified border shape is only applied to bordered
-    /// buttons in widgets.
-    ///
-    /// - Parameter shape: the shape to use.
-    /// - Note:This will only reflect on explicitly-set `.bordered` or
-    ///   `borderedProminent` styles. Setting a shape without
-    ///   explicitly setting the above styles will have no effect.
-    public func buttonBorderShape(_ shape: ButtonBorderShape) -> some View { return stubView() }
-
 }
 
 #endif

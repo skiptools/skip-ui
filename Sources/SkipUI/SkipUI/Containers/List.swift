@@ -113,7 +113,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
-            if let listItemAdapting = view as? ListItemAdapting {
+            if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
                 listItemAdapting.ComposeListItem(context: context, contentModifier: contentModifier)
             } else {
                 Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
@@ -168,7 +168,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 /// Adopted by views that adapt when used as a list item.
 protocol ListItemAdapting {
     #if SKIP
-    /// Compose as a list item.
+    @Composable func shouldComposeListItem() -> Bool
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
     #endif
 }
@@ -220,6 +220,36 @@ public struct ListStyle: RawRepresentable, Equatable {
     public static let inset = ListStyle(rawValue: 4)
 
     public static let plain = ListStyle(rawValue: 5)
+}
+
+extension View {
+    @available(*, unavailable)
+    public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listRowSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
+        return self
+    }
+
+    public func listStyle(_ style: ListStyle) -> some View {
+        #if SKIP
+        return environment(\._listStyle, style)
+        #else
+        return self
+        #endif
+    }
 }
 
 #if !SKIP

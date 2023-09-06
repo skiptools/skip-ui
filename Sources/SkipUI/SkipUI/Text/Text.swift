@@ -71,6 +71,71 @@ public struct Text: View, Equatable {
     #endif
 }
 
+extension View {
+    public func font(_ font: Font) -> some View {
+        #if SKIP
+        return environment(\.font, font)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func monospacedDigit() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func monospaced(_ isActive: Bool = true) -> some View {
+        return self
+    }
+
+    public func fontWeight(_ weight: Font.Weight?) -> some View {
+        #if SKIP
+        return environment(\._fontWeight, weight)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func fontWidth(_ width: Font.Width?) -> some View {
+        return self
+    }
+
+    public func bold(_ isActive: Bool = true) -> some View {
+        return fontWeight(isActive ? .bold : nil)
+    }
+
+    public func italic(_ isActive: Bool = true) -> some View {
+        #if SKIP
+        return environment(\._isItalic, isActive)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func fontDesign(_ design: Font.Design?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func kerning(_ kerning: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func tracking(_ tracking: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func baselineOffset(_ baselineOffset: CGFloat) -> some View {
+        return self
+    }
+}
+
 #if !SKIP
 
 // TODO: Process for use in SkipUI

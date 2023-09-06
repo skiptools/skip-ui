@@ -2,6 +2,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP
+import struct CoreGraphics.CGAffineTransform
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGPoint
+import struct CoreGraphics.CGSize
+#endif
+
 // SKIP INSERT:
 // import androidx.compose.foundation.background
 // import androidx.compose.foundation.border
@@ -52,6 +59,175 @@ extension View {
     }
 }
 #endif
+
+extension View {
+    public func background(_ color: Color) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.background(color.colorImpl())
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func border(_ color: Color, width: CGFloat = 1.0) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.border(width: width.dp, color: color.colorImpl())
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func foregroundColor(_ color: Color?) -> some View {
+        #if SKIP
+        return environment(\._color, color)
+        #else
+        return self
+        #endif
+    }
+
+    public func foregroundStyle(_ color: Color) -> some View {
+        return foregroundColor(color)
+    }
+
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
+        #if SKIP
+        return ComposeView { context in
+            var context = context
+            if let width {
+                context.modifier = context.modifier.width(width.dp)
+            }
+            if let height {
+                context.modifier = context.modifier.height(height.dp)
+            }
+            EnvironmentValues.shared.setValues {
+                if width != nil {
+                    $0.set_fillWidth(nil)
+                }
+                if height != nil {
+                    $0.set_fillHeight(nil)
+                }
+            } in: {
+                self.Compose(context: context)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment) -> some View {
+        return frame(width: width, height: height)
+    }
+
+    @available(*, unavailable)
+    public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
+        return self
+    }
+
+    public func labelsHidden() -> some View {
+        #if SKIP
+        return environment(\._labelsHidden, true)
+        #else
+        return self
+        #endif
+    }
+
+    public func opacity(_ opacity: Double) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.alpha(Float(opacity))
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func padding(_ insets: EdgeInsets) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.padding(start: insets.leading.dp, top: insets.top.dp, end: insets.trailing.dp, bottom: insets.bottom.dp)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
+        #if SKIP
+        let amount = (length ?? CGFloat(16.0)).dp
+        let start = edges.contains(.leading) ? amount : 0.dp
+        let end = edges.contains(.trailing) ? amount : 0.dp
+        let top = edges.contains(.top) ? amount : 0.dp
+        let bottom = edges.contains(.bottom) ? amount : 0.dp
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func padding(_ length: CGFloat) -> some View {
+        return padding(.all, length)
+    }
+
+    public func rotationEffect(_ angle: Angle) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.rotate(Float(angle.degrees))
+        }
+        #else
+        return stubView()
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> some View {
+        #if SKIP
+        fatalError()
+        #else
+        return stubView()
+        #endif
+    }
+
+    public func scaleEffect(_ scale: CGSize) -> some View {
+        return scaleEffect(x: scale.width, y: scale.height)
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: scale.width, y: scale.height)
+    }
+
+    public func scaleEffect(_ s: CGFloat) -> some View {
+        return scaleEffect(x: s, y: s)
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: s, y: s)
+    }
+
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
+        #if SKIP
+        return ComposeContextView(self) {
+            $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
+        }
+        #else
+        return stubView()
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> some View {
+        return scaleEffect(x: x, y: y)
+    }
+}
 
 #if !SKIP
 

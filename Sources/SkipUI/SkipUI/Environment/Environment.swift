@@ -51,7 +51,7 @@ public class EnvironmentValues {
     ///
     /// - Seealso: ``View/environment(_:)``
     /// - Warning: Setting environment values should only be done within the `execute` block of this function.
-    @Composable func setValues(_ execute: (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
+    @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
         // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
         execute(self)
         let provided = lastSetValues.map { entry in
@@ -157,6 +157,11 @@ extension EnvironmentValues {
     private func setBuiltinValue(key: AnyHashable, value: Any?, defaultValue: () -> Any?) {
         let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
         lastSetValues[compositionLocal] = value ?? Unit
+    }
+
+    var _buttonStyle: ButtonStyle? {
+        get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! ButtonStyle? }
+        set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
     }
 
     var _color: Color? {

@@ -230,6 +230,7 @@ final class SkipUITests: XCTestCase {
                     counter += 1
                 }
                 .accessibilityIdentifier("button")
+                .buttonStyle(.bordered) // Required to use Compose Button
             }
         }
     }
