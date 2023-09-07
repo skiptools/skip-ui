@@ -2,8 +2,6 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if !SKIP
 import class Foundation.Formatter
 import class Foundation.NSObject
@@ -16,6 +14,8 @@ import struct Foundation.DateComponents
 import struct Foundation.DateInterval
 import struct Foundation.AttributedString
 import struct Foundation.LocalizedStringResource
+#else
+#endif
 
 /// The key used to look up an entry in a strings file or strings dictionary
 /// file.
@@ -70,17 +70,26 @@ import struct Foundation.LocalizedStringResource
 /// and Server
 /// maintenance.](SkipUI-LocalizedStringKey-Today-List-Japanese.png)
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct LocalizedStringKey : Equatable, ExpressibleByStringInterpolation {
+@frozen public struct LocalizedStringKey : Equatable {
+    public var value: String
 
     /// Creates a localized string key from the given string value.
     ///
     /// - Parameter value: The string to use as a localization key.
-    public init(_ value: String) { fatalError() }
+    public init(_ value: String) {
+        self.value = value
+    }
 
     /// Creates a localized string key from the given string literal.
     ///
     /// - Parameter value: The string literal to use as a localization key.
-    public init(stringLiteral value: String) { fatalError() }
+    public init(stringLiteral value: String) {
+        self.value = value
+    }
+}
+
+#if !SKIP
+extension LocalizedStringKey : ExpressibleByStringInterpolation {
 
     /// Creates a localized string key from the given string interpolation.
     ///

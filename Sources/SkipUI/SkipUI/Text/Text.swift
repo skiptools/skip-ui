@@ -5,26 +5,27 @@
 #if !SKIP
 import struct CoreGraphics.CGFloat
 import struct Foundation.LocalizedStringResource
+import class Foundation.Bundle
 #endif
 
 // SKIP INSERT: 
 // import androidx.compose.material3.LocalTextStyle
 // import androidx.compose.runtime.Composable
 // import skip.foundation.LocalizedStringResource
+// import skip.foundation.Bundle
 
 public struct Text: View, Equatable {
     let text: String
-
-    public init(_ text: String) {
-        self.text = text
-    }
 
     public init(verbatim: String) {
         self.text = verbatim
     }
 
+    public init(_ text: String, bundle: Bundle? = nil, comment: StaticString? = nil) {
+        self.text = text
+    }
+    
     public init(_ resource: LocalizedStringResource) {
-        // TODO: handle LocalizedStringResource
         self.text = resource.key
     }
 
@@ -446,7 +447,9 @@ extension Text {
     ///   - bundle: The bundle containing the strings file. If `nil`, use the
     ///     main bundle.
     ///   - comment: Contextual information about this key-value pair.
-    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) { fatalError() }
+    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
+        self.text = key.value
+    }
 }
 
 extension Text {
