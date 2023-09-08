@@ -2076,10 +2076,6 @@ public struct KeyframeAnimator<Value, KeyframePath, Content> : View where Value 
     ///     calls.
     public init(initialValue: Value, repeating: Bool = true, @ViewBuilder content: @escaping (Value) -> Content, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> KeyframePath) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -2521,10 +2517,6 @@ public struct PhaseAnimator<Phase, Content> : View where Phase : Equatable, Cont
 
     @MainActor public var body: some View { get { stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 

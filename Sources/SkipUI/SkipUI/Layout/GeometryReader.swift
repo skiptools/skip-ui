@@ -18,10 +18,6 @@
 
     @inlinable public init(@ViewBuilder content: @escaping (GeometryProxy) -> Content) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

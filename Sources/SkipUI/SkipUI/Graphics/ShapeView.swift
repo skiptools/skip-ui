@@ -121,10 +121,6 @@ extension ShapeView where Self.Content : InsettableShape {
     /// Create a stroke border shape.
     public init(shape: Content, style: Style, strokeStyle: StrokeStyle, isAntialiased: Bool, background: Background) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -155,10 +151,6 @@ extension ShapeView where Self.Content : InsettableShape {
     /// Create a StrokeShapeView.
     public init(shape: Content, style: Style, strokeStyle: StrokeStyle, isAntialiased: Bool, background: Background) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

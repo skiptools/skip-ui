@@ -60,10 +60,6 @@ public struct DisclosureGroup<Label, Content> : View where Label : View, Content
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 

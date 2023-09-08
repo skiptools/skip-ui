@@ -143,10 +143,6 @@ extension Gradient.Stop : Sendable {
     /// completes a full turn.
     public init(stops: [Gradient.Stop], center: UnitPoint, angle: Angle = .zero) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 
@@ -258,10 +254,6 @@ extension Gradient.Stop : Sendable {
     ///    maps to the diameter of the unit circle.
     public init(stops: [Gradient.Stop], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0, endRadiusFraction: CGFloat = 0.5) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 
@@ -293,10 +285,6 @@ extension Gradient.Stop : Sendable {
     /// Creates a linear gradient from a collection of color stops.
     public init(stops: [Gradient.Stop], startPoint: UnitPoint, endPoint: UnitPoint) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 
@@ -328,10 +316,6 @@ extension Gradient.Stop : Sendable {
     /// Creates a radial gradient from a collection of color stops.
     public init(stops: [Gradient.Stop], center: UnitPoint, startRadius: CGFloat, endRadius: CGFloat) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
 
     /// The type of shape style this will resolve to.

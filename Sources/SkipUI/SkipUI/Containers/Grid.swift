@@ -249,10 +249,6 @@ import struct CoreGraphics.CGSize
     ///
     @inlinable public init(alignment: Alignment = .center, horizontalSpacing: CGFloat? = nil, verticalSpacing: CGFloat? = nil, @ViewBuilder content: () -> Content) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
 }
 
@@ -953,10 +949,6 @@ extension GridLayout : Sendable {
     ///
     @inlinable public init(alignment: VerticalAlignment? = nil, @ViewBuilder content: () -> Content) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
 }
 

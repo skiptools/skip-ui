@@ -19,10 +19,6 @@
 
     public init<V>(erasing view: V) where V : View { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

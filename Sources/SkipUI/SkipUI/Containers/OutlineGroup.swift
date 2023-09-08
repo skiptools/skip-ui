@@ -364,10 +364,6 @@ extension OutlineGroup : View where Parent : View, Leaf : View, Subgroup : View 
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 
@@ -499,10 +495,6 @@ extension OutlineGroup where Parent : View, Parent == Leaf, Subgroup == Disclosu
 @available(watchOS, unavailable)
 public struct OutlineSubgroupChildren : View {
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

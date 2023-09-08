@@ -2,16 +2,20 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
+import Foundation
 #if !SKIP
-
-import class CoreGraphics.CGContext
 import struct CoreGraphics.CGFloat
-import class CoreGraphics.CGImage
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
-import class Foundation.Bundle
+#endif
+
+// SKIP INSERT:
+// import androidx.compose.foundation.layout.Arrangement
+// import androidx.compose.foundation.layout.Row
+// import androidx.compose.runtime.Composable
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.unit.dp
+
 
 /// A view that displays an image.
 ///
@@ -24,7 +28,7 @@ import class Foundation.Bundle
 ///  and
 /// .
 /// * A bitmap stored in a Core Graphics
-///  
+///
 ///  instance.
 /// * System graphics from the SF Symbols set.
 ///
@@ -64,9 +68,94 @@ import class Foundation.Bundle
 /// initializer with the `decorative` parameter; the accessibility systems
 /// ignore these images.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Image : Equatable, Sendable {
+public struct Image : Equatable {
+    internal let image: ImageType
 
+    internal enum ImageType : Equatable {
+        case named(name: String, bundle: Bundle?, label: Text?)
+        case decorative(name: String, bundle: Bundle?)
+        case system(systemName: String)
+    }
 }
+
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Image {
+
+    /// Creates a labeled image that you can use as content for controls.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the image resource to lookup, as well as the
+    ///     localization key with which to label the image.
+    ///   - bundle: The bundle to search for the image resource and localization
+    ///     content. If `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
+    public init(_ name: String, bundle: Bundle? = nil) {
+        self.image = .named(name: name, bundle: bundle, label: nil)
+    }
+
+    /// Creates a labeled image that you can use as content for controls, with
+    /// the specified label.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the image resource to lookup
+    ///   - bundle: The bundle to search for the image resource. If `nil`,
+    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
+    ///   - label: The label associated with the image. SkipUI uses the label
+    ///     for accessibility.
+    public init(_ name: String, bundle: Bundle? = nil, label: Text) {
+        self.image = .named(name: name, bundle: bundle, label: label)
+    }
+
+    /// Creates an unlabeled, decorative image.
+    ///
+    /// SkipUI ignores this image for accessibility purposes.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the image resource to lookup
+    ///   - bundle: The bundle to search for the image resource. If `nil`,
+    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
+    public init(decorative name: String, bundle: Bundle? = nil) {
+        self.image = .decorative(name: name, bundle: bundle)
+    }
+
+    /// Creates a system symbol image.
+    ///
+    /// This initializer creates an image using a system-provided symbol. Use symbols
+    /// to find symbols and their corresponding names.
+    ///
+    /// To create a custom symbol image from your app's asset catalog, use
+    /// ``Image/init(_:bundle:)`` instead.
+    ///
+    /// - Parameters:
+    ///   - systemName: The name of the system symbol image.
+    ///     Use the SF Symbols app to look up the names of system symbol images.
+    @available(macOS 11.0, *)
+    public init(systemName: String) {
+        self.image = .system(systemName: systemName)
+    }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Image : View {
+    // TODO: implement compose view
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#if !SKIP
+
+import class CoreGraphics.CGContext
+import struct CoreGraphics.CGFloat
+import class CoreGraphics.CGImage
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
+import class Foundation.Bundle
 
 
 //#if canImport(CoreTransferable)
@@ -88,54 +177,6 @@ import class Foundation.Bundle
 //    public typealias Representation = Never
 //}
 //#endif
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// Creates a labeled image that you can use as content for controls.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup, as well as the
-    ///     localization key with which to label the image.
-    ///   - bundle: The bundle to search for the image resource and localization
-    ///     content. If `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
-    public init(_ name: String, bundle: Bundle? = nil) { fatalError() }
-
-    /// Creates a labeled image that you can use as content for controls, with
-    /// the specified label.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup
-    ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
-    ///   - label: The label associated with the image. SkipUI uses the label
-    ///     for accessibility.
-    public init(_ name: String, bundle: Bundle? = nil, label: Text) { fatalError() }
-
-    /// Creates an unlabeled, decorative image.
-    ///
-    /// SkipUI ignores this image for accessibility purposes.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup
-    ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
-    public init(decorative name: String, bundle: Bundle? = nil) { fatalError() }
-
-    /// Creates a system symbol image.
-    ///
-    /// This initializer creates an image using a system-provided symbol. Use symbols
-    /// to find symbols and their corresponding names.
-    ///
-    /// To create a custom symbol image from your app's asset catalog, use
-    /// ``Image/init(_:bundle:)`` instead.
-    ///
-    /// - Parameters:
-    ///   - systemName: The name of the system symbol image.
-    ///     Use the SF Symbols app to look up the names of system symbol images.
-    @available(macOS 11.0, *)
-    public init(systemName: String) { fatalError() }
-}
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Image {
@@ -282,17 +323,6 @@ extension Image {
     ///
     /// - Returns: a new image.
     public func allowedDynamicRange(_ range: Image.DynamicRange?) -> Image { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image : View {
-
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

@@ -238,10 +238,6 @@ func stubTableRowContent() -> some TableRowContent {
 @available(watchOS, unavailable)
 public struct Table<Value, Rows, Columns> : View where Value == Rows.TableRowValue, Rows : TableRowContent, Columns : TableColumnContent, Rows.TableRowValue == Columns.TableRowValue {
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

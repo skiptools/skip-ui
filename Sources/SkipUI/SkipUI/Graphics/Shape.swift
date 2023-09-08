@@ -137,10 +137,6 @@ public protocol Shape : Sendable, Animatable, View {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -783,10 +779,6 @@ extension ShapeRole : Hashable {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -825,10 +817,6 @@ extension ShapeRole : Hashable {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -935,10 +923,6 @@ extension RectangleCornerRadii : Sendable {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1007,10 +991,6 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
     /// The type defining the data to animate.
     public typealias AnimatableData = Never // CGSize.AnimatableData
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1067,10 +1047,6 @@ extension RoundedRectangle : InsettableShape {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1104,10 +1080,6 @@ extension Capsule : InsettableShape {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1160,10 +1132,6 @@ extension ContainerRelativeShape : InsettableShape {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1251,10 +1219,6 @@ extension Circle : InsettableShape {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1293,10 +1257,6 @@ extension Circle : InsettableShape {
     /// The type defining the data to animate.
     public typealias AnimatableData = RectangleCornerRadii.AnimatableData
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1346,10 +1306,6 @@ extension UnevenRoundedRectangle : InsettableShape {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
@@ -1470,10 +1426,6 @@ extension InsettableShape {
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

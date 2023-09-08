@@ -40,10 +40,6 @@ extension View {
 
     @inlinable public init(content: Content, publisher: PublisherType, action: @escaping (PublisherType.Output) -> Void) { fatalError() }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }

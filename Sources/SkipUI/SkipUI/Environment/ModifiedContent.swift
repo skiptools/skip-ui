@@ -12,10 +12,6 @@ import struct CoreGraphics.CGPoint
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 @frozen public struct ModifiedContent<Content, Modifier> {
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
 
     /// The content that the modifier transforms into a new view or new

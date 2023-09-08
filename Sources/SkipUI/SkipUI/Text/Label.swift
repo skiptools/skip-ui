@@ -95,10 +95,6 @@ public struct Label<Title, Icon> : View where Title : View, Icon : View {
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 
@@ -419,10 +415,6 @@ extension LabeledContent : View where Label : View, Content : View {
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 
@@ -646,10 +638,6 @@ public struct LabeledControlGroupContent<Content, Label> : View where Content : 
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 
@@ -663,10 +651,6 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
 
     @MainActor public var body: some View { get { return stubView() } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
 //    public typealias Body = some View
 }
 

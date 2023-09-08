@@ -261,10 +261,6 @@ extension ButtonBorderShape : Shape {
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
-    /// The type of view representing the body of this view.
-    ///
-    /// When you create a custom view, Swift infers this type from your
-    /// implementation of the required ``View/body-swift.property`` property.
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
