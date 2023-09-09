@@ -30,8 +30,13 @@ build:
         - 'implementation("androidx.appcompat:appcompat-resources:1.6.1")'
 
         - 'testImplementation("androidx.compose.ui:ui-test")'
+        - 'androidTestImplementation("androidx.compose.ui:ui-test")'
+
         - 'testImplementation("androidx.compose.ui:ui-test-junit4")'
+        - 'androidTestImplementation("androidx.compose.ui:ui-test-junit4")'
+
         - 'testImplementation("androidx.compose.ui:ui-test-manifest")'
+        - 'androidTestImplementation("androidx.compose.ui:ui-test-manifest")'
 
         #- 'implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6+")'
         #- 'implementation("androidx.activity:activity-ktx:1.7+")'
