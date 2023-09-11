@@ -10,8 +10,6 @@ import OSLog
 import Foundation
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
-// SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
-// SKIP INSERT: @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 final class LayoutTests: XCSnapshotTestCase {
     func testRenderWhiteSquareTiny() throws {
         XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)),

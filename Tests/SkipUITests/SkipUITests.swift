@@ -179,8 +179,6 @@ import XCTest
 // SKIP INSERT: import skip.ui.Text
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
-// SKIP INSERT: @org.robolectric.annotation.Config(manifest=org.robolectric.annotation.Config.NONE, sdk = [33])
-// SKIP INSERT: @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 final class SkipUITests: XCTestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
 
@@ -365,7 +363,7 @@ final class SkipUITests: XCTestCase {
         })
     }
     struct EnvironmentValueDefaultView: View {
-        @Environment(\.testValue) var environmentValue
+        @Environment(\.testValue) var environmentValue: String
         var body: some View {
             VStack {
                 Text(environmentValue)
@@ -376,7 +374,7 @@ final class SkipUITests: XCTestCase {
         }
     }
     struct EnvironmentValueOuterView: View {
-        @Environment(\.testValue) var environmentValue
+        @Environment(\.testValue) var environmentValue: String
         var body: some View {
             VStack {
                 Text(environmentValue)
@@ -387,7 +385,7 @@ final class SkipUITests: XCTestCase {
         }
     }
     struct EnvironmentValueInnerView: View {
-        @Environment(\.testValue) var environmentValue
+        @Environment(\.testValue) var environmentValue: String
         var body: some View {
             Text(environmentValue)
                 .accessibilityIdentifier("inner-label")
