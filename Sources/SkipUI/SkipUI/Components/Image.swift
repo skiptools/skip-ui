@@ -610,17 +610,6 @@ extension Image {
     public func antialiased(_ isAntialiased: Bool) -> Image { fatalError() }
 }
 
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Image {
-
-    /// Sets the rendering mode for symbol images within this view.
-    ///
-    /// - Parameter mode: The symbol rendering mode to use.
-    ///
-    /// - Returns: A view that uses the rendering mode you supply.
-    public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> Image { fatalError() }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 

@@ -520,29 +520,6 @@ extension EnvironmentValues {
     public var backgroundProminence: BackgroundProminence { get { fatalError() } }
 }
 
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension EnvironmentValues {
-
-    /// The symbol variant to use in this environment.
-    ///
-    /// You set this environment value indirectly by using the
-    /// ``View/symbolVariant(_:)`` view modifier. However, you access the
-    /// environment variable directly using the ``View/environment(_:_:)``
-    /// modifier. Do this when you want to use the ``SymbolVariants/none``
-    /// variant to ignore the value that's already in the environment:
-    ///
-    ///     HStack {
-    ///         Image(systemName: "heart")
-    ///         Image(systemName: "heart")
-    ///             .environment(\.symbolVariants, .none)
-    ///     }
-    ///     .symbolVariant(.fill)
-    ///
-    /// ![A screenshot of two heart symbols. The first is filled while the
-    /// second is outlined.](SymbolVariants-none-1)
-    public var symbolVariants: SymbolVariants { get { fatalError() } }
-}
-
 extension EnvironmentValues {
 
     @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "dynamicTypeSize")
@@ -1106,15 +1083,6 @@ extension EnvironmentValues {
     /// On macOS, this value cannot be changed by users and does not affect the
     /// text size.
     public var dynamicTypeSize: DynamicTypeSize { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension EnvironmentValues {
-
-    /// The current symbol rendering mode, or `nil` denoting that the
-    /// mode is picked automatically using the current image and
-    /// foreground style as parameters.
-    public var symbolRenderingMode: SymbolRenderingMode? { get { fatalError() } }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)

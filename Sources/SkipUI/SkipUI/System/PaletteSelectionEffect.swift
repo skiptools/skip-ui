@@ -25,7 +25,7 @@ public struct PaletteSelectionEffect : Sendable, Equatable {
     /// Applies the specified symbol variant when selected.
     ///
     /// - Note: This effect only applies to SF Symbols.
-    public static func symbolVariant(_ variant: SymbolVariants) -> PaletteSelectionEffect { fatalError() }
+    //public static func symbolVariant(_ variant: SymbolVariants) -> PaletteSelectionEffect { fatalError() }
 
     /// Does not apply any system effect when selected.
     ///
