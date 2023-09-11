@@ -4,6 +4,7 @@
 
 // TODO: Process for use in SkipUI
 
+#if canImport(Symbols)
 #if !SKIP
 
 import protocol Symbols.SymbolEffect
@@ -475,3 +476,5 @@ public struct SymbolVariants : Hashable, Sendable {
 }
 
 #endif
+#endif
+
