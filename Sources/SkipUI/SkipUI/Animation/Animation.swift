@@ -2209,7 +2209,7 @@ public protocol KeyframeTrackContent<Value> {
 
 }
 
-@available(macOS 14.0, *)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension KeyframeTrackContentBuilder {
 
     /// A conditional result from the result builder.

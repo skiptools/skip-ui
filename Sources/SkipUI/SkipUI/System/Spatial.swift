@@ -232,7 +232,7 @@ public struct SpatialEventCollection : Collection {
     public typealias SubSequence = Slice<SpatialEventCollection>
 }
 
-@available(macOS 14.0, *)
+@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
 extension SpatialEventCollection.Event {
 }
 

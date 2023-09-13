@@ -5,16 +5,16 @@ let package = Package(
     name: "skip-ui",
     platforms: [.iOS(.v16), .macOS(.v13), .tvOS(.v16), .watchOS(.v9), .macCatalyst(.v16)],
     products: [
-        .library(name: "SkipUI", targets: ["SkipUI"]),
+        .library(name: "SkipUI", type: .dynamic, targets: ["SkipUI"]),
     ],
     dependencies: [ 
         .package(url: "https://source.skip.tools/skip.git", from: "0.6.60"),
         .package(url: "https://source.skip.tools/skip-model.git", from: "0.0.6"),
     ],
     targets: [
-        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model", condition: .when(platforms: [.macOS]))],
+        .target(name: "SkipUI", dependencies: [.product(name: "SkipModel", package: "skip-model")],
             plugins: [.plugin(name: "skipstone", package: "skip")]),
-        .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip", condition: .when(platforms: [.macOS]))],
+        .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")],
             plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )

@@ -264,7 +264,7 @@ public protocol ScrollTargetBehavior {
     typealias TargetContext = ScrollTargetBehaviorContext
 }
 
-@available(macOS 14.0, *)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ScrollTargetBehavior where Self == PagingScrollTargetBehavior {
 
     /// The scroll behavior that aligns scroll targets to container-based
@@ -287,7 +287,7 @@ extension ScrollTargetBehavior where Self == PagingScrollTargetBehavior {
     public static var paging: PagingScrollTargetBehavior { get { fatalError() } }
 }
 
-@available(macOS 14.0, *)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
 
     /// The scroll behavior that aligns scroll targets to view-based geometry.
@@ -493,7 +493,7 @@ public struct ScrollTransitionConfiguration {
     public func threshold(_ threshold: ScrollTransitionConfiguration.Threshold) -> ScrollTransitionConfiguration { fatalError() }
 }
 
-@available(macOS 14.0, *)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ScrollTransitionConfiguration {
 
     /// Describes a specific point in the progression of a target view within a container
