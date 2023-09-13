@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "skip-ui",
-    platforms: [.macOS("13"), .iOS("17")],
+    platforms: [.iOS(.v16), .macOS(.v13), .tvOS(.v16), .watchOS(.v9), .macCatalyst(.v16)],
     products: [
         .library(name: "SkipUI", targets: ["SkipUI"]),
     ],
