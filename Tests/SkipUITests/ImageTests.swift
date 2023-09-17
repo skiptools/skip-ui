@@ -13,7 +13,7 @@ import Foundation
 final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
-        if macOS {
+        if isMacOS {
             throw XCTSkip("disabled on macOS due to variance in shadow pixels")
         }
         XCTAssertEqual(try pixmap(Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
@@ -62,7 +62,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageLock() throws {
-        if macOS {
+        if isMacOS {
             throw XCTSkip("disabled on macOS due to variance in shadow pixels")
         }
         XCTAssertEqual(try pixmap(Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
@@ -111,7 +111,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageInfo() throws {
-        if macOS {
+        if isMacOS {
             throw XCTSkip("disabled on macOS due to variance in shadow pixels")
         }
         XCTAssertEqual(try pixmap(Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
@@ -160,7 +160,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImagePhone() throws {
-        if macOS {
+        if isMacOS {
             throw XCTSkip("disabled on macOS due to variance in shadow pixels")
         }
         XCTAssertEqual(try pixmap(Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
