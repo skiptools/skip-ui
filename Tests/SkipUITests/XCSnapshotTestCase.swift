@@ -221,8 +221,7 @@ class XCSnapshotTestCase: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil,
-                         darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View

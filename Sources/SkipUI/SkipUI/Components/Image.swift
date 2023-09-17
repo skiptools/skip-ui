@@ -154,14 +154,20 @@ extension Image : View {
         //case .named(let name, let bunle, let label): break // TODO: non-system images
         //}
 
-
         if case .system(let systemName) = self.image {
             if let image = systemImage(named: systemName) {
-                androidx.compose.material3.Icon(modifier: context.modifier, imageVector: image, contentDescription: systemName)
+                if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
+                    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
+                } else {
+                    androidx.compose.material3.Icon(imageVector: image, contentDescription: systemName)
+                }
             } else {
                 // TODO: throw error? Log message?
                 print("Unable to find system image named: \(systemName)")
+                androidx.compose.material3.Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             }
+        } else {
+            androidx.compose.material3.Icon(imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
         }
     }
 
@@ -184,6 +190,9 @@ extension Image : View {
 
         case "house": return Icons.Default.Home
         case "house.fill": return Icons.Filled.Home
+
+        case "gear": return Icons.Default.Settings
+        case "gear.fill": return Icons.Filled.Settings
 
         case "gearshape": return Icons.Default.Settings
         case "gearshape.fill": return Icons.Filled.Settings
@@ -323,8 +332,8 @@ extension Image : View {
         case "lightbulb": return Icons.Default.WbIncandescent
         case "lightbulb.fill": return Icons.Filled.WbIncandescent
 
-        case "magnifyingglass.circle": return Icons.Default.Search
-        case "magnifyingglass.circle.fill": return Icons.Filled.Search
+        case "magnifyingglass": return Icons.Default.Search
+        case "magnifyingglass.fill": return Icons.Filled.Search
 
         case "music.note": return Icons.Default.MusicNote
         case "music.note.fill": return Icons.Filled.MusicNote
