@@ -216,7 +216,7 @@ class XCSnapshotTestCase: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -265,7 +265,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         var pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        return createPixmap(pixels: Array(pixels.toList()), compact: compact, width: Int64(width))
+        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, width: Int64(width))
 
         #else
 
@@ -361,7 +361,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         #endif // canImport(AppKit)
 
-        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
+        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
 
         #endif
     }
@@ -394,7 +394,12 @@ class XCSnapshotTestCase: XCTestCase {
     #endif
 
     /// Creates an ASCII representation of an array of pixels
-    private func createPixmap(pixels: [Int], compact: Int?, width: Int64) -> String {
+    private func createPixmap(pixels: [Int], compact: Int?, clearColor: String?, width: Int64) -> String {
+        let space = Character(" ")
+        func checkClear(_ color: String) -> String {
+            color == clearColor ? String(repeating: " ", count: color.count) : color
+        }
+
         func rgb(_ packedColor: Int) -> String {
             let red = (packedColor >> 16) & 0xFF
             let green = (packedColor >> 8) & 0xFF
@@ -414,12 +419,12 @@ class XCSnapshotTestCase: XCTestCase {
                 let parts = Set(rgb)
                 #endif
                 if parts.count > compact {
-                    return rgb // overflow will return the full string
+                    return checkClear(rgb) // overflow will return the full string
                 } else {
-                    return rgb.dropLast(rgb.count - compact).description
+                    return checkClear(rgb.dropLast(rgb.count - compact).description)
                 }
             } else {
-                return rgb
+                return checkClear(rgb)
             }
         }
 
@@ -427,11 +432,21 @@ class XCSnapshotTestCase: XCTestCase {
         for (i, p) in pixels.enumerated() {
             if !desc.isEmpty {
                 // add in a newline for each width
-                desc += i % Int(width) == 0 ? "\n" : " "
+                if i % Int(width) == 0 {
+                    while desc.last == space {
+                        desc = desc.dropLast().description
+                    }
+                    desc += "\n"
+                } else {
+                    desc += " "
+                }
             }
             desc += rgb(p)
         }
 
+        while desc.last == space {
+            desc = desc.dropLast().description
+        }
         return desc
     }
 
@@ -443,10 +458,14 @@ class XCSnapshotTestCase: XCTestCase {
     }
 
     #if !SKIP
-    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
+    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, clearColor: String?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
         var pdesc = ""
         for y in 0..<height {
             if y > 0 {
+                // trim any trailing whitespace
+                while pdesc.hasSuffix(" ") {
+                    pdesc.removeLast()
+                }
                 pdesc += "\n"
             }
             for x in 0..<width {
@@ -455,22 +474,36 @@ class XCSnapshotTestCase: XCTestCase {
                 let green = pixelData[offset + 1]
                 let blue = pixelData[offset + 2]
 
-                if x > 0 {
-                    pdesc += " "
+                func append(_ chunk: String) {
+                    if x > 0 {
+                        pdesc += " "
+                    }
+                    if let clearColor = clearColor, chunk == clearColor {
+                        pdesc += String(repeating: " ", count: clearColor.count)
+                    } else {
+                        pdesc += chunk
+                    }
                 }
+
                 let rgb = String(format: "%02X%02X%02X", red, green, blue)
                 if let compact = compact {
                     let parts = Set(rgb)
                     if parts.count > compact {
-                        pdesc += rgb // overflow will return the full string
+                        append(rgb) // overflow will return the full string
                     } else {
-                        pdesc += String(rgb.dropLast(rgb.count - compact))
+                        append(String(rgb.dropLast(rgb.count - compact)))
                     }
                 } else {
-                    pdesc += rgb
+                    append(rgb)
                 }
             }
         }
+
+        // trim any trailing whitespace
+        while pdesc.hasSuffix(" ") {
+            pdesc.removeLast()
+        }
+
         return pdesc
     }
     #endif

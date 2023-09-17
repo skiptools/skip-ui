@@ -13,186 +13,186 @@ import Foundation
 final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
-        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF DB BE FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 69 36 FC FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF F5 3C 64 C6 FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF B7 72 A9 81 FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF 72 B4 E9 3E FE FF FF FF FF FF FF FF
-        FF FF FF 67 3A 3B 3D 3F 32 F1 FF 56 3D 3D 3C 3A 47 F1 FF FF
-        FF FF FF B4 41 B7 F7 F4 F7 FF FF FA F2 F7 D5 4F 88 FE FF FF
-        FF FF FF FF DF 52 78 F3 FF FF FF FF FD 9E 40 C1 FF FF FF FF
-        FF FF FF FF FF FA 88 49 FF FF FF FF 7F 61 EC FF FF FF FF FF
-        FF FF FF FF FF FF C5 61 FF FF FF FF 97 8F FF FF FF FF FF FF
-        FF FF FF FF FF FF 7D AC FB 86 64 EB E2 47 FF FF FF FF FF FF
-        FF FF FF FF FF FC 3E D8 56 76 9B 40 CA 55 D6 FF FF FF FF FF
-        FF FF FF FF FF C5 3B 41 AF FF FF D2 47 49 8E FF FF FF FF FF
-        FF FF FF FF FF BA 5C DF FF FF FF FF F3 78 89 FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+
+
+
+                                   DB BE
+                                   69 36 FC
+                                F5 3C 64 C6
+                                B7 72 A9 81
+                                72 B4 E9 3E FE
+                 67 3A 3B 3D 3F 32 F1    56 3D 3D 3C 3A 47 F1
+                 B4 41 B7 F7 F4 F7       FA F2 F7 D5 4F 88 FE
+                    DF 52 78 F3             FD 9E 40 C1
+                       FA 88 49             7F 61 EC
+                          C5 61             97 8F
+                          7D AC FB 86 64 EB E2 47
+                       FC 3E D8 56 76 9B 40 CA 55 D6
+                       C5 3B 41 AF       D2 47 49 8E
+                       BA 5C DF             F3 78 89
+
+
+
         """, android: """
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 9F 9F FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 3F 40 FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF CF 00 00 CF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF 5F 00 00 5F FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF EF 00 00 00 00 EF FF FF FF FF FF FF FF
-        FF EF A0 80 80 60 40 30 00 00 00 00 30 40 60 80 80 A0 EF FF
-        FF FF 9F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 9F FF FF
-        FF FF FF AF 0F 00 00 00 00 00 00 00 00 00 00 0F AF FF FF FF
-        FF FF FF FF CF 0F 00 00 00 00 00 00 00 00 0F CF FF FF FF FF
-        FF FF FF FF FF DF 1F 00 00 00 00 00 00 1F DF FF FF FF FF FF
-        FF FF FF FF FF FF 00 00 00 00 00 00 00 00 FF FF FF FF FF FF
-        FF FF FF FF FF BF 00 00 00 00 00 00 00 00 CF FF FF FF FF FF
-        FF FF FF FF FF 8F 00 00 00 4F 4F 00 00 00 8F FF FF FF FF FF
-        FF FF FF FF FF 4F 00 1F BF FF FF BF 1F 00 4F FF FF FF FF FF
-        FF FF FF FF FF 0F 7F FF FF FF FF FF EF 7F 0F FF FF FF FF FF
-        FF FF FF FF FF DF FF FF FF FF FF FF FF FF DF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+
+                                   9F 9F
+                                   3F 40
+                                CF 00 00 CF
+                                5F 00 00 5F
+                             EF 00 00 00 00 EF
+           EF A0 80 80 60 40 30 00 00 00 00 30 40 60 80 80 A0 EF
+              9F 00 00 00 00 00 00 00 00 00 00 00 00 00 00 9F
+                 AF 0F 00 00 00 00 00 00 00 00 00 00 0F AF
+                    CF 0F 00 00 00 00 00 00 00 00 0F CF
+                       DF 1F 00 00 00 00 00 00 1F DF
+                          00 00 00 00 00 00 00 00
+                       BF 00 00 00 00 00 00 00 00 CF
+                       8F 00 00 00 4F 4F 00 00 00 8F
+                       4F 00 1F BF       BF 1F 00 4F
+                       0F 7F                EF 7F 0F
+                       DF                         DF
+
+
         """))
     }
 
     func testSystemImageLock() throws {
-        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF F9 B9 A4 D0 FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF ED 4A 63 85 46 82 FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF 82 86 FF FF F7 46 CB FF FF FF FF FF FF
-        FF FF FF FF FF FF FF 4B D5 FF FF FF 8D 93 FF FF FF FF FF FF
-        FF FF FF FF FF FF FF 3F E6 FF FF FF 9E 88 FF FF FF FF FF FF
-        FF FF FF FF FF FF E4 36 9B AB AB AB 70 6B F8 FF FF FF FF FF
-        FF FF FF FF FF FF 43 76 84 84 84 84 84 56 8C FF FF FF FF FF
-        FF FF FF FF FF FF 27 F9 FF FF FF FF FF B0 70 FF FF FF FF FF
-        FF FF FF FF FF FF 27 F9 FF FF FF FF FF B0 6F FF FF FF FF FF
-        FF FF FF FF FF FF 27 F9 FF FF FF FF FF B0 6F FF FF FF FF FF
-        FF FF FF FF FF FF 27 F9 FF FF FF FF FF B0 6F FF FF FF FF FF
-        FF FF FF FF FF FF 2A F1 FF FF FF FF FF A9 73 FF FF FF FF FF
-        FF FF FF FF FF FF 78 2F 2F 2F 2F 2F 2F 34 BA FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        """, android: """
-        FF FF FF FF FF FF FF FF FF EF EF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF BF 20 00 00 20 BF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF BF 00 1F 7F 7F 1F 00 BF FF FF FF FF FF FF
-        FF FF FF FF FF FF 1F 1F EF FF FF EF 0F 20 FF FF FF FF FF FF
-        FF FF FF FF FF EF 00 7F FF FF FF FF 7F 00 EF FF FF FF FF FF
-        FF FF FF FF FF BF 00 7F FF FF FF FF 7F 00 BF FF FF FF FF FF
-        FF FF FF FF CF 90 00 60 C0 C0 C0 C0 60 00 90 CF FF FF FF FF
-        FF FF FF 9F 00 00 00 00 00 00 00 00 00 00 00 00 9F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 00 00 00 00 00 00 00 4F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 00 00 00 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 0F 0F 00 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 4F FF FF 4F 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 9F FF FF 9F 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 50 FF EF 40 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 10 10 00 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 00 00 00 00 00 00 00 3F FF FF FF
-        FF FF FF 3F 00 00 00 00 00 00 00 00 00 00 00 00 4F FF FF FF
-        FF FF FF 9F 00 00 00 00 00 00 00 00 00 00 00 00 AF FF FF FF
-        FF FF FF FF CF BF BF BF BF BF BF BF BF BF BF CF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+
+
+
+
+                                 F9 B9 A4 D0
+                              ED 4A 63 85 46 82
+                              82 86       F7 46 CB
+                              4B D5          8D 93
+                              3F E6          9E 88
+                           E4 36 9B AB AB AB 70 6B F8
+                           43 76 84 84 84 84 84 56 8C
+                           27 F9                B0 70
+                           27 F9                B0 6F
+                           27 F9                B0 6F
+                           27 F9                B0 6F
+                           2A F1                A9 73
+                           78 2F 2F 2F 2F 2F 2F 34 BA
+
+
+
+         """, android: """
+                                   EF EF
+                             BF 20 00 00 20 BF
+                          BF 00 1F 7F 7F 1F 00 BF
+                          1F 1F EF       EF 0F 20
+                       EF 00 7F             7F 00 EF
+                       BF 00 7F             7F 00 BF
+                    CF 90 00 60 C0 C0 C0 C0 60 00 90 CF
+                 9F 00 00 00 00 00 00 00 00 00 00 00 00 9F
+                 3F 00 00 00 00 00 00 00 00 00 00 00 00 4F
+                 3F 00 00 00 00 00 00 00 00 00 00 00 00 3F
+                 3F 00 00 00 00 00 0F 0F 00 00 00 00 00 3F
+                 3F 00 00 00 00 4F       4F 00 00 00 00 3F
+                 3F 00 00 00 00 9F       9F 00 00 00 00 3F
+                 3F 00 00 00 00 50    EF 40 00 00 00 00 3F
+                 3F 00 00 00 00 00 10 10 00 00 00 00 00 3F
+                 3F 00 00 00 00 00 00 00 00 00 00 00 00 3F
+                 3F 00 00 00 00 00 00 00 00 00 00 00 00 4F
+                 9F 00 00 00 00 00 00 00 00 00 00 00 00 AF
+                    CF BF BF BF BF BF BF BF BF BF BF CF
+
         """))
     }
 
     func testSystemImageInfo() throws {
-        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF D6 58 DB FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF C7 33 CC FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF C0 9E A1 F1 FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF A9 81 32 BF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 42 BE FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 42 BE FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF 42 BE FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FC F8 41 B9 FB FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF 45 27 27 27 32 F6 FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+
+
+
+
+
+                                D6 58 DB
+                                C7 33 CC
+
+                             C0 9E A1 F1
+                             A9 81 32 BF
+                                   42 BE
+                                   42 BE
+                                   42 BE
+                             FC F8 41 B9 FB
+                             45 27 27 27 32 F6
+
+
+
+
+
         """, android: """
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF CF C0 C0 CF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF EF 80 10 00 00 00 00 20 80 EF FF FF FF FF FF
-        FF FF FF FF CF 10 00 00 00 00 00 00 00 00 10 CF FF FF FF FF
-        FF FF FF CF 00 00 00 00 00 00 00 00 00 00 00 00 CF FF FF FF
-        FF FF EF 10 00 00 00 00 00 2F 2F 00 00 00 00 00 10 EF FF FF
-        FF FF 7F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 7F FF FF
-        FF FF 0F 00 00 00 00 00 00 60 60 00 00 00 00 00 00 20 FF FF
-        FF CF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 CF FF
-        FF BF 00 00 00 00 00 00 00 8F 8F 00 00 00 00 00 00 00 BF FF
-        FF BF 00 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 00 BF FF
-        FF CF 00 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 00 CF FF
-        FF FF 0F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 1F FF FF
-        FF FF 7F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 7F FF FF
-        FF FF EF 0F 00 00 00 00 00 30 30 00 00 00 00 00 0F EF FF FF
-        FF FF FF CF 00 00 00 00 00 00 00 00 00 00 00 00 CF FF FF FF
-        FF FF FF FF CF 0F 00 00 00 00 00 00 00 00 0F CF FF FF FF FF
-        FF FF FF FF FF EF 7F 1F 00 00 00 00 1F 7F EF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF CF BF BF CF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+                                CF C0 C0 CF
+                       EF 80 10 00 00 00 00 20 80 EF
+                    CF 10 00 00 00 00 00 00 00 00 10 CF
+                 CF 00 00 00 00 00 00 00 00 00 00 00 00 CF
+              EF 10 00 00 00 00 00 2F 2F 00 00 00 00 00 10 EF
+              7F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 7F
+              0F 00 00 00 00 00 00 60 60 00 00 00 00 00 00 20
+           CF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 CF
+           BF 00 00 00 00 00 00 00 8F 8F 00 00 00 00 00 00 00 BF
+           BF 00 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 00 BF
+           CF 00 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 00 CF
+              0F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 1F
+              7F 00 00 00 00 00 00 BF BF 00 00 00 00 00 00 7F
+              EF 0F 00 00 00 00 00 30 30 00 00 00 00 00 0F EF
+                 CF 00 00 00 00 00 00 00 00 00 00 00 00 CF
+                    CF 0F 00 00 00 00 00 00 00 00 0F CF
+                       EF 7F 1F 00 00 00 00 1F 7F EF
+                                CF BF BF CF
+
         """))
     }
 
     func testSystemImagePhone() throws {
-        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF E6 B1 F6 FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF D1 37 59 5F FD FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF 55 AA FF 62 9D FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF 2D F7 FF E6 37 E7 FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF 37 F2 FF E1 36 DA FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF 6B B2 FF 61 92 FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF C4 4B FB A2 5C FA FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF 6C 93 FF 80 6B FA FF DA E7 FF FF FF FF FF FF
-        FF FF FF FF FF EA 41 BB FD 7F 5B 91 36 38 9D FD FF FF FF FF
-        FF FF FF FF FF FF D9 3B BC FF A1 61 E1 E7 64 5F F5 FF FF FF
-        FF FF FF FF FF FF FF D8 41 95 FC FF FF FF FF 59 B1 FF FF FF
-        FF FF FF FF FF FF FF FF EA 6C 4B AF F2 F7 A9 37 E6 FF FF FF
-        FF FF FF FF FF FF FF FF FF FF C4 6B 37 2D 56 D1 FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+
+
+
+
+                       E6 B1 F6
+                    D1 37 59 5F FD
+                    55 AA    62 9D
+                    2D F7    E6 37 E7
+                    37 F2    E1 36 DA
+                    6B B2    61 92
+                    C4 4B FB A2 5C FA
+                       6C 93    80 6B FA    DA E7
+                       EA 41 BB FD 7F 5B 91 36 38 9D FD
+                          D9 3B BC    A1 61 E1 E7 64 5F F5
+                             D8 41 95 FC             59 B1
+                                EA 6C 4B AF F2 F7 A9 37 E6
+                                      C4 6B 37 2D 56 D1
+
+
+
         """, android: """
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF EF 80 80 80 A0 FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF 7F 00 00 00 00 FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF 9F 00 00 00 00 BF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF BF 00 00 00 00 9F FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF DF 00 00 00 00 7F FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF 2F 00 00 0F DF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF 8F 00 0F CF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF EF 0F 30 FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF 7F 00 8F FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF EF 2F 00 BF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF DF 0F 10 BF FF FF FF CF 80 A0 C0 FF FF FF FF
-        FF FF FF FF FF FF CF 0F 00 90 FF CF 10 00 00 00 00 9F FF FF
-        FF FF FF FF FF FF FF DF 2F 00 30 10 00 00 00 00 00 7F FF FF
-        FF FF FF FF FF FF FF FF EF 7F 0F 00 00 00 00 00 00 7F FF FF
-        FF FF FF FF FF FF FF FF FF FF EF 8F 2F 00 00 00 00 7F FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF DF BF 9F 7F EF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+
+
+              EF 80 80 80 A0
+              7F 00 00 00 00
+              9F 00 00 00 00 BF
+              BF 00 00 00 00 9F
+              DF 00 00 00 00 7F
+                 2F 00 00 0F DF
+                 8F 00 0F CF
+                 EF 0F 30
+                    7F 00 8F
+                    EF 2F 00 BF
+                       DF 0F 10 BF          CF 80 A0 C0
+                          CF 0F 00 90    CF 10 00 00 00 00 9F
+                             DF 2F 00 30 10 00 00 00 00 00 7F
+                                EF 7F 0F 00 00 00 00 00 00 7F
+                                      EF 8F 2F 00 00 00 00 7F
+                                               DF BF 9F 7F EF
+
+
         """))
     }
 
