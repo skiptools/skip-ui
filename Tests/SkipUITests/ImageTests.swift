@@ -13,6 +13,10 @@ import Foundation
 final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
+        if isMacOS || isIOS {
+            throw XCTSkip("Shadow grayscale is slightly different for different macOS/iOS versions")
+        }
+
         XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
@@ -59,6 +63,9 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageLock() throws {
+        if isMacOS || isIOS {
+            throw XCTSkip("Shadow grayscale is slightly different for different macOS/iOS versions")
+        }
         XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
@@ -105,6 +112,9 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageInfo() throws {
+        if isMacOS || isIOS {
+            throw XCTSkip("Shadow grayscale is slightly different for different macOS/iOS versions")
+        }
         XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
@@ -151,6 +161,9 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImagePhone() throws {
+        if isMacOS || isIOS {
+            throw XCTSkip("Shadow grayscale is slightly different for different macOS/iOS versions")
+        }
         XCTAssertEqual(try render(compact: 2, clear: "FF", antiAlias: false, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 

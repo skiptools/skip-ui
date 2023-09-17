@@ -23,4 +23,18 @@ let isJava = ProcessInfo.processInfo.environment["java.io.tmpdir"] != nil
 let isAndroid = isJava && ProcessInfo.processInfo.environment["ANDROID_ROOT"] != nil
 /// True is the transpiled code is currently running in the local Robolectric test environment
 let isRobolectric = isJava && !isAndroid
-
+#if os(macOS)
+let isMacOS = true
+#else
+let isMacOS = false
+#endif
+#if os(iOS)
+let isIOS = true
+#else
+let isIOS = false
+#endif
+#if os(Linux)
+let isLinux = true
+#else
+let isLinux = false
+#endif
