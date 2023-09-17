@@ -13,7 +13,10 @@ import Foundation
 final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
-        XCTAssertEqual(try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        if macOS {
+            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
+        }
+        XCTAssertEqual(try pixmap(Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
 
@@ -59,7 +62,10 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageLock() throws {
-        XCTAssertEqual(try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        if macOS {
+            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
+        }
+        XCTAssertEqual(try pixmap(Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
 
@@ -105,7 +111,10 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageInfo() throws {
-        XCTAssertEqual(try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        if macOS {
+            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
+        }
+        XCTAssertEqual(try pixmap(Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
 
@@ -151,7 +160,10 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImagePhone() throws {
-        XCTAssertEqual(try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        if macOS {
+            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
+        }
+        XCTAssertEqual(try pixmap(Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
 
 
         

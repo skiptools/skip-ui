@@ -213,6 +213,10 @@ class XCSnapshotTestCase: XCTestCase {
         #endif
     }
 
+    func pixmap<V: View>(_ content: V) throws -> String {
+        try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: content)
+    }
+
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
