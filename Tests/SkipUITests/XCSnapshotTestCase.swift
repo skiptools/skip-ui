@@ -213,6 +213,7 @@ class XCSnapshotTestCase: XCTestCase {
         #endif
     }
 
+    /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
     func pixmap<V: View>(_ content: V) throws -> String {
         try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: content)
     }
