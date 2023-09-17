@@ -15,6 +15,10 @@ import struct CoreGraphics.CGSize
 // import androidx.compose.runtime.Composable
 // import androidx.compose.ui.Modifier
 // import androidx.compose.ui.unit.dp
+// import androidx.compose.ui.graphics.vector.ImageVector
+// import androidx.compose.material3.*
+// import androidx.compose.material.icons.*
+// import androidx.compose.material.icons.filled.*
 
 
 /// A view that displays an image.
@@ -140,6 +144,7 @@ extension Image : View {
     // TODO: implement compose view
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
+        Icon(modifier: context.modifier, imageVector: Icons.Default.Home, contentDescription: "icon")
     }
     #else
     public var body: some View {

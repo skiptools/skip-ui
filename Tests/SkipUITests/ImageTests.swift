@@ -12,6 +12,52 @@ import Foundation
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class ImageTests: XCSnapshotTestCase {
 
+    func testSystemImage() throws {
+        XCTAssertEqual(try render(compact: 2, view: Image(systemName: "star").frame(width: 20.0, height: 20.0)), plaf("""
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF DB BE FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF 69 36 FC FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF F5 3C 64 C6 FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF B7 72 A9 81 FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF 72 B4 E9 3E FE FF FF FF FF FF FF FF
+        FF FF FF 67 3A 3B 3D 3F 32 F1 FF 56 3D 3D 3C 3A 47 F1 FF FF
+        FF FF FF B4 41 B7 F7 F4 F7 FF FF FA F2 F7 D5 4F 88 FE FF FF
+        FF FF FF FF DF 52 78 F3 FF FF FF FF FD 9E 40 C1 FF FF FF FF
+        FF FF FF FF FF FA 88 49 FF FF FF FF 7F 61 EC FF FF FF FF FF
+        FF FF FF FF FF FF C5 61 FF FF FF FF 97 8F FF FF FF FF FF FF
+        FF FF FF FF FF FF 7D AC FB 86 64 EB E2 47 FF FF FF FF FF FF
+        FF FF FF FF FF FC 3E D8 56 76 9B 40 CA 55 D6 FF FF FF FF FF
+        FF FF FF FF FF C5 3B 41 AF FF FF D2 47 49 8E FF FF FF FF FF
+        FF FF FF FF FF BA 5C DF FF FF FF FF F3 78 89 FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+        """, android: """
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        """))
+    }
+
     func testRenderPNGImageData() throws {
         func save(_ base64EncodedImage: String) throws -> URL {
             let uri = URL(fileURLWithPath: NSTemporaryDirectory() + "/testRenderImageData-\(UUID().uuidString).png")
