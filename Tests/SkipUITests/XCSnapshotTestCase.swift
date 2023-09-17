@@ -216,7 +216,8 @@ class XCSnapshotTestCase: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil,
+                         darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -265,7 +266,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         var pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, width: Int64(width))
+        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, width: Int64(width))
 
         #else
 
@@ -361,7 +362,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         #endif // canImport(AppKit)
 
-        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
+        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
 
         #endif
     }
@@ -394,10 +395,10 @@ class XCSnapshotTestCase: XCTestCase {
     #endif
 
     /// Creates an ASCII representation of an array of pixels
-    private func createPixmap(pixels: [Int], compact: Int?, clearColor: String?, width: Int64) -> String {
+    private func createPixmap(pixels: [Int], compact: Int?, clearColor: String?, replace: String?, width: Int64) -> String {
         let space = Character(" ")
         func checkClear(_ color: String) -> String {
-            color == clearColor ? String(repeating: " ", count: color.count) : color
+            color == clearColor ? String(repeating: " ", count: (replace ?? color).count) : replace ?? color
         }
 
         func rgb(_ packedColor: Int) -> String {
@@ -458,7 +459,7 @@ class XCSnapshotTestCase: XCTestCase {
     }
 
     #if !SKIP
-    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, clearColor: String?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
+    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, clearColor: String?, replace: String?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
         var pdesc = ""
         for y in 0..<height {
             if y > 0 {
@@ -479,9 +480,9 @@ class XCSnapshotTestCase: XCTestCase {
                         pdesc += " "
                     }
                     if let clearColor = clearColor, chunk == clearColor {
-                        pdesc += String(repeating: " ", count: clearColor.count)
+                        pdesc += String(repeating: " ", count: (replace ?? clearColor).count)
                     } else {
-                        pdesc += chunk
+                        pdesc += replace ?? chunk
                     }
                 }
 
