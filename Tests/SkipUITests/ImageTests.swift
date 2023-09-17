@@ -13,7 +13,7 @@ import Foundation
 final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
-        XCTAssertEqual(try render(compact: 2, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
@@ -59,7 +59,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageLock() throws {
-        XCTAssertEqual(try render(compact: 2, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
@@ -105,7 +105,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImageInfo() throws {
-        XCTAssertEqual(try render(compact: 2, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
@@ -151,7 +151,7 @@ final class ImageTests: XCSnapshotTestCase {
     }
 
     func testSystemImagePhone() throws {
-        XCTAssertEqual(try render(compact: 2, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
+        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
