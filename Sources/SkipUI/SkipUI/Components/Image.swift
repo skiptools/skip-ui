@@ -144,8 +144,114 @@ extension Image : View {
     // TODO: implement compose view
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        Icon(modifier: context.modifier, imageVector: Icons.Default.Home, contentDescription: "icon")
+        // The best way would be to switch here, but the generated closures are not @Composable, leading to:
+        // error: @Composable invocations can only happen from the context of a @Composable function
+
+        //switch image {
+        //case .system(let systemName):
+        //    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: systemImage(named: systemName), contentDescription: systemName)
+        //case .decorative(let name, let bundle): break // TODO: non-system images
+        //case .named(let name, let bunle, let label): break // TODO: non-system images
+        //}
+
+
+        if case .system(let systemName) = self.image {
+            androidx.compose.material3.Icon(modifier: context.modifier, imageVector: systemImage(named: systemName), contentDescription: systemName)
+        }
     }
+
+    private func systemImage(named name: String) -> ImageVector {
+        switch name {
+        case "accountbox": return Icons.Default.AccountBox
+        case "accountcircle": return Icons.Default.AccountCircle
+        case "addcircle": return Icons.Default.AddCircle
+        case "add": return Icons.Default.Add
+        case "arrowdropdown": return Icons.Default.ArrowDropDown
+        case "build": return Icons.Default.Build
+        case "call": return Icons.Default.Call
+        case "checkcircle": return Icons.Default.CheckCircle
+        case "check": return Icons.Default.Check
+        case "clear": return Icons.Default.Clear
+        case "close": return Icons.Default.Close
+        case "create": return Icons.Default.Create
+        case "daterange": return Icons.Default.DateRange
+        case "delete": return Icons.Default.Delete
+        case "done": return Icons.Default.Done
+        case "edit": return Icons.Default.Edit
+        case "email": return Icons.Default.Email
+        case "face": return Icons.Default.Face
+        case "favoriteborder": return Icons.Default.FavoriteBorder
+        case "favorite": return Icons.Default.Favorite
+        case "home": return Icons.Default.Home
+        case "info": return Icons.Default.Info
+        case "keyboardarrowdown": return Icons.Default.KeyboardArrowDown
+        case "keyboardarrowup": return Icons.Default.KeyboardArrowUp
+        case "locationon": return Icons.Default.LocationOn
+        case "lock": return Icons.Default.Lock
+        case "mailoutline": return Icons.Default.MailOutline
+        case "menu": return Icons.Default.Menu
+        case "morevert": return Icons.Default.MoreVert
+        case "notifications": return Icons.Default.Notifications
+        case "person": return Icons.Default.Person
+        case "phone": return Icons.Default.Phone
+        case "place": return Icons.Default.Place
+        case "playarrow": return Icons.Default.PlayArrow
+        case "refresh": return Icons.Default.Refresh
+        case "search": return Icons.Default.Search
+        case "settings": return Icons.Default.Settings
+        case "share": return Icons.Default.Share
+        case "shoppingcart": return Icons.Default.ShoppingCart
+        case "star": return Icons.Default.Star
+        case "thumbup": return Icons.Default.ThumbUp
+        case "warning": return Icons.Default.Warning
+
+        case "accountbox.filled": return Icons.Filled.AccountBox
+        case "accountcircle.filled": return Icons.Filled.AccountCircle
+        case "addcircle.filled": return Icons.Filled.AddCircle
+        case "add.filled": return Icons.Filled.Add
+        case "arrowdropdown.filled": return Icons.Filled.ArrowDropDown
+        case "build.filled": return Icons.Filled.Build
+        case "call.filled": return Icons.Filled.Call
+        case "checkcircle.filled": return Icons.Filled.CheckCircle
+        case "check.filled": return Icons.Filled.Check
+        case "clear.filled": return Icons.Filled.Clear
+        case "close.filled": return Icons.Filled.Close
+        case "create.filled": return Icons.Filled.Create
+        case "daterange.filled": return Icons.Filled.DateRange
+        case "delete.filled": return Icons.Filled.Delete
+        case "done.filled": return Icons.Filled.Done
+        case "edit.filled": return Icons.Filled.Edit
+        case "email.filled": return Icons.Filled.Email
+        case "face.filled": return Icons.Filled.Face
+        case "favoriteborder.filled": return Icons.Filled.FavoriteBorder
+        case "favorite.filled": return Icons.Filled.Favorite
+        case "home.filled": return Icons.Filled.Home
+        case "info.filled": return Icons.Filled.Info
+        case "keyboardarrowdown.filled": return Icons.Filled.KeyboardArrowDown
+        case "keyboardarrowup.filled": return Icons.Filled.KeyboardArrowUp
+        case "locationon.filled": return Icons.Filled.LocationOn
+        case "lock.filled": return Icons.Filled.Lock
+        case "mailoutline.filled": return Icons.Filled.MailOutline
+        case "menu.filled": return Icons.Filled.Menu
+        case "morevert.filled": return Icons.Filled.MoreVert
+        case "notifications.filled": return Icons.Filled.Notifications
+        case "person.filled": return Icons.Filled.Person
+        case "phone.filled": return Icons.Filled.Phone
+        case "place.filled": return Icons.Filled.Place
+        case "playarrow.filled": return Icons.Filled.PlayArrow
+        case "refresh.filled": return Icons.Filled.Refresh
+        case "search.filled": return Icons.Filled.Search
+        case "settings.filled": return Icons.Filled.Settings
+        case "share.filled": return Icons.Filled.Share
+        case "shoppingcart.filled": return Icons.Filled.ShoppingCart
+        case "star.filled": return Icons.Filled.Star
+        case "thumbup.filled": return Icons.Filled.ThumbUp
+        case "warning.filled": return Icons.Filled.Warning
+
+        default: return Icons.Default.Warning
+        }
+    }
+
     #else
     public var body: some View {
         stubView()
