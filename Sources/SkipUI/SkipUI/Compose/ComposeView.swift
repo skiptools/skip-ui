@@ -3,7 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-// SKIP INSERT: import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable
 
 /// View that wraps `Composable` content.
 ///

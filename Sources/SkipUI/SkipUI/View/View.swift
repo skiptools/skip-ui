@@ -2,28 +2,27 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+#else
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
 #endif
-
-// SKIP INSERT:
-// import androidx.compose.foundation.background
-// import androidx.compose.foundation.border
-// import androidx.compose.foundation.layout.height
-// import androidx.compose.foundation.layout.padding
-// import androidx.compose.foundation.layout.width
-// import androidx.compose.runtime.Composable
-// import androidx.compose.ui.Modifier
-// import androidx.compose.ui.draw.alpha
-// import androidx.compose.ui.draw.rotate
-// import androidx.compose.ui.draw.scale
-// import androidx.compose.ui.platform.testTag
-// import androidx.compose.ui.semantics.contentDescription
-// import androidx.compose.ui.semantics.semantics
-// import androidx.compose.ui.unit.dp
 
 public protocol View {
     #if SKIP

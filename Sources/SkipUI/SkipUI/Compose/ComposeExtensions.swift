@@ -3,12 +3,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-// SKIP INSERT:
-// import androidx.compose.foundation.layout.fillMaxHeight
-// import androidx.compose.foundation.layout.fillMaxWidth
-// import androidx.compose.runtime.Composable
-// import androidx.compose.runtime.saveable.Saver
-// import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.ui.Modifier
 
 extension Modifier {
     /// Fill available remaining width.

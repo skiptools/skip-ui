@@ -9,11 +9,12 @@ import XCTest
 import OSLog
 import Foundation
 
-// SKIP INSERT:
-// import androidx.compose.foundation.background
-// import androidx.compose.foundation.border
-// import androidx.compose.foundation.layout.size
-// import androidx.compose.ui.unit.dp
+#if SKIP
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
+#endif
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class CanvasTests: XCSnapshotTestCase {

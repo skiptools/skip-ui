@@ -2,19 +2,18 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.Composable
+import skip.foundation.LocalizedStringResource
+import skip.foundation.Bundle
+#else
 import struct CoreGraphics.CGFloat
 import struct Foundation.LocalizedStringResource
 import class Foundation.Bundle
 #endif
 
-// SKIP INSERT: 
-// import androidx.compose.material3.LocalTextStyle
-// import androidx.compose.runtime.Composable
-// import skip.foundation.LocalizedStringResource
-// import skip.foundation.Bundle
-
-public struct Text: View, Equatable {
+public struct Text: View, Equatable, Sendable {
     let text: String
 
     public init(verbatim: String) {

@@ -2,18 +2,17 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+#else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
-
-// SKIP INSERT: 
-// import androidx.compose.foundation.layout.Arrangement
-// import androidx.compose.foundation.layout.Column
-// import androidx.compose.runtime.Composable
-// import androidx.compose.ui.Modifier
-// import androidx.compose.ui.unit.dp
 
 public struct VStack<Content> : View where Content : View {
     let alignment: HorizontalAlignment

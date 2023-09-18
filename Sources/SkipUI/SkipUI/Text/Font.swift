@@ -2,13 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+#else
 import struct CoreGraphics.CGFloat
 #endif
-
-// SKIP INSERT: 
-// import androidx.compose.material3.MaterialTheme
-// import androidx.compose.runtime.Composable
 
 public struct Font : Hashable, Sendable {
     #if SKIP

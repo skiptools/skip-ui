@@ -3,144 +3,50 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material3.__
+import androidx.compose.material.icons.__
+import androidx.compose.material.icons.filled.__
+#else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-// SKIP INSERT:
-// import androidx.compose.foundation.layout.Arrangement
-// import androidx.compose.foundation.layout.Row
-// import androidx.compose.runtime.Composable
-// import androidx.compose.ui.Modifier
-// import androidx.compose.ui.unit.dp
-// import androidx.compose.ui.graphics.vector.ImageVector
-// import androidx.compose.material3.*
-// import androidx.compose.material.icons.*
-// import androidx.compose.material.icons.filled.*
+public struct Image : View, Equatable, Sendable {
+    let image: ImageType
 
-
-/// A view that displays an image.
-///
-/// Use an `Image` instance when you want to add images to your SkipUI app.
-/// You can create images from many sources:
-///
-/// * Image files in your app's asset library or bundle. Supported types include
-/// PNG, JPEG, HEIC, and more.
-/// * Instances of platform-specific image types, like
-///  and
-/// .
-/// * A bitmap stored in a Core Graphics
-///
-///  instance.
-/// * System graphics from the SF Symbols set.
-///
-/// The following example shows how to load an image from the app's asset
-/// library or bundle and scale it to fit within its container:
-///
-///     Image("Landscape_4")
-///         .resizable()
-///         .aspectRatio(contentMode: .fit)
-///     Text("Water wheel")
-///
-/// ![An image of a water wheel and its adjoining building, resized to fit the
-/// width of an iPhone display. The words Water wheel appear under this
-/// image.](Image-1.png)
-///
-/// You can use methods on the `Image` type as well as
-/// standard view modifiers to adjust the size of the image to fit your app's
-/// interface. Here, the `Image` type's
-/// ``Image/resizable(capInsets:resizingMode:)`` method scales the image to fit
-/// the current view. Then, the
-/// ``View/aspectRatio(_:contentMode:)-771ow`` view modifier adjusts
-/// this resizing behavior to maintain the image's original aspect ratio, rather
-/// than scaling the x- and y-axes independently to fill all four sides of the
-/// view. The article
-/// <doc:Fitting-Images-into-Available-Space> shows how to apply scaling,
-/// clipping, and tiling to `Image` instances of different sizes.
-///
-/// An `Image` is a late-binding token; the system resolves its actual value
-/// only when it's about to use the image in an environment.
-///
-/// ### Making images accessible
-///
-/// To use an image as a control, use one of the initializers that takes a
-/// `label` parameter. This allows the system's accessibility frameworks to use
-/// the label as the name of the control for users who use features like
-/// VoiceOver. For images that are only present for aesthetic reasons, use an
-/// initializer with the `decorative` parameter; the accessibility systems
-/// ignore these images.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct Image : Equatable {
-    internal let image: ImageType
-
-    internal enum ImageType : Equatable {
+    enum ImageType : Equatable, Sendable {
         case named(name: String, bundle: Bundle?, label: Text?)
         case decorative(name: String, bundle: Bundle?)
         case system(systemName: String)
     }
-}
 
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// Creates a labeled image that you can use as content for controls.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup, as well as the
-    ///     localization key with which to label the image.
-    ///   - bundle: The bundle to search for the image resource and localization
-    ///     content. If `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
+    @available(*, unavailable)
     public init(_ name: String, bundle: Bundle? = nil) {
         self.image = .named(name: name, bundle: bundle, label: nil)
     }
 
-    /// Creates a labeled image that you can use as content for controls, with
-    /// the specified label.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup
-    ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
-    ///   - label: The label associated with the image. SkipUI uses the label
-    ///     for accessibility.
+    @available(*, unavailable)
     public init(_ name: String, bundle: Bundle? = nil, label: Text) {
         self.image = .named(name: name, bundle: bundle, label: label)
     }
 
-    /// Creates an unlabeled, decorative image.
-    ///
-    /// SkipUI ignores this image for accessibility purposes.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the image resource to lookup
-    ///   - bundle: The bundle to search for the image resource. If `nil`,
-    ///     SkipUI uses the main `Bundle`. Defaults to `nil`.
+    @available(*, unavailable)
     public init(decorative name: String, bundle: Bundle? = nil) {
         self.image = .decorative(name: name, bundle: bundle)
     }
 
-    /// Creates a system symbol image.
-    ///
-    /// This initializer creates an image using a system-provided symbol. Use symbols
-    /// to find symbols and their corresponding names.
-    ///
-    /// To create a custom symbol image from your app's asset catalog, use
-    /// ``Image/init(_:bundle:)`` instead.
-    ///
-    /// - Parameters:
-    ///   - systemName: The name of the system symbol image.
-    ///     Use the SF Symbols app to look up the names of system symbol images.
-    @available(macOS 11.0, *)
     public init(systemName: String) {
         self.image = .system(systemName: systemName)
     }
-}
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image : View {
     // TODO: implement compose view
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
@@ -444,7 +350,6 @@ extension Image : View {
         default: return Icons.Default.Warning
         }
     }
-
     #else
     public var body: some View {
         stubView()
@@ -453,6 +358,8 @@ extension Image : View {
 }
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import class CoreGraphics.CGContext
 import struct CoreGraphics.CGFloat

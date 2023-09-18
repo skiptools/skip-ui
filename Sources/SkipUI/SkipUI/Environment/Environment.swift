@@ -6,10 +6,11 @@
 import Observation
 #endif
 
-// SKIP INSERT: 
-// import androidx.compose.runtime.Composable
-// import androidx.compose.ui.Modifier
-// import kotlin.reflect.full.companionObjectInstance
+#if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import kotlin.reflect.full.companionObjectInstance
+#endif
 
 public protocol EnvironmentKey {
     associatedtype Value

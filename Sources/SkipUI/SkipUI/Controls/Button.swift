@@ -2,16 +2,15 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+#else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
-
-// SKIP INSERT:
-// import androidx.compose.foundation.clickable
-// import androidx.compose.foundation.layout.Box
-// import androidx.compose.runtime.Composable
-// import androidx.compose.ui.Modifier
 
 // Erase the generic Label to facilitate specialized constructor support.
 //

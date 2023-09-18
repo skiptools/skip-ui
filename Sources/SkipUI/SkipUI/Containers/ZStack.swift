@@ -2,14 +2,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
+#else
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
-
-// SKIP INSERT:
-// import androidx.compose.foundation.layout.Box
-// import androidx.compose.runtime.Composable
 
 public struct ZStack<Content> : View where Content : View {
     let alignment: Alignment
