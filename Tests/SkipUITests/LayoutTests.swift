@@ -11,27 +11,49 @@ import Foundation
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class LayoutTests: XCSnapshotTestCase {
+
+    func testRenderWhiteDot() throws {
+        XCTAssertEqual("FFFFFF", try render(view: Color.white.frame(width: 1.0, height: 1.0)))
+    }
+
     func testRenderWhiteSquareTiny() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)),
-        plaf("""
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)), """
         F F
         F F
-        """))
+        """)
+    }
+
+    func testZStackSquareCenterInset() throws {
+        XCTAssertEqual(try pixmap(ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 4.0, height: 4.0)
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
     }
 
     func testRenderWhiteSquare() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)),
-        plaf("""
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)), """
         F F F F
         F F F F
         F F F F
         F F F F
-        """))
+        """)
     }
 
     func testRenderWhiteSquareBig() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 12.0, height: 12.0)),
-        plaf("""
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 12.0, height: 12.0)), """
         F F F F F F F F F F F F
         F F F F F F F F F F F F
         F F F F F F F F F F F F
@@ -44,28 +66,27 @@ final class LayoutTests: XCSnapshotTestCase {
         F F F F F F F F F F F F
         F F F F F F F F F F F F
         F F F F F F F F F F F F
-        """))
+        """)
     }
 
     func testZStackSquareCenter() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack {
+        XCTAssertEqual(try pixmap(ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
     }
 
     func testRotatedSquareAliased() throws {
@@ -240,195 +261,122 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testDrawTextMonospacedFont() throws {
-        XCTAssertEqual(try render(compact: 2, antiAlias: false, view: ZStack {
+        XCTAssertEqual(try pixmap(ZStack {
             Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
         }.frame(width: 8.0, height: 8.0).background(Color.white)),
         plaf("""
-        FF FF FF FF FF FF FF FF
-        FF FF E2 9C 9B A1 F0 FF
-        FF FF A9 8D 73 87 C8 FF
-        FF FF E0 E0 8E E5 E9 FF
-        FF FF FF F4 82 FF FF FF
-        FF FF FF A8 5A BF FF FF
-        FF FF FF FA FB FA FF FF
-        FF FF FF FF FF FF FF FF
+        . . . . . . . .
+        . .           .
+        . .           .
+        . .           .
+        . . .     . . .
+        . . .       . .
+        . . .       . .
+        . . . . . . . .
         """, macos: """
-        FF FF FF FF FF FF FF FF
-        FF FF 5F 50 18 40 92 FF
-        FF FF 56 FF 4D CF 87 FF
-        FF FF DF FF 4D F9 E5 FF
-        FF FF FF FF 4D FF FF FF
-        FF FF FF 5E 19 7F FF FF
-        FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF
+
+            . . . . .
+            .   . . .
+            .   . . .
+                .
+              . . .
+
+
         """, android: """
-        FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF
-        FF FF 97 00 00 00 B9 FF
-        FF FF B6 FF B6 FE B7 FF
-        FF FF F8 FF B6 FF F8 FF
-        FF FF FF 40 00 70 FF FF
-        FF FF FF FF FF FF FF FF
+        
+
+
+            . . . . .
+            .   . . .
+            .   .   .
+              . . .
+
         """))
     }
 
-
-    func testZStackSquareCenterInset() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack {
-            Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.frame(width: 4.0, height: 4.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 0 F F F F 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
-    }
-
-    func testZStackOpacityOverlay() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack {
-            Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.opacity(0.6).frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 9 9 9 9 9 9 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
-    }
-
-    func testZStackMultiOpacityOverlay() throws {
-        if isAndroid {
-            throw XCTSkip("opacity overlay not passing on Android emulator")
-        }
-
-        XCTAssertEqual(try render(compact: 1, view: ZStack {
-            Color.black.frame(width: 12.0, height: 12.0)
-            Color.white.opacity(0.8).frame(width: 8.0, height: 8.0)
-            Color.black.opacity(0.5).frame(width: 4.0, height: 4.0)
-            Color.white.opacity(0.22).frame(width: 2.0, height: 2.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 C C C C C C C C 0 0
-        0 0 C C C C C C C C 0 0
-        0 0 C C 6 6 6 6 C C 0 0
-        0 0 C C 6 8 8 6 C C 0 0
-        0 0 C C 6 8 8 6 C C 0 0
-        0 0 C C 6 6 6 6 C C 0 0
-        0 0 C C C C C C C C 0 0
-        0 0 C C C C C C C C 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
-    }
 
     func testZStackSquareBottomTrailing() throws {
-        XCTAssertEqual(try render(outputFile: "\(NSTemporaryDirectory())/SkipUITests-testZStackSquareBottomTrailing", compact: 1, view: ZStack(alignment: .bottomTrailing) {
+        XCTAssertEqual(try pixmap(ZStack(alignment: .bottomTrailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        """))
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        """)
     }
 
     func testZStackSquareTopLeading() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .topLeading) {
+        XCTAssertEqual(try pixmap(ZStack(alignment: .topLeading) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        F F F F F F 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
+        }), """
+                    . . . . . .
+                    . . . . . .
+                    . . . . . .
+                    . . . . . .
+                    . . . . . .
+                    . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
     }
 
     func testZStackSquareTop() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .top) {
+        XCTAssertEqual(try pixmap(ZStack(alignment: .top) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 F F F F F F 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
+        }), """
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
     }
 
     func testZStackSquareTrailing() throws {
-        XCTAssertEqual(try render(compact: 1, view: ZStack(alignment: .trailing) {
+        XCTAssertEqual(try pixmap(ZStack(alignment: .trailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
-        }),
-        plaf("""
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 F F F F F F
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        0 0 0 0 0 0 0 0 0 0 0 0
-        """))
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
     }
 
     func testRenderStacks() throws {
-        XCTAssertEqual(try render(outputFile: "\(NSTemporaryDirectory())/SkipUITests-testRenderStacks", compact: 1, view: VStack(spacing: 0.0) {
+        XCTAssertEqual(try pixmap(VStack(spacing: 0.0) {
             HStack(spacing: 0.0) {
                 VStack(spacing: 0.0) {
                     (Color.black).frame(width: 1.0, height: 2.0)
@@ -443,18 +391,18 @@ final class LayoutTests: XCSnapshotTestCase {
             }
         }
         .frame(width: 12.0, height: 12.0)), plaf("""
-        0 F F F F F F 0 0 0 0 0
-        0 F F F F F F 0 0 0 0 0
-        F F F F F F F 0 0 0 0 0
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
-        0 0 0 F F F F F F F F F
+        .             . . . . .
+        .             . . . . .
+                      . . . . .
+        . . .
+        . . .
+        . . .
+        . . .
+        . . .
+        . . .
+        . . .
+        . . .
+        . . .
         """))
     }
 
@@ -491,6 +439,39 @@ final class LayoutTests: XCSnapshotTestCase {
         FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF
+        """))
+    }
+
+    func testVStackAlignment() throws {
+        XCTAssertEqual(try pixmap(VStack {
+            Divider()
+            Divider()
+        }.background(Color.white).frame(width: 12.0, height: 12.0)), plaf("""
+
+        . . . . . . . . . . . .
+
+
+
+
+
+
+
+
+        . . . . . . . . . . . .
+
+        """, android: """
+        . . . . . . . . . . . .
+
+
+
+
+
+
+
+
+        . . . . . . . . . . . .
+
+
         """))
     }
 

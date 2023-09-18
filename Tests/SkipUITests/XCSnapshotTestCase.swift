@@ -196,8 +196,13 @@ class XCSnapshotTestCase: XCTestCase {
     }
 
     /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
+    func pixmap<V: View>(dot: String, _ content: V) throws -> String {
+        try render(compact: 2, clear: "FF", replace: dot, antiAlias: false, view: content)
+    }
+
+    /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
     func pixmap<V: View>(_ content: V) throws -> String {
-        try render(compact: 2, clear: "FF", replace: "•", antiAlias: false, view: content)
+        try render(compact: 2, clear: "FF", replace: ".", antiAlias: false, view: content)
     }
 
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.

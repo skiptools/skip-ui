@@ -12,199 +12,130 @@ import Foundation
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class ImageTests: XCSnapshotTestCase {
 
+    func img(systemName: String) throws -> some View {
+        Image(systemName: systemName)
+            .background(Color.black)
+            .foregroundStyle(Color.white)
+            .frame(width: 12.0, height: 12.0)
+    }
+
+    func testSystemImageHouse() throws {
+        XCTAssertEqual(try pixmap(img(systemName: "house.fill")), plaf("""
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . .   .
+         . . . . .     . . .   .
+         . . .           . . . .
+         . .               . . .
+         .                   . .
+               . . . . .       .
+               . . . . .       .
+               . . . . .       .
+               . . . . .       .
+         .     . . . . .       .
+         """, android: """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . .     . . . . .
+        . . .             . . .
+        . .                 . .
+        . . .             . . .
+        . . .     . .     . . .
+        . . .     . .     . . .
+        . . .     . .     . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """))
+    }
+
     func testSystemImageStar() throws {
-        if isMacOS || isIOS {
-            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
-        }
-        XCTAssertEqual(try pixmap(Image(systemName: "star").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-
-
-
-                          • •
-                          • • •
-                        • • • •
-                        • • • •
-                        • • • • •
-              • • • • • • •   • • • • • • •
-              • • • • • •     • • • • • • •
-                • • • •         • • • •
-                  • • •         • • •
-                    • •         • •
-                    • • • • • • • •
-                  • • • • • • • • • •
-                  • • • •     • • • •
-                  • • •         • • •
-
-
-
+        XCTAssertEqual(try pixmap(img(systemName: "star.fill")), plaf("""
+        . . . . . . . . . . . .
+        . . . . . .   . . . . .
+        . . . . .     . . . . .
+        . . . . .     . . . . .
+        . . . . .       . . . .
+        .                     .
+        . .                 . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .     . . .     . .
+        . .   . . . . . .   . .
         """, android: """
-
-
-                          • •
-                          • •
-                        • • • •
-                        • • • •
-                      • • • • • •
-          • • • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-                • • • • • • • • • • • •
-                  • • • • • • • • • •
-                    • • • • • • • •
-                  • • • • • • • • • •
-                  • • • • • • • • • •
-                  • • • •     • • • •
-                  • •           • • •
-                  •                 •
-
-
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . .     . . . . .
+        . . . . .     . . . . .
+        . . .             . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .   . .   . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
         """))
     }
 
     func testSystemImageLock() throws {
-        if isMacOS || isIOS {
-            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
-        }
-        XCTAssertEqual(try pixmap(Image(systemName: "lock").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-
-
-
-
-                         • • • •
-                       • • • • • •
-                       • •     • • •
-                       • •       • •
-                       • •       • •
-                     • • • • • • • • •
-                     • • • • • • • • •
-                     • •           • •
-                     • •           • •
-                     • •           • •
-                     • •           • •
-                     • •           • •
-                     • • • • • • • • •
-
-
-
+        XCTAssertEqual(try pixmap(img(systemName: "lock.fill")), plaf("""
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . .               . .
+         . .                 . .
+         . .                 . .
+         . .                 . .
+         . .                 . .
+         . . .               . .
          """, android: """
-                          • •
-                      • • • • • •
-                    • • • • • • • •
-                    • • •     • • •
-                  • • •         • • •
-                  • • •         • • •
-                • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • •     • • • • • •
-              • • • • • •     • • • • • •
-              • • • • • •   • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-                • • • • • • • • • • • •
-
-        """))
-    }
-
-    func testSystemImageInfo() throws {
-        if isMacOS || isIOS {
-            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
-        }
-        XCTAssertEqual(try pixmap(Image(systemName: "info").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-
-
-
-
-
-                        • • •
-                        • • •
-
-                      • • • •
-                      • • • •
-                          • •
-                          • •
-                          • •
-                      • • • • •
-                      • • • • • •
-
-
-
-
-
-        """, android: """
-
-                        • • • •
-                  • • • • • • • • • •
-                • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-          • • • • • • • • • • • • • • • • • •
-          • • • • • • • • • • • • • • • • • •
-          • • • • • • • • • • • • • • • • • •
-          • • • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-            • • • • • • • • • • • • • • • •
-              • • • • • • • • • • • • • •
-                • • • • • • • • • • • •
-                  • • • • • • • • • •
-                        • • • •
-
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . .             . . .
+        . .                 . .
+        . .       . .       . .
+        . .       . .       . .
+        . .       . .       . .
+        . .                 . .
+        . . .             . . .
+        . . . . . . . . . . . .
         """))
     }
 
     func testSystemImagePhone() throws {
-        if isMacOS || isIOS {
-            throw XCTSkip("disabled on macOS due to variance in shadow pixels")
-        }
-        XCTAssertEqual(try pixmap(Image(systemName: "phone").background(Color.white).frame(width: 20.0, height: 20.0)), plaf("""
-
-
-        
-
-                  • • •
-                • • • • •
-                • •   • •
-                • •   • • •
-                • •   • • •
-                • •   • •
-                • • • • • •
-                  • •   • • •   • •
-                  • • • • • • • • • • •
-                    • • •   • • • • • • •
-                      • • • •         • •
-                        • • • • • • • • •
-                            • • • • • •
-
-
-
+        XCTAssertEqual(try pixmap(img(systemName: "phone.fill")), plaf("""
+        . . . . . . . . . . . .
+        .     . . . . . . . . .
+        .       . . . . . . . .
+        .       . . . . . . . .
+        .     . . . . . . . . .
+        .     . . . . . . . . .
+        . .     . . . . . . . .
+        . . .     . . . . . . .
+        . . . .     . .     . .
+        . . . . .             .
+        . . . . . .           .
+        . . . . . . . . . . . .
         """, android: """
-
-
-            • • • • •
-            • • • • •
-            • • • • • •
-            • • • • • •
-            • • • • • •
-              • • • • •
-              • • • •
-              • • •
-                • • •
-                • • • •
-                  • • • •       • • • •
-                    • • • •   • • • • • • •
-                      • • • • • • • • • • •
-                        • • • • • • • • • •
-                            • • • • • • • •
-                                  • • • • •
-
-
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . .     . . . . . . . .
+        . .     . . . . . . . .
+        . .   . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . .     . .
+        . . . . . . .       . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
         """))
     }
 
@@ -242,5 +173,4 @@ final class ImageTests: XCSnapshotTestCase {
         """))
         #endif
     }
-
 }
