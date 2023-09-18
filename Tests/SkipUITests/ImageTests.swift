@@ -21,6 +21,19 @@ final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageHouse() throws {
         XCTAssertEqual(try pixmap(img(systemName: "house.fill")), plaf("""
+
+
+
+
+
+
+
+
+                 . . . .
+                 . . . .
+                 . . . .
+                 . . . .
+         """, macos: """
          . . . . . . . . . . . .
          . . . . . . . . . . . .
          . . . . . . . . . .   .
@@ -51,6 +64,19 @@ final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImageStar() throws {
         XCTAssertEqual(try pixmap(img(systemName: "star.fill")), plaf("""
+        . . . .           . . .
+        . . . .           . . .
+        . . .             . . .
+
+
+
+
+
+        .                     .
+        .
+        .
+        
+        """, macos: """
         . . . . . . . . . . . .
         . . . . . .   . . . . .
         . . . . .     . . . . .
@@ -87,6 +113,19 @@ final class ImageTests: XCSnapshotTestCase {
          . . . . . . . . . . . .
          . . . . . . . . . . . .
          . . . . . . . . . . . .
+         .                     .
+         .                     .
+                               .
+                               .
+                               .
+                               .
+         """, macos: """
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
+         . . . . . . . . . . . .
          . . .               . .
          . .                 . .
          . .                 . .
@@ -111,6 +150,19 @@ final class ImageTests: XCSnapshotTestCase {
 
     func testSystemImagePhone() throws {
         XCTAssertEqual(try pixmap(img(systemName: "phone.fill")), plaf("""
+            . . . . . . . . . .
+              . . . . . . . . .
+              . . . . . . . . .
+              . . . . . . . . .
+            . . . . . . . . . .
+            . . . . . . . . . .
+              . . . . . . . . .
+        .       . . . . . . . .
+        . .       . . . . . . .
+        . . .       . .       .
+        . . . .
+        . . . . .
+        """, macos: """
         . . . . . . . . . . . .
         .     . . . . . . . . .
         .       . . . . . . . .

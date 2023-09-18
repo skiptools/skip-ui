@@ -265,14 +265,14 @@ final class LayoutTests: XCSnapshotTestCase {
             Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
         }.frame(width: 8.0, height: 8.0).background(Color.white)),
         plaf("""
-        . . . . . . . .
-        . .           .
-        . .           .
-        . .           .
-        . . .     . . .
-        . . .       . .
-        . . .       . .
-        . . . . . . . .
+
+            . . . . .
+            . . . . .
+            . . . . .
+              . .
+              . . .
+              . . .
+        
         """, macos: """
 
             . . . . .
