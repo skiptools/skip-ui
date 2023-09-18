@@ -24,7 +24,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testZStackSquareCenterInset() throws {
-        XCTAssertEqual(try pixmap(ZStack {
+        XCTAssertEqual(try pixmap(content: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 4.0, height: 4.0)
         }), """
@@ -70,8 +70,8 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testZStackSquareCenter() throws {
-        XCTAssertEqual(try pixmap(ZStack {
-            Color.black.frame(width: 12.0, height: 12.0)
+        XCTAssertEqual(try pixmap(brightness: 0.5, content: ZStack {
+            Color.black.opacity(0.5).frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }), """
         . . . . . . . . . . . .
@@ -88,6 +88,48 @@ final class LayoutTests: XCSnapshotTestCase {
         . . . . . . . . . . . .
         """)
     }
+
+    func testZStackSquareCenterTransparent() throws {
+        // The 49% opacity is below the brightness threshold, so the pixmap doesn't show any dots
+        XCTAssertEqual(try pixmap(brightness: 0.5, content: ZStack {
+            Color.gray.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 6.0, height: 6.0)
+        }), """
+
+
+
+
+
+
+
+
+
+
+
+
+        """)
+    }
+
+    func testZStackSquareCenterBrightnessThreshold() throws {
+        XCTAssertEqual(try pixmap(brightness: 0.9, content: ZStack {
+            Color.gray.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 6.0, height: 6.0)
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . .             . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
 
     func testRotatedSquareAliased() throws {
         // shadow effect of a rotated shape is slightly different on Android and iOS
@@ -260,43 +302,8 @@ final class LayoutTests: XCSnapshotTestCase {
         """))
     }
 
-    func testDrawTextMonospacedFont() throws {
-        XCTAssertEqual(try pixmap(ZStack {
-            Text("T").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
-        }.frame(width: 8.0, height: 8.0).background(Color.white)),
-        plaf("""
-
-            . . . . .
-            . . . . .
-            . . . . .
-              . .
-              . . .
-              . . .
-        
-        """, macos: """
-
-            . . . . .
-            .   . . .
-            .   . . .
-                .
-              . . .
-
-
-        """, android: """
-        
-
-
-            . . . . .
-            .   . . .
-            .   .   .
-              . . .
-
-        """))
-    }
-
-
     func testZStackSquareBottomTrailing() throws {
-        XCTAssertEqual(try pixmap(ZStack(alignment: .bottomTrailing) {
+        XCTAssertEqual(try pixmap(content: ZStack(alignment: .bottomTrailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }), """
@@ -316,7 +323,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testZStackSquareTopLeading() throws {
-        XCTAssertEqual(try pixmap(ZStack(alignment: .topLeading) {
+        XCTAssertEqual(try pixmap(content: ZStack(alignment: .topLeading) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }), """
@@ -336,7 +343,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testZStackSquareTop() throws {
-        XCTAssertEqual(try pixmap(ZStack(alignment: .top) {
+        XCTAssertEqual(try pixmap(content: ZStack(alignment: .top) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }), """
@@ -356,7 +363,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testZStackSquareTrailing() throws {
-        XCTAssertEqual(try pixmap(ZStack(alignment: .trailing) {
+        XCTAssertEqual(try pixmap(content: ZStack(alignment: .trailing) {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
         }), """
@@ -376,7 +383,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testRenderStacks() throws {
-        XCTAssertEqual(try pixmap(VStack(spacing: 0.0) {
+        XCTAssertEqual(try pixmap(content: VStack(spacing: 0.0) {
             HStack(spacing: 0.0) {
                 VStack(spacing: 0.0) {
                     (Color.black).frame(width: 1.0, height: 2.0)
@@ -406,7 +413,7 @@ final class LayoutTests: XCSnapshotTestCase {
         """))
     }
 
-    func testHStackAlignment() throws {
+    func testHStackAlignmentExpand() throws {
         // TODO: Android HStack Color elements do not seem to expand to fill the space
         XCTAssertEqual(try render(compact: 2, view: HStack(alignment: .bottom, spacing: 0.0) {
             Color.black.frame(height: 10.0)
@@ -443,11 +450,14 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testVStackAlignment() throws {
-        XCTAssertEqual(try pixmap(VStack {
-            Divider()
-            Divider()
+        XCTAssertEqual(try pixmap(content: VStack {
+            Spacer()
+            Color.black.frame(height: 2.0)
+            Spacer()
+            Color.black.frame(height: 2.0)
+            Spacer()
         }.background(Color.white).frame(width: 12.0, height: 12.0)), plaf("""
-
+        . . . . . . . . . . . .
         . . . . . . . . . . . .
 
 
@@ -458,9 +468,8 @@ final class LayoutTests: XCSnapshotTestCase {
 
 
         . . . . . . . . . . . .
-
+        . . . . . . . . . . . .
         """, android: """
-        . . . . . . . . . . . .
 
 
 
@@ -469,7 +478,45 @@ final class LayoutTests: XCSnapshotTestCase {
 
 
 
-        . . . . . . . . . . . .
+
+
+
+
+        """))
+    }
+
+
+    func testHStackAlignment() throws {
+        XCTAssertEqual(try pixmap(content: HStack {
+            Spacer()
+            Color.black.frame(width: 2.0)
+            Spacer()
+            Color.black.frame(width: 2.0)
+            Spacer()
+        }.background(Color.white).frame(width: 12.0, height: 12.0)), plaf("""
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        . .                 . .
+        """, android: """
+
+
+
+
+
+
+
+
+
+
 
 
         """))

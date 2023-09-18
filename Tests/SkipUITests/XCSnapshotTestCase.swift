@@ -196,19 +196,14 @@ class XCSnapshotTestCase: XCTestCase {
     }
 
     /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
-    func pixmap<V: View>(dot: String, _ content: V) throws -> String {
-        try render(compact: 2, clear: "FF", replace: dot, antiAlias: false, view: content)
-    }
-
-    /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
-    func pixmap<V: View>(_ content: V) throws -> String {
-        try render(compact: 2, clear: "FF", replace: ".", antiAlias: false, view: content)
+    func pixmap<V: View>(brightness: Double = 0.5, content: V) throws -> String {
+        try render(clear: "FFFFFF", replace: ".", brightness: brightness, antiAlias: false, view: content)
     }
 
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, brightness: Double = 0.5, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -240,14 +235,6 @@ class XCSnapshotTestCase: XCTestCase {
 
         renderView.draw(bitmapCanvas) // perform the draw
 
-        //bitmapCanvas.drawColor(android.graphics.Color.WHITE)
-
-        // TODO: remove this debugging gray square overlay
-        //bitmapCanvas.drawRect(Float(3.0), Float(3.0), Float(width) - Float(4.0), Float(height) - Float(4.0), android.graphics.Paint().apply {
-        //    color = android.graphics.Color.GRAY
-        //    style = android.graphics.Paint.Style.FILL
-        //})
-
         if let outputFile = outputFile {
             // save to the specified output file base
             let out = java.io.FileOutputStream(outputFile + "-android.png")
@@ -257,7 +244,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         var pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, width: Int64(width))
+        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int64(width))
 
         #else
 
@@ -353,7 +340,7 @@ class XCSnapshotTestCase: XCTestCase {
 
         #endif // canImport(AppKit)
 
-        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
+        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
 
         #endif
     }
@@ -385,18 +372,44 @@ class XCSnapshotTestCase: XCTestCase {
     }
     #endif
 
-    /// Creates an ASCII representation of an array of pixels
-    private func createPixmap(pixels: [Int], compact: Int?, clearColor: String?, replace: String?, width: Int64) -> String {
-        let space = Character(" ")
-        func checkClear(_ color: String) -> String {
-            color == clearColor ? String(repeating: " ", count: (replace ?? color).count) : replace ?? color
+    func replacePixel(brightness brightnessThreshold: Double, with replacement: String?, clear: String = " ", red: UInt8, green: UInt8, blue: UInt8) -> String? {
+        guard let replacement = replacement else {
+            return nil // no replacement, so don't check the colors
         }
 
+        // Ensure that the input values are in the valid range (0-255)
+        guard red >= UInt8(0) && red <= UInt8(255),
+              green >= UInt8(0) && green <= UInt8(255),
+              blue >= UInt8(0) && blue <= UInt8(255) else {
+            fatalError("Input values should be in the range 0-255")
+        }
+
+        let brightness = (Double(red) + Double(green) + Double(blue)) / 3.0 / 255.0
+
+        // Calculate the luminosity using the formula for relative luminance
+        let redLuminance = Double(red) * 0.2126
+        let greenLuminance = Double(green) * 0.7152
+        let blueLuminance = Double(blue) * 0.0722
+
+        let luminosity = redLuminance + greenLuminance + blueLuminance
+        let _ = luminosity
+        return brightness <= brightnessThreshold ? replacement : clear
+    }
+
+    /// Creates an ASCII representation of an array of pixels
+    private func createPixmap(pixels: [Int], compact: Int?, clearColor: String?, replace: String?, brightness: Double, width: Int64) -> String {
+        let space = Character(" ")
         func rgb(_ packedColor: Int) -> String {
-            let red = (packedColor >> 16) & 0xFF
-            let green = (packedColor >> 8) & 0xFF
-            let blue = packedColor & 0xFF
+            let red = ((packedColor >> 16) & 0xFF)
+            let green = ((packedColor >> 8) & 0xFF)
+            let blue = (packedColor & 0xFF)
             let fmt = "%02X%02X%02X"
+
+            func checkClear(_ color: String) -> String {
+                let pix = replacePixel(brightness: brightness, with: replace, red: UInt8(red), green: UInt8(green), blue: UInt8(blue))
+                return color == clearColor ? String(repeating: " ", count: (pix ?? color).count) : pix ?? color
+            }
+
 
             #if SKIP
             let rgb = fmt.format(red, green, blue)
@@ -450,7 +463,7 @@ class XCSnapshotTestCase: XCTestCase {
     }
 
     #if !SKIP
-    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, clearColor: String?, replace: String?, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
+    private func createPixmapFromColors(pixelData: UnsafePointer<UInt8>!, compact: Int?, clearColor: String?, replace: String?, brightness: Double, width: Int, height: Int, bytesPerRow: Int, bytesPerPixel: Int) -> String {
         var pdesc = ""
         for y in 0..<height {
             if y > 0 {
@@ -471,9 +484,9 @@ class XCSnapshotTestCase: XCTestCase {
                         pdesc += " "
                     }
                     if let clearColor = clearColor, chunk == clearColor {
-                        pdesc += String(repeating: " ", count: (replace ?? clearColor).count)
+                        pdesc += String(repeating: " ", count: (replacePixel(brightness: brightness, with: replace, red: red, green: green, blue: blue) ?? clearColor).count)
                     } else {
-                        pdesc += replace ?? chunk
+                        pdesc += replacePixel(brightness: brightness, with: replace, red: red, green: green, blue: blue) ?? chunk
                     }
                 }
 
