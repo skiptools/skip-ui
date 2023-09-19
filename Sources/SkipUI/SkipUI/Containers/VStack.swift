@@ -5,6 +5,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -46,8 +47,19 @@ public struct VStack<Content> : View where Content : View {
         default:
             columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
         }
-        let contentContext = context.content()
-        Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp), horizontalAlignment: columnAlignment) {
+        let contentContext: ComposeContext
+        let columnArrangement: Arrangement.Vertical
+        if let spacing {
+            contentContext = context.content()
+            columnArrangement = Arrangement.spacedBy(spacing.dp)
+        } else {
+            var lastViewWasText: Bool? = nil
+            contentContext = context.content(composer: { view, context in
+                lastViewWasText = ComposeDefaultSpacedItem(view: &view, context: context, lastViewWasText: lastViewWasText)
+            })
+            columnArrangement = Arrangement.Center
+        }
+        Column(modifier: context.modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
             EnvironmentValues.shared.setValues {
                 $0.set_fillHeight(Modifier.weight(Float(1.0)))
                 $0.set_fillWidth(nil)
@@ -55,6 +67,20 @@ public struct VStack<Content> : View where Content : View {
                 content.Compose(context: contentContext)
             }
         }
+    }
+
+    private static let defaultSpacing = 40.0
+    private static let textSpacing = 20.0
+
+    @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
+        if let lastViewWasText {
+            let spacing = lastViewWasText ? Self.textSpacing : Self.defaultSpacing
+            let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
+            view.ComposeContent(context: context.content(modifier: modifier))
+        } else {
+            view.ComposeContent(context: context)
+        }
+        return lastViewWasText != true
     }
     #else
     public var body: some View {
