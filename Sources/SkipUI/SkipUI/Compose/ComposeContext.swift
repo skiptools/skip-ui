@@ -26,21 +26,4 @@ public struct ComposeContext {
         return context
     }
 }
-
-/// Used internally by modifiers to apply changes to the context supplied to modified views.
-struct ComposeContextView: View {
-    let view: View
-    let contextTransform: @Composable (inout ComposeContext) -> Void
-
-    init(_ view: any View, contextTransform: @Composable (inout ComposeContext) -> Void) {
-        self.view = view
-        self.contextTransform = contextTransform
-    }
-
-    @Composable override func ComposeContent(context: ComposeContext) {
-        var context = context
-        contextTransform(&context)
-        view.ComposeContent(context)
-    }
-}
 #endif

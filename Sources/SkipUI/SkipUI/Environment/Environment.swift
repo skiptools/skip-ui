@@ -115,11 +115,11 @@ extension View {
     // Must be public to allow access from our inline `environment` function.
     public func environmentObject(type: Any.Type, object: Any?) -> some View {
         #if SKIP
-        return ComposeView { context in
+        return ComposeModifierView(contentView: self) { view, context in
             let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type)
             let value = object ?? Unit
             // SKIP INSERT: val provided = compositionLocal provides value
-            androidx.compose.runtime.CompositionLocalProvider(provided) { self.Compose(context) }
+            androidx.compose.runtime.CompositionLocalProvider(provided) { view.Compose(context) }
         }
         #else
         return self
@@ -129,11 +129,11 @@ extension View {
     // We rely on the transpiler to turn the `WriteableKeyPath` provided in code into a `setValue` closure
     public func environment<V>(_ setValue: (V) -> Void, _ value: V) -> some View {
         #if SKIP
-        return ComposeView { context in
+        return ComposeModifierView(contentView: self) { view, context in
             EnvironmentValues.shared.setValues {
                 _ in setValue(value)
             } in: {
-                self.Compose(context)
+                view.Compose(context)
             }
         }
         #else

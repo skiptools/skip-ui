@@ -9,7 +9,7 @@ import struct CoreGraphics.CGPoint
 extension View {
     public func accessibilityIdentifier(_ identifier: String) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self, role: .accessibility) {
             $0.modifier = $0.modifier.testTag(identifier)
         }
         #else
@@ -21,7 +21,7 @@ extension View {
 extension View {
     public func accessibilityLabel(_ label: Text) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { contentDescription = label.text }
         }
         #else
@@ -31,7 +31,7 @@ extension View {
 
     public func accessibilityLabel(_ label: String) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { contentDescription = label }
         }
         #else

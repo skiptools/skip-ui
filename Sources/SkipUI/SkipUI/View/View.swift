@@ -56,13 +56,18 @@ extension View {
     @Composable public func ComposeContent(context: ComposeContext) -> Void {
         body.ComposeContent(context)
     }
+
+    /// Strip modifier views unless they have one of the given roles.
+    func strippingModifiers<R>(whileRole: (ComposeModifierRole) -> Bool = { _ in true}, perform: (any View?) -> R) -> R {
+        return perform(self)
+    }
 }
 #endif
 
 extension View {
     public func background(_ color: Color) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self) {
             $0.modifier = $0.modifier.background(color.colorImpl())
         }
         #else
@@ -72,7 +77,7 @@ extension View {
 
     public func border(_ color: Color, width: CGFloat = 1.0) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self) {
             $0.modifier = $0.modifier.border(width: width.dp, color: color.colorImpl())
         }
         #else
@@ -94,7 +99,7 @@ extension View {
 
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
         #if SKIP
-        return ComposeView { context in
+        return ComposeModifierView(contentView: self) { view, context in
             var context = context
             if let width {
                 context.modifier = context.modifier.width(width.dp)
@@ -110,7 +115,7 @@ extension View {
                     $0.set_fillHeight(nil)
                 }
             } in: {
-                self.Compose(context: context)
+                view.ComposeContent(context: context)
             }
         }
         #else
@@ -138,7 +143,7 @@ extension View {
 
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self) {
             $0.modifier = $0.modifier.alpha(Float(opacity))
         }
         #else
@@ -148,7 +153,7 @@ extension View {
 
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self, role: .spacing) {
             $0.modifier = $0.modifier.padding(start: insets.leading.dp, top: insets.top.dp, end: insets.trailing.dp, bottom: insets.bottom.dp)
         }
         #else
@@ -163,7 +168,7 @@ extension View {
         let end = edges.contains(.trailing) ? amount : 0.dp
         let top = edges.contains(.top) ? amount : 0.dp
         let bottom = edges.contains(.bottom) ? amount : 0.dp
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self, role: .spacing) {
             $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
         }
         #else
@@ -177,7 +182,7 @@ extension View {
 
     public func rotationEffect(_ angle: Angle) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self) {
             $0.modifier = $0.modifier.rotate(Float(angle.degrees))
         }
         #else
@@ -214,7 +219,7 @@ extension View {
 
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
         #if SKIP
-        return ComposeContextView(self) {
+        return ComposeModifierView(contextView: self) {
             $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
         }
         #else

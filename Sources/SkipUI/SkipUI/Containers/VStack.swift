@@ -69,18 +69,21 @@ public struct VStack<Content> : View where Content : View {
         }
     }
 
-    private static let defaultSpacing = 40.0
-    private static let textSpacing = 20.0
+    private static let defaultSpacing = 8.0
+    // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
+    private static let textSpacing = 1.0
 
     @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
+        // If the Text has spacing modifiers, no longer special case its spacing
+        let isText = view.strippingModifiers(whileRole: { $0 != .spacing }) { $0 is Text }
         if let lastViewWasText {
-            let spacing = lastViewWasText ? Self.textSpacing : Self.defaultSpacing
+            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
             let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
             view.ComposeContent(context: context.content(modifier: modifier))
         } else {
             view.ComposeContent(context: context)
         }
-        return lastViewWasText != true
+        return isText
     }
     #else
     public var body: some View {

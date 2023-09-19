@@ -112,6 +112,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
+            // We can't strip modifiers here because there is no way to re-apply them, so any modifier prevents adaptive list rendering
             if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
                 listItemAdapting.ComposeListItem(context: context, contentModifier: contentModifier)
             } else {
