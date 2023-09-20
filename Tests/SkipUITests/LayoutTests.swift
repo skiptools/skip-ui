@@ -110,7 +110,7 @@ final class LayoutTests: XCSnapshotTestCase {
         """)
     }
 
-    func testZStackSquareCenterBrightnessThreshold() throws {
+    func testZStackSquareCenterBrightnessThresholdHigh() throws {
         XCTAssertEqual(try pixmap(brightness: 0.9, content: ZStack {
             Color.gray.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0)
@@ -127,6 +127,27 @@ final class LayoutTests: XCSnapshotTestCase {
         . . . . . . . . . . . .
         . . . . . . . . . . . .
         . . . . . . . . . . . .
+        """)
+    }
+
+
+    func testZStackSquareCenterBrightnessThresholdLow() throws {
+        XCTAssertEqual(try pixmap(brightness: 0.1, content: ZStack {
+            Color.gray.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 6.0, height: 6.0)
+        }), """
+
+
+
+
+
+
+
+
+
+
+
+
         """)
     }
 
@@ -199,6 +220,40 @@ final class LayoutTests: XCSnapshotTestCase {
         00 00 00 00 00 A0 A0 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00 00
+        """))
+    }
+
+    func testRotatedSquareThreshold() throws {
+        XCTAssertEqual(try pixmap(brightness: 0.1, content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
+        }),
+        plaf("""
+        . . . . . . . . . . . .
+        . . . . .     . . . . .
+        . . . .         . . . .
+        . . .             . . .
+        . .                 . .
+        .                     .
+        .                     .
+        . .                 . .
+        . . .             . . .
+        . . . .         . . . .
+        . . . . .     . . . . .
+        . . . . . . . . . . . .
+        """, android: """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . .     . . . . .
+        . . . .         . . . .
+        . . .             . . .
+        . .                 . .
+        . .                 . .
+        . . .             . . .
+        . . . .         . . . .
+        . . . . .     . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
         """))
     }
 
