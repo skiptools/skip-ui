@@ -57,9 +57,9 @@ public struct Color: View, Hashable, Sendable {
         fatalError()
     }
     #endif
-}
 
-extension Color {
+    // MARK: -
+
     public enum RGBColorSpace : Hashable, Sendable {
         case sRGB
         case sRGBLinear
@@ -91,9 +91,9 @@ extension Color {
         colorImpl = { androidx.compose.ui.graphics.Color.hsl(hue: Float(hue), saturation: Float(saturation), lightness: Float(brightness), alpha: Float(opacity)) }
         #endif
     }
-}
 
-extension Color {
+    // MARK: -
+
     public struct Resolved : Hashable {
         public var red: Float
         public var green: Float
@@ -121,9 +121,9 @@ extension Color {
     public init(_ resolved: Color.Resolved) {
         self.init(red: Double(resolved.red), green: Double(resolved.green), blue: Double(resolved.blue), opacity: Double(resolved.opacity))
     }
-}
 
-extension Color {
+    // MARK: -
+
     public static var accentColor: Color {
         #if SKIP
         return Color(colorImpl: { MaterialTheme.colorScheme.primary })
@@ -131,10 +131,8 @@ extension Color {
         fatalError()
         #endif
     }
-}
 
-#if SKIP
-extension Color {
+    #if SKIP
     public static let clear = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.Transparent
     })
@@ -200,28 +198,26 @@ extension Color {
     public static let brown = Color(colorImpl: {
         color(light: 0xFFA2845E, dark: 0xFFAC8E68)
     })
-}
-#endif
+    #endif
 
-extension Color {
+    // MARK: -
+
     @available(*, unavailable)
     public init(_ name: String, bundle: Any? = nil /* Bundle? = nil */) {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color.White }
         #endif
     }
-}
 
-extension Color {
     @available(*, unavailable)
     public init(uiColor: Any /* UIColor */) {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color.White }
         #endif
     }
-}
 
-extension Color {
+    // MARK: -
+
     public func opacity(_ opacity: Double) -> Color {
         #if SKIP
         return Color(colorImpl: {
@@ -232,9 +228,9 @@ extension Color {
         return self
         #endif
     }
-}
 
-extension Color {
+    // MARK: -
+
     @available(*, unavailable)
     public var gradient: Any /* AnyGradient */ {
         fatalError()

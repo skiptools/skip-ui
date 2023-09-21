@@ -163,6 +163,12 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         stubView()
     }
     #endif
+
+    // MARK: -
+
+    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
+        self.init(indexRange: data, indexedContent: rowContent)
+    }
 }
 
 /// Adopted by views that adapt when used as a list item.
@@ -171,12 +177,6 @@ protocol ListItemAdapting {
     @Composable func shouldComposeListItem() -> Bool
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
     #endif
-}
-
-extension List {
-    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
-        self.init(indexRange: data, indexedContent: rowContent)
-    }
 }
 
 // Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
