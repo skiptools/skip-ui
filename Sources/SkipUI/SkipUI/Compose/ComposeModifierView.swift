@@ -6,7 +6,7 @@
 import androidx.compose.runtime.Composable
 
 /// Recognized modifier roles.
-public enum ComposeModifierRole { // View.strippingModifiers becomes public in Kotlin and exposes this type, so it must be public
+public enum ComposeModifierRole {
     case accessibility
     case spacing
     case unspecified

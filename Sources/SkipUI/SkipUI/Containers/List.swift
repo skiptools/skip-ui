@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
@@ -155,7 +156,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         if style == .plain {
             return MaterialTheme.colorScheme.surface
         } else {
-            return MaterialTheme.colorScheme.surfaceVariant
+            return Color.systemBackground.colorImpl()
         }
     }
     #else

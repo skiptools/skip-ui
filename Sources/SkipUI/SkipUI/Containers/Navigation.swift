@@ -7,21 +7,37 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
@@ -33,7 +49,7 @@ import kotlinx.coroutines.delay
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
 
-@androidx.compose.runtime.Stable
+@Stable
 class Navigator {
     /// Route for the root of the navigation stack.
     static let rootRoute = "navigationroot"
@@ -43,7 +59,7 @@ class Navigator {
         return String(describing: targetType) + "/" + valueString
     }
 
-    private let navController: NavController
+    var navController: NavHostController
     private let destinations: NavigationDestinations
 
     private var backStackState: [String: BackStackState] = [:]
@@ -62,7 +78,7 @@ class Navigator {
         }
     }
 
-    init(navController: NavController, destinations: NavigationDestinations) {
+    init(navController: NavHostController, destinations: NavigationDestinations) {
         self.navController = navController
         self.destinations = destinations
     }
@@ -148,42 +164,79 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
         // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
-        // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view
-        // SKIP INSERT: var destinations by remember { mutableStateOf<NavigationDestinations?>(null) }
+        // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view.
+        // Have to use rememberSaveable for e.g. a nav stack in each tab
+        // SKIP INSERT: var destinations by rememberSaveable(stateSaver = context.stateSaver as Saver<NavigationDestinations?, Any>) { mutableStateOf<NavigationDestinations?>(null) }
         if destinations == nil {
-            root.Compose(context.content(composer: { view, context in
+            root.Compose(context: context.content(composer: { view, context in
                 destinations = (view as? NavigationDestinationView)?.destinations ?? [:]
             }))
         }
 
         let navController = rememberNavController()
-        // SKIP INSERT: val navigator by remember { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
+        // SKIP INSERT: val navigator by rememberSaveable(stateSaver = context.stateSaver as Saver<Navigator, Any>) { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
+        navigator.navController = navController // May change on recompose
         navigator.syncState()
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
         CompositionLocalProvider(providedNavigator) {
-            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
-                composable(route: Navigator.rootRoute) { entry in
-                    if let state = navigator.state(for: entry) {
-                        androidx.compose.foundation.layout.Box {
-                            root.Compose(context: ComposeContext(stateSaver: state.stateSaver))
-                        }
+            let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+            Scaffold(
+                modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
+                topBar: {
+                    MediumTopAppBar(
+                        colors: TopAppBarDefaults.topAppBarColors(
+                            containerColor: Color.systemBackground.colorImpl(),
+                            titleContentColor: MaterialTheme.colorScheme.onSurface
+                        ),
+                        title: {
+//                            androidx.compose.material3.Text("Cities", maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        },
+                        navigationIcon: NavigationIconComposable(navController: navController),
+                        scrollBehavior: scrollBehavior
+                    )
+                }
+            ) { padding in
+                ComposeNavHost(navController: navController, navigator: navigator, destinations: destinations, context: context.content(modifier: Modifier.padding(padding)))
+            }
+        }
+    }
+
+    @Composable private func ComposeNavHost(navController: NavHostController, navigator: Navigator, destinations: NavigationDestinations?, context: ComposeContext) {
+        NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
+            composable(route: Navigator.rootRoute) { entry in
+                if let state = navigator.state(for: entry) {
+                    Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                        root.Compose(context: ComposeContext(stateSaver: state.stateSaver))
                     }
                 }
-                if let destinations {
-                    for (targetType, viewBuilder) in destinations {
-                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments = listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                            if let state = navigator.state(for: entry), let targetValue = state.targetValue {
-                                androidx.compose.foundation.layout.Box {
-                                    viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: state.stateSaver))
-                                }
+            }
+            if let destinations {
+                for (targetType, viewBuilder) in destinations {
+                    composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
+                        if let state = navigator.state(for: entry), let targetValue = state.targetValue {
+                            Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: state.stateSaver))
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable private func NavigationIconComposable(navController: NavHostController) -> (@Composable () -> Void) {
+        // SKIP INSERT: val entryList by navController.currentBackStack.collectAsState()
+        guard entryList.size > 2 else { // NavGraph + root entry
+            return {}
+        }
+        return {
+            IconButton(onClick: { navController.popBackStack() }) {
+                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
             }
         }
     }
@@ -215,6 +268,8 @@ struct NavigationDestinationView: View {
     let destinations: NavigationDestinations
 
     init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
+        // Prevent copying the view
+        // SKIP REPLACE: this.view = view
         self.view = view
         if let navigationDestination = view as? NavigationDestinationView {
             var combinedDestinations = navigationDestination.destinations
@@ -226,7 +281,7 @@ struct NavigationDestinationView: View {
     }
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        view.Compose(context)
+        view.Compose(context: context)
     }
 }
 #endif

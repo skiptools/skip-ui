@@ -2,41 +2,99 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import kotlin.reflect.full.companionObjectInstance
+#endif
+
+public protocol PreferenceKey {
+    associatedtype Value
+}
+
+#if SKIP
+/// Added to `PreferenceKey` companion objects.
+public protocol PreferenceKeyCompanion {
+    associatedtype Value
+    var defaultValue: Value { get }
+    func reduce(value: inout Value, nextValue: () -> Value)
+}
+
+// SKIP DECLARE: class Preference<Key, Value> where Key: PreferenceKey<Value>, Value: Any
+/// Used internally by our preferences system to collect preferences and recompose on change.
+class Preference<Key, Value> {
+    let keyType: Key.Type
+    private let update: () -> Void
+    private let defaultValue: Value
+    private var collectedValue: Value?
+
+    init(keyType: Key.Type, update: () -> Void) {
+        self.keyType = keyType
+        self.update = update
+        self.defaultValue = (keyType.companionObjectInstance as! PreferenceKeyCompanion).defaultValue
+    }
+
+    /// Whether we're currently collecting the preference value for use.
+    private(set) var isCollecting = false
+
+    /// The current preference value.
+    var value: Value {
+        return collectedValue ?? defaultValue
+    }
+
+    /// Begin collecting the current value.
+    ///
+    /// Call this before composing content.
+    func beginCollecting() {
+        isCollecting = true
+        collectedValue = nil
+    }
+
+    /// End collecting the current value.
+    ///
+    /// Call this after composing content.
+    func endCollecting() -> Value {
+        isCollecting = false
+        return value
+    }
+
+    /// Reduce the current value and the given value.
+    func reduce(_ value: Value) {
+        var newValue = value
+        (keyType.companionObjectInstance as! PreferenceKeyCompanion).reduce(value: &newValue, nextValue: { value })
+        collectedValue = newValue
+    }
+
+    /// Called by content when their preference value changes.
+    func setNeedsUpdate() {
+        update()
+    }
+}
+#endif
+
+extension View {
+    // SKIP DECLARE: fun <Key, Value> preference(key: KClass<Key>, value: Value): View where Key: PreferenceKey<Value>, Value: Any
+    public func preference(key: AnyHashable, value: Any) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            // SKIP INSERT: val pvalue by rememberSaveable(saver = context.stateSaver as Saver<Any, Any>) { mutableStateOf(value) }
+            if let preference = EnvironmentValues.shared.preference(keyType: key) {
+                if preference.isCollecting {
+                    preference.reduce(value)
+                } else if pvalue != value {
+                    preference.setNeedsUpdate()
+                }
+            }
+            pvalue = value
+            view.Compose(context: context)
+        }
+        #else
+        return self
+        #endif
+    }
+}
 
 #if !SKIP
 
-/// A named value produced by a view.
-///
-/// A view with multiple children automatically combines its values for a given
-/// preference into a single value visible to its ancestors.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol PreferenceKey {
-
-    /// The type of value produced by this preference.
-    associatedtype Value
-
-    /// The default value of the preference.
-    ///
-    /// Views that have no explicit value for the key produce this default
-    /// value. Combining child views may remove an implicit value produced by
-    /// using the default. This means that `reduce(value: &x, nextValue:
-    /// {defaultValue})` shouldn't change the meaning of `x`.
-    static var defaultValue: Self.Value { get }
-
-    /// Combines a sequence of values by modifying the previously-accumulated
-    /// value with the result of a closure that provides the next value.
-    ///
-    /// This method receives its values in view-tree order. Conceptually, this
-    /// combines the preference value from one tree with that of its next
-    /// sibling.
-    ///
-    /// - Parameters:
-    ///   - value: The value accumulated through previous calls to this method.
-    ///     The implementation should modify this value.
-    ///   - nextValue: A closure that returns the next value in the sequence.
-    static func reduce(value: inout Self.Value, nextValue: () -> Self.Value)
-}
+// TODO: Process for use in SkipUI
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension PreferenceKey where Self.Value : ExpressibleByNilLiteral {
@@ -199,14 +257,6 @@ extension View {
 
     /// Applies a transformation to a preference value.
     public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets a value for the given preference.
-    public func preference<K>(key: K.Type = K.self, value: K.Value) -> some View where K : PreferenceKey { return stubView() }
 
 }
 

@@ -7,7 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 #endif
 
 public struct Color: View, Hashable, Sendable {
@@ -151,6 +153,11 @@ public struct Color: View, Hashable, Sendable {
     
     public static let secondary = Color(colorImpl: {
         MaterialTheme.colorScheme.onSecondary
+    })
+
+    static let systemBackground = Color(colorImpl: {
+        // Matches Android's default bottom bar color
+        MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     })
 
     /// Returns the given color value based on whether the view is in dark mode or light mode

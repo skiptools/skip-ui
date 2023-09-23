@@ -56,7 +56,7 @@ public struct Toggle<Label> : View where Label : View {
         } else {
             let contentContext = context.content()
             Row(modifier: context.modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                label.Compose(contentContext)
+                label.Compose(context: contentContext)
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
                 Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 })
             }

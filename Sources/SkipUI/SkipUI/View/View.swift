@@ -58,7 +58,7 @@ extension View {
     }
 
     /// Strip modifier views unless they have one of the given roles.
-    func strippingModifiers<R>(whileRole: (ComposeModifierRole) -> Bool = { _ in true}, perform: (any View?) -> R) -> R {
+    public func strippingModifiers<R>(whileRole: (ComposeModifierRole) -> Bool = { _ in true}, perform: (any View?) -> R) -> R {
         return perform(self)
     }
 }

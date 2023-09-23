@@ -8,6 +8,9 @@ import Observation
 
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import kotlin.reflect.full.companionObjectInstance
 #endif
@@ -32,8 +35,8 @@ public class EnvironmentValues {
     #if SKIP
     // We type erase all keys and values. The alternative would be to reify these functions.
 
-    let compositionLocals: MutableMap<Any, androidx.compose.runtime.ProvidableCompositionLocal<Any>> = mutableMapOf()
-    let lastSetValues: MutableMap<androidx.compose.runtime.ProvidableCompositionLocal<Any>, Any> = mutableMapOf()
+    let compositionLocals: MutableMap<Any, ProvidableCompositionLocal<Any>> = mutableMapOf()
+    let lastSetValues: MutableMap<ProvidableCompositionLocal<Any>, Any> = mutableMapOf()
 
     // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
     public func get(key: AnyHashable) -> Any {
@@ -60,7 +63,7 @@ public class EnvironmentValues {
             element
         }.toTypedArray()
         lastSetValues.clear()
-        androidx.compose.runtime.CompositionLocalProvider(*provided) {
+        CompositionLocalProvider(*provided) {
             content()
         }
     }
@@ -75,26 +78,60 @@ public class EnvironmentValues {
         lastSetValues[compositionLocal] = value
     }
 
-    public func valueCompositionLocal(key: Any.Type) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
+    public func valueCompositionLocal(key: Any.Type) -> ProvidableCompositionLocal<Any> {
         // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
         return compositionLocal(key: key, defaultValue: defaultValue)
     }
 
-    public func objectCompositionLocal(type: Any.Type) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
+    public func objectCompositionLocal(type: Any.Type) -> ProvidableCompositionLocal<Any> {
         return compositionLocal(key: type, defaultValue: { nil })
     }
 
-    func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> androidx.compose.runtime.ProvidableCompositionLocal<Any> {
+    func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> ProvidableCompositionLocal<Any> {
         if let value = compositionLocals[key] {
             return value
         }
-        let value = androidx.compose.runtime.compositionLocalOf { defaultValue() ?? Unit }
+        let value = compositionLocalOf { defaultValue() ?? Unit }
         compositionLocals[key] = value
         return value
     }
+
+    // SKIP DECLARE: @Composable internal fun <Key, Value> preference(keyType: KClass<Key>): Preference<Key, Value>? where Key: PreferenceKey<Value>, Value: Any
+    func preference<Key, Value>(keyType: AnyHashable) -> Preference<Key, Value>? {
+        return compositionLocals[keyType]?.current as? Preference<Key, Value>
+    }
+
+    // SKIP DECLARE: @Composable internal fun <Key, Value> setPreference(preference: Preference<Key, Value>) where Key: PreferenceKey<Value>, Value: Any
+    func collectPreferences<Key, Value>(_ preference: Preference<Key, Value>) {
+        // do below for each key...
+        // begin collecting each
+        // execute composable
+        // end collecting each?
+        if let value = compositionLocals[preference.keyType] {
+            value.current = preference
+        } else {
+            let value = compositionLocalOf { preference }
+            compositionLocals[key] = value
+        }
+    }
+    /// Set environment values.
+    ///
+    /// - Seealso: ``View/environment(_:)``
+    /// - Warning: Setting environment values should only be done within the `execute` block of this function.
+    @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
+        // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
+        execute(self)
+        let provided = lastSetValues.map { entry in
+            // SKIP INSERT: val element = entry.key provides entry.value
+            element
+        }.toTypedArray()
+        lastSetValues.clear()
+        CompositionLocalProvider(*provided) {
+            content()
+        }
+    }
     #endif
 }
-
 
 extension View {
     #if SKIP
@@ -119,7 +156,7 @@ extension View {
             let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type)
             let value = object ?? Unit
             // SKIP INSERT: val provided = compositionLocal provides value
-            androidx.compose.runtime.CompositionLocalProvider(provided) { view.Compose(context) }
+            CompositionLocalProvider(provided) { view.Compose(context: context) }
         }
         #else
         return self
@@ -133,7 +170,7 @@ extension View {
             EnvironmentValues.shared.setValues {
                 _ in setValue(value)
             } in: {
-                view.Compose(context)
+                view.Compose(context: context)
             }
         }
         #else
