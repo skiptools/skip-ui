@@ -164,7 +164,6 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
         // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
@@ -184,43 +183,23 @@ public struct NavigationStack<Root> : View where Root: View {
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
         CompositionLocalProvider(providedNavigator) {
-            let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-            Scaffold(
-                modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
-                topBar: {
-                    MediumTopAppBar(
-                        colors: TopAppBarDefaults.topAppBarColors(
-                            containerColor: Color.systemBackground.colorImpl(),
-                            titleContentColor: MaterialTheme.colorScheme.onSurface
-                        ),
-                        title: {
-//                            androidx.compose.material3.Text("Cities", maxLines: 1, overflow: TextOverflow.Ellipsis)
-                        },
-                        navigationIcon: NavigationIconComposable(navController: navController),
-                        scrollBehavior: scrollBehavior
-                    )
-                }
-            ) { padding in
-                ComposeNavHost(navController: navController, navigator: navigator, destinations: destinations, context: context.content(modifier: Modifier.padding(padding)))
-            }
-        }
-    }
-
-    @Composable private func ComposeNavHost(navController: NavHostController, navigator: Navigator, destinations: NavigationDestinations?, context: ComposeContext) {
-        NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
-            composable(route: Navigator.rootRoute) { entry in
-                if let state = navigator.state(for: entry) {
-                    Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                        root.Compose(context: ComposeContext(stateSaver: state.stateSaver))
+            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
+                composable(route: Navigator.rootRoute) { entry in
+                    if let state = navigator.state(for: entry) {
+                        let entryContext = context.content(stateSaver: state.stateSaver)
+                        ComposeEntry(navController: navController, isRoot: true, context: entryContext) { context in
+                            root.Compose(context: context)
+                        }
                     }
                 }
-            }
-            if let destinations {
-                for (targetType, viewBuilder) in destinations {
-                    composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                        if let state = navigator.state(for: entry), let targetValue = state.targetValue {
-                            Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                viewBuilder(targetValue).Compose(context: ComposeContext(stateSaver: state.stateSaver))
+                if let destinations {
+                    for (targetType, viewBuilder) in destinations {
+                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
+                            if let state = navigator.state(for: entry), let targetValue = state.targetValue {
+                                let entryContext = context.content(stateSaver: state.stateSaver)
+                                ComposeEntry(navController: navController, isRoot: false, context: entryContext) { context in
+                                    viewBuilder(targetValue).Compose(context: context)
+                                }
                             }
                         }
                     }
@@ -229,14 +208,43 @@ public struct NavigationStack<Root> : View where Root: View {
         }
     }
 
-    @Composable private func NavigationIconComposable(navController: NavHostController) -> (@Composable () -> Void) {
-        // SKIP INSERT: val entryList by navController.currentBackStack.collectAsState()
-        guard entryList.size > 2 else { // NavGraph + root entry
-            return {}
-        }
-        return {
-            IconButton(onClick: { navController.popBackStack() }) {
-                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeEntry(navController: NavHostController, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        // SKIP INSERT: var preferenceUpdates by remember { mutableStateOf(0) }
+        let _ = preferenceUpdates // Read so that it can trigger recompose on change
+
+        // SKIP INSERT: var title by rememberSaveable(stateSaver = context.stateSaver as Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
+
+        // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
+        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
+        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        Scaffold(
+            modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
+            topBar: {
+                MediumTopAppBar(
+                    colors: TopAppBarDefaults.topAppBarColors(
+                        containerColor: Color.systemBackground.colorImpl(),
+                        titleContentColor: MaterialTheme.colorScheme.onSurface
+                    ),
+                    title: {
+                        androidx.compose.material3.Text(title, maxLines: 1, overflow: TextOverflow.Ellipsis)
+                    },
+                    navigationIcon: {
+                        if !isRoot {
+                            IconButton(onClick: { navController.popBackStack() }) {
+                                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+                            }
+                        }
+                    },
+                    scrollBehavior: scrollBehavior
+                )
+            }
+        ) { padding in
+            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title = $0 }, didChange: { preferenceUpdates += 1 })
+            PreferenceValues.shared.collectPreferences([titlePreference]) {
+                Box(modifier: Modifier.padding(padding).fillMaxSize().then(context.modifier), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    content(context.content())
+                }
             }
         }
     }
@@ -258,6 +266,24 @@ extension View {
 
     @available(*, unavailable)
     public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View {
+        return self
+    }
+
+    public func navigationTitle(_ title: Text) -> some View {
+        return navigationTitle(title.text)
+    }
+
+    public func navigationTitle(_ title: String) -> some View {
+        #if SKIP
+        // SKIP REPLACE: return preference(NavigationTitlePreferenceKey::class, title)
+        return preference(key: NavigationTitlePreferenceKey.self, value: title)
+        #else
+        return self
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func navigationTitle(_ title: Binding<String>) -> some View {
         return self
     }
 }
@@ -282,6 +308,18 @@ struct NavigationDestinationView: View {
 
     @Composable override func ComposeContent(context: ComposeContext) {
         view.Compose(context: context)
+    }
+}
+
+struct NavigationTitlePreferenceKey: PreferenceKey {
+    typealias Value = String
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<String>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue = ""
+        func reduce(value: inout String, nextValue: () -> String) {
+            value = nextValue()
+        }
     }
 }
 #endif
@@ -1390,257 +1428,7 @@ extension View {
 
 }
 
-@available(iOS 13.0, macOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension View {
-
-    /// Hides the navigation bar for this view.
-    ///
-    /// Use `navigationBarHidden(_:)` to hide the navigation bar. This modifier
-    /// only takes effect when this view is inside of and visible within a
-    /// ``NavigationView``.
-    ///
-    /// - Parameter hidden: A Boolean value that indicates whether to hide the
-    ///   navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(.hidden)")
-    public func navigationBarHidden(_ hidden: Bool) -> some View { return stubView() }
-
-
-    /// Sets the title in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar.
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// The example below shows setting the title of the navigation bar using a
-    /// ``Text`` view:
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(Text("Today's Flavors"))
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![A screenshot showing the title of a navigation bar configured using a
-    /// text view.](SkipUI-navigationBarTitle-Text.png)
-    ///
-    /// - Parameter title: A description of this view to display in the
-    ///   navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle(_ title: Text) -> some View { return stubView() }
-
-
-    /// Sets the title of this view's navigation bar with a localized string.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
-    /// using a ``LocalizedStringKey`` that will be used to search for a
-    /// matching localized string in the application's localizable strings
-    /// assets.
-    ///
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, a string constant is used to access a
-    /// ``LocalizedStringKey`` that will be resolved at run time to provide a
-    /// title for the navigation bar. If the localization key cannot be
-    /// resolved, the text of the key name will be used as the title text.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle("Today's Flavors")
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameter titleKey: A key to a localized description of this view to
-    ///   display in the navigation bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle(_ titleKey: LocalizedStringKey) -> some View { return stubView() }
-
-
-    /// Sets the title of this view's navigation bar with a string.
-    ///
-    /// Use `navigationBarTitle(_:)` to set the title of the navigation bar
-    /// using a `String`. This modifier only takes effect when this view is
-    /// inside of and visible within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a string:
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         let text = "Today's Flavors"
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(text)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameter title: A title for this view to display in the navigation
-    ///   bar.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "navigationTitle(_:)")
-    public func navigationBarTitle<S>(_ title: S) -> some View where S : StringProtocol { return stubView() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the title
-    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
-    /// modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a ``Text`` view. The navigation bar title's
-    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
-    /// the navigation bar title in the bounds of the navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///        let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                     "Pistachio"]
-    ///        var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(Text("Today's Flavors", displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: A title for this view to display in the navigation bar.
-    ///   - displayMode: The style to use for displaying the navigation bar title.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle(_ title: Text, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the title
-    /// from one of the ``NavigationBarItem/TitleDisplayMode`` styles. This
-    /// modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// In the example below, text for the navigation bar title is provided
-    /// using a string. The navigation bar title's
-    /// ``NavigationBarItem/TitleDisplayMode`` is set to `.inline` which places
-    /// the navigation bar title in the bounds of the navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle("Today's Flavors", displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// If the `titleKey` can't be found, the title uses the text of the key
-    /// name instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: A key to a localized description of this view to display
-    ///     in the navigation bar.
-    ///   - displayMode: The style to use for displaying the navigation bar
-    ///     title.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle(_ titleKey: LocalizedStringKey, displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
-
-
-    /// Sets the title and display mode in the navigation bar for this view.
-    ///
-    /// Use `navigationBarTitle(_:displayMode:)` to set the title of the
-    /// navigation bar for this view and specify a display mode for the
-    /// title from one of the `NavigationBarItem.Title.DisplayMode`
-    /// styles. This modifier only takes effect when this view is inside of and
-    /// visible within a `NavigationView`.
-    ///
-    /// In the example below, `navigationBarTitle(_:displayMode:)` uses a
-    /// string to provide a title for the navigation bar. Setting the title's
-    /// `displayMode` to `.inline` places the navigation bar title within the
-    /// bounds of the navigation bar.
-    ///
-    /// In the example below, text for the navigation bar title is provided using
-    /// a string. The navigation bar title's `displayMode` is set to
-    /// `.inline` which places the navigation bar title in the bounds of the
-    /// navigation bar.
-    ///
-    ///     struct FlavorView: View {
-    ///         let items = ["Chocolate", "Vanilla", "Strawberry", "Mint Chip",
-    ///                      "Pistachio"]
-    ///         let title = "Today's Flavors"
-    ///         var body: some View {
-    ///             NavigationView {
-    ///                 List(items, id: \.self) {
-    ///                     Text($0)
-    ///                 }
-    ///                 .navigationBarTitle(title, displayMode: .inline)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![A screenshot of a navigation bar, showing the title within the bounds
-    ///  of the navigation bar]
-    /// (SkipUI-navigationBarTitle-stringProtocol.png)
-    ///
-    /// - Parameters:
-    ///   - title: A title for this view to display in the navigation bar.
-    ///   - displayMode: The way to display the title.
-    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use navigationTitle(_:) with navigationBarTitleDisplayMode(_:)")
-    public func navigationBarTitle<S>(_ title: S, displayMode: NavigationBarItem.TitleDisplayMode) -> some View where S : StringProtocol { return stubView() }
-
-
     /// Hides the navigation bar back button for the view.
     ///
     /// Use `navigationBarBackButtonHidden(_:)` to hide the back button for this
@@ -1784,85 +1572,6 @@ extension View {
     @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
     @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
     public func navigationViewStyle<S>(_ style: S) -> some View where S : NavigationViewStyle { return stubView() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Configures the view's title for purposes of navigation.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The title to display.
-    public func navigationTitle(_ title: Text) -> some View { return stubView() }
-
-
-    /// Configures the view's title for purposes of navigation,
-    /// using a localized string.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter titleKey: The key to a localized string to display.
-    public func navigationTitle(_ titleKey: LocalizedStringKey) -> some View { return stubView() }
-
-
-    /// Configures the view's title for purposes of navigation, using a string.
-    ///
-    /// A view's navigation title is used to visually display
-    /// the current navigation state of an interface.
-    /// On iOS and watchOS, when a view is navigated to inside
-    /// of a navigation view, that view's title is displayed
-    /// in the navigation bar. On iPadOS, the primary destination's
-    /// navigation title is reflected as the window's title in the
-    /// App Switcher. Similarly on macOS, the primary destination's title
-    /// is used as the window title in the titlebar, Windows menu
-    /// and Mission Control.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The string to display.
-    public func navigationTitle<S>(_ title: S) -> some View where S : StringProtocol { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures the view's title for purposes of navigation, using a string
-    /// binding.
-    ///
-    /// In iOS, iPadOS, and macOS, this allows editing the navigation title
-    /// when the title is displayed in the toolbar.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation title modifiers.
-    ///
-    /// - Parameter title: The text of the title.
-    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-    public func navigationTitle(_ title: Binding<String>) -> some View { return stubView() }
 
 }
 

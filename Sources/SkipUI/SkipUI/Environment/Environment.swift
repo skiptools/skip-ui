@@ -34,17 +34,18 @@ public class EnvironmentValues {
 
     #if SKIP
     // We type erase all keys and values. The alternative would be to reify these functions.
-
     let compositionLocals: MutableMap<Any, ProvidableCompositionLocal<Any>> = mutableMapOf()
     let lastSetValues: MutableMap<ProvidableCompositionLocal<Any>, Any> = mutableMapOf()
 
     // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
+    /// Retrieve an environment value by its `EnvironmentKey`.
     public func get(key: AnyHashable) -> Any {
         let compositionLocal = valueCompositionLocal(key: key)
         return compositionLocal.current as! Value
      }
 
     // SKIP DECLARE: @Composable fun <ObjectType> environmentObject(type: KClass<ObjectType>): ObjectType? where ObjectType: Any
+    /// Retrieve an environment object by type.
     public func environmentObject<ObjectType>(type: ObjectType.Type) -> ObjectType? {
         let compositionLocal = objectCompositionLocal(type: type)
         let value = compositionLocal.current
@@ -71,18 +72,20 @@ public class EnvironmentValues {
     // On set we populate our `lastSetValues` map, which our `setValues` function reads from and then clears after
     // packaging the values for sending to downstream Composables. This should be safe to do even on this effectively
     // global object because it should only be occurring sequentially on the main thread.
-    //
+
     // SKIP DECLARE: operator fun <Key, Value> set(key: KClass<Key>, value: Value) where Key: EnvironmentKey<Value>, Value: Any
     public func set(key: AnyHashable, value: Any) {
         let compositionLocal = valueCompositionLocal(key: key)
         lastSetValues[compositionLocal] = value
     }
 
+    /// The Compose `CompositionLocal` for the given environment value key type.
     public func valueCompositionLocal(key: Any.Type) -> ProvidableCompositionLocal<Any> {
         // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
         return compositionLocal(key: key, defaultValue: defaultValue)
     }
 
+    /// The Compose `CompositionLocal` for the given environment object type.
     public func objectCompositionLocal(type: Any.Type) -> ProvidableCompositionLocal<Any> {
         return compositionLocal(key: type, defaultValue: { nil })
     }
@@ -94,41 +97,6 @@ public class EnvironmentValues {
         let value = compositionLocalOf { defaultValue() ?? Unit }
         compositionLocals[key] = value
         return value
-    }
-
-    // SKIP DECLARE: @Composable internal fun <Key, Value> preference(keyType: KClass<Key>): Preference<Key, Value>? where Key: PreferenceKey<Value>, Value: Any
-    func preference<Key, Value>(keyType: AnyHashable) -> Preference<Key, Value>? {
-        return compositionLocals[keyType]?.current as? Preference<Key, Value>
-    }
-
-    // SKIP DECLARE: @Composable internal fun <Key, Value> setPreference(preference: Preference<Key, Value>) where Key: PreferenceKey<Value>, Value: Any
-    func collectPreferences<Key, Value>(_ preference: Preference<Key, Value>) {
-        // do below for each key...
-        // begin collecting each
-        // execute composable
-        // end collecting each?
-        if let value = compositionLocals[preference.keyType] {
-            value.current = preference
-        } else {
-            let value = compositionLocalOf { preference }
-            compositionLocals[key] = value
-        }
-    }
-    /// Set environment values.
-    ///
-    /// - Seealso: ``View/environment(_:)``
-    /// - Warning: Setting environment values should only be done within the `execute` block of this function.
-    @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
-        // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
-        execute(self)
-        let provided = lastSetValues.map { entry in
-            // SKIP INSERT: val element = entry.key provides entry.value
-            element
-        }.toTypedArray()
-        lastSetValues.clear()
-        CompositionLocalProvider(*provided) {
-            content()
-        }
     }
     #endif
 }
@@ -179,12 +147,11 @@ extension View {
     }
 }
 
-// The transpiler translates the `EnvironmentValues` extension vars we add (or when apps add their own) from a get/set
-// var into a get-only @Composable var and a setter function. @Composable vars cannot have setters
-
-// Internal values
-
 #if SKIP
+
+// The transpiler translates the `EnvironmentValues` extension vars we add (or when apps add their own) from a
+// get/set var into a get-only @Composable var and a setter function. @Composable vars cannot have setters
+
 extension EnvironmentValues {
     @Composable private func builtinValue(key: AnyHashable, defaultValue: () -> Any?) -> Any? {
         let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
@@ -196,6 +163,15 @@ extension EnvironmentValues {
         let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
         lastSetValues[compositionLocal] = value ?? Unit
     }
+
+    // MARK: - SwiftUI values
+
+    public var font: Font? {
+        get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
+        set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
+    }
+
+    // MARK: - Internal values
 
     var _buttonStyle: ButtonStyle? {
         get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! ButtonStyle? }
@@ -235,17 +211,6 @@ extension EnvironmentValues {
     var _listStyle: ListStyle? {
         get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
-    }
-}
-#endif
-
-// SwiftUI values
-
-#if SKIP
-extension EnvironmentValues {
-    public var font: Font? {
-        get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
-        set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
     }
 }
 #endif

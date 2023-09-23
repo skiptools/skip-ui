@@ -3,6 +3,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -18,26 +21,75 @@ public protocol PreferenceKeyCompanion {
     func reduce(value: inout Value, nextValue: () -> Value)
 }
 
-// SKIP DECLARE: class Preference<Key, Value> where Key: PreferenceKey<Value>, Value: Any
-/// Used internally by our preferences system to collect preferences and recompose on change.
-class Preference<Key, Value> {
-    let keyType: Key.Type
-    private let update: () -> Void
-    private let defaultValue: Value
-    private var collectedValue: Value?
+/// Internal analog to `EnvironmentValues` for preferences.
+///
+/// Uses environment `CompositionLocals` internally.
+///
+/// - Seealso: `EnvironmentValues`
+class PreferenceValues {
+    static let shared = PreferenceValues()
 
-    init(keyType: Key.Type, update: () -> Void) {
-        self.keyType = keyType
-        self.update = update
-        self.defaultValue = (keyType.companionObjectInstance as! PreferenceKeyCompanion).defaultValue
+    // SKIP DECLARE: @Composable internal fun preference(key: KClass<*>): Preference<*>?
+    /// Return a preference for the given `PreferenceKey` type.
+    func preference(key: Any.Type) -> any Preference? {
+        return EnvironmentValues.shared.compositionLocals[key]?.current as? Preference
     }
 
-    /// Whether we're currently collecting the preference value for use.
-    private(set) var isCollecting = false
+    // SKIP DECLARE: @Composable internal fun collectPreferences(preferences: Array<Preference<*>>, in_: @Composable () -> Unit)
+    /// Collect the values of the given preferences while composing the given content.
+    func collectPreferences(_ preferences: [any Preference], in content: @Composable () -> Void) {
+        let provided = preferences.map { preference in
+            var compositionLocal = EnvironmentValues.shared.compositionLocals[preference.key]
+            if compositionLocal == nil {
+                compositionLocal = compositionLocalOf { Unit }
+                EnvironmentValues.shared.compositionLocals[preference.key] = compositionLocal
+            }
+            // SKIP INSERT: val element = compositionLocal!! provides preference
+            element
+        }.kotlin(nocopy: true).toTypedArray()
+        
+        preferences.forEach { $0.beginCollecting() }
+        CompositionLocalProvider(*provided) {
+            content()
+        }
+        preferences.forEach { $0.endCollecting() }
+    }
+}
+
+/// Used internally by our preferences system to collect preferences and recompose on change.
+class Preference<Value> {
+    let key: Any.Type
+    private let update: (Value) -> Void
+    private let didChange: () -> Void
+    private let defaultValue: Value
+    private var isCollecting = false
+    private var collectedValue: Value?
+
+    /// Create a preference for the given `PreferenceKey` type.
+    ///
+    /// - Parameter update: Block to call to change the value of this preference.
+    /// - Parameter didChange: Block to call if this preference changes. Should force a recompose of the relevant content, collecting the new value via `collectPreferences`
+    init(key: Any.Type, update: (Value) -> Void, didChange: () -> Void) {
+        self.key = key
+        self.update = update
+        self.didChange = didChange
+        self.defaultValue = (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
+    }
 
     /// The current preference value.
     var value: Value {
         return collectedValue ?? defaultValue
+    }
+
+    /// Reduce the current value and the given values.
+    func reduce(savedValue: Any?, newValue: Any) {
+        if isCollecting {
+            var value = self.value
+            (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { newValue as! Value })
+            collectedValue = value
+        } else if savedValue != newValue {
+            didChange()
+        }
     }
 
     /// Begin collecting the current value.
@@ -51,38 +103,19 @@ class Preference<Key, Value> {
     /// End collecting the current value.
     ///
     /// Call this after composing content.
-    func endCollecting() -> Value {
+    func endCollecting() {
         isCollecting = false
-        return value
-    }
-
-    /// Reduce the current value and the given value.
-    func reduce(_ value: Value) {
-        var newValue = value
-        (keyType.companionObjectInstance as! PreferenceKeyCompanion).reduce(value: &newValue, nextValue: { value })
-        collectedValue = newValue
-    }
-
-    /// Called by content when their preference value changes.
-    func setNeedsUpdate() {
-        update()
+        update(value)
     }
 }
 #endif
 
 extension View {
-    // SKIP DECLARE: fun <Key, Value> preference(key: KClass<Key>, value: Value): View where Key: PreferenceKey<Value>, Value: Any
-    public func preference(key: AnyHashable, value: Any) -> some View {
+    public func preference(key: Any.Type, value: Any) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            // SKIP INSERT: val pvalue by rememberSaveable(saver = context.stateSaver as Saver<Any, Any>) { mutableStateOf(value) }
-            if let preference = EnvironmentValues.shared.preference(keyType: key) {
-                if preference.isCollecting {
-                    preference.reduce(value)
-                } else if pvalue != value {
-                    preference.setNeedsUpdate()
-                }
-            }
+            // SKIP INSERT: var pvalue by remember { mutableStateOf<Any?>(null) }
+            PreferenceValues.shared.preference(key: key)?.reduce(savedValue: pvalue, newValue: value)
             pvalue = value
             view.Compose(context: context)
         }
