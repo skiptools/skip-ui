@@ -474,13 +474,13 @@ final class SkipUITests: XCTestCase {
     func testPressButton() {
         #if SKIP
         composeRule.setContent {
-            // SKIP INSERT: var counter by remember { mutableStateOf(0) }
+            let counter = remember { mutableStateOf(0) }
 
             androidx.compose.material3.Text(
-                text: counter.toString(),
+                text: counter.value.toString(),
                 modifier: Modifier.testTag("Counter")
             )
-            androidx.compose.material3.Button(onClick = { counter++ }) {
+            androidx.compose.material3.Button(onClick = { counter.value++ }) {
                 androidx.compose.material3.Text("Increment")
             }
         }

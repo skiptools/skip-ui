@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -186,7 +188,7 @@ extension View {
             $0.modifier = $0.modifier.rotate(Float(angle.degrees))
         }
         #else
-        return stubView()
+        return self
         #endif
     }
 
@@ -195,7 +197,7 @@ extension View {
         #if SKIP
         fatalError()
         #else
-        return stubView()
+        return self
         #endif
     }
 
@@ -223,13 +225,31 @@ extension View {
             $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
         }
         #else
-        return stubView()
+        return self
         #endif
     }
 
     @available(*, unavailable)
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> some View {
         return scaleEffect(x: x, y: y)
+    }
+
+    public func task(priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
+        return task(id: 0, priority: priority, action)
+    }
+
+    public func task(id value: Any, priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let handler = rememberUpdatedState(action)
+            LaunchedEffect(value) {
+                handler.value()
+            }
+            view.Compose(context: context)
+        }
+        #else
+        return self
+        #endif
     }
 }
 

@@ -169,33 +169,33 @@ public struct NavigationStack<Root> : View where Root: View {
         // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
         // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view.
         // Have to use rememberSaveable for e.g. a nav stack in each tab
-        // SKIP INSERT: var destinations by rememberSaveable(stateSaver = context.stateSaver as Saver<NavigationDestinations?, Any>) { mutableStateOf<NavigationDestinations?>(null) }
-        if destinations == nil {
+        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations?, Any>) { mutableStateOf<NavigationDestinations?>(nil) }
+        if destinations.value == nil {
             root.Compose(context: context.content(composer: { view, context in
-                destinations = (view as? NavigationDestinationView)?.destinations ?? [:]
+                destinations.value = (view as? NavigationDestinationView)?.destinations ?? [:]
             }))
         }
 
         let navController = rememberNavController()
-        // SKIP INSERT: val navigator by rememberSaveable(stateSaver = context.stateSaver as Saver<Navigator, Any>) { mutableStateOf(Navigator(navController = navController, destinations = destinations ?: dictionaryOf())) }
-        navigator.navController = navController // May change on recompose
-        navigator.syncState()
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value ?? dictionaryOf())) }
+        navigator.value.navController = navController // May change on recompose
+        navigator.value.syncState()
 
-        // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator
+        // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
             NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
                 composable(route: Navigator.rootRoute) { entry in
-                    if let state = navigator.state(for: entry) {
+                    if let state = navigator.value.state(for: entry) {
                         let entryContext = context.content(stateSaver: state.stateSaver)
                         ComposeEntry(navController: navController, isRoot: true, context: entryContext) { context in
                             root.Compose(context: context)
                         }
                     }
                 }
-                if let destinations {
+                if let destinations = destinations.value {
                     for (targetType, viewBuilder) in destinations {
                         composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                            if let state = navigator.state(for: entry), let targetValue = state.targetValue {
+                            if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
                                 ComposeEntry(navController: navController, isRoot: false, context: entryContext) { context in
                                     viewBuilder(targetValue).Compose(context: context)
@@ -210,10 +210,10 @@ public struct NavigationStack<Root> : View where Root: View {
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func ComposeEntry(navController: NavHostController, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
-        // SKIP INSERT: var preferenceUpdates by remember { mutableStateOf(0) }
-        let _ = preferenceUpdates // Read so that it can trigger recompose on change
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
-        // SKIP INSERT: var title by rememberSaveable(stateSaver = context.stateSaver as Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
+        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
 
         // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
@@ -227,7 +227,7 @@ public struct NavigationStack<Root> : View where Root: View {
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     ),
                     title: {
-                        androidx.compose.material3.Text(title, maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
                     },
                     navigationIcon: {
                         if !isRoot {
@@ -240,7 +240,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 )
             }
         ) { padding in
-            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title = $0 }, didChange: { preferenceUpdates += 1 })
+            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
             PreferenceValues.shared.collectPreferences([titlePreference]) {
                 Box(modifier: Modifier.padding(padding).fillMaxSize().then(context.modifier), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(context.content())

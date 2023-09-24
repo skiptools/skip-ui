@@ -20,8 +20,12 @@ public struct Text: View, Equatable, Sendable {
         self.text = verbatim
     }
 
-    public init(_ text: String, bundle: Bundle? = nil, comment: StaticString? = nil) {
+    public init(_ text: String) {
         self.text = text
+    }
+
+    public init(_ key: LocalizedStringKey, bundle: Bundle? = nil, comment: StaticString? = nil) {
+        self.text = key.value
     }
     
     public init(_ resource: LocalizedStringResource) {
