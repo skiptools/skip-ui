@@ -8,7 +8,7 @@ let package = Package(
         .library(name: "SkipUI", targets: ["SkipUI"]),
     ],
     dependencies: [ 
-        .package(url: "https://source.skip.tools/skip.git", from: "0.6.72"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.6.75"),
         .package(url: "https://source.skip.tools/skip-model.git", from: "0.2.1"),
     ],
     targets: [
