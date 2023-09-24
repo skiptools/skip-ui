@@ -61,7 +61,7 @@ class Preference<Value> {
     let key: Any.Type
     private let update: (Value) -> Void
     private let didChange: () -> Void
-    private let defaultValue: Value
+    private let initialValue: Value
     private var isCollecting = false
     private var collectedValue: Value?
 
@@ -69,16 +69,16 @@ class Preference<Value> {
     ///
     /// - Parameter update: Block to call to change the value of this preference.
     /// - Parameter didChange: Block to call if this preference changes. Should force a recompose of the relevant content, collecting the new value via `collectPreferences`
-    init(key: Any.Type, update: (Value) -> Void, didChange: () -> Void) {
+    init(key: Any.Type, initialValue: Value? = nil, update: (Value) -> Void, didChange: () -> Void) {
         self.key = key
         self.update = update
         self.didChange = didChange
-        self.defaultValue = (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
+        self.initialValue = initialValue ?? (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
     }
 
     /// The current preference value.
     var value: Value {
-        return collectedValue ?? defaultValue
+        return collectedValue ?? initialValue
     }
 
     /// Reduce the current value and the given values.

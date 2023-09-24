@@ -22,6 +22,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -47,32 +48,48 @@ import kotlinx.coroutines.delay
 #endif
 
 #if SKIP
-typealias NavigationDestinations = Dictionary<Any.Type, (Any) -> View>
+typealias NavigationDestinations = Dictionary<Any.Type, NavigationDestination>
+struct NavigationDestination {
+    let destination: (Any) -> View
+    // No way to compare closures. Assume equal so we don't think our destinations are constantly updating
+    public override func equals(other: Any?) -> Bool {
+        return true
+    }
+}
 
 @Stable
 class Navigator {
     /// Route for the root of the navigation stack.
     static let rootRoute = "navigationroot"
 
-    /// Route for the given target type and value string.
-    static func route(for targetType: Any.Type, valueString: String) -> String {
-        return String(describing: targetType) + "/" + valueString
+    /// Number of possible destiation routes.
+    ///
+    /// We route to destinations by static index rather than a dynamic system based on the provided destination keys because changing the destinations of a `NavHost`
+    /// wipes out its back stack. By using a fixed set of indexes, we can maintain the back stack even as we add destination mappings.
+    static let destinationCount = 100
+
+    /// Route for the given destination index and value string.
+    static func route(for destinationIndex: Int, valueString: String) -> String {
+        return String(describing: destinationIndex) + "/" + valueString
     }
 
-    var navController: NavHostController
-    private let destinations: NavigationDestinations
+    private var navController: NavHostController
+    private var destinations: NavigationDestinations
 
+    private var destinationIndexes: [Any.Type: Int] = [:]
     private var backStackState: [String: BackStackState] = [:]
     private var navigatingToState: BackStackState? = BackStackState(route: Self.rootRoute)
     struct BackStackState {
         let id: String?
         let route: String
+        let destination: ((Any) -> View)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
 
-        init(id: String? = nil, route: String, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+        init(id: String? = nil, route: String, destination: ((Any) -> View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
             self.route = route
+            self.destination = destination
             self.targetValue = targetValue
             self.stateSaver = stateSaver
         }
@@ -81,6 +98,15 @@ class Navigator {
     init(navController: NavHostController, destinations: NavigationDestinations) {
         self.navController = navController
         self.destinations = destinations
+        updateDestinationIndexes()
+    }
+
+    /// Call with updated state on recompose.
+    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations) {
+        self.navController = navController
+        self.destinations = destinations
+        updateDestinationIndexes()
+        syncState()
     }
 
     /// Navigate to a target value specified in a `NavigationLink`.
@@ -93,22 +119,21 @@ class Navigator {
         return backStackState[entry.id]
     }
 
-    /// Sync back stack state with the navigation host's stack.
-    @Composable func syncState() {
-        // SKIP INSERT: val entryList by navController.currentBackStack.collectAsState()
+    @Composable private func syncState() {
+        let entryList = navController.currentBackStack.collectAsState()
 
         // Fill in ID of state we were navigating to if possible
-        if let navigatingToState, let lastEntry = entryList.lastOrNull() {
-            let state = BackStackState(id: lastEntry.id, route: navigatingToState.route, targetValue: navigatingToState.targetValue, stateSaver: navigatingToState.stateSaver)
+        if let navigatingToState, let lastEntry = entryList.value.lastOrNull() {
+            let state = BackStackState(id: lastEntry.id, route: navigatingToState.route, destination: navigatingToState.destination, targetValue: navigatingToState.targetValue, stateSaver: navigatingToState.stateSaver)
             self.navigatingToState = nil
             backStackState[lastEntry.id] = state
         }
 
         // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while animating away to find their state
-        LaunchedEffect(entryList) {
+        LaunchedEffect(entryList.value) {
             delay(1000) // 1 second
             var syncedBackStackState: [String: BackStackState] = [:]
-            for entry in entryList {
+            for entry in entryList.value {
                 if let state = backStackState[entry.id] {
                     syncedBackStackState[entry.id] = state
                 }
@@ -121,21 +146,24 @@ class Navigator {
         guard let type else {
             return false
         }
-        guard destinations[type] == nil else {
-            let route = route(for: type, value: targetValue)
-            navigatingToState = BackStackState(route: route, targetValue: targetValue)
-            navController.navigate(route)
-            return true
-        }
-        for supertype in type.supertypes {
-            if navigate(to: targetValue, type: supertype as? Any.Type) {
-                return true
+        guard let destination = destinations[type] else {
+            for supertype in type.supertypes {
+                if navigate(to: targetValue, type: supertype as? Any.Type) {
+                    return true
+                }
             }
+            return false
         }
-        return false
+        let route = route(for: type, value: targetValue)
+        navigatingToState = BackStackState(route: route, destination: destination.destination, targetValue: targetValue)
+        navController.navigate(route)
+        return true
     }
 
     private func route(for targetType: Any.Type, value: Any) -> String {
+        guard let index = destinationIndexes[targetType] else {
+            return String(describing: targetType) + "?"
+        }
         let valueString: String
         if let identifiable = value as? Identifiable {
             valueString = String(describing: identifiable.id)
@@ -144,7 +172,15 @@ class Navigator {
         } else {
             valueString = String(describing: value)
         }
-        return Self.route(for: targetType, valueString: valueString)
+        return route(for: index, valueString: valueString)
+    }
+
+    private func updateDestinationIndexes() {
+        for type in destinations.keys {
+            if destinationIndexes[type] == nil {
+                destinationIndexes[type] = destinationIndexes.count
+            }
+        }
     }
 }
 
@@ -165,21 +201,15 @@ public struct NavigationStack<Root> : View where Root: View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // Check to see if we've initialized our destinations from our root view's .navigationDestination modifiers. If we haven't,
-        // compose the root view with a custom composer that will capture the destinations. Note that 'root' is just a reference to
-        // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual root view.
-        // Have to use rememberSaveable for e.g. a nav stack in each tab
-        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations?, Any>) { mutableStateOf<NavigationDestinations?>(nil) }
-        if destinations.value == nil {
-            root.Compose(context: context.content(composer: { view, context in
-                destinations.value = (view as? NavigationDestinationView)?.destinations ?? [:]
-            }))
-        }
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+        let preferencesDidChange = { preferenceUpdates.value += 1 }
 
+        // Have to use rememberSaveable for e.g. a nav stack in each tab
+        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
         let navController = rememberNavController()
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value ?? dictionaryOf())) }
-        navigator.value.navController = navController // May change on recompose
-        navigator.value.syncState()
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
+        navigator.value.didCompose(navController: navController, destinations: destinations.value)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -187,19 +217,17 @@ public struct NavigationStack<Root> : View where Root: View {
                 composable(route: Navigator.rootRoute) { entry in
                     if let state = navigator.value.state(for: entry) {
                         let entryContext = context.content(stateSaver: state.stateSaver)
-                        ComposeEntry(navController: navController, isRoot: true, context: entryContext) { context in
+                        ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
                             root.Compose(context: context)
                         }
                     }
                 }
-                if let destinations = destinations.value {
-                    for (targetType, viewBuilder) in destinations {
-                        composable(route: Navigator.route(for: targetType, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                            if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
-                                let entryContext = context.content(stateSaver: state.stateSaver)
-                                ComposeEntry(navController: navController, isRoot: false, context: entryContext) { context in
-                                    viewBuilder(targetValue).Compose(context: context)
-                                }
+                for destinationIndex in 0..<Navigator.destinationCount {
+                    composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
+                        if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
+                            let entryContext = context.content(stateSaver: state.stateSaver)
+                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false, context: entryContext) { context in
+                                state.destination?(targetValue).Compose(context: context)
                             }
                         }
                     }
@@ -209,7 +237,7 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navController: NavHostController, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+    @Composable private func ComposeEntry(navController: NavHostController, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
@@ -240,8 +268,11 @@ public struct NavigationStack<Root> : View where Root: View {
                 )
             }
         ) { padding in
+            // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
+            // will be composed, and we want to retain destinations from previous entries
+            let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
             let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            PreferenceValues.shared.collectPreferences([titlePreference]) {
+            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference]) {
                 Box(modifier: Modifier.padding(padding).fillMaxSize().then(context.modifier), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(context.content())
                 }
@@ -258,7 +289,9 @@ public struct NavigationStack<Root> : View where Root: View {
 extension View {
     public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
         #if SKIP
-        return NavigationDestinationView(view: self, dataType: data as Any.Type, destination: { destination($0 as! D) })
+        let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
+        // SKIP REPLACE: return preference(NavigationDestinationsPreferenceKey::class, destinations)
+        return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
         #else
         return self
         #endif
@@ -289,25 +322,17 @@ extension View {
 }
 
 #if SKIP
-struct NavigationDestinationView: View {
-    let view: any View
-    let destinations: NavigationDestinations
+struct NavigationDestinationsPreferenceKey: PreferenceKey {
+    typealias Value = NavigationDestinations
 
-    init(view: any View, dataType: Any.Type, @ViewBuilder destination: @escaping (Any) -> any View) {
-        // Prevent copying the view
-        // SKIP REPLACE: this.view = view
-        self.view = view
-        if let navigationDestination = view as? NavigationDestinationView {
-            var combinedDestinations = navigationDestination.destinations
-            combinedDestinations[dataType] = destination
-            self.destinations = combinedDestinations
-        } else {
-            self.destinations = [dataType: destination]
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<NavigationDestinations>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: NavigationDestinations = [:]
+        func reduce(value: inout NavigationDestinations, nextValue: () -> NavigationDestinations) {
+            for (type, destination) in nextValue() {
+                value[type] = destination
+            }
         }
-    }
-
-    @Composable override func ComposeContent(context: ComposeContext) {
-        view.Compose(context: context)
     }
 }
 

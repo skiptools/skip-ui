@@ -2,62 +2,43 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public struct TabView<Content> : View where Content : View {
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    @available(*, unavailable)
+    public init(selection: Binding<Any>?, @ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    #if SKIP
+//    @Composable public override func ComposeContent(context: ComposeContext) {
+//        // Check to see if we've initialized our tab items from our content views .tabItem modifiers. If we haven't,
+//        // compose the content view with a custom composer that will capture the items. Note that 'content' is just a reference to
+//        // the enclosing ComposeView, so a custom composer is the only way to receive a reference to our actual content views.
+//        let rememberedItems = remember { mutableStateOf<NavigationDestinations?>(nil) }
+//        if rememberedItems.value == nil {
+//            root.Compose(context: context.content(composer: { view, context in
+//                rememberedItems.value = (view as? NavigationDestinationView)?.destinations ?? [:]
+//            }))
+//        }
+//        let items = rememberedItems.value ?? arrayOf()
+//
+//        //~~~
+//    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
 
-/// A view that switches between multiple child views using interactive user
-/// interface elements.
-///
-/// To create a user interface with tabs, place views in a `TabView` and apply
-/// the ``View/tabItem(_:)`` modifier to the contents of each tab. On iOS, you
-/// can also use one of the badge modifiers, like ``View/badge(_:)-84e43``, to
-/// assign a badge to each of the tabs.
-///
-/// The following example creates a tab view with three tabs, each presenting a
-/// custom child view. The first tab has a numeric badge and the third has a
-/// string badge.
-///
-///     TabView {
-///         ReceivedView()
-///             .badge(2)
-///             .tabItem {
-///                 Label("Received", systemImage: "tray.and.arrow.down.fill")
-///             }
-///         SentView()
-///             .tabItem {
-///                 Label("Sent", systemImage: "tray.and.arrow.up.fill")
-///             }
-///         AccountView()
-///             .badge("!")
-///             .tabItem {
-///                 Label("Account", systemImage: "person.crop.circle.fill")
-///             }
-///     }
-///
-/// ![A tab bar with three tabs, each with an icon image and a text label.
-/// The first and third tabs have badges.](TabView-1)
-///
-/// Use a ``Label`` for each tab item, or optionally a ``Text``, an ``Image``,
-/// or an image followed by text. Passing any other type of view results in a
-/// visible but empty tab item.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-public struct TabView<SelectionValue, Content> : View where SelectionValue : Hashable, Content : View {
-
-    /// Creates an instance that selects from content associated with
-    /// `Selection` values.
-    public init(selection: Binding<SelectionValue>?, @ViewBuilder content: () -> Content) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension TabView where SelectionValue == Int {
-
-    public init(@ViewBuilder content: () -> Content) { }
-}
+// TODO: Process for use in SkipUI
 
 /// A specification for the appearance and interaction of a `TabView`.
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
