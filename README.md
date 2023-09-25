@@ -81,7 +81,7 @@ To help fill in unimplemented API in SkipUI:
     - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
 1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Write unit tests if appropriate. When implementing a UI component or modifier, add a playground - or enhance an existing playground - to exercise your implementation in the [Skip playground app](https://github.com/skiptools/skipapp-playground).
-1. [Submit a PR.](pulls)
+1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
 
 Other forms of contributions such as test cases, comments, and documentation are also welcome!
 
