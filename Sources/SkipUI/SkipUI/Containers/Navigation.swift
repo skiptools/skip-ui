@@ -47,6 +47,108 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 #endif
 
+public struct NavigationStack<Root> : View where Root: View {
+    private let root: Root
+
+    public init(@ViewBuilder root: () -> Root) {
+        self.root = root()
+    }
+
+    @available(*, unavailable)
+    public init(path: Any, @ViewBuilder root: () -> Root) {
+        self.root = root()
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+        let preferencesDidChange = { preferenceUpdates.value += 1 }
+
+        // Have to use rememberSaveable for e.g. a nav stack in each tab
+        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
+        let navController = rememberNavController()
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
+        navigator.value.didCompose(navController: navController, destinations: destinations.value)
+
+        // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
+        CompositionLocalProvider(providedNavigator) {
+            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
+                composable(route: Navigator.rootRoute) { entry in
+                    if let state = navigator.value.state(for: entry) {
+                        let entryContext = context.content(stateSaver: state.stateSaver)
+                        ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
+                            root.Compose(context: context)
+                        }
+                    }
+                }
+                for destinationIndex in 0..<Navigator.destinationCount {
+                    composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
+                        if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
+                            let entryContext = context.content(stateSaver: state.stateSaver)
+                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false, context: entryContext) { context in
+                                state.destination?(targetValue).Compose(context: context)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeEntry(navController: NavHostController, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+
+        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
+
+        // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
+        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
+        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        Scaffold(
+            modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
+            topBar: {
+                guard !isRoot || !title.value.isEmpty else {
+                    return
+                }
+                MediumTopAppBar(
+                    colors: TopAppBarDefaults.topAppBarColors(
+                        containerColor: Color.systemBackground.colorImpl(),
+                        titleContentColor: MaterialTheme.colorScheme.onSurface
+                    ),
+                    title: {
+                        androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
+                    },
+                    navigationIcon: {
+                        if !isRoot {
+                            IconButton(onClick: { navController.popBackStack() }) {
+                                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+                            }
+                        }
+                    },
+                    scrollBehavior: scrollBehavior
+                )
+            }
+        ) { padding in
+            // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
+            // will be composed, and we want to retain destinations from previous entries
+            let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
+            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference]) {
+                Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    content(context.content())
+                }
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, NavigationDestination>
 struct NavigationDestination {
@@ -186,105 +288,6 @@ class Navigator {
 
 let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
-
-public struct NavigationStack<Root> : View where Root: View {
-    private let root: Root
-
-    public init(@ViewBuilder root: () -> Root) {
-        self.root = root()
-    }
-
-    @available(*, unavailable)
-    public init(path: Any, @ViewBuilder root: () -> Root) {
-        self.root = root()
-    }
-
-    #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let preferenceUpdates = remember { mutableStateOf(0) }
-        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-        let preferencesDidChange = { preferenceUpdates.value += 1 }
-
-        // Have to use rememberSaveable for e.g. a nav stack in each tab
-        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
-        let navController = rememberNavController()
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
-        navigator.value.didCompose(navController: navController, destinations: destinations.value)
-
-        // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
-        CompositionLocalProvider(providedNavigator) {
-            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
-                composable(route: Navigator.rootRoute) { entry in
-                    if let state = navigator.value.state(for: entry) {
-                        let entryContext = context.content(stateSaver: state.stateSaver)
-                        ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
-                            root.Compose(context: context)
-                        }
-                    }
-                }
-                for destinationIndex in 0..<Navigator.destinationCount {
-                    composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                        if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
-                            let entryContext = context.content(stateSaver: state.stateSaver)
-                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false, context: entryContext) { context in
-                                state.destination?(targetValue).Compose(context: context)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navController: NavHostController, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
-        let preferenceUpdates = remember { mutableStateOf(0) }
-        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-
-        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
-
-        // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
-        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-        Scaffold(
-            modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
-            topBar: {
-                MediumTopAppBar(
-                    colors: TopAppBarDefaults.topAppBarColors(
-                        containerColor: Color.systemBackground.colorImpl(),
-                        titleContentColor: MaterialTheme.colorScheme.onSurface
-                    ),
-                    title: {
-                        androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
-                    },
-                    navigationIcon: {
-                        if !isRoot {
-                            IconButton(onClick: { navController.popBackStack() }) {
-                                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
-                            }
-                        }
-                    },
-                    scrollBehavior: scrollBehavior
-                )
-            }
-        ) { padding in
-            // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
-            // will be composed, and we want to retain destinations from previous entries
-            let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
-            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference]) {
-                Box(modifier: Modifier.padding(padding).fillMaxSize().then(context.modifier), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    content(context.content())
-                }
-            }
-        }
-    }
-    #else
-    public var body: some View {
-        stubView()
-    }
-    #endif
-}
 
 extension View {
     public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
