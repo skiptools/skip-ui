@@ -36,12 +36,14 @@ SkipUI is a young library, and there is much left to do. The following table lis
 |`Group`|Full||
 |`HStack`|Full||
 |`Image`|Low|See [Images](#images)|
+|`Label`|Low|See [Images](#images)|
 |`List`|Medium|See [Lists](#lists)|
 |`NavigationLink`|Medium|See [Navigation](#navigation)|
 |`NavigationStack`|Medium|See [Navigation](#navigation)|
 |`ScrollView`|Full||
 |`Slider`|Medium|Labels, `onEditingChanged` not supported|
 |`Spacer`|Medium|`minLength` not supported|
+|`TabView`|Medium|See [Navigation](#navigation)|
 |`Text`|High|Formatting not supported|
 |`TextField`|High|Formatting not supported|
 |`Toggle`|Medium|Styling, `sources` not supported|
@@ -66,6 +68,7 @@ SkipUI is a young library, and there is much left to do. The following table lis
 |`.padding`|Full||
 |`.rotationEffect`|Medium||
 |`.scaleEffect`|Medium||
+|`.tabItem`|Full||
 |`.task`|Full||
 
 ## Contributing

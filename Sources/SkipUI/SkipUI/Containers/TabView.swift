@@ -2,62 +2,169 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+#endif
+
+public struct TabView<Content> : View where Content : View {
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    @available(*, unavailable)
+    public init(selection: Binding<Any>?, @ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    #if SKIP
+    @ExperimentalMaterial3Api
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        // Use a custom composer to count the number of child views in our content
+        var tabCount = 0
+        content.Compose(context: context.content(composer: { _, _ in tabCount += 1 }))
+
+        let navController = rememberNavController()
+        Scaffold(
+            modifier: context.modifier,
+            bottomBar: {
+                NavigationBar(modifier: Modifier.fillMaxWidth()) {
+                    for tabIndex in 0..<tabCount {
+                        // Use a custom composer to get the tabIndex'th tab item
+                        var composeIndex = 0
+                        var tabItem: TabItem = nil
+                        content.Compose(context: context.content(composer: { view, _ in
+                            if composeIndex == tabIndex {
+                                tabItem = view.strippingModifiers { $0 as? TabItem }
+                            }
+                            composeIndex += 1
+                        }))
+
+                        // Render it
+                        let tabItemContext = context.content()
+                        NavigationBarItem(
+                            icon: {
+                                tabItem?.ComposeImage(context: tabItemContext)
+                            },
+                            label: {
+                                tabItem?.ComposeTitle(context: tabItemContext)
+                            },
+                            selected: String(describing: tabIndex) == CurrentRoute(for: navController),
+                            onClick: {
+                                navController.navigate(String(describing: tabIndex)) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    // Avoid multiple copies of the same destination when reselecting the same item
+                                    launchSingleTop = true
+                                    // Restore state when reselecting a previously selected item
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        ) { padding in
+            NavHost(navController, startDestination: "0") {
+                // Use a constant number of routes. Changing routes causes a NavHost to reset its state
+                for tabIndex in 0..<100 {
+                    composable(String(describing: tabIndex)) {
+                        guard tabIndex < tabCount else {
+                            return
+                        }
+                        Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                            // Use a custom composer to only render the tabIndex'th view
+                            var composeIndex = 0
+                            content.Compose(context: context.content(composer: { view, context in
+                                if composeIndex == tabIndex {
+                                    view.ComposeContent(context: context)
+                                }
+                                composeIndex += 1
+                            }))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable func CurrentRoute(for navController: NavHostController) -> String? {
+        // In your BottomNavigation composable, get the current NavBackStackEntry using the currentBackStackEntryAsState() function. This entry gives you access to the current NavDestination. The selected state of each BottomNavigationItem can then be determined by comparing the item's route with the route of the current destination and its parent destinations (to handle cases when you are using nested navigation) via the NavDestination hierarchy.
+        navController.currentBackStackEntryAsState().value?.destination?.route
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#if SKIP
+struct TabItem: View {
+    let view: View
+    let label: View
+
+    init(view: View, @ViewBuilder label: () -> View) {
+        // Don't copy view
+        // SKIP REPLACE: this.view = view
+        self.view = view
+        self.label = label()
+    }
+
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        view.Compose(context: context)
+    }
+
+    @Composable func ComposeTitle(context: ComposeContext) {
+        label.Compose(context: context.content(composer: { view, context in
+            let stripped = view.strippingModifiers { $0 }
+            if let label = stripped as? Label {
+                label.ComposeTitle(context: context)
+            } else if stripped is Text {
+                view.ComposeContent(context: context)
+            }
+        }))
+    }
+
+    @Composable func ComposeImage(context: ComposeContext) {
+        label.Compose(context: context.content(composer: { view, context in
+            let stripped = view.strippingModifiers { $0 }
+            if let label = stripped as? Label {
+                label.ComposeImage(context: context)
+            } else if stripped is Image {
+                view.Compose(context: context)
+            }
+        }))
+    }
+}
+#endif
+
+extension View {
+    public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
+        #if SKIP
+        return TabItem(view: self, label: label)
+        #else
+        return self
+        #endif
+    }
+}
 
 #if !SKIP
 
-/// A view that switches between multiple child views using interactive user
-/// interface elements.
-///
-/// To create a user interface with tabs, place views in a `TabView` and apply
-/// the ``View/tabItem(_:)`` modifier to the contents of each tab. On iOS, you
-/// can also use one of the badge modifiers, like ``View/badge(_:)-84e43``, to
-/// assign a badge to each of the tabs.
-///
-/// The following example creates a tab view with three tabs, each presenting a
-/// custom child view. The first tab has a numeric badge and the third has a
-/// string badge.
-///
-///     TabView {
-///         ReceivedView()
-///             .badge(2)
-///             .tabItem {
-///                 Label("Received", systemImage: "tray.and.arrow.down.fill")
-///             }
-///         SentView()
-///             .tabItem {
-///                 Label("Sent", systemImage: "tray.and.arrow.up.fill")
-///             }
-///         AccountView()
-///             .badge("!")
-///             .tabItem {
-///                 Label("Account", systemImage: "person.crop.circle.fill")
-///             }
-///     }
-///
-/// ![A tab bar with three tabs, each with an icon image and a text label.
-/// The first and third tabs have badges.](TabView-1)
-///
-/// Use a ``Label`` for each tab item, or optionally a ``Text``, an ``Image``,
-/// or an image followed by text. Passing any other type of view results in a
-/// visible but empty tab item.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-public struct TabView<SelectionValue, Content> : View where SelectionValue : Hashable, Content : View {
-
-    /// Creates an instance that selects from content associated with
-    /// `Selection` values.
-    public init(selection: Binding<SelectionValue>?, @ViewBuilder content: () -> Content) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension TabView where SelectionValue == Int {
-
-    public init(@ViewBuilder content: () -> Content) { }
-}
+// TODO: Process for use in SkipUI
 
 /// A specification for the appearance and interaction of a `TabView`.
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)

@@ -2,139 +2,86 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.LocalDensity
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+#endif
+
+public struct Label : View {
+    let title: any View
+    let image: any View
+
+    public init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View) {
+        self.title = title()
+        self.image = icon()
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, image name: String) {
+        self.title = Text(titleKey)
+        self.image = EmptyView()
+    }
+
+    public init(_ titleKey: LocalizedStringKey, systemImage name: String) {
+        self.title = Text(titleKey)
+        self.image = Image(systemName: name)
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, image name: String) {
+        self.title = Text(title)
+        self.image = EmptyView()
+    }
+
+    public init(_ title: String, systemImage name: String) {
+        self.title = Text(title)
+        self.image = Image(systemName: name)
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let contentContext = context.content()
+        Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            image.Compose(context: contentContext)
+            title.Compose(context: contentContext)
+        }
+    }
+
+    /// Compose only the title of this label.
+    @Composable func ComposeTitle(context: ComposeContext) {
+        title.Compose(context: context)
+    }
+
+    /// Compose only the imgae of this label.
+    @Composable func ComposeImage(context: ComposeContext) {
+        let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+        let textSizeDp = with(LocalDensity.current) {
+            textStyle.fontSize.toDp()
+        }
+        image.Compose(context: context.content(modifier: Modifier.height(textSizeDp).then(context.modifier)))
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
+
 import protocol Foundation.ParseableFormatStyle
 import protocol Foundation.FormatStyle
 import protocol Foundation.ReferenceConvertible
 
-/// A standard label for user interface items, consisting of an icon with a
-/// title.
-///
-/// One of the most common and recognizable user interface components is the
-/// combination of an icon and a label. This idiom appears across many kinds of
-/// apps and shows up in collections, lists, menus of action items, and
-/// disclosable lists, just to name a few.
-///
-/// You create a label, in its simplest form, by providing a title and the name
-/// of an image, such as an icon from the
-/// symbols collection:
-///
-///     Label("Lightning", systemImage: "bolt.fill")
-///
-/// You can also apply styles to labels in several ways. In the case of dynamic
-/// changes to the view after device rotation or change to a window size you
-/// might want to show only the text portion of the label using the
-/// ``LabelStyle/titleOnly`` label style:
-///
-///     Label("Lightning", systemImage: "bolt.fill")
-///         .labelStyle(.titleOnly)
-///
-/// Conversely, there's also an icon-only label style:
-///
-///     Label("Lightning", systemImage: "bolt.fill")
-///         .labelStyle(.iconOnly)
-///
-/// Some containers might apply a different default label style, such as only
-/// showing icons within toolbars on macOS and iOS. To opt in to showing both
-/// the title and the icon, you can apply the ``LabelStyle/titleAndIcon`` label
-/// style:
-///
-///     Label("Lightning", systemImage: "bolt.fill")
-///         .labelStyle(.titleAndIcon)
-///
-/// You can also create a customized label style by modifying an existing
-/// style; this example adds a red border to the default label style:
-///
-///     struct RedBorderedLabelStyle: LabelStyle {
-///         func makeBody(configuration: Configuration) -> some View {
-///             Label(configuration)
-///                 .border(Color.red)
-///         }
-///     }
-///
-/// For more extensive customization or to create a completely new label style,
-/// you'll need to adopt the ``LabelStyle`` protocol and implement a
-/// ``LabelStyleConfiguration`` for the new style.
-///
-/// To apply a common label style to a group of labels, apply the style
-/// to the view hierarchy that contains the labels:
-///
-///     VStack {
-///         Label("Rain", systemImage: "cloud.rain")
-///         Label("Snow", systemImage: "snow")
-///         Label("Sun", systemImage: "sun.max")
-///     }
-///     .labelStyle(.iconOnly)
-///
-/// It's also possible to make labels using views to compose the label's icon
-/// programmatically, rather than using a pre-made image. In this example, the
-/// icon portion of the label uses a filled ``Circle`` overlaid
-/// with the user's initials:
-///
-///     Label {
-///         Text(person.fullName)
-///             .font(.body)
-///             .foregroundColor(.primary)
-///         Text(person.title)
-///             .font(.subheadline)
-///             .foregroundColor(.secondary)
-///     } icon: {
-///         Circle()
-///             .fill(person.profileColor)
-///             .frame(width: 44, height: 44, alignment: .center)
-///             .overlay(Text(person.initials))
-///     }
-///
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct Label<Title, Icon> : View where Title : View, Icon : View {
-
-    /// Creates a label with a custom title and icon.
-    public init(@ViewBuilder title: () -> Title, @ViewBuilder icon: () -> Icon) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Label where Title == Text, Icon == Image {
-
-    /// Creates a label with an icon image and a title generated from a
-    /// localized string.
-    ///
-    /// - Parameters:
-    ///    - titleKey: A title generated from a localized string.
-    ///    - image: The name of the image resource to lookup.
-    public init(_ titleKey: LocalizedStringKey, image name: String) { fatalError() }
-
-    /// Creates a label with a system icon image and a title generated from a
-    /// localized string.
-    ///
-    /// - Parameters:
-    ///    - titleKey: A title generated from a localized string.
-    ///    - systemImage: The name of the image resource to lookup.
-    public init(_ titleKey: LocalizedStringKey, systemImage name: String) { fatalError() }
-
-    /// Creates a label with an icon image and a title generated from a string.
-    ///
-    /// - Parameters:
-    ///    - title: A string used as the label's title.
-    ///    - image: The name of the image resource to lookup.
-    public init<S>(_ title: S, image name: String) where S : StringProtocol { fatalError() }
-
-    /// Creates a label with a system icon image and a title generated from a
-    /// string.
-    ///
-    /// - Parameters:
-    ///    - title: A string used as the label's title.
-    ///    - systemImage: The name of the image resource to lookup.
-    public init<S>(_ title: S, systemImage name: String) where S : StringProtocol { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Label where Title == LabelStyleConfiguration.Title, Icon == LabelStyleConfiguration.Icon {
+extension Label /* where Title == LabelStyleConfiguration.Title, Icon == LabelStyleConfiguration.Icon */ {
 
     /// Creates a label representing the configuration of a style.
     ///

@@ -6861,50 +6861,6 @@ extension View {
 
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension View {
-
-    /// Sets the tab bar item associated with this view.
-    ///
-    /// Use `tabItem(_:)` to configure a view as a tab bar item in a
-    /// ``TabView``. The example below adds two views as tabs in a ``TabView``:
-    ///
-    ///     struct View1: View {
-    ///         var body: some View {
-    ///             Text("View 1")
-    ///         }
-    ///     }
-    ///
-    ///     struct View2: View {
-    ///         var body: some View {
-    ///             Text("View 2")
-    ///         }
-    ///     }
-    ///
-    ///     struct TabItem: View {
-    ///         var body: some View {
-    ///             TabView {
-    ///                 View1()
-    ///                     .tabItem {
-    ///                         Label("Menu", systemImage: "list.dash")
-    ///                     }
-    ///
-    ///                 View2()
-    ///                     .tabItem {
-    ///                         Label("Order", systemImage: "square.and.pencil")
-    ///                     }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// ![A screenshot of a two views configured as tab items in a tab
-    /// view.](SkipUI-View-tabItem.png)
-    ///
-    /// - Parameter label: The tab bar item to associate with this view.
-    public func tabItem<V>(@ViewBuilder _ label: () -> V) -> some View where V : View { return stubView() }
-
-}
-
 @available(iOS 13.0, macOS 10.15, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
