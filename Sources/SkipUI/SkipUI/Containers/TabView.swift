@@ -7,13 +7,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 #endif
 
@@ -44,7 +50,7 @@ public struct TabView<Content> : View where Content : View {
                     for tabIndex in 0..<tabCount {
                         // Use a custom composer to get the tabIndex'th tab item
                         var composeIndex = 0
-                        var tabItem: TabItem = nil
+                        var tabItem: TabItem? = nil
                         content.Compose(context: context.content(composer: { view, _ in
                             if composeIndex == tabIndex {
                                 tabItem = view.strippingModifiers { $0 as? TabItem }

@@ -1322,7 +1322,7 @@ extension ContentSizeCategory {
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Label where Title == Text, Icon == Image {
+extension Label /* where Title == Text, Icon == Image */ {
 
     /// Creates a label with an icon image and a title generated from a
     /// localized string.

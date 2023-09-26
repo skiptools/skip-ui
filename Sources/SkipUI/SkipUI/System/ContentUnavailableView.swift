@@ -69,7 +69,7 @@ public struct ContentUnavailableView<LabelX, Description, Actions> : View where 
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension ContentUnavailableView where LabelX == Label<Text, Image>, Description == Text?, Actions == EmptyView {
+extension ContentUnavailableView where LabelX == Label /*<Text, Image>*/, Description == Text?, Actions == EmptyView {
 
     /// Creates an interface, consisting of a title generated from a localized
     /// string, an image and additional content, that you display when the

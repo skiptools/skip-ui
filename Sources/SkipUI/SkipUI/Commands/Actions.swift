@@ -463,7 +463,7 @@ public struct RenameAction {
 public struct RenameButton<LabelX> : View where LabelX : View {
 
     /// Creates a rename button.
-    public init() where LabelX == Label<Text, Image> { fatalError() }
+    public init() where LabelX == Label /*<Text, Image>*/ { fatalError() }
 
     @MainActor public var body: some View { get { return stubView() } }
 
