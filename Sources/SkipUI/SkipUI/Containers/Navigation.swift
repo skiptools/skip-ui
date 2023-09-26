@@ -307,7 +307,6 @@ extension View {
     public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
         #if SKIP
         let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
-        // SKIP REPLACE: return preference(NavigationDestinationsPreferenceKey::class, destinations)
         return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
         #else
         return self
@@ -325,7 +324,6 @@ extension View {
 
     public func navigationTitle(_ title: String) -> some View {
         #if SKIP
-        // SKIP REPLACE: return preference(NavigationTitlePreferenceKey::class, title)
         return preference(key: NavigationTitlePreferenceKey.self, value: title)
         #else
         return self
