@@ -3,6 +3,8 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+
 #endif
 
 public struct TabView<Content> : View where Content : View {
@@ -84,7 +87,10 @@ public struct TabView<Content> : View where Content : View {
                 }
             }
         ) { padding in
-            NavHost(navController, startDestination: "0") {
+            NavHost(navController, 
+                    startDestination: "0", 
+                    enterTransition: { EnterTransition.None },
+                    exitTransition: { ExitTransition.None }) {
                 // Use a constant number of routes. Changing routes causes a NavHost to reset its state
                 for tabIndex in 0..<100 {
                     composable(String(describing: tabIndex)) {

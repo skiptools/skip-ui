@@ -3,6 +3,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,8 +77,14 @@ public struct NavigationStack<Root> : View where Root: View {
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
-            NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: context.modifier) {
-                composable(route: Navigator.rootRoute) { entry in
+            NavHost(navController: navController,
+                    startDestination: Navigator.rootRoute,
+                    //enterTransition: { EnterTransition.None },
+                    exitTransition: { ExitTransition.None },
+                    modifier: context.modifier) {
+                composable(route: Navigator.rootRoute,
+                           enterTransition: { slideInHorizontally() },
+                           exitTransition: { slideOutHorizontally() }) { entry in
                     if let state = navigator.value.state(for: entry) {
                         let entryContext = context.content(stateSaver: state.stateSaver)
                         ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
@@ -86,7 +96,11 @@ public struct NavigationStack<Root> : View where Root: View {
                     composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
                         if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                             let entryContext = context.content(stateSaver: state.stateSaver)
-                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false, context: entryContext) { context in
+                            ComposeEntry(navController: navController,
+                                         destinations: destinations,
+                                         destinationsDidChange: preferencesDidChange,
+                                         isRoot: false,
+                                         context: entryContext) { context in
                                 state.destination?(targetValue).Compose(context: context)
                             }
                         }
