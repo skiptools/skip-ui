@@ -2,16 +2,22 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import struct Foundation.URL
+import struct Foundation.Data
+import class Foundation.UserDefaults
+
 #if SKIP
-// Model AppStorage as a class rather than struct to avoid copy overhead on mutation
+
 public final class AppStorage<Value> {
+    public let key: String
+    public let store: UserDefaults?
     private var onUpdate: ((Value) -> Void)?
+    /// The property change listener from the UserDefaults
+    private var listener: AnyObject? = nil
 
-    public init(initialValue: Value) {
-        wrappedValue = initialValue
-    }
-
-    public init(wrappedValue: Value) {
+    public init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil) {
+        self.key = key
+        self.store = store
         self.wrappedValue = wrappedValue
     }
 
@@ -25,18 +31,39 @@ public final class AppStorage<Value> {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 
+    /// The current active store
+    private var currentStore: UserDefaults {
+        // TODO: handle Scene.defaultAppStorage() and View.defaultAppStorage() by storing it in the environment
+        return store ?? UserDefaults.standard
+    }
+
     /// Used to keep the state value synchronized with an external Compose value.
     public func sync(value: Value, onUpdate: @escaping (Value) -> Void) {
+        let store = self.currentStore
         self.wrappedValue = value
-        self.onUpdate = onUpdate
+
+        func updateStateValueFromDefaults() {
+            if let storedValue = store.object(forKey: key) as? Value {
+                onUpdate(storedValue)
+            }
+        }
+
+        updateStateValueFromDefaults()
+
+        // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
+        // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
+        self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
+            updateStateValueFromDefaults()
+        }
+
+        self.onUpdate = { value in
+            onUpdate(value)
+            currentStore.set(value, forKey: key)
+        }
     }
 }
-#endif
 
-#if !SKIP
-import struct Foundation.URL
-import struct Foundation.Data
-import class Foundation.UserDefaults
+#else
 
 /// A property wrapper type that reflects a value from `UserDefaults` and
 /// invalidates a view on a change in value in that user default.
