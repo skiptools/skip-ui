@@ -220,9 +220,11 @@ Note that `ComposeView` and the `Compose()` function are only available in Andro
 
 ### Images
 
-SkipUI currently only supports the `Image(systemName:)` constructor. The following table details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources and URLs is also not yet supported. Until it is, consider [embedding Compose code](#composeview) directly.
+SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources and URLs is also not yet supported. These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
 
-These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
+In addition to the system images below, you can display any emoji using `Text`. 
+
+If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource and URL loading is implemented.
 
 |iOS|Android|
 |---|-------|
@@ -339,7 +341,7 @@ These restrictions also apply to other components that load images, such as `Swi
 |wrench|Icons.Outlined.Settings|
 |wrench.fill|Icons.Filled.Settings|
 
-In Android-only code, you can also supply any `Icons` image name as the `systemName`. For example:
+In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
 
 ```swift
 #if SKIP
@@ -349,7 +351,39 @@ Image(systemName: "Icons.Filled.Settings")
 
 ### Lists
 
-Documentation in progress
+SwiftUI `Lists` are powerful and flexible components. SkipUI currently supports the following patterns for specifying `List` content.
+
+Static content. Embed a child view for each row directly within the `List`:
+
+```swift
+List {
+    Text("Row 1")
+    Text("Row 2")
+    Text("Row 3")
+}
+```
+
+Indexed content. Specify an `Int` range and a closure to create a row for each index:
+
+```swift
+List(1...100) { index in 
+    Text("Row \(index)")
+}
+```
+
+Collection content. Supply any `RandomAccessCollection` - typically an `Array` - and a closure to create a row for each element. If the elements do not implement the `Identifiable` protocol, specify the key path to a property that can be used to uniquely identify each element:
+
+```swift
+List([person1, person2, person3], id: \.fullName) { person in
+    HStack {
+        Text(person.fullName)
+        Spacer()
+        Text(person.age)
+    } 
+}
+```
+
+Note in particular that `ForEach` is not yet supported.
 
 ### Navigation
 

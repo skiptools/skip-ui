@@ -54,6 +54,10 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         self.init(fixedContent: content())
     }
 
+    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
+        self.init(indexRange: data, indexedContent: rowContent)
+    }
+
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
@@ -164,12 +168,6 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         stubView()
     }
     #endif
-
-    // MARK: -
-
-    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
-        self.init(indexRange: data, indexedContent: rowContent)
-    }
 }
 
 /// Adopted by views that adapt when used as a list item.
