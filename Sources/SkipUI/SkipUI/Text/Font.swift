@@ -45,47 +45,47 @@ extension Font {
     // manual offsets are applied to the default font sizes to get them to line up with SwiftUI default sizes; see TextTests.swift
 
     public static let largeTitle = Font(fontImpl: {
-        adjust(MaterialTheme.typography.titleLarge, by: Float(+8.0)) // 41.0px height
+        adjust(MaterialTheme.typography.titleLarge, by: Float(+9.0 + 1.0))
     })
 
     public static let title = Font(fontImpl: {
-        adjust(MaterialTheme.typography.headlineMedium, by: Float(-3.0))
+        adjust(MaterialTheme.typography.headlineMedium, by: Float(-2.0))
     })
 
     public static let title2 = Font(fontImpl: {
-        adjust(MaterialTheme.typography.headlineSmall, by: Float(-5.0))
+        adjust(MaterialTheme.typography.headlineSmall, by: Float(-5.0 + 1.0))
     })
 
     public static let title3 = Font(fontImpl: {
-        adjust(MaterialTheme.typography.headlineSmall, by: Float(-6.5))
+        adjust(MaterialTheme.typography.headlineSmall, by: Float(-6.0))
     })
 
     public static let headline = Font(fontImpl: {
-        adjust(MaterialTheme.typography.titleMedium, by: Float(-1.0))
+        adjust(MaterialTheme.typography.titleMedium, by: Float(0.0))
     })
 
     public static let subheadline = Font(fontImpl: {
-        adjust(MaterialTheme.typography.titleSmall, by: Float(-1.0))
+        adjust(MaterialTheme.typography.titleSmall, by: Float(0.0))
     })
 
     public static let body = Font(fontImpl: {
-        adjust(MaterialTheme.typography.bodyLarge, by: Float(-1.0))
+        adjust(MaterialTheme.typography.bodyLarge, by: Float(0.0))
     })
 
     public static let callout = Font(fontImpl:  {
-        adjust(MaterialTheme.typography.bodyMedium, by: Float(+0.5))
+        adjust(MaterialTheme.typography.bodyMedium, by: Float(+1.0))
     })
 
     public static let footnote = Font(fontImpl: {
-        adjust(MaterialTheme.typography.bodySmall, by: Float(-0.8))
+        adjust(MaterialTheme.typography.bodySmall, by: Float(+0.0))
     })
 
     public static let caption = Font(fontImpl: {
-        adjust(MaterialTheme.typography.bodySmall, by: Float(-1.0))
+        adjust(MaterialTheme.typography.bodySmall, by: Float(-0.75))
     })
 
     public static let caption2 = Font(fontImpl:  {
-        adjust(MaterialTheme.typography.bodySmall, by: Float(-2.0))
+        adjust(MaterialTheme.typography.bodySmall, by: Float(-1.0))
     })
 
     private static func adjust(_ style: androidx.compose.ui.text.TextStyle, by amount: Float) -> androidx.compose.ui.text.TextStyle {
