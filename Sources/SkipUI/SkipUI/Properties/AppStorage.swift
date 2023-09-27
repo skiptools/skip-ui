@@ -37,22 +37,20 @@ public final class AppStorage<Value> {
     }
 
     /// Used to keep the state value synchronized with an external Compose value.
-    public func sync(value: Value, onUpdate: @escaping (Value) -> Void) {
+    public func sync(value initialValue: Value, onUpdate: @escaping (Value) -> Void) {
         let store = self.currentStore
-        self.wrappedValue = value
 
-        func updateStateValueFromDefaults() {
-            if let storedValue = store.object(forKey: key) as? Value {
-                onUpdate(storedValue)
-            }
+        func currentValue() -> Value {
+            store.object(forKey: key) as? Value ?? initialValue
         }
 
-        updateStateValueFromDefaults()
+        self.wrappedValue = currentValue()
+        onUpdate(currentValue())
 
         // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
         // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
         self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
-            updateStateValueFromDefaults()
+            onUpdate(currentValue())
         }
 
         self.onUpdate = { value in
