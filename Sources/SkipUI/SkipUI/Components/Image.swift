@@ -88,140 +88,41 @@ public struct Image : View, Equatable, Sendable {
 
     private func systemImage(named name: String) -> ImageVector? {
         switch name {
-        case "square.and.pencil": return Icons.Outlined.Edit
-        case "square.and.pencil.fill": return Icons.Filled.Edit
-
-        case "person.2": return Icons.Outlined.Person
-        case "person.2.fill": return Icons.Filled.Person
-
-        case "message": return Icons.Outlined.Message
-        case "message.fill": return Icons.Filled.Message
-
-        case "paperplane": return Icons.Outlined.Send
-        case "paperplane.fill": return Icons.Filled.Send
-
-        case "bell.slash": return Icons.Outlined.NotificationsOff
-        case "bell.slash.fill": return Icons.Filled.NotificationsOff
-
-        case "house": return Icons.Outlined.Home
-        case "house.fill": return Icons.Filled.Home
-
-        case "gear": return Icons.Outlined.Settings
-        case "gear.fill": return Icons.Filled.Settings
-
-        case "gearshape": return Icons.Outlined.Settings
-        case "gearshape.fill": return Icons.Filled.Settings
-
-        case "star": return Icons.Outlined.Star
-        case "star.fill": return Icons.Filled.Star
-
-        case "person.crop.circle": return Icons.Outlined.AccountCircle
-        case "person.crop.circle.fill": return Icons.Filled.AccountCircle
-
-        case "calendar": return Icons.Outlined.CalendarToday
-        case "calendar.fill": return Icons.Filled.CalendarToday
-
-        case "camera": return Icons.Outlined.Camera
-        case "camera.fill": return Icons.Filled.Camera
-
-        case "cloud": return Icons.Outlined.Cloud
-        case "cloud.fill": return Icons.Filled.Cloud
-
-        case "music.note": return Icons.Outlined.MusicNote
-        case "music.note.fill": return Icons.Filled.MusicNote
-
-        case "globe.americas": return Icons.Outlined.Public
-        case "globe.americas.fill": return Icons.Filled.Public
-
-        case "sun.max": return Icons.Outlined.WbSunny
-        case "sun.max.fill": return Icons.Filled.WbSunny
-
-        case "moon": return Icons.Outlined.Nightlight
-        case "moon.fill": return Icons.Filled.Nightlight
-
-        case "book": return Icons.Outlined.Book
-        case "book.fill": return Icons.Filled.Book
-
-        case "gamecontroller": return Icons.Outlined.VideogameAsset
-        case "gamecontroller.fill": return Icons.Filled.VideogameAsset
-
-        case "flag": return Icons.Outlined.Flag
-        case "flag.fill": return Icons.Filled.Flag
-
-        case "heart": return Icons.Outlined.Favorite
-        case "heart.fill": return Icons.Filled.Favorite
-
-        case "bolt": return Icons.Outlined.FlashOn
-        case "bolt.fill": return Icons.Filled.FlashOn
-
-        case "camera.metering.center.weighted": return Icons.Outlined.CenterFocusStrong
-        case "camera.metering.center.weighted.fill": return Icons.Filled.CenterFocusStrong
-
-        case "bandage": return Icons.Outlined.Healing
-        case "bandage.fill": return Icons.Filled.Healing
-
-        case "headphones.circle": return Icons.Outlined.Headset
-        case "headphones.circle.fill": return Icons.Filled.Headset
-
-        case "hourglass": return Icons.Outlined.HourglassFull
-        case "hourglass.fill": return Icons.Filled.HourglassFull
-
-        case "mic": return Icons.Outlined.Mic
-        case "mic.fill": return Icons.Filled.Mic
-
-        case "eye.slash": return Icons.Outlined.VisibilityOff
-        case "eye.slash.fill": return Icons.Filled.VisibilityOff
-
-        case "heart.slash": return Icons.Outlined.FavoriteBorder
-        case "heart.slash.fill": return Icons.Filled.FavoriteBorder
-
-        case "video": return Icons.Outlined.VideoCall
-        case "video.fill": return Icons.Filled.VideoCall
-
-        case "printer": return Icons.Outlined.Print
-        case "printer.fill": return Icons.Filled.Print
-
-        case "cart": return Icons.Outlined.ShoppingCart
-        case "cart.fill": return Icons.Filled.ShoppingCart
-
-        case "wifi.slash": return Icons.Outlined.WifiOff
-        case "wifi.slash.fill": return Icons.Filled.WifiOff
-
-        case "person.badge.plus": return Icons.Outlined.PersonAdd
-        case "person.badge.plus.fill": return Icons.Filled.PersonAdd
-
-        case "folder": return Icons.Outlined.Folder
-        case "folder.fill": return Icons.Filled.Folder
-
-        case "pianokeys": return Icons.Outlined.MusicNote
-        case "pianokeys.fill": return Icons.Filled.MusicNote
-
-        case "gamecontroller": return Icons.Outlined.VideogameAsset
-        case "gamecontroller.fill": return Icons.Filled.VideogameAsset
-
-        case "sunrise": return Icons.Outlined.WbSunny
-        case "sunrise.fill": return Icons.Filled.WbSunny
-
-        case "lock": return Icons.Outlined.Lock
-        case "lock.fill": return Icons.Filled.Lock
-
-        case "paperclip.circle": return Icons.Outlined.AttachFile
-        case "paperclip.circle.fill": return Icons.Filled.AttachFile
-
         case "alarm": return Icons.Outlined.Alarm
         case "alarm.fill": return Icons.Filled.Alarm
 
         case "arrow.down.circle": return Icons.Outlined.ArrowDownward
         case "arrow.down.circle.fill": return Icons.Filled.ArrowDownward
 
+        case "bandage": return Icons.Outlined.Healing
+        case "bandage.fill": return Icons.Filled.Healing
+
+        case "bell.slash": return Icons.Outlined.NotificationsOff
+        case "bell.slash.fill": return Icons.Filled.NotificationsOff
+
+        case "bolt": return Icons.Outlined.FlashOn
+        case "bolt.fill": return Icons.Filled.FlashOn
+
         case "book": return Icons.Outlined.Book
         case "book.fill": return Icons.Filled.Book
+
+        case "calendar": return Icons.Outlined.CalendarToday
+        case "calendar.fill": return Icons.Filled.CalendarToday
 
         case "calendar.circle": return Icons.Outlined.Event
         case "calendar.circle.fill": return Icons.Filled.Event
 
+        case "camera": return Icons.Outlined.Camera
+        case "camera.fill": return Icons.Filled.Camera
+
+        case "camera.metering.center.weighted": return Icons.Outlined.CenterFocusStrong
+        case "camera.metering.center.weighted.fill": return Icons.Filled.CenterFocusStrong
+
         case "car": return Icons.Outlined.DirectionsCar
         case "car.fill": return Icons.Filled.DirectionsCar
+
+        case "cart": return Icons.Outlined.ShoppingCart
+        case "cart.fill": return Icons.Filled.ShoppingCart
 
         case "cloud": return Icons.Outlined.Cloud
         case "cloud.fill": return Icons.Filled.Cloud
@@ -235,14 +136,56 @@ public struct Image : View, Equatable, Sendable {
         case "envelope": return Icons.Outlined.Email
         case "envelope.fill": return Icons.Filled.Email
 
+        case "eye.slash": return Icons.Outlined.VisibilityOff
+        case "eye.slash.fill": return Icons.Filled.VisibilityOff
+
         case "film": return Icons.Outlined.Movie
         case "film.fill": return Icons.Filled.Movie
+
+        case "flag": return Icons.Outlined.Flag
+        case "flag.fill": return Icons.Filled.Flag
+
+        case "folder": return Icons.Outlined.Folder
+        case "folder.fill": return Icons.Filled.Folder
+
+        case "gamecontroller": return Icons.Outlined.VideogameAsset
+        case "gamecontroller.fill": return Icons.Filled.VideogameAsset
+
+        case "gear": return Icons.Outlined.Settings
+        case "gear.fill": return Icons.Filled.Settings
+
+        case "gearshape": return Icons.Outlined.Settings
+        case "gearshape.fill": return Icons.Filled.Settings
 
         case "gift": return Icons.Outlined.CardGiftcard
         case "gift.fill": return Icons.Filled.CardGiftcard
 
+        case "globe.americas": return Icons.Outlined.Public
+        case "globe.americas.fill": return Icons.Filled.Public
+
+        case "headphones.circle": return Icons.Outlined.Headset
+        case "headphones.circle.fill": return Icons.Filled.Headset
+
+        case "heart": return Icons.Outlined.Favorite
+        case "heart.fill": return Icons.Filled.Favorite
+
+        case "heart.slash": return Icons.Outlined.FavoriteBorder
+        case "heart.slash.fill": return Icons.Filled.FavoriteBorder
+
         case "home": return Icons.Outlined.Home
         case "home.fill": return Icons.Filled.Home
+
+        case "hourglass": return Icons.Outlined.HourglassFull
+        case "hourglass.fill": return Icons.Filled.HourglassFull
+
+        case "house": return Icons.Outlined.Home
+        case "house.fill": return Icons.Filled.Home
+
+        case "info": return Icons.Outlined.Info
+        case "info.fill": return Icons.Filled.Info
+
+        case "lock": return Icons.Outlined.Lock
+        case "lock.fill": return Icons.Filled.Lock
 
         case "lightbulb": return Icons.Outlined.WbIncandescent
         case "lightbulb.fill": return Icons.Filled.WbIncandescent
@@ -250,23 +193,68 @@ public struct Image : View, Equatable, Sendable {
         case "magnifyingglass": return Icons.Outlined.Search
         case "magnifyingglass.fill": return Icons.Filled.Search
 
+        case "message": return Icons.Outlined.Message
+        case "message.fill": return Icons.Filled.Message
+
+        case "mic": return Icons.Outlined.Mic
+        case "mic.fill": return Icons.Filled.Mic
+
+        case "moon": return Icons.Outlined.Nightlight
+        case "moon.fill": return Icons.Filled.Nightlight
+
         case "music.note": return Icons.Outlined.MusicNote
         case "music.note.fill": return Icons.Filled.MusicNote
+
+        case "paperclip.circle": return Icons.Outlined.AttachFile
+        case "paperclip.circle.fill": return Icons.Filled.AttachFile
+
+        case "paperplane": return Icons.Outlined.Send
+        case "paperplane.fill": return Icons.Filled.Send
 
         case "pencil": return Icons.Outlined.Edit
         case "pencil.fill": return Icons.Filled.Edit
 
+        case "person.2": return Icons.Outlined.Person
+        case "person.2.fill": return Icons.Filled.Person
+
+        case "person.badge.plus": return Icons.Outlined.PersonAdd
+        case "person.badge.plus.fill": return Icons.Filled.PersonAdd
+
+        case "person.crop.circle": return Icons.Outlined.AccountCircle
+        case "person.crop.circle.fill": return Icons.Filled.AccountCircle
+
         case "phone": return Icons.Outlined.Phone
         case "phone.fill": return Icons.Filled.Phone
+
+        case "pianokeys": return Icons.Outlined.MusicNote
+        case "pianokeys.fill": return Icons.Filled.MusicNote
+
+        case "printer": return Icons.Outlined.Print
+        case "printer.fill": return Icons.Filled.Print
+
+        case "square.and.pencil": return Icons.Outlined.Edit
+        case "square.and.pencil.fill": return Icons.Filled.Edit
+
+        case "star": return Icons.Outlined.Star
+        case "star.fill": return Icons.Filled.Star
+
+        case "sun.max": return Icons.Outlined.WbSunny
+        case "sun.max.fill": return Icons.Filled.WbSunny
+
+        case "sunrise": return Icons.Outlined.WbSunny
+        case "sunrise.fill": return Icons.Filled.WbSunny
 
         case "trash": return Icons.Outlined.Delete
         case "trash.fill": return Icons.Filled.Delete
 
+        case "video": return Icons.Outlined.VideoCall
+        case "video.fill": return Icons.Filled.VideoCall
+
+        case "wifi.slash": return Icons.Outlined.WifiOff
+        case "wifi.slash.fill": return Icons.Filled.WifiOff
+
         case "wrench": return Icons.Outlined.Settings
         case "wrench.fill": return Icons.Filled.Settings
-
-        case "info": return Icons.Outlined.Info
-        case "info.fill": return Icons.Filled.Info
 
         // fallbacks for actual android symbol names
 

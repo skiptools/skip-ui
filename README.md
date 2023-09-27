@@ -39,7 +39,7 @@ Other forms of contributions such as test cases, comments, and documentation are
 
 ### Code Transformations
 
-SkipUI does not work in isolation. It depends on transformations the [skip](https://source.skip.tools/skip) transpiler plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+SkipUI does not work in isolation. It depends on transformations the [skip](https://source.skip.tools/skip) transpiler plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
 
 Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
 
@@ -86,9 +86,9 @@ class V: View {
 }
 ```
 
-Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeView`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that would have been returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
+Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeView`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that `body` would have returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
 
-Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use `ComposeView` yourself to move fluidly between SwiftUI and Compose code. 
+Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use `ComposeView` yourself to move fluidly between SwiftUI and Compose when writing your Android UI. 
 
 ### Implementation Phases
 
@@ -135,7 +135,7 @@ public struct Text: View, Equatable, Sendable {
 
 ```
 
-As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `View.ComposeContent` function for Android, while we stub the `body` var to satisfy the Swift compiler. `ComposeContent` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `ComposeContent` would call `child.Compose(context.content())` to compose its child content.
+As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `View.ComposeContent` function for Android, while we stub the `body` var to satisfy the Swift compiler. `ComposeContent` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `ComposeContent` would call `child.Compose(context: context.content())` to compose its child content. (Note that `View.Compose(context:)` delegates to `View.ComposeContent(context:)` after performing other bookkeeping operations, which is why we override `ComposeContent` rather than `Compose`.)
 
 ### Modifiers
 
@@ -220,7 +220,132 @@ Note that `ComposeView` and the `Compose()` function are only available in Andro
 
 ### Images
 
-Documentation in progress
+SkipUI currently only supports the `Image(systemName:)` constructor. The following table details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources and URLs is also not yet supported. Until it is, consider [embedding Compose code](#composeview) directly.
+
+These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
+
+|iOS|Android|
+|---|-------|
+|alarm|Icons.Outlined.Alarm|
+|alarm.fill|Icons.Filled.Alarm|
+|arrow.down.circle|Icons.Outlined.ArrowDownward|
+|arrow.down.circle.fill|Icons.Filled.ArrowDownward|
+|bandage|Icons.Outlined.Healing|
+|bandage.fill|Icons.Filled.Healing|
+|bell.slash|Icons.Outlined.NotificationsOff|
+|bell.slash.fill|Icons.Filled.NotificationsOff|
+|book|Icons.Outlined.Book|
+|book.fill|Icons.Filled.Book|
+|bolt|Icons.Outlined.FlashOn|
+|bolt.fill|Icons.Filled.FlashOn|
+|calendar|Icons.Outlined.CalendarToday|
+|calendar.fill|Icons.Filled.CalendarToday|
+|calendar.circle|Icons.Outlined.Event|
+|calendar.circle.fill|Icons.Filled.Event|
+|camera|Icons.Outlined.Camera|
+|camera.fill|Icons.Filled.Camera|
+|camera.metering.center.weighted|Icons.Outlined.CenterFocusStrong|
+|camera.metering.center.weighted.fill|Icons.Filled.CenterFocusStrong|
+|car|Icons.Outlined.DirectionsCar|
+|car.fill|Icons.Filled.DirectionsCar|
+|cart|Icons.Outlined.ShoppingCart|
+|cart.fill|Icons.Filled.ShoppingCart|
+|cloud|Icons.Outlined.Cloud|
+|cloud.fill|Icons.Filled.Cloud|
+|creditcard|Icons.Outlined.CreditCard|
+|creditcard.fill|Icons.Filled.CreditCard|
+|document|Icons.Outlined.Description|
+|document.fill|Icons.Filled.Description|
+|envelope|Icons.Outlined.Email|
+|envelope.fill|Icons.Filled.Email|
+|eye.slash|Icons.Outlined.VisibilityOff|
+|eye.slash.fill|Icons.Filled.VisibilityOff|
+|film|Icons.Outlined.Movie|
+|film.fill|Icons.Filled.Movie|
+|flag|Icons.Outlined.Flag|
+|flag.fill|Icons.Filled.Flag|
+|folder|Icons.Outlined.Folder|
+|folder.fill|Icons.Filled.Folder|
+|gamecontroller|Icons.Outlined.VideogameAsset|
+|gamecontroller.fill|Icons.Filled.VideogameAsset|
+|gear|Icons.Outlined.Settings|
+|gear.fill|Icons.Filled.Settings|
+|gearshape|Icons.Outlined.Settings|
+|gearshape.fill|Icons.Filled.Settings|
+|gift|Icons.Outlined.CardGiftcard|
+|gift.fill|Icons.Filled.CardGiftcard|
+|globe.americas|Icons.Outlined.Public|
+|globe.americas.fill|Icons.Filled.Public|
+|heart|Icons.Outlined.Favorite|
+|heart.fill|Icons.Filled.Favorite|
+|headphones.circle|Icons.Outlined.Headset|
+|headphones.circle.fill|Icons.Filled.Headset|
+|heart.slash|Icons.Outlined.FavoriteBorder|
+|heart.slash.fill|Icons.Filled.FavoriteBorder|
+|home|Icons.Outlined.Home|
+|home.fill|Icons.Filled.Home|
+|hourglass|Icons.Outlined.HourglassFull|
+|hourglass.fill|Icons.Filled.HourglassFull|
+|house|Icons.Outlined.Home|
+|house.fill|Icons.Filled.Home|
+|info|Icons.Outlined.Info|
+|info.fill|Icons.Filled.Info|
+|lock|Icons.Outlined.Lock|
+|lock.fill|Icons.Filled.Lock|
+|lightbulb|Icons.Outlined.WbIncandescent|
+|lightbulb.fill|Icons.Filled.WbIncandescent|
+|magnifyingglass|Icons.Outlined.Search|
+|magnifyingglass.fill|Icons.Filled.Search|
+|message|Icons.Outlined.Message|
+|message.fill|Icons.Filled.Message|
+|mic|Icons.Outlined.Mic|
+|mic.fill|Icons.Filled.Mic|
+|moon|Icons.Outlined.Nightlight|
+|moon.fill|Icons.Filled.Nightlight|
+|music.note|Icons.Outlined.MusicNote|
+|music.note.fill|Icons.Filled.MusicNote|
+|paperclip.circle|Icons.Outlined.AttachFile|
+|paperclip.circle.fill|Icons.Filled.AttachFile|
+|paperplane|Icons.Outlined.Send|
+|paperplane.fill|Icons.Filled.Send|
+|pencil|Icons.Outlined.Edit|
+|pencil.fill|Icons.Filled.Edit|
+|person.2|Icons.Outlined.Person|
+|person.2.fill|Icons.Filled.Person|
+|person.badge.plus|Icons.Outlined.PersonAdd|
+|person.badge.plus.fill|Icons.Filled.PersonAdd|
+|person.crop.circle|Icons.Outlined.AccountCircle|
+|person.crop.circle.fill|Icons.Filled.AccountCircle|
+|phone|Icons.Outlined.Phone|
+|phone.fill|Icons.Filled.Phone|
+|pianokeys|Icons.Outlined.MusicNote|
+|pianokeys.fill|Icons.Filled.MusicNote|
+|printer|Icons.Outlined.Print|
+|printer.fill|Icons.Filled.Print|
+|square.and.pencil|Icons.Outlined.Edit|
+|square.and.pencil.fill|Icons.Filled.Edit|
+|star|Icons.Outlined.Star|
+|star.fill|Icons.Filled.Star|
+|sun.max|Icons.Outlined.WbSunny|
+|sun.max.fill|Icons.Filled.WbSunny|
+|sunrise|Icons.Outlined.WbSunny|
+|sunrise.fill|Icons.Filled.WbSunny|
+|trash|Icons.Outlined.Delete|
+|trash.fill|Icons.Filled.Delete|
+|video|Icons.Outlined.VideoCall|
+|video.fill|Icons.Filled.VideoCall|
+|wifi.slash|Icons.Outlined.WifiOff|
+|wifi.slash.fill|Icons.Filled.WifiOff|
+|wrench|Icons.Outlined.Settings|
+|wrench.fill|Icons.Filled.Settings|
+
+In Android-only code, you can also supply any `Icons` image name as the `systemName`. For example:
+
+```swift
+#if SKIP
+Image(systemName: "Icons.Filled.Settings")
+#endif
+```
 
 ### Lists
 
