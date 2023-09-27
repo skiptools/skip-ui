@@ -70,7 +70,7 @@ public struct TabView<Content> : View where Content : View {
                             label: {
                                 tabItem?.ComposeTitle(context: tabItemContext)
                             },
-                            selected: String(describing: tabIndex) == CurrentRoute(for: navController),
+                            selected: String(describing: tabIndex) == currentRoute(for: navController),
                             onClick: {
                                 navController.navigate(String(describing: tabIndex)) {
                                     popUpTo(navController.graph.startDestinationId) {
@@ -113,7 +113,7 @@ public struct TabView<Content> : View where Content : View {
         }
     }
 
-    @Composable private func CurrentRoute(for navController: NavHostController) -> String? {
+    @Composable private func currentRoute(for navController: NavHostController) -> String? {
         // In your BottomNavigation composable, get the current NavBackStackEntry using the currentBackStackEntryAsState() function. This entry gives you access to the current NavDestination. The selected state of each BottomNavigationItem can then be determined by comparing the item's route with the route of the current destination and its parent destinations (to handle cases when you are using nested navigation) via the NavDestination hierarchy.
         navController.currentBackStackEntryAsState().value?.destination?.route
     }

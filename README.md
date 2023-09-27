@@ -15,14 +15,105 @@ The module is transparently adopted through the translation of `import SwiftUI` 
 
 ## Status
 
-SkipUI is a young library, and there is much left to do. The following table lists supported SwiftUI constructs and components. Anything not listed here is likely not yet supported.
+SkipUI - together with the Skip transpiler - has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. SkipUI also implements many of SwiftUI's basic layout and control views, as well as many core modifiers. It is possible to write an Android app entirely in SwiftUI utilizing SkipUI's current component set.
+
+SkipUI is a young library, however, and much of SwiftUI's vast surface area is not yet implemented. You are likely to run into limitations while writing real-world apps. See [Supported SwiftUI](#supported-swiftui) for a full list of supported components and constructs. Anything not listed there is likely not yet ported.
+
+When you want to use a SwiftUI construct that has not been implemented, you have options. You can try to find a workaround using only supported components, [embed Compose code directly](#composeview), or [add support to SkipUI](#implementation-strategy). If you choose to enhance SkipUI itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
+
+## Contributing
+
+We welcome contributions to SkipUI. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/#local-libraries). 
+
+The most pressing need is to implement more core components and view modifiers.
+To help fill in unimplemented API in SkipUI:
+
+1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(unavailable, *)`.
+1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
+1. Write tests and/or playground code to exercise your component. See [Tests](#tests).
+1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
+
+Other forms of contributions such as test cases, comments, and documentation are also welcome!
+
+## Implementation Strategy
+
+SkipUI contains stubs for the entire SwiftUI framework. API generally goes through three phases:
+
+1. Code that no one has begun to port to Skip starts in `#if !SKIP` blocks. This hides it from the Skip transpiler.
+1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(unavailable, *)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
+    - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
+    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
+1. Finally, we add a Compose implementation and remove any `unavailable` attribute.
+
+Note that SkipUI should remain buildable in Xcode throughout this process. Being able to successfully compile SkipUI in Swift helps us validate that our ported components still mesh with the rest of the framework.
+
+Documentation in progress
+
+## Topics
+
+### ComposView
+
+`ComposeView` is an Android-only SwiftUI view that you can use to embed Compose code directly into your SwiftUI view tree. In the following example, we use a SwiftUI `Text` to write "Hello from SwiftUI", followed by calling the `androidx.compose.material3.Text()` Compose function to write "Hello from Compose" below it:
+
+```swift
+VStack {
+    Text("Hello from SwiftUI")
+    ComposeView { _ in
+        androidx.compose.material3.Text("Hello from Compose")
+    }
+}
+```
+
+Skip also enhances all SwiftUI views with a `Compose()` method, allowing you to use SwiftUI views from within Compose. The following example again uses a SwiftUI `Text` to write "Hello from SwiftUI", but this time from within a `ComposeView`:
+
+```swift
+ComposeView { _ in 
+    androidx.compose.foundation.layout.Column {
+        Text("Hello from SwiftUI").Compose()
+        androidx.compose.material3.Text("Hello from Compose")
+    }
+}
+```
+
+Or:
+
+```swift
+ComposeView { _ in 
+    VStack {
+        Text("Hello from SwiftUI").Compose()
+        androidx.compose.material3.Text("Hello from Compose")
+    }.Compose()
+}
+```
+
+With `ComposeView` and the `Compose()` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
+
+Note that `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
+
+### Images
+
+Documentation in progress
+
+### Lists
+
+Documentation in progress
+
+### Navigation
+
+Documentation in progress
+
+## Tests
+
+Documentation in progress
+
+## Supported SwiftUI
 
 |Component|Support Level|Notes|
 |---------|-------------|-----|
+|`@AppStorage`|Medium||
 |`@Bindable`|Full||
 |`@Binding`|Full||
-|`@Environment`|Full||
-|Environment builtins|Low||
+|`@Environment`|Full|Custom keys supported, but most builtin keys not yet available|
 |`@EnvironmentObject`|Full||
 |`@ObservedObject`|Full||
 |`@State`|Full||
@@ -70,45 +161,6 @@ SkipUI is a young library, and there is much left to do. The following table lis
 |`.scaleEffect`|Medium||
 |`.tabItem`|Full||
 |`.task`|Full||
-
-## Contributing
-
-We welcome contributions to SkipUI. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/#local-libraries). 
-
-The most pressing need is to implement more core components and view modifiers.
-To help fill in unimplemented API in SkipUI:
-
-1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(unavailable, *)`.
-1. If the code is in a `#if !SKIP` block, the first step is to move it out so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(unavailable, *)` because you are not ready to implement it for Compose. That will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
-    - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
-    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
-1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
-1. Write unit tests if appropriate. When implementing a UI component or modifier, add a playground - or enhance an existing playground - to exercise your implementation in the [Skip playground app](https://github.com/skiptools/skipapp-playground).
-1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
-
-Other forms of contributions such as test cases, comments, and documentation are also welcome!
-
-## Implementation Strategy
-
-Documentation in progress
-
-## Topics
-
-### Images
-
-Documentation in progress
-
-### Lists
-
-Documentation in progress
-
-### Navigation
-
-Documentation in progress
-
-## Tests
-
-Documentation in progress
 
 ## Helpful Compose components
 

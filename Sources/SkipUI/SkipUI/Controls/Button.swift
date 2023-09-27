@@ -13,7 +13,6 @@ import struct CoreGraphics.CGRect
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
-//
 // SKIP DECLARE: class Button: View, ListItemAdapting
 public struct Button<Label> : View, ListItemAdapting where Label : View {
     let action: () -> Void
