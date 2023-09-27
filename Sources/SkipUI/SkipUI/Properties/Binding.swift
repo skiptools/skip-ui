@@ -95,22 +95,21 @@ extension Binding : RandomAccessCollection where Value : MutableCollection, Valu
 //extension Binding {
 //    public subscript<Subject>(dynamicMember keyPath: WritableKeyPath<Value, Subject>) -> Binding<Subject> { get { fatalError() } }
 //}
-
+//
 //@frozen @propertyWrapper @dynamicMemberLookup public struct Binding<Value> {
 //}
-
+//
 //extension Binding {
 //    public init<V>(_ base: Binding<V>) where Value == V? { fatalError() }
 //    public init?(_ base: Binding<Value?>) { fatalError() }
 //    public init<V>(_ base: Binding<V>) where Value == AnyHashable, V : Hashable { fatalError() }
 //}
-
+//
 //extension Binding {
 //    public func transaction(_ transaction: Transaction) -> Binding<Value> { fatalError() }
 //    public func animation(_ animation: Animation? = .default) -> Binding<Value> { fatalError() }
 //}
-
-//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//
 //extension Binding : DynamicProperty {
 //}
 
