@@ -13,11 +13,11 @@ import Foundation
 final class LayoutTests: XCSnapshotTestCase {
 
     func testRenderWhiteDot() throws {
-        XCTAssertEqual("FFFFFF", try render(view: Color.white.frame(width: 1.0, height: 1.0)))
+        XCTAssertEqual("FFFFFF", try render(view: Color.white.frame(width: 1.0, height: 1.0)).pixmap)
     }
 
     func testRenderWhiteSquareTiny() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)), """
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)).pixmap, """
         F F
         F F
         """)
@@ -44,7 +44,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testRenderWhiteSquare() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)), """
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)).pixmap, """
         F F F F
         F F F F
         F F F F
@@ -53,7 +53,7 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testRenderWhiteSquareBig() throws {
-        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 12.0, height: 12.0)), """
+        XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 12.0, height: 12.0)).pixmap, """
         F F F F F F F F F F F F
         F F F F F F F F F F F F
         F F F F F F F F F F F F
@@ -157,7 +157,7 @@ final class LayoutTests: XCSnapshotTestCase {
         XCTAssertEqual(try render(compact: 2, antiAlias: true, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
-        }),
+        }).pixmap,
         plaf("""
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 07 07 00 00 00 00 00
@@ -193,7 +193,7 @@ final class LayoutTests: XCSnapshotTestCase {
         XCTAssertEqual(try render(compact: 2, antiAlias: false, view: ZStack {
             Color.black.frame(width: 12.0, height: 12.0)
             Color.white.frame(width: 6.0, height: 6.0).rotationEffect(Angle.degrees(45.0))
-        }),
+        }).pixmap,
         plaf("""
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 FF FF 00 00 00 00 00
@@ -260,7 +260,7 @@ final class LayoutTests: XCSnapshotTestCase {
     func testDrawCourierBar() throws {
         XCTAssertEqual(try render(compact: 2, view: ZStack {
             Text("|").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
-        }.frame(width: 7.0, height: 8.0).background(Color.white)),
+        }.frame(width: 7.0, height: 8.0).background(Color.white)).pixmap,
         plaf("""
         FF FF F5 9F FF FF FF
         FF FF F5 9F FF FF FF
@@ -294,7 +294,7 @@ final class LayoutTests: XCSnapshotTestCase {
     func testDrawTextDefaultFont() throws {
         XCTAssertEqual(try render(compact: 2, view: ZStack {
             Text("T").foregroundColor(Color.white)
-        }.background(Color.black)),
+        }.background(Color.black)).pixmap,
         plaf("""
         00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00
@@ -474,7 +474,7 @@ final class LayoutTests: XCSnapshotTestCase {
             Color.black.frame(height: 10.0)
             Color.white.opacity(0.8).frame(height: 12.0)
             Color.black.frame(height: 10.0)
-        }.background(Color.white).frame(width: 12.0, height: 12.0)),
+        }.background(Color.white).frame(width: 12.0, height: 12.0)).pixmap,
         plaf("""
         FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF

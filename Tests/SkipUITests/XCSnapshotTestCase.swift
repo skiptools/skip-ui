@@ -197,13 +197,13 @@ class XCSnapshotTestCase: XCTestCase {
 
     /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
     func pixmap<V: View>(brightness: Double = 0.5, content: V) throws -> String {
-        try render(clear: "FFFFFF", replace: ".", brightness: brightness, antiAlias: false, view: content)
+        try render(clear: "FFFFFF", replace: ".", brightness: brightness, antiAlias: false, view: content).pixmap
     }
 
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, brightness: Double = 0.5, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> String {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, brightness: Double = 0.5, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> (pixmap: String, size: (width: Double, height: Double)) {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -244,8 +244,8 @@ class XCSnapshotTestCase: XCTestCase {
 
         var pixels = IntArray(width * height)
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        return createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int64(width))
-
+        let pixmap = createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int64(width))
+        return (pixmap: pixmap, size: (width: Double(width), height: Double(height)))
         #else
 
         let v = content.environment(\.colorScheme, darkMode ? .dark : .light).environment(\.displayScale, 1.0)
@@ -340,8 +340,8 @@ class XCSnapshotTestCase: XCTestCase {
 
         #endif // canImport(AppKit)
 
-        return createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
-
+        let pixmap = createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
+        return (pixmap: pixmap, size: (width: viewSize.width, height: viewSize.height))
         #endif
     }
 

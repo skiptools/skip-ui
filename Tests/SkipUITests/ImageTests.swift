@@ -98,7 +98,7 @@ final class ImageTests: XCSnapshotTestCase {
         }
 
         // a 5x5 red "dot" from https://en.wikipedia.org/wiki/Data_URI_scheme
-        XCTAssertEqual(try render(view: image("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==")),
+        XCTAssertEqual(try render(view: image("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==")).pixmap,
         plaf("""
         FFFFFF FF0000 FF0000 FF0000 FFFFFF
         FF0000 FF0000 FF0000 FF0000 FF0000
