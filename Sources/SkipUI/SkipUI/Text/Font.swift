@@ -5,6 +5,10 @@
 #if SKIP
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
+// import androidx.compose.ui.text.TextStyle // note: ambiguous with skip.ui.TextStyle
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -39,48 +43,52 @@ extension Font {
     // labelSmall: New Roboto Medium 11/16
 
     public static let largeTitle = Font(fontImpl: {
-        MaterialTheme.typography.displaySmall
+        adjust(MaterialTheme.typography.titleLarge, by: Float(10.0))
     })
 
     public static let title = Font(fontImpl: {
-        MaterialTheme.typography.titleLarge
+        adjust(MaterialTheme.typography.headlineLarge, by: Float(0.0))
     })
 
     public static let title2 = Font(fontImpl: {
-        MaterialTheme.typography.titleMedium
+        adjust(MaterialTheme.typography.headlineMedium, by: Float(-4.0))
     })
 
     public static let title3 = Font(fontImpl: {
-        MaterialTheme.typography.titleSmall
+        adjust(MaterialTheme.typography.headlineSmall, by: Float(-4.0))
     })
 
     public static let headline = Font(fontImpl: {
-        MaterialTheme.typography.headlineSmall
+        adjust(MaterialTheme.typography.titleLarge, by: Float(0.0))
     })
 
     public static let subheadline = Font(fontImpl: {
-        MaterialTheme.typography.bodyLarge
+        adjust(MaterialTheme.typography.titleMedium, by: Float(0.0))
     })
 
     public static let body = Font(fontImpl: {
-        MaterialTheme.typography.bodyMedium
+        adjust(MaterialTheme.typography.bodyMedium, by: Float(0.0))
     })
 
     public static let callout = Font(fontImpl:  {
-        MaterialTheme.typography.bodySmall
+        adjust(MaterialTheme.typography.bodySmall, by: Float(0.0))
     })
 
     public static let footnote = Font(fontImpl: {
-        MaterialTheme.typography.labelSmall
+        adjust(MaterialTheme.typography.labelMedium, by: Float(0.0))
     })
 
     public static let caption = Font(fontImpl: {
-        MaterialTheme.typography.labelMedium
+        adjust(MaterialTheme.typography.labelMedium, by: Float(0.0))
     })
 
     public static let caption2 = Font(fontImpl:  {
-        MaterialTheme.typography.labelSmall
+        adjust(MaterialTheme.typography.labelSmall, by: Float(0.0))
     })
+
+    private static func adjust(_ style: androidx.compose.ui.text.TextStyle, by amount: Float = Float(0.0)) -> androidx.compose.ui.text.TextStyle {
+        return style.copy(fontSize: (style.fontSize.value + amount).sp)
+    }
     #endif
 
     public enum TextStyle : CaseIterable, Hashable, Sendable {
@@ -175,25 +183,25 @@ extension Font {
         return Font(fontImpl: {
             switch weight {
             case .ultraLight:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Thin)
+                return fontImpl().copy(fontWeight: FontWeight.Thin)
             case .thin:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.ExtraLight)
+                return fontImpl().copy(fontWeight: FontWeight.ExtraLight)
             case .light:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Light)
+                return fontImpl().copy(fontWeight: FontWeight.Light)
             case .regular:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Normal)
+                return fontImpl().copy(fontWeight: FontWeight.Normal)
             case .medium:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Medium)
+                return fontImpl().copy(fontWeight: FontWeight.Medium)
             case .semibold:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.SemiBold)
+                return fontImpl().copy(fontWeight: FontWeight.SemiBold)
             case .bold:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Bold)
+                return fontImpl().copy(fontWeight: FontWeight.Bold)
             case .heavy:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.ExtraBold)
+                return fontImpl().copy(fontWeight: FontWeight.ExtraBold)
             case .black:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Black)
+                return fontImpl().copy(fontWeight: FontWeight.Black)
             default:
-                return fontImpl().copy(fontWeight: androidx.compose.ui.text.font.FontWeight.Normal)
+                return fontImpl().copy(fontWeight: FontWeight.Normal)
             }
         })
         #else
