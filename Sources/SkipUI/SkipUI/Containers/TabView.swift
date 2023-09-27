@@ -23,7 +23,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-
 #endif
 
 public struct TabView<Content> : View where Content : View {
@@ -94,9 +93,6 @@ public struct TabView<Content> : View where Content : View {
                 // Use a constant number of routes. Changing routes causes a NavHost to reset its state
                 for tabIndex in 0..<100 {
                     composable(String(describing: tabIndex)) {
-                        guard tabIndex < tabCount else {
-                            return
-                        }
                         Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                             // Use a custom composer to only render the tabIndex'th view
                             var composeIndex = 0

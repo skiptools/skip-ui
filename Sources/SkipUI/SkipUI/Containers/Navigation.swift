@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
@@ -115,13 +116,21 @@ public struct NavigationStack<Root> : View where Root: View {
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
-        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
+        let uncomposedTitle = "__UNCOMPOSED__"
+        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
+
+        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+        var modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier)
+        // Perform an invisible compose pass to gather preference information. Otherwise we may see the content render one way, then
+        // immediately re-render with an updated top bar
+        if title.value == uncomposedTitle {
+            modifier = modifier.alpha(Float(0.0))
+        }
 
         // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
         Scaffold(
-            modifier: Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier),
+            modifier: modifier,
             topBar: {
                 guard !isRoot || !title.value.isEmpty else {
                     return
@@ -153,6 +162,9 @@ public struct NavigationStack<Root> : View where Root: View {
                 Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(context.content())
                 }
+            }
+            if title.value == uncomposedTitle {
+                title.value = NavigationTitlePreferenceKey.defaultValue
             }
         }
     }
