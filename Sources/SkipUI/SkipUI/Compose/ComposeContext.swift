@@ -19,6 +19,8 @@ public struct ComposeContext {
     public var composer: (@Composable (inout View, ComposeContext) -> Void)?
 
     /// The context to pass to child content of a container view.
+    ///
+    /// By default, modifiers and the `composer` are reset for child content.
     public func content(modifier: Modifier = Modifier, stateSaver: Saver<Any, Any>? = nil, composer: (@Composable (inout View, ComposeContext) -> Void)? = nil) -> ComposeContext {
         var context = self
         context.modifier = modifier

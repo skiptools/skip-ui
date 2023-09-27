@@ -65,8 +65,8 @@ public struct Text: View, Equatable, Sendable {
         if EnvironmentValues.shared._isItalic {
             font = font.italic()
         }
-        let textColor = EnvironmentValues.shared._color?.colorImpl()
-        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, style: font.fontImpl())
+        let textColor = EnvironmentValues.shared._color?.colorImpl() ?? androidx.compose.ui.graphics.Color.Unspecified
+        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, style: font.fontImpl())
     }
     #else
     public var body: some View {

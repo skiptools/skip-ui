@@ -19,7 +19,7 @@ struct ComposeModifierView: View {
     private let contextTransform: (@Composable (inout ComposeContext) -> Void)?
     private let composeContent: (@Composable (any View, ComposeContext) -> Void)?
 
-    /// A modfiier that transforms the compose context.
+    /// A modfiier that transforms the `ComposeContext` passed to the modified view.
     init(contextView: any View, role: ComposeModifierRole = .unspecified, contextTransform: @Composable (inout ComposeContext) -> Void) {
         // Don't copy view
         // SKIP REPLACE: this.view = contextView
@@ -29,7 +29,7 @@ struct ComposeModifierView: View {
         self.composeContent = nil
     }
 
-    /// A modifier that takes over the composition.
+    /// A modifier that takes over the composition of the modified view.
     init(contentView: any View, role: ComposeModifierRole = .unspecified, composeContent: @Composable (any View, ComposeContext) -> Void) {
         // Don't copy view
         // SKIP REPLACE: this.view = contentView

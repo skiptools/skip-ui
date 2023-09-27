@@ -64,6 +64,7 @@ struct ComposeStateSaver: Saver<Any, Any> {
             override func createFromParcel(parcel: Parcel) -> Key {
                 return Key(parcel)
             }
+            
             override func newArray(size: Int) -> kotlin.Array<Key?> {
                 return arrayOfNulls(size)
             }
