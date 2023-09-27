@@ -43,6 +43,7 @@ SkipUI contains stubs for the entire SwiftUI framework. API generally goes throu
 1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(unavailable, *)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
     - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
     - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
+    - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient.
 1. Finally, we add a Compose implementation and remove any `unavailable` attribute.
 
 Note that SkipUI should remain buildable in Xcode throughout this process. Being able to successfully compile SkipUI in Swift helps us validate that our ported components still mesh with the rest of the framework.
@@ -51,7 +52,7 @@ Documentation in progress
 
 ## Topics
 
-### ComposView
+### ComposeView
 
 `ComposeView` is an Android-only SwiftUI view that you can use to embed Compose code directly into your SwiftUI view tree. In the following example, we use a SwiftUI `Text` to write "Hello from SwiftUI", followed by calling the `androidx.compose.material3.Text()` Compose function to write "Hello from Compose" below it:
 
@@ -104,7 +105,9 @@ Documentation in progress
 
 ## Tests
 
-Documentation in progress
+SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
+
+Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
 
 ## Supported SwiftUI
 

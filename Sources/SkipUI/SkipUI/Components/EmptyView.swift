@@ -6,7 +6,7 @@
 import androidx.compose.runtime.Composable
 #endif
 
-public struct EmptyView : View {
+public struct EmptyView : View, Sendable {
     public init() {
     }
     
@@ -18,7 +18,4 @@ public struct EmptyView : View {
         stubView()
     }
     #endif
-}
-
-extension EmptyView : Sendable {
 }
