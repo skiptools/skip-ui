@@ -226,74 +226,74 @@ In addition to the system images below, you can display any emoji using `Text`.
 
 If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource and URL loading is implemented.
 
-| iOS | Android |   |
-|---|-------|---|
-| person.crop.square | Icons.Outlined.AccountBox | 􀉹 |
-| person.crop.circle | Icons.Outlined.AccountCircle | 􀉭 |
-| plus.circle.fill | Icons.Outlined.AddCircle | 􀁍 |
-| plus | Icons.Outlined.Add | 􀅼 |
-| arrow.left | Icons.Outlined.ArrowBack | 􀄪 |
-| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown | 􀄥 |
-| arrow.forward | Icons.Outlined.ArrowForward | 􀰑 |
-| wrench | Icons.Outlined.Build | 􀎕 |
-| phone | Icons.Outlined.Call | 􀌾 |
-| checkmark.circle | Icons.Outlined.CheckCircle | 􀁢 |
-| checkmark | Icons.Outlined.Check | 􀆅 |
-| xmark | Icons.Outlined.Clear | 􀆄 |
-| pencil | Icons.Outlined.Create | 􀈊 |
-| calendar | Icons.Outlined.DateRange | 􀉉 |
-| trash | Icons.Outlined.Delete | 􀈑 |
-| envelope | Icons.Outlined.Email | 􀍕 |
-| arrow.forward.square | Icons.Outlined.ExitToApp | 􀰔 |
-| face.smiling | Icons.Outlined.Face | 􀎸 |
-| heart | Icons.Outlined.FavoriteBorder | 􀊴 |
-| heart.fill | Icons.Outlined.Favorite | 􀊵 |
-| house | Icons.Outlined.Home | 􀎞 |
-| info.circle | Icons.Outlined.Info | 􀅴 |
-| chevron.down | Icons.Outlined.KeyboardArrowDown | 􀆈 |
-| chevron.left | Icons.Outlined.KeyboardArrowLeft | 􀆉 |
-| chevron.right | Icons.Outlined.KeyboardArrowRight | 􀆊 |
-| chevron.up | Icons.Outlined.KeyboardArrowUp | 􀆇 |
-| list.bullet | Icons.Outlined.List | 􀋲 |
-| location | Icons.Outlined.LocationOn | 􀋑 |
-| lock | Icons.Outlined.Lock | 􀎠 |
-| line.3.horizontal | Icons.Outlined.Menu | 􀌇 |
-| ellipsis | Icons.Outlined.MoreVert | 􀍠 |
-| bell | Icons.Outlined.Notifications | 􀋙 |
-| person | Icons.Outlined.Person | 􀉩 |
-| mappin.circle | Icons.Outlined.Place | 􀎪 |
-| play | Icons.Outlined.PlayArrow | 􀊃 |
-| arrow.clockwise.circle | Icons.Outlined.Refresh | 􀚁 |
-| magnifyingglass | Icons.Outlined.Search | 􀊫 |
-| paperplane | Icons.Outlined.Send | 􀈟 |
-| gearshape | Icons.Outlined.Settings | 􀣋 |
-| square.and.arrow.up | Icons.Outlined.Share | 􀈂 |
-| cart | Icons.Outlined.ShoppingCart | 􀍩 |
-| star | Icons.Outlined.Star | 􀋃 |
-| hand.thumbsup | Icons.Outlined.ThumbUp | 􀉿 |
-| exclamationmark.triangle | Icons.Outlined.Warning | 􀇿 |
-| person.crop.square.fill | Icons.Filled.AccountBox | 􀉺 |
-| person.crop.circle.fill | Icons.Filled.AccountCircle | 􀉮 |
-| wrench.fill | Icons.Filled.Build | 􀎖 |
-| phone.fill | Icons.Filled.Call | 􀌿 |
-| checkmark.circle.fill | Icons.Filled.CheckCircle | 􀁣 |
-| trash.fill | Icons.Filled.Delete | 􀈒 |
-| envelope.fill | Icons.Filled.Email | 􀍖 |
-| house.fill | Icons.Filled.Home | 􀎟 |
-| info.circle.fill | Icons.Filled.Info | 􀅵 |
-| location.fill | Icons.Filled.LocationOn | 􀋒 |
-| lock.fill | Icons.Filled.Lock | 􀎡 |
-| bell.fill | Icons.Filled.Notifications | 􀋚 |
-| person.fill | Icons.Filled.Person | 􀉪 |
-| mappin.circle.fill | Icons.Filled.Place | 􀜈 |
-| play.fill | Icons.Filled.PlayArrow | 􀊄 |
-| paperplane.fill | Icons.Filled.Send | 􀈠 |
-| gearshape.fill | Icons.Filled.Settings | 􀣌 |
-| square.and.arrow.up.fill | Icons.Filled.Share | 􀈃 |
-| cart.fill | Icons.Filled.ShoppingCart | 􀍪 |
-| star.fill | Icons.Filled.Star | 􀋃 |
-| hand.thumbsup.fill | Icons.Filled.ThumbUp | 􀊀 |
-| exclamationmark.triangle.fill | Icons.Filled.Warning | 􀇿 |
+| iOS | Android |
+|---|-------|
+| arrow.clockwise.circle | Icons.Outlined.Refresh |
+| arrow.forward | Icons.Outlined.ArrowForward |
+| arrow.forward.square | Icons.Outlined.ExitToApp |
+| arrow.left | Icons.Outlined.ArrowBack |
+| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown |
+| bell | Icons.Outlined.Notifications |
+| bell.fill | Icons.Filled.Notifications |
+| calendar | Icons.Outlined.DateRange |
+| cart | Icons.Outlined.ShoppingCart |
+| cart.fill | Icons.Filled.ShoppingCart |
+| checkmark | Icons.Outlined.Check |
+| checkmark.circle | Icons.Outlined.CheckCircle |
+| checkmark.circle.fill | Icons.Filled.CheckCircle |
+| chevron.down | Icons.Outlined.KeyboardArrowDown |
+| chevron.left | Icons.Outlined.KeyboardArrowLeft |
+| chevron.right | Icons.Outlined.KeyboardArrowRight |
+| chevron.up | Icons.Outlined.KeyboardArrowUp |
+| ellipsis | Icons.Outlined.MoreVert |
+| envelope | Icons.Outlined.Email |
+| envelope.fill | Icons.Filled.Email |
+| exclamationmark.triangle | Icons.Outlined.Warning |
+| exclamationmark.triangle.fill | Icons.Filled.Warning |
+| face.smiling | Icons.Outlined.Face |
+| gearshape | Icons.Outlined.Settings |
+| gearshape.fill | Icons.Filled.Settings |
+| hand.thumbsup | Icons.Outlined.ThumbUp |
+| hand.thumbsup.fill | Icons.Filled.ThumbUp |
+| heart | Icons.Outlined.FavoriteBorder |
+| heart.fill | Icons.Outlined.Favorite |
+| house | Icons.Outlined.Home |
+| house.fill | Icons.Filled.Home |
+| info.circle | Icons.Outlined.Info |
+| info.circle.fill | Icons.Filled.Info |
+| line.3.horizontal | Icons.Outlined.Menu |
+| list.bullet | Icons.Outlined.List |
+| location | Icons.Outlined.LocationOn |
+| location.fill | Icons.Filled.LocationOn |
+| lock | Icons.Outlined.Lock |
+| lock.fill | Icons.Filled.Lock |
+| magnifyingglass | Icons.Outlined.Search |
+| mappin.circle | Icons.Outlined.Place |
+| mappin.circle.fill | Icons.Filled.Place |
+| paperplane | Icons.Outlined.Send |
+| paperplane.fill | Icons.Filled.Send |
+| pencil | Icons.Outlined.Create |
+| person | Icons.Outlined.Person |
+| person.crop.circle | Icons.Outlined.AccountCircle |
+| person.crop.circle.fill | Icons.Filled.AccountCircle |
+| person.crop.square | Icons.Outlined.AccountBox |
+| person.crop.square.fill | Icons.Filled.AccountBox |
+| person.fill | Icons.Filled.Person |
+| phone | Icons.Outlined.Call |
+| phone.fill | Icons.Filled.Call |
+| play | Icons.Outlined.PlayArrow |
+| play.fill | Icons.Filled.PlayArrow |
+| plus | Icons.Outlined.Add |
+| plus.circle.fill | Icons.Outlined.AddCircle |
+| square.and.arrow.up | Icons.Outlined.Share |
+| square.and.arrow.up.fill | Icons.Filled.Share |
+| star | Icons.Outlined.Star |
+| star.fill | Icons.Filled.Star |
+| trash | Icons.Outlined.Delete |
+| trash.fill | Icons.Filled.Delete |
+| wrench | Icons.Outlined.Build |
+| wrench.fill | Icons.Filled.Build |
+| xmark | Icons.Outlined.Clear |
 
 In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
 
