@@ -387,7 +387,43 @@ Note in particular that `ForEach` is not yet supported.
 
 ### Navigation
 
-Documentation in progress
+SwiftUI has three primary forms of navigation: tabs with `TabView`, push and pop with `NavigationStack`, and modal presentations. SkipUI has not yet implemented modal presentations, but does support `TabView` and `NavigationStack`, albeit with the restrictions explained below.
+
+SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs, not SwiftUI's automatic "More" tab. Additionally, because `ForEach` is not implemented yet, child views implementing the tabbed content must be hardcoded directly within their `TabView` parent. 
+
+Otherwise, `TabView` acts as you would expect. `NavigationStack`, however, has several restrictions you must be aware of.
+
+In SwiftUI, you push vies onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
+
+```swift
+NavigationStack {
+    ListView()
+        .navigationTitle(Self.title)
+}
+
+struct ListView : View {
+    var body: some View {
+        List(City.allCases) { city in
+            NavigationLink(value: city) {
+                rowView(city: city)
+            }
+        }
+        .navigationDestination(for: City.self) { city in
+            CityView(city: city)
+        }
+    }
+}
+        
+```
+
+SkipUI does not support embedding a destination view directly in a `NavigationLink`, and even supporting this in the future may be difficult. Compose navigation forces you to define fixed navigation routes, making dynamic navigation difficult. 
+
+SkipUI *does* support navigation with `.navigationDestination` as in the example above, because we can map each modifier to a fixed Compose navigation route. Even this support, however, required some abuse of Compose's system in order to allow newly-pushed views to defined additional `.navigationDestinations`. In fact, it is currently the case that if a pushed view defines a new `.navigationDestination` with key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
+
+Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. Thus, SkipUI supports the following types:
+
+Documentation in progress...
+
 
 ## Tests
 

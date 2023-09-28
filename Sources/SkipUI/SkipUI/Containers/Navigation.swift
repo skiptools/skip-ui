@@ -2,6 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -292,7 +293,7 @@ class Navigator {
         guard let index = destinationIndexes[targetType] else {
             return String(describing: targetType) + "?"
         }
-        let valueString: String
+        var valueString: String
         if let identifiable = value as? Identifiable {
             valueString = String(describing: identifiable.id)
         } else if let rawRepresentable = value as? RawRepresentable {
@@ -300,7 +301,8 @@ class Navigator {
         } else {
             valueString = String(describing: value)
         }
-        // TODO: URL escape valueString
+        // Escape '/' because it is meaningful in navigation routes
+        valueString = valueString.replacingOccurrences(of: "/", with: "%2F")
         return route(for: index, valueString: valueString)
     }
 
