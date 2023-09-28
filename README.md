@@ -226,120 +226,74 @@ In addition to the system images below, you can display any emoji using `Text`.
 
 If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource and URL loading is implemented.
 
-|iOS|Android|
-|---|-------|
-|alarm|Icons.Outlined.Alarm|
-|alarm.fill|Icons.Filled.Alarm|
-|arrow.down.circle|Icons.Outlined.ArrowDownward|
-|arrow.down.circle.fill|Icons.Filled.ArrowDownward|
-|bandage|Icons.Outlined.Healing|
-|bandage.fill|Icons.Filled.Healing|
-|bell.slash|Icons.Outlined.NotificationsOff|
-|bell.slash.fill|Icons.Filled.NotificationsOff|
-|book|Icons.Outlined.Book|
-|book.fill|Icons.Filled.Book|
-|bolt|Icons.Outlined.FlashOn|
-|bolt.fill|Icons.Filled.FlashOn|
-|calendar|Icons.Outlined.CalendarToday|
-|calendar.fill|Icons.Filled.CalendarToday|
-|calendar.circle|Icons.Outlined.Event|
-|calendar.circle.fill|Icons.Filled.Event|
-|camera|Icons.Outlined.Camera|
-|camera.fill|Icons.Filled.Camera|
-|camera.metering.center.weighted|Icons.Outlined.CenterFocusStrong|
-|camera.metering.center.weighted.fill|Icons.Filled.CenterFocusStrong|
-|car|Icons.Outlined.DirectionsCar|
-|car.fill|Icons.Filled.DirectionsCar|
-|cart|Icons.Outlined.ShoppingCart|
-|cart.fill|Icons.Filled.ShoppingCart|
-|cloud|Icons.Outlined.Cloud|
-|cloud.fill|Icons.Filled.Cloud|
-|creditcard|Icons.Outlined.CreditCard|
-|creditcard.fill|Icons.Filled.CreditCard|
-|document|Icons.Outlined.Description|
-|document.fill|Icons.Filled.Description|
-|envelope|Icons.Outlined.Email|
-|envelope.fill|Icons.Filled.Email|
-|eye.slash|Icons.Outlined.VisibilityOff|
-|eye.slash.fill|Icons.Filled.VisibilityOff|
-|film|Icons.Outlined.Movie|
-|film.fill|Icons.Filled.Movie|
-|flag|Icons.Outlined.Flag|
-|flag.fill|Icons.Filled.Flag|
-|folder|Icons.Outlined.Folder|
-|folder.fill|Icons.Filled.Folder|
-|gamecontroller|Icons.Outlined.VideogameAsset|
-|gamecontroller.fill|Icons.Filled.VideogameAsset|
-|gear|Icons.Outlined.Settings|
-|gear.fill|Icons.Filled.Settings|
-|gearshape|Icons.Outlined.Settings|
-|gearshape.fill|Icons.Filled.Settings|
-|gift|Icons.Outlined.CardGiftcard|
-|gift.fill|Icons.Filled.CardGiftcard|
-|globe.americas|Icons.Outlined.Public|
-|globe.americas.fill|Icons.Filled.Public|
-|heart|Icons.Outlined.Favorite|
-|heart.fill|Icons.Filled.Favorite|
-|headphones.circle|Icons.Outlined.Headset|
-|headphones.circle.fill|Icons.Filled.Headset|
-|heart.slash|Icons.Outlined.FavoriteBorder|
-|heart.slash.fill|Icons.Filled.FavoriteBorder|
-|home|Icons.Outlined.Home|
-|home.fill|Icons.Filled.Home|
-|hourglass|Icons.Outlined.HourglassFull|
-|hourglass.fill|Icons.Filled.HourglassFull|
-|house|Icons.Outlined.Home|
-|house.fill|Icons.Filled.Home|
-|info|Icons.Outlined.Info|
-|info.fill|Icons.Filled.Info|
-|lock|Icons.Outlined.Lock|
-|lock.fill|Icons.Filled.Lock|
-|lightbulb|Icons.Outlined.WbIncandescent|
-|lightbulb.fill|Icons.Filled.WbIncandescent|
-|magnifyingglass|Icons.Outlined.Search|
-|magnifyingglass.fill|Icons.Filled.Search|
-|message|Icons.Outlined.Message|
-|message.fill|Icons.Filled.Message|
-|mic|Icons.Outlined.Mic|
-|mic.fill|Icons.Filled.Mic|
-|moon|Icons.Outlined.Nightlight|
-|moon.fill|Icons.Filled.Nightlight|
-|music.note|Icons.Outlined.MusicNote|
-|music.note.fill|Icons.Filled.MusicNote|
-|paperclip.circle|Icons.Outlined.AttachFile|
-|paperclip.circle.fill|Icons.Filled.AttachFile|
-|paperplane|Icons.Outlined.Send|
-|paperplane.fill|Icons.Filled.Send|
-|pencil|Icons.Outlined.Edit|
-|pencil.fill|Icons.Filled.Edit|
-|person.2|Icons.Outlined.Person|
-|person.2.fill|Icons.Filled.Person|
-|person.badge.plus|Icons.Outlined.PersonAdd|
-|person.badge.plus.fill|Icons.Filled.PersonAdd|
-|person.crop.circle|Icons.Outlined.AccountCircle|
-|person.crop.circle.fill|Icons.Filled.AccountCircle|
-|phone|Icons.Outlined.Phone|
-|phone.fill|Icons.Filled.Phone|
-|pianokeys|Icons.Outlined.MusicNote|
-|pianokeys.fill|Icons.Filled.MusicNote|
-|printer|Icons.Outlined.Print|
-|printer.fill|Icons.Filled.Print|
-|square.and.pencil|Icons.Outlined.Edit|
-|square.and.pencil.fill|Icons.Filled.Edit|
-|star|Icons.Outlined.Star|
-|star.fill|Icons.Filled.Star|
-|sun.max|Icons.Outlined.WbSunny|
-|sun.max.fill|Icons.Filled.WbSunny|
-|sunrise|Icons.Outlined.WbSunny|
-|sunrise.fill|Icons.Filled.WbSunny|
-|trash|Icons.Outlined.Delete|
-|trash.fill|Icons.Filled.Delete|
-|video|Icons.Outlined.VideoCall|
-|video.fill|Icons.Filled.VideoCall|
-|wifi.slash|Icons.Outlined.WifiOff|
-|wifi.slash.fill|Icons.Filled.WifiOff|
-|wrench|Icons.Outlined.Settings|
-|wrench.fill|Icons.Filled.Settings|
+| iOS | Android |   |
+|---|-------|---|
+| person.crop.square | Icons.Outlined.AccountBox | 􀉹 |
+| person.crop.circle | Icons.Outlined.AccountCircle | 􀉭 |
+| plus.circle.fill | Icons.Outlined.AddCircle | 􀁍 |
+| plus | Icons.Outlined.Add | 􀅼 |
+| arrow.left | Icons.Outlined.ArrowBack | 􀄪 |
+| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown | 􀄥 |
+| arrow.forward | Icons.Outlined.ArrowForward | 􀰑 |
+| wrench | Icons.Outlined.Build | 􀎕 |
+| phone | Icons.Outlined.Call | 􀌾 |
+| checkmark.circle | Icons.Outlined.CheckCircle | 􀁢 |
+| checkmark | Icons.Outlined.Check | 􀆅 |
+| xmark | Icons.Outlined.Clear | 􀆄 |
+| pencil | Icons.Outlined.Create | 􀈊 |
+| calendar | Icons.Outlined.DateRange | 􀉉 |
+| trash | Icons.Outlined.Delete | 􀈑 |
+| envelope | Icons.Outlined.Email | 􀍕 |
+| arrow.forward.square | Icons.Outlined.ExitToApp | 􀰔 |
+| face.smiling | Icons.Outlined.Face | 􀎸 |
+| heart | Icons.Outlined.FavoriteBorder | 􀊴 |
+| heart.fill | Icons.Outlined.Favorite | 􀊵 |
+| house | Icons.Outlined.Home | 􀎞 |
+| info.circle | Icons.Outlined.Info | 􀅴 |
+| chevron.down | Icons.Outlined.KeyboardArrowDown | 􀆈 |
+| chevron.left | Icons.Outlined.KeyboardArrowLeft | 􀆉 |
+| chevron.right | Icons.Outlined.KeyboardArrowRight | 􀆊 |
+| chevron.up | Icons.Outlined.KeyboardArrowUp | 􀆇 |
+| list.bullet | Icons.Outlined.List | 􀋲 |
+| location | Icons.Outlined.LocationOn | 􀋑 |
+| lock | Icons.Outlined.Lock | 􀎠 |
+| line.3.horizontal | Icons.Outlined.Menu | 􀌇 |
+| ellipsis | Icons.Outlined.MoreVert | 􀍠 |
+| bell | Icons.Outlined.Notifications | 􀋙 |
+| person | Icons.Outlined.Person | 􀉩 |
+| mappin.circle | Icons.Outlined.Place | 􀎪 |
+| play | Icons.Outlined.PlayArrow | 􀊃 |
+| arrow.clockwise.circle | Icons.Outlined.Refresh | 􀚁 |
+| magnifyingglass | Icons.Outlined.Search | 􀊫 |
+| paperplane | Icons.Outlined.Send | 􀈟 |
+| gearshape | Icons.Outlined.Settings | 􀣋 |
+| square.and.arrow.up | Icons.Outlined.Share | 􀈂 |
+| cart | Icons.Outlined.ShoppingCart | 􀍩 |
+| star | Icons.Outlined.Star | 􀋃 |
+| hand.thumbsup | Icons.Outlined.ThumbUp | 􀉿 |
+| exclamationmark.triangle | Icons.Outlined.Warning | 􀇿 |
+| person.crop.square.fill | Icons.Filled.AccountBox | 􀉺 |
+| person.crop.circle.fill | Icons.Filled.AccountCircle | 􀉮 |
+| wrench.fill | Icons.Filled.Build | 􀎖 |
+| phone.fill | Icons.Filled.Call | 􀌿 |
+| checkmark.circle.fill | Icons.Filled.CheckCircle | 􀁣 |
+| trash.fill | Icons.Filled.Delete | 􀈒 |
+| envelope.fill | Icons.Filled.Email | 􀍖 |
+| house.fill | Icons.Filled.Home | 􀎟 |
+| info.circle.fill | Icons.Filled.Info | 􀅵 |
+| location.fill | Icons.Filled.LocationOn | 􀋒 |
+| lock.fill | Icons.Filled.Lock | 􀎡 |
+| bell.fill | Icons.Filled.Notifications | 􀋚 |
+| person.fill | Icons.Filled.Person | 􀉪 |
+| mappin.circle.fill | Icons.Filled.Place | 􀜈 |
+| play.fill | Icons.Filled.PlayArrow | 􀊄 |
+| paperplane.fill | Icons.Filled.Send | 􀈠 |
+| gearshape.fill | Icons.Filled.Settings | 􀣌 |
+| square.and.arrow.up.fill | Icons.Filled.Share | 􀈃 |
+| cart.fill | Icons.Filled.ShoppingCart | 􀍪 |
+| star.fill | Icons.Filled.Star | 􀋃 |
+| hand.thumbsup.fill | Icons.Filled.ThumbUp | 􀊀 |
+| exclamationmark.triangle.fill | Icons.Filled.Warning | 􀇿 |
 
 In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
 

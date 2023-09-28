@@ -56,7 +56,112 @@ public struct Image : View, Equatable, Sendable {
         self.image = .system(systemName: systemName)
     }
 
-    // TODO: implement compose view
+    private func composeSymbolName(for symbolName: String) -> String? {
+        switch symbolName {
+        case "person.crop.square": return "Icons.Outlined.AccountBox" //􀉹
+        case "person.crop.circle": return "Icons.Outlined.AccountCircle" //􀉭
+        case "plus.circle.fill": return "Icons.Outlined.AddCircle" //􀁍
+        case "plus": return "Icons.Outlined.Add" //􀅼
+        case "arrow.left": return "Icons.Outlined.ArrowBack" //􀄪
+        case "arrowtriangle.down.fill": return "Icons.Outlined.ArrowDropDown" //􀄥
+        case "arrow.forward": return "Icons.Outlined.ArrowForward" //􀰑
+        case "wrench": return "Icons.Outlined.Build" //􀎕
+        case "phone": return "Icons.Outlined.Call" //􀌾
+        case "checkmark.circle": return "Icons.Outlined.CheckCircle" //􀁢
+        case "checkmark": return "Icons.Outlined.Check" //􀆅
+        case "xmark": return "Icons.Outlined.Clear" //􀆄
+        //case "xmark": return "Icons.Outlined.Close" //􀆄
+        case "pencil": return "Icons.Outlined.Create" //􀈊
+        case "calendar": return "Icons.Outlined.DateRange" //􀉉
+        case "trash": return "Icons.Outlined.Delete" //􀈑
+        //case "checkmark": return "Icons.Outlined.Done" //􀆅
+        //case "pencil": return "Icons.Outlined.Edit" //􀈊
+        case "envelope": return "Icons.Outlined.Email" //􀍕
+        case "arrow.forward.square": return "Icons.Outlined.ExitToApp" //􀰔
+        case "face.smiling": return "Icons.Outlined.Face" //􀎸
+        case "heart": return "Icons.Outlined.FavoriteBorder" //􀊴
+        case "heart.fill": return "Icons.Outlined.Favorite" //􀊵
+        case "house": return "Icons.Outlined.Home" //􀎞
+        case "info.circle": return "Icons.Outlined.Info" //􀅴
+        case "chevron.down": return "Icons.Outlined.KeyboardArrowDown" //􀆈
+        case "chevron.left": return "Icons.Outlined.KeyboardArrowLeft" //􀆉
+        case "chevron.right": return "Icons.Outlined.KeyboardArrowRight" //􀆊
+        case "chevron.up": return "Icons.Outlined.KeyboardArrowUp" //􀆇
+        case "list.bullet": return "Icons.Outlined.List" //􀋲
+        case "location": return "Icons.Outlined.LocationOn" //􀋑
+        case "lock": return "Icons.Outlined.Lock" //􀎠
+        //case "envelope": return "Icons.Outlined.MailOutline" //􀍕
+        case "line.3.horizontal": return "Icons.Outlined.Menu" //􀌇
+        case "ellipsis": return "Icons.Outlined.MoreVert" //􀍠
+        case "bell": return "Icons.Outlined.Notifications" //􀋙
+        case "person": return "Icons.Outlined.Person" //􀉩
+        //case "phone": return "Icons.Outlined.Phone" //􀌾
+        case "mappin.circle": return "Icons.Outlined.Place" //􀎪
+        case "play": return "Icons.Outlined.PlayArrow" //􀊃
+        case "arrow.clockwise.circle": return "Icons.Outlined.Refresh" //􀚁
+        case "magnifyingglass": return "Icons.Outlined.Search" //􀊫
+        case "paperplane": return "Icons.Outlined.Send" //􀈟
+        case "gearshape": return "Icons.Outlined.Settings" //􀣋
+        case "square.and.arrow.up": return "Icons.Outlined.Share" //􀈂
+        case "cart": return "Icons.Outlined.ShoppingCart" //􀍩
+        case "star": return "Icons.Outlined.Star" //􀋃
+        case "hand.thumbsup": return "Icons.Outlined.ThumbUp" //􀉿
+        case "exclamationmark.triangle": return "Icons.Outlined.Warning" //􀇿
+
+        case "person.crop.square.fill": return "Icons.Filled.AccountBox" //􀉺
+        case "person.crop.circle.fill": return "Icons.Filled.AccountCircle" //􀉮
+        //case "plus.circle.fill": return "Icons.Filled.AddCircle" //􀁍
+        //case "plus": return "Icons.Filled.Add" //􀅼
+        //case "arrow.left": return "Icons.Filled.ArrowBack" //
+        //case "arrowtriangle.down.fill": return "Icons.Filled.ArrowDropDown" //
+        //case "arrow.forward": return "Icons.Filled.ArrowForward" //
+        case "wrench.fill": return "Icons.Filled.Build" //􀎖
+        case "phone.fill": return "Icons.Filled.Call" //􀌿
+        case "checkmark.circle.fill": return "Icons.Filled.CheckCircle" //􀁣
+        //case "XXX": return "Icons.Filled.Check" //
+        //case "XXX": return "Icons.Filled.Clear" //
+        //case "XXX": return "Icons.Filled.Close" //
+        //case "XXX": return "Icons.Filled.Create" //
+        //case "XXX": return "Icons.Filled.DateRange" //
+        case "trash.fill": return "Icons.Filled.Delete" //􀈒
+        //case "XXX": return "Icons.Filled.Done" //
+        //case "XXX": return "Icons.Filled.Edit" //
+        case "envelope.fill": return "Icons.Filled.Email" //􀍖
+        //case "XXX": return "Icons.Filled.ExitToApp" //
+        //case "XXX": return "Icons.Filled.Face" //
+        //case "XXX": return "Icons.Filled.FavoriteBorder" //
+        //case "XXX": return "Icons.Filled.Favorite" //
+        case "house.fill": return "Icons.Filled.Home" //􀎟
+        case "info.circle.fill": return "Icons.Filled.Info" //􀅵
+        //case "XXX": return "Icons.Filled.KeyboardArrowDown" //
+        //case "XXX": return "Icons.Filled.KeyboardArrowLeft" //
+        //case "XXX": return "Icons.Filled.KeyboardArrowRight" //
+        //case "XXX": return "Icons.Filled.KeyboardArrowUp" //
+        //case "XXX": return "Icons.Filled.List" //
+        case "location.fill": return "Icons.Filled.LocationOn" //􀋒
+        case "lock.fill": return "Icons.Filled.Lock" //􀎡
+        //case "XXX": return "Icons.Filled.MailOutline" //
+        //case "XXX": return "Icons.Filled.Menu" //
+        //case "XXX": return "Icons.Filled.MoreVert" //
+        case "bell.fill": return "Icons.Filled.Notifications" //􀋚
+        case "person.fill": return "Icons.Filled.Person" //􀉪
+        //case "phone.fill": return "Icons.Filled.Phone" //􀌿
+        case "mappin.circle.fill": return "Icons.Filled.Place" //􀜈
+        case "play.fill": return "Icons.Filled.PlayArrow" //􀊄
+        //case "XXX": return "Icons.Filled.Refresh" //
+        //case "XXX": return "Icons.Filled.Search" //
+        case "paperplane.fill": return "Icons.Filled.Send" //􀈠
+        case "gearshape.fill": return "Icons.Filled.Settings" //􀣌
+        case "square.and.arrow.up.fill": return "Icons.Filled.Share" //􀈃
+        case "cart.fill": return "Icons.Filled.ShoppingCart" //􀍪
+        case "star.fill": return "Icons.Filled.Star" //􀋃
+        case "hand.thumbsup.fill": return "Icons.Filled.ThumbUp" //􀊀
+        case "exclamationmark.triangle.fill": return "Icons.Filled.Warning" //􀇿
+
+        default: return nil
+        }
+    }
+
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         // The best way would be to switch here, but the generated closures are not @Composable, leading to:
@@ -64,13 +169,13 @@ public struct Image : View, Equatable, Sendable {
 
         //switch image {
         //case .system(let systemName):
-        //    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: systemImage(named: systemName), contentDescription: systemName)
+        //    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: composeImageVector(named: systemName), contentDescription: systemName)
         //case .decorative(let name, let bundle): break // TODO: non-system images
         //case .named(let name, let bunle, let label): break // TODO: non-system images
         //}
 
         if case .system(let systemName) = self.image {
-            if let image = systemImage(named: systemName) {
+            if let image = composeImageVector(named: systemName) {
                 if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
                     androidx.compose.material3.Icon(modifier: context.modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
                 } else {
@@ -86,226 +191,18 @@ public struct Image : View, Equatable, Sendable {
         }
     }
 
-    private func systemImage(named name: String) -> ImageVector? {
-        switch name {
-        case "alarm": return Icons.Outlined.Alarm
-        case "alarm.fill": return Icons.Filled.Alarm
-
-        case "arrow.down.circle": return Icons.Outlined.ArrowDownward
-        case "arrow.down.circle.fill": return Icons.Filled.ArrowDownward
-
-        case "bandage": return Icons.Outlined.Healing
-        case "bandage.fill": return Icons.Filled.Healing
-
-        case "bell.slash": return Icons.Outlined.NotificationsOff
-        case "bell.slash.fill": return Icons.Filled.NotificationsOff
-
-        case "bolt": return Icons.Outlined.FlashOn
-        case "bolt.fill": return Icons.Filled.FlashOn
-
-        case "book": return Icons.Outlined.Book
-        case "book.fill": return Icons.Filled.Book
-
-        case "calendar": return Icons.Outlined.CalendarToday
-        case "calendar.fill": return Icons.Filled.CalendarToday
-
-        case "calendar.circle": return Icons.Outlined.Event
-        case "calendar.circle.fill": return Icons.Filled.Event
-
-        case "camera": return Icons.Outlined.Camera
-        case "camera.fill": return Icons.Filled.Camera
-
-        case "camera.metering.center.weighted": return Icons.Outlined.CenterFocusStrong
-        case "camera.metering.center.weighted.fill": return Icons.Filled.CenterFocusStrong
-
-        case "car": return Icons.Outlined.DirectionsCar
-        case "car.fill": return Icons.Filled.DirectionsCar
-
-        case "cart": return Icons.Outlined.ShoppingCart
-        case "cart.fill": return Icons.Filled.ShoppingCart
-
-        case "cloud": return Icons.Outlined.Cloud
-        case "cloud.fill": return Icons.Filled.Cloud
-
-        case "creditcard": return Icons.Outlined.CreditCard
-        case "creditcard.fill": return Icons.Filled.CreditCard
-
-        case "document": return Icons.Outlined.Description
-        case "document.fill": return Icons.Filled.Description
-
-        case "envelope": return Icons.Outlined.Email
-        case "envelope.fill": return Icons.Filled.Email
-
-        case "eye.slash": return Icons.Outlined.VisibilityOff
-        case "eye.slash.fill": return Icons.Filled.VisibilityOff
-
-        case "film": return Icons.Outlined.Movie
-        case "film.fill": return Icons.Filled.Movie
-
-        case "flag": return Icons.Outlined.Flag
-        case "flag.fill": return Icons.Filled.Flag
-
-        case "folder": return Icons.Outlined.Folder
-        case "folder.fill": return Icons.Filled.Folder
-
-        case "gamecontroller": return Icons.Outlined.VideogameAsset
-        case "gamecontroller.fill": return Icons.Filled.VideogameAsset
-
-        case "gear": return Icons.Outlined.Settings
-        case "gear.fill": return Icons.Filled.Settings
-
-        case "gearshape": return Icons.Outlined.Settings
-        case "gearshape.fill": return Icons.Filled.Settings
-
-        case "gift": return Icons.Outlined.CardGiftcard
-        case "gift.fill": return Icons.Filled.CardGiftcard
-
-        case "globe.americas": return Icons.Outlined.Public
-        case "globe.americas.fill": return Icons.Filled.Public
-
-        case "headphones.circle": return Icons.Outlined.Headset
-        case "headphones.circle.fill": return Icons.Filled.Headset
-
-        case "heart": return Icons.Outlined.Favorite
-        case "heart.fill": return Icons.Filled.Favorite
-
-        case "heart.slash": return Icons.Outlined.FavoriteBorder
-        case "heart.slash.fill": return Icons.Filled.FavoriteBorder
-
-        case "home": return Icons.Outlined.Home
-        case "home.fill": return Icons.Filled.Home
-
-        case "hourglass": return Icons.Outlined.HourglassFull
-        case "hourglass.fill": return Icons.Filled.HourglassFull
-
-        case "house": return Icons.Outlined.Home
-        case "house.fill": return Icons.Filled.Home
-
-        case "info": return Icons.Outlined.Info
-        case "info.fill": return Icons.Filled.Info
-
-        case "lock": return Icons.Outlined.Lock
-        case "lock.fill": return Icons.Filled.Lock
-
-        case "lightbulb": return Icons.Outlined.WbIncandescent
-        case "lightbulb.fill": return Icons.Filled.WbIncandescent
-
-        case "magnifyingglass": return Icons.Outlined.Search
-        case "magnifyingglass.fill": return Icons.Filled.Search
-
-        case "message": return Icons.Outlined.Message
-        case "message.fill": return Icons.Filled.Message
-
-        case "mic": return Icons.Outlined.Mic
-        case "mic.fill": return Icons.Filled.Mic
-
-        case "moon": return Icons.Outlined.Nightlight
-        case "moon.fill": return Icons.Filled.Nightlight
-
-        case "music.note": return Icons.Outlined.MusicNote
-        case "music.note.fill": return Icons.Filled.MusicNote
-
-        case "paperclip.circle": return Icons.Outlined.AttachFile
-        case "paperclip.circle.fill": return Icons.Filled.AttachFile
-
-        case "paperplane": return Icons.Outlined.Send
-        case "paperplane.fill": return Icons.Filled.Send
-
-        case "pencil": return Icons.Outlined.Edit
-        case "pencil.fill": return Icons.Filled.Edit
-
-        case "person.2": return Icons.Outlined.Person
-        case "person.2.fill": return Icons.Filled.Person
-
-        case "person.badge.plus": return Icons.Outlined.PersonAdd
-        case "person.badge.plus.fill": return Icons.Filled.PersonAdd
-
-        case "person.crop.circle": return Icons.Outlined.AccountCircle
-        case "person.crop.circle.fill": return Icons.Filled.AccountCircle
-
-        case "phone": return Icons.Outlined.Phone
-        case "phone.fill": return Icons.Filled.Phone
-
-        case "pianokeys": return Icons.Outlined.MusicNote
-        case "pianokeys.fill": return Icons.Filled.MusicNote
-
-        case "printer": return Icons.Outlined.Print
-        case "printer.fill": return Icons.Filled.Print
-
-        case "square.and.pencil": return Icons.Outlined.Edit
-        case "square.and.pencil.fill": return Icons.Filled.Edit
-
-        case "star": return Icons.Outlined.Star
-        case "star.fill": return Icons.Filled.Star
-
-        case "sun.max": return Icons.Outlined.WbSunny
-        case "sun.max.fill": return Icons.Filled.WbSunny
-
-        case "sunrise": return Icons.Outlined.WbSunny
-        case "sunrise.fill": return Icons.Filled.WbSunny
-
-        case "trash": return Icons.Outlined.Delete
-        case "trash.fill": return Icons.Filled.Delete
-
-        case "video": return Icons.Outlined.VideoCall
-        case "video.fill": return Icons.Filled.VideoCall
-
-        case "wifi.slash": return Icons.Outlined.WifiOff
-        case "wifi.slash.fill": return Icons.Filled.WifiOff
-
-        case "wrench": return Icons.Outlined.Settings
-        case "wrench.fill": return Icons.Filled.Settings
-
-        // fallbacks for actual android symbol names
-
-        case "Icons.Default.AccountBox": return Icons.Default.AccountBox
-        case "Icons.Default.AccountCircle": return Icons.Default.AccountCircle
-        case "Icons.Default.AddCircle": return Icons.Default.AddCircle
-        case "Icons.Default.Add": return Icons.Default.Add
-        case "Icons.Default.ArrowDropDown": return Icons.Default.ArrowDropDown
-        case "Icons.Default.Build": return Icons.Default.Build
-        case "Icons.Default.Call": return Icons.Default.Call
-        case "Icons.Default.CheckCircle": return Icons.Default.CheckCircle
-        case "Icons.Default.Check": return Icons.Default.Check
-        case "Icons.Default.Clear": return Icons.Default.Clear
-        case "Icons.Default.Close": return Icons.Default.Close
-        case "Icons.Default.Create": return Icons.Default.Create
-        case "Icons.Default.DateRange": return Icons.Default.DateRange
-        case "Icons.Default.Delete": return Icons.Default.Delete
-        case "Icons.Default.Done": return Icons.Default.Done
-        case "Icons.Default.Edit": return Icons.Default.Edit
-        case "Icons.Default.Email": return Icons.Default.Email
-        case "Icons.Default.Face": return Icons.Default.Face
-        case "Icons.Default.FavoriteBorder": return Icons.Default.FavoriteBorder
-        case "Icons.Default.Favorite": return Icons.Default.Favorite
-        case "Icons.Default.Home": return Icons.Default.Home
-        case "Icons.Default.Info": return Icons.Default.Info
-        case "Icons.Default.KeyboardArrowDown": return Icons.Default.KeyboardArrowDown
-        case "Icons.Default.KeyboardArrowUp": return Icons.Default.KeyboardArrowUp
-        case "Icons.Default.LocationOn": return Icons.Default.LocationOn
-        case "Icons.Default.Lock": return Icons.Default.Lock
-        case "Icons.Default.MailOutline": return Icons.Default.MailOutline
-        case "Icons.Default.Menu": return Icons.Default.Menu
-        case "Icons.Default.MoreVert": return Icons.Default.MoreVert
-        case "Icons.Default.Notifications": return Icons.Default.Notifications
-        case "Icons.Default.Person": return Icons.Default.Person
-        case "Icons.Default.Phone": return Icons.Default.Phone
-        case "Icons.Default.Place": return Icons.Default.Place
-        case "Icons.Default.PlayArrow": return Icons.Default.PlayArrow
-        case "Icons.Default.Refresh": return Icons.Default.Refresh
-        case "Icons.Default.Search": return Icons.Default.Search
-        case "Icons.Default.Settings": return Icons.Default.Settings
-        case "Icons.Default.Share": return Icons.Default.Share
-        case "Icons.Default.ShoppingCart": return Icons.Default.ShoppingCart
-        case "Icons.Default.Star": return Icons.Default.Star
-        case "Icons.Default.ThumbUp": return Icons.Default.ThumbUp
-        case "Icons.Default.Warning": return Icons.Default.Warning
-
+    /// Returns the `androidx.compose.ui.graphics.vector.ImageVector` for the given constant name.
+    ///
+    /// See: https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons.Outlined
+    private func composeImageVector(named name: String) -> ImageVector? {
+        switch composeSymbolName(for: name) ?? name {
         case "Icons.Outlined.AccountBox": return Icons.Outlined.AccountBox
         case "Icons.Outlined.AccountCircle": return Icons.Outlined.AccountCircle
         case "Icons.Outlined.AddCircle": return Icons.Outlined.AddCircle
         case "Icons.Outlined.Add": return Icons.Outlined.Add
+        case "Icons.Outlined.ArrowBack": return Icons.Outlined.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ArrowBack
         case "Icons.Outlined.ArrowDropDown": return Icons.Outlined.ArrowDropDown
+        case "Icons.Outlined.ArrowForward": return Icons.Outlined.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ArrowForward
         case "Icons.Outlined.Build": return Icons.Outlined.Build
         case "Icons.Outlined.Call": return Icons.Outlined.Call
         case "Icons.Outlined.CheckCircle": return Icons.Outlined.CheckCircle
@@ -318,13 +215,17 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Outlined.Done": return Icons.Outlined.Done
         case "Icons.Outlined.Edit": return Icons.Outlined.Edit
         case "Icons.Outlined.Email": return Icons.Outlined.Email
+        case "Icons.Outlined.ExitToApp": return Icons.Outlined.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ExitToApp
         case "Icons.Outlined.Face": return Icons.Outlined.Face
         case "Icons.Outlined.FavoriteBorder": return Icons.Outlined.FavoriteBorder
         case "Icons.Outlined.Favorite": return Icons.Outlined.Favorite
         case "Icons.Outlined.Home": return Icons.Outlined.Home
         case "Icons.Outlined.Info": return Icons.Outlined.Info
         case "Icons.Outlined.KeyboardArrowDown": return Icons.Outlined.KeyboardArrowDown
+        case "Icons.Outlined.KeyboardArrowLeft": return Icons.Outlined.KeyboardArrowLeft // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.KeyboardArrowLeft
+        case "Icons.Outlined.KeyboardArrowRight": return Icons.Outlined.KeyboardArrowRight // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.KeyboardArrowRight
         case "Icons.Outlined.KeyboardArrowUp": return Icons.Outlined.KeyboardArrowUp
+        case "Icons.Outlined.List": return Icons.Outlined.List // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.List
         case "Icons.Outlined.LocationOn": return Icons.Outlined.LocationOn
         case "Icons.Outlined.Lock": return Icons.Outlined.Lock
         case "Icons.Outlined.MailOutline": return Icons.Outlined.MailOutline
@@ -337,6 +238,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Outlined.PlayArrow": return Icons.Outlined.PlayArrow
         case "Icons.Outlined.Refresh": return Icons.Outlined.Refresh
         case "Icons.Outlined.Search": return Icons.Outlined.Search
+        case "Icons.Outlined.Send": return Icons.Outlined.Send // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.Send
         case "Icons.Outlined.Settings": return Icons.Outlined.Settings
         case "Icons.Outlined.Share": return Icons.Outlined.Share
         case "Icons.Outlined.ShoppingCart": return Icons.Outlined.ShoppingCart
@@ -348,7 +250,9 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Filled.AccountCircle": return Icons.Filled.AccountCircle
         case "Icons.Filled.AddCircle": return Icons.Filled.AddCircle
         case "Icons.Filled.Add": return Icons.Filled.Add
+        case "Icons.Filled.ArrowBack": return Icons.Filled.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Filled.ArrowBack
         case "Icons.Filled.ArrowDropDown": return Icons.Filled.ArrowDropDown
+        case "Icons.Filled.ArrowForward": return Icons.Filled.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Filled.ArrowForward
         case "Icons.Filled.Build": return Icons.Filled.Build
         case "Icons.Filled.Call": return Icons.Filled.Call
         case "Icons.Filled.CheckCircle": return Icons.Filled.CheckCircle
@@ -361,13 +265,17 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Filled.Done": return Icons.Filled.Done
         case "Icons.Filled.Edit": return Icons.Filled.Edit
         case "Icons.Filled.Email": return Icons.Filled.Email
+        case "Icons.Filled.ExitToApp": return Icons.Filled.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Filled.ExitToApp
         case "Icons.Filled.Face": return Icons.Filled.Face
         case "Icons.Filled.FavoriteBorder": return Icons.Filled.FavoriteBorder
         case "Icons.Filled.Favorite": return Icons.Filled.Favorite
         case "Icons.Filled.Home": return Icons.Filled.Home
         case "Icons.Filled.Info": return Icons.Filled.Info
         case "Icons.Filled.KeyboardArrowDown": return Icons.Filled.KeyboardArrowDown
+        case "Icons.Filled.KeyboardArrowLeft": return Icons.Filled.KeyboardArrowLeft // Compose 1.6 TODO: Icons.AutoMirrored.Filled.KeyboardArrowLeft
+        case "Icons.Filled.KeyboardArrowRight": return Icons.Filled.KeyboardArrowRight // Compose 1.6 TODO: Icons.AutoMirrored.Filled.KeyboardArrowRight
         case "Icons.Filled.KeyboardArrowUp": return Icons.Filled.KeyboardArrowUp
+        case "Icons.Filled.List": return Icons.Filled.List // Compose 1.6 TODO: Icons.AutoMirrored.Filled.List
         case "Icons.Filled.LocationOn": return Icons.Filled.LocationOn
         case "Icons.Filled.Lock": return Icons.Filled.Lock
         case "Icons.Filled.MailOutline": return Icons.Filled.MailOutline
@@ -380,6 +288,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Filled.PlayArrow": return Icons.Filled.PlayArrow
         case "Icons.Filled.Refresh": return Icons.Filled.Refresh
         case "Icons.Filled.Search": return Icons.Filled.Search
+        case "Icons.Filled.Send": return Icons.Filled.Send // Compose 1.6 TODO: Icons.AutoMirrored.Filled.Send
         case "Icons.Filled.Settings": return Icons.Filled.Settings
         case "Icons.Filled.Share": return Icons.Filled.Share
         case "Icons.Filled.ShoppingCart": return Icons.Filled.ShoppingCart
@@ -391,7 +300,9 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Rounded.AccountCircle": return Icons.Rounded.AccountCircle
         case "Icons.Rounded.AddCircle": return Icons.Rounded.AddCircle
         case "Icons.Rounded.Add": return Icons.Rounded.Add
+        case "Icons.Rounded.ArrowBack": return Icons.Rounded.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.ArrowBack
         case "Icons.Rounded.ArrowDropDown": return Icons.Rounded.ArrowDropDown
+        case "Icons.Rounded.ArrowForward": return Icons.Rounded.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.ArrowForward
         case "Icons.Rounded.Build": return Icons.Rounded.Build
         case "Icons.Rounded.Call": return Icons.Rounded.Call
         case "Icons.Rounded.CheckCircle": return Icons.Rounded.CheckCircle
@@ -404,13 +315,17 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Rounded.Done": return Icons.Rounded.Done
         case "Icons.Rounded.Edit": return Icons.Rounded.Edit
         case "Icons.Rounded.Email": return Icons.Rounded.Email
+        case "Icons.Rounded.ExitToApp": return Icons.Rounded.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.ExitToApp
         case "Icons.Rounded.Face": return Icons.Rounded.Face
         case "Icons.Rounded.FavoriteBorder": return Icons.Rounded.FavoriteBorder
         case "Icons.Rounded.Favorite": return Icons.Rounded.Favorite
         case "Icons.Rounded.Home": return Icons.Rounded.Home
         case "Icons.Rounded.Info": return Icons.Rounded.Info
         case "Icons.Rounded.KeyboardArrowDown": return Icons.Rounded.KeyboardArrowDown
+        case "Icons.Rounded.KeyboardArrowLeft": return Icons.Rounded.KeyboardArrowLeft // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.KeyboardArrowLeft
+        case "Icons.Rounded.KeyboardArrowRight": return Icons.Rounded.KeyboardArrowRight // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.KeyboardArrowRight
         case "Icons.Rounded.KeyboardArrowUp": return Icons.Rounded.KeyboardArrowUp
+        case "Icons.Rounded.List": return Icons.Rounded.List // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.List
         case "Icons.Rounded.LocationOn": return Icons.Rounded.LocationOn
         case "Icons.Rounded.Lock": return Icons.Rounded.Lock
         case "Icons.Rounded.MailOutline": return Icons.Rounded.MailOutline
@@ -423,6 +338,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Rounded.PlayArrow": return Icons.Rounded.PlayArrow
         case "Icons.Rounded.Refresh": return Icons.Rounded.Refresh
         case "Icons.Rounded.Search": return Icons.Rounded.Search
+        case "Icons.Rounded.Send": return Icons.Rounded.Send // Compose 1.6 TODO: Icons.AutoMirrored.Rounded.Send
         case "Icons.Rounded.Settings": return Icons.Rounded.Settings
         case "Icons.Rounded.Share": return Icons.Rounded.Share
         case "Icons.Rounded.ShoppingCart": return Icons.Rounded.ShoppingCart
@@ -434,7 +350,9 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Sharp.AccountCircle": return Icons.Sharp.AccountCircle
         case "Icons.Sharp.AddCircle": return Icons.Sharp.AddCircle
         case "Icons.Sharp.Add": return Icons.Sharp.Add
+        case "Icons.Sharp.ArrowBack": return Icons.Sharp.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.ArrowBack
         case "Icons.Sharp.ArrowDropDown": return Icons.Sharp.ArrowDropDown
+        case "Icons.Sharp.ArrowForward": return Icons.Sharp.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.ArrowForward
         case "Icons.Sharp.Build": return Icons.Sharp.Build
         case "Icons.Sharp.Call": return Icons.Sharp.Call
         case "Icons.Sharp.CheckCircle": return Icons.Sharp.CheckCircle
@@ -447,13 +365,17 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Sharp.Done": return Icons.Sharp.Done
         case "Icons.Sharp.Edit": return Icons.Sharp.Edit
         case "Icons.Sharp.Email": return Icons.Sharp.Email
+        case "Icons.Sharp.ExitToApp": return Icons.Sharp.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.ExitToApp
         case "Icons.Sharp.Face": return Icons.Sharp.Face
         case "Icons.Sharp.FavoriteBorder": return Icons.Sharp.FavoriteBorder
         case "Icons.Sharp.Favorite": return Icons.Sharp.Favorite
         case "Icons.Sharp.Home": return Icons.Sharp.Home
         case "Icons.Sharp.Info": return Icons.Sharp.Info
         case "Icons.Sharp.KeyboardArrowDown": return Icons.Sharp.KeyboardArrowDown
+        case "Icons.Sharp.KeyboardArrowLeft": return Icons.Sharp.KeyboardArrowLeft // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.KeyboardArrowLeft
+        case "Icons.Sharp.KeyboardArrowRight": return Icons.Sharp.KeyboardArrowRight // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.KeyboardArrowRight
         case "Icons.Sharp.KeyboardArrowUp": return Icons.Sharp.KeyboardArrowUp
+        case "Icons.Sharp.List": return Icons.Sharp.List // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.List
         case "Icons.Sharp.LocationOn": return Icons.Sharp.LocationOn
         case "Icons.Sharp.Lock": return Icons.Sharp.Lock
         case "Icons.Sharp.MailOutline": return Icons.Sharp.MailOutline
@@ -466,6 +388,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.Sharp.PlayArrow": return Icons.Sharp.PlayArrow
         case "Icons.Sharp.Refresh": return Icons.Sharp.Refresh
         case "Icons.Sharp.Search": return Icons.Sharp.Search
+        case "Icons.Sharp.Send": return Icons.Sharp.Send // Compose 1.6 TODO: Icons.AutoMirrored.Sharp.Send
         case "Icons.Sharp.Settings": return Icons.Sharp.Settings
         case "Icons.Sharp.Share": return Icons.Sharp.Share
         case "Icons.Sharp.ShoppingCart": return Icons.Sharp.ShoppingCart
@@ -477,7 +400,9 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.TwoTone.AccountCircle": return Icons.TwoTone.AccountCircle
         case "Icons.TwoTone.AddCircle": return Icons.TwoTone.AddCircle
         case "Icons.TwoTone.Add": return Icons.TwoTone.Add
+        case "Icons.TwoTone.ArrowBack": return Icons.TwoTone.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.ArrowBack
         case "Icons.TwoTone.ArrowDropDown": return Icons.TwoTone.ArrowDropDown
+        case "Icons.TwoTone.ArrowForward": return Icons.TwoTone.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.ArrowForward
         case "Icons.TwoTone.Build": return Icons.TwoTone.Build
         case "Icons.TwoTone.Call": return Icons.TwoTone.Call
         case "Icons.TwoTone.CheckCircle": return Icons.TwoTone.CheckCircle
@@ -490,13 +415,17 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.TwoTone.Done": return Icons.TwoTone.Done
         case "Icons.TwoTone.Edit": return Icons.TwoTone.Edit
         case "Icons.TwoTone.Email": return Icons.TwoTone.Email
+        case "Icons.TwoTone.ExitToApp": return Icons.TwoTone.ExitToApp // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.ExitToApp
         case "Icons.TwoTone.Face": return Icons.TwoTone.Face
         case "Icons.TwoTone.FavoriteBorder": return Icons.TwoTone.FavoriteBorder
         case "Icons.TwoTone.Favorite": return Icons.TwoTone.Favorite
         case "Icons.TwoTone.Home": return Icons.TwoTone.Home
         case "Icons.TwoTone.Info": return Icons.TwoTone.Info
         case "Icons.TwoTone.KeyboardArrowDown": return Icons.TwoTone.KeyboardArrowDown
+        case "Icons.TwoTone.KeyboardArrowLeft": return Icons.TwoTone.KeyboardArrowLeft // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.KeyboardArrowLeft
+        case "Icons.TwoTone.KeyboardArrowRight": return Icons.TwoTone.KeyboardArrowRight // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.KeyboardArrowRight
         case "Icons.TwoTone.KeyboardArrowUp": return Icons.TwoTone.KeyboardArrowUp
+        case "Icons.TwoTone.List": return Icons.TwoTone.List // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.List
         case "Icons.TwoTone.LocationOn": return Icons.TwoTone.LocationOn
         case "Icons.TwoTone.Lock": return Icons.TwoTone.Lock
         case "Icons.TwoTone.MailOutline": return Icons.TwoTone.MailOutline
@@ -509,6 +438,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.TwoTone.PlayArrow": return Icons.TwoTone.PlayArrow
         case "Icons.TwoTone.Refresh": return Icons.TwoTone.Refresh
         case "Icons.TwoTone.Search": return Icons.TwoTone.Search
+        case "Icons.TwoTone.Send": return Icons.TwoTone.Send // Compose 1.6 TODO: Icons.AutoMirrored.TwoTone.Send
         case "Icons.TwoTone.Settings": return Icons.TwoTone.Settings
         case "Icons.TwoTone.Share": return Icons.TwoTone.Share
         case "Icons.TwoTone.ShoppingCart": return Icons.TwoTone.ShoppingCart
@@ -516,7 +446,7 @@ public struct Image : View, Equatable, Sendable {
         case "Icons.TwoTone.ThumbUp": return Icons.TwoTone.ThumbUp
         case "Icons.TwoTone.Warning": return Icons.TwoTone.Warning
 
-        default: return Icons.Default.Warning
+        default: return nil
         }
     }
     #else
