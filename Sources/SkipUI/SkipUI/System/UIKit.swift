@@ -924,7 +924,7 @@ extension UIViewControllerRepresentable {
 @MainActor public struct UIViewControllerRepresentableContext<Representable> where Representable : UIViewControllerRepresentable {
 
     /// The view's associated coordinator.
-    @MainActor public let coordinator: Representable.Coordinator = { fatalError() }()
+    // @MainActor public let coordinator: Representable.Coordinator = { fatalError() }() // disabled to avoid: Stored property 'coordinator' within struct cannot have a global actor; this is an error in Swift 6
 
     /// The current transaction.
     @MainActor public var transaction: Transaction { get { fatalError() } }
