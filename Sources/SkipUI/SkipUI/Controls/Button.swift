@@ -46,12 +46,14 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
-        if buttonStyle == .bordered || buttonStyle == .borderedProminent {
-            androidx.compose.material3.Button(modifier: context.modifier, onClick: action, content: {
-                label.Compose(context: context.content())
-            })
-        } else {
-            ComposePlain(context: context.content(modifier: Modifier.clickable(onClick: action)))
+        ComposeContainer(modifier: context.modifier) { modifier in
+            if buttonStyle == .bordered || buttonStyle == .borderedProminent {
+                androidx.compose.material3.Button(modifier: modifier, onClick: action) {
+                    label.Compose(context: context.content())
+                }
+            } else {
+                ComposePlain(context: context.content(modifier: modifier.clickable(onClick: action)))
+            }
         }
     }
 

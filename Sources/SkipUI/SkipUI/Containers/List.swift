@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -62,9 +61,10 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let itemContext = context.content(composer: { view, context in ComposeItem(view: &view, context: context, style: style) })
-        let modifier = context.modifier.fillSize().background(BackgroundColor(style: style))
-        Box(modifier: modifier) {
-            ComposeList(itemContext: itemContext, style: style)
+        ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(style: style))) { modifier in
+            Box(modifier: modifier) {
+                ComposeList(itemContext: itemContext, style: style)
+            }
         }
     }
 
@@ -73,7 +73,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         if style != .plain {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillWidth()
         if let fixedContent {
             let scrollState = rememberScrollState()
             Column(modifier: modifier.verticalScroll(scrollState)) {
@@ -115,7 +115,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let verticalItemInset = 8.0
 
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
-        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
+        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
             // We can't strip modifiers here because there is no way to re-apply them, so any modifier prevents adaptive list rendering
             if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
@@ -130,7 +130,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     @Composable private func ComposeSeparator() {
-        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
     }
 
     @Composable private func ComposeHeader(style: ListStyle) {
@@ -138,7 +138,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             ComposeSeparator()
         } else {
             let modifier = Modifier.background(BackgroundColor(style: style))
-                .fillMaxWidth()
+                .fillWidth()
                 .height(Self.verticalInset.dp)
             Box(modifier: modifier)
         }
@@ -148,7 +148,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         guard style != .plain else {
             return
         }
-        let modifier = Modifier.fillMaxWidth()
+        let modifier = Modifier.fillWidth()
             .height(Self.verticalInset.dp)
             .offset(y: -1.dp) // Cover last row's divider
             .zIndex(Float(2.0))

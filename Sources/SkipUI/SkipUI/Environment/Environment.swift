@@ -183,14 +183,24 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_color", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillHeight: Modifier? {
-        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! Modifier? }
+    var _fillHeight: (@Composable () -> Modifier)? {
+        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
         set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillWidth: Modifier? {
-        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! Modifier? }
+    var _fillWidth: (@Composable () -> Modifier)? {
+        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
         set { setBuiltinValue(key: "_fillWidth", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _fillHeightModifier: Modifier? {
+        get { builtinValue(key: "_fillHeightModifier", defaultValue: { nil }) as! Modifier? }
+        set { setBuiltinValue(key: "_fillHeightModifier", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _fillWidthModifier: Modifier? {
+        get { builtinValue(key: "_fillWidthModifier", defaultValue: { nil }) as! Modifier? }
+        set { setBuiltinValue(key: "_fillWidthModifier", value: newValue, defaultValue: { nil }) }
     }
 
     var _fontWeight: Font.Weight? {

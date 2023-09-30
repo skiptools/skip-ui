@@ -114,9 +114,11 @@ extension View {
             EnvironmentValues.shared.setValues {
                 if width != nil {
                     $0.set_fillWidth(nil)
+                    $0.set_fillWidthModifier(nil)
                 }
                 if height != nil {
                     $0.set_fillHeight(nil)
+                    $0.set_fillHeightModifier(nil)
                 }
             } in: {
                 view.ComposeContent(context: context)

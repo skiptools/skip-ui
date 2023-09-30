@@ -79,31 +79,33 @@ public struct NavigationStack<Root> : View where Root: View {
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
-            NavHost(navController: navController,
-                    startDestination: Navigator.rootRoute,
-                    //enterTransition: { EnterTransition.None },
-                    exitTransition: { ExitTransition.None },
-                    modifier: context.modifier) {
-                composable(route: Navigator.rootRoute,
-                           enterTransition: { slideInHorizontally() },
-                           exitTransition: { slideOutHorizontally() }) { entry in
-                    if let state = navigator.value.state(for: entry) {
-                        let entryContext = context.content(stateSaver: state.stateSaver)
-                        ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
-                            root.Compose(context: context)
+            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                NavHost(navController: navController,
+                        startDestination: Navigator.rootRoute,
+                        //enterTransition: { EnterTransition.None },
+                        exitTransition: { ExitTransition.None },
+                        modifier: modifier) {
+                    composable(route: Navigator.rootRoute,
+                               enterTransition: { slideInHorizontally() },
+                               exitTransition: { slideOutHorizontally() }) { entry in
+                        if let state = navigator.value.state(for: entry) {
+                            let entryContext = context.content(stateSaver: state.stateSaver)
+                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
+                                root.Compose(context: context)
+                            }
                         }
                     }
-                }
-                for destinationIndex in 0..<Navigator.destinationCount {
-                    composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
-                        if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
-                            let entryContext = context.content(stateSaver: state.stateSaver)
-                            ComposeEntry(navController: navController,
-                                         destinations: destinations,
-                                         destinationsDidChange: preferencesDidChange,
-                                         isRoot: false,
-                                         context: entryContext) { context in
-                                state.destination?(targetValue).Compose(context: context)
+                    for destinationIndex in 0..<Navigator.destinationCount {
+                        composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"), arguments: listOf(navArgument("identifier") { type = NavType.StringType })) { entry in
+                            if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
+                                let entryContext = context.content(stateSaver: state.stateSaver)
+                                ComposeEntry(navController: navController,
+                                             destinations: destinations,
+                                             destinationsDidChange: preferencesDidChange,
+                                             isRoot: false,
+                                             context: entryContext) { context in
+                                    state.destination?(targetValue).Compose(context: context)
+                                }
                             }
                         }
                     }

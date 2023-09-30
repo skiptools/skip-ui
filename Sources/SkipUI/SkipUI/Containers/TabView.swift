@@ -45,63 +45,65 @@ public struct TabView<Content> : View where Content : View {
         content.Compose(context: context.content(composer: { _, _ in tabCount += 1 }))
 
         let navController = rememberNavController()
-        Scaffold(
-            modifier: context.modifier,
-            bottomBar: {
-                NavigationBar(modifier: Modifier.fillMaxWidth()) {
-                    for tabIndex in 0..<tabCount {
-                        // Use a custom composer to get the tabIndex'th tab item
-                        var composeIndex = 0
-                        var tabItem: TabItem? = nil
-                        content.Compose(context: context.content(composer: { view, _ in
-                            if composeIndex == tabIndex {
-                                tabItem = view.strippingModifiers { $0 as? TabItem }
-                            }
-                            composeIndex += 1
-                        }))
-
-                        // Render it
-                        let tabItemContext = context.content()
-                        NavigationBarItem(
-                            icon: {
-                                tabItem?.ComposeImage(context: tabItemContext)
-                            },
-                            label: {
-                                tabItem?.ComposeTitle(context: tabItemContext)
-                            },
-                            selected: String(describing: tabIndex) == currentRoute(for: navController),
-                            onClick: {
-                                navController.navigate(String(describing: tabIndex)) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    // Avoid multiple copies of the same destination when reselecting the same item
-                                    launchSingleTop = true
-                                    // Restore state when reselecting a previously selected item
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-        ) { padding in
-            NavHost(navController, 
-                    startDestination: "0", 
-                    enterTransition: { EnterTransition.None },
-                    exitTransition: { ExitTransition.None }) {
-                // Use a constant number of routes. Changing routes causes a NavHost to reset its state
-                for tabIndex in 0..<100 {
-                    composable(String(describing: tabIndex)) {
-                        Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                            // Use a custom composer to only render the tabIndex'th view
+        ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+            Scaffold(
+                modifier: modifier,
+                bottomBar: {
+                    NavigationBar(modifier: Modifier.fillMaxWidth()) {
+                        for tabIndex in 0..<tabCount {
+                            // Use a custom composer to get the tabIndex'th tab item
                             var composeIndex = 0
-                            content.Compose(context: context.content(composer: { view, context in
+                            var tabItem: TabItem? = nil
+                            content.Compose(context: context.content(composer: { view, _ in
                                 if composeIndex == tabIndex {
-                                    view.ComposeContent(context: context)
+                                    tabItem = view.strippingModifiers { $0 as? TabItem }
                                 }
                                 composeIndex += 1
                             }))
+                            
+                            // Render it
+                            let tabItemContext = context.content()
+                            NavigationBarItem(
+                                icon: {
+                                    tabItem?.ComposeImage(context: tabItemContext)
+                                },
+                                label: {
+                                    tabItem?.ComposeTitle(context: tabItemContext)
+                                },
+                                selected: String(describing: tabIndex) == currentRoute(for: navController),
+                                onClick: {
+                                    navController.navigate(String(describing: tabIndex)) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = true
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            ) { padding in
+                NavHost(navController, 
+                        startDestination: "0", 
+                        enterTransition: { EnterTransition.None },
+                        exitTransition: { ExitTransition.None }) {
+                    // Use a constant number of routes. Changing routes causes a NavHost to reset its state
+                    for tabIndex in 0..<100 {
+                        composable(String(describing: tabIndex)) {
+                            Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                // Use a custom composer to only render the tabIndex'th view
+                                var composeIndex = 0
+                                content.Compose(context: context.content(composer: { view, context in
+                                    if composeIndex == tabIndex {
+                                        view.ComposeContent(context: context)
+                                    }
+                                    composeIndex += 1
+                                }))
+                            }
                         }
                     }
                 }

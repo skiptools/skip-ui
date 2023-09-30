@@ -47,12 +47,14 @@ public struct HStack<Content> : View where Content : View {
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
         let contentContext = context.content()
-        Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
-            EnvironmentValues.shared.setValues {
-                $0.set_fillWidth(Modifier.weight(Float(1.0)))
-                $0.set_fillHeight(nil)
-            } in: {
-                content.Compose(context: contentContext)
+        ComposeContainer(modifier: context.modifier) { modifier in
+            Row(modifier: modifier, horizontalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
+                let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
+                EnvironmentValues.shared.setValues {
+                    $0.set_fillWidthModifier(fillWidthModifier)
+                } in: {
+                    content.Compose(context: contentContext)
+                }
             }
         }
     }

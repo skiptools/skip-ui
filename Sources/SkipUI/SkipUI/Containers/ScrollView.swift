@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 #endif
 
 public struct ScrollView<Content> : View where Content : View {
@@ -22,16 +23,18 @@ public struct ScrollView<Content> : View where Content : View {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let scrollState = rememberScrollState()
-        var modifier = context.modifier
+        var scrollModifier: Modifier = Modifier
         if axes.contains(.vertical) {
-            modifier = modifier.fillHeight().verticalScroll(scrollState)
+            scrollModifier = scrollModifier.verticalScroll(scrollState)
         }
         if axes.contains(.horizontal) {
-            modifier = modifier.fillWidth().horizontalScroll(scrollState)
+            scrollModifier = scrollModifier.horizontalScroll(scrollState)
         }
         let contentContext = context.content()
-        Box(modifier: modifier) {
-            content.Compose(context: contentContext)
+        ComposeContainer(modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
+            Box(modifier: modifier) {
+                content.Compose(context: contentContext)
+            }
         }
     }
     #else

@@ -5,7 +5,9 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -59,12 +61,14 @@ public struct VStack<Content> : View where Content : View {
             })
             columnArrangement = Arrangement.Center
         }
-        Column(modifier: context.modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
-            EnvironmentValues.shared.setValues {
-                $0.set_fillHeight(Modifier.weight(Float(1.0)))
-                $0.set_fillWidth(nil)
-            } in: {
-                content.Compose(context: contentContext)
+        ComposeContainer(modifier: context.modifier) { modifier in
+            Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
+                EnvironmentValues.shared.setValues {
+                    $0.set_fillHeightModifier(fillHeightModifier)
+                } in: {
+                    content.Compose(context: contentContext)
+                }
             }
         }
     }
