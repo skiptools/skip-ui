@@ -59,7 +59,9 @@ public struct VStack<Content> : View where Content : View {
             contentContext = context.content(composer: { view, context in
                 lastViewWasText = ComposeDefaultSpacedItem(view: &view, context: context, lastViewWasText: lastViewWasText)
             })
-            columnArrangement = Arrangement.Center
+            //~~~
+//            columnArrangement = Arrangement.Center
+            columnArrangement = Arrangement.spacedBy(Self.defaultSpacing.dp)
         }
         ComposeContainer(modifier: context.modifier) { modifier in
             Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
@@ -80,13 +82,14 @@ public struct VStack<Content> : View where Content : View {
     @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
         // If the Text has spacing modifiers, no longer special case its spacing
         let isText = view.strippingModifiers(whileRole: { $0 != .spacing }) { $0 is Text }
-        if let lastViewWasText {
-            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
-            let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
-            view.ComposeContent(context: context.content(modifier: modifier))
-        } else {
+        //~~~
+//        if let lastViewWasText {
+//            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
+//            let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
+//            view.ComposeContent(context: context.content(modifier: modifier))
+//        } else {
             view.ComposeContent(context: context)
-        }
+//        }
         return isText
     }
     #else
