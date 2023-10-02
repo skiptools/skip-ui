@@ -413,6 +413,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`List`|Medium|See [Lists](#lists)|
 |`NavigationLink`|Medium|See [Navigation](#navigation)|
 |`NavigationStack`|Medium|See [Navigation](#navigation)|
+|`ProgressView`|Medium|Labels not supported|
 |`ScrollView`|Full||
 |`Slider`|Medium|Labels, `onEditingChanged` not supported|
 |`Spacer`|Medium|`minLength` not supported|
@@ -432,6 +433,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.foregroundColor`|Full||
 |`.foregroundStyle`|Medium|Only color supported|
 |`.frame`|Low|Only fixed dimensions supported|
+|`.hidden`|Full||
 |`.italic`|Full||
 |`.labelsHidden`|Full||
 |`.listStyle`|Full||
@@ -439,6 +441,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.navigationTitle`|Full||
 |`.opacity`|Full||
 |`.padding`|Full||
+|`.progressViewStyle`|High|Custom styles not supported|
 |`.rotationEffect`|Medium||
 |`.scaleEffect`|Medium||
 |`.tabItem`|Full||

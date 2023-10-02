@@ -222,6 +222,11 @@ extension EnvironmentValues {
         get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
+
+    var _progressViewStyle: ProgressViewStyle? {
+        get { builtinValue(key: "_progressViewStyle", defaultValue: { nil }) as! ProgressViewStyle? }
+        set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
+    }
 }
 #endif
 

@@ -139,6 +139,14 @@ extension View {
         return self
     }
 
+    public func hidden() -> some View {
+        #if SKIP
+        return opacity(0.0)
+        #else
+        return self
+        #endif
+    }
+
     public func labelsHidden() -> some View {
         #if SKIP
         return environment(\._labelsHidden, true)

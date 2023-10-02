@@ -7095,61 +7095,6 @@ extension View {
 
 }
 
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Hides this view unconditionally.
-    ///
-    /// Hidden views are invisible and can't receive or respond to interactions.
-    /// However, they do remain in the view hierarchy and affect layout. Use
-    /// this modifier if you want to include a view for layout purposes, but
-    /// don't want it to display.
-    ///
-    ///     HStack {
-    ///         Image(systemName: "a.circle.fill")
-    ///         Image(systemName: "b.circle.fill")
-    ///         Image(systemName: "c.circle.fill")
-    ///             .hidden()
-    ///         Image(systemName: "d.circle.fill")
-    ///     }
-    ///
-    /// The third circle takes up space, because it's still present, but
-    /// SkipUI doesn't draw it onscreen.
-    ///
-    /// ![A row of circles with the letters A, B, and D, with a gap where
-    ///   the circle with the letter C should be.](SkipUI-View-hidden-1.png)
-    ///
-    /// If you want to conditionally include a view in the view hierarchy, use
-    /// an `if` statement instead:
-    ///
-    ///     VStack {
-    ///         HStack {
-    ///             Image(systemName: "a.circle.fill")
-    ///             Image(systemName: "b.circle.fill")
-    ///             if !isHidden {
-    ///                 Image(systemName: "c.circle.fill")
-    ///             }
-    ///             Image(systemName: "d.circle.fill")
-    ///         }
-    ///         Toggle("Hide", isOn: $isHidden)
-    ///     }
-    ///
-    /// Depending on the current value of the `isHidden` state variable in the
-    /// example above, controlled by the ``Toggle`` instance, SkipUI draws
-    /// the circle or completely omits it from the layout.
-    ///
-    /// ![Two side by side groups of items, each composed of a toggle beneath
-    ///   a row of circles with letters in them. The toggle on the left
-    ///   is off and has four equally spaced circles above it: A, B, C, and D.
-    ///   The toggle on the right is on and has three equally spaced circles
-    ///   above it: A, B, and D.](SkipUI-View-hidden-2.png)
-    ///
-    /// - Returns: A hidden view.
-    public func hidden() -> some View { return stubView() }
-
-}
-
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 extension View {
@@ -9414,22 +9359,6 @@ extension View {
 
 }
 
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Sets the style for progress views in this view.
-    ///
-    /// For example, the following code creates a progress view that uses the
-    /// "circular" style:
-    ///
-    ///     ProgressView()
-    ///         .progressViewStyle(.circular)
-    ///
-    /// - Parameter style: The progress view style to use for this view.
-    public func progressViewStyle<S>(_ style: S) -> some View where S : ProgressViewStyle { return stubView() }
-
-}
-
 extension View {
 
     /// Sets the container background of the enclosing container using a view.
@@ -9497,7 +9426,6 @@ extension View {
     ///   - content: The view to use as the background of the container.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, watchOS 10.0, *)
     public func containerBackground<V>(for container: ContainerBackgroundPlacement, alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
-
 }
 
 extension View {
