@@ -60,7 +60,7 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     @Composable private func ComposePlain(context: ComposeContext) {
         EnvironmentValues.shared.setValues {
             if $0._color == nil {
-                $0.set_color(Color.accentColor)
+                $0.set_color($0._tint ?? Color.accentColor)
             }
         } in: {
             label.Compose(context: context)

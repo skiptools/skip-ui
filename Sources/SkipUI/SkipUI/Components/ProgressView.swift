@@ -82,14 +82,14 @@ public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, 
             style = value == nil ? .circular : .linear
         }
         if style == .linear {
-            let color = EnvironmentValues.shared._color?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
+            let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
             if value == nil || total == nil {
                 LinearProgressIndicator(modifier: context.modifier, color: color)
             } else {
                 LinearProgressIndicator(progress: Float(value! / total!), modifier: context.modifier, color: color)
             }
         } else {
-            let color = EnvironmentValues.shared._color?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
+            let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
             // Reduce size to better match SwiftUI
             let modifier = Modifier.size(20.dp).then(context.modifier)
             if value == nil || total == nil {

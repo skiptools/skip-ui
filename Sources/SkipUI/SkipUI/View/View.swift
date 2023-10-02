@@ -263,6 +263,14 @@ extension View {
         return self
         #endif
     }
+
+    public func tint(_ tint: Color?) -> some View {
+        #if SKIP
+        return environment(\._tint, tint)
+        #else
+        return self
+        #endif
+    }
 }
 
 #if !SKIP
