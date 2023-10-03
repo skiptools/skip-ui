@@ -5,13 +5,10 @@
 #if SKIP
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -58,12 +55,24 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
             case .bordered:
-                let colors = ButtonDefaults.filledTonalButtonColors()
+                let colors: ButtonColors
+                if let tint = EnvironmentValues.shared._tint {
+                    let tintColor = tint.colorImpl()
+                    colors = ButtonDefaults.filledTonalButtonColors(containerColor: tintColor.copy(alpha: Float(0.15)), contentColor: tintColor, disabledContainerColor: tintColor.copy(alpha: Float(0.15)), disabledContentColor: tintColor.copy(alpha: ContentAlpha.medium))
+                } else {
+                    colors = ButtonDefaults.filledTonalButtonColors()
+                }
                 FilledTonalButton(modifier: modifier, onClick: action, colors: colors) {
                     label.Compose(context: contentContext)
                 }
             case .borderedProminent:
-                let colors = ButtonDefaults.buttonColors()
+                let colors: ButtonColors
+                if let tint = EnvironmentValues.shared._tint {
+                    let tintColor = tint.colorImpl()
+                    colors = ButtonDefaults.buttonColors(containerColor: tintColor, disabledContainerColor: tintColor.copy(alpha: ContentAlpha.disabled))
+                } else {
+                    colors = ButtonDefaults.buttonColors()
+                }
                 androidx.compose.material3.Button(modifier: modifier, onClick: action, colors: colors) {
                     label.Compose(context: contentContext)
                 }

@@ -56,7 +56,8 @@ public struct Toggle<Label> : View where Label : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         let colors: SwitchColors
         if let tint = EnvironmentValues.shared._tint {
-            colors = SwitchDefaults.colors(checkedTrackColor: tint.colorImpl(), disabledCheckedTrackColor: tint.colorImpl().copy(alpha: ContentAlpha.disabled))
+            let tintColor = tint.colorImpl()
+            colors = SwitchDefaults.colors(checkedTrackColor: tintColor, disabledCheckedTrackColor: tintColor.copy(alpha: ContentAlpha.disabled))
         } else {
             colors = SwitchDefaults.colors()
         }

@@ -112,7 +112,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let verticalInset = 32.0
     private static let minimumItemHeight = 44.0
     private static let horizontalItemInset = 16.0
-    private static let verticalItemInset = 8.0
+    private static let verticalItemInset = 4.0
 
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)

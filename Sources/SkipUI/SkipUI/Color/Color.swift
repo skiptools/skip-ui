@@ -6,6 +6,7 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -148,11 +149,11 @@ public struct Color: View, Hashable, Sendable {
     })
 
     public static let primary = Color(colorImpl: {
-        MaterialTheme.colorScheme.onPrimary
+        MaterialTheme.colorScheme.onBackground
     })
     
     public static let secondary = Color(colorImpl: {
-        MaterialTheme.colorScheme.onSecondary
+        MaterialTheme.colorScheme.onBackground.copy(alpha: ContentAlpha.medium)
     })
 
     static let systemBackground = Color(colorImpl: {

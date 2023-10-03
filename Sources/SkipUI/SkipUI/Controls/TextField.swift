@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextFieldColors
@@ -61,15 +62,26 @@ public struct TextField<Label> : View where Label : View {
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
-        let colors = TextFieldDefaults.outlinedTextFieldColors()
+        let textColor = (EnvironmentValues.shared._color ?? Color.primary).colorImpl()
+        let colors: TextFieldColors
+        if let tint = EnvironmentValues.shared._tint {
+            let tintColor = tint.colorImpl()
+            colors = TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: textColor.copy(alpha: ContentAlpha.disabled), cursorColor: tintColor, focusedBorderColor: tintColor)
+        } else {
+            colors = TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: textColor.copy(alpha: ContentAlpha.disabled))
+        }
         OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true, colors: colors)
     }
 
     @Composable private func Placeholder(context: ComposeContext) {
-        if let prompt {
-            prompt.Compose(context: context)
-        } else {
-            label.Compose(context: context)
+        EnvironmentValues.shared.setValues {
+            $0.set_color(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
+        } in: {
+            if let prompt {
+                prompt.Compose(context: context)
+            } else {
+                label.Compose(context: context)
+            }
         }
     }
     #else

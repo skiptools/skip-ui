@@ -29,4 +29,13 @@ public struct ComposeContext {
         return context
     }
 }
+
+/// Mechanism for a parent view to change how a child view is composed.
+//public protocol Composer {
+//    @Composable public func compose(view: inout View, context: ComposeContext)
+//}
+//
+//extension Composer {
+//
+//}
 #endif
