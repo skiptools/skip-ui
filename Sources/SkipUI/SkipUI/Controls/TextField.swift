@@ -3,6 +3,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 #endif
 
@@ -54,10 +58,11 @@ public struct TextField<Label> : View where Label : View {
          colors: TextFieldColors = TextFieldDefaults.colors()
      )
      */
+    @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // TODO: Form styling support
         let contentContext = context.content()
-        androidx.compose.material3.TextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true)
+        let colors = TextFieldDefaults.outlinedTextFieldColors()
+        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true, colors: colors)
     }
 
     @Composable private func Placeholder(context: ComposeContext) {
@@ -72,6 +77,29 @@ public struct TextField<Label> : View where Label : View {
         stubView()
     }
     #endif
+}
+
+// Model `TextFieldStyle` as a struct. Kotlin does not support static members of protocols
+public struct TextFieldStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = TextFieldStyle(rawValue: 0)
+
+    public static let roundedBorder = TextFieldStyle(rawValue: 1)
+    
+    @available(*, unavailable)
+    public static let plain = TextFieldStyle(rawValue: 2)
+}
+
+extension View {
+    public func textFieldStyle(_ style: TextFieldStyle) -> some View {
+        // We only support Android's outline style
+        return self
+    }
 }
 
 #if !SKIP
@@ -773,75 +801,6 @@ extension TextField where Label == Text {
     ///     modify `binding.value`.
     @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
     public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
-}
-
-/// A specification for the appearance and interaction of a text field.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol TextFieldStyle {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextFieldStyle where Self == DefaultTextFieldStyle {
-
-    /// The default text field style, based on the text field's context.
-    ///
-    /// The default style represents the recommended style based on the
-    /// current platform and the text field's context within the view hierarchy.
-    public static var automatic: DefaultTextFieldStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension TextFieldStyle where Self == RoundedBorderTextFieldStyle {
-
-    /// A text field style with a system-defined rounded border.
-    public static var roundedBorder: RoundedBorderTextFieldStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextFieldStyle where Self == PlainTextFieldStyle {
-
-    /// A text field style with no decoration.
-    public static var plain: PlainTextFieldStyle { get { fatalError() } }
-}
-
-/// A text field style with no decoration.
-///
-/// You can also use ``TextFieldStyle/plain`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct PlainTextFieldStyle : TextFieldStyle {
-
-    public init() { fatalError() }
-}
-
-/// A text field style with a system-defined rounded border.
-///
-/// You can also use ``TextFieldStyle/roundedBorder`` to construct this style.
-@available(iOS 13.0, macOS 10.15, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct RoundedBorderTextFieldStyle : TextFieldStyle {
-
-    public init() { fatalError() }
-}
-
-
-/// The default text field style, based on the text field's context.
-///
-/// You can also use ``TextFieldStyle/automatic`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct DefaultTextFieldStyle : TextFieldStyle {
-
-    public init() { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Sets the style for text fields within this view.
-    public func textFieldStyle<S>(_ style: S) -> some View where S : TextFieldStyle { return stubView() }
-
 }
 
 #endif

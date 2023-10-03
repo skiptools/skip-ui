@@ -4,24 +4,25 @@
 
 import Foundation
 #if SKIP
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.material3.__
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.__
-import androidx.compose.material.icons.Icons.Filled
-import androidx.compose.material.icons.Icons.Outlined
-import androidx.compose.material.icons.Icons.Rounded
-import androidx.compose.material.icons.Icons.Sharp
-import androidx.compose.material.icons.Icons.TwoTone
 import androidx.compose.material.icons.filled.__
 import androidx.compose.material.icons.outlined.__
 import androidx.compose.material.icons.rounded.__
 import androidx.compose.material.icons.sharp.__
 import androidx.compose.material.icons.twotone.__
+import androidx.compose.material.icons.Icons.Filled
+import androidx.compose.material.icons.Icons.Outlined
+import androidx.compose.material.icons.Icons.Rounded
+import androidx.compose.material.icons.Icons.Sharp
+import androidx.compose.material.icons.Icons.TwoTone
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 #else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -164,30 +165,32 @@ public struct Image : View, Equatable, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // The best way would be to switch here, but the generated closures are not @Composable, leading to:
-        // error: @Composable invocations can only happen from the context of a @Composable function
-
-        //switch image {
-        //case .system(let systemName):
-        //    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: composeImageVector(named: systemName), contentDescription: systemName)
-        //case .decorative(let name, let bundle): break // TODO: non-system images
-        //case .named(let name, let bunle, let label): break // TODO: non-system images
-        //}
-
-        if case .system(let systemName) = self.image {
+        switch self.image {
+        case .system(let systemName):
+            let modifier: Modifier
+            let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+            if textStyle.fontSize.isSp {
+                let textSizeDp = with(LocalDensity.current) {
+                    textStyle.fontSize.toDp()
+                }
+                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
+                modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
+            } else {
+                modifier = context.modifier
+            }
             if let image = composeImageVector(named: systemName) {
                 if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
-                    androidx.compose.material3.Icon(modifier: context.modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
+                    Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
                 } else {
-                    androidx.compose.material3.Icon(imageVector: image, contentDescription: systemName)
+                    Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
                 }
             } else {
                 // TODO: throw error? Log message?
                 print("Unable to find system image named: \(systemName)")
-                androidx.compose.material3.Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+                Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             }
-        } else {
-            androidx.compose.material3.Icon(imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
+        default:
+            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
         }
     }
 

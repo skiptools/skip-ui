@@ -4,7 +4,10 @@
 
 #if SKIP
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
@@ -51,6 +54,12 @@ public struct Toggle<Label> : View where Label : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
+        let colors: SwitchColors
+        if let tint = EnvironmentValues.shared._tint {
+            colors = SwitchDefaults.colors(checkedTrackColor: tint.colorImpl(), disabledCheckedTrackColor: tint.colorImpl().copy(alpha: ContentAlpha.disabled))
+        } else {
+            colors = SwitchDefaults.colors()
+        }
         if EnvironmentValues.shared._labelsHidden {
             Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, modifier: context.modifier)
         } else {
@@ -59,7 +68,7 @@ public struct Toggle<Label> : View where Label : View {
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     label.Compose(context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                    Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 })
+                    Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, colors: colors)
                 }
             }
         }

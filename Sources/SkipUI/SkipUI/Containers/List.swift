@@ -249,6 +249,14 @@ extension View {
         return self
         #endif
     }
+
+    public func listItemTint(_ tint: Color?) -> some View {
+        #if SKIP
+        return environment(\._listItemTint, tint)
+        #else
+        return self
+        #endif
+    }
 }
 
 #if !SKIP
@@ -893,6 +901,21 @@ public struct ListItemTint : Sendable {
     ///
     /// Monochrome tints are not overridable.
     public static let monochrome: ListItemTint = { fatalError() }()
+}
+
+@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
+extension View {
+
+    /// Sets the tint effect associated with specific content in a list.
+    ///
+    /// The containing list's style will apply that tint as appropriate. watchOS
+    /// uses the tint color for its background platter appearance. Sidebars on
+    /// iOS and macOS apply the tint color to their `Label` icons, which
+    /// otherwise use the accent color by default.
+    ///
+    /// - Parameter tint: The tint effect to use, or nil to not override the
+    ///   inherited tint.
+    public func listItemTint(_ tint: ListItemTint?) -> some View { return stubView() }
 }
 
 /// The spacing options between two adjacent sections in a list.

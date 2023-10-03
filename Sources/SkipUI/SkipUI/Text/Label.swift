@@ -4,17 +4,15 @@
 
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 #endif
 
-public struct Label : View {
+public struct Label : View, ListItemAdapting {
     let title: any View
     let image: any View
 
@@ -47,10 +45,27 @@ public struct Label : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let contentContext = context.content()
+        ComposeLabel(context: context)
+    }
+
+    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color? = nil, imageScale: Double? = nil) {
+        let imageModifier: Modifier
+        if let imageScale {
+            imageModifier = Modifier.scale(scaleX: Float(imageScale), scaleY: Float(imageScale))
+        } else {
+            imageModifier = Modifier
+        }
         Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            image.Compose(context: contentContext)
-            title.Compose(context: contentContext)
+            if let imageColor {
+                EnvironmentValues.shared.setValues {
+                    $0.set_color(imageColor)
+                } in: {
+                    image.Compose(context: context.content())
+                }
+            } else {
+                image.Compose(context: context.content(modifier: imageModifier))
+            }
+            title.Compose(context: context.content())
         }
     }
 
@@ -59,13 +74,19 @@ public struct Label : View {
         title.Compose(context: context)
     }
 
-    /// Compose only the imgae of this label.
+    /// Compose only the image of this label.
     @Composable func ComposeImage(context: ComposeContext) {
-        let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
-        let textSizeDp = with(LocalDensity.current) {
-            textStyle.fontSize.toDp()
+        image.Compose(context: context)
+    }
+
+    @Composable func shouldComposeListItem() -> Bool {
+        return true
+    }
+
+    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
+        Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+            ComposeLabel(context: context, imageColor: EnvironmentValues.shared._listItemTint ?? Color.accentColor, imageScale: 1.4)
         }
-        image.Compose(context: context.content(modifier: Modifier.height(textSizeDp).then(context.modifier)))
     }
     #else
     public var body: some View {

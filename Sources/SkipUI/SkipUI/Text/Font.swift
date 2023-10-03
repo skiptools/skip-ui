@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-// import androidx.compose.ui.text.TextStyle // note: ambiguous with skip.ui.TextStyle
 #else
 import struct CoreGraphics.CGFloat
 #endif

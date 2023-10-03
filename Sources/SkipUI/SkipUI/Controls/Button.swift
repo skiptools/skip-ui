@@ -5,8 +5,16 @@
 #if SKIP
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 #else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -46,12 +54,20 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
+        let contentContext = context.content()
         ComposeContainer(modifier: context.modifier) { modifier in
-            if buttonStyle == .bordered || buttonStyle == .borderedProminent {
-                androidx.compose.material3.Button(modifier: modifier, onClick: action) {
-                    label.Compose(context: context.content())
+            switch buttonStyle {
+            case .bordered:
+                let colors = ButtonDefaults.filledTonalButtonColors()
+                FilledTonalButton(modifier: modifier, onClick: action, colors: colors) {
+                    label.Compose(context: contentContext)
                 }
-            } else {
+            case .borderedProminent:
+                let colors = ButtonDefaults.buttonColors()
+                androidx.compose.material3.Button(modifier: modifier, onClick: action, colors: colors) {
+                    label.Compose(context: contentContext)
+                }
+            default:
                 ComposePlain(context: context.content(modifier: modifier.clickable(onClick: action)))
             }
         }

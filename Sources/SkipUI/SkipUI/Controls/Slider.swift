@@ -3,6 +3,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material3.SliderColors
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 #endif
 
@@ -60,7 +63,15 @@ public struct Slider : View {
         if let step, step > 0.0 {
             steps = Int(ceil(bounds.endInclusive - bounds.start) / step)
         }
-        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: context.modifier, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps)
+        let colors: SliderColors
+        if let tint = EnvironmentValues.shared._tint {
+            let activeColor = tint.colorImpl()
+            let disabledColor = activeColor.copy(alpha: ContentAlpha.disabled)
+            colors = SliderDefaults.colors(thumbColor: activeColor, activeTrackColor: activeColor, disabledThumbColor: disabledColor, disabledActiveTrackColor: disabledColor)
+        } else {
+            colors = SliderDefaults.colors()
+        }
+        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: context.modifier, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
     }
     #else
     public var body: some View {

@@ -436,6 +436,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.hidden`|Full||
 |`.italic`|Full||
 |`.labelsHidden`|Full||
+|`.listItemTint`|Full||
 |`.listStyle`|Full||
 |`.navigationDestination`|Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|Full||
@@ -445,6 +446,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.rotationEffect`|Medium||
 |`.scaleEffect`|Medium||
 |`.tabItem`|Full||
+|`.textFieldStyle`|Medium|`.plain` not supported|
 |`.task`|Full||
 |`.tint`|Full||
 

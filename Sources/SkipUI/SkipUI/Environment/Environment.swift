@@ -218,6 +218,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
     }
 
+    var _listItemTint: Color? {
+        get { builtinValue(key: "_listItemTint", defaultValue: { nil }) as! Color? }
+        set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
+    }
+
     var _listStyle: ListStyle? {
         get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
