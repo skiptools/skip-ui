@@ -6,6 +6,7 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -48,7 +49,7 @@ public struct Label : View, ListItemAdapting {
         ComposeLabel(context: context)
     }
 
-    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color? = nil, imageScale: Double? = nil) {
+    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color? = nil, imageScale: Double? = nil, titlePadding: Double = 0.0) {
         let imageModifier: Modifier
         if let imageScale {
             imageModifier = Modifier.scale(scaleX: Float(imageScale), scaleY: Float(imageScale))
@@ -60,12 +61,14 @@ public struct Label : View, ListItemAdapting {
                 EnvironmentValues.shared.setValues {
                     $0.set_color(imageColor)
                 } in: {
-                    image.Compose(context: context.content())
+                    image.Compose(context: context.content(modifier: imageModifier))
                 }
             } else {
                 image.Compose(context: context.content(modifier: imageModifier))
             }
-            title.Compose(context: context.content())
+            Box(modifier: Modifier.padding(start: titlePadding.dp)) {
+                title.Compose(context: context.content())
+            }
         }
     }
 
@@ -85,7 +88,7 @@ public struct Label : View, ListItemAdapting {
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-            ComposeLabel(context: context, imageColor: EnvironmentValues.shared._listItemTint ?? Color.accentColor, imageScale: 1.4)
+            ComposeLabel(context: context, imageColor: EnvironmentValues.shared._listItemTint ?? Color.accentColor, imageScale: 1.25, titlePadding: 6.0)
         }
     }
     #else

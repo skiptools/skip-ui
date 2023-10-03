@@ -416,12 +416,13 @@ public struct NavigationLink : View, ListItemAdapting {
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        Box(modifier: NavigationModifier(modifier: Modifier)) {
-            Row(modifier: contentModifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                label.Compose(context: context.content(modifier: Modifier.weight(Float(1.0))))
-                // Chevron
-                androidx.compose.material3.Text("\u{203A}", color: androidx.compose.ui.graphics.Color.LightGray, fontWeight: androidx.compose.ui.text.font.FontWeight.Bold, style: MaterialTheme.typography.titleLarge)
+        Row(modifier: NavigationModifier(modifier: Modifier).then(contentModifier), horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            Box(modifier: Modifier.weight(Float(1.0))) {
+                // Continue to specialize for list rendering within the NavigationLink (e.g. Label)
+                label.Compose(context: context.content(composer: ListItemComposer(contentModifier: Modifier)))
             }
+            // Chevron
+            androidx.compose.material3.Text("\u{203A}", color: androidx.compose.ui.graphics.Color.LightGray, fontWeight: androidx.compose.ui.text.font.FontWeight.Bold, style: MaterialTheme.typography.titleLarge)
         }
     }
 

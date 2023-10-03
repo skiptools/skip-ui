@@ -49,11 +49,11 @@ struct ComposeModifierView: View {
         }
     }
 
-    func strippingModifiers<R>(whileRole: (ComposeModifierRole) -> Bool = { _ in true}, perform: (any View?) -> R) -> R {
-        if whileRole(role) {
-            return view.strippingModifiers(whileRole: whileRole, perform: perform)
-        } else {
+    func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+        if until(role) {
             return perform(self)
+        } else {
+            return view.strippingModifiers(until: until, perform: perform)
         }
     }
 }

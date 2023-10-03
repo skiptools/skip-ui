@@ -46,9 +46,14 @@ extension View {
     /// Calls to `Compose` are added by the transpiler.
     @Composable public func Compose(context: ComposeContext) {
         if let composer = context.composer {
-            var context = context
-            context.composer = nil
-            composer(&self, context)
+            composer.Compose(view: &self, context: { retain in
+                guard !retain else {
+                    return context
+                }
+                var context = context
+                context.composer = nil
+                return context
+            })
         } else {
             ComposeContent(context: context)
         }
@@ -61,8 +66,8 @@ extension View {
 
     /// Strip modifier views.
     ///
-    /// - Parameter whileRole: Return `false` to stop stripping at a modifier with a given role.
-    public func strippingModifiers<R>(whileRole: (ComposeModifierRole) -> Bool = { _ in true}, perform: (any View?) -> R) -> R {
+    /// - Parameter until: Return `true` to stop stripping at a modifier with a given role.
+    public func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
         return perform(self)
     }
 }
@@ -168,7 +173,8 @@ extension View {
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self, role: .spacing) {
-            $0.modifier = $0.modifier.padding(start: insets.leading.dp, top: insets.top.dp, end: insets.trailing.dp, bottom: insets.bottom.dp)
+            // Compose throws a runtime error for negative padding
+            $0.modifier = $0.modifier.padding(start: max(insets.leading, 0.0).dp, top: max(insets.top, 0.0).dp, end: max(insets.trailing, 0.0).dp, bottom: max(insets.bottom, 0.0).dp)
         }
         #else
         return self
@@ -177,7 +183,7 @@ extension View {
 
     public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
         #if SKIP
-        let amount = (length ?? CGFloat(16.0)).dp
+        let amount = max(length ?? CGFloat(16.0), CGFloat(0.0)).dp
         let start = edges.contains(.leading) ? amount : 0.dp
         let end = edges.contains(.trailing) ? amount : 0.dp
         let top = edges.contains(.top) ? amount : 0.dp

@@ -55,13 +55,16 @@ public struct VStack<Content> : View where Content : View {
             contentContext = context.content()
             columnArrangement = Arrangement.spacedBy(spacing.dp)
         } else {
-            var lastViewWasText: Bool? = nil
-            contentContext = context.content(composer: { view, context in
-                lastViewWasText = ComposeDefaultSpacedItem(view: &view, context: context, lastViewWasText: lastViewWasText)
-            })
-            //~~~
-//            columnArrangement = Arrangement.Center
+            contentContext = context.content()
             columnArrangement = Arrangement.spacedBy(Self.defaultSpacing.dp)
+
+//            var lastViewWasText: Bool? = nil
+//            contentContext = context.content(composer: { view, context in
+//                lastViewWasText = ComposeDefaultSpacedItem(view: &view, context: context, lastViewWasText: lastViewWasText)
+//            })
+//            //~~~
+////            columnArrangement = Arrangement.Center
+//            columnArrangement = Arrangement.spacedBy(Self.defaultSpacing.dp)
         }
         ComposeContainer(modifier: context.modifier) { modifier in
             Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
@@ -79,19 +82,19 @@ public struct VStack<Content> : View where Content : View {
     // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
     private static let textSpacing = 1.0
 
-    @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
-        // If the Text has spacing modifiers, no longer special case its spacing
-        let isText = view.strippingModifiers(whileRole: { $0 != .spacing }) { $0 is Text }
-        //~~~
+//    @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
+//        // If the Text has spacing modifiers, no longer special case its spacing
+//        let isText = view.strippingModifiers(until: { $0 == .spacing }) { $0 is Text }
+//        //~~~
 //        if let lastViewWasText {
 //            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
 //            let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
 //            view.ComposeContent(context: context.content(modifier: modifier))
 //        } else {
-            view.ComposeContent(context: context)
+//            view.ComposeContent(context: context)
 //        }
-        return isText
-    }
+//        return isText
+//    }
     #else
     public var body: some View {
         stubView()

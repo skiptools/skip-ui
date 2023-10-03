@@ -42,7 +42,7 @@ public struct TabView<Content> : View where Content : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         // Use a custom composer to count the number of child views in our content
         var tabCount = 0
-        content.Compose(context: context.content(composer: { _, _ in tabCount += 1 }))
+        content.Compose(context: context.content(composer: ClosureComposer { _, _ in tabCount += 1 }))
 
         let navController = rememberNavController()
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
@@ -54,7 +54,7 @@ public struct TabView<Content> : View where Content : View {
                             // Use a custom composer to get the tabIndex'th tab item
                             var composeIndex = 0
                             var tabItem: TabItem? = nil
-                            content.Compose(context: context.content(composer: { view, _ in
+                            content.Compose(context: context.content(composer: ClosureComposer { view, _ in
                                 if composeIndex == tabIndex {
                                     tabItem = view.strippingModifiers { $0 as? TabItem }
                                 }
@@ -96,13 +96,7 @@ public struct TabView<Content> : View where Content : View {
                         composable(String(describing: tabIndex)) {
                             Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                                 // Use a custom composer to only render the tabIndex'th view
-                                var composeIndex = 0
-                                content.Compose(context: context.content(composer: { view, context in
-                                    if composeIndex == tabIndex {
-                                        view.ComposeContent(context: context)
-                                    }
-                                    composeIndex += 1
-                                }))
+                                content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
                             }
                         }
                     }
@@ -139,25 +133,45 @@ struct TabItem: View {
     }
 
     @Composable func ComposeTitle(context: ComposeContext) {
-        label.Compose(context: context.content(composer: { view, context in
+        label.Compose(context: context.content(composer: ClosureComposer { view, context in
             let stripped = view.strippingModifiers { $0 }
             if let label = stripped as? Label {
-                label.ComposeTitle(context: context)
+                label.ComposeTitle(context: context(false))
             } else if stripped is Text {
-                view.ComposeContent(context: context)
+                view.ComposeContent(context: context(false))
             }
         }))
     }
 
     @Composable func ComposeImage(context: ComposeContext) {
-        label.Compose(context: context.content(composer: { view, context in
+        label.Compose(context: context.content(composer: ClosureComposer { view, context in
             let stripped = view.strippingModifiers { $0 }
             if let label = stripped as? Label {
-                label.ComposeImage(context: context)
+                label.ComposeImage(context: context(false))
             } else if stripped is Image {
-                view.Compose(context: context)
+                view.Compose(context: context(false))
             }
         }))
+    }
+}
+
+class TabIndexComposer: Composer {
+    let index: Int
+    var currentIndex = 0
+
+    init(index: Int) {
+        self.index = index
+    }
+
+    override func reset() {
+        currentIndex = 0
+    }
+
+    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
+        if currentIndex == index {
+            view.ComposeContent(context: context(false))
+        }
+        currentIndex += 1
     }
 }
 #endif

@@ -60,7 +60,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
-        let itemContext = context.content(composer: { view, context in ComposeItem(view: &view, context: context, style: style) })
+        let itemContext = context.content(composer: ClosureComposer { view, context in
+            ComposeItem(view: &view, context: context(false), style: style)
+        })
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(style: style))) { modifier in
             Box(modifier: modifier) {
                 ComposeList(itemContext: itemContext, style: style)
@@ -117,14 +119,8 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
-            // We can't strip modifiers here because there is no way to re-apply them, so any modifier prevents adaptive list rendering
-            if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
-                listItemAdapting.ComposeListItem(context: context, contentModifier: contentModifier)
-            } else {
-                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                    view.ComposeContent(context: context)
-                }
-            }
+            // Note that we're calling the same view's Compose function again with a new context
+            view.Compose(context: context.content(composer: ListItemComposer(contentModifier: contentModifier)))
             ComposeSeparator()
         }
     }
@@ -177,6 +173,24 @@ protocol ListItemAdapting {
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
     #endif
 }
+
+#if SKIP
+struct ListItemComposer: Composer {
+    let contentModifier: Modifier
+
+    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
+        if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
+            listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
+        } else if view is ComposeModifierView {
+            view.ComposeContent(context: context(true))
+        } else {
+            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                view.ComposeContent(context: context(false))
+            }
+        }
+    }
+}
+#endif
 
 // Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
 

@@ -5,6 +5,7 @@
 #if SKIP
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -98,10 +99,8 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        Box(modifier: Modifier.clickable(onClick: action)) {
-            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                ComposePlain(context: context)
-            }
+        Box(modifier: Modifier.clickable(onClick: action).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+            ComposePlain(context: context)
         }
     }
     #else
