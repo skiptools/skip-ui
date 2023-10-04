@@ -29,7 +29,7 @@ import struct CoreGraphics.CGSize
 public protocol View {
     #if SKIP
     // SKIP DECLARE: fun body(): View = EmptyView()
-    @ViewBuilder var body: any View { get }
+    @ViewBuilder @MainActor var body: any View { get }
     #else
     associatedtype Body : View
     @ViewBuilder @MainActor var body: Body { get }
