@@ -408,7 +408,7 @@ public struct NavigationLink : View, ListItemAdapting {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
+        let _ = label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
     }
 
     @Composable func shouldComposeListItem() -> Bool {

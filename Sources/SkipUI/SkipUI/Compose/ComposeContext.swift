@@ -30,12 +30,20 @@ public struct ComposeContext {
     }
 }
 
+/// The result of composing content.
+///
+/// Reserved for future use. Having a return value also expands recomposition scope. See `ComposeView` for details.
+public struct ComposeResult {
+    public static let ok = ComposeResult()
+}
+
 /// Mechanism for a parent view to change how a child view is composed.
 public protocol Composer {
     /// Called before a `ComposeView` composes its content.
-    ///
-    /// Reset state gathered during sibling view composition.
-    public func reset()
+    public func willCompose()
+
+    /// Called after a `ComposeView` composes its content.
+    public func didCompose(result: ComposeResult)
 
     /// Compose the given view.
     ///
@@ -44,7 +52,10 @@ public protocol Composer {
 }
 
 extension Composer {
-    public func reset() {
+    public func willCompose() {
+    }
+
+    public func didCompose(result: ComposeResult) {
     }
 }
 
@@ -52,24 +63,14 @@ extension Composer {
 ///
 /// - Warning: Child composables may recompose at any time. Be careful with relying on block capture.
 struct ClosureComposer: Composer {
-    private let resetClosure: () -> Void
-    private let composeClosure: @Composable (inout View, (Bool) -> ComposeContext) -> Void
+    private let compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void
 
-    init(reset: () -> Void, compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void) {
-        self.resetClosure = reset
-        self.composeClosure = compose
-    }
-
-    convenience init(compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void) {
-        self.init(reset: {}, compose: compose)
-    }
-
-    override func reset() {
-        resetClosure()
+    init(compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void) {
+        self.compose = compose
     }
 
     @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
-        composeClosure(&view, context)
+        compose(&view, context)
     }
 }
 

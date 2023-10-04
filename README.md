@@ -79,6 +79,7 @@ class V: View {
             } else {
                 Text("Goodbye!").Compose(context: composectx)
             }
+            ComposeResult.ok
         }
     }
 
@@ -188,6 +189,7 @@ VStack {
     Text("Hello from SwiftUI")
     ComposeView { _ in
         androidx.compose.material3.Text("Hello from Compose")
+        return .ok
     }
 }
 ```
@@ -196,10 +198,11 @@ Skip also enhances all SwiftUI views with a `Compose()` method, allowing you to 
 
 ```swift
 ComposeView { context in 
-    androidx.compose.foundation.layout.Column {
+    androidx.compose.foundation.layout.Column(modifier: context.modifier) {
         Text("Hello from SwiftUI").Compose(context: context.content())
         androidx.compose.material3.Text("Hello from Compose")
     }
+    return .ok
 }
 ```
 
@@ -210,7 +213,7 @@ ComposeView { context in
     VStack {
         Text("Hello from SwiftUI").Compose(context: context.content())
         androidx.compose.material3.Text("Hello from Compose")
-    }.Compose(context: context.content())
+    }.Compose(context: context) // Returns .ok
 }
 ```
 

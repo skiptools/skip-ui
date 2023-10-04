@@ -39,12 +39,12 @@ public protocol View {
 #if SKIP
 extension View {
     /// Compose this view without an existing context - typically called when integrating a SwiftUI view tree into pure Compose.
-    @Composable public func Compose() {
-        Compose(context: ComposeContext())
+    @Composable public func Compose() -> ComposeResult {
+        return Compose(context: ComposeContext())
     }
 
     /// Calls to `Compose` are added by the transpiler.
-    @Composable public func Compose(context: ComposeContext) {
+    @Composable public func Compose(context: ComposeContext) -> ComposeResult {
         if let composer = context.composer {
             composer.Compose(view: &self, context: { retain in
                 guard !retain else {
@@ -57,6 +57,7 @@ extension View {
         } else {
             ComposeContent(context: context)
         }
+        return .ok
     }
 
     /// Compose this view's content.

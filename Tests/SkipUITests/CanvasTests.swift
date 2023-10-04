@@ -75,6 +75,7 @@ final class CanvasTests: XCSnapshotTestCase {
             androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.background(androidx.compose.ui.graphics.Color.White).size(12.dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.background(androidx.compose.ui.graphics.Color.Black).size(6.dp, 6.dp))
             }
+            return .ok
         })).pixmap,
         plaf("""
         F F F F F F F F F F F F
@@ -101,6 +102,7 @@ final class CanvasTests: XCSnapshotTestCase {
             androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.size(12.dp).background(androidx.compose.ui.graphics.Color.White), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.size(6.dp, 6.dp).background(androidx.compose.ui.graphics.Color.Black))
             }
+            return .ok
         })).pixmap,
         plaf("""
         F F F F F F F F F F F F

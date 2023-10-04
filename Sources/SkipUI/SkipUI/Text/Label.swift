@@ -73,13 +73,13 @@ public struct Label : View, ListItemAdapting {
     }
 
     /// Compose only the title of this label.
-    @Composable func ComposeTitle(context: ComposeContext) {
-        title.Compose(context: context)
+    @Composable func ComposeTitle(context: ComposeContext) -> ComposeResult {
+        return title.Compose(context: context)
     }
 
     /// Compose only the image of this label.
-    @Composable func ComposeImage(context: ComposeContext) {
-        image.Compose(context: context)
+    @Composable func ComposeImage(context: ComposeContext) -> ComposeResult {
+        return image.Compose(context: context)
     }
 
     @Composable func shouldComposeListItem() -> Bool {

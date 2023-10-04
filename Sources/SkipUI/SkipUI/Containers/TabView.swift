@@ -129,7 +129,7 @@ struct TabItem: View {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        view.Compose(context: context)
+        let _ = view.Compose(context: context)
     }
 
     @Composable func ComposeTitle(context: ComposeContext) {
@@ -163,7 +163,7 @@ class TabIndexComposer: Composer {
         self.index = index
     }
 
-    override func reset() {
+    override func willCompose() {
         currentIndex = 0
     }
 

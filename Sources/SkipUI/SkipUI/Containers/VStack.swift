@@ -5,9 +5,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -55,16 +53,8 @@ public struct VStack<Content> : View where Content : View {
             contentContext = context.content()
             columnArrangement = Arrangement.spacedBy(spacing.dp)
         } else {
-            contentContext = context.content()
-            columnArrangement = Arrangement.spacedBy(Self.defaultSpacing.dp)
-
-//            var lastViewWasText: Bool? = nil
-//            contentContext = context.content(composer: { view, context in
-//                lastViewWasText = ComposeDefaultSpacedItem(view: &view, context: context, lastViewWasText: lastViewWasText)
-//            })
-//            //~~~
-////            columnArrangement = Arrangement.Center
-//            columnArrangement = Arrangement.spacedBy(Self.defaultSpacing.dp)
+            contentContext = context.content(composer: VStackComposer())
+            columnArrangement = Arrangement.spacedBy(0.dp)
         }
         ComposeContainer(modifier: context.modifier) { modifier in
             Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
@@ -77,30 +67,38 @@ public struct VStack<Content> : View where Content : View {
             }
         }
     }
-
-    private static let defaultSpacing = 8.0
-    // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
-    private static let textSpacing = 1.0
-
-//    @Composable private func ComposeDefaultSpacedItem(view: inout View, context: ComposeContext, lastViewWasText: Bool?) -> Bool {
-//        // If the Text has spacing modifiers, no longer special case its spacing
-//        let isText = view.strippingModifiers(until: { $0 == .spacing }) { $0 is Text }
-//        //~~~
-//        if let lastViewWasText {
-//            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
-//            let modifier = Modifier.padding(top: spacing.dp).then(context.modifier)
-//            view.ComposeContent(context: context.content(modifier: modifier))
-//        } else {
-//            view.ComposeContent(context: context)
-//        }
-//        return isText
-//    }
     #else
     public var body: some View {
         stubView()
     }
     #endif
 }
+
+#if SKIP
+class VStackComposer: Composer {
+    private static let defaultSpacing = 8.0
+    // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
+    private static let textSpacing = 1.0
+
+    private var lastViewWasText: Bool? = nil
+
+    override func willCompose() {
+        lastViewWasText = nil
+    }
+
+    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
+        // If the Text has spacing modifiers, no longer special case its spacing
+        let isText = view.strippingModifiers(until: { $0 == .spacing }) { $0 is Text }
+        var contentContext = context(false)
+        if let lastViewWasText {
+            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
+            androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
+        }
+        view.ComposeContent(context: contentContext)
+        lastViewWasText = isText
+    }
+}
+#endif
 
 #if !SKIP
 
