@@ -1153,7 +1153,7 @@ extension UIViewRepresentable {
 @MainActor public struct UIViewRepresentableContext<Representable> where Representable : UIViewRepresentable {
 
     /// The view's associated coordinator.
-    @MainActor public let coordinator: Representable.Coordinator = { fatalError() }()
+    @MainActor public var coordinator: Representable.Coordinator { get { fatalError() } }
 
     /// The current transaction.
     @MainActor public var transaction: Transaction { get { fatalError() } }
