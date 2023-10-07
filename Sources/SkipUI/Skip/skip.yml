@@ -16,19 +16,20 @@ build:
             - 'kotlinCompilerExtensionVersion = "1.5.1"'
 
     - block: 'dependencies'
+      export: false
       contents:
-        - 'implementation("androidx.core:core-ktx")'
-        - 'implementation("androidx.compose.ui:ui")'
-        - 'implementation("androidx.compose.ui:ui-tooling")'
-        - 'implementation("androidx.compose.animation:animation")'
-        - 'implementation("androidx.compose.material:material")'
-        - 'implementation("androidx.compose.material:material-icons-extended")'
-        - 'implementation("androidx.compose.material3:material3")'
-        - 'implementation("androidx.compose.foundation:foundation")'
+        - 'api("androidx.core:core-ktx")'
+        - 'api("androidx.compose.ui:ui")'
+        - 'api("androidx.compose.ui:ui-tooling")'
+        - 'api("androidx.compose.animation:animation")'
+        - 'api("androidx.compose.material:material")'
+        - 'api("androidx.compose.material:material-icons-extended")'
+        - 'api("androidx.compose.material3:material3")'
+        - 'api("androidx.compose.foundation:foundation")'
 
-        - 'implementation("androidx.navigation:navigation-compose:2.7.0")'
-        - 'implementation("androidx.appcompat:appcompat:1.6.1")'
-        - 'implementation("androidx.appcompat:appcompat-resources:1.6.1")'
+        - 'api("androidx.navigation:navigation-compose:2.7.0")'
+        - 'api("androidx.appcompat:appcompat:1.6.1")'
+        - 'api("androidx.appcompat:appcompat-resources:1.6.1")'
 
         - 'testImplementation("androidx.compose.ui:ui-test")'
         - 'androidTestImplementation("androidx.compose.ui:ui-test")'
