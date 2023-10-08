@@ -28,7 +28,7 @@ We welcome contributions to SkipUI. The Skip product documentation includes help
 The most pressing need is to implement more core components and view modifiers.
 To help fill in unimplemented API in SkipUI:
 
-1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(unavailable, *)`.
+1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`.
 1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Write tests and/or playground code to exercise your component. See [Tests](#tests).
 1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
@@ -96,7 +96,7 @@ Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder
 SkipUI contains stubs for the entire SwiftUI framework. API generally goes through three phases:
 
 1. Code that no one has begun to port to Skip starts in `#if !SKIP` blocks. This hides it from the Skip transpiler.
-1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(unavailable, *)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
+1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(*, unavailable)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
     - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
     - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
     - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient. This includes moving general modifier implementations from `ViewExtensions.swift` to `View.swift`. If a modifier is specific to a component - e.g. `.navigationTitle` is specific to `NavigationStack` - then use a `View` extension within the component's source file.
