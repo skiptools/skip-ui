@@ -24,6 +24,7 @@ import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
+import struct Foundation.URL
 #endif
 
 public protocol View {
@@ -356,6 +357,26 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fileMover(isPresented: Binding<Bool>, files: any Collection<URL>, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fileMover(isPresented: Binding<Bool>, files: any Collection<URL>, onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func fixedSize(horizontal: Bool, vertical: Bool) -> some View {
         return self
     }
@@ -562,6 +583,21 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View where V : Equatable {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View where V : Equatable {
+        return self
+    }
+
+    @available(*, unavailable)
     public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
         return self
     }
@@ -696,6 +732,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func saturation(_ amount: Double) -> some View {
         return self
     }
@@ -810,6 +851,11 @@ extension View {
 
     @available(*, unavailable)
     public func transformEffect(_ transform: Any /* CGAffineTransform */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func transformEnvironment<V>(_ keyPath: Any /* WritableKeyPath<EnvironmentValues, V> */, transform: @escaping (inout V) -> Void) -> some View {
         return self
     }
 

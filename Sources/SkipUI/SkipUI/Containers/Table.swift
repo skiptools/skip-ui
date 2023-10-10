@@ -3790,6 +3790,32 @@ extension View {
 
 }
 
+@available(iOS 17.0, macOS 14.0, *)
+@available(watchOS, unavailable)
+@available(tvOS, unavailable)
+extension View {
+
+    /// Controls the visibility of a `Table`'s column header views.
+    ///
+    /// By default, `Table` will display a global header view with the labels
+    /// of each table column. This area is also where users can sort, resize,
+    /// and rearrange the columns. For simple cases that don't require those
+    /// features, this header can be hidden.
+    ///
+    /// This will not affect the header of any `Section`s in a table.
+    ///
+    ///     Table(article.authors) {
+    ///         TableColumn("Name", value: \.name)
+    ///         TableColumn("Title", value: \.title)
+    ///     }
+    ///     .tableColumnHeaders(.hidden)
+    ///
+    /// - Parameter visibility: A value of `visible` will show table columns,
+    ///   `hidden` will remove them, and `automatic` will defer to default
+    ///   behavior.
+    public func tableColumnHeaders(_ visibility: Visibility) -> some View { return stubView() }
+}
+
 @available(iOS 16.0, macOS 12.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)

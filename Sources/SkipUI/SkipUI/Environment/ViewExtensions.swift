@@ -425,7 +425,6 @@ extension View {
     /// - Returns: A view that disables the replace feature of a find and
     ///   replace interface.
     public func replaceDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
-
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -539,7 +538,6 @@ extension View {
     /// view in a collection.
     //@_backDeploy(before: iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0)
     public func typeSelectEquivalent<S>(_ string: S) -> some View where S : StringProtocol { return stubView() }
-
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -563,7 +561,6 @@ extension View {
     ///
     /// - Returns: A view that uses the given shape for the specified kind.
     public func contentShape<S>(_ kind: ContentShapeKinds, _ shape: S, eoFill: Bool = false) -> some View where S : Shape { return stubView() }
-
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 17.0, *)
@@ -574,7 +571,6 @@ extension View {
     ///
     /// - Parameter style: The style to apply to controls within this view.
     public func controlGroupStyle<S>(_ style: S) -> some View where S : ControlGroupStyle { return stubView() }
-
 }
 
 @available(iOS 14.0, macOS 11.0, *)
@@ -640,7 +636,6 @@ extension View {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     public func keyboardShortcut(_ shortcut: KeyboardShortcut?) -> some View { return stubView() }
-
 }
 
 @available(iOS 15.0, macOS 12.0, *)
@@ -705,7 +700,6 @@ extension View {
     /// the automatic localization for this shortcut to tell the system that
     /// internationalization is taken care of in a different way.
     public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command, localization: KeyboardShortcut.Localization) -> some View { return stubView() }
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -730,7 +724,6 @@ extension View {
     /// - Returns: a copy of the view with its symbol effects either
     ///   removed or left unchanged.
     public func symbolEffectsRemoved(_ isEnabled: Bool = true) -> some View { return stubView() }
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -828,7 +821,6 @@ extension View {
     ///   - feedback: A closure to determine whether to play the feedback and
     ///     what type of feedback to play when `trigger` changes.
     public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View where T : Equatable { return stubView() }
-
 }
 
 extension View {
@@ -965,7 +957,6 @@ extension View {
     ///   - placement: Where the margins should be added.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public func contentMargins(_ length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View { return stubView() }
-
 }
 
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
@@ -1039,7 +1030,6 @@ extension View {
     ///     ``Alignment/center``.
     ///   - content: The view to use as the background of the presentation.
     public func presentationBackground<V>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
-
 }
 
 @available(iOS 15.0, macOS 10.15, watchOS 9.0, *)
@@ -1093,7 +1083,6 @@ extension View {
     ///   ``ControlSize`` enumeration.
     @available(tvOS, unavailable)
     public func controlSize(_ controlSize: ControlSize) -> some View { return stubView() }
-
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -1330,7 +1319,6 @@ extension View {
     ///
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     public func backgroundStyle<S>(_ style: S) -> some View where S : ShapeStyle { return stubView() }
-
 }
 
 extension View {
@@ -1382,7 +1370,6 @@ extension View {
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
     @available(watchOS, unavailable)
     public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (HoverPhase) -> Void) -> some View { return stubView() }
-
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1393,191 +1380,6 @@ extension View {
     /// When the proxy value specified by the `id` parameter changes, the
     /// identity of the view — for example, its state — is reset.
     public func id<ID>(_ id: ID) -> some View where ID : Hashable { return stubView() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Performs an action when a specified value changes.
-    ///
-    /// Use this modifier to run a closure when a value like
-    /// an ``Environment`` value or a ``Binding`` changes.
-    /// For example, you can clear a cache when you notice
-    /// that the view's scene moves to the background:
-    ///
-    ///     struct ContentView: View {
-    ///         @Environment(\.scenePhase) private var scenePhase
-    ///         @StateObject private var cache = DataCache()
-    ///
-    ///         var body: some View {
-    ///             MyView()
-    ///                 .onChange(of: scenePhase) { newScenePhase in
-    ///                     if newScenePhase == .background {
-    ///                         cache.empty()
-    ///                     }
-    ///                 }
-    ///         }
-    ///     }
-    ///
-    /// SkipUI passes the new value into the closure. You can also capture the
-    /// previous value to compare it to the new value. For example, in
-    /// the following code example, `PlayerView` passes both the old and new
-    /// values to the model.
-    ///
-    ///     struct PlayerView: View {
-    ///         var episode: Episode
-    ///         @State private var playState: PlayState = .paused
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Text(episode.title)
-    ///                 Text(episode.showTitle)
-    ///                 PlayButton(playState: $playState)
-    ///             }
-    ///             .onChange(of: playState) { [playState] newState in
-    ///                 model.playStateDidChange(from: playState, to: newState)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// The system may call the action closure on the main actor, so avoid
-    /// long-running tasks in the closure. If you need to perform such tasks,
-    /// detach an asynchronous background task.
-    ///
-    /// Important: This modifier is deprecated and has been replaced with new
-    /// versions that include either zero or two parameters within the closure,
-    /// unlike this version that includes one parameter. This deprecated version
-    /// and the new versions behave differently with respect to how they execute
-    /// the action closure, specifically when the closure captures other values.
-    /// Using the deprecated API, the closure is run with captured values that
-    /// represent the "old" state. With the replacement API, the closure is run
-    /// with captured values that represent the "new" state, which makes it
-    /// easier to correctly perform updates that rely on supplementary values
-    /// (that may or may not have changed) in addition to the changed value that
-    /// triggered the action.
-    ///
-    /// - Important: This modifier is deprecated and has been replaced with new
-    ///   versions that include either zero or two parameters within the
-    ///   closure, unlike this version that includes one parameter. This
-    ///   deprecated version and the new versions behave differently with
-    ///   respect to how they execute the action closure, specifically when the
-    ///   closure captures other values. Using the deprecated API, the closure
-    ///   is run with captured values that represent the "old" state. With the
-    ///   replacement API, the closure is run with captured values that
-    ///   represent the "new" state, which makes it easier to correctly perform
-    ///   updates that rely on supplementary values (that may or may not have
-    ///   changed) in addition to the changed value that triggered the action.
-    ///
-    /// - Parameters:
-    ///   - value: The value to check when determining whether to run the
-    ///     closure. The value must conform to the
-    ///
-    ///     protocol.
-    ///   - action: A closure to run when the value changes. The closure
-    ///     takes a `newValue` parameter that indicates the updated
-    ///     value.
-    ///
-    /// - Returns: A view that runs an action when the specified value changes.
-    @available(iOS, deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @available(macOS, deprecated: 14.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @available(tvOS, deprecated: 17.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @available(watchOS, deprecated: 10.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    @available(xrOS, deprecated: 1.0, message: "Use `onChange` with a two or zero parameter action closure instead.")
-    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Adds a modifier for this view that fires an action when a specific
-    /// value changes.
-    ///
-    /// You can use `onChange` to trigger a side effect as the result of a
-    /// value changing, such as an `Environment` key or a `Binding`.
-    ///
-    /// The system may call the action closure on the main actor, so avoid
-    /// long-running tasks in the closure. If you need to perform such tasks,
-    /// detach an asynchronous background task.
-    ///
-    /// When the value changes, the new version of the closure will be called,
-    /// so any captured values will have their values from the time that the
-    /// observed value has its new value. The old and new observed values are
-    /// passed into the closure. In the following code example, `PlayerView`
-    /// passes both the old and new values to the model.
-    ///
-    ///     struct PlayerView: View {
-    ///         var episode: Episode
-    ///         @State private var playState: PlayState = .paused
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Text(episode.title)
-    ///                 Text(episode.showTitle)
-    ///                 PlayButton(playState: $playState)
-    ///             }
-    ///             .onChange(of: playState) { oldState, newState in
-    ///                 model.playStateDidChange(from: oldState, to: newState)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - value: The value to check against when determining whether
-    ///     to run the closure.
-    ///   - initial: Whether the action should be run when this view initially
-    ///     appears.
-    ///   - action: A closure to run when the value changes.
-    ///   - oldValue: The old value that failed the comparison check (or the
-    ///     initial value when requested).
-    ///   - newValue: The new value that failed the comparison check.
-    ///
-    /// - Returns: A view that fires an action when the specified value changes.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View where V : Equatable { return stubView() }
-
-
-    /// Adds a modifier for this view that fires an action when a specific
-    /// value changes.
-    ///
-    /// You can use `onChange` to trigger a side effect as the result of a
-    /// value changing, such as an `Environment` key or a `Binding`.
-    ///
-    /// The system may call the action closure on the main actor, so avoid
-    /// long-running tasks in the closure. If you need to perform such tasks,
-    /// detach an asynchronous background task.
-    ///
-    /// When the value changes, the new version of the closure will be called,
-    /// so any captured values will have their values from the time that the
-    /// observed value has its new value. In the following code example,
-    /// `PlayerView` calls into its model when `playState` changes model.
-    ///
-    ///     struct PlayerView: View {
-    ///         var episode: Episode
-    ///         @State private var playState: PlayState = .paused
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Text(episode.title)
-    ///                 Text(episode.showTitle)
-    ///                 PlayButton(playState: $playState)
-    ///             }
-    ///             .onChange(of: playState) {
-    ///                 model.playStateDidChange(state: playState)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - value: The value to check against when determining whether
-    ///     to run the closure.
-    ///   - initial: Whether the action should be run when this view initially
-    ///     appears.
-    ///   - action: A closure to run when the value changes.
-    ///
-    /// - Returns: A view that fires an action when the specified value changes.
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View where V : Equatable { return stubView() }
-
 }
 
 extension View {
@@ -1647,406 +1449,6 @@ extension View {
     ///   - content: The view to use as the background of the container.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, watchOS 10.0, *)
     public func containerBackground<V>(for container: ContainerBackgroundPlacement, alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View where V : View { return stubView() }
-}
-
-extension View {
-
-    /// Sets the scroll behavior of views scrollable in the provided axes.
-    ///
-    /// A scrollable view calculates where scroll gestures should end using its
-    /// deceleration rate and the state of its scroll gesture by default. A
-    /// scroll behavior allows for customizing this logic. You can provide
-    /// your own ``ScrollTargetBehavior`` or use one of the built in behaviors
-    /// provided by SkipUI.
-    ///
-    /// ### Paging Behavior
-    ///
-    /// SkipUI offers a ``PagingScrollTargetBehavior`` behavior which uses the
-    /// geometry of the scroll view to decide where to allow scrolls to end.
-    ///
-    /// In the following example, every view in the lazy stack is flexible
-    /// in both directions and the scroll view will settle to container aligned
-    /// boundaries.
-    ///
-    ///     ScrollView {
-    ///         LazyVStack(spacing: 0.0) {
-    ///             ForEach(items) { item in
-    ///                 FullScreenItem(item)
-    ///             }
-    ///         }
-    ///     }
-    ///     .scrollTargetBehavior(.paging)
-    ///
-    /// ### View Aligned Behavior
-    ///
-    /// SkipUI offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
-    /// that will always settle on the geometry of individual views.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LazyHStack(spacing: 10.0) {
-    ///             ForEach(items) { item in
-    ///                 ItemView(item)
-    ///             }
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///     .safeAreaPadding(.horizontal, 20.0)
-    ///
-    /// You configure which views should be used for settling using the
-    /// ``View/scrollTargetLayout()`` modifier. Apply this modifier to a
-    /// layout container like ``LazyVStack`` or ``HStack`` and each individual
-    /// view in that layout will be considered for alignment.
-    ///
-    /// You can also associate invidiual views for alignment using the
-    /// ``View/scrollTarget()`` modifier.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         HeaderView()
-    ///             .scrollTarget()
-    ///         LazyVStack {
-    ///             // other content...
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTargetBehavior(_ behavior: some ScrollTargetBehavior) -> some View { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures the outermost layout as a scroll target layout.
-    ///
-    /// This modifier works together with the
-    /// ``ViewAlignedScrollTargetBehavior`` to ensure that scroll views align
-    /// to view based content.
-    ///
-    /// Apply this modifier to layout containers like ``LazyHStack`` or
-    /// ``VStack`` within a ``ScrollView`` that contain the main repeating
-    /// content of your ``ScrollView``.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LazyHStack(spacing: 10.0) {
-    ///             ForEach(items) { item in
-    ///                 ItemView(item)
-    ///             }
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///
-    /// Scroll target layouts act as a convenience for applying a
-    /// ``View/scrollTarget(isEnabled:)`` modifier to each views in
-    /// the layout.
-    ///
-    /// A scroll target layout will ensure that any target layout
-    /// nested within the primary one will not also become a scroll
-    /// target layout.
-    ///
-    ///     LazyHStack { // a scroll target layout
-    ///         VStack { ... } // not a scroll target layout
-    ///         LazyHStack { ... } // also not a scroll target layout
-    ///     }
-    ///     .scrollTargetLayout()
-    ///
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTargetLayout(isEnabled: Bool = true) -> some View { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures this view as a scroll target.
-    ///
-    /// Apply this modifier to individual views like ``Button`` or
-    /// ``Text`` within a ``ScrollView`` that represent distinct pieces of
-    /// content that a scroll view may wish to align to.
-    ///
-    ///     ScrollView {
-    ///         Text("Header")
-    ///             .font(.title2)
-    ///             .scrollTarget()
-    ///
-    ///         LazyVStack {
-    ///             ForEach(items) { item in
-    ///                 ItemView(item)
-    ///             }
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///
-    /// A scroll target layout act as a convenience for applying a
-    /// ``View/scrollTarget(isEnabled:)`` modifier to each views in
-    /// the layout.
-    ///
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func scrollTarget(isEnabled: Bool = true) -> some View { return stubView() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Presents a system interface for allowing the user to move an existing
-    /// file to a new location.
-    ///
-    /// - Note: This interface provides security-scoped URLs.
-    ///   Call the ``startAccessingSecurityScopedResource`` method to access or bookmark
-    ///   the URLs, and the ``stopAccessingSecurityScopedResource`` method
-    ///   to release the access.
-    ///
-    /// In order for the interface to appear, both `isPresented` must be `true`
-    /// and `file` must not be `nil`. When the operation is finished,
-    /// `isPresented` will be set to `false` before `onCompletion` is called. If
-    /// the user cancels the operation, `isPresented` will be set to `false` and
-    /// `onCompletion` will not be called.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to whether the interface should be shown.
-    ///   - file: The `URL` of the file to be moved.
-    ///   - onCompletion: A callback that will be invoked when the operation has
-    ///     has succeeded or failed. To access the received URLs, call `startAccessingSecurityScopedResource`.
-    ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
-    ///   - result: A `Result` indicating whether the operation succeeded or
-    ///     failed.
-    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (_ result: Result<URL, Error>) -> Void) -> some View { return stubView() }
-
-
-    /// Presents a system interface for allowing the user to move a collection
-    /// of existing files to a new location.
-    ///
-    /// - Note: This interface provides security-scoped URLs.
-    ///   Call the ``startAccessingSecurityScopedResource`` method to access or bookmark
-    ///   the URLs, and the ``stopAccessingSecurityScopedResource`` method
-    ///   to release the access.
-    ///
-    /// In order for the interface to appear, both `isPresented` must be `true`
-    /// and `files` must not be empty. When the operation is finished,
-    /// `isPresented` will be set to `false` before `onCompletion` is called. If
-    /// the user cancels the operation, `isPresented` will be set to `false` and
-    /// `onCompletion` will not be called.
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to whether the interface should be shown.
-    ///   - files: A collection of `URL`s for the files to be moved.
-    ///   - onCompletion: A callback that will be invoked when the operation has
-    ///     has succeeded or failed. To access the received URLs, call `startAccessingSecurityScopedResource`.
-    ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
-    ///   - result: A `Result` indicating whether the operation succeeded or
-    ///     failed.
-    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element == URL { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Presents a system dialog for allowing the user to move
-    /// an existing file to a new location.
-    ///
-    /// - Note: This dialog provides security-scoped URLs.
-    ///   Call the ``startAccessingSecurityScopedResource`` method to access or bookmark
-    ///   the URLs, and the ``stopAccessingSecurityScopedResource`` method
-    ///   to release the access.
-    ///
-    /// For example, a button that allows the user to move a file might look like this:
-    ///
-    ///       struct MoveFileButton: View {
-    ///           @State private var showFileMover = false
-    ///           var file: URL
-    ///           var onCompletion: (URL) -> Void
-    ///           var onCancellation: (() -> Void)?
-    ///
-    ///           var body: some View {
-    ///               Button {
-    ///                   showFileMover = true
-    ///               } label: {
-    ///                   Label("Choose destination", systemImage: "folder.circle")
-    ///               }
-    ///               .fileMover(isPresented: $showFileMover, file: file) { result in
-    ///                   switch result {
-    ///                   case .success(let url):
-    ///                       guard url.startAccessingSecurityScopedResource() else {
-    ///                           return
-    ///                       }
-    ///                       onCompletion(url)
-    ///                       url.stopAccessingSecurityScopedResource()
-    ///                   case .failure(let error):
-    ///                       print(error)
-    ///                       // handle error
-    ///                   }
-    ///               } onCancellation: {
-    ///                   onCancellation?()
-    ///               }
-    ///           }
-    ///       }
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to whether the dialog should be shown.
-    ///   - file: The URL of the file to be moved.
-    ///   - onCompletion: A callback that will be invoked when the operation has
-    ///     succeeded or failed. The `result` indicates whether
-    ///     the operation succeeded or failed. To access the received URLs, call
-    ///     `startAccessingSecurityScopedResource`.
-    ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
-    ///   - onCancellation: A callback that will be invoked
-    ///     if the user cancels the operation.
-    public func fileMover(isPresented: Binding<Bool>, file: URL?, onCompletion: @escaping (Result<URL, Error>) -> Void, onCancellation: @escaping () -> Void) -> some View { return stubView() }
-
-
-    /// Presents a system dialog for allowing the user to move
-    /// a collection of existing files to a new location.
-    ///
-    /// - Note: This dialog provides security-scoped URLs.
-    ///   Call the ``startAccessingSecurityScopedResource`` method to access or bookmark
-    ///   the URLs, and the ``stopAccessingSecurityScopedResource`` method
-    ///   to release the access.
-    ///
-    /// For example, a button that allows the user to move files might look like this:
-    ///
-    ///       struct MoveFilesButton: View {
-    ///           @Binding var files: [URL]
-    ///           @State private var showFileMover = false
-    ///           var onCompletion: (URL) -> Void
-    ///           var onCancellation: (() -> Void)?
-    ///
-    ///           var body: some View {
-    ///               Button {
-    ///                   showFileMover = true
-    ///               } label: {
-    ///                   Label("Choose destination", systemImage: "folder.circle")
-    ///               }
-    ///               .fileMover(isPresented: $showFileMover, files: files) { result in
-    ///                   switch result {
-    ///                   case .success(let urls):
-    ///                       urls.forEach { url in
-    ///                           guard url.startAccessingSecurityScopedResource() else {
-    ///                               return
-    ///                           }
-    ///                           onCompletion(url)
-    ///                           url.stopAccessingSecurityScopedResource()
-    ///                       }
-    ///                   case .failure(let error):
-    ///                       print(error)
-    ///                       // handle error
-    ///                   }
-    ///               } onCancellation: {
-    ///                   onCancellation?()
-    ///               }
-    ///           }
-    ///       }
-    ///
-    /// - Parameters:
-    ///   - isPresented: A binding to whether the dialog should be shown.
-    ///   - files: A collection of URLs for the files to be moved.
-    ///   - onCompletion: A callback that will be invoked when the operation has
-    ///     succeeded or failed. The `result` indicates whether
-    ///     the operation succeeded or failed.
-    ///     To access the received URLs, call `startAccessingSecurityScopedResource`.
-    ///     When the access is no longer required, call `stopAccessingSecurityScopedResource`.
-    ///   - onCancellation: A callback that will be invoked
-    ///     if the user cancels the operation.
-    public func fileMover<C>(isPresented: Binding<Bool>, files: C, onCompletion: @escaping (Result<[URL], Error>) -> Void, onCancellation: @escaping () -> Void) -> some View where C : Collection, C.Element == URL { return stubView() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 7.0, *)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Sets the style for gauges within this view.
-    public func gaugeStyle<S>(_ style: S) -> some View where S : GaugeStyle { return stubView() }
-
-}
-
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Sets the style for disclosure groups within this view.
-    @available(iOS 16.0, macOS 13.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public func disclosureGroupStyle<S>(_ style: S) -> some View where S : DisclosureGroupStyle { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, *)
-@available(watchOS, unavailable)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Controls the visibility of a `Table`'s column header views.
-    ///
-    /// By default, `Table` will display a global header view with the labels
-    /// of each table column. This area is also where users can sort, resize,
-    /// and rearrange the columns. For simple cases that don't require those
-    /// features, this header can be hidden.
-    ///
-    /// This will not affect the header of any `Section`s in a table.
-    ///
-    ///     Table(article.authors) {
-    ///         TableColumn("Name", value: \.name)
-    ///         TableColumn("Title", value: \.title)
-    ///     }
-    ///     .tableColumnHeaders(.hidden)
-    ///
-    /// - Parameter visibility: A value of `visible` will show table columns,
-    ///   `hidden` will remove them, and `automatic` will defer to default
-    ///   behavior.
-    public func tableColumnHeaders(_ visibility: Visibility) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Rotates this view's rendered output in three dimensions around the given
-    /// axis of rotation.
-    ///
-    /// Use `rotation3DEffect(_:axis:anchor:anchorZ:perspective:)` to rotate the
-    /// view in three dimensions around the given axis of rotation, and
-    /// optionally, position the view at a custom display order and perspective.
-    ///
-    /// In the example below, the text is rotated 45˚ about the `y` axis,
-    /// front-most (the default `zIndex`) and default `perspective` (`1`):
-    ///
-    ///     Text("Rotation by passing an angle in degrees")
-    ///         .rotation3DEffect(.degrees(45), axis: (x: 0.0, y: 1.0, z: 0.0))
-    ///         .border(Color.gray)
-    ///
-    /// ![A screenshot showing the rotation of text 45 degrees about the
-    /// y-axis.](SkipUI-View-rotation3DEffect.png)
-    ///
-    /// - Parameters:
-    ///   - angle: The angle at which to rotate the view.
-    ///   - axis: The `x`, `y` and `z` elements that specify the axis of
-    ///     rotation.
-    ///   - anchor: The location with a default of ``UnitPoint/center`` that
-    ///     defines a point in 3D space about which the rotation is anchored.
-    ///   - anchorZ: The location with a default of `0` that defines a point in
-    ///     3D space about which the rotation is anchored.
-    ///   - perspective: The relative vanishing point with a default of `1` for
-    ///     this rotation.
-    public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0, perspective: CGFloat = 1) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Transforms the environment value of the specified key path with the
-    /// given function.
-    public func transformEnvironment<V>(_ keyPath: WritableKeyPath<EnvironmentValues, V>, transform: @escaping (inout V) -> Void) -> some View { return stubView() }
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

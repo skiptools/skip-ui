@@ -335,6 +335,15 @@ public protocol GaugeStyle {
     typealias Configuration = GaugeStyleConfiguration
 }
 
+@available(iOS 16.0, macOS 13.0, watchOS 7.0, *)
+@available(tvOS, unavailable)
+extension View {
+
+    /// Sets the style for gauges within this view.
+    public func gaugeStyle<S>(_ style: S) -> some View where S : GaugeStyle { return stubView() }
+
+}
+
 @available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
 @available(tvOS, unavailable)
 extension GaugeStyle where Self == AccessoryCircularCapacityGaugeStyle {

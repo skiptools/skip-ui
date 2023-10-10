@@ -126,6 +126,21 @@ extension View {
     public func scrollPosition(initialAnchor: UnitPoint?) -> some View {
         return self
     }
+
+    @available(*, unavailable)
+    public func scrollTarget(isEnabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollTargetBehavior(_ behavior: Any /* some ScrollTargetBehavior */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollTargetLayout(isEnabled: Bool = true) -> some View {
+        return self
+    }
 }
 
 #if !SKIP
