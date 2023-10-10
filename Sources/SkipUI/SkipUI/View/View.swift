@@ -836,16 +836,16 @@ extension View {
         #endif
     }
 
-    public func tint(_ tint: Color?) -> some View {
+    public func tint(_ color: Color?) -> some View {
         #if SKIP
-        return environment(\._tint, tint)
+        return environment(\._tint, color)
         #else
         return self
         #endif
     }
 
     @available(*, unavailable)
-    public func tint(_ tint: any ShapeStyle) -> some View {
+    public func tint(_ tint: (any ShapeStyle)?) -> some View {
         return self
     }
 
