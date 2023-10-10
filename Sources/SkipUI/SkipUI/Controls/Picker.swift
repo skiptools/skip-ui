@@ -595,6 +595,16 @@ extension PickerStyle where Self == PalettePickerStyle {
     public static var palette: PalettePickerStyle { get { fatalError() } }
 }
 
+/// The default picker style, based on the picker's context.
+///
+/// You can also use ``PickerStyle/automatic`` to construct this style.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public struct DefaultPickerStyle : PickerStyle {
+
+    /// Creates a default picker style.
+    public init() { fatalError() }
+}
+
 /// A `PickerStyle` where each option is displayed inline with other views in
 /// the current container.
 ///
@@ -641,6 +651,14 @@ public struct WheelPickerStyle : PickerStyle {
     /// Sets the picker style to display an item wheel from which the user makes
     /// a selection.
     public init() { fatalError() }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Sets the style for pickers within this view.
+    public func pickerStyle<S>(_ style: S) -> some View where S : PickerStyle { return stubView() }
+
 }
 
 #endif

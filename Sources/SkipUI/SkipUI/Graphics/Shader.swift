@@ -216,4 +216,101 @@ extension Shader {
 
 }
 
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Returns a new view that applies `shader` to `self` as a filter
+    /// effect on the color of each pixel.
+    ///
+    /// For a shader function to act as a color filter it must have a
+    /// function signature matching:
+    ///
+    ///     [[ stitchable ]] half4 name(float2 position, half4 color, args...)
+    ///
+    /// where `position` is the user-space coordinates of the pixel
+    /// applied to the shader and `color` its source color, as a
+    /// pre-multiplied color in the destination color space. `args...`
+    /// should be compatible with the uniform arguments bound to
+    /// `shader`. The function should return the modified color value.
+    ///
+    /// > Important: Views backed by AppKit or UIKit views may not
+    ///   render into the filtered layer. Instead, they log a warning
+    ///   and display a placeholder image to highlight the error.
+    ///
+    /// - Parameters:
+    ///   - shader: The shader to apply to `self` as a color filter.
+    ///   - isEnabled: Whether the effect is enabled or not.
+    ///
+    /// - Returns: A new view that renders `self` with the shader
+    ///   applied as a color filter.
+    public func colorEffect(_ shader: Shader, isEnabled: Bool = true) -> some View { return stubView() }
+
+
+    /// Returns a new view that applies `shader` to `self` as a
+    /// geometric distortion effect on the location of each pixel.
+    ///
+    /// For a shader function to act as a distortion effect it must
+    /// have a function signature matching:
+    ///
+    ///     [[ stitchable ]] float2 name(float2 position, args...)
+    ///
+    /// where `position` is the user-space coordinates of the
+    /// destination pixel applied to the shader. `args...` should be
+    /// compatible with the uniform arguments bound to `shader`. The
+    /// function should return the user-space coordinates of the
+    /// corresponding source pixel.
+    ///
+    /// > Important: Views backed by AppKit or UIKit views may not
+    ///   render into the filtered layer. Instead, they log a warning
+    ///   and display a placeholder image to highlight the error.
+    ///
+    /// - Parameters:
+    ///   - shader: The shader to apply as a distortion effect.
+    ///   - maxSampleOffset: The maximum distance in each axis between
+    ///     the returned source pixel position and the destination pixel
+    ///     position, for all source pixels.
+    ///   - isEnabled: Whether the effect is enabled or not.
+    ///
+    /// - Returns: A new view that renders `self` with the shader
+    ///   applied as a distortion effect.
+    public func distortionEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
+
+
+    /// Returns a new view that applies `shader` to `self` as a filter
+    /// on the raster layer created from `self`.
+    ///
+    /// For a shader function to act as a layer effect it must
+    /// have a function signature matching:
+    ///
+    ///     [[ stitchable ]] half4 name(float2 position,
+    ///       SkipUI::Layer layer, args...)
+    ///
+    /// where `position` is the user-space coordinates of the
+    /// destination pixel applied to the shader, and `layer` is a
+    /// subregion of the raster contents of `self`. `args...` should be
+    /// compatible with the uniform arguments bound to `shader`. The
+    /// function should return the color mapping to the destination
+    /// pixel, typically by sampling one or more pixels from `layer` at
+    /// location(s) derived from `position` and them applying some kind
+    /// of transformation to produce a new color.
+    ///
+    /// > Important: Views backed by AppKit or UIKit views may not
+    ///   render into the filtered layer. Instead, they log a warning
+    ///   and display a placeholder image to highlight the error.
+    ///
+    /// - Parameters:
+    ///   - shader: The shader to apply as a layer effect.
+    ///   - maxSampleOffset: If the shader function samples from the
+    ///     layer at locations not equal to the destination position,
+    ///     this value must specify the maximum sampling distance in
+    ///     each axis, for all source pixels.
+    ///   - isEnabled: Whether the effect is enabled or not.
+    ///
+    /// - Returns: A new view that renders `self` with the shader
+    ///   applied as a distortion effect.
+    public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
+
+}
+
 #endif

@@ -638,6 +638,25 @@ extension Image {
     public func allowedDynamicRange(_ range: Image.DynamicRange?) -> Image { fatalError() }
 }
 
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Returns a new view configured with the specified allowed
+    /// dynamic range.
+    ///
+    /// The following example enables HDR rendering within a view
+    /// hierarchy:
+    ///
+    ///     MyView().allowedDynamicRange(.high)
+    ///
+    /// - Parameter range: the requested dynamic range, or nil to
+    ///   restore the default allowed range.
+    ///
+    /// - Returns: a new view.
+    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View { return stubView() }
+}
+
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 
@@ -861,11 +880,46 @@ extension Image {
 
         /// A scale that produces large images.
         case large
-
-        
-
     
         }
+}
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Scales images within the view according to one of the relative sizes
+    /// available including small, medium, and large images sizes.
+    ///
+    /// The example below shows the relative scaling effect. The system renders
+    /// the image at a relative size based on the available space and
+    /// configuration options of the image it is scaling.
+    ///
+    ///     VStack {
+    ///         HStack {
+    ///             Image(systemName: "heart.fill")
+    ///                 .imageScale(.small)
+    ///             Text("Small")
+    ///         }
+    ///         HStack {
+    ///             Image(systemName: "heart.fill")
+    ///                 .imageScale(.medium)
+    ///             Text("Medium")
+    ///         }
+    ///
+    ///         HStack {
+    ///             Image(systemName: "heart.fill")
+    ///                 .imageScale(.large)
+    ///             Text("Large")
+    ///         }
+    ///     }
+    ///
+    /// ![A view showing small, medium, and large hearts rendered at a size
+    /// relative to the available space.](SkipUI-View-imageScale.png)
+    ///
+    /// - Parameter scale: One of the relative sizes provided by the image scale
+    ///   enumeration.
+    @available(macOS 11.0, *)
+    public func imageScale(_ scale: Image.Scale) -> some View { return stubView() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

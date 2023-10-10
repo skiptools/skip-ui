@@ -31,4 +31,15 @@ extension IndexViewStyle where Self == PageIndexViewStyle {
     public static func page(backgroundDisplayMode: PageIndexViewStyle.BackgroundDisplayMode) -> PageIndexViewStyle { fatalError() }
 }
 
+@available(iOS 14.0, tvOS 14.0, watchOS 8.0, *)
+@available(macOS, unavailable)
+extension View {
+
+    /// Sets the style for the index view within the current environment.
+    ///
+    /// - Parameter style: The style to apply to this view.
+    public func indexViewStyle<S>(_ style: S) -> some View where S : IndexViewStyle { return stubView() }
+
+}
+
 #endif

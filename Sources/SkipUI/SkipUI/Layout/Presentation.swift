@@ -197,4 +197,184 @@ public struct PresentedWindowContent<Data, Content> : View where Data : Decodabl
     public var body: Body { fatalError() }
 }
 
+extension View {
+    public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
+        return self
+    }
+
+    public func presentationDetents(_ detents: Set<PresentationDetent>, selection: Binding<PresentationDetent>) -> some View {
+        return self
+    }
+
+    public func presentationDragIndicator(_ visibility: Visibility) -> some View {
+        return self
+    }
+}
+
+@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
+extension View {
+
+    /// Controls whether people can interact with the view behind a
+    /// presentation.
+    ///
+    /// On many platforms, SkipUI automatically disables the view behind a
+    /// sheet that you present, so that people can't interact with the backing
+    /// view until they dismiss the sheet. Use this modifier if you want to
+    /// enable interaction.
+    ///
+    /// The following example enables people to interact with the view behind
+    /// the sheet when the sheet is at the smallest detent, but not at the other
+    /// detents:
+    ///
+    ///     struct ContentView: View {
+    ///         @State private var showSettings = false
+    ///
+    ///         var body: some View {
+    ///             Button("View Settings") {
+    ///                 showSettings = true
+    ///             }
+    ///             .sheet(isPresented: $showSettings) {
+    ///                 SettingsView()
+    ///                     .presentationDetents(
+    ///                         [.height(120), .medium, .large])
+    ///                     .presentationBackgroundInteraction(
+    ///                         .enabled(upThrough: .height(120)))
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameters:
+    ///   - interaction: A specification of how people can interact with the
+    ///     view behind a presentation.
+    public func presentationBackgroundInteraction(_ interaction: PresentationBackgroundInteraction) -> some View { return stubView() }
+
+
+    /// Specifies how to adapt a presentation to compact size classes.
+    ///
+    /// Some presentations adapt their appearance depending on the context. For
+    /// example, a sheet presentation over a vertically-compact view uses a
+    /// full-screen-cover appearance by default. Use this modifier to indicate
+    /// a custom adaptation preference. For example, the following code
+    /// uses a presentation adaptation value of ``PresentationAdaptation/none``
+    /// to request that the system not adapt the sheet in compact size classes:
+    ///
+    ///     struct ContentView: View {
+    ///         @State private var showSettings = false
+    ///
+    ///         var body: some View {
+    ///             Button("View Settings") {
+    ///                 showSettings = true
+    ///             }
+    ///             .sheet(isPresented: $showSettings) {
+    ///                 SettingsView()
+    ///                     .presentationDetents([.medium, .large])
+    ///                     .presentationCompactAdaptation(.none)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// If you want to specify different adaptations for each dimension,
+    /// use the ``View/presentationCompactAdaptation(horizontal:vertical:)``
+    /// method instead.
+    ///
+    /// - Parameter adaptation: The adaptation to use in either a horizontally
+    ///   or vertically compact size class.
+    public func presentationCompactAdaptation(_ adaptation: PresentationAdaptation) -> some View { return stubView() }
+
+
+    /// Specifies how to adapt a presentation to horizontally and vertically
+    /// compact size classes.
+    ///
+    /// Some presentations adapt their appearance depending on the context. For
+    /// example, a popover presentation over a horizontally-compact view uses a
+    /// sheet appearance by default. Use this modifier to indicate a custom
+    /// adaptation preference.
+    ///
+    ///     struct ContentView: View {
+    ///         @State private var showInfo = false
+    ///
+    ///         var body: some View {
+    ///             Button("View Info") {
+    ///                 showInfo = true
+    ///             }
+    ///             .popover(isPresented: $showInfo) {
+    ///                 InfoView()
+    ///                     .presentationCompactAdaptation(
+    ///                         horizontal: .popover,
+    ///                         vertical: .sheet)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// If you want to specify the same adaptation for both dimensions,
+    /// use the ``View/presentationCompactAdaptation(_:)`` method instead.
+    ///
+    /// - Parameters:
+    ///   - horizontalAdaptation: The adaptation to use in a horizontally
+    ///     compact size class.
+    ///   - verticalAdaptation: The adaptation to use in a vertically compact
+    ///     size class. In a size class that is both horizontally and vertically
+    ///     compact, SkipUI uses the `verticalAdaptation` value.
+    public func presentationCompactAdaptation(horizontal horizontalAdaptation: PresentationAdaptation, vertical verticalAdaptation: PresentationAdaptation) -> some View { return stubView() }
+
+
+    /// Requests that the presentation have a specific corner radius.
+    ///
+    /// Use this modifier to change the corner radius of a presentation.
+    ///
+    ///     struct ContentView: View {
+    ///         @State private var showSettings = false
+    ///
+    ///         var body: some View {
+    ///             Button("View Settings") {
+    ///                 showSettings = true
+    ///             }
+    ///             .sheet(isPresented: $showSettings) {
+    ///                 SettingsView()
+    ///                     .presentationDetents([.medium, .large])
+    ///                     .presentationCornerRadius(21)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// - Parameter cornerRadius: The corner radius, or `nil` to use the system
+    ///   default.
+    public func presentationCornerRadius(_ cornerRadius: CGFloat?) -> some View { return stubView() }
+
+
+    /// Configures the behavior of swipe gestures on a presentation.
+    ///
+    /// By default, when a person swipes up on a scroll view in a resizable
+    /// presentation, the presentation grows to the next detent. A scroll view
+    /// embedded in the presentation only scrolls after the presentation
+    /// reaches its largest size. Use this modifier to control which action
+    /// takes precedence.
+    ///
+    /// For example, you can request that swipe gestures scroll content first,
+    /// resizing the sheet only after hitting the end of the scroll view, by
+    /// passing the ``PresentationContentInteraction/scrolls`` value to this
+    /// modifier:
+    ///
+    ///     struct ContentView: View {
+    ///         @State private var showSettings = false
+    ///
+    ///         var body: some View {
+    ///             Button("View Settings") {
+    ///                 showSettings = true
+    ///             }
+    ///             .sheet(isPresented: $showSettings) {
+    ///                 SettingsView()
+    ///                     .presentationDetents([.medium, .large])
+    ///                     .presentationContentInteraction(.scrolls)
+    ///             }
+    ///         }
+    ///     }
+    ///
+    /// People can always resize your presentation using the drag indicator.
+    ///
+    /// - Parameter behavior: The requested behavior.
+    public func presentationContentInteraction(_ behavior: PresentationContentInteraction) -> some View { return stubView() }
+
+}
+
 #endif

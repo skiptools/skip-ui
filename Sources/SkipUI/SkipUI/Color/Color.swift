@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 #endif
 
-public struct Color: View, Hashable, Sendable {
+public struct Color: View, Hashable, Sendable, ShapeStyle {
     #if SKIP
     let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 
@@ -246,15 +246,6 @@ public struct Color: View, Hashable, Sendable {
 }
 
 #if !SKIP
-
-// Stubs needed to compile this package:
-
-extension Color : ShapeStyle {
-}
-
-extension Color.Resolved : ShapeStyle {
-    public typealias Resolved = Never
-}
 
 // Unneeded stubs:
 

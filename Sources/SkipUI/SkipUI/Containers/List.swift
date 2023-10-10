@@ -237,6 +237,11 @@ public struct ListStyle: RawRepresentable, Equatable {
 
 extension View {
     @available(*, unavailable)
+    public func deleteDisabled(_ isDisabled: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         return self
     }
@@ -270,6 +275,26 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func listRowInsets(_ insets: EdgeInsets?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listRowSpacing(_ spacing: CGFloat?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func moveDisabled(_ isDisabled: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> some View {
+        return self
     }
 }
 

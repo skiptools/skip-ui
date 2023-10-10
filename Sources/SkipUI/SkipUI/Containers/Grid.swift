@@ -957,4 +957,312 @@ extension GridRow : View {
     public var body: Body { fatalError() }
 }
 
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Tells a view that acts as a cell in a grid to span the specified
+    /// number of columns.
+    ///
+    /// By default, each view that you put into the content closure of a
+    /// ``GridRow`` corresponds to exactly one column of the grid. Apply the
+    /// `gridCellColumns(_:)` modifier to a view that you want to span more
+    /// than one column, as in the following example of a typical macOS
+    /// configuration view:
+    ///
+    ///     Grid(alignment: .leadingFirstTextBaseline) {
+    ///         GridRow {
+    ///             Text("Regular font:")
+    ///                 .gridColumnAlignment(.trailing)
+    ///             Text("Helvetica 12")
+    ///             Button("Select...") { }
+    ///         }
+    ///         GridRow {
+    ///             Text("Fixed-width font:")
+    ///             Text("Menlo Regular 11")
+    ///             Button("Select...") { }
+    ///         }
+    ///         GridRow {
+    ///             Color.clear
+    ///                 .gridCellUnsizedAxes([.vertical, .horizontal])
+    ///             Toggle("Use fixed-width font for new documents", isOn: $isOn)
+    ///                 .gridCellColumns(2) // Span two columns.
+    ///         }
+    ///     }
+    ///
+    /// The ``Toggle`` in the example above spans the column that contains
+    /// the font names and the column that contains the buttons:
+    ///
+    /// ![A screenshot of a configuration view, arranged in a grid. The grid
+    /// has three colums and three rows. Scanning from top to bottom, the
+    /// left-most column contains a cell with the text Regular font, a cell with
+    /// the text Fixed-width font, and a blank cell. The middle row contains
+    /// a cell with the text Helvetica 12, a cell with the text Menlo Regular
+    /// 11, and a cell with a labeled checkbox. The label says Use fixed-width
+    /// font for new documents. The label spans its own cell and the cell to
+    /// its right. The right-most column contains two cells with buttons
+    /// labeled Select. The last column's bottom cell is merged with the cell
+    /// from the middle columnn that holds the labeled
+    /// checkbox.](View-gridCellColumns-1-macOS)
+    ///
+    /// > Important: When you tell a cell to span multiple columns, the grid
+    /// changes the merged cell to use anchor alignment, rather than the
+    /// usual alignment guides. For information about the behavior of
+    /// anchor alignment, see ``View/gridCellAnchor(_:)``.
+    ///
+    /// As a convenience you can cause a view to span all of the ``Grid``
+    /// columns by placing the view directly in the content closure of the
+    /// ``Grid``, outside of a ``GridRow``, and omitting the modifier. To do
+    /// the opposite and include more than one view in a cell, group the views
+    /// using an appropriate layout container, like an ``HStack``, so that
+    /// they act as a single view.
+    ///
+    /// - Parameters:
+    ///   - count: The number of columns that the view should consume
+    ///     when placed in a grid row.
+    ///
+    /// - Returns: A view that occupies the specified number of columns in a
+    ///   grid row.
+    public func gridCellColumns(_ count: Int) -> some View { return stubView() }
+
+
+    /// Specifies a custom alignment anchor for a view that acts as a grid cell.
+    ///
+    /// Grids, like stacks and other layout containers, perform most alignment
+    /// operations using alignment guides. The grid moves the contents of each
+    /// cell in a row in the y direction until the specified
+    /// ``VerticalAlignment`` guide of each view in the row aligns with the same
+    /// guide of all the other views in the row. Similarly, the grid aligns the
+    /// ``HorizontalAlignment`` guides of views in a column by adjusting views
+    /// in the x direction. See the guide types for more information about
+    /// typical SkipUI alignment operations.
+    ///
+    /// When you use the `gridCellAnchor(_:)` modifier on a
+    /// view in a grid, the grid changes to an anchor-based alignment strategy
+    /// for the associated cell. With anchor alignment, the grid projects a
+    /// ``UnitPoint`` that you specify onto both the view and the cell, and
+    /// aligns the two projections. For example, consider the following grid:
+    ///
+    ///     Grid(horizontalSpacing: 1, verticalSpacing: 1) {
+    ///         GridRow {
+    ///             Color.red.frame(width: 60, height: 60)
+    ///             Color.red.frame(width: 60, height: 60)
+    ///         }
+    ///         GridRow {
+    ///             Color.red.frame(width: 60, height: 60)
+    ///             Color.blue.frame(width: 10, height: 10)
+    ///                 .gridCellAnchor(UnitPoint(x: 0.25, y: 0.75))
+    ///         }
+    ///     }
+    ///
+    /// The grid creates red reference squares in the first row and column to
+    /// establish row and column sizes. Without the anchor modifier, the blue
+    /// marker in the remaining cell would appear at the center of its cell,
+    /// because of the grid's default ``Alignment/center`` alignment. With
+    /// the anchor modifier shown in the code above, the grid aligns the one
+    /// quarter point of the marker with the one quarter point of its cell in
+    /// the x direction, as measured from the origin at the top left of the
+    /// cell. The grid also aligns the three quarters point of the marker
+    /// with the three quarters point of the cell in the y direction:
+    ///
+    /// ![A screenshot of a grid with two rows and two columns. The cells in
+    /// the top row and left-most column are each completely filled with a red
+    /// rectangle. The lower-right cell contains a small blue square that's
+    /// horizontally placed about one quarter of the way from the left to the
+    /// right, and about three quarters of the way from the top to the
+    /// bottom of the cell it occupies.](View-gridCellAnchor-1-iOS)
+    ///
+    /// ``UnitPoint`` defines many convenience points that correspond to the
+    /// typical alignment guides, which you can use as well. For example, you
+    /// can use ``UnitPoint/topTrailing`` to align the top and trailing edges
+    /// of a view in a cell with the top and trailing edges of the cell:
+    ///
+    ///     Color.blue.frame(width: 10, height: 10)
+    ///         .gridCellAnchor(.topTrailing)
+    ///
+    /// ![A screenshot of a grid with two rows and two columns. The cells in
+    /// the top row and left-most column are each completely filled with a red
+    /// rectangle. The lower-right cell contains a small blue square that's
+    /// horizontally aligned with the trailing edge, and vertically aligned
+    /// with the top edge of the cell.](View-gridCellAnchor-2-iOS)
+    ///
+    /// Applying the anchor-based alignment strategy to a single cell
+    /// doesn't affect the alignment strategy that the grid uses on other cells.
+    ///
+    /// ### Anchor alignment for merged cells
+    ///
+    /// If you use the ``View/gridCellColumns(_:)`` modifier to cause
+    /// a cell to span more than one column, or if you place a view in a grid
+    /// outside of a row so that the view spans the entire grid, the grid
+    /// automatically converts its vertical and horizontal alignment guides
+    /// to the unit point equivalent for the merged cell, and uses an
+    /// anchor-based approach for that cell. For example, the following grid
+    /// places the marker at the center of the merged cell by converting the
+    /// grid's default ``Alignment/center`` alignment guide to a
+    /// ``UnitPoint/center`` anchor for the blue marker in the merged cell:
+    ///
+    ///     Grid(alignment: .center, horizontalSpacing: 1, verticalSpacing: 1) {
+    ///         GridRow {
+    ///             Color.red.frame(width: 60, height: 60)
+    ///             Color.red.frame(width: 60, height: 60)
+    ///             Color.red.frame(width: 60, height: 60)
+    ///         }
+    ///         GridRow {
+    ///             Color.red.frame(width: 60, height: 60)
+    ///             Color.blue.frame(width: 10, height: 10)
+    ///                 .gridCellColumns(2)
+    ///         }
+    ///     }
+    ///
+    /// The grid makes this conversion in part to avoid ambiguity. Each column
+    /// has its own horizontal guide, and it isn't clear which of these
+    /// a cell that spans multiple columns should align with. Further, in
+    /// the example above, neither of the center alignment guides for the
+    /// second or third column would provide the expected behavior, which is
+    /// to center the marker in the merged cell. Anchor alignment provides
+    /// this behavior:
+    ///
+    /// ![A screenshot of a grid with two rows and three columns. The cells in
+    /// the top row and left-most column are each completely filled with a red
+    /// rectangle. The other two cells are meged into a single cell that
+    /// contains a small blue square that's centered in the merged
+    /// cell.](View-gridCellAnchor-3-iOS)
+    ///
+    /// - Parameters:
+    ///   - anchor: The unit point that defines how to align the view
+    ///     within the bounds of its grid cell.
+    ///
+    /// - Returns: A view that uses the specified anchor point to align its
+    ///   content.
+    public func gridCellAnchor(_ anchor: UnitPoint) -> some View { return stubView() }
+
+
+    /// Overrides the default horizontal alignment of the grid column that
+    /// the view appears in.
+    ///
+    /// You set a default alignment for the cells in a grid in both vertical
+    /// and horizontal dimensions when you create the grid with the
+    /// ``Grid/init(alignment:horizontalSpacing:verticalSpacing:content:)``
+    /// initializer. However, you can use the `gridColumnAlignment(_:)` modifier
+    /// to override the horizontal alignment of a column within the grid. The
+    /// following example sets a grid's alignment to
+    /// ``Alignment/leadingFirstTextBaseline``, and then sets the first column
+    /// to use ``HorizontalAlignment/trailing`` alignment:
+    ///
+    ///     Grid(alignment: .leadingFirstTextBaseline) {
+    ///         GridRow {
+    ///             Text("Regular font:")
+    ///                 .gridColumnAlignment(.trailing) // Align the entire first column.
+    ///             Text("Helvetica 12")
+    ///             Button("Select...") { }
+    ///         }
+    ///         GridRow {
+    ///             Text("Fixed-width font:")
+    ///             Text("Menlo Regular 11")
+    ///             Button("Select...") { }
+    ///         }
+    ///         GridRow {
+    ///             Color.clear
+    ///                 .gridCellUnsizedAxes([.vertical, .horizontal])
+    ///             Toggle("Use fixed-width font for new documents", isOn: $isOn)
+    ///                 .gridCellColumns(2)
+    ///         }
+    ///     }
+    ///
+    /// This creates the layout of a typical macOS configuration
+    /// view, with the trailing edge of the first column flush with the
+    /// leading edge of the second column:
+    ///
+    /// ![A screenshot of a configuration view, arranged in a grid. The grid
+    /// has three colums and three rows. Scanning from top to bottom, the
+    /// left-most column contains a cell with the text Regular font, a cell with
+    /// the text Fixed-width font, and a blank cell. The middle row contains
+    /// a cell with the text Helvetica 12, a cell with the text Menlo Regular
+    /// 11, and a cell with a labeled checkbox. The label says Use fixed-width
+    /// font for new documents. The label spans its own cell and the cell to
+    /// its right. The right-most column contains two cells with buttons
+    /// labeled Select. The last column's bottom cell is merged with the cell
+    /// from the middle columnn that holds the labeled
+    /// checkbox.](View-gridColumnAlignment-1-macOS)
+    ///
+    /// Add the modifier to only one cell in a column. The grid
+    /// automatically aligns all cells in that column the same way.
+    /// You get undefined behavior if you apply different alignments to
+    /// different cells in the same column.
+    ///
+    /// To override row alignment, see ``GridRow/init(alignment:content:)``. To
+    /// override alignment for a single cell, see ``View/gridCellAnchor(_:)``.
+    ///
+    /// - Parameters:
+    ///   - guide: The ``HorizontalAlignment`` guide to use for the grid
+    ///     column that the view appears in.
+    ///
+    /// - Returns: A view that uses the specified horizontal alignment, and
+    ///   that causes all cells in the same column of a grid to use the
+    ///   same alignment.
+    public func gridColumnAlignment(_ guide: HorizontalAlignment) -> some View { return stubView() }
+
+
+    /// Asks grid layouts not to offer the view extra size in the specified
+    /// axes.
+    ///
+    /// Use this modifier to prevent a flexible view from taking more space
+    /// on the specified axes than the other cells in a row or column require.
+    /// For example, consider the following ``Grid`` that places a ``Divider``
+    /// between two rows of content:
+    ///
+    ///     Grid {
+    ///         GridRow {
+    ///             Text("Hello")
+    ///             Image(systemName: "globe")
+    ///         }
+    ///         Divider()
+    ///         GridRow {
+    ///             Image(systemName: "hand.wave")
+    ///             Text("World")
+    ///         }
+    ///     }
+    ///
+    /// The text and images all have ideal widths for their content. However,
+    /// because a divider takes as much space as its parent offers, the grid
+    /// fills the width of the display, expanding all the other cells to match:
+    ///
+    /// ![A screenshot of items arranged in a grid. The upper-left
+    /// cell in the grid contains the word hello. The upper-right contains
+    /// an image of a globe. The lower-left contains an image of a waving hand.
+    /// The lower-right contains the word world. A dividing line that spans
+    /// the width of the grid separates the upper and lower elements. The grid's
+    /// rows have minimal vertical spacing, but it's columns have a lot of
+    /// horizontal spacing, with column content centered
+    /// horizontally.](View-gridCellUnsizedAxes-1-iOS)
+    ///
+    /// You can prevent the grid from giving the divider more width than
+    /// the other cells require by adding the modifier with the
+    /// ``Axis/horizontal`` parameter:
+    ///
+    ///     Divider()
+    ///         .gridCellUnsizedAxes(.horizontal)
+    ///
+    /// This restores the grid to the width that it would have without the
+    /// divider:
+    ///
+    /// ![A screenshot of items arranged in a grid. The upper-left
+    /// position in the grid contains the word hello. The upper-right contains
+    /// an image of a globe. The lower-left contains an image of a waving hand.
+    /// The lower-right contains the word world. A dividing line that spans
+    /// the width of the grid separates the upper and lower elements. The grid's
+    /// rows and columns have minimal vertical or horizontal
+    /// spacing.](View-gridCellUnsizedAxes-2-iOS)
+    ///
+    /// - Parameters:
+    ///   - axes: The dimensions in which the grid shouldn't offer the view a
+    ///     share of any available space. This prevents a flexible view like a
+    ///     ``Spacer``, ``Divider``, or ``Color`` from defining the size of
+    ///     a row or column.
+    ///
+    /// - Returns: A view that doesn't ask an enclosing grid for extra size
+    ///   in one or more axes.
+    public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return stubView() }
+
+}
+
 #endif

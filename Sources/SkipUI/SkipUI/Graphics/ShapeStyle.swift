@@ -2,9 +2,24 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public protocol ShapeStyle : Sendable {
+//    associatedtype Resolved : ShapeStyle = Never
+//    func resolve(in environment: EnvironmentValues) -> Self.Resolved
+}
+
+public struct FillStyle : Equatable, Sendable {
+    public var isEOFilled: Bool
+    public var isAntialiased: Bool
+
+    public init(eoFill: Bool = false, antialiased: Bool = true) {
+        self.isEOFilled = eoFill
+        self.isAntialiased = antialiased
+    }
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -18,101 +33,6 @@ func stubShapeStyle() -> some ShapeStyle {
     }
     return NeverShapeStyle()
 }
-
-/// A color or pattern to use when rendering a shape.
-///
-/// You create custom shape styles by declaring a type that conforms to the
-/// `ShapeStyle` protocol and implementing the required `resolve` function to
-/// return a shape style that represents the desired appearance based on the
-/// current environment.
-///
-/// For example this shape style reads the current color scheme from the
-/// environment to choose the blend mode its color will be composited with:
-///
-///     struct MyShapeStyle: ShapeStyle {
-///         func resolve(in environment: EnvironmentValues) -> some ShapeStyle {
-///             if environment.colorScheme == .light {
-///                 return Color.red.blendMode(.lighten)
-///             } else {
-///                 return Color.red.blendMode(.darken)
-///             }
-///         }
-///     }
-///
-/// In addition to creating a custom shape style, you can also use one of the
-/// concrete styles that SkipUI defines. To indicate a specific color or
-/// pattern, you can use ``Color`` or the style returned by
-/// ``ShapeStyle/image(_:sourceRect:scale:)``, or one of the gradient
-/// types, like the one returned by
-/// ``ShapeStyle/radialGradient(_:center:startRadius:endRadius:)-49kel``.
-/// To set a color that's appropriate for a given context on a given
-/// platform, use one of the semantic styles, like ``ShapeStyle/background`` or
-/// ``ShapeStyle/primary``.
-///
-/// You can use a shape style by:
-/// * Filling a shape with a style with the ``Shape/fill(_:style:)`` modifier:
-///
-///     ```
-///     Path { path in
-///         path.move(to: .zero)
-///         path.addLine(to: CGPoint(x: 50, y: 0))
-///         path.addArc(
-///             center: .zero,
-///             radius: 50,
-///             startAngle: .zero,
-///             endAngle: .degrees(90),
-///             clockwise: false)
-///     }
-///     .fill(.radial(
-///         Gradient(colors: [.yellow, .red]),
-///         center: .topLeading,
-///         startRadius: 15,
-///         endRadius: 80))
-///     ```
-///
-///     ![A screenshot of a quarter of a circle filled with
-///     a radial gradient.](ShapeStyle-1)
-///
-/// * Tracing the outline of a shape with a style with either the
-///   ``Shape/stroke(_:lineWidth:)`` or the ``Shape/stroke(_:style:)`` modifier:
-///
-///     ```
-///     RoundedRectangle(cornerRadius: 10)
-///         .stroke(.mint, lineWidth: 10)
-///         .frame(width: 200, height: 50)
-///     ```
-///
-///     ![A screenshot of a rounded rectangle, outlined in mint.](ShapeStyle-2)
-///
-/// * Styling the foreground elements in a view with the
-///   ``View/foregroundStyle(_:)`` modifier:
-///
-///     ```
-///     VStack(alignment: .leading) {
-///         Text("Primary")
-///             .font(.title)
-///         Text("Secondary")
-///             .font(.caption)
-///             .foregroundStyle(.secondary)
-///     }
-///     ```
-///
-///     ![A screenshot of a title in the primary content color above a
-///     subtitle in the secondary content color.](ShapeStyle-3)
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol ShapeStyle : Sendable {
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    associatedtype Resolved : ShapeStyle = Never
-
-    /// Evaluate to a resolved shape style given the current `environment`.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    func resolve(in environment: EnvironmentValues) -> Self.Resolved
-}
-
 
 /// A type-erased ShapeStyle value.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -702,12 +622,12 @@ extension ShapeStyle where Self == BackgroundStyle {
     public static var background: BackgroundStyle { get { fatalError() } }
 }
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension ShapeStyle where Self.Resolved == Never {
-
-    /// Evaluate to a resolved shape style given the current `environment`.
-    public func resolve(in environment: EnvironmentValues) -> Never { fatalError() }
-}
+//@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+//extension ShapeStyle where Self.Resolved == Never {
+//
+//    /// Evaluate to a resolved shape style given the current `environment`.
+//    public func resolve(in environment: EnvironmentValues) -> Never { fatalError() }
+//}
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ShapeStyle where Self == FillShapeStyle {
@@ -977,30 +897,6 @@ public struct TintShapeStyle : ShapeStyle {
     public typealias Resolved = Never
 }
 
-/// A label style that shows both the title and icon of the label using a
-/// system-standard layout.
-///
-/// You can also use ``LabelStyle/titleAndIcon`` to construct this style.
-@available(iOS 14.5, macOS 11.3, tvOS 14.5, watchOS 7.4, *)
-public struct TitleAndIconLabelStyle : LabelStyle {
-
-    /// Creates a label style that shows both the title and icon of the label
-    /// using a system-standard layout.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: TitleAndIconLabelStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a label.
-//    public typealias Body = some View
-}
-
 /// A style used to visually indicate selection following platform conventional
 /// colors and behaviors.
 ///
@@ -1109,38 +1005,6 @@ extension Shader : ShapeStyle {
 
     public typealias Body = NeverView
     public var body: Body { fatalError() }
-}
-
-/// A style for rasterizing vector shapes.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct FillStyle : Equatable {
-
-    /// A Boolean value that indicates whether to use the even-odd rule when
-    /// rendering a shape.
-    ///
-    /// When `isOEFilled` is `false`, the style uses the non-zero winding number
-    /// rule.
-    public var isEOFilled: Bool { get { fatalError() } }
-
-    /// A Boolean value that indicates whether to apply antialiasing to the
-    /// edges of a shape.
-    public var isAntialiased: Bool { get { fatalError() } }
-
-    /// Creates a new fill style with the specified settings.
-    ///
-    /// - Parameters:
-    ///   - eoFill: A Boolean value that indicates whether to use the even-odd
-    ///     rule for rendering a shape. Pass `false` to use the non-zero winding
-    ///     number rule instead.
-    ///   - antialiased: A Boolean value that indicates whether to use
-    ///     antialiasing when rendering the edges of a shape.
-    @inlinable public init(eoFill: Bool = false, antialiased: Bool = true) { fatalError() }
-
-    
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension FillStyle : Sendable {
 }
 
 /// The foreground style in the current context.

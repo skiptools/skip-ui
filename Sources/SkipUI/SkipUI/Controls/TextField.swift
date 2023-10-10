@@ -108,8 +108,23 @@ public struct TextFieldStyle: RawRepresentable, Equatable {
 }
 
 extension View {
+    @available(*, unavailable)
+    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func submitScope(_ isBlocking: Bool = true) -> some View {
+        return self
+    }
+
     public func textFieldStyle(_ style: TextFieldStyle) -> some View {
         // We only support Android's outline style
+        return self
+    }
+
+    @available(*, unavailable)
+    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View {
         return self
     }
 }

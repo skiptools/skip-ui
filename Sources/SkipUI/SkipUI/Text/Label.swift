@@ -98,6 +98,27 @@ public struct Label : View, ListItemAdapting {
     #endif
 }
 
+// Model `LabelStyle` as a struct. Kotlin does not support static members of protocols
+public struct LabelStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = LabelStyle(rawValue: 0)
+    public static let titleOnly = LabelStyle(rawValue: 1)
+    public static let iconOnly = LabelStyle(rawValue: 2)
+    public static let titleAndIcon = LabelStyle(rawValue: 3)
+}
+
+extension View {
+    @available(*, unavailable)
+    public func labelStyle(_ style: LabelStyle) -> some View {
+        return self
+    }
+}
+
 #if !SKIP
 
 // TODO: Process for use in SkipUI
@@ -129,84 +150,6 @@ extension Label /* where Title == LabelStyleConfiguration.Title, Icon == LabelSt
     ///
     /// - Parameter configuration: The label style to use.
     public init(_ configuration: LabelStyleConfiguration) { fatalError() }
-}
-
-/// A type that applies a custom appearance to all labels within a view.
-///
-/// To configure the current label style for a view hierarchy, use the
-/// ``View/labelStyle(_:)`` modifier.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public protocol LabelStyle {
-
-    /// A view that represents the body of a label.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a label.
-    typealias Configuration = LabelStyleConfiguration
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension LabelStyle where Self == IconOnlyLabelStyle {
-
-    /// A label style that only displays the icon of the label.
-    ///
-    /// The title of the label is still used for non-visual descriptions, such as
-    /// VoiceOver.
-    public static var iconOnly: IconOnlyLabelStyle { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension LabelStyle where Self == TitleOnlyLabelStyle {
-
-    /// A label style that only displays the title of the label.
-    public static var titleOnly: TitleOnlyLabelStyle { get { fatalError() } }
-}
-
-@available(iOS 14.5, macOS 11.3, tvOS 14.5, watchOS 7.4, *)
-extension LabelStyle where Self == TitleAndIconLabelStyle {
-
-    /// A label style that shows both the title and icon of the label using a
-    /// system-standard layout.
-    ///
-    /// In most cases, labels show both their title and icon by default. However,
-    /// some containers might apply a different default label style to their
-    /// content, such as only showing icons within toolbars on macOS and iOS. To
-    /// opt in to showing both the title and the icon, you can apply the title
-    /// and icon label style:
-    ///
-    ///     Label("Lightning", systemImage: "bolt.fill")
-    ///         .labelStyle(.titleAndIcon)
-    ///
-    /// To apply the title and icon style to a group of labels, apply the style
-    /// to the view hierarchy that contains the labels:
-    ///
-    ///     VStack {
-    ///         Label("Rain", systemImage: "cloud.rain")
-    ///         Label("Snow", systemImage: "snow")
-    ///         Label("Sun", systemImage: "sun.max")
-    ///     }
-    ///     .labelStyle(.titleAndIcon)
-    ///
-    /// The relative layout of the title and icon is dependent on the context it
-    /// is displayed in. In most cases, however, the label is arranged
-    /// horizontally with the icon leading.
-    public static var titleAndIcon: TitleAndIconLabelStyle { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension LabelStyle where Self == DefaultLabelStyle {
-
-    /// A label style that resolves its appearance automatically based on the
-    /// current context.
-    public static var automatic: DefaultLabelStyle { get { fatalError() } }
 }
 
 /// The properties of a label.
@@ -542,6 +485,14 @@ public protocol LabeledContentStyle {
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Sets a style for labeled content.
+    public func labeledContentStyle<S>(_ style: S) -> some View where S : LabeledContentStyle { return stubView() }
+
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension LabeledContentStyle where Self == AutomaticLabeledContentStyle {
 
     /// A labeled content style that resolves its appearance automatically based
@@ -624,72 +575,6 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
 
     @MainActor public var body: some View { get { return stubView() } }
 
-//    public typealias Body = some View
-}
-
-/// The default label style in the current context.
-///
-/// You can also use ``LabelStyle/automatic`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct DefaultLabelStyle : LabelStyle {
-
-    /// Creates an automatic label style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: DefaultLabelStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a label.
-//    public typealias Body = some View
-}
-
-/// A label style that only displays the title of the label.
-///
-/// You can also use ``LabelStyle/titleOnly`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct TitleOnlyLabelStyle : LabelStyle {
-
-    /// Creates a title-only label style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: TitleOnlyLabelStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a label.
-//    public typealias Body = some View
-}
-
-/// A label style that only displays the icon of the label.
-///
-/// You can also use ``LabelStyle/iconOnly`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct IconOnlyLabelStyle : LabelStyle {
-
-    /// Creates an icon-only label style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a label.
-    ///
-    /// The system calls this method for each ``Label`` instance in a view
-    /// hierarchy where this style is the current label style.
-    ///
-    /// - Parameter configuration: The properties of the label.
-    public func makeBody(configuration: IconOnlyLabelStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a label.
 //    public typealias Body = some View
 }
 

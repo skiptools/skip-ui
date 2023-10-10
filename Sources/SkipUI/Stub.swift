@@ -12,7 +12,6 @@ func stub<T>() -> T {
 // SkipUI.kt:13:14 'Nothing' return type can't be specified with type alias
 public typealias Nothing = Never
 
-
 /// No-op
 func stubView() -> some View {
     return EmptyView()

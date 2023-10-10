@@ -9,6 +9,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+#else
+import struct CoreGraphics.CGRect
 #endif
 
 public struct ScrollView<Content> : View where Content : View {
@@ -44,131 +46,94 @@ public struct ScrollView<Content> : View where Content : View {
     #endif
 }
 
+public enum ScrollBounceBehavior : Sendable {
+    case automatic
+    case always
+    case basedOnSize
+}
+
+public enum ScrollDismissesKeyboardMode : Sendable {
+    case automatic
+    case immediately
+    case interactively
+    case never
+}
+
+public enum ScrollIndicatorVisibility : Equatable {
+    case automatic
+    case visible
+    case hidden
+    case never
+}
+
+public struct ScrollTarget {
+    public var rect: CGRect
+    public var anchor: UnitPoint?
+
+    public init(rect: CGRect, anchor: UnitPoint? = nil) {
+        self.rect = rect
+        self.anchor = anchor
+    }
+}
+
+extension View {
+    @available(*, unavailable)
+    public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollClipDisabled(_ disabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollContentBackground(_ visibility: Visibility) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollDismissesKeyboard(_ mode: ScrollDismissesKeyboardMode) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollDisabled(_ disabled: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollIndicatorsFlash(onAppear: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollIndicatorsFlash(trigger value: some Equatable) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollPosition(id: Binding<(any Hashable)?>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollPosition(initialAnchor: UnitPoint?) -> some View {
+        return self
+    }
+}
+
 #if !SKIP
 
-import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector
 
 // TODO: Process for use in SkipUI
-
-/// The ways that a scrollable view can bounce when it reaches the end of its
-/// content.
-///
-/// Use the ``View/scrollBounceBehavior(_:axes:)`` view modifier to set a value
-/// of this type for a scrollable view, like a ``ScrollView`` or a ``List``.
-/// The value configures the bounce behavior when people scroll to the end of
-/// the view's content.
-///
-/// You can configure each scrollable axis to use a different bounce mode.
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-public struct ScrollBounceBehavior : Sendable {
-
-    /// The automatic behavior.
-    ///
-    /// The scrollable view automatically chooses whether content bounces when
-    /// people scroll to the end of the view's content. By default, scrollable
-    /// views use the ``ScrollBounceBehavior/always`` behavior.
-    public static var automatic: ScrollBounceBehavior { get { fatalError() } }
-
-    /// The scrollable view always bounces.
-    ///
-    /// The scrollable view always bounces along the specified axis,
-    /// regardless of the size of the content.
-    public static var always: ScrollBounceBehavior { get { fatalError() } }
-
-    /// The scrollable view bounces when its content is large enough to require
-    /// scrolling.
-    ///
-    /// The scrollable view bounces along the specified axis if the size of
-    /// the content exceeeds the size of the scrollable view in that axis.
-    public static var basedOnSize: ScrollBounceBehavior { get { fatalError() } }
-}
-
-/// The ways that scrollable content can interact with the software keyboard.
-///
-/// Use this type in a call to the ``View/scrollDismissesKeyboard(_:)``
-/// modifier to specify the dismissal behavior of scrollable views.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@available(xrOS, unavailable)
-public struct ScrollDismissesKeyboardMode : Sendable {
-
-    /// Determine the mode automatically based on the surrounding context.
-    ///
-    /// By default, a ``TextEditor`` is interactive while a ``List``
-    /// of scrollable content always dismiss the keyboard on a scroll,
-    /// when linked against iOS 16 or later.
-    public static var automatic: ScrollDismissesKeyboardMode { get { fatalError() } }
-
-    /// Dismiss the keyboard as soon as scrolling starts.
-    public static var immediately: ScrollDismissesKeyboardMode { get { fatalError() } }
-
-    /// Enable people to interactively dismiss the keyboard as part of the
-    /// scroll operation.
-    ///
-    /// The software keyboard's position tracks the gesture that drives the
-    /// scroll operation if the gesture crosses into the keyboard's area of the
-    /// display. People can dismiss the keyboard by scrolling it off the
-    /// display, or reverse the direction of the scroll to cancel the dismissal.
-    public static var interactively: ScrollDismissesKeyboardMode { get { fatalError() } }
-
-    /// Never dismiss the keyboard automatically as a result of scrolling.
-    public static var never: ScrollDismissesKeyboardMode { get { fatalError() } }
-}
-
-/// The visibility of scroll indicators of a UI element.
-///
-/// Pass a value of this type to the ``View/scrollIndicators(_:axes:)`` method
-/// to specify the preferred scroll indicator visibility of a view hierarchy.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ScrollIndicatorVisibility {
-
-    /// Scroll indicator visibility depends on the
-    /// policies of the component accepting the visibility configuration.
-    public static var automatic: ScrollIndicatorVisibility { get { fatalError() } }
-
-    /// Show the scroll indicators.
-    ///
-    /// The actual visibility of the indicators depends on platform
-    /// conventions like auto-hiding behaviors in iOS or user preference
-    /// behaviors in macOS.
-    public static var visible: ScrollIndicatorVisibility { get { fatalError() } }
-
-    /// Hide the scroll indicators.
-    ///
-    /// By default, scroll views in macOS show indicators when a
-    /// mouse is connected. Use ``never`` to indicate
-    /// a stronger preference that can override this behavior.
-    public static var hidden: ScrollIndicatorVisibility { get { fatalError() } }
-
-    /// Scroll indicators should never be visible.
-    ///
-    /// This value behaves like ``hidden``, but
-    /// overrides scrollable views that choose
-    /// to keep their indidicators visible. When using this value,
-    /// provide an alternative method of scrolling. The typical
-    /// horizontal swipe gesture might not be available, depending on
-    /// the current input device.
-    public static var never: ScrollIndicatorVisibility { get { fatalError() } }
-}
-
-@available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-extension ScrollIndicatorVisibility : Equatable {
-
-    
-}
-
-/// A type defining the target in which a scroll view should try and scroll to.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct ScrollTarget {
-
-    /// The rect that a scrollable view should try and have contained.
-    public var rect: CGRect { get { fatalError() } }
-
-    /// The anchor to which the rect should be aligned within the visible
-    /// region of the scrollable view.
-    public var anchor: UnitPoint?
-}
 
 /// A type that defines the scroll behavior of a scrollable view.
 ///

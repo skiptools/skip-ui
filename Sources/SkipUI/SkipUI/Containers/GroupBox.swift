@@ -159,6 +159,18 @@ public protocol GroupBoxStyle {
 @available(iOS 14.0, macOS 11.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
+extension View {
+
+    /// Sets the style for group boxes within this view.
+    ///
+    /// - Parameter style: The style to apply to boxes within this view.
+    public func groupBoxStyle<S>(_ style: S) -> some View where S : GroupBoxStyle { return stubView() }
+
+}
+
+@available(iOS 14.0, macOS 11.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 extension GroupBoxStyle where Self == DefaultGroupBoxStyle {
 
     /// The default style for group box views.

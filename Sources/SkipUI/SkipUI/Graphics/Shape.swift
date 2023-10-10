@@ -2,9 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public protocol Shape : View, Sendable /*, Animatable */ {
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
@@ -33,14 +36,14 @@ func stubShape() -> some Shape {
 /// the natural size of the view that contains it. Alternatively, you can define
 /// shapes in terms of absolute coordinates.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol Shape : Sendable, Animatable, View {
+extension Shape {
 
     /// Describes this shape as a path within a rectangular frame of reference.
     ///
     /// - Parameter rect: The frame of reference for describing this shape.
     ///
     /// - Returns: A path that describes this shape.
-    func path(in rect: CGRect) -> Path
+    func path(in rect: CGRect) -> Path { fatalError() }
 
     /// An indication of how to style a shape.
     ///
@@ -50,7 +53,7 @@ public protocol Shape : Sendable, Animatable, View {
     /// create a composite shape, you can provide an override of this property
     /// to return another value, if appropriate.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    static var role: ShapeRole { get }
+    static var role: ShapeRole { get { fatalError() } }
 
     /// Returns the behavior this shape should use for different layout
     /// directions.
@@ -66,7 +69,7 @@ public protocol Shape : Sendable, Animatable, View {
     /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
     /// shape or conditionally mirror the points in the path of the shape.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    var layoutDirectionBehavior: LayoutDirectionBehavior { get }
+    var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// Returns the size of the view that will render the shape, given
     /// a proposed size.
@@ -84,7 +87,7 @@ public protocol Shape : Sendable, Animatable, View {
     ///
     /// - Returns: A size that indicates how much space the shape needs.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize
+    func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
 }
 
 
@@ -519,46 +522,6 @@ extension Shape {
 
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Shape {
-
-    /// Returns the original proposal, with nil components replaced by
-    /// a small positive value.
-    public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
-}
-
-extension Shape {
-
-    /// An indication of how to style a shape.
-    ///
-    /// SkipUI looks at a shape's role when deciding how to apply a
-    /// ``ShapeStyle`` at render time. The ``Shape`` protocol provides a
-    /// default implementation with a value of ``ShapeRole/fill``. If you
-    /// create a composite shape, you can provide an override of this property
-    /// to return another value, if appropriate.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var role: ShapeRole { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Shape {
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-}
-
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Shape {
 
@@ -774,10 +737,10 @@ extension ShapeRole : Hashable {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The type defining the data to animate.
-    public typealias AnimatableData = Content.AnimatableData
+    //public typealias AnimatableData = Content.AnimatableData
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
+    //public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     public typealias Body = NeverView
     public var body: Body { fatalError() }
@@ -918,10 +881,10 @@ extension RectangleCornerRadii : Sendable {
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
     /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<Angle.AnimatableData, UnitPoint.AnimatableData>>
+    //public typealias AnimatableData = AnimatablePair<Content.AnimatableData, AnimatablePair<Angle.AnimatableData, UnitPoint.AnimatableData>>
 
     /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
+    //public var animatableData: AnimatableData { get { fatalError() } set { } }
 
     public typealias Body = NeverView
     public var body: Body { fatalError() }

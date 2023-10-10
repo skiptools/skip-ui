@@ -3783,6 +3783,16 @@ public protocol TableStyle {
 @available(iOS 16.0, macOS 12.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
+extension View {
+
+    /// Sets the style for tables within this view.
+    public func tableStyle<S>(_ style: S) -> some View where S : TableStyle { return stubView() }
+
+}
+
+@available(iOS 16.0, macOS 12.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 extension TableStyle where Self == AutomaticTableStyle {
 
     /// The default table style in the current context.

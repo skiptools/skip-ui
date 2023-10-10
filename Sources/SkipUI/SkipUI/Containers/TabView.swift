@@ -176,6 +176,18 @@ class TabIndexComposer: Composer {
 }
 #endif
 
+// Model `TabViewStyle` as a struct. Kotlin does not support static members of protocols
+public struct TabViewStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = TabViewStyle(rawValue: 0)
+    public static let page = TabViewStyle(rawValue: 1)
+}
+
 extension View {
     public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
         #if SKIP
@@ -184,34 +196,24 @@ extension View {
         return self
         #endif
     }
+
+    @available(*, unavailable)
+    public func tabViewStyle(_ style: TabViewStyle) -> some View {
+        return self
+    }
 }
 
 #if !SKIP
 
 // TODO: Process for use in SkipUI
 
-/// A specification for the appearance and interaction of a `TabView`.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public protocol TabViewStyle {
-}
-
 @available(iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 @available(macOS, unavailable)
-extension TabViewStyle where Self == PageTabViewStyle {
-
-    /// A `TabViewStyle` that implements a paged scrolling `TabView`.
-    public static var page: PageTabViewStyle { get { fatalError() } }
+extension TabViewStyle /* where Self == PageTabViewStyle */ {
 
     /// A `TabViewStyle` that implements a paged scrolling `TabView` with an
     /// index display mode.
     public static func page(indexDisplayMode: PageTabViewStyle.IndexDisplayMode) -> PageTabViewStyle { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension TabViewStyle where Self == DefaultTabViewStyle {
-
-    /// The default `TabView` style.
-    public static var automatic: DefaultTabViewStyle { get { fatalError() } }
 }
 
 /// A `TabViewStyle` that implements a paged scrolling `TabView`.
@@ -220,7 +222,7 @@ extension TabViewStyle where Self == DefaultTabViewStyle {
 /// ``TabViewStyle/page(indexDisplayMode:)`` to construct this style.
 @available(iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 @available(macOS, unavailable)
-public struct PageTabViewStyle : TabViewStyle {
+public struct PageTabViewStyle /* : TabViewStyle */ {
 
     /// A style for displaying the page index view
     public struct IndexDisplayMode : Sendable {
@@ -239,15 +241,6 @@ public struct PageTabViewStyle : TabViewStyle {
 
     /// Creates a new `PageTabViewStyle` with an index display mode
     public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) { fatalError() }
-}
-
-/// The default `TabView` style.
-///
-/// You can also use ``TabViewStyle/automatic`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct DefaultTabViewStyle : TabViewStyle {
-
-    public init() { fatalError() }
 }
 
 #endif

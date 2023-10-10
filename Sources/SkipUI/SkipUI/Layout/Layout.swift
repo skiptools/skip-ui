@@ -2,9 +2,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public enum LayoutDirection : Hashable, CaseIterable, Sendable {
+    case leftToRight
+    case rightToLeft
+}
+
+public enum LayoutDirectionBehavior : Hashable, Sendable {
+    case fixed
+    case mirrors(in: LayoutDirection)
+
+    public static var mirrors = LayoutDirectionBehavior.mirrors(in: .rightToLeft)
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
@@ -1158,43 +1170,6 @@ extension Layout {
 
 }
 
-/// A direction in which SkipUI can lay out content.
-///
-/// SkipUI supports both left-to-right and right-to-left directions
-/// for laying out content to support different languages and locales.
-/// The system sets the value based on the user's locale, but
-/// you can also use the ``View/environment(_:_:)`` modifier
-/// to override the direction for a view and its child views:
-///
-///     MyView()
-///         .environment(\.layoutDirection, .rightToLeft)
-///
-/// You can also read the ``EnvironmentValues/layoutDirection`` environment
-/// value to find out which direction applies to a particular environment.
-/// However, in many cases, you don't need to take any action based on this
-/// value. SkipUI horizontally flips the x position of each view within its
-/// parent, so layout calculations automatically produce the desired effect
-/// for both modes without any changes.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public enum LayoutDirection : Hashable, CaseIterable, Sendable {
-
-    /// A left-to-right layout direction.
-    case leftToRight
-
-    /// A right-to-left layout direction.
-    case rightToLeft
-
-    
-
-
-    /// A type that can represent a collection of all values of this type.
-    public typealias AllCases = [LayoutDirection]
-
-    /// A collection of all values of this type.
-    public static var allCases: [LayoutDirection] { get { fatalError() } }
-
-}
-
 #if canImport(UIKit)
 import enum UIKit.UITraitEnvironmentLayoutDirection
 
@@ -1207,35 +1182,6 @@ extension LayoutDirection {
     public init?(_ uiLayoutDirection: UITraitEnvironmentLayoutDirection) { fatalError() }
 }
 #endif
-
-/// A description of what should happen when the layout direction changes.
-///
-/// A `LayoutDirectionBehavior` can be used with the `layoutDirectionBehavior`
-/// view modifier or the `layoutDirectionBehavior` property of `Shape`.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public enum LayoutDirectionBehavior : Hashable, Sendable {
-
-    /// A behavior that doesn't mirror when the layout direction changes.
-    case fixed
-
-    /// A behavior that mirrors when the layout direction has the specified
-    /// value.
-    ///
-    /// If you develop your view or shape in an LTR context, you can use
-    /// `.mirrors(in: .rightToLeft)` (which is equivalent to `.mirrors`) to
-    /// mirror your content when the layout direction is RTL (and keep the
-    /// original version in LTR). If you developer in an RTL context, you can
-    /// use `.mirrors(in: .leftToRight)` to mirror your content when the layout
-    /// direction is LTR (and keep the original version in RTL).
-    case mirrors(in: LayoutDirection)
-
-    /// A behavior that mirrors when the layout direction is right-to-left.
-    public static var mirrors: LayoutDirectionBehavior { get { fatalError() } }
-
-
-    
-
-}
 
 /// Layout-specific properties of a layout container.
 ///
@@ -1656,6 +1602,53 @@ public protocol LayoutValueKey {
     /// value. Override the default value for a view using the
     /// ``View/layoutValue(key:value:)`` modifier.
     static var defaultValue: Self.Value { get }
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension View {
+
+    /// Associates a value with a custom layout property.
+    ///
+    /// Use this method to set a value for a custom property that
+    /// you define with ``LayoutValueKey``. For example, if you define
+    /// a `Flexibility` key, you can set the key on a ``Text`` view
+    /// using the key's type and a value:
+    ///
+    ///     Text("Another View")
+    ///         .layoutValue(key: Flexibility.self, value: 3)
+    ///
+    /// For convenience, you might define a method that does this in an
+    /// extension to ``View``:
+    ///
+    ///     extension View {
+    ///         func layoutFlexibility(_ value: CGFloat?) -> some View {
+    ///             layoutValue(key: Flexibility.self, value: value)
+    ///         }
+    ///     }
+    ///
+    /// This method makes the call site easier to read:
+    ///
+    ///     Text("Another View")
+    ///         .layoutFlexibility(3)
+    ///
+    /// If you perform layout operations in a type that conforms to the
+    /// ``Layout`` protocol, you can read the key's associated value for
+    /// each subview of your custom layout type. Do this by indexing the
+    /// subview's proxy with the key. For more information, see
+    /// ``LayoutValueKey``.
+    ///
+    /// - Parameters:
+    ///   - key: The type of the key that you want to set a value for.
+    ///     Create the key as a type that conforms to the ``LayoutValueKey``
+    ///     protocol.
+    ///   - value: The value to assign to the key for this view.
+    ///     The value must be of the type that you establish for the key's
+    ///     associated value when you implement the key's
+    ///     ``LayoutValueKey/defaultValue`` property.
+    ///
+    /// - Returns: A view that has the specified value for the specified key.
+    public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return stubView() }
+
 }
 
 #endif

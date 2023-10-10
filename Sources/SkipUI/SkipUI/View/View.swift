@@ -75,6 +75,21 @@ extension View {
 #endif
 
 extension View {
+    @available(*, unavailable)
+    public func allowsHitTesting(_ enabled: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View {
+        return self
+    }
+
     public func background(_ color: Color) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
@@ -83,6 +98,66 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func background<S>(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func background(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ count: Int) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ label: Text?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ key: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ label: String) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badgeProminence(_ prominence: BadgeProminence) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func blendMode(_ blendMode: BlendMode) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func blur(radius: CGFloat, opaque: Bool = false) -> some View {
+        return self
     }
 
     public func border(_ color: Color, width: CGFloat = 1.0) -> some View {
@@ -95,6 +170,206 @@ extension View {
         #endif
     }
 
+    @available(*, unavailable)
+    public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func brightness(_ amount: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func clipped(antialiased: Bool = false) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func colorInvert() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func colorMultiply(_ color: Color) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func compositingGroup() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func containerRelativeFrame(_ axes: Axis.Set, count: Int, span: Int = 1, spacing: CGFloat, alignment: Alignment = .center) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center, _ length: @escaping (CGFloat, Axis) -> CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func containerShape<T>(_ shape: any Shape) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contentShape(_ shape: any Shape, eoFill: Bool = false) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contextMenu(@ViewBuilder menuItems: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contextMenu(@ViewBuilder menuItems: () -> any View, @ViewBuilder preview: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contextMenu<I>(forSelectionType itemType: Any.Type? = nil, @ViewBuilder menu: @escaping (Set<I>) -> any View, primaryAction: ((Set<I>) -> Void)? = nil) -> some View where I: Hashable {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contrast(_ amount: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func defaultHoverEffect(_ effect: HoverEffect?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func defersSystemGestures(on edges: Edge.Set) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dialogSuppressionToggle(_ titleKey: LocalizedStringKey, isSuppressed: Binding<Bool>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dialogSuppression(_ title: String, isSuppressed: Binding<Bool>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dialogSuppressionToggle(_ label: Text, isSuppressed: Binding<Bool>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dialogSuppressionToggle(isSuppressed: Binding<Bool>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func disabled(_ disabled: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func equatable() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fixedSize(horizontal: Bool, vertical: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fixedSize() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View {
+        return self
+    }
+
     public func foregroundColor(_ color: Color?) -> some View {
         #if SKIP
         return environment(\._color, color)
@@ -105,6 +380,21 @@ extension View {
 
     public func foregroundStyle(_ color: Color) -> some View {
         return foregroundColor(color)
+    }
+
+    @available(*, unavailable)
+    public func foregroundStyle(_ style: any ShapeStyle) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func foregroundStyle(_ primary:  any ShapeStyle, _ secondary:  any ShapeStyle) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func foregroundStyle(_ primary:  any ShapeStyle, _ secondary:  any ShapeStyle, _ tertiary:  any ShapeStyle) -> some View {
+        return self
     }
 
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil) -> some View {
@@ -145,12 +435,77 @@ extension View {
         return self
     }
 
+    @available(*, unavailable)
+    public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fullScreenCover<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func grayscale(_ amount: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func headerProminence(_ prominence: Prominence) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func help(_ textKey: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func help(_ text: Text) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func help(_ text: String) -> some View {
+        return self
+    }
+
     public func hidden() -> some View {
         #if SKIP
         return opacity(0.0)
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func hoverEffect(_ effect: HoverEffect = .automatic, isEnabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func hoverEffectDisabled(_ disabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func hueRotation(_ angle: Angle) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func interactionActivityTrackingTag(_ tag: String) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
+        return self
     }
 
     public func labelsHidden() -> some View {
@@ -161,6 +516,71 @@ extension View {
         #endif
     }
 
+    @available(*, unavailable)
+    public func layoutDirectionBehavior(_ behavior: LayoutDirectionBehavior) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func layoutPriority(_ value: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listRowBackground(_ view: (any View)?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func luminanceToAlpha() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func mask(alignment: Alignment = .center, @ViewBuilder _ mask: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func modifier(_ modifier: Any) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func offset(_ offset: CGSize) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onAppear(perform action: (() -> Void)? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onHover(perform action: @escaping (Bool) -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: ((Bool) -> Void)? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func onTapGesture(count: Int = 1, /* coordinateSpace: some CoordinateSpaceProtocol = .local, */ perform action: @escaping (CGPoint) -> Void) -> some View {
+        return self
+    }
+
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
@@ -169,6 +589,21 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+        return self
     }
 
     public func padding(_ insets: EdgeInsets) -> some View {
@@ -201,6 +636,46 @@ extension View {
         return padding(.all, length)
     }
 
+    @available(*, unavailable)
+    public func persistentSystemOverlays(_ visibility: Visibility) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func position(_ position: CGPoint) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func projectionEffect(_ transform: Any /* ProjectionTransform */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func popover<Item>(item: Binding<Item?>, attachmentAnchor: Any? = nil /* PopoverAttachmentAnchor = .rect(.bounds) */, arrowEdge: Edge = .top, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func popover(isPresented: Binding<Bool>, attachmentAnchor: Any? = nil /* PopoverAttachmentAnchor = .rect(.bounds) */, arrowEdge: Edge = .top, @ViewBuilder content: @escaping () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func refreshable(action: @escaping () async -> Void) -> some View {
+        return self
+    }
+
     public func rotationEffect(_ angle: Angle) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
@@ -218,6 +693,21 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func saturation(_ amount: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scaledToFit() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scaledToFill() -> some View {
+        return self
     }
 
     public func scaleEffect(_ scale: CGSize) -> some View {
@@ -253,6 +743,40 @@ extension View {
         return scaleEffect(x: x, y: y)
     }
 
+    @available(*, unavailable)
+    public func selectionDisabled(_ isDisabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sheet<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func statusBarHidden(_ hidden: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
+        return self
+    }
+
+    public func tag(_ tag: any Hashable) -> some View {
+        return self
+    }
+
     public func task(priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
         return task(id: 0, priority: priority, action)
     }
@@ -277,6 +801,21 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    @available(*, unavailable)
+    public func tint(_ tint: any ShapeStyle) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func transformEffect(_ transform: Any /* CGAffineTransform */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func zIndex(_ value: Double) -> some View {
+        return self
     }
 }
 

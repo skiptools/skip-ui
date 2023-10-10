@@ -516,5 +516,5 @@ class XCSnapshotTestCase: XCTestCase {
 
 extension Sequence where Element == UInt8 {
     /// Convert this sequence of bytes into a hex string
-    func hex() -> String { map { String(format: "%02x", $0) }.joined() }
+    public func hex() -> String { map { String(format: "%02x", $0) }.joined() }
 }

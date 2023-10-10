@@ -39,4 +39,51 @@ public struct TypesettingLanguage : Sendable, Equatable {
     
 }
 
+extension View {
+
+    /// Specifies the language for typesetting.
+    ///
+    /// In some cases `Text` may contain text of a particular language which
+    /// doesn't match the device UI language. In that case it's useful to
+    /// specify a language so line height, line breaking and spacing will
+    /// respect the script used for that language. For example:
+    ///
+    ///     Text(verbatim: "แอปเปิล")
+    ///         .typesettingLanguage(.init(languageCode: .thai))
+    ///
+    /// Note: this language does not affect text localization.
+    ///
+    /// - Parameters:
+    ///   - language: The explicit language to use for typesetting.
+    ///   - isEnabled: A Boolean value that indicates whether text langauge is
+    ///     added
+    /// - Returns: A view with the typesetting language set to the value you
+    ///   supply.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func typesettingLanguage(_ language: Locale.Language, isEnabled: Bool = true) -> some View { return stubView() }
+
+
+    /// Specifies the language for typesetting.
+    ///
+    /// In some cases `Text` may contain text of a particular language which
+    /// doesn't match the device UI language. In that case it's useful to
+    /// specify a language so line height, line breaking and spacing will
+    /// respect the script used for that language. For example:
+    ///
+    ///     Text(verbatim: "แอปเปิล").typesettingLanguage(
+    ///         .explicit(.init(languageCode: .thai)))
+    ///
+    /// Note: this language does not affect text localized localization.
+    ///
+    /// - Parameters:
+    ///   - language: The language to use for typesetting.
+    ///   - isEnabled: A Boolean value that indicates whether text language is
+    ///     added
+    /// - Returns: A view with the typesetting language set to the value you
+    ///   supply.
+    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+    public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> some View { return stubView() }
+
+}
+
 #endif

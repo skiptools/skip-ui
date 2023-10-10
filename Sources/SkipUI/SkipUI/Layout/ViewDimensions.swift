@@ -172,9 +172,92 @@ extension ViewDimensions : Equatable {
 
 }
 
-/// A collection of the geometric spacing preferences of a view.
-///
-/// This type represents how much space a view prefers to have between it and
-/// the next view in a layout. The type stores independent values
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension View {
+
+    /// Sets the view's horizontal alignment.
+    ///
+    /// Use `alignmentGuide(_:computeValue:)` to calculate specific offsets
+    /// to reposition views in relationship to one another. You can return a
+    /// constant or can use the ``ViewDimensions`` argument to the closure to
+    /// calculate a return value.
+    ///
+    /// In the example below, the ``HStack`` is offset by a constant of 50
+    /// points to the right of center:
+    ///
+    ///     VStack {
+    ///         Text("Today's Weather")
+    ///             .font(.title)
+    ///             .border(.gray)
+    ///         HStack {
+    ///             Text("🌧")
+    ///             Text("Rain & Thunderstorms")
+    ///             Text("⛈")
+    ///         }
+    ///         .alignmentGuide(HorizontalAlignment.center) { _ in  50 }
+    ///         .border(.gray)
+    ///     }
+    ///     .border(.gray)
+    ///
+    /// Changing the alignment of one view may have effects on surrounding
+    /// views. Here the offset values inside a stack and its contained views is
+    /// the difference of their absolute offsets.
+    ///
+    /// ![A view showing the two emoji offset from a text element using a
+    /// horizontal alignment guide.](SkipUI-View-HAlignmentGuide.png)
+    ///
+    /// - Parameters:
+    ///   - g: A ``HorizontalAlignment`` value at which to base the offset.
+    ///   - computeValue: A closure that returns the offset value to apply to
+    ///     this view.
+    ///
+    /// - Returns: A view modified with respect to its horizontal alignment
+    ///   according to the computation performed in the method's closure.
+    public func alignmentGuide(_ g: HorizontalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
+
+
+    /// Sets the view's vertical alignment.
+    ///
+    /// Use `alignmentGuide(_:computeValue:)` to calculate specific offsets
+    /// to reposition views in relationship to one another. You can return a
+    /// constant or can use the ``ViewDimensions`` argument to the closure to
+    /// calculate a return value.
+    ///
+    /// In the example below, the weather emoji are offset 20 points from the
+    /// vertical center of the ``HStack``.
+    ///
+    ///     VStack {
+    ///         Text("Today's Weather")
+    ///             .font(.title)
+    ///             .border(.gray)
+    ///
+    ///         HStack {
+    ///             Text("🌧")
+    ///                 .alignmentGuide(VerticalAlignment.center) { _ in -20 }
+    ///                 .border(.gray)
+    ///             Text("Rain & Thunderstorms")
+    ///                 .border(.gray)
+    ///             Text("⛈")
+    ///                 .alignmentGuide(VerticalAlignment.center) { _ in 20 }
+    ///                 .border(.gray)
+    ///         }
+    ///     }
+    ///
+    /// Changing the alignment of one view may have effects on surrounding
+    /// views. Here the offset values inside a stack and its contained views is
+    /// the difference of their absolute offsets.
+    ///
+    /// ![A view showing the two emoji offset from a text element using a
+    /// vertical alignment guide.](SkipUI-View-VAlignmentGuide.png)
+    ///
+    /// - Parameters:
+    ///   - g: A ``VerticalAlignment`` value at which to base the offset.
+    ///   - computeValue: A closure that returns the offset value to apply to
+    ///     this view.
+    ///
+    /// - Returns: A view modified with respect to its vertical alignment
+    ///   according to the computation performed in the method's closure.
+    public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
+}
 
 #endif

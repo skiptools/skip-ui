@@ -73,9 +73,80 @@ public struct Text: View, Equatable, Sendable {
         stubView()
     }
     #endif
+
+    public enum Case : Sendable {
+        case uppercase
+        case lowercase
+    }
+
+    public struct LineStyle : Hashable, Sendable {
+        public let pattern: Text.LineStyle.Pattern
+        public let color: Color?
+
+        public init(pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) {
+            self.pattern = pattern
+            self.color = color
+        }
+
+        public enum Pattern : Sendable {
+            case solid
+            case dot
+            case dash
+            case dashot
+            case dashDotDot
+        }
+
+        public static let single = Text.LineStyle()
+    }
+
+    public enum Scale : Sendable, Hashable {
+        case `default`
+        case secondary
+    }
+
+    public enum TruncationMode : Sendable {
+        case head
+        case tail
+        case middle
+    }
+}
+
+public enum TextAlignment : Hashable, CaseIterable, Sendable {
+    case leading
+    case center
+    case trailing
 }
 
 extension View {
+    @available(*, unavailable)
+    public func allowsTightening(_ flag: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func autocorrectionDisabled(_ disable: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func baselineOffset(_ baselineOffset: CGFloat) -> some View {
+        return self
+    }
+
+    public func bold(_ isActive: Bool = true) -> some View {
+        return fontWeight(isActive ? .bold : nil)
+    }
+
+    @available(*, unavailable)
+    public func dynamicTypeSize(_ size: DynamicTypeSize) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dynamicTypeSize(_ range: Range<DynamicTypeSize>) -> some View {
+        return self
+    }
+
     public func font(_ font: Font) -> some View {
         #if SKIP
         return environment(\.font, font)
@@ -85,12 +156,7 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func monospacedDigit() -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func monospaced(_ isActive: Bool = true) -> some View {
+    public func fontDesign(_ design: Font.Design?) -> some View {
         return self
     }
 
@@ -107,8 +173,9 @@ extension View {
         return self
     }
 
-    public func bold(_ isActive: Bool = true) -> some View {
-        return fontWeight(isActive ? .bold : nil)
+    @available(*, unavailable)
+    public func invalidatableContent(_ invalidatable: Bool = true) -> some View {
+        return self
     }
 
     public func italic(_ isActive: Bool = true) -> some View {
@@ -120,12 +187,77 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func fontDesign(_ design: Font.Design?) -> some View {
+    public func kerning(_ kerning: CGFloat) -> some View {
         return self
     }
 
     @available(*, unavailable)
-    public func kerning(_ kerning: CGFloat) -> some View {
+    public func lineLimit(_ number: Int?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func lineLimit(_ limit: Range<Int>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func lineSpacing(_ lineSpacing: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func monospacedDigit() -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func monospaced(_ isActive: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func minimumScaleFactor(_ factor: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func multilineTextAlignment(_ alignment: TextAlignment) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func privacySensitive(_ sensitive: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func redacted(reason: RedactionReasons) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func textCase(_ textCase: Text.Case?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func textScale(_ scale: Text.Scale, isEnabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func textSelection(_ selectability: TextSelectability) -> some View {
         return self
     }
 
@@ -135,7 +267,17 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func baselineOffset(_ baselineOffset: CGFloat) -> some View {
+    public func truncationMode(_ mode: Text.TruncationMode) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func unredacted() -> some View {
         return self
     }
 }
@@ -457,31 +599,6 @@ extension Text {
 
 extension Text {
 
-    /// Defines text scales
-    ///
-    /// Text scale provides a way to pick a logical text scale
-    /// relative to the base font which is used.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public struct Scale : Sendable, Hashable {
-
-        /// Defines default text scale
-        ///
-        /// When specified uses the default text scale.
-        public static let `default`: Text.Scale = { fatalError() }()
-
-        /// Defines secondary text scale
-        ///
-        /// When specified a uses a secondary text scale.
-        public static let secondary: Text.Scale = { fatalError() }()
-
-    
-        
-
-        }
-}
-
-extension Text {
-
     /// Applies a text scale to the text.
     ///
     /// - Parameters:
@@ -579,128 +696,6 @@ extension Text {
     ///
     //@available(iOS 16.0, macOS 13, tvOS 16.0, watchOS 9.0, *)
     //public init(_ resource: LocalizedStringResource) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// The type of truncation to apply to a line of text when it's too long to
-    /// fit in the available space.
-    ///
-    /// When a text view contains more text than it's able to display, the view
-    /// might truncate the text and place an ellipsis (...) at the truncation
-    /// point. Use the ``View/truncationMode(_:)`` modifier with one of the
-    /// `TruncationMode` values to indicate which part of the text to
-    /// truncate, either at the beginning, in the middle, or at the end.
-    public enum TruncationMode : Sendable {
-
-        /// Truncate at the beginning of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the beginning of
-        /// the string. For example, you could truncate the English alphabet as
-        /// "...wxyz".
-        case head
-
-        /// Truncate at the end of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the end of the
-        /// string. For example, you could truncate the English alphabet as
-        /// "abcd...".
-        case tail
-
-        /// Truncate in the middle of the line.
-        ///
-        /// Use this kind of truncation to omit characters from the middle of
-        /// the string. For example, you could truncate the English alphabet as
-        /// "ab...yz".
-        case middle
-
-        
-
-    
-        }
-
-    /// A scheme for transforming the capitalization of characters within text.
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public enum Case : Sendable {
-
-        /// Displays text in all uppercase characters.
-        ///
-        /// For example, "Hello" would be displayed as "HELLO".
-        ///
-        /// - SeeAlso: `StringProtocol.uppercased(with:)`
-        case uppercase
-
-        /// Displays text in all lowercase characters.
-        ///
-        /// For example, "Hello" would be displayed as "hello".
-        ///
-        /// - SeeAlso: `StringProtocol.lowercased(with:)`
-        case lowercase
-
-        
-
-    
-        }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Description of the style used to draw the line for `StrikethroughStyleAttribute`
-    /// and `UnderlineStyleAttribute`.
-    ///
-    /// Use this type to specify `underlineStyle` and `strikethroughStyle`
-    /// SkipUI attributes of an `AttributedString`.
-    public struct LineStyle : Hashable, Sendable {
-
-        /// Creates a line style.
-        ///
-        /// - Parameters:
-        ///   - pattern: The pattern of the line.
-        ///   - color: The color of the line. If not provided, the foreground
-        ///     color of text is used.
-        public init(pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) { fatalError() }
-
-        /// The pattern, that the line has.
-        public struct Pattern : Sendable {
-
-            /// Draw a solid line.
-            public static let solid: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of dots.
-            public static let dot: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of dashes.
-            public static let dash: Text.LineStyle.Pattern = { fatalError() }()
-
-            public static let dashDot: Text.LineStyle.Pattern = { fatalError() }()
-
-            /// Draw a line of alternating dashes and two dots.
-            public static let dashDotDot: Text.LineStyle.Pattern = { fatalError() }()
-        }
-
-        /// Draw a single solid line.
-        public static let single: Text.LineStyle = { fatalError() }()
-
-//        /// Creates a ``Text.LineStyle`` from ``NSUnderlineStyle``.
-//        ///
-//        /// > Note: Use this initializer only if you need to convert an existing
-//        /// ``NSUnderlineStyle`` to a SkipUI ``Text.LineStyle``.
-//        /// Otherwise, create a ``Text.LineStyle`` using an
-//        /// initializer like ``init(pattern:color:)``.
-//        ///
-//        /// - Parameter nsUnderlineStyle: A value of ``NSUnderlineStyle``
-//        /// to wrap with ``Text.LineStyle``.
-//        ///
-//        /// - Returns: A new ``Text.LineStyle`` or `nil` when
-//        /// `nsUnderlineStyle` contains styles not supported by ``Text.LineStyle``.
-//        public init?(nsUnderlineStyle: NSUnderlineStyle) { fatalError() }
-
-    
-        
-
-        }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1310,31 +1305,6 @@ extension Text.Case : Equatable {
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Text.Case : Hashable {
-}
-
-/// An alignment position for text along the horizontal axis.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public enum TextAlignment : Hashable, CaseIterable {
-
-    case leading
-
-    case center
-
-    case trailing
-
-    
-
-
-    /// A type that can represent a collection of all values of this type.
-    public typealias AllCases = [TextAlignment]
-
-    /// A collection of all values of this type.
-    public static var allCases: [TextAlignment] { get { fatalError() } }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension TextAlignment : Sendable {
 }
 
 /// A built-in group of commands for searching, editing, and transforming
