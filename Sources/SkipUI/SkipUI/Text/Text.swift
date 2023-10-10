@@ -242,6 +242,26 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func speechAlwaysIncludesPunctuation(_ value: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func speechSpellsOutCharacters(_ value: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func speechAdjustedPitch(_ value: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func speechAnnouncementsQueued(_ value: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
         return self
     }

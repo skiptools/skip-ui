@@ -60,14 +60,20 @@ public struct DatePickerStyle: RawRepresentable, Equatable {
     }
 
     public static let automatic = ButtonStyle(rawValue: 0)
+
+    @available(*, unavailable)
     public static let graphical = ButtonStyle(rawValue: 1)
+
+    @available(*, unavailable)
     public static let wheel = ButtonStyle(rawValue: 2)
+
+    @available(*, unavailable)
     public static let compact = ButtonStyle(rawValue: 3)
 }
 
 extension View {
-    @available(*, unavailable)
     public func datePickerStyle(_ style: DatePickerStyle) -> some View {
+        // We only support .automatic
         return self
     }
 }

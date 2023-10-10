@@ -213,4 +213,138 @@ extension View {
 
 }
 
+@available(iOS 16.0, *)
+@available(macOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+extension View {
+
+    /// Programmatically presents the find and replace interface for text
+    /// editor views.
+    ///
+    /// Add this modifier to a ``TextEditor``, or to a view hierarchy that
+    /// contains at least one text editor, to control the presentation of
+    /// the find and replace interface. When you set the `isPresented` binding
+    /// to `true`, the system shows the interface, and when you set it to
+    /// `false`, the system hides the interface. The following example shows
+    /// and hides the interface based on the state of a toolbar button:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .findNavigator(isPresented: $isPresented)
+    ///         .toolbar {
+    ///             Toggle(isOn: $isPresented) {
+    ///                 Label("Find", systemImage: "magnifyingglass")
+    ///             }
+    ///         }
+    ///
+    /// The find and replace interface allows people to search for instances
+    /// of a specified string in the text editor, and optionally to replace
+    /// instances of the search string with another string. They can also
+    /// show and hide the interface using built-in controls, like menus and
+    /// keyboard shortcuts. SkipUI updates `isPresented` to reflect the
+    /// users's actions.
+    ///
+    /// If the text editor view isn't currently in focus, the system still
+    /// presents the find and replace interface when you set `isPresented`
+    /// to `true`. If the view hierarchy contains multiple editors, the one
+    /// that shows the find and replace interface is nondeterministic.
+    ///
+    /// You can disable the find and replace interface for a text editor by
+    /// applying the ``View/findDisabled(_:)`` modifier to the editor. If you
+    /// do that, setting this modifier's `isPresented` binding to `true` has
+    /// no effect, but only if the disabling modifier appears closer to the
+    /// text editor, like this:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .findDisabled(isDisabled)
+    ///         .findNavigator(isPresented: $isPresented)
+    ///
+    /// - Parameter isPresented: A binding to a Boolean value that controls the
+    ///   presentation of the find and replace interface.
+    ///
+    /// - Returns: A view that presents the find and replace interface when
+    ///   `isPresented` is `true`.
+    public func findNavigator(isPresented: Binding<Bool>) -> some View { return stubView() }
+
+
+    /// Prevents find and replace operations in a text editor.
+    ///
+    /// Add this modifier to ensure that people can't activate the find
+    /// and replace interface for a ``TextEditor``:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .findDisabled()
+    ///
+    /// When you disable the find operation, you also implicitly disable the
+    /// replace operation. If you want to only disable replace, use
+    /// ``View/replaceDisabled(_:)`` instead.
+    ///
+    /// Using this modifer also prevents programmatic find and replace
+    /// interface presentation using the ``View/findNavigator(isPresented:)``
+    /// method. Be sure to place the disabling modifier closer to the text
+    /// editor for this to work:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .findDisabled(isDisabled)
+    ///         .findNavigator(isPresented: $isPresented)
+    ///
+    /// If you apply this modifer at multiple levels of a view hierarchy,
+    /// the call closest to the text editor takes precedence. For example,
+    /// people can activate find and replace for the first text editor
+    /// in the following example, but not the second:
+    ///
+    ///     VStack {
+    ///         TextEditor(text: $text1)
+    ///             .findDisabled(false)
+    ///         TextEditor(text: $text2)
+    ///     }
+    ///     .findDisabled(true)
+    ///
+    /// - Parameter isDisabled: A Boolean value that indicates whether to
+    ///   disable the find and replace interface for a text editor.
+    ///
+    /// - Returns: A view that disables the find and replace interface.
+    public func findDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
+
+
+    /// Prevents replace operations in a text editor.
+    ///
+    /// Add this modifier to ensure that people can't activate the replace
+    /// feature of a find and replace interface for a ``TextEditor``:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .replaceDisabled()
+    ///
+    /// If you want to disable both find and replace, use the
+    /// ``View/findDisabled(_:)`` modifier instead.
+    ///
+    /// Using this modifer also disables the replace feature of a find and
+    /// replace interface that you present programmatically using the
+    /// ``View/findNavigator(isPresented:)`` method. Be sure to place the
+    /// disabling modifier closer to the text editor for this to work:
+    ///
+    ///     TextEditor(text: $text)
+    ///         .replaceDisabled(isDisabled)
+    ///         .findNavigator(isPresented: $isPresented)
+    ///
+    /// If you apply this modifer at multiple levels of a view hierarchy,
+    /// the call closest to the text editor takes precedence. For example,
+    /// people can activate find and replace for the first text editor
+    /// in the following example, but only find for the second:
+    ///
+    ///     VStack {
+    ///         TextEditor(text: $text1)
+    ///             .replaceDisabled(false)
+    ///         TextEditor(text: $text2)
+    ///     }
+    ///     .replaceDisabled(true)
+    ///
+    /// - Parameter isDisabled: A Boolean value that indicates whether text
+    ///   replacement in the find and replace interface is disabled.
+    ///
+    /// - Returns: A view that disables the replace feature of a find and
+    ///   replace interface.
+    public func replaceDisabled(_ isDisabled: Bool = true) -> some View { return stubView() }
+}
+
 #endif

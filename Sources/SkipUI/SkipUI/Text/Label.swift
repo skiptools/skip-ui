@@ -107,14 +107,20 @@ public struct LabelStyle: RawRepresentable, Equatable {
     }
 
     public static let automatic = LabelStyle(rawValue: 0)
+
+    @available(*, unavailable)
     public static let titleOnly = LabelStyle(rawValue: 1)
+
+    @available(*, unavailable)
     public static let iconOnly = LabelStyle(rawValue: 2)
+
+    @available(*, unavailable)
     public static let titleAndIcon = LabelStyle(rawValue: 3)
 }
 
 extension View {
-    @available(*, unavailable)
     public func labelStyle(_ style: LabelStyle) -> some View {
+        // We only support .automatic
         return self
     }
 }

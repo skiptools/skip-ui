@@ -2,8 +2,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-@available(*, unavailable)
 public struct Form<Content> : View where Content : View {
+    @available(*, unavailable)
     public init(@ViewBuilder content: () -> Content) {
     }
 
@@ -23,12 +23,15 @@ public struct FormStyle: RawRepresentable, Equatable {
     }
 
     public static let automatic = FormStyle(rawValue: 0)
+
+    @available(*, unavailable)
     public static let columns = FormStyle(rawValue: 1)
+
+    @available(*, unavailable)
     public static let grouped = FormStyle(rawValue: 2)
 }
 
 extension View {
-    @available(*, unavailable)
     public func formStyle(_ style: FormStyle) -> some View {
         return self
     }

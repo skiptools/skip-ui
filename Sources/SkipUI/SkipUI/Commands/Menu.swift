@@ -195,32 +195,6 @@ public struct MenuActionDismissBehavior : Equatable {
     
 }
 
-/// A control group style that presents its content as a menu when the user
-/// presses the control, or as a submenu when nested within a larger menu.
-///
-/// Use ``ControlGroupStyle/menu`` to construct this style.
-@available(iOS 16.4, macOS 13.3, tvOS 17.0, *)
-@available(watchOS, unavailable)
-public struct MenuControlGroupStyle : ControlGroupStyle {
-
-    /// Creates a menu control group style.
-    public init() { fatalError() }
-
-    /// Creates a view representing the body of a control group.
-    ///
-    /// - Parameter configuration: The properties of the control group instance
-    ///   being created.
-    ///
-    /// This method will be called for each instance of ``ControlGroup`` created
-    /// within a view hierarchy where this style is the current
-    /// `ControlGroupStyle`.
-    @MainActor public func makeBody(configuration: MenuControlGroupStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view representing the body of a control group.
-//    public typealias Body = some View
-}
-
 /// The order in which a menu presents its content.
 ///
 /// You can configure the preferred menu order using the

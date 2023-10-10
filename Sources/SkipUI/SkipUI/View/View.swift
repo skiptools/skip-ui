@@ -127,6 +127,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func backgroundStyle(_ style: any ShapeStyle) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func badge(_ count: Int) -> some View {
         return self
     }
@@ -267,6 +272,16 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func containerBackground(_ style: any ShapeStyle, for container: ContainerBackgroundPlacement) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func containerBackground(for container: ContainerBackgroundPlacement, alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func containerRelativeFrame(_ axes: Axis.Set, alignment: Alignment = .center) -> some View {
         return self
     }
@@ -292,6 +307,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func contentShape(_ kind: ContentShapeKinds, _ shape: any Shape, eoFill: Bool = false) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func contextMenu(@ViewBuilder menuItems: () -> any View) -> some View {
         return self
     }
@@ -308,6 +328,16 @@ extension View {
 
     @available(*, unavailable)
     public func contrast(_ amount: Double) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func controlSize(_ controlSize: ControlSize) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func coordinateSpace(_ name: NamedCoordinateSpace) -> some View {
         return self
     }
 
@@ -472,6 +502,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func handlesExternalEvents(preferring: Set<String>, allowing: Set<String>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func headerProminence(_ prominence: Prominence) -> some View {
         return self
     }
@@ -515,7 +550,27 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func id(_ id: any Hashable) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func inspector(isPresented: Binding<Bool>, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func inspectorColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func inspectorColumnWidth(_ width: CGFloat) -> some View {
         return self
     }
 
@@ -526,6 +581,21 @@ extension View {
 
     @available(*, unavailable)
     public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func keyboardShortcut(_ shortcut: KeyboardShortcut?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command, localization: KeyboardShortcut.Localization) -> some View {
         return self
     }
 
@@ -559,6 +629,11 @@ extension View {
 
     @available(*, unavailable)
     public func mask(alignment: Alignment = .center, @ViewBuilder _ mask: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func matchedGeometryEffect<ID>(id: any Hashable, in namespace: Any /* Namespace.ID */, properties: MatchedGeometryProperties = .frame, anchor: UnitPoint = .center, isSource: Bool = true) -> some View {
         return self
     }
 
@@ -598,6 +673,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = CoordinateSpaceProtocol.local, perform action: @escaping (HoverPhase) -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
         return self
     }
@@ -613,7 +693,7 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func onTapGesture(count: Int = 1, /* coordinateSpace: some CoordinateSpaceProtocol = .local, */ perform action: @escaping (CGPoint) -> Void) -> some View {
+    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = CoordinateSpaceProtocol.local, perform action: @escaping (CGPoint) -> Void) -> some View {
         return self
     }
 
@@ -712,6 +792,16 @@ extension View {
         return self
     }
 
+    @available(*, unavailable)
+    public func renameAction(_ isFocused: Any /* FocusState<Bool>.Binding */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func renameAction(_ action: @escaping () -> Void) -> some View {
+        return self
+    }
+
     public func rotationEffect(_ angle: Angle) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
@@ -733,6 +823,31 @@ extension View {
 
     @available(*, unavailable)
     public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaInset(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaInset(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ insets: EdgeInsets) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ length: CGFloat) -> some View {
         return self
     }
 
@@ -790,6 +905,21 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func sensoryFeedback(_ feedback: SensoryFeedback, trigger: any Equatable) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> some View where T: Equatable {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View where T : Equatable {
+        return self
+    }
+
+    @available(*, unavailable)
     public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         return self
     }
@@ -811,6 +941,11 @@ extension View {
 
     @available(*, unavailable)
     public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func symbolEffectsRemoved(_ isEnabled: Bool = true) -> some View {
         return self
     }
 
@@ -856,6 +991,21 @@ extension View {
 
     @available(*, unavailable)
     public func transformEnvironment<V>(_ keyPath: Any /* WritableKeyPath<EnvironmentValues, V> */, transform: @escaping (inout V) -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func typeSelectEquivalent(_ text: Text?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func typeSelectEquivalent(_ string: String) -> some View {
         return self
     }
 

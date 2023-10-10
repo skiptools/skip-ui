@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #else
+import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
@@ -77,6 +78,21 @@ public struct ScrollTarget {
 }
 
 extension View {
+    @available(*, unavailable)
+    public func contentMargins(_ edges: Edge.Set = .all, _ insets: EdgeInsets, for placement: ContentMarginPlacement = .automatic) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contentMargins(_ edges: Edge.Set = .all, _ length: CGFloat?, for placement: ContentMarginPlacement = .automatic) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contentMargins(_ length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View {
+        return self
+    }
+
     @available(*, unavailable)
     public func scrollBounceBehavior(_ behavior: ScrollBounceBehavior, axes: Axis.Set = [.vertical]) -> some View {
         return self

@@ -185,6 +185,8 @@ public struct TabViewStyle: RawRepresentable, Equatable {
     }
 
     public static let automatic = TabViewStyle(rawValue: 0)
+
+    @available(*, unavailable)
     public static let page = TabViewStyle(rawValue: 1)
 }
 
@@ -197,8 +199,8 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func tabViewStyle(_ style: TabViewStyle) -> some View {
+        // We only support .automatic
         return self
     }
 }
