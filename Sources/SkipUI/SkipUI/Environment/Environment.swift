@@ -1799,19 +1799,6 @@ extension EnvironmentValues {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EnvironmentValues {
 
-    /// A binding to the current presentation mode of the view associated with
-    /// this environment.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use isPresented or dismiss")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Use isPresented or dismiss")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use isPresented or dismiss")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Use isPresented or dismiss")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use isPresented or dismiss")
-    public var presentationMode: Binding<PresentationMode> { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension EnvironmentValues {
-
     /// The color scheme of this environment.
     ///
     /// Read this environment value from within a view to find out if SkipUI
