@@ -147,6 +147,20 @@ extension ShapeStyle where Self == LinkShapeStyle {
     public static var link: LinkShapeStyle { get { fatalError() } }
 }
 
+/// A style appropriate for links.
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+@frozen public struct LinkShapeStyle : ShapeStyle {
+
+    /// Creates a new link shape style instance.
+    public init() { fatalError() }
+
+    /// The type of shape style this will resolve to.
+    ///
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
+}
+
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension ShapeStyle {
 

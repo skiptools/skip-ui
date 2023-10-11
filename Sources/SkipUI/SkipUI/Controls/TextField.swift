@@ -29,6 +29,35 @@ public struct TextField<Label> : View where Label : View {
         self.init(text: text, prompt: prompt, label: { Text(title) })
     }
 
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
+        self.init(text: text, prompt: prompt, label: { Text(titleKey.value) })
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) {
+        self.init(titleKey, text: text)
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?, axis: Axis) {
+        self.init(titleKey, text: text, prompt: prompt)
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, text: Binding<String>, axis: Axis) {
+        self.init(title, text: text)
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, text: Binding<String>, prompt: Text?, axis: Axis) {
+        self.init(title, text: text, prompt: prompt)
+    }
+
+    @available(*, unavailable)
+    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> any View) {
+        self.init(text: text, prompt: prompt, label: label)
+    }
+
     #if SKIP
     /*
      https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/TextField.kt
@@ -135,112 +164,6 @@ extension View {
 
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
-
-extension TextField where Label == Text {
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a localized title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) { fatalError() }
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a localized title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the localized title of the text field,
-    ///     describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?, axis: Axis) { fatalError() }
-
-    /// Creates a text field with a preferred axis and a text label generated
-    /// from a title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S>(_ title: S, text: Binding<String>, axis: Axis) where S : StringProtocol { fatalError() }
-
-    /// Creates a text field with a text label generated from a title string.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - title: The title of the text view, describing its purpose.
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init<S>(_ title: S, text: Binding<String>, prompt: Text?, axis: Axis) where S : StringProtocol { fatalError() }
-}
-
-extension TextField {
-
-    /// Creates a text field with a preferred axis and a prompt generated from
-    /// a `Text`.
-    ///
-    /// Specify a preferred axis in which the text field should scroll
-    /// its content when it does not fit in the available space. Depending
-    /// on the style of the field, this axis may not be respected.
-    ///
-    /// Use the ``View/onSubmit(of:_:)`` modifier to invoke an action
-    /// whenever the user submits this text field.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit.
-    ///   - prompt: A `Text` representing the prompt of the text field
-    ///     which provides users with guidance on what to type into the text
-    ///     field.
-    ///   - axis: The axis in which to scroll text when it doesn't fit
-    ///     in the available space.
-    ///   - label: A view that describes the purpose of the text field.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> Label) { fatalError() }
-}
 
 extension TextField where Label == Text {
 

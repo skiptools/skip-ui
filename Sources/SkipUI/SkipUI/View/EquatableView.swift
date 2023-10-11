@@ -2,22 +2,24 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
-#if !SKIP
-
-/// A view type that compares itself against its previous value and prevents its
-/// child updating if its new value is the same as its old value.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct EquatableView<Content> : View where Content : Equatable, Content : View {
-
-    public var content: Content { get { fatalError() } }
-
-    @inlinable public init(content: Content) { fatalError() }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
-
+#if SKIP
+import androidx.compose.runtime.Composable
 #endif
+
+public struct EquatableView<Content> : View where /* Content : Equatable, */ Content : View {
+    public let content: Content
+
+    public init(content: Content) {
+        self.content = content
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let _ = content.Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}

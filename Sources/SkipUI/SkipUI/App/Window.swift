@@ -2,6 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+public enum WindowResizability : Sendable {
+    case automatic
+    case contentSize
+    case contentMinSize
+}
+
 // TODO: Process for use in SkipUI
 
 #if !SKIP
@@ -775,70 +781,6 @@ extension WindowGroup {
     ///     when someone opens a new window from the File > New Window menu
     ///     item.
     public init<S, D, C>(_ title: S, for type: D.Type = D.self, @ViewBuilder content: @escaping (Binding<D>) -> C, defaultValue: @escaping () -> D) where Content == PresentedWindowContent<D, C>, S : StringProtocol, D : Decodable, D : Encodable, D : Hashable, C : View { fatalError() }
-}
-
-/// The resizability of a window.
-///
-/// Use the ``Scene/windowResizability(_:)`` scene modifier to apply a value
-/// of this type to a ``Scene`` that you define in your ``App`` declaration.
-/// The value that you specify indicates the strategy the system uses to
-/// place minimum and maximum size restrictions on windows that it creates
-/// from that scene.
-///
-/// For example, you can create a window group that people can resize to
-/// between 100 and 400 points in both dimensions by applying both a frame
-/// with those constraints to the scene's content, and the
-/// ``WindowResizability/contentSize`` resizability to the scene:
-///
-///     @main
-///     struct MyApp: App {
-///         var body: some Scene {
-///             WindowGroup {
-///                 ContentView()
-///                     .frame(
-///                         minWidth: 100, maxWidth: 400,
-///                         minHeight: 100, maxHeight: 400)
-///             }
-///             .windowResizability(.contentSize)
-///         }
-///     }
-///
-/// The default value for all scenes if you don't apply the modifier is
-/// ``WindowResizability/automatic``. With that strategy, ``Settings``
-/// windows use the ``WindowResizability/contentSize`` strategy, while
-/// all others use ``WindowResizability/contentMinSize``.
-@available(iOS 17.0, macOS 13.0, xrOS 1.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-public struct WindowResizability : Sendable {
-
-    /// The automatic window resizability.
-    ///
-    /// When you use automatic resizability, SkipUI applies a resizing
-    /// strategy that's appropriate for the scene type:
-    /// * Windows from ``WindowGroup``, ``Window``, and ``DocumentGroup``
-    ///   scene declarations use the ``contentMinSize`` strategy.
-    /// * A window from a ``Settings`` scene declaration uses the
-    ///   ``contentSize`` strategy.
-    ///
-    /// Automatic resizability is the default if you don't specify another
-    /// value using the ``Scene/windowResizability(_:)`` scene modifier.
-    public static var automatic: WindowResizability { get { fatalError() } }
-
-    /// A window resizability that's derived from the window's content.
-    ///
-    /// Windows that use this resizability have:
-    /// * A minimum size that matches the minimum size of the window's content.
-    /// * A maximum size that matches the maximum size of the window's content.
-    public static var contentSize: WindowResizability { get { fatalError() } }
-
-    /// A window resizability that's partially derived from the window's
-    /// content.
-    ///
-    /// Windows that use this resizability have:
-    /// * A minimum size that matches the minimum size of the window's content.
-    /// * No maximum size.
-    public static var contentMinSize: WindowResizability { get { fatalError() } }
 }
 
 #endif

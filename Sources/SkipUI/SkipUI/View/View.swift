@@ -381,9 +381,8 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func equatable() -> some View {
-        return self
+        return EquatableView(content: self)
     }
 
     @available(*, unavailable)

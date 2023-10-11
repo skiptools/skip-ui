@@ -29,11 +29,30 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
         self.label = label()
     }
 
-    #if SKIP
     public init(_ title: String, action: @escaping () -> Void) {
         self.init(action: action, label: { Text(title) })
     }
 
+    public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
+        self.init(titleKey.value, action: action)
+    }
+
+    @available(*, unavailable)
+    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
+        self.init(action: action, label: label)
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {
+        self.init(title, action: action)
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
+        self.init(titleKey, action: action)
+    }
+
+    #if SKIP
     /*
      https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Button.kt
      @Composable
@@ -125,6 +144,17 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let borderedProminent = ButtonStyle(rawValue: 4)
 }
 
+public enum ButtonRepeatBehavior : Hashable, Sendable {
+    case automatic
+    case enabled
+    case disabled
+}
+
+public enum ButtonRole : Equatable, Sendable {
+    case destructive
+    case cancel
+}
+
 extension View {
     public func buttonStyle(_ style: ButtonStyle) -> some View {
         #if SKIP
@@ -135,7 +165,7 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func buttonRepeatBehavior(_ behavior: Any) -> some View {
+    public func buttonRepeatBehavior(_ behavior: ButtonRepeatBehavior) -> some View {
         return self
     }
 
@@ -177,59 +207,6 @@ extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
     public init(_ configuration: PrimitiveButtonStyleConfiguration) { fatalError() }
 }
 
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Button {
-
-    /// Creates a button with a specified role that displays a custom label.
-    ///
-    /// - Parameters:
-    ///   - role: An optional semantic role that describes the button. A value of
-    ///     `nil` means that the button doesn't have an assigned role.
-    ///   - action: The action to perform when the user interacts with the button.
-    ///   - label: A view that describes the purpose of the button's `action`.
-    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Button where Label == Text {
-
-    /// Creates a button with a specified role that generates its label from a
-    /// localized string key.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// ``Text`` for more information about localizing strings.
-    ///
-    /// To initialize a button with a string variable, use
-    /// ``init(_:role:action:)-8y5yk`` instead.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the button's localized title, that describes
-    ///     the purpose of the button's `action`.
-    ///   - role: An optional semantic role describing the button. A value of
-    ///     `nil` means that the button doesn't have an assigned role.
-    ///   - action: The action to perform when the user triggers the button.
-    public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) { fatalError() }
-
-    /// Creates a button with a specified role that generates its label from a
-    /// string.
-    ///
-    /// This initializer creates a ``Text`` view on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See ``Text`` for more
-    /// information about localizing strings.
-    ///
-    /// To initialize a button with a localized string key, use
-    /// ``init(_:role:action:)-93ek6`` instead.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the button's `action`.
-    ///   - role: An optional semantic role describing the button. A value of
-    ///     `nil` means that the button doesn't have an assigned role.
-    ///   - action: The action to perform when the user interacts with the button.
-    public init<S>(_ title: S, role: ButtonRole?, action: @escaping () -> Void) where S : StringProtocol { fatalError() }
-}
-
-
 /// A shape that is used to draw a button's border.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public struct ButtonBorderShape : Equatable, Sendable {
@@ -256,8 +233,6 @@ public struct ButtonBorderShape : Equatable, Sendable {
 
     @available(iOS 17.0, macOS 14.0, tvOS 16.4, watchOS 10.0, *)
     public static let circle: ButtonBorderShape = { fatalError() }()
-
-    
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -287,55 +262,6 @@ extension ButtonBorderShape : Shape {
 
     public typealias Body = NeverView
     public var body: Body { fatalError() }
-}
-
-/// A button style that doesn't apply a border.
-///
-/// You can also use ``PrimitiveButtonStyle/borderless`` to construct this
-/// style.
-@available(iOS 13.0, macOS 10.15, tvOS 17.0, watchOS 8.0, *)
-public struct BorderlessButtonStyle : PrimitiveButtonStyle {
-
-    /// Creates a borderless button style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: BorderlessButtonStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a button.
-//    public typealias Body = some View
-}
-
-/// A type that applies standard interaction behavior and a custom appearance to
-/// all buttons within a view hierarchy.
-///
-/// To configure the current button style for a view hierarchy, use the
-/// ``View/buttonStyle(_:)-7qx1`` modifier. Specify a style that conforms to
-/// `ButtonStyle` when creating a button that uses the standard button
-/// interaction behavior defined for each platform. To create a button with
-/// custom interaction behavior, use ``PrimitiveButtonStyle`` instead.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol ButtonStyleProtocol /* ButtonStyle */ {
-
-    /// A view that represents the body of a button.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a button.
-    typealias Configuration = ButtonStyleConfiguration
 }
 
 /// The properties of a button.
@@ -396,193 +322,6 @@ public struct ButtonStyleConfiguration {
     public let isPressed: Bool = { fatalError() }()
 }
 
-/// A button style that applies standard border artwork based on the button's
-/// context.
-///
-/// You can also use ``PrimitiveButtonStyle/bordered`` to construct this style.
-@available(iOS 15.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-public struct BorderedButtonStyle : PrimitiveButtonStyle {
-
-    /// Creates a bordered button style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration: The properties of the button.
-    public func makeBody(configuration: BorderedButtonStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a button.
-//    public typealias Body = some View
-}
-
-/// A button style that applies standard border prominent artwork based
-/// on the button's context.
-///
-/// You can also use ``borderedProminent`` to construct this style.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public struct BorderedProminentButtonStyle : PrimitiveButtonStyle {
-
-    /// Creates a bordered prominent button style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: BorderedProminentButtonStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a button.
-//    public typealias Body = some View
-}
-
-/// The default button style, based on the button's context.
-///
-/// You can also use ``PrimitiveButtonStyle/automatic`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct DefaultButtonStyle : PrimitiveButtonStyle {
-
-    /// Creates a default button style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: DefaultButtonStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a button.
-//    public typealias Body = some View
-}
-
-/// A button style that doesn't style or decorate its content while idle, but
-/// may apply a visual effect to indicate the pressed, focused, or enabled state
-/// of the button.
-///
-/// You can also use ``PrimitiveButtonStyle/plain`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct PlainButtonStyle : PrimitiveButtonStyle {
-
-    /// Creates a plain button style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    public func makeBody(configuration: PlainButtonStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a button.
-//    public typealias Body = some View
-}
-
-/// A type that applies custom interaction behavior and a custom appearance to
-/// all buttons within a view hierarchy.
-///
-/// To configure the current button style for a view hierarchy, use the
-/// ``View/buttonStyle(_:)-66fbx`` modifier. Specify a style that conforms to
-/// `PrimitiveButtonStyle` to create a button with custom interaction
-/// behavior. To create a button with the standard button interaction behavior
-/// defined for each platform, use ``ButtonStyle`` instead.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol PrimitiveButtonStyle {
-
-    /// A view that represents the body of a button.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a button.
-    ///
-    /// The system calls this method for each ``Button`` instance in a view
-    /// hierarchy where this style is the current button style.
-    ///
-    /// - Parameter configuration : The properties of the button.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a button.
-    typealias Configuration = PrimitiveButtonStyleConfiguration
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension PrimitiveButtonStyle where Self == BorderedProminentButtonStyle {
-
-    /// A button style that applies standard border prominent artwork based on
-    /// the button's context.
-    ///
-    /// To apply this style to a button, or to a view that contains buttons, use
-    /// the ``View/buttonStyle(_:)-66fbx`` modifier.
-    public static var borderedProminent: BorderedProminentButtonStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension PrimitiveButtonStyle where Self == PlainButtonStyle {
-
-    /// A button style that doesn't style or decorate its content while idle,
-    /// but may apply a visual effect to indicate the pressed, focused, or
-    /// enabled state of the button.
-    ///
-    /// To apply this style to a button, or to a view that contains buttons, use
-    /// the ``View/buttonStyle(_:)-66fbx`` modifier.
-    public static var plain: PlainButtonStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension PrimitiveButtonStyle where Self == DefaultButtonStyle {
-
-    /// The default button style, based on the button's context.
-    ///
-    /// If you create a button directly on a blank canvas, the style varies by
-    /// platform. iOS uses the borderless button style by default, whereas macOS,
-    /// tvOS, and watchOS use the bordered button style.
-    ///
-    /// If you create a button inside a container, like a ``List``, the style
-    /// resolves to the recommended style for buttons inside that container for
-    /// that specific platform.
-    ///
-    /// You can override a button's style. To apply the default style to a
-    /// button, or to a view that contains buttons, use the
-    /// ``View/buttonStyle(_:)-66fbx`` modifier.
-    public static var automatic: DefaultButtonStyle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 17.0, watchOS 8.0, *)
-extension PrimitiveButtonStyle where Self == BorderlessButtonStyle {
-
-    /// A button style that doesn't apply a border.
-    ///
-    /// To apply this style to a button, or to a view that contains buttons, use
-    /// the ``View/buttonStyle(_:)-66fbx`` modifier.
-    ///
-    /// On tvOS, this button style adds a default hover effect to the first
-    /// image of the button's content, if one exists. You can supply a different
-    /// hover effect by using the ``View/hoverEffect(_:)`` modifier in the
-    /// button's label.
-    public static var borderless: BorderlessButtonStyle { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension PrimitiveButtonStyle where Self == BorderedButtonStyle {
-
-    /// A button style that applies standard border artwork based on the
-    /// button's context.
-    ///
-    /// To apply this style to a button, or to a view that contains buttons, use
-    /// the ``View/buttonStyle(_:)-66fbx`` modifier.
-    public static var bordered: BorderedButtonStyle { get { fatalError() } }
-}
-
-/// The properties of a button.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 public struct PrimitiveButtonStyleConfiguration {
 

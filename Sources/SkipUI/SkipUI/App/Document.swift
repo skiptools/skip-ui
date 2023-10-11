@@ -141,14 +141,14 @@ public struct DocumentGroup<Document, Content> : Scene where Content : View {
     ///
     /// Swift infers the scene's ``SkipUI/Scene/Body-swift.associatedtype``
     /// associated type based on the contents of the `body` property.
-    @MainActor public var body: some Scene { get { return stubScene() } }
+//    @MainActor public var body: some Scene { get { return stubScene() } }
 
     /// The type of scene that represents the body of this scene.
     ///
     /// When you create a custom scene, Swift infers this type from your
     /// implementation of the required ``SkipUI/Scene/body-swift.property``
     /// property.
-    //public typealias Body = NeverView
+//    public typealias Body = NeverView
 }
 
 @available(iOS 14.0, macOS 11.0, *)
