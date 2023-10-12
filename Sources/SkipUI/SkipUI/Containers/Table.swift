@@ -3648,7 +3648,7 @@ extension ForEach : TableRowContent where Content : TableRowContent {
     ///   - data: The identified data that the ``ForEach`` instance uses to
     ///     create table rows dynamically.
     ///   - content: The table row builder that creates rows dynamically.
-    public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where ID == Data.Element.ID, V == Content.TableRowValue, Data.Element : Identifiable { fatalError() }
+//    public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where ID == Data.Element.ID, V == Content.TableRowValue, Data.Element : Identifiable { fatalError() }
 
     /// Creates an instance that uniquely identifies and creates table rows
     /// across updates based on the provided key path to the underlying data's
@@ -3659,7 +3659,7 @@ extension ForEach : TableRowContent where Content : TableRowContent {
     ///     rows dynamically.
     ///   - id: The key path to the provided data's identifier.
     ///   - content: The table row builder that creates rows dynamically.
-    public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where V == Content.TableRowValue { fatalError() }
+//    public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where V == Content.TableRowValue { fatalError() }
 
     /// Creates an instance that uniquely identifies and creates table rows
     /// across updates based on the identity of the underlying data.
@@ -3702,7 +3702,7 @@ extension ForEach : TableRowContent where Content : TableRowContent {
     /// - Parameters:
     ///   - data: A constant range.
     ///   - content: The table row builder that creates rows dynamically.
-    public init<V>(_ data: Range<Int>, @TableRowBuilder<V> content: @escaping (Int) -> Content) where Data == Range<Int>, ID == Int, V == Content.TableRowValue { fatalError() }
+//    public init<V>(_ data: Range<Int>, @TableRowBuilder<V> content: @escaping (Int) -> Content) where Data == Range<Int>, ID == Int, V == Content.TableRowValue { fatalError() }
 
     public var tableRowBody: Never { fatalError() }
 }

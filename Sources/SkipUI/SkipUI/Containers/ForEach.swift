@@ -2,11 +2,44 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
 // Erase the Data and ID because they are currently unused in Kotlin, the compiler won't be able to calculate them
-//
-// SKIP DECLARE: class ForEach<Content>: View where Content: View
-public struct ForEach<Data, ID, Content> : View where Data : RandomAccessCollection, ID : Hashable, Content : View {
-    #if !SKIP
+public struct ForEach</* Data, ID, */ Content> : View where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
+    let indexedContent: ((Int) -> Content)?
+    let indexRange: Range<Int>?
+    let objectContent: ((Any) -> Content)?
+    let objects: (any RandomAccessCollection<Any>)?
+    let identifier: ((Any) -> AnyHashable)?
+
+    init(indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, identifier: ((Any) -> AnyHashable)? = nil, objectContent: ((Any) -> Content)? = nil) {
+        self.indexRange = indexRange
+        self.indexedContent = indexedContent
+        self.objects = objects
+        self.identifier = identifier
+        self.objectContent = objectContent
+    }
+
+    #if SKIP
+    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
+        ComposeContent(context: context)
+        return .ok
+    }
+    
+    @Composable public override func ComposeContent(context: ComposeContext) {
+//        if let indexRange {
+//            items(indexRange.endExclusive - indexRange.start) {
+//                indexedContent!(indexRange.start + $0).Compose(context: itemContext)
+//            }
+//        } else if let objects {
+//            items(count: objects.count, key: { identifier!(objects[$0]) }) {
+//                objectContent!(objects[$0]).Compose(context: itemContext)
+//            }
+//        }
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -94,7 +127,7 @@ extension ForEach {
     ///     create views dynamically and can be edited by the user.
     ///   - editActions: The edit actions that are synthesized on `data`.
     ///   - content: The view builder that creates views dynamically.
-    public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable { fatalError() }
+//    public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable { fatalError() }
 
     /// Creates an instance that uniquely identifies and creates views across
     /// updates based on the identity of the underlying data.
@@ -144,7 +177,7 @@ extension ForEach {
     ///   - id: The key path to the provided data's identifier.
     ///   - editActions: The edit actions that are synthesized on `data`.
     ///   - content: The view builder that creates views dynamically.
-    public init<C, R>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Index : Hashable { fatalError() }
+//    public init<C, R>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Index : Hashable { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -162,7 +195,7 @@ extension ForEach where Content : View {
     ///   - data: The identified data that the ``ForEach`` instance uses to
     ///     create views dynamically.
     ///   - content: The view builder that creates views dynamically.
-    public init<C>(_ data: Binding<C>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, ID == C.Element.ID, C : MutableCollection, C : RandomAccessCollection, C.Element : Identifiable, C.Index : Hashable { fatalError() }
+//    public init<C>(_ data: Binding<C>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, ID == C.Element.ID, C : MutableCollection, C : RandomAccessCollection, C.Element : Identifiable, C.Index : Hashable { fatalError() }
 
     /// Creates an instance that uniquely identifies and creates views across
     /// updates based on the identity of the underlying data.
@@ -177,7 +210,7 @@ extension ForEach where Content : View {
     ///     create views dynamically.
     ///   - id: The key path to the provided data's identifier.
     ///   - content: The view builder that creates views dynamically.
-    public init<C>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, C : MutableCollection, C : RandomAccessCollection, C.Index : Hashable { fatalError() }
+//    public init<C>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, C : MutableCollection, C : RandomAccessCollection, C.Index : Hashable { fatalError() }
 }
 
 #endif

@@ -60,51 +60,65 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
-        let itemContext = context.content(composer: ClosureComposer { view, context in
-            ComposeItem(view: &view, context: context(false), style: style)
-        })
+        let itemContext = context.content()
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(style: style))) { modifier in
             Box(modifier: modifier) {
-                ComposeList(itemContext: itemContext, style: style)
+                ComposeList(context: itemContext, style: style)
             }
         }
     }
 
-    @Composable private func ComposeList(itemContext: ComposeContext, style: ListStyle) {
+    @Composable private func ComposeList(context: ComposeContext, style: ListStyle) {
         var modifier: Modifier = Modifier
         if style != .plain {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
         modifier = modifier.fillWidth()
+
         if let fixedContent {
-            let scrollState = rememberScrollState()
-            Column(modifier: modifier.verticalScroll(scrollState)) {
-                ComposeHeader(style: style)
-                fixedContent.Compose(context: itemContext)
-                ComposeFooter(style: style)
-            }
-        } else if let indexRange {
             LazyColumn(modifier: modifier) {
                 item {
                     ComposeHeader(style: style)
                 }
-                items(indexRange.endExclusive - indexRange.start) {
-                    indexedContent!(indexRange.start + $0).Compose(context: itemContext)
+                let itemContext = context.content(composer: ClosureComposer { view, context in
+                    item {
+                        ComposeItem(view: &view, context: context(false), style: style)
+                    }
+                })
+                item {
+                    fixedContent.Compose(context: itemContext)
                 }
                 item {
                     ComposeFooter(style: style)
                 }
             }
-        } else if let objects {
-            LazyColumn(modifier: modifier) {
-                item {
-                    ComposeHeader(style: style)
+        } else {
+            let itemContext = context.content(composer: ClosureComposer { view, context in
+                ComposeItem(view: &view, context: context(false), style: style)
+            })
+            if let indexRange {
+                LazyColumn(modifier: modifier) {
+                    item {
+                        ComposeHeader(style: style)
+                    }
+                    items(indexRange.endExclusive - indexRange.start) {
+                        indexedContent!(indexRange.start + $0).Compose(context: itemContext)
+                    }
+                    item {
+                        ComposeFooter(style: style)
+                    }
                 }
-                items(count: objects.count, key: { identifier!(objects[$0]) }) {
-                    objectContent!(objects[$0]).Compose(context: itemContext)
-                }
-                item {
-                    ComposeFooter(style: style)
+            } else if let objects {
+                LazyColumn(modifier: modifier) {
+                    item {
+                        ComposeHeader(style: style)
+                    }
+                    items(count: objects.count, key: { identifier!(objects[$0]) }) {
+                        objectContent!(objects[$0]).Compose(context: itemContext)
+                    }
+                    item {
+                        ComposeFooter(style: style)
+                    }
                 }
             }
         }
@@ -181,7 +195,7 @@ struct ListItemComposer: Composer {
     @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
             listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
-        } else if view is ComposeModifierView {
+        } else if view is ComposeModifierView || view is Section {
             view.ComposeContent(context: context(true))
         } else {
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
@@ -335,8 +349,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Data, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Data, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that computes its rows on demand from an
     /// underlying collection of identifiable data, optionally allowing users to
@@ -368,8 +382,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data, optionally allowing users to
@@ -404,8 +418,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<RowContent>(_ data: Range<Int>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, HStack<RowContent>>, RowContent : View { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<RowContent>(_ data: Range<Int>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, HStack<RowContent>>, RowContent : View { fatalError() }
 
     /// Creates a list that computes its rows on demand from an underlying
     /// collection of identifiable data, optionally allowing users to select a
@@ -416,8 +430,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS 10.0, *)
-    @MainActor public init<Data, RowContent>(_ data: Data, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @available(watchOS 10.0, *)
+//    @MainActor public init<Data, RowContent>(_ data: Data, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that computes its rows on demand from an
     /// underlying collection of identifiable data, optionally allowing users to
@@ -449,8 +463,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS 10.0, *)
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @available(watchOS 10.0, *)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data, optionally allowing users to
@@ -485,8 +499,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<RowContent>(_ data: Range<Int>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, RowContent>, RowContent : View { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<RowContent>(_ data: Range<Int>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, RowContent>, RowContent : View { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -541,8 +555,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that identifies its rows based on a key path to the
     /// identifier of the underlying data, optionally allowing users to select
@@ -554,8 +568,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that computes its rows on demand from an underlying
     /// collection of identifiable data, optionally allowing users to select a
@@ -566,8 +580,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that identifies its rows based on a key path to the
     /// identifier of the underlying data, optionally allowing users to select a
@@ -579,8 +593,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -593,7 +607,7 @@ extension List where SelectionValue == Never {
     ///   - data: A collection of identifiable data for computing the list.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that identifies its rows based on a key path to the
     /// identifier of the underlying data.
@@ -603,7 +617,7 @@ extension List where SelectionValue == Never {
     ///   - id: The key path to the data model's identifier.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 @available(iOS 15.0, macOS 12.0, *)
@@ -756,8 +770,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that computes its rows on demand from an underlying
     /// collection of identifiable, allows to edit the collection, and
@@ -794,8 +808,8 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -834,8 +848,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that computes its rows on demand from an underlying
     /// collection of identifiable data, allows to edit the collection, and
@@ -871,8 +885,8 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -905,7 +919,7 @@ extension List where SelectionValue == Never {
     ///   - editActions: The edit actions that are synthesized on `data`.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
 
     /// Creates a list that computes its rows on demand from an underlying
     /// collection of identifiable data and allows to edit the collection.
@@ -935,7 +949,7 @@ extension List where SelectionValue == Never {
     ///   - editActions: The edit actions that are synthesized on `data`.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 #endif
