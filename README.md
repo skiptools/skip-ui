@@ -409,6 +409,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`Divider`|Full||
 |`EmptyView`|Full||
 |`Font`|Medium||
+|`Form`|Full||
 |`Group`|Full||
 |`HStack`|Full||
 |`Image`|Low|See [Images](#images)|

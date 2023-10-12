@@ -2,12 +2,23 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
 public struct Form<Content> : View where Content : View {
-    @available(*, unavailable)
+    #if SKIP
+    // It appears that on iOS, List and Form render the same
+    let list: List<Content>
+
     public init(@ViewBuilder content: () -> Content) {
+        list = List(content: content)
     }
 
-    #if !SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let _ = list.Compose(context: context)
+    }
+    #else
     public var body: some View {
         stubView()
     }
