@@ -2,31 +2,182 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public protocol ToolbarContent {
+//    associatedtype Body : ToolbarContent
+//    @ToolbarContentBuilder var body: Self.Body { get }
+}
+
+public protocol CustomizableToolbarContent : ToolbarContent /* where Self.Body : CustomizableToolbarContent */ {
+}
+
+extension CustomizableToolbarContent {
+    @available(*, unavailable)
+    public func defaultCustomization(_ defaultVisibility: Visibility = .automatic, options: ToolbarCustomizationOptions = []) -> some CustomizableToolbarContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func customizationBehavior(_ behavior: ToolbarCustomizationBehavior) -> some CustomizableToolbarContent {
+        return self
+    }
+}
+
+// We base our toolbar content on `View` rather than a custom protocol so that we can reuse the
+// `@ViewBuilder` logic built into the transpiler. The Swift compiler will guarantee that the
+// only allowed toolbar content are types that conform to `ToolbarContent`
+
+// Erase the generic ID to facilitate specialized constructor support.
+public struct ToolbarItem</* ID, */ Content> : CustomizableToolbarContent, View where Content : View {
+    @available(*, unavailable)
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    }
+
+    @available(*, unavailable)
+    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    }
+
+    #if !SKIP
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct ToolbarItemGroup<Content> : CustomizableToolbarContent, View where Content : View  {
+    @available(*, unavailable)
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    }
+
+    @available(*, unavailable)
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> any View) {
+    }
+
+    #if !SKIP
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct ToolbarTitleMenu /* <Content> */ : CustomizableToolbarContent, View /* where Content : View */ {
+    @available(*, unavailable)
+    public init() {
+    }
+
+    @available(*, unavailable)
+    public init(@ViewBuilder content: () -> any View) {
+    }
+
+    #if !SKIP
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public enum ToolbarCustomizationBehavior : Sendable {
+    case `default`
+    case reorderable
+    case disabled
+}
+
+public enum ToolbarItemPlacement {
+    case automatic
+    case principal
+    case navigation
+    case primaryAction
+    case secondaryAction
+    case status
+    case confirmationAction
+    case cancellationAction
+    case destructiveAction
+    case keyboard
+    case topBarLeading
+    case topBarTrailing
+    case bottomBar
+}
+
+public enum ToolbarPlacement {
+    case automatic
+    case bottomBar
+    case navigationBar
+    case tabBar
+}
+
+public enum ToolbarRole : Sendable {
+    case automatic
+    case navigationStack
+    case browser
+    case editor
+}
+
+public enum ToolbarTitleDisplayMode {
+    case automatic
+    case large
+    case inlineLarge
+    case inline
+}
+
+public struct ToolbarCustomizationOptions : OptionSet, Sendable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static var alwaysAvailable = ToolbarCustomizationOptions(rawValue: 1 << 0)
+}
+
+extension View {
+    @available(*, unavailable)
+    public func toolbar(@ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbar(id: String, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func toolbarRole(_ role: ToolbarRole) -> some View {
+        return self
+    }
+}
 
 #if !SKIP
 
-/// No-op
-func stubToolbarContent() -> some ToolbarContent {
-    //return never() // raises warning: “A call to a never-returning function”
-    struct NeverToolbarContent : ToolbarContent {
-        typealias Body = Never
-        var body: Body { return stub() }
-
-    }
-    return NeverToolbarContent()
-}
-
-/// No-op
-func stubToolbar() -> some CustomizableToolbarContent {
-    //return never() // raises warning: “A call to a never-returning function”
-    struct NeverCustomizableToolbarContent : CustomizableToolbarContent {
-        typealias Body = Never
-        var body: Body { return stub() }
-    }
-    return NeverCustomizableToolbarContent()
-}
-
+// TODO: Process for use in SkipUI
 
 /// A built-in set of commands for manipulating window toolbars.
 ///
@@ -56,1024 +207,6 @@ public struct ToolbarCommands : Commands {
     //public typealias Body = NeverView
 }
 
-/// Conforming types represent items that can be placed in various locations
-/// in a toolbar.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public protocol ToolbarContent {
-
-    /// The type of content representing the body of this toolbar content.
-    associatedtype Body : ToolbarContent
-
-    /// The composition of content that comprise the toolbar content.
-    @ToolbarContentBuilder var body: Self.Body { get }
-}
-
-/// Constructs a toolbar item set from multi-expression closures.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-@resultBuilder public struct ToolbarContentBuilder {
-
-    /// Builds an expression within the builder.
-    public static func buildExpression<Content>(_ content: Content) -> Content where Content : ToolbarContent { fatalError() }
-
-    public static func buildBlock<Content>(_ content: Content) -> some ToolbarContent where Content : ToolbarContent { stubToolbar() }
-
-
-    /// Builds an expression within the builder.
-    public static func buildExpression<Content>(_ content: Content) -> Content where Content : CustomizableToolbarContent { fatalError() }
-
-    public static func buildBlock<Content>(_ content: Content) -> some CustomizableToolbarContent where Content : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-extension ToolbarContentBuilder {
-
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public static func buildIf<Content>(_ content: Content?) -> Content? where Content : ToolbarContent { fatalError() }
-
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public static func buildIf<Content>(_ content: Content?) -> Content? where Content : CustomizableToolbarContent { fatalError() }
-
-//    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//    public static func buildEither<TrueContent, FalseContent>(first: TrueContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : ToolbarContent, FalseContent : ToolbarContent { stubToolbar() }
-//
-//    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//    public static func buildEither<TrueContent, FalseContent>(first: TrueContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : CustomizableToolbarContent, FalseContent : CustomizableToolbarContent { stubToolbar() }
-//
-//    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//    public static func buildEither<TrueContent, FalseContent>(second: FalseContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : ToolbarContent, FalseContent : ToolbarContent { stubToolbar() }
-//
-//    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//    public static func buildEither<TrueContent, FalseContent>(second: FalseContent) -> _ConditionalContent<TrueContent, FalseContent> where TrueContent : CustomizableToolbarContent, FalseContent : CustomizableToolbarContent { stubToolbar() }
-
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public static func buildLimitedAvailability<Content>(_ content: Content) -> some ToolbarContent where Content : ToolbarContent { stubToolbar() }
-
-
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public static func buildLimitedAvailability<Content>(_ content: Content) -> some CustomizableToolbarContent where Content : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent, C5 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent, C5 : ToolbarContent, C6 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent, C5 : ToolbarContent, C6 : ToolbarContent, C7 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent, C5 : ToolbarContent, C6 : ToolbarContent, C7 : ToolbarContent, C8 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some ToolbarContent where C0 : ToolbarContent, C1 : ToolbarContent, C2 : ToolbarContent, C3 : ToolbarContent, C4 : ToolbarContent, C5 : ToolbarContent, C6 : ToolbarContent, C7 : ToolbarContent, C8 : ToolbarContent, C9 : ToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent, C5 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent, C5 : CustomizableToolbarContent, C6 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent, C5 : CustomizableToolbarContent, C6 : CustomizableToolbarContent, C7 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent, C5 : CustomizableToolbarContent, C6 : CustomizableToolbarContent, C7 : CustomizableToolbarContent, C8 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarContentBuilder {
-
-    public static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(_ c0: C0, _ c1: C1, _ c2: C2, _ c3: C3, _ c4: C4, _ c5: C5, _ c6: C6, _ c7: C7, _ c8: C8, _ c9: C9) -> some CustomizableToolbarContent where C0 : CustomizableToolbarContent, C1 : CustomizableToolbarContent, C2 : CustomizableToolbarContent, C3 : CustomizableToolbarContent, C4 : CustomizableToolbarContent, C5 : CustomizableToolbarContent, C6 : CustomizableToolbarContent, C7 : CustomizableToolbarContent, C8 : CustomizableToolbarContent, C9 : CustomizableToolbarContent { stubToolbar() }
-
-}
-
-/// The customization behavior of customizable toolbar content.
-///
-/// Customizable toolbar content support different types of customization
-/// behaviors. For example, some customizable content may not be removed by
-/// the user. Some content may be placed in a toolbar that supports
-/// customization overall, but not for that particular content.
-///
-/// Use this type in conjunction with the
-/// ``CustomizableToolbarContent/customizationBehavior(_:)`` modifier.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ToolbarCustomizationBehavior : Sendable {
-
-    /// The default customization behavior.
-    ///
-    /// Items with this behavior start in the toolbar and can be
-    /// moved or removed from the toolbar by the user.
-    public static var `default`: ToolbarCustomizationBehavior { get { fatalError() } }
-
-    /// The reorderable customization behavior.
-    ///
-    /// Items with this behavior start in the toolbar and can be moved within
-    /// the toolbar by the user, but can not be removed from the toolbar.
-    public static var reorderable: ToolbarCustomizationBehavior { get { fatalError() } }
-
-    /// The disabled customization behavior.
-    ///
-    /// Items with this behavior may not be removed or moved by the user.
-    /// They will be placed before other customizatable items. Use this
-    /// behavior for the most important items that users need for the app
-    /// to do common functionality.
-    public static var disabled: ToolbarCustomizationBehavior { get { fatalError() } }
-}
-
-/// Options that influence the default customization behavior of
-/// customizable toolbar content.
-///
-/// Use this type in conjunction with the
-/// ``CustomizableToolbarContent/defaultCustomization(_:options)`` modifier.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ToolbarCustomizationOptions : OptionSet, Sendable {
-
-    /// The raw type that can be used to represent all values of the conforming
-    /// type.
-    ///
-    /// Every distinct value of the conforming type has a corresponding unique
-    /// value of the `RawValue` type, but there may be values of the `RawValue`
-    /// type that don't have a corresponding value of the conforming type.
-    public typealias RawValue = Int
-
-    /// Configures default customizable toolbar content to always be
-    /// present in the toolbar.
-    ///
-    /// In iOS, default customizable toolbar content have the option of always
-    /// being available in the toolbar regardless of the customization status
-    /// of the user. These items will always be in the overflow menu of the
-    /// toolbar. Users can customize whether the items are present as controls
-    /// in the toolbar itself but will still always be able to access the item
-    /// if they remove it from the toolbar itself.
-    ///
-    /// Consider using this for items that users should always be able to
-    /// access, but may not be important enough to always occupy space in
-    /// the toolbar itself.
-    public static var alwaysAvailable: ToolbarCustomizationOptions { get { fatalError() } }
-
-    /// The corresponding value of the raw type.
-    ///
-    /// A new instance initialized with `rawValue` will be equivalent to this
-    /// instance. For example:
-    ///
-    ///     enum PaperSize: String {
-    ///         case A4, A5, Letter, Legal
-    ///     }
-    ///
-    ///     let selectedSize = PaperSize.Letter
-    ///     print(selectedSize.rawValue)
-    ///     // Prints "Letter"
-    ///
-    ///     print(selectedSize == PaperSize(rawValue: selectedSize.rawValue)!)
-    ///     // Prints "true"
-    public var rawValue: Int { get { fatalError() } }
-
-    /// Creates a new option set from the given raw value.
-    ///
-    /// This initializer always succeeds, even if the value passed as `rawValue`
-    /// exceeds the static properties declared as part of the option set. This
-    /// example creates an instance of `ShippingOptions` with a raw value beyond
-    /// the highest element, with a bit mask that effectively contains all the
-    /// declared static members.
-    ///
-    ///     let extraOptions = ShippingOptions(rawValue: 255)
-    ///     print(extraOptions.isStrictSuperset(of: .all))
-    ///     // Prints "true"
-    ///
-    /// - Parameter rawValue: The raw value of the option set to create. Each bit
-    ///   of `rawValue` potentially represents an element of the option set,
-    ///   though raw values may include bits that are not defined as distinct
-    ///   values of the `OptionSet` type.
-    public init(rawValue: Int) { fatalError() }
-
-    /// The type of the elements of an array literal.
-    public typealias ArrayLiteralElement = ToolbarCustomizationOptions
-
-    /// The element type of the option set.
-    ///
-    /// To inherit all the default implementations from the `OptionSet` protocol,
-    /// the `Element` type must be `Self`, the default.
-    public typealias Element = ToolbarCustomizationOptions
-}
-
-/// A model that represents an item which can be placed in the toolbar
-/// or navigation bar.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct ToolbarItem<ID, Content> : ToolbarContent where Content : View {
-
-    /// The type of content representing the body of this toolbar content.
-    //public typealias Body = NeverView
-    public var body: some CustomizableToolbarContent { stubToolbar() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarItem where ID == () {
-
-    /// Creates a toolbar item with the specified placement and content.
-    ///
-    /// - Parameters:
-    ///   - placement: Which section of the toolbar
-    ///     the item should be placed in.
-    ///   - content: The content of the item.
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarItem : CustomizableToolbarContent where ID == String {
-
-    /// Creates a toolbar item with the specified placement and content,
-    /// which allows for user customization.
-    ///
-    /// - Parameters:
-    ///   - id: A unique identifier for this item.
-    ///   - placement: Which section of the toolbar
-    ///     the item should be placed in.
-    ///   - content: The content of the item.
-    @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// Creates a toolbar item with the specified placement and content,
-    /// which allows for user customization.
-    ///
-    /// - Parameters:
-    ///   - id: A unique identifier for this item.
-    ///   - placement: Which section of the toolbar
-    ///     the item should be placed in.
-    ///   - showsByDefault: Whether the item appears by default in the toolbar,
-    ///     or only shows if the user explicitly adds it via customization.
-    ///   - content: The content of the item.
-    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "Use the CustomizableToolbarContent/defaultCustomization(_:options) modifier with a value of .hidden")
-    @available(macOS, introduced: 11.0, deprecated: 100000.0, message: "Use the CustomizableToolbarContent/defaultCustomization(_:options) modifier with a value of .hidden")
-    @available(tvOS, introduced: 14.0, deprecated: 100000.0, message: "Use the CustomizableToolbarContent/defaultCustomization(_:options) modifier with a value of .hidden")
-    @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "Use the CustomizableToolbarContent/defaultCustomization(_:options) modifier with a value of .hidden")
-    public init(id: String, placement: ToolbarItemPlacement = .automatic, showsByDefault: Bool, @ViewBuilder content: () -> Content) { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ToolbarItem : Identifiable where ID : Hashable {
-
-    /// The stable identity of the entity associated with this instance.
-    public var id: ID { get { fatalError() } }
-}
-
-/// A model that represents a group of `ToolbarItem`s which can be placed in
-/// the toolbar or navigation bar.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct ToolbarItemGroup<Content> : ToolbarContent where Content : View {
-
-    /// Creates a toolbar item group with a specified placement and content.
-    ///
-    /// - Parameters:
-    ///  - placement: Which section of the toolbar all of its vended
-    ///    `ToolbarItem`s should be placed in.
-    ///  - content: The content of the group. Each view specified in the
-    ///    `ViewBuilder` will be given its own `ToolbarItem` in the toolbar.
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// The type of content representing the body of this toolbar content.
-    //public typealias Body = NeverView
-    public var body: some ToolbarContent { stubToolbar() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension ToolbarItemGroup {
-
-    /// Creates a toolbar item group with the specified placement, content,
-    /// and a label describing that content.
-    ///
-    /// A toolbar item group provided a label wraps its content within a
-    /// ``ControlGroup`` which allows the content to collapse down into a
-    /// menu that presents its content based on available space.
-    ///
-    /// - Parameters:
-    ///   - placement: Which section of the toolbar
-    ///     the item should be placed in.
-    ///   - content: The content of the item.
-    ///   - label: The label describing the content of the item.
-    public init<C, L>(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> C, @ViewBuilder label: () -> L) where Content == LabeledToolbarItemGroupContent<C, L>, C : View, L : View { fatalError() }
-}
-
-/// A structure that defines the placement of a toolbar item.
-///
-/// There are two types of placements:
-/// - Semantic placements, such as ``ToolbarItemPlacement/principal`` and
-///   ``ToolbarItemPlacement/navigation``, denote the intent of the
-///   item being added. SkipUI determines the appropriate placement for
-///   the item based on this intent and its surrounding context, like the
-///   current platform.
-/// - Positional placements, such as
-///   ``ToolbarItemPlacement/navigationBarLeading``, denote a precise
-///   placement for the item, usually for a particular platform.
-///
-/// In iOS, iPadOS, and macOS, the system uses the space available to the
-/// toolbar when determining how many items to render in the toolbar. If not
-/// all items fit in the available space, an overflow menu may be created
-/// and remaining items placed in that menu.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct ToolbarItemPlacement {
-
-    /// The system places the item automatically, depending on many factors
-    /// including the platform, size class, or presence of other items.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places items in the
-    /// current toolbar section in order of leading to trailing. On watchOS,
-    /// only the first item appears, pinned beneath the navigation bar.
-    ///
-    /// In iPadOS, the system places items in the center of the navigation bar
-    /// if the navigation bar supports customization. Otherwise, it places
-    /// items in the trailing position of the navigation bar.
-    ///
-    /// In iOS, and tvOS, the system places items in the trailing
-    /// position of the navigation bar.
-    ///
-    /// In iOS, iPadOS, and macOS, the system uses the space available to the
-    /// toolbar when determining how many items to render in the toolbar. If not
-    /// all items fit in the available space, an overflow menu may be created
-    /// and remaining items placed in that menu.
-    public static let automatic: ToolbarItemPlacement = { fatalError() }()
-
-    /// The system places the item in the principal item section.
-    ///
-    /// Principal actions are key units of functionality that receive prominent
-    /// placement. For example, the location field for a web browser is a
-    /// principal item.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places the principal item
-    /// in the center of the toolbar.
-    ///
-    /// In iOS, iPadOS, and tvOS, the system places the principal item in the
-    /// center of the navigation bar. This item takes precedent over a title
-    /// specified through ``View/navigationTitle``.
-    @available(watchOS, unavailable)
-    public static let principal: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a navigation action.
-    ///
-    /// Navigation actions allow the user to move between contexts.
-    /// For example, the forward and back buttons of a web browser
-    /// are navigation actions.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places navigation items
-    /// in the leading edge of the toolbar ahead of the inline title if that is
-    /// present in the toolbar.
-    ///
-    /// In iOS, iPadOS, and tvOS, navigation items appear in the leading
-    /// edge of the navigation bar. If a system navigation item such as a back
-    /// button is present in a compact width, it instead appears in
-    /// the ``ToolbarItemPlacement/primaryAction`` placement.
-    @available(watchOS, unavailable)
-    public static let navigation: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a primary action.
-    ///
-    /// A primary action is a more frequently used action for the current
-    /// context. For example, a button the user clicks or taps to compose a new
-    /// message in a chat app.
-    ///
-    /// In macOS and in Mac Catalyst apps, the location for the primary action
-    /// is the leading edge of the toolbar.
-    ///
-    /// In iOS, iPadOS, and tvOS, the location for the primary action is
-    /// the trailing edge of the navigation bar.
-    ///
-    /// In watchOS the system places the primary action beneath the
-    /// navigation bar; the user reveals the action by scrolling.
-    public static let primaryAction: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a secondary action.
-    ///
-    /// A secondary action is a frequently used action for the current context
-    /// but is not a requirement for the current context to function.
-    @available(iOS 16.0, macOS 13.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static let secondaryAction: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a change in status for the current context.
-    ///
-    /// Status items are informational in nature, and don't represent an
-    /// action that can be taken by the user. For example, a message that
-    /// indicates the time of the last communication with the server to check
-    /// for new messages.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places status items in
-    /// the center of the toolbar.
-    ///
-    /// In iOS and iPadOS, the system places status items in the center of the
-    /// bottom toolbar.
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static let status: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a confirmation action for a modal interface.
-    ///
-    /// Use confirmation actions to receive user confirmation of a
-    /// particular action. An example of a confirmation action would be
-    /// an action with the label "Add" to add a new event to the calendar.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places
-    /// `confirmationAction` items on the trailing edge
-    /// in the trailing-most position of the sheet and gain the apps accent
-    /// color as a background color.
-    ///
-    /// In iOS, iPadOS, and tvOS, the system places `confirmationAction` items
-    /// in the same location as a ``ToolbarItemPlacement/primaryAction``
-    /// placement.
-    ///
-    /// In watchOS, the system places `confirmationAction` items in the
-    /// trailing edge of the navigation bar.
-    public static let confirmationAction: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a cancellation action for a modal interface.
-    ///
-    /// Cancellation actions dismiss the modal interface without taking any
-    /// action, usually by tapping or clicking a Cancel button.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places
-    /// `cancellationAction` items on the trailing edge of the sheet but
-    /// places them before any ``confirmationAction`` items.
-    ///
-    /// In iOS, iPadOS, tvOS, and watchOS, the system places
-    /// `cancellationAction` items on the leading edge of the navigation bar.
-    public static let cancellationAction: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item represents a destructive action for a modal interface.
-    ///
-    /// Destructive actions represent the opposite of a confirmation action.
-    /// For example, a button labeled "Don't Save" that allows the user to
-    /// discard unsaved changes to a document before quitting.
-    ///
-    /// In macOS and in Mac Catalyst apps, the system places `destructiveAction`
-    /// items in the leading edge of the sheet and gives them a special
-    /// appearance to caution against accidental use.
-    ///
-    /// In iOS, tvOS, and watchOS, the system places `destructiveAction` items
-    /// in the trailing edge of the navigation bar.
-    public static let destructiveAction: ToolbarItemPlacement = { fatalError() }()
-
-    /// The item is placed in the keyboard section.
-    ///
-    /// On iOS, keyboard items are above the software keyboard when present,
-    /// or at the bottom of the screen when a hardware keyboard is attached.
-    ///
-    /// On macOS, keyboard items will be placed inside the Touch Bar.
-    ///
-    /// A `FocusedValue`can be used to adjust the content of the keyboard bar
-    /// based on the currently focused view. In the example below, the keyboard
-    /// bar gains additional buttons only when the appropriate `TextField` is
-    /// focused.
-    ///
-    ///     enum Field {
-    ///         case suit
-    ///         case rank
-    ///     }
-    ///
-    ///     struct KeyboardBarDemo : View {
-    ///         @FocusedValue(\.field) var field: Field?
-    ///
-    ///         var body: some View {
-    ///             HStack {
-    ///                 TextField("Suit", text: $suitText)
-    ///                     .focusedValue(\.field, .suit)
-    ///                 TextField("Rank", text: $rankText)
-    ///                     .focusedValue(\.field, .rank)
-    ///             }
-    ///             .toolbar {
-    ///                 ToolbarItemGroup(placement: .keyboard) {
-    ///                     if field == .suit {
-    ///                         Button("♣️", action: {})
-    ///                         Button("♥️", action: {})
-    ///                         Button("♠️", action: {})
-    ///                         Button("♦️", action: {})
-    ///                     }
-    ///                     DoneButton()
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    @available(iOS 15.0, macOS 12.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static let keyboard: ToolbarItemPlacement = { fatalError() }()
-
-    /// Places the item in the leading edge of the top bar.
-    ///
-    /// On watchOS, iOS, and tvOS, the top bar is the navigation bar.
-    @available(iOS 14.0, tvOS 14.0, watchOS 10.0, *)
-    @_backDeploy(before: iOS 17.0, tvOS 17.0)
-    @available(macOS, unavailable)
-    public static var topBarLeading: ToolbarItemPlacement { get { fatalError() } }
-
-    /// Places the item in the trailing edge of the top bar.
-    ///
-    /// On watchOS, iOS, and tvOS, the top bar is the navigation bar.
-    @available(iOS 14.0, tvOS 14.0, watchOS 10.0, *)
-    @_backDeploy(before: iOS 17.0, tvOS 17.0)
-    @available(macOS, unavailable)
-    public static var topBarTrailing: ToolbarItemPlacement { get { fatalError() } }
-
-    /// Places the item in the leading edge of the navigation bar.
-    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "use topBarLeading instead")
-    @available(tvOS, introduced: 14.0, deprecated: 100000.0, message: "use topBarLeading instead")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use topBarLeading instead")
-    public static let navigationBarLeading: ToolbarItemPlacement = { fatalError() }()
-
-    /// Places the item in the trailing edge of the navigation bar.
-    @available(iOS, introduced: 14.0, deprecated: 100000.0, message: "use topBarTrailing instead")
-    @available(tvOS, introduced: 14.0, deprecated: 100000.0, message: "use topBarTrailing instead")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use topBarTrailing instead")
-    public static let navigationBarTrailing: ToolbarItemPlacement = { fatalError() }()
-
-    /// Places the item in the bottom toolbar.
-    @available(watchOS 10.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    public static let bottomBar: ToolbarItemPlacement = { fatalError() }()
-}
-
-/// The placement of a toolbar.
-///
-/// Use this type in conjunction with modifiers like
-/// ``View/toolbarBackground(_:for:)-5ybst`` and ``View/toolbar(_:for:)`` to
-/// customize the appearance of different bars managed by SkipUI. Not all bars
-/// support all types of customizations.
-///
-/// See ``ToolbarItemPlacement`` to learn about the different regions of these
-/// toolbars that you can place your own controls into.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ToolbarPlacement {
-
-    /// The primary toolbar.
-    ///
-    /// Depending on the context, this may refer to the navigation bar of an
-    /// app on iOS, or watchOS, the tab bar of an app on tvOS, or the window
-    /// toolbar of an app on macOS.
-    public static var automatic: ToolbarPlacement { get { fatalError() } }
-
-    /// The bottom toolbar of an app.
-    @available(watchOS 10.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    public static var bottomBar: ToolbarPlacement { get { fatalError() } }
-
-    /// The navigation bar of an app.
-    @available(macOS, unavailable)
-    public static var navigationBar: ToolbarPlacement { get { fatalError() } }
-
-    /// The tab bar of an app.
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    public static var tabBar: ToolbarPlacement { get { fatalError() } }
-}
-
-/// The purpose of content that populates the toolbar.
-///
-/// A toolbar role provides a description of the purpose of content that
-/// populates the toolbar. The purpose of the content influences how a toolbar
-/// renders its content. For example, a ``ToolbarRole/browser`` will
-/// automatically leading align the title of a toolbar in iPadOS.
-///
-/// Provide this type to the ``View/toolbarRole(_:)`` modifier:
-///
-///     ContentView()
-///         .navigationTitle("Browser")
-///         .toolbarRole(.browser)
-///         .toolbar {
-///             ToolbarItem(placement: .primaryAction) {
-///                 AddButton()
-///             }
-///          }
-///
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ToolbarRole : Sendable {
-
-    /// The automatic role.
-    ///
-    /// In iOS, tvOS, and watchOS this resolves to the
-    /// ``ToolbarRole/navigationStack`` role. In macOS, this resolves to the
-    /// ``ToolbarRole/editor`` role.
-    public static var automatic: ToolbarRole { get { fatalError() } }
-
-    /// The navigationStack role.
-    ///
-    /// Use this role for content that can be pushed and popped.
-    @available(macOS, unavailable)
-    public static var navigationStack: ToolbarRole { get { fatalError() } }
-
-    /// The browser role.
-    ///
-    /// Use this role for content that can be navigated forwards
-    /// and backwards. In iPadOS, this will leading align the navigation title
-    /// and allow for toolbar items to occupy the center of the navigation bar.
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static var browser: ToolbarRole { get { fatalError() } }
-
-    /// The editor role.
-    ///
-    /// Use this role for a toolbar that primarily displays controls
-    /// geared towards editing document-like content. In iPadOS, this will
-    /// leading align the navigation title, allow for toolbar items to occupy
-    /// the center of the navigation bar, and provide a custom appearance
-    /// for any back button present in the toolbar.
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static var editor: ToolbarRole { get { fatalError() } }
-}
-
-/// A type that defines the behavior of title of a toolbar.
-///
-/// Use values of this type in conjunction with the
-/// ``View/toolbarTitleDisplayMode(_:)-45ijr`` modifier to configure
-/// the title display behavior of your toolbar.
-///
-///     NavigationStack {
-///         ContentView()
-///             .toolbarTitleDisplayMode(.inlineLarge)
-///     }
-///
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct ToolbarTitleDisplayMode {
-
-    /// The automatic mode.
-    ///
-    /// For root content in a navigation stack in iOS, iPadOS, or tvOS
-    /// this behavior will:
-    ///   - Default to ``ToolbarTitleDisplayMode/large``
-    ///     when a navigation title is configured.
-    ///   - Default to ``ToolbarTitleDisplayMode/inline``
-    ///     when no navigation title is provided.
-    ///
-    /// In all platforms, content pushed onto a navigation stack will use the
-    /// behavior of the content already on the navigation stack. This
-    /// has no effect in macOS.
-    public static var automatic: ToolbarTitleDisplayMode { get { fatalError() } }
-
-    /// The large mode.
-    ///
-    /// In iOS, and watchOS, this displays the toolbar title below the
-    /// content of the navigation bar when scrollable content is scrolled
-    /// to the top and transitions to the center of the toolbar as
-    /// content is scrolled.
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    public static var large: ToolbarTitleDisplayMode { get { fatalError() } }
-
-    /// The inline large mode.
-    ///
-    /// In iOS, this behavior displays the title as large inside the toolbar
-    /// and moves any leading or centered toolbar items into the overflow menu
-    /// of the toolbar. This has no effect in macOS.
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static var inlineLarge: ToolbarTitleDisplayMode { get { fatalError() } }
-
-    /// The inline mode.
-    ///
-    /// In iOS, tvOS, and watchOS this mode displays the title with a
-    /// smaller size in the middle of the toolbar. This has no effect
-    /// in macOS.
-    public static var inline: ToolbarTitleDisplayMode { get { fatalError() } }
-}
-
-/// The title menu of a toolbar.
-///
-/// A title menu represents common functionality that can be done on the
-/// content represented by your app's toolbar or navigation title. This
-/// menu may be populated from your app's commands like
-/// ``CommandGroupPlacement/saveItem`` or
-/// ``CommandGroupPlacement/printItem``.
-///
-///     ContentView()
-///         .toolbar {
-///             ToolbarTitleMenu()
-///         }
-///
-/// You can provide your own set of actions to override this behavior.
-///
-///     ContentView()
-///         .toolbar {
-///             ToolbarTitleMenu {
-///                 DuplicateButton()
-///                 PrintButton()
-///             }
-///         }
-///
-/// In iOS and iPadOS, this will construct a menu that can be presented by
-/// tapping the navigation title in the app's navigation bar.
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-public struct ToolbarTitleMenu<Content> : ToolbarContent, CustomizableToolbarContent where Content : View {
-
-    /// Creates a toolbar title menu where actions are inferred from your
-    /// apps commands.
-    public init() where Content == EmptyView { fatalError() }
-
-    /// Creates a toolbar title menu.
-    ///
-    /// - Parameter content: The content of the toolbar title menu.
-    public init(@ViewBuilder content: () -> Content) { fatalError() }
-
-    /// The type of content representing the body of this toolbar content.
-    //public typealias Body = NeverView
-
-    public var body: some CustomizableToolbarContent { stubToolbar() }
-}
-
-extension View {
-
-    /// Specifies the preferred shape style of the background of a bar managed
-    /// by SkipUI.
-    ///
-    /// The preferred style flows up to the nearest container that
-    /// renders a bar. This could be a ``NavigationView`` or ``TabView``
-    /// in iOS, or the root view of a ``WindowGroup`` in macOS. This example
-    /// shows a view that renders the navigation bar with a blue background
-    /// and dark color scheme.
-    ///
-    ///     NavigationView {
-    ///         ContentView()
-    ///             .toolbarBackground(.white)
-    ///             .toolbarColorScheme(.dark)
-    ///     }
-    ///
-    /// You can provide multiple ``ToolbarPlacement`` instances to customize
-    /// multiple bars at once.
-    ///
-    ///     TabView {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .toolbarBackground(
-    ///                     .blue, for: .navigationBar, .tabBar)
-    ///                 .toolbarColorScheme(
-    ///                     .dark, for: .navigationBar, .tabBar)
-    ///         }
-    ///     }
-    ///
-    /// When used within a ``TabView``, the specified style will be
-    /// preferred while the tab is currently active. You can use a ``Group``
-    /// to specify the same preferred background for every tab.
-    ///
-    ///     TabView {
-    ///         Group {
-    ///             MainView()
-    ///             SettingsView()
-    ///         }
-    ///         .toolbarBackground(.blue, for: .tabBar)
-    ///     }
-    ///
-    /// Depending on the specified bars, the requested style may not be able to
-    /// be fullfilled.
-    ///
-    /// - Parameters:
-    ///   - style: The style to display as the background of the bar.
-    ///   - bars: The bars to use the style for or
-    ///     ``ToolbarPlacement/automatic`` if empty.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarBackground<S>(_ style: S, for bars: ToolbarPlacement...) -> some View where S : ShapeStyle { return stubView() }
-
-
-    /// Specifies the preferred visibility of backgrounds on a bar managed by
-    /// SkipUI.
-    ///
-    /// The preferred visibility flows up to the nearest container that
-    /// renders a bar. This could be a ``NavigationView`` or ``TabView``
-    /// in iOS, or the root view of a ``WindowGroup`` in macOS.
-    ///
-    /// In iOS, a value of ``ToolbarPlacement/automatic`` makes the visibility
-    /// of a tab bar or navigation bar background depend on where a ``List`` or
-    /// ``ScrollView`` settles. For example, when aligned to the bottom edge of
-    /// of a scroll view's content, the background of a tab bar becomes
-    /// transparent.
-    ///
-    /// Specify a value of ``Visibility/visible`` to ensure that the
-    /// background of a bar remains visible regardless of where any scroll
-    /// view or list stops scrolling.
-    ///
-    /// This example shows a view that prefers to always have the tab bar
-    /// visible when the middle tab is selected:
-    ///
-    ///     TabView {
-    ///         FirstTab()
-    ///         MiddleTab()
-    ///             .toolbarBackground(.visible, for: .tabBar)
-    ///         LastTab()
-    ///     }
-    ///
-    /// You can provide multiple placements to customize multiple bars
-    /// at once, as in the following example:
-    ///
-    ///     TabView {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .toolbarBackground(
-    ///                     .visible, for: .navigationBar, .tabBar)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - visibility: The preferred visibility of the background of the bar.
-    ///   - bars: The bars to update the color scheme of or
-    ///     ``ToolbarPlacement/automatic`` if empty.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { return stubView() }
-
-
-    /// Specifies the preferred color scheme of a bar managed by SkipUI.
-    ///
-    /// The preferred color scheme flows up to the nearest container
-    /// that renders a bar. This could be a ``NavigationView`` or ``TabView``
-    /// in iOS, or the root view of a ``WindowGroup`` in macOS. Pass in a value
-    /// of nil to match the current system's color scheme.
-    ///
-    /// This examples shows a view that renders the navigation bar with a blue
-    /// background and dark color scheme:
-    ///
-    ///     TabView {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .toolbarBackground(.blue)
-    ///                 .toolbarColorScheme(.dark)
-    ///         }
-    ///         // other tabs...
-    ///     }
-    ///
-    /// You can provide multiple ``ToolbarPlacement`` instances to customize
-    /// multiple bars at once.
-    ///
-    ///     TabView {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .toolbarBackground(
-    ///                     .blue, for: .navigationBar, .tabBar)
-    ///                 .toolbarColorScheme(
-    ///                     .dark, for: .navigationBar, .tabBar)
-    ///         }
-    ///     }
-    ///
-    /// Note that the provided color scheme is only respected while a
-    /// background is visible in the requested bar. As the background becomes
-    /// visible, the bar transitions from the color scheme of the app to the
-    /// requested color scheme. You can ensure that the color scheme is always
-    /// respected by specifying that the background of the bar always be
-    /// visible.
-    ///
-    ///     NavigationView {
-    ///         ContentView()
-    ///             .toolbarBackground(.visible)
-    ///             .toolbarColorScheme(.dark)
-    ///     }
-    ///
-    /// Depending on the specified bars, the requested color scheme may not be
-    /// able to be fullfilled.
-    ///
-    /// - Parameters:
-    ///   - colorScheme: The preferred color scheme of the background
-    ///     of the bar.
-    ///   - bars: The bars to update the color scheme of or
-    ///     ``ToolbarPlacement/automatic`` if empty.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View { return stubView() }
-
-
-    /// Specifies the visibility of a bar managed by SkipUI.
-    ///
-    /// The preferred visibility flows up to the nearest container
-    /// that renders a bar. This could be a ``NavigationView`` or ``TabView``
-    /// in iOS, or the root view of a ``WindowGroup`` in macOS.
-    ///
-    /// This examples shows a view that hides the navigation bar.
-    ///
-    ///     NavigationView {
-    ///         ContentView()
-    ///             .toolbar(.hidden)
-    ///     }
-    ///
-    /// You can provide multiple ``ToolbarPlacement`` instances to hide
-    /// multiple bars at once.
-    ///
-    ///     TabView {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .toolbar(
-    ///                     .hidden, for: .navigationBar, .tabBar)
-    ///         }
-    ///     }
-    ///
-    /// > Note: In macOS, if you provide ``ToolbarCommands`` to the scene
-    ///   of your app, this modifier disables the toolbar visibility command
-    ///   while the value of the modifier is not ``ToolbarPlacement/automatic``.
-    ///
-    /// Depending on the specified bars, the requested visibility may not be
-    /// able to be fullfilled.
-    ///
-    /// - Parameters:
-    ///   - visibility: The preferred visibility of the bar.
-    ///   - bars: The bars to update the visibility of or
-    ///     ``ToolbarPlacement/automatic`` if empty.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View { return stubView() }
-
-}
-
 //@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 //extension Group : ToolbarContent where Content : ToolbarContent {
 //    /// Creates a group of toolbar content instances.
@@ -1099,457 +232,5 @@ extension View {
 //    public var body: some CustomizableToolbarContent { stubToolbar() }
 //
 //}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension Never : ToolbarContent, CustomizableToolbarContent {
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Optional : ToolbarContent where Wrapped : ToolbarContent {
-
-    /// The type of content representing the body of this toolbar content.
-    //public typealias Body = NeverView
-    public var body: some CustomizableToolbarContent { stubToolbar() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Optional : CustomizableToolbarContent where Wrapped : CustomizableToolbarContent {
-}
-
-/// Conforming types represent items that can be placed in various locations
-/// in a customizable toolbar.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public protocol CustomizableToolbarContent : ToolbarContent where Self.Body : CustomizableToolbarContent {
-}
-
-extension CustomizableToolbarContent {
-
-    /// Configures the way customizable toolbar items with the default
-    /// behavior behave.
-    ///
-    /// Default customizable items support a variety of edits by the user.
-    /// * A user can add an an item that is not in the toolbar.
-    /// * A user can remove an item that is in the toolbar.
-    /// * A user can move an item within the toolbar.
-    ///
-    /// By default, all default customizable items will be initially
-    /// present in the toolbar. Provide a value of
-    /// ``Visibility/hidden`` to this modifier to specify that items should
-    /// initially be hidden from the user, and require them to add those items
-    /// to the toolbar if desired.
-    ///
-    ///     ContentView()
-    ///         .toolbar(id: "main") {
-    ///             ToolbarItem(id: "new") {
-    ///                 // new button here
-    ///             }
-    ///             .defaultCustomization(.hidden)
-    ///         }
-    ///
-    /// You can ensure that the user can always use an item with default
-    /// customizability, even if it's removed from the customizable toolbar. To
-    /// do this, provide the ``ToolbarCustomizationOptions/alwaysAvailable``
-    /// option. Unlike a customizable item with a customization behavior of
-    /// ``ToolbarCustomizationBehavior/none`` which always remain in the toolbar
-    /// itself, these items will remain in the overflow if the user removes them
-    /// from the toolbar.
-    ///
-    /// Provide a value of ``ToolbarCustomizationOptions/alwaysAvailable`` to
-    /// the options parameter of this modifier to receive this behavior.
-    ///
-    ///     ContentView()
-    ///         .toolbar(id: "main") {
-    ///             ToolbarItem(id: "new") {
-    ///                 // new button here
-    ///             }
-    ///             .defaultCustomization(options: .alwaysAvailable)
-    ///         }
-    ///
-    /// - Parameters:
-    ///   - defaultVisibility: The default visibility of toolbar content
-    ///     with the default customization behavior.
-    ///   - options: The customization options to configure the behavior
-    ///     of toolbar content with the default customization behavior.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func defaultCustomization(_ defaultVisibility: Visibility = .automatic, options: ToolbarCustomizationOptions = []) -> some CustomizableToolbarContent { stubToolbar() }
-
-
-    /// Configures customizable toolbar content with the default visibility
-    /// and options.
-    ///
-    /// Use the ``CustomizableToolbarContent/defaultCustomization(_:options:)``
-    /// modifier providing either a `defaultVisibility` or `options` instead.
-    @available(iOS, introduced: 16.0, deprecated: 16.0, message: "Please provide either a visibility or customization options")
-    @available(macOS, introduced: 13.0, deprecated: 13.0, message: "Please provide either a visibility or customization options")
-    @available(tvOS, introduced: 16.0, deprecated: 16.0, message: "Please provide either a visibility or customization options")
-    @available(watchOS, introduced: 9.0, deprecated: 9.0, message: "Please provide either a visibility or customization options")
-    public func defaultCustomization() -> some CustomizableToolbarContent { stubToolbar() }
-
-}
-
-extension CustomizableToolbarContent {
-
-    /// Configures the customization behavior of customizable toolbar content.
-    ///
-    /// Customizable toolbar items support different kinds of customization:
-    /// * A user can add an an item that is not in the toolbar.
-    /// * A user can remove an item that is in the toolbar.
-    /// * A user can move an item within the toolbar.
-    ///
-    /// Based on the customization behavior of the toolbar items, different
-    /// edits will be supported.
-    ///
-    /// Use this modifier to the customization behavior a user can
-    /// perform on your toolbar items. In the following example, the
-    /// customizable toolbar item supports all of the different kinds of
-    /// toolbar customizations and starts in the toolbar.
-    ///
-    ///     ContentView()
-    ///         .toolbar(id: "main") {
-    ///             ToolbarItem(id: "new") {
-    ///                 // new button here
-    ///             }
-    ///         }
-    ///
-    /// You can create an item that can not be removed from the toolbar
-    /// or moved within the toolbar  by passing a value of
-    /// ``ToolbarCustomizationBehavior/disabled`` to this modifier.
-    ///
-    ///     ContentView()
-    ///         .toolbar(id: "main") {
-    ///             ToolbarItem(id: "new") {
-    ///                 // new button here
-    ///             }
-    ///             .customizationBehavior(.disabled)
-    ///         }
-    ///
-    /// You can create an item that can not be removed from the toolbar, but
-    /// can be moved by passing a value of
-    /// ``ToolbarCustomizationBehavior/reorderable``.
-    ///
-    ///     ContentView()
-    ///         .toolbar(id: "main") {
-    ///             ToolbarItem(id: "new") {
-    ///                 // new button here
-    ///             }
-    ///             .customizationBehavior(.reorderable)
-    ///         }
-    ///
-    /// - Parameter behavior: The customization behavior of the customizable
-    ///   toolbar content.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func customizationBehavior(_ behavior: ToolbarCustomizationBehavior) -> some CustomizableToolbarContent { stubToolbar() }
-
-}
-
-
-extension View {
-
-    /// Configure the title menu of a toolbar.
-    ///
-    /// A title menu represent common functionality that can be done on the
-    /// content represented by your app's toolbar or navigation title. This
-    /// menu may be populated from your app's commands like
-    /// ``CommandGroupPlacement/saveItem`` or
-    /// ``CommandGroupPlacement/printItem``.
-    ///
-    ///     ContentView()
-    ///         .toolbar {
-    ///             ToolbarTitleMenu()
-    ///         }
-    ///
-    /// You can provide your own set of actions to override this behavior.
-    ///
-    ///     ContentView()
-    ///         .toolbarTitleMenu {
-    ///             DuplicateButton()
-    ///             PrintButton()
-    ///         }
-    ///
-    /// In iOS and iPadOS, this will construct a menu that can be presented by
-    /// tapping the navigation title in the app's navigation bar.
-    ///
-    /// - Parameter content: The content associated to the toolbar title menu.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarTitleMenu<C>(@ViewBuilder content: () -> C) -> some View where C : View { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures the toolbar title display mode for this view.
-    ///
-    /// Use this modifier to override the default toolbar title display
-    /// mode.
-    ///
-    ///     NavigationStack {
-    ///         ContentView()
-    ///             .toolbarTitleDisplayMode(.inlineLarge)
-    ///     }
-    ///
-    /// See ``ToolbarTitleDisplayMode`` for more information on the
-    /// different kinds of display modes. This modifier has no effect
-    /// on macOS.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View { return stubView() }
-
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Populates the toolbar or navigation bar with the views you provide.
-    ///
-    /// Use this modifier to add content to the toolbar. The toolbar modifier
-    /// expects a collection of toolbar items that you can provide either by
-    /// supplying a collection of views with each view wrapped in a
-    /// ``ToolbarItem``, or by providing a collection of views as a
-    /// ``ToolbarItemGroup``. The example below adds views to using a toolbar
-    /// item group to support text editing features:
-    ///
-    ///     struct StructToolbarItemGroupView: View {
-    ///         @State private var text = ""
-    ///         @State private var bold = false
-    ///         @State private var italic = false
-    ///         @State private var fontSize = 12.0
-    ///
-    ///         var displayFont: Font {
-    ///             let font = Font.system(size: CGFloat(fontSize),
-    ///                                    weight: bold == true ? .bold : .regular)
-    ///             return italic == true ? font.italic() : font
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             TextEditor(text: $text)
-    ///                 .font(displayFont)
-    ///                 .toolbar {
-    ///                     ToolbarItemGroup {
-    ///                         Slider(
-    ///                             value: $fontSize,
-    ///                             in: 8...120,
-    ///                             minimumValueLabel:
-    ///                                 Text("A").font(.system(size: 8)),
-    ///                             maximumValueLabel:
-    ///                                 Text("A").font(.system(size: 16))
-    ///                         ) {
-    ///                             Text("Font Size (\(Int(fontSize)))")
-    ///                         }
-    ///                         .frame(width: 150)
-    ///                         Toggle(isOn: $bold) {
-    ///                             Image(systemName: "bold")
-    ///                         }
-    ///                         Toggle(isOn: $italic) {
-    ///                             Image(systemName: "italic")
-    ///                         }
-    ///                     }
-    ///                 }
-    ///                 .navigationTitle("My Note")
-    ///         }
-    ///     }
-    ///
-    /// ![A window showing a font size selector, and toggles for bold, italic.
-    ///   and underlined text styling installed in the toolbar to
-    ///   support text editing in
-    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
-    ///
-    /// - Parameter content: The views representing the content of the toolbar.
-    public func toolbar<Content>(@ViewBuilder content: () -> Content) -> some View where Content : View { return stubView() }
-
-
-    /// Populates the toolbar or navigation bar with the specified items.
-    ///
-    /// Use this method to populate a toolbar with a collection of views that
-    /// you provide to a toolbar view builder.
-    ///
-    /// The toolbar modifier expects a collection of toolbar items which you can
-    /// provide either by supplying a collection of views with each view
-    /// wrapped in a ``ToolbarItem``, or by providing a collection of views as
-    /// a ``ToolbarItemGroup``. The example below uses a collection of
-    /// ``ToolbarItem`` views to create a macOS toolbar that supports text
-    /// editing features:
-    ///
-    ///     struct StructToolbarItemGroupView: View {
-    ///         @State private var text = ""
-    ///         @State private var bold = false
-    ///         @State private var italic = false
-    ///         @State private var fontSize = 12.0
-    ///
-    ///         var displayFont: Font {
-    ///             let font = Font.system(size: CGFloat(fontSize),
-    ///                                    weight: bold == true ? .bold : .regular)
-    ///             return italic == true ? font.italic() : font
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             TextEditor(text: $text)
-    ///                 .font(displayFont)
-    ///                 .toolbar {
-    ///                     ToolbarItemGroup {
-    ///                         Slider(
-    ///                             value: $fontSize,
-    ///                             in: 8...120,
-    ///                             minimumValueLabel:
-    ///                                 Text("A").font(.system(size: 8)),
-    ///                             maximumValueLabel:
-    ///                                 Text("A").font(.system(size: 16))
-    ///                         ) {
-    ///                             Text("Font Size (\(Int(fontSize)))")
-    ///                         }
-    ///                         .frame(width: 150)
-    ///                         Toggle(isOn: $bold) {
-    ///                             Image(systemName: "bold")
-    ///                         }
-    ///                         Toggle(isOn: $italic) {
-    ///                             Image(systemName: "italic")
-    ///                         }
-    ///                     }
-    ///                 }
-    ///                 .navigationTitle("My Note")
-    ///         }
-    ///     }
-    ///
-    /// ![A window showing a font size selector, and toggles for bold, italic.
-    ///   and underlined text styling installed in the toolbar to
-    ///   support text editing in
-    ///   macOS.](SkipUI-View-Styling-ToolbarContent.png)
-    ///
-    /// Although it's not mandatory, wrapping a related group of toolbar
-    /// items together in a ``ToolbarItemGroup`` provides a one-to-one mapping
-    /// between controls and toolbar items which results in the correct layout
-    /// and spacing on each platform.
-    ///
-    /// - Parameter content: The items representing the content of the toolbar.
-    public func toolbar<Content>(@ToolbarContentBuilder content: () -> Content) -> some View where Content : ToolbarContent { return stubView() }
-
-
-    /// Populates the toolbar or navigation bar with the specified items,
-    /// allowing for user customization.
-    ///
-    /// Use this modifier when you want to allow the user to customize the
-    /// components and layout of elements in the toolbar. The toolbar modifier
-    /// expects a collection of toolbar items which you can provide either by
-    /// supplying a collection of views with each view wrapped in a
-    /// ``ToolbarItem``.
-    ///
-    /// > Note: Customizable toolbars will be displayed on both macOS and iOS,
-    ///   but only apps running on iPadOS 16.0 and later will support
-    ///   user customization.
-    ///
-    /// The example below creates a view that represents each
-    /// ``ToolbarItem`` along with an ID that uniquely identifies the toolbar
-    /// item to the customization editor:
-    ///
-    ///     struct ToolsEditorView: View {
-    ///         @State private var text = ""
-    ///         @State private var bold = false
-    ///         @State private var italic = false
-    ///         @State private var fontSize = 12.0
-    ///
-    ///         var displayFont: Font {
-    ///             let font = Font.system(
-    ///                size: CGFloat(fontSize),
-    ///                  weight: bold == true ? .bold : .regular)
-    ///             return italic == true ? font.italic() : font
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             TextEditor(text: $text)
-    ///                 .font(displayFont)
-    ///                 .toolbar(id: "editingtools") {
-    ///                     ToolbarItem(
-    ///                         id: "sizeSelector", placement: .secondaryAction
-    ///                     ) {
-    ///                         Slider(
-    ///                             value: $fontSize,
-    ///                             in: 8...120,
-    ///                             minimumValueLabel:
-    ///                                 Text("A").font(.system(size: 8)),
-    ///                             maximumValueLabel:
-    ///                                 Text("A").font(.system(size: 16))
-    ///                         ) {
-    ///                             Text("Font Size (\(Int(fontSize)))")
-    ///                         }
-    ///                         .frame(width: 150)
-    ///                     }
-    ///                     ToolbarItem(
-    ///                         id: "bold", placement: .secondaryAction
-    ///                     ) {
-    ///                         Toggle(isOn: $bold) {
-    ///                             Image(systemName: "bold")
-    ///                         }
-    ///                     }
-    ///                     ToolbarItem(
-    ///                         id: "italic", placement: .secondaryAction
-    ///                     ) {
-    ///                         Toggle(isOn: $italic) {
-    ///                             Image(systemName: "italic")
-    ///                         }
-    ///                     }
-    ///                 }
-    ///                 .navigationTitle("My Note")
-    ///         }
-    ///     }
-    ///
-    /// ![A window showing the macOS toolbar customization
-    ///   editor.](SkipUI-View-Styling-ToolbarCustomization.png)
-    ///
-    /// > Note: Only ``ToolbarItemPlacement/secondaryAction`` items support
-    ///   customization in iPadOS. Other items follow the normal
-    ///   placement rules and can't be customized by the user.
-    ///
-    /// In macOS you can enable menu support for toolbar customization by
-    /// adding a ``ToolbarCommands`` instance to a scene using the
-    /// ``Scene/commands(content:)`` scene modifier:
-    ///
-    ///     @main
-    ///     struct ToolbarContent_macOSApp: App {
-    ///         var body: some Scene {
-    ///             WindowGroup {
-    ///                 ToolsEditorView()
-    ///                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    ///             }
-    ///             .commands {
-    ///                 ToolbarCommands()
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// When you add the toolbar commands, the system adds a menu item to
-    /// your app's main menu to provide toolbar customization support.
-    /// This is in addition to the ability to Control-click on the
-    /// toolbar to open the toolbar customization editor.
-    ///
-    /// ![A screenshot of the toolbar editor support for the macOS view
-    /// menu.](SkipUI-View-Styling-ToolbarCustomizationMenu.png)
-    ///
-    /// - Parameters:
-    ///   - id: A unique identifier for this toolbar.
-    ///   - content: The content representing the content of the toolbar.
-    public func toolbar<Content>(id: String, @ToolbarContentBuilder content: () -> Content) -> some View where Content : CustomizableToolbarContent { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures the semantic role for the content populating the toolbar.
-    ///
-    /// Use this modifier to configure the semantic role for content
-    /// populating your app's toolbar. SkipUI uses this role when
-    /// rendering the content of your app's toolbar.
-    ///
-    ///     ContentView()
-    ///         .navigationTitle("Browser")
-    ///         .toolbarRole(.browser)
-    ///         .toolbar {
-    ///             ToolbarItem(placement: .primaryAction) {
-    ///                 AddButton()
-    ///             }
-    ///          }
-    ///
-    /// - Parameter role: The role of the toolbar.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func toolbarRole(_ role: ToolbarRole) -> some View { return stubView() }
-
-}
 
 #endif

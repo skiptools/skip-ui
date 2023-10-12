@@ -2,9 +2,78 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+public enum UIKeyboardType: Int {
+    case `default`
+    case asciiCapable
+    case numbersAndPunctuation
+    case URL
+    case numberPad
+    case phonePad
+    case namePhonePad
+    case emailAddress
+    case decimalPad
+    case twitter
+    case webSearch
+    case asciiCapableNumberPad
+    case alphabet
+}
+
+public struct UITextContentType: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let name = UITextContentType(rawValue: 0) // Not allowed as a Kotlin enum case name
+    public static let namePrefix = UITextContentType(rawValue: 1)
+    public static let givenName = UITextContentType(rawValue: 2)
+    public static let middleName = UITextContentType(rawValue: 3)
+    public static let familyName = UITextContentType(rawValue: 4)
+    public static let nameSuffix = UITextContentType(rawValue: 5)
+    public static let nickname = UITextContentType(rawValue: 6)
+    public static let jobTitle = UITextContentType(rawValue: 7)
+    public static let organizationName = UITextContentType(rawValue: 8)
+    public static let location = UITextContentType(rawValue: 9)
+    public static let fullStreetAddress = UITextContentType(rawValue: 10)
+    public static let streetAddressLine1 = UITextContentType(rawValue: 11)
+    public static let streetAddressLine2 = UITextContentType(rawValue: 12)
+    public static let addressCity = UITextContentType(rawValue: 13)
+    public static let addressState = UITextContentType(rawValue: 14)
+    public static let addressCityAndState = UITextContentType(rawValue: 15)
+    public static let sublocality = UITextContentType(rawValue: 16)
+    public static let countryName = UITextContentType(rawValue: 17)
+    public static let postalCode = UITextContentType(rawValue: 18)
+    public static let telephoneNumber = UITextContentType(rawValue: 19)
+    public static let emailAddress = UITextContentType(rawValue: 20)
+    public static let URL = UITextContentType(rawValue: 21)
+    public static let creditCardNumber = UITextContentType(rawValue: 22)
+    public static let username = UITextContentType(rawValue: 23)
+    public static let password = UITextContentType(rawValue: 24)
+    public static let newPassword = UITextContentType(rawValue: 25)
+    public static let oneTimeCode = UITextContentType(rawValue: 26)
+    public static let shipmentTrackingNumber = UITextContentType(rawValue: 27)
+    public static let flightNumber = UITextContentType(rawValue: 28)
+    public static let dateTime = UITextContentType(rawValue: 29)
+    public static let birthdate = UITextContentType(rawValue: 30)
+    public static let birthdateDay = UITextContentType(rawValue: 31)
+    public static let birthdateMonth = UITextContentType(rawValue: 32)
+    public static let birthdateYear = UITextContentType(rawValue: 33)
+    public static let creditCardSecurityCode = UITextContentType(rawValue: 34)
+    public static let creditCardName = UITextContentType(rawValue: 35)
+    public static let creditCardGivenName = UITextContentType(rawValue: 36)
+    public static let creditCardMiddleName = UITextContentType(rawValue: 37)
+    public static let creditCardFamilyName = UITextContentType(rawValue: 38)
+    public static let creditCardExpiration = UITextContentType(rawValue: 39)
+    public static let creditCardExpirationMonth = UITextContentType(rawValue: 40)
+    public static let creditCardExpirationYear = UITextContentType(rawValue: 41)
+    public static let creditCardType = UITextContentType(rawValue: 42)
+}
 
 #if !SKIP
+
+// TODO: Process for use in SkipUI
+
 #if canImport(UIKit)
 import protocol Combine.ObservableObject
 import protocol UIKit.UIApplicationDelegate
@@ -1215,13 +1284,6 @@ extension UIAccessibilityContrast {
 }
 
 extension UIContentSizeCategory {
-
-    /// Create a size category from its `ContentSizeCategory` equivalent.
-    @available(iOS 14.0, tvOS 14.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    public init(_ sizeCategory: ContentSizeCategory?) { fatalError() }
-
     @available(iOS 15.0, tvOS 15.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
@@ -1312,15 +1374,6 @@ extension UserInterfaceSizeClass {
     public init?(_ uiUserInterfaceSizeClass: UIUserInterfaceSizeClass) { fatalError() }
 }
 
-extension ContentSizeCategory {
-
-    /// Create a size category from its UIContentSizeCategory equivalent.
-    @available(iOS 14.0, tvOS 14.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    public init?(_ uiSizeCategory: UIContentSizeCategory) { fatalError() }
-}
-
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension Label /* where Title == Text, Icon == Image */ {
 
@@ -1338,91 +1391,6 @@ extension Label /* where Title == Text, Icon == Image */ {
     ///    - title: A string used as the label's title.
     ///    - image: The image resource to lookup.
     public init<S>(_ title: S, image resource: ImageResource) where S : StringProtocol { fatalError() }
-}
-
-extension View {
-
-    /// Sets the keyboard type for this view.
-    ///
-    /// Use `keyboardType(_:)` to specify the keyboard type to use for text
-    /// entry. A number of different keyboard types are available to meet
-    /// specialized input needs, such as entering email addresses or phone
-    /// numbers.
-    ///
-    /// The example below presents a ``TextField`` to input an email address.
-    /// Setting the text field's keyboard type to `.emailAddress` ensures the
-    /// user can only enter correctly formatted email addresses.
-    ///
-    ///     TextField("someone@example.com", text: $emailAddress)
-    ///         .keyboardType(.emailAddress)
-    ///
-    /// There are several different kinds of specialized keyboard types
-    /// available though the
-    ///  enumeration. To
-    /// specify the default system keyboard type, use `.default`.
-    ///
-    /// ![A screenshot showing the use of a specialized keyboard type with a
-    /// text field.](SkipUI-View-keyboardType.png)
-    ///
-    /// - Parameter type: One of the keyboard types defined in the
-    ///  enumeration.
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    public func keyboardType(_ type: UIKeyboardType) -> some View { return stubView() }
-
-}
-
-extension View {
-
-    /// Sets whether to apply auto-capitalization to this view.
-    ///
-    /// Use `autocapitalization(_:)` when you need to automatically capitalize
-    /// words, sentences, or other text like proper nouns.
-    ///
-    /// In example below, as the user enters text each word is automatically
-    /// capitalized:
-    ///
-    ///     TextField("Last, First", text: $fullName)
-    ///         .autocapitalization(UITextAutocapitalizationType.words)
-    ///
-    /// The
-    /// enumeration defines the available capitalization modes. The default is
-    /// .
-    ///
-    /// - Parameter style: One of the autocapitalization modes defined in the
-    /// enumeration.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
-    @available(macOS, unavailable)
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use textInputAutocapitalization(_:)")
-    public func autocapitalization(_ style: UITextAutocapitalizationType) -> some View { return stubView() }
-
-}
-
-extension View {
-
-    /// Sets the text content type for this view, which the system uses to
-    /// offer suggestions while the user enters text on an iOS or tvOS device.
-    ///
-    /// Use this method to set the content type for input text.
-    /// For example, you can configure a ``TextField`` for the entry of email
-    /// addresses:
-    ///
-    ///     TextField("Enter your email", text: $emailAddress)
-    ///         .textContentType(.emailAddress)
-    ///
-    /// - Parameter textContentType: One of the content types available in the
-    ///
-    ///   structure that identify the semantic meaning expected for a text-entry
-    ///   area. These include support for email addresses, location names, URLs,
-    ///   and telephone numbers, to name just a few.
-    @available(iOS 13.0, tvOS 13.0, *)
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    public func textContentType(_ textContentType: UITextContentType?) -> some View { return stubView() }
-
 }
 
 #endif

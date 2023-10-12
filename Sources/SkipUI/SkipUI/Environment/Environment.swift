@@ -548,16 +548,6 @@ extension EnvironmentValues {
     public var backgroundProminence: BackgroundProminence { get { fatalError() } }
 }
 
-extension EnvironmentValues {
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "dynamicTypeSize")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "dynamicTypeSize")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "dynamicTypeSize")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "dynamicTypeSize")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "dynamicTypeSize")
-    public var sizeCategory: ContentSizeCategory { get { fatalError() } }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EnvironmentValues {
 

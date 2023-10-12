@@ -2,9 +2,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-import struct Foundation.URL
-import struct Foundation.Data
-import class Foundation.UserDefaults
+import Foundation
 
 public final class AppStorage<Value> {
     public let key: String
@@ -59,6 +57,13 @@ public final class AppStorage<Value> {
         }
     }
     #endif
+}
+
+extension View {
+    @available(*, unavailable)
+    public func defaultAppStorage(_ store: UserDefaults) -> some View {
+        return self
+    }
 }
 
 #if !SKIP
@@ -263,22 +268,6 @@ extension AppStorage {
     ///   - store: The user defaults store to read and write to. A value
     ///     of `nil` will use the user default store from the environment.
     public convenience init<R>(_ key: String, store: UserDefaults? = nil) where Value == R?, R : RawRepresentable, R.RawValue == Int { fatalError() }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// The default store used by `AppStorage` contained within the view.
-    ///
-    /// If unspecified, the default store for a view hierarchy is
-    /// `UserDefaults.standard`, but can be set a to a custom one. For example,
-    /// sharing defaults between an app and an extension can override the
-    /// default store to one created with `UserDefaults.init(suiteName:_)`.
-    ///
-    /// - Parameter store: The user defaults to use as the default
-    ///   store for `AppStorage`.
-    public func defaultAppStorage(_ store: UserDefaults) -> some View { return stubView() }
-
 }
 
 #endif

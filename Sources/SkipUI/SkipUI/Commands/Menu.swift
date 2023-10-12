@@ -223,18 +223,6 @@ public struct MenuOrder : Equatable, Hashable, Sendable {
     public static let fixed: MenuOrder = { fatalError() }()
 }
 
-/// A picker style that presents the options as a menu when the user presses a
-/// button, or as a submenu when nested within a larger menu.
-///
-/// You can also use ``PickerStyle/menu`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-public struct MenuPickerStyle : PickerStyle {
-
-    /// Creates a menu picker style.
-    public init() { fatalError() }
-}
-
 /// A type that applies standard interaction behavior and a custom appearance
 /// to all menus within a view hierarchy.
 ///

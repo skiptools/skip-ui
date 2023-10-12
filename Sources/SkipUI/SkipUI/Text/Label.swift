@@ -118,9 +118,48 @@ public struct LabelStyle: RawRepresentable, Equatable {
     public static let titleAndIcon = LabelStyle(rawValue: 3)
 }
 
+// Erase the generic Label and Content to facilitate specialized constructor support.
+// SKIP DECLARE: class LabeledContent: View
+public struct LabeledContent<Label, Content> {
+    @available(*, unavailable)
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, @ViewBuilder content: () -> any View) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, value: String) {
+    }
+
+    @available(*, unavailable)
+    public init(_ title: String, value: String) {
+    }
+}
+
+// Model `LabeledContentStyle` as a struct. Kotlin does not support static members of protocols
+public struct LabeledContentStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = LabeledContentStyle(rawValue: 0)
+}
+
 extension View {
     public func labelStyle(_ style: LabelStyle) -> some View {
         // We only support .automatic
+        return self
+    }
+
+    public func labeledContentStyle(_ style: LabeledContentStyle) -> some View {
         return self
     }
 }
@@ -199,213 +238,8 @@ extension LabelStyleConfiguration.Icon : View {
     public var body: Body { fatalError() }
 }
 
-/// A container for attaching a label to a value-bearing view.
-///
-/// The instance's content represents a read-only or read-write value, and its
-/// label identifies or describes the purpose of that value.
-/// The resulting element has a layout that's consistent with other framework
-/// controls and automatically adapts to its container, like a form or toolbar.
-/// Some styles of labeled content also apply styling or behaviors to the value
-/// content, like making ``Text`` views selectable.
-///
-/// The following example associates a label with a custom view and has
-/// a layout that matches the label of the ``Picker``:
-///
-///     Form {
-///         LabeledContent("Custom Value") {
-///             MyCustomView(value: $value)
-///         }
-///         Picker("Selected Value", selection: $selection) {
-///             Text("Option 1").tag(1)
-///             Text("Option 2").tag(2)
-///         }
-///     }
-///
-/// ### Custom view labels
-///
-/// You can assemble labeled content with an explicit view for its label
-/// using the ``init(content:label:)`` initializer. For example, you can
-/// rewrite the previous labeled content example using a ``Text`` view:
-///
-///     LabeledContent {
-///         MyCustomView(value: $value)
-///     } label: {
-///         Text("Custom Value")
-///     }
-///
-/// The `label` view builder accepts any kind of view, like a ``Label``:
-///
-///     LabeledContent {
-///         MyCustomView(value: $value)
-///     } label: {
-///         Label("Custom Value", systemImage: "hammer")
-///     }
-///
-/// ### Textual labeled content
-///
-/// You can construct labeled content with string values or formatted values
-/// to create read-only displays of textual values:
-///
-///     Form {
-///         Section("Information") {
-///             LabeledContent("Name", value: person.name)
-///             LabeledContent("Age", value: person.age, format: .number)
-///             LabeledContent("Height", value: person.height,
-///                 format: .measurement(width: .abbreviated))
-///         }
-///         if !person.pets.isEmpty {
-///             Section("Pets") {
-///                 ForEach(pet) { pet in
-///                     LabeledContent(pet.species, value: pet.name)
-///                 }
-///             }
-///         }
-///     }
-///
-/// Wherever possible, SkipUI makes this text selectable.
-///
-/// ### Compositional elements
-///
-/// You can use labeled content as the label for other elements. For example,
-/// a ``NavigationLink`` can present a summary value for the destination it
-/// links to:
-///
-///     Form {
-///         NavigationLink(value: Settings.wifiDetail) {
-///             LabeledContent("Wi-Fi", value: ssidName)
-///         }
-///     }
-///
-/// In some cases, the styling of views used as the value content is
-/// specialized as well. For example, while a ``Toggle`` in an inset group
-/// form on macOS is styled as a switch by default, it's styled as a checkbox
-/// when used as a value element within a surrounding `LabeledContent`
-/// instance:
-///
-///     Form {
-///         LabeledContent("Source Control") {
-///             Toggle("Refresh local status automatically",
-///                 isOn: $refreshLocalStatus)
-///             Toggle("Fetch and refresh server status automatically",
-///                 isOn: $refreshServerStatus)
-///             Toggle("Add and remove files automatically",
-///                 isOn: $addAndRemoveFiles)
-///             Toggle("Select files to commit automatically",
-///                 isOn: $selectFiles)
-///         }
-///     }
-///
-/// ### Controlling label visibility
-///
-/// A label communicates the identity or purpose of the value, which is
-/// important for accessibility. However, you might want to hide the label
-/// in the display, and some controls or contexts may visually hide their label
-/// by default. The ``View/labelsHidden()`` modifier allows controlling that
-/// visibility. The following example hides both labels, producing only a
-/// group of the two value views:
-///
-///     Group {
-///         LabeledContent("Custom Value") {
-///             MyCustomView(value: $value)
-///         }
-///         Picker("Selected Value", selection: $selection) {
-///             Text("Option 1").tag(1)
-///             Text("Option 2").tag(2)
-///         }
-///     }
-///     .labelsHidden()
-///
-/// ### Styling labeled content
-///
-/// You can set label styles using the ``View/labeledContentStyle(_:)``
-/// modifier. You can also build custom styles using ``LabeledContentStyle``.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct LabeledContent<Label, Content> {
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LabeledContent : View where Label : View, Content : View {
-
-    /// Creates a standard labeled element, with a view that conveys
-    /// the value of the element and a label.
-    ///
-    /// - Parameters:
-    ///   - content: The view that conveys the value of the resulting labeled
-    ///     element.
-    ///   - label: The label that describes the purpose of the result.
-    public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LabeledContent where Label == Text, Content : View {
-
-    /// Creates a labeled view that generates its label from a localized string
-    /// key.
-    ///
-    /// This initializer creates a ``Text`` label on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the view's localized title, that describes
-    ///     the purpose of the view.
-    ///   - content: The value content being labeled.
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> Content) { fatalError() }
-
-    /// Creates a labeled view that generates its label from a string.
-    ///
-    /// This initializer creates a ``Text`` label on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the view.
-    ///   - content: The value content being labeled.
-    public init<S>(_ title: S, @ViewBuilder content: () -> Content) where S : StringProtocol { fatalError() }
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension LabeledContent where Label == Text, Content == Text {
-
-    /// Creates a labeled informational view.
-    ///
-    /// This initializer creates a ``Text`` label on your behalf, and treats the
-    /// localized key similar to ``Text/init(_:tableName:bundle:comment:)``. See
-    /// `Text` for more information about localizing strings.
-    ///
-    ///     Form {
-    ///         LabeledContent("Name", value: person.name)
-    ///     }
-    ///
-    /// In some contexts, this text will be selectable by default.
-    ///
-    /// - Parameters:
-    ///   - titleKey: The key for the view's localized title, that describes
-    ///     the purpose of the view.
-    ///   - value: The value being labeled.
-    public init<S>(_ titleKey: LocalizedStringKey, value: S) where S : StringProtocol { fatalError() }
-
-    /// Creates a labeled informational view.
-    ///
-    /// This initializer creates a ``Text`` label on your behalf, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``. See `Text` for more
-    /// information about localizing strings.
-    ///
-    ///     Form {
-    ///         ForEach(person.pet) { pet in
-    ///             LabeledContent(pet.species, value: pet.name)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the purpose of the view.
-    ///   - value: The value being labeled.
-    public init<S1, S2>(_ title: S1, value: S2) where S1 : StringProtocol, S2 : StringProtocol { fatalError() }
-
     /// Creates a labeled informational view from a formatted value.
     ///
     /// This initializer creates a ``Text`` label on your behalf, and treats the
@@ -474,38 +308,6 @@ extension LabeledContent where Label == LabeledContentStyleConfiguration.Label, 
     public init(_ configuration: LabeledContentStyleConfiguration) { fatalError() }
 }
 
-/// The appearance and behavior of a labeled content instance..
-///
-/// Use ``View/labeledContentStyle(_:)`` to set a style on a view.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public protocol LabeledContentStyle {
-
-    /// A view that represents the appearance and behavior of labeled content.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of labeled content.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a labeled content instance.
-    typealias Configuration = LabeledContentStyleConfiguration
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Sets a style for labeled content.
-    public func labeledContentStyle<S>(_ style: S) -> some View where S : LabeledContentStyle { return stubView() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LabeledContentStyle where Self == AutomaticLabeledContentStyle {
-
-    /// A labeled content style that resolves its appearance automatically based
-    /// on the current context.
-    public static var automatic: AutomaticLabeledContentStyle { get { fatalError() } }
-}
-
 /// The properties of a labeled content instance.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 public struct LabeledContentStyleConfiguration {
@@ -537,24 +339,6 @@ public struct LabeledContentStyleConfiguration {
 
     /// The content of the labeled content instance.
     public let content: LabeledContentStyleConfiguration.Content = { fatalError() }()
-}
-
-
-/// The default labeled content style.
-///
-/// Use ``LabeledContentStyle/automatic`` to construct this style.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct AutomaticLabeledContentStyle : LabeledContentStyle {
-
-    /// Creates an automatic labeled content style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of labeled content.
-    public func makeBody(configuration: AutomaticLabeledContentStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the appearance and behavior of labeled content.
-//    public typealias Body = some View
 }
 
 /// A view that represents the body of a control group with a specified

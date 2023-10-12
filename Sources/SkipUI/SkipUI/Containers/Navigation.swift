@@ -320,7 +320,38 @@ class Navigator {
 let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
 
+// Model `NavigationSplitViewStyle` as a struct. Kotlin does not support static members of protocols
+public struct NavigationSplitViewStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static var automatic = NavigationSplitViewStyle(rawValue: 0)
+    public static var balanced = NavigationSplitViewStyle(rawValue: 1)
+    public static var prominentDetail = NavigationSplitViewStyle(rawValue: 2)
+}
+
+public struct NavigationBarItem : Hashable, Sendable {
+    public enum TitleDisplayMode : Sendable {
+        case automatic
+        case inline
+        case large
+    }
+}
+
 extension View {
+    @available(*, unavailable)
+    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View {
+        return self
+    }
+
     public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
         #if SKIP
         let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
@@ -332,6 +363,31 @@ extension View {
 
     @available(*, unavailable)
     public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationDestination<D, C>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D : Hashable {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationDocument(_ url: URL) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSplitViewStyle(_ style: NavigationSplitViewStyle) -> some View {
         return self
     }
 
@@ -484,22 +540,6 @@ extension NavigationLink {
     @available(watchOS, unavailable)
     public func isDetailLink(_ isDetailLink: Bool) -> some View { return stubView() }
 
-}
-
-/// A picker style represented by a navigation link that presents the options
-/// by pushing a List-style picker view.
-///
-/// In navigation stacks, prefer the default ``PickerStyle/menu`` style.
-/// Consider the navigation link style when you have a large number of
-/// options or your design is better expressed by pushing onto a stack.
-///
-/// You can also use ``PickerStyle/navigationLink`` to construct this style.
-@available(iOS 16.0, tvOS 16.0, watchOS 9.0, *)
-@available(macOS, unavailable)
-public struct NavigationLinkPickerStyle : PickerStyle {
-
-    /// Creates a navigation link picker style.
-    public init() { fatalError() }
 }
 
 /// A type-erased list of data representing the content of a navigation stack.
@@ -938,119 +978,6 @@ public struct NavigationSplitViewColumn : Hashable, Sendable {
     public static var content: NavigationSplitViewColumn { get { fatalError() } }
 
     public static var detail: NavigationSplitViewColumn { get { fatalError() } }
-
-    
-
-
-}
-
-/// A navigation view style represented by a series of views in columns.
-///
-/// You can also use ``NavigationViewStyle/columns`` to construct this style.
-@available(iOS, introduced: 15.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-@available(macOS, introduced: 12.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-public struct ColumnNavigationViewStyle : NavigationViewStyle {
-}
-
-/// A navigation split style that resolves its appearance automatically
-/// based on the current context.
-///
-/// Use ``NavigationSplitViewStyle/automatic`` to construct this style.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct AutomaticNavigationSplitViewStyle : NavigationSplitViewStyle {
-
-    /// Creates an instance of the automatic navigation split view style.
-    ///
-    /// Use ``NavigationSplitViewStyle/automatic`` to construct this style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a navigation split view.
-    ///
-    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
-    /// where this style is the current ``NavigationSplitViewStyle``.
-    ///
-    /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: AutomaticNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a navigation split view.
-//    public typealias Body = some View
-}
-
-/// A navigation split style that reduces the size of the detail content
-/// to make room when showing the leading column or columns.
-///
-/// Use ``NavigationSplitViewStyle/balanced`` to construct this style.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct BalancedNavigationSplitViewStyle : NavigationSplitViewStyle {
-
-    /// Creates an instance of ``BalancedNavigationSplitViewStyle``.
-    ///
-    /// You can also use ``NavigationSplitViewStyle/balanced`` to construct this
-    /// style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a navigation split view.
-    ///
-    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
-    /// where this style is the current ``NavigationSplitViewStyle``.
-    ///
-    /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: BalancedNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a navigation split view.
-//    public typealias Body = some View
-}
-
-/// A type that specifies the appearance and interaction of navigation split
-/// views within a view hierarchy.
-///
-/// To configure the navigation split view style for a view hierarchy, use the
-/// ``View/navigationSplitViewStyle(_:)`` modifier.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public protocol NavigationSplitViewStyle {
-
-    /// A view that represents the body of a navigation split view.
-    associatedtype Body : View
-
-    /// Creates a view that represents the body of a navigation split view.
-    ///
-    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
-    /// where this style is the current ``NavigationSplitViewStyle``.
-    ///
-    /// - Parameter configuration: The properties of the instance to create.
-    @ViewBuilder func makeBody(configuration: Self.Configuration) -> Self.Body
-
-    /// The properties of a navigation split view instance.
-    typealias Configuration = NavigationSplitViewStyleConfiguration
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationSplitViewStyle where Self == ProminentDetailNavigationSplitViewStyle {
-
-    /// A navigation split style that attempts to maintain the size of the
-    /// detail content when hiding or showing the leading columns.
-    public static var prominentDetail: ProminentDetailNavigationSplitViewStyle { get { fatalError() } }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationSplitViewStyle where Self == AutomaticNavigationSplitViewStyle {
-
-    /// A navigation split style that resolves its appearance automatically
-    /// based on the current context.
-    public static var automatic: AutomaticNavigationSplitViewStyle { get { fatalError() } }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationSplitViewStyle where Self == BalancedNavigationSplitViewStyle {
-
-    /// A navigation split style that reduces the size of the detail content
-    /// to make room when showing the leading column or columns.
-    public static var balanced: BalancedNavigationSplitViewStyle { get { fatalError() } }
 }
 
 /// The properties of a navigation split view instance.
@@ -1118,505 +1045,6 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     ///
     /// - Parameter decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws { fatalError() }
-}
-
-/// A view for presenting a stack of views that represents a visible path in a
-/// navigation hierarchy.
-///
-/// Use a `NavigationView` to create a navigation-based app in which the user
-/// can traverse a collection of views. Users navigate to a destination view
-/// by selecting a ``NavigationLink`` that you provide. On iPadOS and macOS, the
-/// destination content appears in the next column. Other platforms push a new
-/// view onto the stack, and enable removing items from the stack with
-/// platform-specific controls, like a Back button or a swipe gesture.
-///
-/// ![A diagram showing a multicolumn navigation view on
-/// macOS, and a stack of views on iOS.](NavigationView-1)
-///
-/// Use the ``init(content:)`` initializer to create a
-/// navigation view that directly associates navigation links and their
-/// destination views:
-///
-///     NavigationView {
-///         List(model.notes) { note in
-///             NavigationLink(note.title, destination: NoteEditor(id: note.id))
-///         }
-///         Text("Select a Note")
-///     }
-///
-/// Style a navigation view by modifying it with the
-/// ``View/navigationViewStyle(_:)`` view modifier. Use other modifiers, like
-/// ``View/navigationTitle(_:)-avgj``, on views presented by the navigation
-/// view to customize the navigation interface for the presented view.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use NavigationStack or NavigationSplitView instead")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use NavigationStack or NavigationSplitView instead")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use NavigationStack or NavigationSplitView instead")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "use NavigationStack or NavigationSplitView instead")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "use NavigationStack or NavigationSplitView instead")
-public struct NavigationView<Content> : View where Content : View {
-
-    /// Creates a destination-based navigation view.
-    ///
-    /// Perform navigation by initializing a link with a destination view.
-    /// For example, consider a `ColorDetail` view that displays a color sample:
-    ///
-    ///     struct ColorDetail: View {
-    ///         var color: Color
-    ///
-    ///         var body: some View {
-    ///             color
-    ///                 .frame(width: 200, height: 200)
-    ///                 .navigationTitle(color.description.capitalized)
-    ///         }
-    ///     }
-    ///
-    /// The following ``NavigationView`` presents three links to color detail
-    /// views:
-    ///
-    ///     NavigationView {
-    ///         List {
-    ///             NavigationLink("Purple", destination: ColorDetail(color: .purple))
-    ///             NavigationLink("Pink", destination: ColorDetail(color: .pink))
-    ///             NavigationLink("Orange", destination: ColorDetail(color: .orange))
-    ///         }
-    ///         .navigationTitle("Colors")
-    ///
-    ///         Text("Select a Color") // A placeholder to show before selection.
-    ///     }
-    ///
-    /// When the horizontal size class is ``UserInterfaceSizeClass/regular``,
-    /// like on an iPad in landscape mode, or on a Mac,
-    /// the navigation view presents itself as a multicolumn view,
-    /// using its second and later content views --- a single ``Text``
-    /// view in the example above --- as a placeholder for the corresponding
-    /// column:
-    ///
-    /// ![A screenshot of a Mac window showing a multicolumn navigation view.
-    /// The left column lists the colors Purple, Pink, and Orange, with
-    /// none selected. The right column presents a placeholder view that says
-    /// Select a Color.](NavigationView-init-content-1)
-    ///
-    /// When the user selects one of the navigation links from the
-    /// list, the linked destination view replaces the placeholder
-    /// text in the detail column:
-    ///
-    /// ![A screenshot of a Mac window showing a multicolumn navigation view.
-    /// The left column lists the colors Purple, Pink, and Orange, with
-    /// Purple selected. The right column presents a detail view that shows a
-    /// purple square.](NavigationView-init-content-2)
-    ///
-    /// When the size class is ``UserInterfaceSizeClass/compact``, like
-    /// on an iPhone in portrait orientation, the navigation view presents
-    /// itself as a single column that the user navigates as a stack. Tapping
-    /// one of the links replaces the list with the detail view, which
-    /// provides a back button to return to the list:
-    ///
-    /// ![Two screenshots of an iPhone in portrait orientation connected by an
-    /// arrow. The first screenshot shows a single column consisting of a list
-    /// of colors with the names Purple, Pink, and Orange. The second
-    /// screenshot has the title Purple, and contains a purple square.
-    /// The arrow connects the Purple item in the list on the left to the
-    /// screenshot on the right.](NavigationView-init-content-3)
-    ///
-    /// - Parameter content: A ``ViewBuilder`` that produces the content that
-    ///   the navigation view wraps. Any views after the first act as
-    ///   placeholders for corresponding columns in a multicolumn display.
-    public init(@ViewBuilder content: () -> Content) { fatalError() }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
-/// A specification for the appearance and interaction of a `NavigationView`.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-public protocol NavigationViewStyle {
-}
-
-@available(iOS, introduced: 15.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-@available(macOS, introduced: 12.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView")
-extension NavigationViewStyle where Self == ColumnNavigationViewStyle {
-
-    /// A navigation view style represented by a series of views in columns.
-    public static var columns: ColumnNavigationViewStyle { get { fatalError() } }
-}
-
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView instead")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-extension NavigationViewStyle where Self == DefaultNavigationViewStyle {
-
-    /// The default navigation view style in the current context of the view
-    /// being styled.
-    public static var automatic: DefaultNavigationViewStyle { get { fatalError() } }
-}
-
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(macOS, unavailable)
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-extension NavigationViewStyle where Self == StackNavigationViewStyle {
-
-    /// A navigation view style represented by a view stack that only shows a
-    /// single top view at a time.
-    public static var stack: StackNavigationViewStyle { get { fatalError() } }
-}
-
-/// A configuration for a navigation bar that represents a view at the top of a
-/// navigation stack.
-///
-/// Use one of the ``TitleDisplayMode`` values to configure a navigation bar
-/// title's display mode with the ``View/navigationBarTitleDisplayMode(_:)``
-/// view modifier.
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-@available(macOS, unavailable)
-public struct NavigationBarItem : Sendable {
-
-    /// A style for displaying the title of a navigation bar.
-    ///
-    /// Use one of these values with the
-    /// ``View/navigationBarTitleDisplayMode(_:)`` view modifier to configure
-    /// the title of a navigation bar.
-    public enum TitleDisplayMode : Sendable {
-
-        /// Inherit the display mode from the previous navigation item.
-        case automatic
-
-        /// Display the title within the standard bounds of the navigation bar.
-        case inline
-
-        /// Display a large title within an expanded navigation bar.
-        @available(watchOS 8.0, *)
-        @available(tvOS, unavailable)
-        case large
-
-        
-
-    
-        }
-}
-
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-@available(macOS, unavailable)
-extension NavigationBarItem.TitleDisplayMode : Equatable {
-}
-
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-@available(macOS, unavailable)
-extension NavigationBarItem.TitleDisplayMode : Hashable {
-}
-
-/// The default navigation view style.
-///
-/// You can also use ``NavigationViewStyle/automatic`` to construct this style.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView instead")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-public struct DefaultNavigationViewStyle : NavigationViewStyle {
-
-    public init() { fatalError() }
-}
-
-/// A navigation split style that attempts to maintain the size of the
-/// detail content when hiding or showing the leading columns.
-///
-/// Use ``NavigationSplitViewStyle/prominentDetail`` to construct this style.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct ProminentDetailNavigationSplitViewStyle : NavigationSplitViewStyle {
-
-    /// Creates an instance of ``ProminentDetailNavigationSplitViewStyle``.
-    ///
-    /// You can also use ``NavigationSplitViewStyle/prominentDetail`` to
-    /// construct this style.
-    public init() { fatalError() }
-
-    /// Creates a view that represents the body of a navigation split view.
-    ///
-    /// SkipUI calls this method for each instance of ``NavigationSplitView``,
-    /// where this style is the current ``NavigationSplitViewStyle``.
-    ///
-    /// - Parameter configuration: The properties of the instance to create.
-    public func makeBody(configuration: ProminentDetailNavigationSplitViewStyle.Configuration) -> some View { return stubView() }
-
-
-    /// A view that represents the body of a navigation split view.
-//    public typealias Body = some View
-}
-
-/// A navigation view style represented by a view stack that only shows a
-/// single top view at a time.
-///
-/// You can also use ``NavigationViewStyle/stack`` to construct this style.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(macOS, unavailable)
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace stack-styled NavigationView with NavigationStack")
-public struct StackNavigationViewStyle : NavigationViewStyle {
-
-    public init() { fatalError() }
-}
-
-
-/// A navigation view style represented by a primary view stack that
-/// navigates to a detail view.
-@available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationSplitView instead")
-@available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-@available(watchOS, unavailable)
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-public struct DoubleColumnNavigationViewStyle : NavigationViewStyle {
-
-    public init() { fatalError() }
-}
-
-
-extension View {
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<L, T>(leading: L, trailing: T) -> some View where L : View, T : View { return stubView() }
-
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<L>(leading: L) -> some View where L : View { return stubView() }
-
-
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    @available(macOS, unavailable)
-    @available(watchOS, unavailable)
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Use toolbar(_:) with navigationBarLeading or navigationBarTrailing placement")
-    public func navigationBarItems<T>(trailing: T) -> some View where T : View { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension View {
-
-    /// Associates a destination view with a bound value for use within a
-    /// navigation stack or navigation split view
-    ///
-    /// Add this view modifer to a view inside a ``NavigationStack`` or
-    /// ``NavigationSplitView`` to describe the view that the stack displays
-    /// when presenting a particular kind of data. Use a ``NavigationLink`` to
-    /// present the data, which updates the binding. Programmatically update
-    /// the binding to display or remove the view. For example, you can replace
-    /// the view showing in the detail column of a navigation split view:
-    ///
-    ///     @State private var colorShown: Color?
-    ///
-    ///     NavigationSplitView {
-    ///         List {
-    ///             NavigationLink("Mint", value: Color.mint)
-    ///             NavigationLink("Pink", value: Color.pink)
-    ///             NavigationLink("Teal", value: Color.teal)
-    ///         }
-    ///         .navigationDestination(item: $colorShown) { color in
-    ///             ColorDetail(color: color)
-    ///         }
-    ///     } detail: {
-    ///         Text("Select a color")
-    ///     }
-    ///
-    /// When the person using the app taps on the Mint link, the mint color
-    /// shows in the detail and `colorShown` gets the value `Color.mint`. You
-    /// can reset the navigation split view to show the message "Select a color"
-    /// by setting `colorShown` back to `nil`.
-    ///
-    /// You can add more than one navigation destination modifier to the stack
-    /// if it needs to present more than one kind of data.
-    ///
-    /// Do not put a navigation destination modifier inside a "lazy" container,
-    /// like ``List`` or ``LazyVStack``. These containers create child views
-    /// only when needed to render on screen. Add the navigation destination
-    /// modifier outside these containers so that the navigation split view can
-    /// always see the destination.
-    ///
-    /// - Parameters:
-    ///   - item: A binding to the data presented, or `nil` if nothing is
-    ///     currently presented.
-    ///   - destination: A view builder that defines a view to display
-    ///     when `item` is not `nil`.
-    public func navigationDestination<D, C>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> C) -> some View where D : Hashable, C : View { return stubView() }
-
-}
-
-extension View {
-    /// Hides the navigation bar back button for the view.
-    ///
-    /// Use `navigationBarBackButtonHidden(_:)` to hide the back button for this
-    /// view.
-    ///
-    /// This modifier only takes effect when this view is inside of and visible
-    /// within a ``NavigationView``.
-    ///
-    /// - Parameter hidesBackButton: A Boolean value that indicates whether to
-    ///   hide the back button. The default value is `true`.
-    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View { return stubView() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension View {
-
-    /// Sets a fixed, preferred width for the column containing this view.
-    ///
-    /// Apply this modifier to the content of a column in a
-    /// ``NavigationSplitView`` to specify a fixed preferred width for the
-    /// column. Use ``View/navigationSplitViewColumnWidth(min:ideal:max:)`` if
-    /// you need to specify a flexible width.
-    ///
-    /// The following example shows a three-column navigation split view where
-    /// the first column has a preferred width of 150 points, and the second
-    /// column has a flexible, preferred width between 150 and 400 points:
-    ///
-    ///     NavigationSplitView {
-    ///         MySidebar()
-    ///             .navigationSplitViewColumnWidth(150)
-    ///     } contents: {
-    ///         MyContents()
-    ///             .navigationSplitViewColumnWidth(
-    ///                 min: 150, ideal: 200, max: 400)
-    ///     } detail: {
-    ///         MyDetail()
-    ///     }
-    ///
-    /// Only some platforms enable resizing columns. If
-    /// you specify a width that the current presentation environment doesn't
-    /// support, SkipUI may use a different width for your column.
-    public func navigationSplitViewColumnWidth(_ width: CGFloat) -> some View { return stubView() }
-
-
-    /// Sets a flexible, preferred width for the column containing this view.
-    ///
-    /// Apply this modifier to the content of a column in a
-    /// ``NavigationSplitView`` to specify a preferred flexible width for the
-    /// column. Use ``View/navigationSplitViewColumnWidth(_:)`` if you need to
-    /// specify a fixed width.
-    ///
-    /// The following example shows a three-column navigation split view where
-    /// the first column has a preferred width of 150 points, and the second
-    /// column has a flexible, preferred width between 150 and 400 points:
-    ///
-    ///     NavigationSplitView {
-    ///         MySidebar()
-    ///             .navigationSplitViewColumnWidth(150)
-    ///     } contents: {
-    ///         MyContents()
-    ///             .navigationSplitViewColumnWidth(
-    ///                 min: 150, ideal: 200, max: 400)
-    ///     } detail: {
-    ///         MyDetail()
-    ///     }
-    ///
-    /// Only some platforms enable resizing columns. If
-    /// you specify a width that the current presentation environment doesn't
-    /// support, SkipUI may use a different width for your column.
-    public func navigationSplitViewColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { return stubView() }
-
-}
-
-extension View {
-
-    /// Sets the style for navigation split views within this view.
-    ///
-    /// - Parameter style: The style to set.
-    ///
-    /// - Returns: A view that uses the specified navigation split view style.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func navigationSplitViewStyle<S>(_ style: S) -> some View where S : NavigationSplitViewStyle { return stubView() }
-
-}
-
-extension View {
-
-    /// Configures the view's document for purposes of navigation.
-    ///
-    /// In iOS, iPadOS, this populates the title menu with a header
-    /// previewing the document. In macOS, this populates a proxy icon.
-    ///
-    /// Refer to the <doc:Configure-Your-Apps-Navigation-Titles> article
-    /// for more information on navigation document modifiers.
-    ///
-    /// - Parameters:
-    ///   - document: The URL content associated to the
-    ///     navigation title.
-    ///   - preview: The preview of the document to use when sharing.
-    @available(iOS 16.0, macOS 13.0, watchOS 9.0, tvOS 16.0, *)
-    public func navigationDocument(_ url: URL) -> some View { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 7.0, *)
-extension View {
-
-    /// Sets the style for navigation views within this view.
-    ///
-    /// Use this modifier to change the appearance and behavior of navigation
-    /// views. For example, by default, navigation views appear with multiple
-    /// columns in wider environments, like iPad in landscape orientation:
-    ///
-    /// ![A screenshot of an iPad in landscape orientation mode showing a
-    /// multicolumn navigation view. The left column lists the colors Purple,
-    /// Pink, and Orange, with Purple selected. The right column presents a
-    /// detail view that shows a purple square.](View-navigationViewStyle-1)
-    ///
-    /// You can apply the ``NavigationViewStyle/stack`` style to force
-    /// single-column stack navigation in these environments:
-    ///
-    ///     NavigationView {
-    ///         List {
-    ///             NavigationLink("Purple", destination: ColorDetail(color: .purple))
-    ///             NavigationLink("Pink", destination: ColorDetail(color: .pink))
-    ///             NavigationLink("Orange", destination: ColorDetail(color: .orange))
-    ///         }
-    ///         .navigationTitle("Colors")
-    ///
-    ///         Text("Select a Color") // A placeholder to show before selection.
-    ///     }
-    ///     .navigationViewStyle(.stack)
-    ///
-    /// ![A screenshot of an iPad in landscape orientation mode showing a
-    /// single column containing the list Purple, Pink, and
-    /// Orange.](View-navigationViewStyle-2)
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(watchOS, introduced: 7.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
-    public func navigationViewStyle<S>(_ style: S) -> some View where S : NavigationViewStyle { return stubView() }
-
-}
-
-@available(iOS 14.0, watchOS 8.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Configures the title display mode for this view.
-    ///
-    /// - Parameter displayMode: The style to use for displaying the title.
-    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View { return stubView() }
-
 }
 
 #endif

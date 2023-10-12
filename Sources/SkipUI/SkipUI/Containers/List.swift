@@ -210,29 +210,35 @@ public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectT
 }
 #endif
 
-// Model `ListStyle` as a struct. Kotlin does not support static members of protocols
-public struct ListStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
-
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    public static let automatic = ListStyle(rawValue: 0)
-
-    @available(*, unavailable)
-    public static let sidebar = ListStyle(rawValue: 1)
-
-    @available(*, unavailable)
-    public static let insetGrouped = ListStyle(rawValue: 2)
+// Model `ListStyle` as an enum. Kotlin does not support static members of protocols
+public enum ListStyle: Int, Equatable {
+    case automatic
     
     @available(*, unavailable)
-    public static let grouped = ListStyle(rawValue: 3)
+    case sidebar
 
     @available(*, unavailable)
-    public static let inset = ListStyle(rawValue: 4)
+    case insetGrouped
 
-    public static let plain = ListStyle(rawValue: 5)
+    @available(*, unavailable)
+    case grouped
+
+    @available(*, unavailable)
+    case inset
+
+    case plain
+}
+
+public enum ListItemTint : Sendable {
+    case fixed(Color)
+    case preferred(Color)
+    case monochrome
+}
+
+public enum ListSectionSpacing : Sendable {
+    case `default`
+    case compact
+    case custom(CGFloat)
 }
 
 extension View {
@@ -278,12 +284,27 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func listItemTint(_ tint: ListItemTint?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func listRowInsets(_ insets: EdgeInsets?) -> some View {
         return self
     }
 
     @available(*, unavailable)
     public func listRowSpacing(_ spacing: CGFloat?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func listSectionSpacing(_ spacing: CGFloat) -> some View {
         return self
     }
 
@@ -915,140 +936,6 @@ extension List where SelectionValue == Never {
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
     @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
-}
-
-/// The configuration of a tint effect applied to content within a List.
-///
-/// - See Also: `View.listItemTint(_:)`
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct ListItemTint : Sendable {
-
-    /// An explicit tint color.
-    ///
-    /// This tint effect is fixed and not overridable by other
-    /// system effects.
-    public static func fixed(_ tint: Color) -> ListItemTint { fatalError() }
-
-    /// An explicit tint color that is overridable.
-    ///
-    /// This tint effect is overridable by system effects, for
-    /// example when the system has a custom user accent
-    /// color on macOS.
-    public static func preferred(_ tint: Color) -> ListItemTint { fatalError() }
-
-    /// A standard grayscale tint effect.
-    ///
-    /// Monochrome tints are not overridable.
-    public static let monochrome: ListItemTint = { fatalError() }()
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension View {
-
-    /// Sets the tint effect associated with specific content in a list.
-    ///
-    /// The containing list's style will apply that tint as appropriate. watchOS
-    /// uses the tint color for its background platter appearance. Sidebars on
-    /// iOS and macOS apply the tint color to their `Label` icons, which
-    /// otherwise use the accent color by default.
-    ///
-    /// - Parameter tint: The tint effect to use, or nil to not override the
-    ///   inherited tint.
-    public func listItemTint(_ tint: ListItemTint?) -> some View { return stubView() }
-}
-
-/// The spacing options between two adjacent sections in a list.
-@available(iOS 17.0, watchOS 10.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-public struct ListSectionSpacing : Sendable {
-
-    /// The default spacing between sections
-    public static let `default`: ListSectionSpacing = { fatalError() }()
-
-    /// Compact spacing between sections
-    public static let compact: ListSectionSpacing = { fatalError() }()
-
-    /// Creates a custom spacing value.
-    ///
-    /// - Parameter spacing: the amount of spacing to use.
-    public static func custom(_ spacing: CGFloat) -> ListSectionSpacing { fatalError() }
-}
-
-@available(iOS 17.0, watchOS 10.0, *)
-@available(macOS, unavailable)
-@available(tvOS, unavailable)
-extension View {
-
-    /// Sets the spacing between adjacent sections in a List.
-    ///
-    /// Pass `.default` for the default spacing, or use `.compact` for
-    /// a compact appearance between sections.
-    ///
-    /// The following example creates a List with compact spacing between
-    /// sections:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///     .listSectionSpacing(.compact)
-    public func listSectionSpacing(_ spacing: ListSectionSpacing) -> some View { return stubView() }
-
-
-    /// Sets the spacing to a custom value between adjacent sections in a List.
-    ///
-    /// The following example creates a List with 5 pts of spacing between
-    /// sections:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///     .listSectionSpacing(5.0)
-    ///
-    /// Spacing can also be specified on a per-section basis. The following
-    /// example creates a List with compact spacing for its second section:
-    ///
-    ///     List {
-    ///         Section("Colors") {
-    ///             Text("Blue")
-    ///             Text("Red")
-    ///         }
-    ///
-    ///         Section("Borders") {
-    ///             Text("Dashed")
-    ///             Text("Solid")
-    ///         }
-    ///         .listSectionSpacing(.compact)
-    ///
-    ///         Section("Shapes") {
-    ///             Text("Square")
-    ///             Text("Circle")
-    ///         }
-    ///     }
-    ///
-    /// If adjacent sections have different spacing value, the smaller value on
-    /// the shared edge is used. Spacing specified inside the List is preferred
-    /// over any List-wide value.
-    ///
-    /// - Parameter spacing: the amount of spacing to apply.
-    public func listSectionSpacing(_ spacing: CGFloat) -> some View { return stubView() }
-
 }
 
 #endif
