@@ -340,13 +340,26 @@ List([person1, person2, person3], id: \.fullName) { person in
 }
 ```
 
-Note in particular that `ForEach` is not yet supported.
+`ForEach` content. Use `ForEach` to specify indexed or collection content. This allows you to mix content types.
+
+```swift
+List {
+    Text("People").bold()
+    ForEach([person1, person2, person3], id: \.fullName) { person in
+        HStack {
+            Text(person.fullName)
+            Spacer()
+            Text(person.age)
+        }
+    }
+}
+```
 
 ### Navigation
 
 SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has not yet implemented modal presentations, but does support `TabView` and `NavigationStack`, albeit with the restrictions explained below.
 
-SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Additionally, because `ForEach` is not implemented yet, child views implementing the tabbed content must be hardcoded directly within their `TabView` parent. 
+SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab.
 
 Otherwise, `TabView` acts as you would expect. `NavigationStack`, however, has several restrictions you must be aware of.
 
@@ -409,6 +422,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`Divider`|Full||
 |`EmptyView`|Full||
 |`Font`|Medium||
+|`ForEach`|Medium|Bindings as data not supported|
 |`Form`|Full||
 |`Group`|Full||
 |`HStack`|Full||
