@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 public struct ComposeView: View {
     private let content: @Composable (ComposeContext) -> ComposeResult
 
-    /// Constructor
+    /// Constructor.
     ///
     /// The supplied `content` is the content to compose. When transpiling SwiftUI code, this is the logic embedded in the user's `body` and within each container view in
     /// that `body`, as well as within other `@ViewBuilders`.

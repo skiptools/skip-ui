@@ -29,19 +29,17 @@ import struct CoreGraphics.CGFloat
 // SKIP DECLARE: class List<Content>: View where Content: View
 public struct List<SelectionValue, Content> : View where SelectionValue: Hashable, Content : View {
     let fixedContent: Content?
-    let indexedContent: ((Int) -> Content)?
-    let indexRange: Range<Int>?
-    let objectContent: ((Any) -> Content)?
-    let objects: (any RandomAccessCollection<Any>)?
-    let identifier: ((Any) -> AnyHashable)?
+    let forEach: ForEach<Content>?
 
     init(fixedContent: Content? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, identifier: ((Any) -> AnyHashable)? = nil, objectContent: ((Any) -> Content)? = nil) {
         self.fixedContent = fixedContent
-        self.indexRange = indexRange
-        self.indexedContent = indexedContent
-        self.objects = objects
-        self.identifier = identifier
-        self.objectContent = objectContent
+        if let indexRange {
+            self.forEach = ForEach(indexRange: indexRange, indexedContent: indexedContent)
+        } else if let objects {
+            self.forEach = ForEach(objects: objects, identifier: identifier, objectContent: objectContent)
+        } else {
+            self.forEach = nil
+        }
     }
 
     public init(@ViewBuilder content: () -> Content) {
@@ -75,51 +73,59 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
         modifier = modifier.fillWidth()
 
-        if let fixedContent {
-            LazyColumn(modifier: modifier) {
-                item {
-                    ComposeHeader(style: style)
+        // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
+        // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
+        // LazyListScope functions to compose individual items
+        let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
+        if let forEach {
+            forEach.appendListItemViews(to: views)
+        } else if let fixedContent {
+            let viewsCollector = context.content(composer: ClosureComposer { view, _ in
+                if let factory = view as? ListItemFactory {
+                    factory.appendListItemViews(to: views)
+                } else {
+                    views.add(view)
                 }
-                let itemContext = context.content(composer: ClosureComposer { view, context in
-                    item {
-                        ComposeItem(view: &view, context: context(false), style: style)
-                    }
-                })
-                item {
-                    fixedContent.Compose(context: itemContext)
-                }
-                item {
-                    ComposeFooter(style: style)
-                }
-            }
-        } else {
+            })
+            fixedContent.Compose(context: viewsCollector)
+        }
+
+        LazyColumn(modifier: modifier) {
             let itemContext = context.content(composer: ClosureComposer { view, context in
                 ComposeItem(view: &view, context: context(false), style: style)
             })
-            if let indexRange {
-                LazyColumn(modifier: modifier) {
+            let factoryContext = ListItemFactoryContext(
+                item: { view in
                     item {
-                        ComposeHeader(style: style)
+                        view.Compose(context: itemContext)
                     }
-                    items(indexRange.endExclusive - indexRange.start) {
-                        indexedContent!(indexRange.start + $0).Compose(context: itemContext)
+                },
+                indexedItems: { range, factory in
+                    items(range.endExclusive - range.start) { index in
+                        factory(index).Compose(context: itemContext)
                     }
-                    item {
-                        ComposeFooter(style: style)
+                },
+                objectItems: { objects, identifier, factory in
+                    items(count: objects.count, key: { identifier(objects[$0]) }) { index in
+                        factory(objects[index]).Compose(context: itemContext)
                     }
                 }
-            } else if let objects {
-                LazyColumn(modifier: modifier) {
+            )
+
+            item {
+                ComposeHeader(style: style)
+            }
+            for view in views {
+                if let factory = view as? ListItemFactory {
+                    factory.ComposeListItems(context: factoryContext)
+                } else {
                     item {
-                        ComposeHeader(style: style)
-                    }
-                    items(count: objects.count, key: { identifier!(objects[$0]) }) {
-                        objectContent!(objects[$0]).Compose(context: itemContext)
-                    }
-                    item {
-                        ComposeFooter(style: style)
+                        view.Compose(context: itemContext)
                     }
                 }
+            }
+            item {
+                ComposeFooter(style: style)
             }
         }
     }
@@ -180,6 +186,14 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #endif
 }
 
+/// Adopted by views that generate list items.
+protocol ListItemFactory {
+    #if SKIP
+    @Composable func appendListItemViews(to views: MutableList<View>)
+    func ComposeListItems(context: ListItemFactoryContext)
+    #endif
+}
+
 /// Adopted by views that adapt when used as a list item.
 protocol ListItemAdapting {
     #if SKIP
@@ -189,6 +203,12 @@ protocol ListItemAdapting {
 }
 
 #if SKIP
+public struct ListItemFactoryContext {
+    let item: (View) -> Void
+    let indexedItems: (Range<Int>, (Int) -> View) -> Void
+    let objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void
+}
+
 struct ListItemComposer: Composer {
     let contentModifier: Modifier
 

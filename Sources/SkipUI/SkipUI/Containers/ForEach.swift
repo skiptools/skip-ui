@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Erase the Data and ID because they are currently unused in Kotlin, the compiler won't be able to calculate them
-public struct ForEach</* Data, ID, */ Content> : View where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
+public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
     let indexedContent: ((Int) -> Content)?
     let indexRange: Range<Int>?
     let objectContent: ((Any) -> Content)?
@@ -22,6 +22,10 @@ public struct ForEach</* Data, ID, */ Content> : View where /* Data : RandomAcce
         self.objectContent = objectContent
     }
 
+    public init(_ data: Range<Int>, @ViewBuilder content: @escaping (Int) -> Content) {
+        self.init(indexRange: data, indexedContent: content)
+    }
+
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
         ComposeContent(context: context)
@@ -29,15 +33,28 @@ public struct ForEach</* Data, ID, */ Content> : View where /* Data : RandomAcce
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {
-//        if let indexRange {
-//            items(indexRange.endExclusive - indexRange.start) {
-//                indexedContent!(indexRange.start + $0).Compose(context: itemContext)
-//            }
-//        } else if let objects {
-//            items(count: objects.count, key: { identifier!(objects[$0]) }) {
-//                objectContent!(objects[$0]).Compose(context: itemContext)
-//            }
-//        }
+        if let indexRange {
+            for index in indexRange {
+                indexedContent!(index).Compose(context: context)
+            }
+        } else if let objects {
+            for object in objects {
+                objectContent!(object).Compose(context: context)
+            }
+        }
+    }
+
+    @Composable func appendListItemViews(to views: MutableList<View>) {
+        // TODO: Handle Section content
+        views.add(self)
+    }
+
+    func ComposeListItems(context: ListItemFactoryContext) {
+        if let indexRange {
+            context.indexedItems(indexRange, indexedContent!)
+        } else if let objects {
+            context.objectItems(objects, identifier!, objectContent!)
+        }
     }
     #else
     public var body: some View {
@@ -53,22 +70,15 @@ public struct ForEach</* Data, ID, */ Content> : View where /* Data : RandomAcce
 //extension ForEach where ID == Data.Element.ID, Content : AccessibilityRotorContent, Data.Element : Identifiable {
 //    public init(_ data: Data, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
-@available(*, unavailable)
 public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where D: Identifiable<Hashable>, Content: View {
-    fatalError()
+    return ForEach(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! D).id }, objectContent: { content($0 as! D) })
 }
 
 //extension ForEach where Content : AccessibilityRotorContent {
 //    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
-@available(*, unavailable)
-public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where D: Identifiable<Hashable>, Content: View {
-    fatalError()
-}
-
-@available(*, unavailable)
-public func ForEach(_ data: Range<Int>, @ViewBuilder content: @escaping (Int) -> Content) -> ForEach<Content> where Content: View {
-    fatalError()
+public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where Content: View {
+    return ForEach(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! D) }, objectContent: { content($0 as! D) })
 }
 
 #endif
