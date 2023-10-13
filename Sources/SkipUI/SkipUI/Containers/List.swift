@@ -189,7 +189,12 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 /// Adopted by views that generate list items.
 protocol ListItemFactory {
     #if SKIP
+    /// Append views and view factories representing list itemsto the given mutable list.
+    ///
+    /// - Parameter appendingContext: Pass this context to the `Compose` function of a `ComposableView` to append all its child views.
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext)
+
+    /// Use the given context to compose individual list items and ranges of items.
     func ComposeListItems(context: ListItemFactoryContext)
     #endif
 }
@@ -225,7 +230,7 @@ struct ListItemComposer: Composer {
     }
 }
 
-struct ListHeaderView: View {
+struct ListSectionHeader: View {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {
@@ -234,7 +239,7 @@ struct ListHeaderView: View {
     }
 }
 
-struct ListFooterView: View {
+struct ListSectionFooter: View {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {

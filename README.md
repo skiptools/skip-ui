@@ -355,6 +355,8 @@ List {
 }
 ```
 
+SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists.
+
 ### Navigation
 
 SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has not yet implemented modal presentations, but does support `TabView` and `NavigationStack`, albeit with the restrictions explained below.

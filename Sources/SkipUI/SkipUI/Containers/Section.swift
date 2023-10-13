@@ -62,15 +62,16 @@ public struct Section : View, ListItemFactory {
     #if SKIP
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
         if let header {
-            views.add(ListHeaderView(content: header))
+            views.add(ListSectionHeader(content: header))
         }
         content.Compose(context: appendingContext)
         if let footer {
-            views.add(ListFooterView(content: footer))
+            views.add(ListSectionFooter(content: footer))
         }
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {
+        // Not called because the section does not append itself as a list item view
     }
     #else
     public var body: some View {

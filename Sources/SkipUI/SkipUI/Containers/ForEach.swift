@@ -45,24 +45,46 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
     }
 
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
-//        var isFirstView = true
-//        if let indexRange {
-//            for index in indexRange {
-//                let contentView = indexedContent!(index)
-//                let viewsCollector = context.content(composer: ClosureComposer { view, _ in
-//                    if let factory = view as? ListItemFactory {
-//                        factory.appendListItemViews(to: views)
-//                    } else {
-//                        views.add(view)
-//                    }
-//                })
-//            }
-//        } else if let objects {
-//            for object in objects {
-//                let contentView = objectContent!(object)
-//            }
-//        }
-        views.add(self)
+        // ForEach views might or might not contain nested list item factories such as Sections or other ForEach instances.
+        // We execute our content closure for the first item in the ForEach and examine its content to see if it contains
+        // list item factories. If it does, we perform the full ForEach to append all items so that they can be expanded.
+        // If not, we append ourselves instead so that we can take advantage of Compose's ability to specify ranges of items
+        var isFirstView = true
+        if let indexRange {
+            for index in indexRange {
+                let contentView = indexedContent!(index)
+                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                    views.add(self)
+                    return
+                } else {
+                    isFirstView = false
+                }
+                contentView.Compose(appendingContext)
+            }
+        } else if let objects {
+            for object in objects {
+                let contentView = objectContent!(object)
+                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                    views.add(self)
+                    return
+                } else {
+                    isFirstView = false
+                }
+                contentView.Compose(appendingContext)
+            }
+        }
+    }
+
+    @Composable private func appendContentAsListItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {
+        guard isFirstView else {
+            return true
+        }
+        var hasViewFactory = false
+        let factoryChecker = context.content(composer: ClosureComposer { view, _ in
+            hasViewFactory = hasViewFactory || view is ListItemFactory
+        })
+        let _ = contentView.Compose(factoryChecker)
+        return hasViewFactory
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {
