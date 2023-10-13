@@ -57,16 +57,41 @@ public struct Text: View, Equatable, Sendable {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier
-        var font = EnvironmentValues.shared.font ?? Font(fontImpl: { LocalTextStyle.current })
+        var font: Font
+        var text = self.text
+        if let environmentFont = EnvironmentValues.shared.font {
+            font = environmentFont
+        } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
+            font = Font.callout
+            if sectionHeaderStyle == .plain {
+                font = font.bold()
+            } else {
+                text = text.uppercased()
+            }
+        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
+            font = Font.footnote
+        } else {
+            font = Font(fontImpl: { LocalTextStyle.current })
+        }
         if let weight = EnvironmentValues.shared._fontWeight {
             font = font.weight(weight)
         }
         if EnvironmentValues.shared._isItalic {
             font = font.italic()
         }
-        let textColor = EnvironmentValues.shared._color?.colorImpl() ?? androidx.compose.ui.graphics.Color.Unspecified
-        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, style: font.fontImpl())
+
+        let textColor: Color
+        if let environmentColor = EnvironmentValues.shared._color {
+            textColor = environmentColor
+        } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
+            textColor = Color.secondary
+        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
+            textColor = Color.secondary
+        } else {
+            textColor = Color(colorImpl: { androidx.compose.ui.graphics.Color.Unspecified })
+        }
+        let modifier = context.modifier
+        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor.colorImpl(), style: font.fontImpl())
     }
     #else
     public var body: some View {

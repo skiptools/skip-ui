@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -66,6 +67,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
     }
 
+    // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
     @Composable private func ComposeList(context: ComposeContext, style: ListStyle) {
         var modifier: Modifier = Modifier
         if style != .plain {
@@ -94,21 +96,55 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             let itemContext = context.content(composer: ClosureComposer { view, context in
                 ComposeItem(view: view, context: context(false), style: style)
             })
+            let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
+                ComposeSectionHeader(view: view, context: context(false), style: style, isTop: false)
+            })
+            let topSectionHeaderContext = context.content(composer: ClosureComposer { view, context in
+                ComposeSectionHeader(view: view, context: context(false), style: style, isTop: true)
+            })
+            let sectionFooterContext = context.content(composer: ClosureComposer { view, context in
+                ComposeSectionFooter(view: view, context: context(false), style: style)
+            })
+            var itemCount = 0
             let factoryContext = ListItemFactoryContext(
                 item: { view in
                     item {
                         view.Compose(context: itemContext)
                     }
+                    itemCount += 1
                 },
                 indexedItems: { range, factory in
-                    items(range.endExclusive - range.start) { index in
+                    let count = range.endExclusive - range.start
+                    items(count) { index in
                         factory(index).Compose(context: itemContext)
                     }
+                    itemCount += count
                 },
                 objectItems: { objects, identifier, factory in
                     items(count: objects.count, key: { identifier(objects[$0]) }) { index in
                         factory(objects[index]).Compose(context: itemContext)
                     }
+                    itemCount += objects.count
+                },
+                sectionHeader: { view in
+                    // Important to check the count immediately, outside the lazy list scope blocks
+                    let context = itemCount == 0 ? topSectionHeaderContext : sectionHeaderContext
+                    if style == .plain {
+                        stickyHeader {
+                            view.Compose(context: context)
+                        }
+                    } else {
+                        item {
+                            view.Compose(context: context)
+                        }
+                    }
+                    itemCount += 1
+                },
+                sectionFooter: { view in
+                    item {
+                        view.Compose(context: sectionFooterContext)
+                    }
+                    itemCount += 1
                 }
             )
 
@@ -122,6 +158,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     item {
                         view.Compose(context: itemContext)
                     }
+                    itemCount += 1
                 }
             }
             item {
@@ -149,15 +186,52 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
     }
 
-    @Composable private func ComposeHeader(style: ListStyle) {
-        if style == .plain {
-            ComposeSeparator()
-        } else {
-            let modifier = Modifier.background(BackgroundColor(style: style))
-                .fillWidth()
-                .height(Self.verticalInset.dp)
-            Box(modifier: modifier)
+    @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, style: ListStyle, isTop: Bool) {
+        if !isTop {
+            ComposeFooter(style: style)
         }
+        var contentModifier = Modifier.fillWidth()
+        if isTop && style != .plain {
+            contentModifier = contentModifier.padding(start: Self.horizontalItemInset.dp, top: 0.dp, end: Self.horizontalItemInset.dp, bottom: Self.verticalItemInset.dp)
+        } else {
+            contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
+        }
+        Column(modifier: Modifier.background(BackgroundColor(style: .automatic)).then(context.modifier)) {
+            EnvironmentValues.shared.setValues {
+                $0.set_listSectionHeaderStyle(style)
+            } in: {
+                view.Compose(context: context.content(modifier: contentModifier))
+            }
+        }
+    }
+
+    @Composable private func ComposeSectionFooter(view: View, context: ComposeContext, style: ListStyle) {
+        if style == .plain {
+            ComposeItem(view: view, context: context, style: style)
+        } else {
+            let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
+                .zIndex(Float(2.0))
+                .background(BackgroundColor(style: style))
+                .then(context.modifier)
+            let contentModifier = Modifier.fillWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
+            Column(modifier: modifier) {
+                EnvironmentValues.shared.setValues {
+                    $0.set_listSectionFooterStyle(style)
+                } in: {
+                    view.Compose(context: context.content(modifier: contentModifier))
+                }
+            }
+        }
+    }
+
+    @Composable private func ComposeHeader(style: ListStyle) {
+        guard style != .plain else {
+            return
+        }
+        let modifier = Modifier.background(BackgroundColor(style: style))
+            .fillWidth()
+            .height(Self.verticalInset.dp)
+        Box(modifier: modifier)
     }
 
     @Composable private func ComposeFooter(style: ListStyle) {
@@ -186,6 +260,25 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     #endif
 }
 
+#if SKIP
+
+// Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
+
+//extension List {
+//    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
+//}
+public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
+    return List(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! ObjectType).id }, objectContent: { rowContent($0 as! ObjectType) })
+}
+
+//extension List {
+//    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
+//}
+public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Any, Content: View {
+    return List(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! ObjectType) }, objectContent: { rowContent($0 as! ObjectType) })
+}
+#endif
+
 /// Adopted by views that generate list items.
 protocol ListItemFactory {
     #if SKIP
@@ -202,7 +295,10 @@ protocol ListItemFactory {
 /// Adopted by views that adapt when used as a list item.
 protocol ListItemAdapting {
     #if SKIP
+    /// Whether to compose this view as a list item or to use the standard compose pipeline.
     @Composable func shouldComposeListItem() -> Bool
+
+    /// Compose this view as a list item.
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
     #endif
 }
@@ -212,6 +308,9 @@ public struct ListItemFactoryContext {
     let item: (View) -> Void
     let indexedItems: (Range<Int>, (Int) -> View) -> Void
     let objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void
+
+    let sectionHeader: (View) -> Void
+    let sectionFooter: (View) -> Void
 }
 
 struct ListItemComposer: Composer {
@@ -220,7 +319,7 @@ struct ListItemComposer: Composer {
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
             listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
-        } else if view is ComposeModifierView || view is Section {
+        } else if view is ComposeModifierView {
             view.ComposeContent(context: context(true))
         } else {
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
@@ -230,40 +329,38 @@ struct ListItemComposer: Composer {
     }
 }
 
-struct ListSectionHeader: View {
+/// Add to list items to render a section header.
+struct ListSectionHeader: View, ListItemFactory {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        // TODO
         let _ = content.Compose(context: context)
+    }
+
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+        views.add(self)
+    }
+
+    func ComposeListItems(context: ListItemFactoryContext) {
+        context.sectionHeader(content)
     }
 }
 
-struct ListSectionFooter: View {
+/// Add to list items to render a section footer.
+struct ListSectionFooter: View, ListItemFactory {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        // TODO
         let _ = content.Compose(context: context)
     }
-}
-#endif
 
-// Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+        views.add(self)
+    }
 
-#if SKIP
-//extension List {
-//    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
-//}
-public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
-    return List(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! ObjectType).id }, objectContent: { rowContent($0 as! ObjectType) })
-}
-
-//extension List {
-//    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
-//}
-public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Any, Content: View {
-    return List(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! ObjectType) }, objectContent: { rowContent($0 as! ObjectType) })
+    func ComposeListItems(context: ListItemFactoryContext) {
+        context.sectionFooter(content)
+    }
 }
 #endif
 

@@ -435,6 +435,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`NavigationStack`|Medium|See [Navigation](#navigation)|
 |`ProgressView`|Medium|Labels not supported|
 |`ScrollView`|Full||
+|`Section`|High|Only tested for Text content within List|
 |`Slider`|Medium|Labels, `onEditingChanged` not supported|
 |`Spacer`|Medium|`minLength` not supported|
 |`TabView`|Medium|See [Navigation](#navigation)|

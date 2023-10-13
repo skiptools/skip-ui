@@ -223,6 +223,16 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
     }
 
+    var _listSectionHeaderStyle: ListStyle? {
+        get { builtinValue(key: "_listSectionHeaderStyle", defaultValue: { nil }) as! ListStyle? }
+        set { setBuiltinValue(key: "_listSectionHeaderStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _listSectionFooterStyle: ListStyle? {
+        get { builtinValue(key: "_listSectionFooterStyle", defaultValue: { nil }) as! ListStyle? }
+        set { setBuiltinValue(key: "_listSectionFooterStyle", value: newValue, defaultValue: { nil }) }
+    }
+
     var _listStyle: ListStyle? {
         get { builtinValue(key: "_listStyle", defaultValue: { nil }) as! ListStyle? }
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }

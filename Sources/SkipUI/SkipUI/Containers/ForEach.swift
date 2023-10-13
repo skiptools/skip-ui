@@ -101,9 +101,9 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
     #endif
 }
 
-// Kotlin does not support generic constructor parameters, so we have to model many List constructors as functions
-
 #if SKIP
+
+// Kotlin does not support generic constructor parameters, so we have to model many ForEach constructors as functions
 
 //extension ForEach where ID == Data.Element.ID, Content : AccessibilityRotorContent, Data.Element : Identifiable {
 //    public init(_ data: Data, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
@@ -121,9 +121,9 @@ public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, id: (D) -
 
 #endif
 
-// TODO: Process for use in SkipUI
-
 #if !SKIP
+
+// TODO: Process for use in SkipUI
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension ForEach {
