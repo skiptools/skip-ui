@@ -47,7 +47,7 @@ extension View {
     /// Calls to `Compose` are added by the transpiler.
     @Composable public func Compose(context: ComposeContext) -> ComposeResult {
         if let composer = context.composer {
-            composer.Compose(view: &self, context: { retain in
+            composer.Compose(view: self, context: { retain in
                 guard !retain else {
                     return context
                 }

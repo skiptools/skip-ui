@@ -167,7 +167,7 @@ class TabIndexComposer: Composer {
         currentIndex = 0
     }
 
-    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if currentIndex == index {
             view.ComposeContent(context: context(false))
         }

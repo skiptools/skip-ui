@@ -92,7 +92,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
         LazyColumn(modifier: modifier) {
             let itemContext = context.content(composer: ClosureComposer { view, context in
-                ComposeItem(view: &view, context: context(false), style: style)
+                ComposeItem(view: view, context: context(false), style: style)
             })
             let factoryContext = ListItemFactoryContext(
                 item: { view in
@@ -136,7 +136,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let horizontalItemInset = 16.0
     private static let verticalItemInset = 4.0
 
-    @Composable private func ComposeItem(view: inout View, context: ComposeContext, style: ListStyle) {
+    @Composable private func ComposeItem(view: View, context: ComposeContext, style: ListStyle) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
             // Note that we're calling the same view's Compose function again with a new context
@@ -212,7 +212,7 @@ public struct ListItemFactoryContext {
 struct ListItemComposer: Composer {
     let contentModifier: Modifier
 
-    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
             listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
         } else if view is ComposeModifierView || view is Section {
@@ -222,6 +222,24 @@ struct ListItemComposer: Composer {
                 view.ComposeContent(context: context(false))
             }
         }
+    }
+}
+
+struct ListHeaderView: View {
+    let content: View
+
+    @Composable override func ComposeContent(context: ComposeContext) {
+        // TODO
+        let _ = content.Compose(context: context)
+    }
+}
+
+struct ListFooterView: View {
+    let content: View
+
+    @Composable override func ComposeContent(context: ComposeContext) {
+        // TODO
+        let _ = content.Compose(context: context)
     }
 }
 #endif

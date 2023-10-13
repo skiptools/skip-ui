@@ -45,7 +45,34 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
     }
 
     @Composable func appendListItemViews(to views: MutableList<View>) {
-        // TODO: Handle Section content
+        /*
+         // Examine the first item in our content to determine whether we need to recurse
+        let firstContentView: View?
+         if let indexRange, indexRange.endInclusive >= indexRange.start {
+         firstContentView = indexedContent!(indexRange.start)
+         } else if let objects, !objects.isEmpty {
+         firstContentView = objectContent!(objects[0])
+         }
+         
+         var isFirstView = true
+         if let indexRange {
+             for index in indexRange {
+                 let contentView = indexedContent!(index)
+         let viewsCollector = context.content(composer: ClosureComposer { view, _ in
+             if let factory = view as? ListItemFactory {
+                 factory.appendListItemViews(to: views)
+             } else {
+                 views.add(view)
+             }
+         })
+             }
+         } else if let objects {
+             for object in objects {
+                 let contentView = objectContent!(object)
+             }
+         }
+
+         */
         views.add(self)
     }
 

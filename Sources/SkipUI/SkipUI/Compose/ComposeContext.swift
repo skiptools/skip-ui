@@ -48,7 +48,7 @@ public protocol Composer {
     /// Compose the given view.
     ///
     /// - Parameter context: The context to use to render the view, optionally retaining this composer.
-    @Composable public func Compose(view: inout View, context: (Bool) -> ComposeContext)
+    @Composable public func Compose(view: View, context: (Bool) -> ComposeContext)
 }
 
 extension Composer {
@@ -63,14 +63,14 @@ extension Composer {
 ///
 /// - Warning: Child composables may recompose at any time. Be careful with relying on block capture.
 struct ClosureComposer: Composer {
-    private let compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void
+    private let compose: @Composable (View, (Bool) -> ComposeContext) -> Void
 
-    init(compose: @Composable (inout View, (Bool) -> ComposeContext) -> Void) {
+    init(compose: @Composable (View, (Bool) -> ComposeContext) -> Void) {
         self.compose = compose
     }
 
-    @Composable override func Compose(view: inout View, context: (Bool) -> ComposeContext) {
-        compose(&view, context)
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
+        compose(view, context)
     }
 }
 
