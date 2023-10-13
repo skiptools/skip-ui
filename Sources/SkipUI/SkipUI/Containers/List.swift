@@ -77,16 +77,16 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
         let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
+        let viewsCollector = context.content(composer: ClosureComposer { view, context in
+            if let factory = view as? ListItemFactory {
+                factory.appendListItemViews(to: views, appendingContext: context(true))
+            } else {
+                views.add(view)
+            }
+        })
         if let forEach {
-            forEach.appendListItemViews(to: views)
+            forEach.appendListItemViews(to: views, appendingContext: viewsCollector)
         } else if let fixedContent {
-            let viewsCollector = context.content(composer: ClosureComposer { view, _ in
-                if let factory = view as? ListItemFactory {
-                    factory.appendListItemViews(to: views)
-                } else {
-                    views.add(view)
-                }
-            })
             fixedContent.Compose(context: viewsCollector)
         }
 
@@ -189,7 +189,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 /// Adopted by views that generate list items.
 protocol ListItemFactory {
     #if SKIP
-    @Composable func appendListItemViews(to views: MutableList<View>)
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext)
     func ComposeListItems(context: ListItemFactoryContext)
     #endif
 }

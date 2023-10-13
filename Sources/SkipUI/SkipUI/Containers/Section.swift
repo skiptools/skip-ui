@@ -2,8 +2,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
 // Erase generics to facilitate specialized constructor support.
-public struct Section : View {
+public struct Section : View, ListItemFactory {
     let header: (any View)?
     let footer: (any View)?
     let content: any View
@@ -56,23 +60,18 @@ public struct Section : View {
     }
 
     #if SKIP
-//    @Composable func appendListItemViews(to views: MutableList<View>) {
-//          if let header { views.add(ListHeaderView(content: header)) }
-    /*
-     let viewsCollector = context.content(composer: ClosureComposer { view, _ in
-         if let factory = view as? ListItemFactory {
-             factory.appendListItemViews(to: views)
-         } else {
-             views.add(view)
-         }
-     })
-     content.Compose(context: viewsCollector)
-     */
-    //      if let footer { views.add(ListFooterView(content: footer)) }
-//    }
-//
-//    func ComposeListItems(context: ListItemFactoryContext) {
-//    }
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+        if let header {
+            views.add(ListHeaderView(content: header))
+        }
+        content.Compose(context: appendingContext)
+        if let footer {
+            views.add(ListFooterView(content: footer))
+        }
+    }
+
+    func ComposeListItems(context: ListItemFactoryContext) {
+    }
     #else
     public var body: some View {
         stubView()
