@@ -98,12 +98,16 @@ public struct NavigationStack<Root> : View where Root: View {
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 }) }) { entry in
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
-                                ComposeEntry(navController: navController,
-                                             destinations: destinations,
-                                             destinationsDidChange: preferencesDidChange,
-                                             isRoot: false,
-                                             context: entryContext) { context in
-                                    state.destination?(targetValue).Compose(context: context)
+                                EnvironmentValues.shared.setValues {
+                                    $0.setdismiss({ navController.popBackStack() })
+                                } in: {
+                                    ComposeEntry(navController: navController,
+                                                 destinations: destinations,
+                                                 destinationsDidChange: preferencesDidChange,
+                                                 isRoot: false,
+                                                 context: entryContext) { context in
+                                        state.destination?(targetValue).Compose(context: context)
+                                    }
                                 }
                             }
                         }

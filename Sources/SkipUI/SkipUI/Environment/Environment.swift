@@ -166,6 +166,11 @@ extension EnvironmentValues {
 
     // MARK: - SwiftUI values
 
+    public var dismiss: () -> Void {
+        get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
+        set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
+    }
+
     public var font: Font? {
         get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
         set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }

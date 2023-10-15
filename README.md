@@ -25,10 +25,10 @@ When you want to use a SwiftUI construct that has not been implemented, you have
 
 We welcome contributions to SkipUI. The Skip product documentation includes helpful instructions on [local Skip library development](https://skip.tools/docs/#local-libraries). 
 
-The most pressing need is to implement more core components and view modifiers.
+The most pressing need is to implement more core components and view modifiers. View modifiers in particular are a ripe source of low-hanging fruit. The Compose `Modifier` type often has built-in functions that replicate SwiftUI modifiers, making these SwiftUI modifiers easy to implement.
 To help fill in unimplemented API in SkipUI:
 
-1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`.
+1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`. Note that most unimplemented `View` modifiers are in the `View.swift` source file.
 1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Write tests and/or playground code to exercise your component. See [Tests](#tests).
 1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
