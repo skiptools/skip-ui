@@ -8,7 +8,7 @@ SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI f
 
 ## Dependencies
 
-SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipModel](https://github.com/skiptools/skip-model) package.
+SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core Skip stack and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import SwiftUI` into `import skip.ui.*` by the Skip transpiler.
