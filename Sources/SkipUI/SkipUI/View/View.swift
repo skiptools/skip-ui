@@ -486,16 +486,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func fullScreenCover<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func grayscale(_ amount: Double) -> some View {
         return self
     }
@@ -920,16 +910,6 @@ extension View {
 
     @available(*, unavailable)
     public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func sheet<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
         return self
     }
 

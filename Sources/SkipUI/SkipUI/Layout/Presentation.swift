@@ -2,8 +2,39 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
+#else
 import struct CoreGraphics.CGFloat
+#endif
+
+#if SKIP
+// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+@Composable func SheetPresentation(content: View, context: ComposeContext, onDismiss: () -> Void) {
+    // TODO: Handle stateSaver and cleanup
+    let modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
+    ModalBottomSheet(
+        onDismissRequest = { onDismiss() },
+        sheetState = modalBottomSheetState,
+        dragHandle = nil //~~~{ BottomSheetDefaults.DragHandle() }
+    ) {
+        Box(modifier: Modifier.fillMaxWidth().height((LocalConfiguration.current.screenHeightDp - 20).dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
+            content.Compose(context: context.content())
+        }
+    }
+}
 #endif
 
 public enum PresentationAdaptation : Sendable {
@@ -117,6 +148,16 @@ public protocol CustomPresentationDetent {
 
 extension View {
     @available(*, unavailable)
+    public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fullScreenCover<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         return self
     }
@@ -164,5 +205,25 @@ extension View {
     @available(*, unavailable)
     public func presentationBackground(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
         return self
+    }
+
+    @available(*, unavailable)
+    public func sheet<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
+        return self
+    }
+
+    public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            if isPresented.get() {
+                SheetPresentation(content: content(), context: context) {
+                    isPresented.set(false)
+                }
+            }
+            view.ComposeContent(context: context)
+        }
+        #else
+        return self
+        #endif
     }
 }
