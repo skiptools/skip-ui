@@ -248,6 +248,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    var _sheetDepth: Int {
+        get { builtinValue(key: "_sheetDepth", defaultValue: { 0 }) as! Int }
+        set { setBuiltinValue(key: "_sheetDepth", value: newValue, defaultValue: { 0 }) }
+    }
+
     var _tint: Color? {
         get { builtinValue(key: "_tint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_tint", value: newValue, defaultValue: { nil }) }

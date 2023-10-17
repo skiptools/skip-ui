@@ -359,7 +359,7 @@ SkipUI does not support placing modifiers on `Section` or `ForEach` views within
 
 ### Navigation
 
-SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has not yet implemented modal presentations, but does support `TabView` and `NavigationStack`, albeit with the restrictions explained below.
+SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has implemented all three, albeit with the restrictions explained below.
 
 SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab.
 
@@ -399,6 +399,8 @@ Compose imposes an additional restriction as well: we must be able to stringify 
 - Else use `String(describing: target)`
 
 Finally, SkipUI does not yet support binding to an array of destination values to specify the navigation stack.
+
+For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
 
 ## Tests
 
@@ -466,6 +468,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.progressViewStyle`|High|Custom styles not supported|
 |`.rotationEffect`|Medium||
 |`.scaleEffect`|Medium||
+|`.sheet`|High|See [Navigation](#navigation)|
 |`.tabItem`|Full||
 |`.textFieldStyle`|Medium|`.plain` not supported|
 |`.task`|Full||

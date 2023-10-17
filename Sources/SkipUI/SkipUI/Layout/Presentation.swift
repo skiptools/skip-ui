@@ -4,15 +4,20 @@
 
 #if SKIP
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.requiredHeightIn
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -22,16 +27,40 @@ import struct CoreGraphics.CGFloat
 
 #if SKIP
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-@Composable func SheetPresentation(content: View, context: ComposeContext, onDismiss: () -> Void) {
-    // TODO: Handle stateSaver and cleanup
-    let modalBottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
-    ModalBottomSheet(
-        onDismissRequest = { onDismiss() },
-        sheetState = modalBottomSheetState,
-        dragHandle = nil //~~~{ BottomSheetDefaults.DragHandle() }
-    ) {
-        Box(modifier: Modifier.fillMaxWidth().height((LocalConfiguration.current.screenHeightDp - 20).dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
-            content.Compose(context: context.content())
+@Composable func SheetPresentation(isPresented: Binding<Bool>, content: () -> View, context: ComposeContext, onDismiss: (() -> Void)?) {
+    let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
+    if isPresented.get() || sheetState.isVisible {
+        let sheetDepth = EnvironmentValues.shared._sheetDepth
+        ModalBottomSheet(
+            onDismissRequest: { isPresented.set(false) },
+            sheetState: sheetState,
+            containerColor: androidx.compose.ui.graphics.Color.Unspecified,
+            dragHandle: nil,
+            windowInsets: WindowInsets(0, 0, 0, 0)
+        ) {
+            let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
+            let sheetDepth = EnvironmentValues.shared._sheetDepth
+            let modifier = Modifier
+                .fillMaxWidth()
+                .height((LocalConfiguration.current.screenHeightDp - 20 * sheetDepth).dp)
+                // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
+                .padding(bottom: WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
+            EnvironmentValues.shared.setValues {
+                $0.set_sheetDepth(sheetDepth + 1)
+                $0.setdismiss({ isPresented.set(false) })
+            } in: {
+                Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    content().Compose(context: context.content(stateSaver: stateSaver.value))
+                }
+            }
+        }
+    }
+    if !isPresented.get() {
+        LaunchedEffect(true) {
+            if sheetState.targetValue != SheetValue.Hidden {
+                sheetState.hide()
+                onDismiss?()
+            }
         }
     }
 }
@@ -215,11 +244,7 @@ extension View {
     public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            if isPresented.get() {
-                SheetPresentation(content: content(), context: context) {
-                    isPresented.set(false)
-                }
-            }
+            SheetPresentation(isPresented: isPresented, content: content, context: context, onDismiss: onDismiss)
             view.ComposeContent(context: context)
         }
         #else

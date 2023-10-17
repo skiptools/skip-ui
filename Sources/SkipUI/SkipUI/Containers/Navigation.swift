@@ -165,7 +165,8 @@ public struct NavigationStack<Root> : View where Root: View {
             let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
             let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
             PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference]) {
-                Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                // Only use the top padding; the Scaffold will also set bottom padding matching the home swipe area
+                Box(modifier: Modifier.padding(top: padding.calculateTopPadding()).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(context.content())
                 }
             }
