@@ -676,16 +676,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: ((Bool) -> Void)? = nil) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = CoordinateSpaceProtocol.local, perform action: @escaping (CGPoint) -> Void) -> some View {
-        return self
-    }
-
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {

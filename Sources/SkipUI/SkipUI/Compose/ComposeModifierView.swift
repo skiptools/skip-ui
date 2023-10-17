@@ -8,16 +8,17 @@ import androidx.compose.runtime.Composable
 /// Recognized modifier roles.
 public enum ComposeModifierRole {
     case accessibility
+    case gesture
     case spacing
     case unspecified
 }
 
 /// Used internally by modifiers to apply changes to the context supplied to modified views.
-struct ComposeModifierView: View {
+class ComposeModifierView: View {
     let view: View
     let role: ComposeModifierRole
-    private let contextTransform: (@Composable (inout ComposeContext) -> Void)?
-    private let composeContent: (@Composable (any View, ComposeContext) -> Void)?
+    var contextTransform: (@Composable (inout ComposeContext) -> Void)?
+    var composeContent: (@Composable (any View, ComposeContext) -> Void)?
 
     /// A modfiier that transforms the `ComposeContext` passed to the modified view.
     init(contextView: any View, role: ComposeModifierRole = .unspecified, contextTransform: @Composable (inout ComposeContext) -> Void) {
