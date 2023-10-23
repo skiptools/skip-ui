@@ -1,4 +1,4 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.9
 import PackageDescription
 
 let package = Package(
@@ -8,9 +8,9 @@ let package = Package(
         .library(name: "SkipUI", type: .dynamic, targets: ["SkipUI"]),
     ],
     dependencies: [ 
-        .package(url: "https://source.skip.tools/skip.git", from: "0.6.128"),
-        .package(url: "https://source.skip.tools/skip-model.git", from: "0.2.9"),
-        .package(url: "https://source.skip.tools/skip-foundation.git", from: "0.2.16"),
+        .package(url: "https://source.skip.tools/skip.git", from: "0.7.1"),
+        .package(url: "https://source.skip.tools/skip-model.git", from: "0.3.0"),
+        .package(url: "https://source.skip.tools/skip-foundation.git", from: "0.3.0"),
     ],
     targets: [
         .target(name: "SkipUI", dependencies: [

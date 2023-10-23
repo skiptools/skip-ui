@@ -12,7 +12,7 @@ import SkipTest
 final class XCSkipTests: XCTestCase, XCGradleHarness {
     public func testSkipModule() async throws {
         // set device ID to run in Android emulator vs. robolectric
-        try await runGradleTests(device: .none)
+        try await runGradleTests()
     }
 }
 #endif
