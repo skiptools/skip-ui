@@ -2,7 +2,146 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+// Model Shape as a concrete type so that it can have static properties
+public class Shape: View, Sendable {
+    @available(*, unavailable)
+    public static var circle: Circle {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var rect: Rectangle {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> Rectangle {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> Rectangle {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var capsule: Capsule {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func capsule(style: RoundedCornerStyle) -> Capsule {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static var ellipse: Ellipse {
+        fatalError()
+    }
+}
+#else
 public protocol Shape : View, Sendable /*, Animatable */ {
+}
+#endif
+
+public struct Circle : Shape {
+    @available(*, unavailable)
+    public init() {
+    }
+
+    #if !SKIP // TODO: Process for use in SkipUI
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public struct Rectangle : Shape {
+    @available(*, unavailable)
+    public init() {
+    }
+
+    #if !SKIP // TODO: Process for use in SkipUI
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public struct RoundedRectangle : Shape {
+    public let cornerSize: CGSize
+    public let style: RoundedCornerStyle
+
+    @available(*, unavailable)
+    public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
+        self.cornerSize = cornerSize
+        self.style = style
+    }
+
+    @available(*, unavailable)
+    public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) {
+        self.cornerSize = CGSize(width: cornerRadius, height: cornerRadius)
+        self.style = style
+    }
+
+    #if !SKIP // TODO: Process for use in SkipUI
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public struct Capsule : Shape {
+    public let style: RoundedCornerStyle
+
+    @available(*, unavailable)
+    public init(style: RoundedCornerStyle = .continuous) {
+        self.style = style
+    }
+
+    #if !SKIP // TODO: Process for use in SkipUI
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public struct Ellipse : Shape {
+    @available(*, unavailable)
+    public init() {
+    }
+
+    #if !SKIP // TODO: Process for use in SkipUI
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
 }
 
 #if !SKIP
@@ -431,25 +570,6 @@ extension Shape {
     public func transform(_ transform: CGAffineTransform) -> TransformedShape<Self> { fatalError() }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape where Self == Rectangle {
-
-    /// A rectangular shape aligned inside the frame of the view containing it.
-    public static var rect: Rectangle { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape where Self == RoundedRectangle {
-
-    /// A rectangular shape with rounded corners, aligned inside the frame of
-    /// the view containing it.
-    public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> Self { fatalError() }
-
-    /// A rectangular shape with rounded corners, aligned inside the frame of
-    /// the view containing it.
-    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> Self { fatalError() }
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Shape where Self == UnevenRoundedRectangle {
 
@@ -460,39 +580,6 @@ extension Shape where Self == UnevenRoundedRectangle {
     /// A rectangular shape with rounded corners with different values, aligned
     /// inside the frame of the view containing it.
     public static func rect(topLeadingRadius: CGFloat = 0, bottomLeadingRadius: CGFloat = 0, bottomTrailingRadius: CGFloat = 0, topTrailingRadius: CGFloat = 0, style: RoundedCornerStyle = .continuous) -> Self { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape where Self == Capsule {
-
-    /// A capsule shape aligned inside the frame of the view containing it.
-    ///
-    /// A capsule shape is equivalent to a rounded rectangle where the corner
-    /// radius is chosen as half the length of the rectangle's smallest edge.
-    public static var capsule: Capsule { get { fatalError() } }
-
-    /// A capsule shape aligned inside the frame of the view containing it.
-    ///
-    /// A capsule shape is equivalent to a rounded rectangle where the corner
-    /// radius is chosen as half the length of the rectangle's smallest edge.
-    public static func capsule(style: RoundedCornerStyle) -> Self { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape where Self == Ellipse {
-
-    /// An ellipse aligned inside the frame of the view containing it.
-    public static var ellipse: Ellipse { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape where Self == Circle {
-
-    /// A circle centered on the frame of the view containing it.
-    ///
-    /// The circle's radius equals half the length of the frame rectangle's
-    /// smallest edge.
-    public static var circle: Circle { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -746,44 +833,6 @@ extension ShapeRole : Hashable {
     public var body: Body { fatalError() }
 }
 
-/// A rectangular shape aligned inside the frame of the view containing it.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Rectangle : Shape {
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// Creates a new rectangle shape.
-    @inlinable public init() { fatalError() }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Rectangle : InsettableShape {
 
@@ -900,64 +949,6 @@ extension RotatedShape : InsettableShape where Content : InsettableShape {
     public typealias InsetShape = RotatedShape<Content.InsetShape>
 }
 
-/// A rectangular shape with rounded corners, aligned inside the frame of the
-/// view containing it.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct RoundedRectangle : Shape {
-
-    /// The width and height of the rounded rectangle's corners.
-    public var cornerSize: CGSize { get { fatalError() } }
-
-    /// The style of corners drawn by the rounded rectangle.
-    public var style: RoundedCornerStyle { get { fatalError() } }
-
-    /// Creates a new rounded rectangle shape.
-    ///
-    /// - Parameters:
-    ///   - cornerSize: the width and height of the rounded corners.
-    ///   - style: the style of corners drawn by the shape.
-    @inlinable public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) { fatalError() }
-
-    /// Creates a new rounded rectangle shape.
-    ///
-    /// - Parameters:
-    ///   - cornerRadius: the radius of the rounded corners.
-    ///   - style: the style of corners drawn by the shape.
-    @inlinable public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) { fatalError() }
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = Never // CGSize.AnimatableData
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension RoundedRectangle : InsettableShape {
 
@@ -967,51 +958,6 @@ extension RoundedRectangle : InsettableShape {
 
     /// The type of the inset shape.
     public typealias InsetShape = Never
-}
-
-/// A capsule shape aligned inside the frame of the view containing it.
-///
-/// A capsule shape is equivalent to a rounded rectangle where the corner radius
-/// is chosen as half the length of the rectangle's smallest edge.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Capsule : Shape {
-    public var style: RoundedCornerStyle { get { fatalError() } }
-
-    /// Creates a new capsule shape.
-    ///
-    /// - Parameters:
-    ///   - style: the style of corners drawn by the shape.
-    @inlinable public init(style: RoundedCornerStyle = .continuous) { fatalError() }
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in r: CGRect) -> Path { fatalError() }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1056,47 +1002,6 @@ extension ContainerRelativeShape : InsettableShape {
 
     /// The type of the inset shape.
     public typealias InsetShape = Never
-}
-
-/// A circle centered on the frame of the view containing it.
-///
-/// The circle's radius equals half the length of the frame rectangle's smallest
-/// edge.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Circle : Shape {
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// Creates a new circle shape.
-    @inlinable public init() { fatalError() }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -1233,44 +1138,6 @@ extension UnevenRoundedRectangle : InsettableShape {
 
     /// The type of the inset shape.
     public typealias InsetShape = Never
-}
-
-/// An ellipse aligned inside the frame of the view containing it.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Ellipse : Shape {
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// Creates a new ellipse shape.
-    @inlinable public init() { fatalError() }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = EmptyAnimatableData
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

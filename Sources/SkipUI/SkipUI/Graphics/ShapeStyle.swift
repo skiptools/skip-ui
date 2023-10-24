@@ -17,6 +17,11 @@ public struct FillStyle : Equatable, Sendable {
     }
 }
 
+public enum RoundedCornerStyle : Hashable, Sendable {
+    case circular
+    case continuous
+}
+
 #if !SKIP
 
 // TODO: Process for use in SkipUI
@@ -1107,29 +1112,6 @@ extension Never : ShapeStyle {
     /// When you create a custom shape style, Swift infers this type
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
-}
-
-/// Defines the shape of a rounded rectangle's corners.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public enum RoundedCornerStyle : Sendable {
-
-    /// Quarter-circle rounded rect corners.
-    case circular
-
-    /// Continuous curvature rounded rect corners.
-    case continuous
-
-    
-
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension RoundedCornerStyle : Equatable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension RoundedCornerStyle : Hashable {
 }
 
 #endif
