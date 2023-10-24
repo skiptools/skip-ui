@@ -73,11 +73,11 @@ class V: View {
     }
 
     override fun body(): View {
-        return ComposeView { composectx: ComposeContext in 
+        return ComposeView { composectx -> 
             if (isHello) {
-                Text("Hello!").Compose(context: composectx)
+                Text("Hello!").Compose(context = composectx)
             } else {
-                Text("Goodbye!").Compose(context: composectx)
+                Text("Goodbye!").Compose(context = composectx)
             }
             ComposeResult.ok
         }
