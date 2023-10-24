@@ -10,7 +10,7 @@ SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI f
 
 SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
-SkipUI is part of the core Skip stack and is not intended to be imported directly.
+SkipUI is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import SwiftUI` into `import skip.ui.*` by the Skip transpiler.
 
 ## Status
@@ -23,7 +23,7 @@ When you want to use a SwiftUI construct that has not been implemented, you have
 
 ## Contributing
 
-We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/) includes helpful instructions on local Skip library development. 
+We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
 
 The most pressing need is to implement more core components and view modifiers. View modifiers in particular are a ripe source of low-hanging fruit. The Compose `Modifier` type often has built-in functions that replicate SwiftUI modifiers, making these SwiftUI modifiers easy to implement.
 To help fill in unimplemented API in SkipUI:
@@ -31,7 +31,7 @@ To help fill in unimplemented API in SkipUI:
 1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`. Note that most unimplemented `View` modifiers are in the `View.swift` source file.
 1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
 1. Write tests and/or playground code to exercise your component. See [Tests](#tests).
-1. [Submit a PR.](https://github.com/skiptools/skip-ui/pulls)
+1. [Submit a PR](https://github.com/skiptools/skip-ui/pulls).
 
 Other forms of contributions such as test cases, comments, and documentation are also welcome!
 
@@ -187,16 +187,19 @@ Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub th
 ```swift
 VStack {
     Text("Hello from SwiftUI")
+    #if SKIP
     ComposeView { _ in
         androidx.compose.material3.Text("Hello from Compose")
         return .ok
     }
+    #endif
 }
 ```
 
 Skip also enhances all SwiftUI views with a `Compose()` method, allowing you to use SwiftUI views from within Compose. The following example again uses a SwiftUI `Text` to write "Hello from SwiftUI", but this time from within a `ComposeView`:
 
 ```swift
+#if SKIP
 ComposeView { context in 
     androidx.compose.foundation.layout.Column(modifier: context.modifier) {
         Text("Hello from SwiftUI").Compose(context: context.content())
@@ -204,17 +207,20 @@ ComposeView { context in
     }
     return .ok
 }
+#endif
 ```
 
 Or:
 
 ```swift
+#if SKIP
 ComposeView { context in 
     VStack {
         Text("Hello from SwiftUI").Compose(context: context.content())
         androidx.compose.material3.Text("Hello from Compose")
     }.Compose(context: context) // Returns .ok
 }
+#endif
 ```
 
 With `ComposeView` and the `Compose()` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
