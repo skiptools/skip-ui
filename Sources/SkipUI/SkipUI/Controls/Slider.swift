@@ -71,7 +71,7 @@ public struct Slider : View {
         } else {
             colors = SliderDefaults.colors()
         }
-        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: context.modifier, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
+        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: context.modifier, enabled: EnvironmentValues.shared.isEnabled, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
     }
     #else
     public var body: some View {

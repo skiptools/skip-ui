@@ -176,6 +176,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
     }
 
+    public var isEnabled: Bool {
+        get { builtinValue(key: "isEnabled", defaultValue: { true }) as! Bool }
+        set { setBuiltinValue(key: "isEnabled", value: newValue, defaultValue: { true }) }
+    }
+
     // MARK: - Internal values
 
     var _buttonStyle: ButtonStyle? {

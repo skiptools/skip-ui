@@ -69,7 +69,7 @@ public struct Toggle<Label> : View where Label : View {
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     label.Compose(context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                    Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, colors: colors)
+                    Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, enabled: EnvironmentValues.shared.isEnabled, colors: colors)
                 }
             }
         }

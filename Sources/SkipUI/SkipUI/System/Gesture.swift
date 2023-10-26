@@ -300,9 +300,12 @@ class GestureModifierView: ComposeModifierView {
     }
 
     @Composable private func addGestures(to modifier: Modifier) -> Modifier {
-        if tapAction == nil && doubleTapAction == nil && longPressAction == nil {
+        guard tapAction != nil || doubleTapAction != nil || longPressAction != nil else {
              return modifier
-         }
+        }
+        guard EnvironmentValues.shared.isEnabled else {
+            return modifier
+        }
         let density = LocalDensity.current
          return modifier.pointerInput(true) {
              let onDoubleTap: ((Offset) -> Void)? = if let doubleTapAction {

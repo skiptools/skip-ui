@@ -82,7 +82,7 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
                 } else {
                     colors = ButtonDefaults.filledTonalButtonColors()
                 }
-                FilledTonalButton(modifier: modifier, onClick: action, colors: colors) {
+                FilledTonalButton(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
                     label.Compose(context: contentContext)
                 }
             case .borderedProminent:
@@ -93,19 +93,25 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
-                androidx.compose.material3.Button(modifier: modifier, onClick: action, colors: colors) {
+                androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
                     label.Compose(context: contentContext)
                 }
             default:
-                ComposePlain(context: context.content(modifier: modifier.clickable(onClick: action)))
+                ComposePlain(context: context.content(modifier: modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled)))
             }
         }
     }
 
     @Composable private func ComposePlain(context: ComposeContext) {
+        let isEnabled = EnvironmentValues.shared.isEnabled
+        let disabledAlpha = Double(ContentAlpha.disabled)
         EnvironmentValues.shared.setValues {
             if $0._color == nil {
-                $0.set_color($0._tint ?? Color.accentColor)
+                var buttonColor = $0._tint ?? Color.accentColor
+                if !isEnabled {
+                    buttonColor = buttonColor.opacity(disabledAlpha)
+                }
+                $0.set_color(buttonColor)
             }
         } in: {
             label.Compose(context: context)
@@ -118,7 +124,7 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        Box(modifier: Modifier.clickable(onClick: action).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+        Box(modifier: Modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
             ComposePlain(context: context)
         }
     }

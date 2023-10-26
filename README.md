@@ -456,6 +456,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.bold`|Full||
 |`.border`|Full||
 |`.buttonStyle`|High|Custom styles not supported|
+|`.disabled`|Full||
 |`.environment`|Full||
 |`.environmentObject`|Full||
 |`.font`|Full||

@@ -371,9 +371,13 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
+    
     public func disabled(_ disabled: Bool) -> some View {
+        #if SKIP
+        return environment(\.isEnabled, !disabled)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

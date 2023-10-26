@@ -488,7 +488,7 @@ public struct NavigationLink : View, ListItemAdapting {
 
     @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {
         let navigator = LocalNavigator.current
-        return modifier.clickable(enabled: value != nil) {
+        return modifier.clickable(enabled: value != nil && EnvironmentValues.shared.isEnabled) {
             if let value, let navigator  {
                 navigator.navigate(to: value)
             }

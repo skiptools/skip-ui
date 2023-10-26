@@ -99,7 +99,7 @@ public struct TextField<Label> : View where Label : View {
         } else {
             colors = TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: textColor.copy(alpha: ContentAlpha.disabled))
         }
-        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), placeholder: { Placeholder(context: contentContext) }, singleLine: true, colors: colors)
+        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, placeholder: { Placeholder(context: contentContext) }, singleLine: true, colors: colors)
     }
 
     @Composable private func Placeholder(context: ComposeContext) {
