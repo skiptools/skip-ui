@@ -229,11 +229,13 @@ Note that `ComposeView` and the `Compose()` function are only available in Andro
 
 ### Images
 
-SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources and URLs is also not yet supported. These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
+SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
+
+To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources is also not yet supported. These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
 
 In addition to the system images below, you can display any emoji using `Text`. 
 
-If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource and URL loading is implemented.
+If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
 
 | iOS | Android |
 |---|-------|
@@ -427,6 +429,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`@State`|Full||
 |`@StateObject`|Full||
 |Custom Views|Full||
+|`AsyncImage`|High|Uses [Coil](https://coil-kt.github.io/coil/)|
 |`Button`|High||
 |`Color`|High||
 |`Divider`|Full||
@@ -475,6 +478,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.opacity`|Full||
 |`.padding`|High|Compose does not support negative padding|
 |`.progressViewStyle`|High|Custom styles not supported|
+|`.resizable`|Low|`capInsets` and `resizingMode` not supported|
 |`.rotationEffect`|Medium||
 |`.scaleEffect`|Medium||
 |`.sheet`|High|See [Navigation](#navigation)|
