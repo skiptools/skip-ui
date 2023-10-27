@@ -35,6 +35,8 @@ import struct CoreGraphics.CGSize
 
 public struct Image : View, Equatable, Sendable {
     let image: ImageType
+    var capInsets = EdgeInsets()
+    var resizingMode: ResizingMode?
 
     enum ImageType : Equatable, Sendable {
         case named(name: String, bundle: Bundle?, label: Text?)
@@ -74,36 +76,48 @@ public struct Image : View, Equatable, Sendable {
     @Composable public override func ComposeContent(context: ComposeContext) {
         switch self.image {
         case .painter(let painter, let scale):
+            ComposePainter(painter: painter, scale: scale, context: context)
+        case .system(let systemName):
+            ComposeSystem(systemName: systemName, context: context)
+        default:
+            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
+        }
+    }
+
+    @Composable private func ComposePainter(painter: Painter, scale: CGFloat, context: ComposeContext) {
+        if let resizingMode {
+            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: context.modifier.fillSize(expandContainer: false), contentScale: ContentScale.FillBounds)
+        } else {
             let modifier = context.modifier.size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
             // Use an unbounded outer box to let the image overflow without affecting the size being reported to our parent container
             Box(modifier = Modifier.wrapContentSize(unbounded: true)) {
                 androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier)
             }
-        case .system(let systemName):
-            let modifier: Modifier
-            let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
-            if textStyle.fontSize.isSp {
-                let textSizeDp = with(LocalDensity.current) {
-                    textStyle.fontSize.toDp()
-                }
-                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
-                modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
-            } else {
-                modifier = context.modifier
+        }
+    }
+
+    @Composable private func ComposeSystem(systemName: String, context: ComposeContext) {
+        let modifier: Modifier
+        let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+        if textStyle.fontSize.isSp {
+            let textSizeDp = with(LocalDensity.current) {
+                textStyle.fontSize.toDp()
             }
-            if let image = composeImageVector(named: systemName) {
-                if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
-                    Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
-                } else {
-                    Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
-                }
+            // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
+            modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
+        } else {
+            modifier = context.modifier
+        }
+        if let image = composeImageVector(named: systemName) {
+            if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
+                Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
             } else {
-                // TODO: throw error? Log message?
-                print("Unable to find system image named: \(systemName)")
-                Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+                Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
             }
-        default:
-            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
+        } else {
+            // TODO: throw error? Log message?
+            print("Unable to find system image named: \(systemName)")
+            Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
         }
     }
 
@@ -476,6 +490,32 @@ public struct Image : View, Equatable, Sendable {
         stubView()
     }
     #endif
+
+    public enum ResizingMode : Sendable {
+        case tile
+        case stretch
+    }
+
+    public func resizable() -> Image {
+        var image = self
+        image.resizingMode = .stretch
+        return image
+    }
+
+    // We only support the no-arg resizable() function for now
+    @available(*, unavailable)
+    public func resizable(capInsets: EdgeInsets) -> Image {
+        var image = self
+        image.capInsets = capInsets
+        return image
+    }
+    @available(*, unavailable)
+    public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode) -> Image {
+        var image = self
+        image.capInsets = capInsets
+        image.resizingMode = resizingMode
+        return image
+    }
 }
 
 #if !SKIP
@@ -1079,35 +1119,6 @@ extension Image {
     ///   - renderer: A closure to draw the contents of the image. The closure
     ///     receives a ``GraphicsContext`` as its parameter.
     public init(size: CGSize, label: Text? = nil, opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear, renderer: @escaping (inout GraphicsContext) -> Void) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// The modes that SkipUI uses to resize an image to fit within
-    /// its containing view.
-    public enum ResizingMode : Sendable {
-
-        /// A mode to repeat the image at its original size, as many
-        /// times as necessary to fill the available space.
-        case tile
-
-        /// A mode to enlarge or reduce the size of an image so that it
-        /// fills the available space.
-        case stretch
-
-        
-
-    
-        }
-
-    /// Sets the mode by which SkipUI resizes an image to fit its space.
-    /// - Parameters:
-    ///   - capInsets: Inset values that indicate a portion of the image that
-    ///   SkipUI doesn't resize.
-    ///   - resizingMode: The mode by which SkipUI resizes the image.
-    /// - Returns: An image, with the new resizing behavior set.
-    public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> Image { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
