@@ -5,6 +5,10 @@
 import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import coil.size.Size
 #endif
 
 public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
@@ -50,7 +54,25 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = self.content(AsyncImagePhase.empty).Compose(context)
+        guard let url else {
+            let _ = self.content(AsyncImagePhase.empty).Compose(context)
+            return
+        }
+
+        let model = ImageRequest.Builder(LocalContext.current)
+            .data(url.absoluteString)
+            .size(Size.ORIGINAL)
+            .build()
+        SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
+            content(AsyncImagePhase.empty).Compose(context: context)
+        }, success: { state in
+            let image = Image { context in
+                androidx.compose.foundation.Image(painter: self.painter, contentDescription: nil)
+            }
+            content(AsyncImagePhase.success(image)).Compose(context: context)
+        }, error: { state in
+            content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable))).Compose(context: context)
+        })
     }
     #else
     public var body: some View {
