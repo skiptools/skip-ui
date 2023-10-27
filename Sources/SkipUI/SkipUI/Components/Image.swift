@@ -4,12 +4,9 @@
 
 import Foundation
 #if SKIP
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.__
 import androidx.compose.material.icons.filled.__
 import androidx.compose.material.icons.outlined.__
@@ -23,6 +20,13 @@ import androidx.compose.material.icons.Icons.Sharp
 import androidx.compose.material.icons.Icons.TwoTone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 #else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -37,7 +41,7 @@ public struct Image : View, Equatable, Sendable {
         case decorative(name: String, bundle: Bundle?)
         case system(systemName: String)
         #if SKIP
-        case composable(@Composable (ComposeContext) -> Void)
+        case painter(painter: Painter, scale: CGFloat)
         #endif
     }
 
@@ -61,10 +65,47 @@ public struct Image : View, Equatable, Sendable {
     }
 
     #if SKIP
-    public init(composable: @Composable (ComposeContext) -> Void) {
-        self.image = .composable(composable)
+    public init(painter: Painter, scale: CGFloat) {
+        self.image = .painter(painter: painter, scale: scale)
     }
     #endif
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        switch self.image {
+        case .painter(let painter, let scale):
+            let modifier = context.modifier.size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
+            // Use an unbounded outer box to let the image overflow without affecting the size being reported to our parent container
+            Box(modifier = Modifier.wrapContentSize(unbounded: true)) {
+                androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier)
+            }
+        case .system(let systemName):
+            let modifier: Modifier
+            let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+            if textStyle.fontSize.isSp {
+                let textSizeDp = with(LocalDensity.current) {
+                    textStyle.fontSize.toDp()
+                }
+                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
+                modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
+            } else {
+                modifier = context.modifier
+            }
+            if let image = composeImageVector(named: systemName) {
+                if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
+                    Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
+                } else {
+                    Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
+                }
+            } else {
+                // TODO: throw error? Log message?
+                print("Unable to find system image named: \(systemName)")
+                Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+            }
+        default:
+            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
+        }
+    }
 
     private func composeSymbolName(for symbolName: String) -> String? {
         switch symbolName {
@@ -169,39 +210,6 @@ public struct Image : View, Equatable, Sendable {
         case "exclamationmark.triangle.fill": return "Icons.Filled.Warning" //􀇿
 
         default: return nil
-        }
-    }
-
-    #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        switch self.image {
-        case .composable(let composable):
-            composable(context)
-        case .system(let systemName):
-            let modifier: Modifier
-            let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
-            if textStyle.fontSize.isSp {
-                let textSizeDp = with(LocalDensity.current) {
-                    textStyle.fontSize.toDp()
-                }
-                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
-                modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
-            } else {
-                modifier = context.modifier
-            }
-            if let image = composeImageVector(named: systemName) {
-                if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
-                    Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
-                } else {
-                    Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
-                }
-            } else {
-                // TODO: throw error? Log message?
-                print("Unable to find system image named: \(systemName)")
-                Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
-            }
-        default:
-            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
         }
     }
 
