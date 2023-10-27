@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -91,11 +92,13 @@ public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, 
         } else {
             let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
             // Reduce size to better match SwiftUI
-            let modifier = Modifier.size(20.dp).then(context.modifier)
-            if value == nil || total == nil {
-                CircularProgressIndicator(modifier: modifier, color: color)
-            } else {
-                CircularProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
+            let indicatorModifier = Modifier.size(20.dp)
+            Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                if value == nil || total == nil {
+                    CircularProgressIndicator(modifier: indicatorModifier, color: color)
+                } else {
+                    CircularProgressIndicator(progress: Float(value! / total!), modifier: indicatorModifier, color: color)
+                }
             }
         }
     }

@@ -3,8 +3,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -20,7 +23,7 @@ import androidx.compose.ui.Modifier
     // the other hand, a single 'fillMaxWidth' child will consume all remaining space, pushing subsequent children out. To get
     // SwiftUI's behavior, all children that want to expand must use the 'weight' modifier, which is only available in a Row or
     // Column scope. We've abstracted the fact that 'weight' for a given dimension may or may not be available depending on scope
-    // behind our `fillWidth` and `fillHeight` modifiers.
+    // behind our `Modifier.fillWidth` and `Modifier.fillHeight` extension functions.
     //
     // Having to explicitly set a certain modifier in order to expand within a parent is problematic for containers that want to
     // fit content. The container only wants to expand if it has content that wants to expand. It cant't know this until it composes
@@ -31,20 +34,27 @@ import androidx.compose.ui.Modifier
 
     // Use remembered expansion values to recompose on change
     let isFillWidth = remember { mutableStateOf(fillWidth) }
+    let isNonExpandingFillWidth = remember { mutableStateOf(false) }
     let isFillHeight = remember { mutableStateOf(fillHeight) }
+    let isNonExpandingFillHeight = remember { mutableStateOf(false) }
 
-    // Create the correct modifier for the current values
+    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child views who want to
+    // take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
     var modifier = modifier
     if isFillWidth.value {
         modifier = modifier.fillWidth()
+    } else if isNonExpandingFillWidth.value {
+        modifier = modifier.width(IntrinsicSize.Max)
     }
     if isFillHeight.value {
         modifier = modifier.fillHeight()
+    } else if isNonExpandingFillHeight.value {
+        modifier = modifier.height(IntrinsicSize.Max)
     }
     modifier = modifier.then(then)
 
     EnvironmentValues.shared.setValues {
-        // Setup the initial environment before rending the container content. First, we reset the any saved fill modifiers because
+        // Setup the initial environment before rendering the container content. First, we reset the any saved fill modifiers because
         // this is a new container. A directional container like 'HStack' or 'VStack' will set the correct modifier before rendering
         // in the content block below, so that its own children can distribute available space
         $0.set_fillWidthModifier(nil)
@@ -52,21 +62,39 @@ import androidx.compose.ui.Modifier
 
         // Set the 'fillWidth' and 'fillHeight' blocks to trigger a side effect to update our container's expansion state, which can
         // cause it to recompose and recalculate its own modifier. We must use `SideEffect` or the recomposition never happens
-        $0.set_fillWidth {
-            if !isFillWidth.value {
+        $0.set_fillWidth { expandContainer in
+            if expandContainer && !isFillWidth.value {
                 SideEffect {
                     isFillWidth.value = true
                 }
             }
-            return EnvironmentValues.shared._fillWidthModifier ?? Modifier.fillMaxWidth()
+            if !expandContainer && !isNonExpandingFillWidth.value {
+                SideEffect {
+                    isNonExpandingFillWidth.value = true
+                }
+            }
+            if !expandContainer {
+                return Modifier.fillMaxWidth()
+            } else {
+                return EnvironmentValues.shared._fillWidthModifier ?? Modifier.fillMaxWidth()
+            }
         }
-        $0.set_fillHeight {
-            if !isFillHeight.value {
+        $0.set_fillHeight { expandContainer in
+            if expandContainer && !isFillHeight.value {
                 SideEffect {
                     isFillHeight.value = true
                 }
             }
-            return EnvironmentValues.shared._fillHeightModifier ?? Modifier.fillMaxHeight()
+            if !expandContainer && !isNonExpandingFillHeight.value {
+                SideEffect {
+                    isNonExpandingFillHeight.value = true
+                }
+            }
+            if !expandContainer {
+                return Modifier.fillMaxHeight()
+            } else {
+                return EnvironmentValues.shared._fillHeightModifier ?? Modifier.fillMaxHeight()
+            }
         }
     } in: {
         // Render the container content with the above environment setup

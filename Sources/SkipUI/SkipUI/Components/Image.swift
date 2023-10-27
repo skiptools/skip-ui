@@ -36,6 +36,9 @@ public struct Image : View, Equatable, Sendable {
         case named(name: String, bundle: Bundle?, label: Text?)
         case decorative(name: String, bundle: Bundle?)
         case system(systemName: String)
+        #if SKIP
+        case composable(@Composable (ComposeContext) -> Void)
+        #endif
     }
 
     @available(*, unavailable)
@@ -56,6 +59,12 @@ public struct Image : View, Equatable, Sendable {
     public init(systemName: String) {
         self.image = .system(systemName: systemName)
     }
+
+    #if SKIP
+    public init(composable: @Composable (ComposeContext) -> Void) {
+        self.image = .composable(composable)
+    }
+    #endif
 
     private func composeSymbolName(for symbolName: String) -> String? {
         switch symbolName {
@@ -166,6 +175,8 @@ public struct Image : View, Equatable, Sendable {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         switch self.image {
+        case .composable(let composable):
+            composable(context)
         case .system(let systemName):
             let modifier: Modifier
             let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current

@@ -10,6 +10,7 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
@@ -22,7 +23,7 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(colorImpl())
+        let modifier = context.modifier.background(colorImpl()).fillSize(expandContainer: false)
         Box(modifier: modifier)
     }
     #else
@@ -159,6 +160,11 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     static let systemBackground = Color(colorImpl: {
         // Matches Android's default bottom bar color
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    })
+
+    static let placeholder = Color(colorImpl: {
+        // Close to iOS's AsyncImage placeholder values
+        color(light: 0xFFDDDDDD, dark: 0xFF777777)
     })
 
     /// Returns the given color value based on whether the view is in dark mode or light mode

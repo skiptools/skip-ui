@@ -15,7 +15,16 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
     public init(url: URL?, scale: CGFloat = 1.0) /* where Content == Image */ {
         self.url = url
         self.scale = scale
-        self.content = { _ in Color.accentColor }
+        self.content = { phase in
+            switch phase {
+            case .empty:
+                return Self.defaultPlaceholder()
+            case .failure:
+                return Self.defaultPlaceholder()
+            case .success(let image):
+                return image
+            }
+        }
     }
 
     public init(url: URL?, scale: CGFloat = 1.0, @ViewBuilder content: @escaping (Image) -> any View, @ViewBuilder placeholder: @escaping () -> any View) {
@@ -41,14 +50,21 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-//        let modifier = context.modifier.background(androidx.compose.ui.graphics.Color.Black)
-//        Box(modifier: modifier)
+        let _ = self.content(AsyncImagePhase.empty).Compose(context)
     }
     #else
     public var body: some View {
         stubView()
     }
     #endif
+
+    @ViewBuilder static func defaultPlaceholder() -> some View {
+        #if SKIP
+        Color.placeholder
+        #else
+        stubView()
+        #endif
+    }
 }
 
 public enum AsyncImagePhase : Sendable {
