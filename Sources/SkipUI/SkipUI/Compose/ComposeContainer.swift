@@ -17,7 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
 /// Internal composable to handle sizing and layout for containers that compose child content.
-@Composable func ComposeContainer(modifier: Modifier = Modifier, fillWidth: Bool = false, fillHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
+@Composable public func ComposeContainer(modifier: Modifier = Modifier, fillWidth: Bool = false, fillHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
     // Compose's behavior differs from SwiftUI's when dealing with filling space. A SwiftUI container will give each child the
     // space it needs to display, then automatically divide the remainder between children that want to expand. In Compose, on
     // the other hand, a single 'fillMaxWidth' child will consume all remaining space, pushing subsequent children out. To get
