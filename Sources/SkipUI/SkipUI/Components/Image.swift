@@ -18,8 +18,10 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalDensity
@@ -67,9 +69,7 @@ public struct Image : View, Equatable, Sendable {
     public init(painter: Painter, scale: CGFloat) {
         self.image = .painter(painter: painter, scale: scale)
     }
-    #endif
 
-    #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let aspect = EnvironmentValues.shared._aspectRatio
 
@@ -86,24 +86,39 @@ public struct Image : View, Equatable, Sendable {
         }
     }
 
-    @Composable private func ComposePainter(painter: Painter, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func ComposePainter(painter: Painter, scale: CGFloat = 1.0, colorFilter: ColorFilter? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
         switch resizingMode {
         case .stretch:
-            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: Modifier.fillSize(expandContainer: false), contentScale: contentScale(aspectRatio: aspectRatio, contentMode: contentMode))
+            let scale = contentScale(aspectRatio: aspectRatio, contentMode: contentMode)
+            let modifier = Modifier.fillSize(expandContainer: false)
+            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier, contentScale: scale, colorFilter: colorFilter)
         default: // TODO: .tile
             let modifier = Modifier.wrapContentSize(unbounded: true).size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
-            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier)
+            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier, colorFilter: colorFilter)
         }
     }
 
     @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?) {
-        // TODO: Aspect ratio & content mode
-        let modifier: Modifier
+        guard let image = composeImageVector(named: systemName) else {
+            print("Unable to find system image named: \(systemName)")
+            Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+            return
+        }
+
+        let tintColor = EnvironmentValues.shared._color?.colorImpl()
         switch resizingMode {
         case .stretch:
-            modifier = Modifier.fillSize(expandContainer: false)
+            let painter = rememberVectorPainter(image)
+            let colorFilter: ColorFilter?
+            if let tintColor {
+                colorFilter = ColorFilter.tint(tintColor)
+            } else {
+                colorFilter = nil
+            }
+            ComposePainter(painter: painter, colorFilter: colorFilter, aspectRatio: aspectRatio, contentMode: contentMode)
         default: // TODO: .tile
             let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+            let modifier: Modifier
             if textStyle.fontSize.isSp {
                 let textSizeDp = with(LocalDensity.current) {
                     textStyle.fontSize.toDp()
@@ -113,17 +128,7 @@ public struct Image : View, Equatable, Sendable {
             } else {
                 modifier = Modifier
             }
-        }
-
-        if let image = composeImageVector(named: systemName) {
-            if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
-                Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
-            } else {
-                Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
-            }
-        } else {
-            print("Unable to find system image named: \(systemName)")
-            Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+            Icon(imageVector: image, contentDescription: systemName, modifier: modifier, tint: tintColor ?? androidx.compose.ui.graphics.Color.Unspecified)
         }
     }
 
@@ -142,6 +147,7 @@ public struct Image : View, Equatable, Sendable {
         return AspectRatioContentScale(aspectRatio: aspectRatio, contentMode: contentMode)
     }
 
+    /// Custom scale to handle fitting or filling a user-specified aspect ratio.
     private struct AspectRatioContentScale: ContentScale {
         let aspectRatio: Double
         let contentMode: ContentMode
