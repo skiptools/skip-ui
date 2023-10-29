@@ -13,18 +13,15 @@ import androidx.compose.material.icons.outlined.__
 import androidx.compose.material.icons.rounded.__
 import androidx.compose.material.icons.sharp.__
 import androidx.compose.material.icons.twotone.__
-import androidx.compose.material.icons.Icons.Filled
-import androidx.compose.material.icons.Icons.Outlined
-import androidx.compose.material.icons.Icons.Rounded
-import androidx.compose.material.icons.Icons.Sharp
-import androidx.compose.material.icons.Icons.TwoTone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 #else
@@ -74,40 +71,50 @@ public struct Image : View, Equatable, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        switch self.image {
-        case .painter(let painter, let scale):
-            ComposePainter(painter: painter, scale: scale, context: context)
-        case .system(let systemName):
-            ComposeSystem(systemName: systemName, context: context)
-        default:
-            Icon(modifier: context.modifier, imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
-        }
-    }
+        let aspect = EnvironmentValues.shared._aspectRatio
 
-    @Composable private func ComposePainter(painter: Painter, scale: CGFloat, context: ComposeContext) {
-        if let resizingMode {
-            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: context.modifier.fillSize(expandContainer: false), contentScale: ContentScale.FillBounds)
-        } else {
-            let modifier = context.modifier.size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
-            // Use an unbounded outer box to let the image overflow without affecting the size being reported to our parent container
-            Box(modifier = Modifier.wrapContentSize(unbounded: true)) {
-                androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier)
+        // Put given modifiers on the containing Box so that the image can scale itself without affecting them
+        Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+            switch image {
+            case .painter(let painter, let scale):
+                ComposePainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+            case .system(let systemName):
+                ComposeSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1)
+            default:
+                Icon(imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
             }
         }
     }
 
-    @Composable private func ComposeSystem(systemName: String, context: ComposeContext) {
+    @Composable private func ComposePainter(painter: Painter, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
+        switch resizingMode {
+        case .stretch:
+            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: Modifier.fillSize(expandContainer: false), contentScale: contentScale(aspectRatio: aspectRatio, contentMode: contentMode))
+        default: // TODO: .tile
+            let modifier = Modifier.wrapContentSize(unbounded: true).size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
+            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier)
+        }
+    }
+
+    @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?) {
+        // TODO: Aspect ratio & content mode
         let modifier: Modifier
-        let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
-        if textStyle.fontSize.isSp {
-            let textSizeDp = with(LocalDensity.current) {
-                textStyle.fontSize.toDp()
+        switch resizingMode {
+        case .stretch:
+            modifier = Modifier.fillSize(expandContainer: false)
+        default: // TODO: .tile
+            let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
+            if textStyle.fontSize.isSp {
+                let textSizeDp = with(LocalDensity.current) {
+                    textStyle.fontSize.toDp()
+                }
+                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
+                modifier = Modifier.size(textSizeDp * Float(1.5))
+            } else {
+                modifier = Modifier
             }
-            // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
-            modifier = Modifier.size(textSizeDp * Float(1.5)).then(context.modifier)
-        } else {
-            modifier = context.modifier
         }
+
         if let image = composeImageVector(named: systemName) {
             if let tintColor = EnvironmentValues.shared._color?.colorImpl() {
                 Icon(modifier: modifier, imageVector: image, tint: tintColor, contentDescription: systemName)
@@ -115,9 +122,46 @@ public struct Image : View, Equatable, Sendable {
                 Icon(modifier: modifier, imageVector: image, contentDescription: systemName)
             }
         } else {
-            // TODO: throw error? Log message?
             print("Unable to find system image named: \(systemName)")
             Icon(modifier: modifier, imageVector: Icons.Default.Warning, contentDescription: "missing icon")
+        }
+    }
+
+    private func contentScale(aspectRatio: Double?, contentMode: ContentMode?) -> ContentScale {
+        guard let contentMode else {
+            return ContentScale.FillBounds
+        }
+        guard let aspectRatio else {
+            switch contentMode {
+            case .fit:
+                return ContentScale.Fit
+            case .fill:
+                return ContentScale.Crop
+            }
+        }
+        return AspectRatioContentScale(aspectRatio: aspectRatio, contentMode: contentMode)
+    }
+
+    private struct AspectRatioContentScale: ContentScale {
+        let aspectRatio: Double
+        let contentMode: ContentMode
+
+        override func computeScaleFactor(srcSize: Size, dstSize: Size) -> ScaleFactor {
+            let dstAspectRatio = dstSize.width / dstSize.height
+            switch contentMode {
+            case .fit:
+                return aspectRatio > dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
+            case .fill:
+                return aspectRatio < dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
+            }
+        }
+
+        private func fitToWidth(srcSize: Size, dstSize: Size) -> ScaleFactor {
+            return ScaleFactor(scaleX: dstSize.width / srcSize.width, scaleY: dstSize.width / Float(aspectRatio) / srcSize.height)
+        }
+
+        private func fitToHeight(srcSize: Size, dstSize: Size) -> ScaleFactor {
+            return ScaleFactor(scaleX: dstSize.height * Float(aspectRatio) / srcSize.width, scaleY: dstSize.height / srcSize.height)
         }
     }
 
@@ -502,14 +546,14 @@ public struct Image : View, Equatable, Sendable {
         return image
     }
 
-    // We only support the no-arg resizable() function for now
-    @available(*, unavailable)
+    @available(*, unavailable) // No capInsets support yet
     public func resizable(capInsets: EdgeInsets) -> Image {
         var image = self
         image.capInsets = capInsets
         return image
     }
-    @available(*, unavailable)
+
+    @available(*, unavailable) // No resizingMode support yet
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode) -> Image {
         var image = self
         image.capInsets = capInsets

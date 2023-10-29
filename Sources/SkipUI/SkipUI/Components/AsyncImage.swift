@@ -4,7 +4,6 @@
 
 import Foundation
 #if SKIP
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.SubcomposeAsyncImage
@@ -67,11 +66,8 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
             content(AsyncImagePhase.empty).Compose(context: context)
         }, success: { state in
-            let image = Image(painter: self.painter, scale: scale) // Painter from AsyncImageScope
-            // Put given modifiers on the containing Box so that the content can scale itself without affecting them
-            Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                content(AsyncImagePhase.success(image)).Compose(context: context.content())
-            }
+            let image = Image(painter: self.painter, scale: scale)
+            content(AsyncImagePhase.success(image)).Compose(context: context)
         }, error: { state in
             content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable))).Compose(context: context)
         })

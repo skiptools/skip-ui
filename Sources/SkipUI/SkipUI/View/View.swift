@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
@@ -81,14 +82,16 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func aspectRatio(_ aspectRatio: CGFloat? = nil, contentMode: ContentMode) -> some View {
+    public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> some View {
+        #if SKIP
+        return environment(\._aspectRatio, (ratio, contentMode))
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func aspectRatio(_ aspectRatio: CGSize, contentMode: ContentMode) -> some View {
-        return self
+    public func aspectRatio(_ size: CGSize, contentMode: ContentMode) -> some View {
+        return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
     public func background(_ color: Color) -> some View {
@@ -191,9 +194,14 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func clipped(antialiased: Bool = false) -> some View {
+        #if SKIP
+        return ComposeModifierView(contextView: self) {
+            $0.modifier = $0.modifier.clipToBounds()
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -839,14 +847,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func scaledToFit() -> some View {
-        return self
+        return aspectRatio(nil, contentMode: .fit)
     }
 
-    @available(*, unavailable)
     public func scaledToFill() -> some View {
-        return self
+        return aspectRatio(nil, contentMode: .fill)
     }
 
     public func scaleEffect(_ scale: CGSize) -> some View {

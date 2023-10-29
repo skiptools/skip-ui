@@ -91,7 +91,8 @@ public struct Text: View, Equatable, Sendable {
             textColor = Color(colorImpl: { androidx.compose.ui.graphics.Color.Unspecified })
         }
         let modifier = context.modifier
-        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor.colorImpl(), style: font.fontImpl())
+        let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
+        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor.colorImpl(), maxLines: maxLines, style: font.fontImpl())
     }
     #else
     public var body: some View {
@@ -216,9 +217,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func lineLimit(_ number: Int?) -> some View {
+        #if SKIP
+        return environment(\.lineLimit, number)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

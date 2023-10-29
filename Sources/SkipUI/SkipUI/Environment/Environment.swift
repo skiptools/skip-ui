@@ -181,7 +181,17 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "isEnabled", value: newValue, defaultValue: { true }) }
     }
 
+    public var lineLimit: Int? {
+        get { builtinValue(key: "lineLimit", defaultValue: { nil }) as! Int? }
+        set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
+    }
+
     // MARK: - Internal values
+
+    var _aspectRatio: (CGFloat?, ContentMode)? {
+        get { builtinValue(key: "_aspectRatio", defaultValue: { nil }) as! (CGFloat?, ContentMode)? }
+        set { setBuiltinValue(key: "_aspectRatio", value: newValue, defaultValue: { nil }) }
+    }
 
     var _buttonStyle: ButtonStyle? {
         get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! ButtonStyle? }

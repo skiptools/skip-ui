@@ -455,10 +455,12 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`Toggle`|Medium|Styling, `sources` not supported|
 |`VStack`|Full||
 |`ZStack`|Full||
+|`.aspectRatio`|Low|Supported for images|
 |`.background`|Low|Only color supported|
 |`.bold`|Full||
 |`.border`|Full||
 |`.buttonStyle`|High|Custom styles not supported|
+|`.clipped`|Low|Any resizable image clips automatically|
 |`.disabled`|Full||
 |`.environment`|Full||
 |`.environmentObject`|Full||
@@ -469,6 +471,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.hidden`|Full||
 |`.italic`|Full||
 |`.labelsHidden`|Full||
+|`.lineLimit`|Medium|Only `Int?` value supported|
 |`.listItemTint`|Full||
 |`.listStyle`|Full||
 |`.navigationDestination`|Medium|See [Navigation](#navigation)|
@@ -480,6 +483,8 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.progressViewStyle`|High|Custom styles not supported|
 |`.resizable`|Low|`capInsets` and `resizingMode` not supported|
 |`.rotationEffect`|Medium||
+|`.scaledToFill`|Low|Supported for images|
+|`.scaledToFit`|Low|Supported for images|
 |`.scaleEffect`|Medium||
 |`.sheet`|High|See [Navigation](#navigation)|
 |`.tabItem`|Full||
