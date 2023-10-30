@@ -9,20 +9,25 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope
 
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
-struct ComposeStateSaver: Saver<Any, Any> {
+struct ComposeStateSaver: Saver<Any?, Any> {
+    private static let nilMarker = "__SkipUI.ComposeStateSaver.nilMarker"
     private let state: MutableMap<Key, Any> = mutableMapOf()
 
     override func restore(value: Any) -> Any? {
-        if let key = value as? Key {
+        if value == Self.nilMarker {
+            return nil
+        } else if let key = value as? Key {
             return state[key]
         } else {
             return value
         }
     }
 
-    // SKIP DECLARE: override fun SaverScope.save(value: Any): Any?
-    override func save(value: Any) -> Any? {
-        if value is Boolean || value is Number || value is String || value is Char {
+    // SKIP DECLARE: override fun SaverScope.save(value: Any?): Any
+    override func save(value: Any?) -> Any {
+        if value == nil {
+            return Self.nilMarker
+        } else if value is Boolean || value is Number || value is String || value is Char {
             return value
         } else {
             let key = Key.next()

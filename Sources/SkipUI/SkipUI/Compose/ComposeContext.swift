@@ -16,12 +16,12 @@ public struct ComposeContext {
     public var composer: Composer?
 
     /// Use in conjunction with `rememberSaveable` to store view state.
-    public var stateSaver: Saver<Any, Any> = ComposeStateSaver()
+    public var stateSaver: Saver<Any?, Any> = ComposeStateSaver()
 
     /// The context to pass to child content of a container view.
     ///
     /// By default, modifiers and the `composer` are reset for child content.
-    public func content(modifier: Modifier = Modifier, composer: Composer? = nil, stateSaver: Saver<Any, Any>? = nil) -> ComposeContext {
+    public func content(modifier: Modifier = Modifier, composer: Composer? = nil, stateSaver: Saver<Any?, Any>? = nil) -> ComposeContext {
         var context = self
         context.modifier = modifier
         context.composer = composer
