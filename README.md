@@ -476,6 +476,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.listStyle`|Full||
 |`.navigationDestination`|Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|Full||
+|`.offset`|Full||
 |`.onLongPressGesture`|Medium|`minimumDuration`, `maximumDistance`, `onPressingChanged` not supported|
 |`.onTapGesture`|High|Tap count > 2 not supported|
 |`.opacity`|Full||

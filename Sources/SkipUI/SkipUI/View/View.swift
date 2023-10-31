@@ -6,6 +6,7 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -643,14 +644,18 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func offset(_ offset: CGSize) -> some View {
-        return self
+        return self.offset(x: offset.width, y: offset.height)
     }
 
-    @available(*, unavailable)
     public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        #if SKIP
+        return ComposeModifierView(contextView: self) {
+            $0.modifier = $0.modifier.offset(x: x.dp, y: y.dp)
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
