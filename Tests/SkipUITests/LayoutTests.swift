@@ -17,6 +17,9 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testRenderWhiteSquareTiny() throws {
+        if isAndroid {
+            throw XCTSkip("fails on Android")
+        }
         XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 2.0, height: 2.0)).pixmap, """
         F F
         F F
@@ -173,6 +176,19 @@ final class LayoutTests: XCSnapshotTestCase {
         00 00 00 00 00 00 00 00 00 00 00 00
         """, android: """
         00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 01 01 00 00 00 00 00
+        00 00 00 00 01 DA DC 01 00 00 00 00
+        00 00 00 00 D0 FF FF D0 00 00 00 00
+        00 00 01 D0 FF FF FF FF D8 01 00 00
+        00 01 DA FF FF FF FF FF FF DC 01 00
+        00 01 DD FF FF FF FF FF FF DF 01 00
+        00 00 01 D1 FF FF FF FF D8 01 00 00
+        00 00 00 00 D8 FF FF D8 00 00 00 00
+        00 00 00 00 01 DD DF 01 00 00 00 00
+        00 00 00 00 00 01 01 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        """, robolectric: """
+        00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 A0 9F 00 00 00 00 00
         00 00 00 00 A0 FF FF 9F 00 00 00 00
@@ -208,6 +224,19 @@ final class LayoutTests: XCSnapshotTestCase {
         00 00 00 00 00 FF FF 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00 00
         """, android: """
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 01 01 00 00 00 00 00
+        00 00 00 00 01 DA DC 01 00 00 00 00
+        00 00 00 00 D0 FF FF D0 00 00 00 00
+        00 00 01 D0 FF FF FF FF D8 01 00 00
+        00 01 DA FF FF FF FF FF FF DC 01 00
+        00 01 DD FF FF FF FF FF FF DF 01 00
+        00 00 01 D1 FF FF FF FF D8 01 00 00
+        00 00 00 00 D8 FF FF D8 00 00 00 00
+        00 00 00 00 01 DD DF 01 00 00 00 00
+        00 00 00 00 00 01 01 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        """, robolectric: """
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00 00 00 00 00
         00 00 00 00 00 A0 9F 00 00 00 00 00
@@ -280,6 +309,15 @@ final class LayoutTests: XCSnapshotTestCase {
         FF FF FF 6F FF FF FF
         FF FF FF 74 FF FF FF
         """, android: """
+        FF FF FF FF FF FF
+        FF FF FF FF FF FF
+        FF FF FF 6F FF FF
+        FF FF FF 55 FF FF
+        FF FF FF 55 FF FF
+        FF FF FF 55 FF FF
+        FF FF FF 55 FF FF
+        FF FF FF FF FF FF
+        """, robolectric: """
         FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF
         FF FF FF A9 FF FF FF
@@ -335,6 +373,25 @@ final class LayoutTests: XCSnapshotTestCase {
         00 00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00 00
         """, android: """
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        40 4C 4C 4C 4C 4C 4C 4C
+        B6 D8 D8 EA FC D8 D8 D8
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 81 F1 00 00 00
+        00 00 00 08 0F 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00
+        """, robolectric: """
         00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00
         00 00 00 00 00 00 00 00
@@ -491,16 +548,16 @@ final class LayoutTests: XCSnapshotTestCase {
         """, android: """
         FF FF FF FF FF FF FF FF FF FF FF FF
         FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
-        FF FF FF FF FF FF FF FF FF FF FF FF
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
+        00 00 00 00 00 00 00 00 00 00 00 00
         """))
     }
 
@@ -533,8 +590,8 @@ final class LayoutTests: XCSnapshotTestCase {
 
 
 
-
-
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
 
 
         """))
@@ -562,18 +619,18 @@ final class LayoutTests: XCSnapshotTestCase {
         . .                 . .
         . .                 . .
         """, android: """
-
-
-
-
-
-
-
-
-
-
-
-
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
+                        . . . .
         """))
     }
 

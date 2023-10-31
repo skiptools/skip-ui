@@ -181,11 +181,15 @@ class XCSnapshotTestCase: XCTestCase {
     ///   - macos: the macOS string
     ///   - android: the Android string
     /// - Returns: the string according to the platform
-    func plaf(_ ios: String, macos: String? = nil, android: String? = nil) -> String {
+    func plaf(_ ios: String, macos: String? = nil, android: String? = nil, robolectric: String? = nil) -> String {
         precondition(ios != macos || macos?.isEmpty == true, "strings should differ for platform-specific values")
         precondition(ios != android || android?.isEmpty == true, "strings should differ for platform-specific values")
         #if SKIP
-        return android ?? ios
+        if isAndroid {
+            return android ?? robolectric ?? ios
+        } else {
+            return robolectric ?? android ?? ios
+        }
         #elseif canImport(UIKit)
         return ios
         #elseif canImport(AppKit)
@@ -195,7 +199,12 @@ class XCSnapshotTestCase: XCTestCase {
         #endif
     }
 
-    /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as "•".
+    struct RenderedPixmap {
+        let pixmap: String
+        let size: CGSize
+    }
+
+    /// Renders the given view to a 2-dimensional ASCII pixel map with non-white pixels showing up as ".".
     func pixmap<V: View>(brightness: Double = 0.5, content: V) throws -> String {
         try render(clear: "FFFFFF", replace: ".", brightness: brightness, antiAlias: false, view: content).pixmap
     }
@@ -203,7 +212,7 @@ class XCSnapshotTestCase: XCTestCase {
     /// Renders the given SwiftUI view as an ASCII string representing the shapes and colors in the view.
     /// The optional `outputFile` can be specified to save a PNG form of the view to the given file.
     /// This function handles the three separate scenarios of iOS (UIKit), macOS (AppKit), and Android (SkipKit), which all have different mechanisms for converting a view into a bitmap image.
-    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, brightness: Double = 0.5, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> (pixmap: String, size: (width: Double, height: Double)) {
+    func render<V: View>(outputFile: String? = nil, compact: Int? = nil, clear clearColor: String? = nil, replace: String? = nil, brightness: Double = 0.5, darkMode: Bool = false, antiAlias: Bool? = false, view content: V) throws -> RenderedPixmap {
         #if SKIP
         // SKIP INSERT: lateinit
         var renderView: android.view.View
@@ -214,15 +223,18 @@ class XCSnapshotTestCase: XCTestCase {
             view.Compose(ctx)
         }
 
-        // https://github.com/robolectric/robolectric/issues/8071 — cannot use captureToImage from Robolectric
-        // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
-        // runBlocking { onRoot().captureToImage().asAndroidBitmap() }
+        //composeRule.onRoot().printToLog("SCREEN NODE TREE")
 
         let width = renderView.width
         let height = renderView.height
 
+        // https://github.com/robolectric/robolectric/issues/8071 — cannot use captureToImage from Robolectric
+        // androidx.compose.ui.test.ComposeTimeoutException: Condition still not satisfied after 2000 ms
+        //let bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+
         // draw the view onto a canvas
-        let bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        var bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+
         let bitmapCanvas = android.graphics.Canvas(bitmap)
 
         let paint = androidx.compose.ui.graphics.Paint().asFrameworkPaint()
@@ -242,10 +254,16 @@ class XCSnapshotTestCase: XCTestCase {
             out.close()
         }
 
-        var pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-        let pixmap = createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int64(width))
-        return (pixmap: pixmap, size: (width: Double(width), height: Double(height)))
+        if composeRule.density.density != Float(1.0) {
+            // composeRule.density.density is used  to scale down the view based on the density of the emulator display (Robolectric will be 1.0, emulators seem to be 3.0)
+            bitmap = android.graphics.Bitmap.createScaledBitmap(bitmap, Int(bitmap.width / composeRule.density.density), Int(bitmap.height / composeRule.density.density), true)
+        }
+
+        var pixels = IntArray(bitmap.width * bitmap.height)
+        bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+
+        let pixmap = createPixmap(pixels: Array(pixels.toList()), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int64(bitmap.width))
+        return RenderedPixmap(pixmap: pixmap, size: CGSize(width: Double(bitmap.width), height: Double(bitmap.height)))
         #else
 
         let v = content.environment(\.colorScheme, darkMode ? .dark : .light).environment(\.displayScale, 1.0)
@@ -341,7 +359,7 @@ class XCSnapshotTestCase: XCTestCase {
         #endif // canImport(AppKit)
 
         let pixmap = createPixmapFromColors(pixelData: UnsafePointer(pixelData), compact: compact, clearColor: clearColor, replace: replace, brightness: brightness, width: Int(viewSize.width), height: Int(viewSize.height), bytesPerRow: bytesPerRow, bytesPerPixel: bytesPerPixel)
-        return (pixmap: pixmap, size: (width: viewSize.width, height: viewSize.height))
+        return RenderedPixmap(pixmap: pixmap, size: CGSize(width: viewSize.width, height: viewSize.height))
         #endif
     }
 

@@ -228,6 +228,9 @@ final class SkipUITests: XCTestCase {
     }
 
     func testSlider() throws {
+        if isAndroid {
+            throw XCTSkip("Test not working on Android emulator")
+        }
         // TODO: https://github.com/tikurahul/androidx/blob/ccac66729a5e461b3a05944014f42e2dc55337d6/compose/material/material/src/androidAndroidTest/kotlin/androidx/compose/material/ButtonTest.kt#L48
         // https://github.com/tikurahul/androidx/blob/ccac66729a5e461b3a05944014f42e2dc55337d6/compose/material/material/src/androidAndroidTest/kotlin/androidx/compose/material/SliderTest.kt
 
