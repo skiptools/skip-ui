@@ -198,11 +198,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
     }
 
-    var _color: Color? {
-        get { builtinValue(key: "_color", defaultValue: { nil }) as! Color? }
-        set { setBuiltinValue(key: "_color", value: newValue, defaultValue: { nil }) }
-    }
-
     var _fillHeight: (@Composable (Bool) -> Modifier)? {
         get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable (Bool) -> Modifier)? }
         set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
@@ -226,6 +221,12 @@ extension EnvironmentValues {
     var _fontWeight: Font.Weight? {
         get { builtinValue(key: "_fontWeight", defaultValue: { nil }) as! Font.Weight? }
         set { setBuiltinValue(key: "_fontWeight", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _foregroundStyle: ShapeStyle? {
+        get { builtinValue(key: "_foregroundStyle", defaultValue: { nil }) as! ShapeStyle? }
+        // Avoid recursive foreground style lookup
+        set { setBuiltinValue(key: "_foregroundStyle", value: newValue is ForegroundStyle ? nil : newValue, defaultValue: { nil }) }
     }
 
     var _isItalic: Bool {

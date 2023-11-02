@@ -21,8 +21,9 @@ public struct Divider : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let dividerColor = EnvironmentValues.shared._color?.colorImpl()
-        androidx.compose.material3.Divider(modifier: context.modifier, color: dividerColor ?? androidx.compose.ui.graphics.Color.LightGray)
+        //~~~ TODO: Can we use .background modifier with Brush?
+        let dividerColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? androidx.compose.ui.graphics.Color.LightGray
+        androidx.compose.material3.Divider(modifier: context.modifier, color: dividerColor)
     }
     #else
     public var body: some View {

@@ -59,7 +59,7 @@ public struct Label : View, ListItemAdapting {
         Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             if let imageColor {
                 EnvironmentValues.shared.setValues {
-                    $0.set_color(imageColor)
+                    $0.set_foregroundStyle(imageColor)
                 } in: {
                     image.Compose(context: context.content(modifier: imageModifier))
                 }

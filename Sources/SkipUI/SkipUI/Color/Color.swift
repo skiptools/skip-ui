@@ -10,7 +10,6 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
@@ -25,6 +24,12 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier.background(colorImpl()).fillSize(expandContainer: false)
         Box(modifier: modifier)
+    }
+
+    // MARK: - ShapeStyle
+
+    @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
+        return self.opacity(opacity).colorImpl()
     }
     #else
     public var body: some View {
@@ -234,20 +239,25 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
 
     public func opacity(_ opacity: Double) -> Color {
         #if SKIP
+        guard opacity != 1.0 else {
+            return self
+        }
         return Color(colorImpl: {
             let color = colorImpl()
-            return color.copy(alpha: Float(opacity))
+            return color.copy(alpha: color.alpha * Float(opacity))
         })
         #else
         return self
         #endif
     }
 
-    // MARK: -
-
-    @available(*, unavailable)
-    public var gradient: Any /* AnyGradient */ {
+    public var gradient: AnyGradient {
+        #if SKIP
+        //~~~ NOT DONE: derive gradient
+        return AnyGradient(gradient: Gradient(colors: [self]))
+        #else
         fatalError()
+        #endif
     }
 }
 

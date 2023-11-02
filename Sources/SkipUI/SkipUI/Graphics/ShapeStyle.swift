@@ -2,9 +2,212 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
+#endif
+
 public protocol ShapeStyle : Sendable {
-//    associatedtype Resolved : ShapeStyle = Never
-//    func resolve(in environment: EnvironmentValues) -> Self.Resolved
+    #if SKIP
+    /// Not all Composables support Brushes.
+    @Composable func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color?
+    /// Return this style as a `Brush` for application.
+    @Composable func asBrush(opacity: Double) -> Brush?
+    #else
+    // associatedtype Resolved : ShapeStyle = Never
+    // func resolve(in environment: EnvironmentValues) -> Self.Resolved
+    #endif
+}
+
+#if SKIP
+extension ShapeStyle {
+    @Composable public func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
+        return nil
+    }
+
+    @Composable public func asBrush(opacity: Double) -> Brush? {
+        guard let color = asColor(opacity: opacity) else {
+            return nil
+        }
+        return SolidColor(color)
+    }
+}
+#endif
+
+public struct AnyShapeStyle : ShapeStyle {
+    let style: any ShapeStyle
+
+    public init(_ style: any ShapeStyle) {
+        self.style = style
+    }
+
+    #if SKIP
+    @Composable override func asColor(alpha: Float, defaultColor: androidx.compose.ui.graphics.Color?) -> androidx.compose.ui.graphics.Color? {
+        return style.toColor(alpha: alpha, defaultColor: defaultColor)
+    }
+
+    @Composable override func asBrush(alpha: Float) -> Brush? {
+        return style.asBrush(alpha: alpha)
+    }
+    #endif
+}
+
+public struct ForegroundStyle : ShapeStyle {
+    static let shared = ForegroundStyle()
+
+    public init() {
+    }
+
+    #if SKIP
+    @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
+        return EnvironmentValues.shared._foregroundStyle?.asColor(opacity: opacity)
+    }
+
+    @Composable override func asBrush(alpha: Float) -> Brush? {
+        return EnvironmentValues.shared._foregroundStyle?.asBrush(opacity: opacity)
+    }
+    #endif
+}
+
+extension ShapeStyle where Self == ForegroundStyle {
+    // SKIP NOWARN
+    public static var foreground: ForegroundStyle {
+        return ForegroundStyle.shared
+    }
+}
+
+// For Kotlin to be able to compile `Color.red`, `red` must be a static member of Color. For Swift, however,
+// ShapeStyle.red and Color.red are the same, so one can't call the other without an infinite recursion warning
+extension ShapeStyle where Self == Color {
+    // SKIP NOWARN
+    public static var red: Color {
+        #if SKIP
+        Color.red
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var orange: Color {
+        #if SKIP
+        Color.orange
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var yellow: Color {
+        #if SKIP
+        Color.yellow
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var green: Color {
+        #if SKIP
+        Color.green
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var mint: Color {
+        #if SKIP
+        Color.mint
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var teal: Color {
+        #if SKIP
+        Color.teal
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var cyan: Color {
+        #if SKIP
+        Color.cyan
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var blue: Color {
+        #if SKIP
+        Color.blue
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var indigo: Color {
+        #if SKIP
+        Color.indigo
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var purple: Color {
+        #if SKIP
+        Color.purple
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var pink: Color {
+        #if SKIP
+        Color.pink
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var brown: Color {
+        #if SKIP
+        Color.brown
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var white: Color {
+        #if SKIP
+        Color.white
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var gray: Color {
+        #if SKIP
+        Color.gray
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var black: Color {
+        #if SKIP
+        Color.black
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var clear: Color {
+        #if SKIP
+        Color.clear
+        #else
+        Color(white: 1.0)
+        #endif
+    }
 }
 
 public struct FillStyle : Equatable, Sendable {
@@ -37,20 +240,6 @@ func stubShapeStyle() -> some ShapeStyle {
         var body: Body { fatalError() }
     }
     return NeverShapeStyle()
-}
-
-/// A type-erased ShapeStyle value.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-@frozen public struct AnyShapeStyle : ShapeStyle {
-
-    /// Create an instance from `style`.
-    public init<S>(_ style: S) where S : ShapeStyle { fatalError() }
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
 }
 
 //@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -257,63 +446,6 @@ extension ShapeStyle {
     public var quaternary: some ShapeStyle { get { stubShapeStyle() } }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ShapeStyle where Self == Color {
-
-    /// A context-dependent red color suitable for use in UI elements.
-    public static var red: Color { get { fatalError() } }
-
-    /// A context-dependent orange color suitable for use in UI elements.
-    public static var orange: Color { get { fatalError() } }
-
-    /// A context-dependent yellow color suitable for use in UI elements.
-    public static var yellow: Color { get { fatalError() } }
-
-    /// A context-dependent green color suitable for use in UI elements.
-    public static var green: Color { get { fatalError() } }
-
-    /// A context-dependent mint color suitable for use in UI elements.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var mint: Color { get { fatalError() } }
-
-    /// A context-dependent teal color suitable for use in UI elements.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var teal: Color { get { fatalError() } }
-
-    /// A context-dependent cyan color suitable for use in UI elements.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var cyan: Color { get { fatalError() } }
-
-    /// A context-dependent blue color suitable for use in UI elements.
-    public static var blue: Color { get { fatalError() } }
-
-    /// A context-dependent indigo color suitable for use in UI elements.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var indigo: Color { get { fatalError() } }
-
-    /// A context-dependent purple color suitable for use in UI elements.
-    public static var purple: Color { get { fatalError() } }
-
-    /// A context-dependent pink color suitable for use in UI elements.
-    public static var pink: Color { get { fatalError() } }
-
-    /// A context-dependent brown color suitable for use in UI elements.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public static var brown: Color { get { fatalError() } }
-
-    /// A white color suitable for use in UI elements.
-    public static var white: Color { get { fatalError() } }
-
-    /// A context-dependent gray color suitable for use in UI elements.
-    public static var gray: Color { get { fatalError() } }
-
-    /// A black color suitable for use in UI elements.
-    public static var black: Color { get { fatalError() } }
-
-    /// A clear color suitable for use in UI elements.
-    public static var clear: Color { get { fatalError() } }
-}
-
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension ShapeStyle {
 
@@ -343,23 +475,6 @@ extension ShapeStyle where Self == AnyShapeStyle {
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension ShapeStyle {
-
-    /// Applies the specified shadow effect to the shape style.
-    ///
-    /// For example, you can create a rectangle that adds a drop shadow to
-    /// the ``ShapeStyle/red`` shape style.
-    ///
-    ///     Rectangle().fill(.red.shadow(.drop(radius: 2, y: 3)))
-    ///
-    /// - Parameter style: The shadow style to apply.
-    ///
-    /// - Returns: A new shape style that uses the specified shadow style.
-    public func shadow(_ style: ShadowStyle) -> some ShapeStyle { stubShapeStyle() }
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension ShapeStyle where Self == AnyShapeStyle {
 
     /// Returns a shape style that applies the specified shadow style to the
@@ -379,6 +494,23 @@ extension ShapeStyle where Self == AnyShapeStyle {
     /// - Returns: A new shape style based on the current style that uses the
     ///   specified shadow style.
     public static func shadow(_ style: ShadowStyle) -> some ShapeStyle { stubShapeStyle() }
+
+}
+
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension ShapeStyle {
+
+    /// Applies the specified shadow effect to the shape style.
+    ///
+    /// For example, you can create a rectangle that adds a drop shadow to
+    /// the ``ShapeStyle/red`` shape style.
+    ///
+    ///     Rectangle().fill(.red.shadow(.drop(radius: 2, y: 3)))
+    ///
+    /// - Parameter style: The shadow style to apply.
+    ///
+    /// - Returns: A new shape style that uses the specified shadow style.
+    public func shadow(_ style: ShadowStyle) -> some ShapeStyle { stubShapeStyle() }
 
 }
 
@@ -873,20 +1005,6 @@ extension ShapeStyle where Self == Material {
     public static var bar: Material { get { fatalError() } }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ShapeStyle where Self == ForegroundStyle {
-
-    /// The foreground style in the current context.
-    ///
-    /// Access this value to get the style SkipUI uses for foreground elements,
-    /// like text, symbols, and shapes, in the current context. Use the
-    /// ``View/foregroundStyle(_:)`` modifier to set a new foreground style for
-    /// a given view and its child views.
-    ///
-    /// For information about how to use shape styles, see ``ShapeStyle``.
-    public static var foreground: ForegroundStyle { get { fatalError() } }
-}
-
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension ShapeStyle where Self == TintShapeStyle {
 
@@ -1026,21 +1144,6 @@ extension Shader : ShapeStyle {
     public var body: Body { fatalError() }
 }
 
-/// The foreground style in the current context.
-///
-/// You can also use ``ShapeStyle/foreground`` to construct this style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct ForegroundStyle : ShapeStyle {
-
-    /// Creates a foreground style instance.
-    @inlinable public init() { fatalError() }
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
-}
 
 /// A shape style that maps to one of the numbered content styles.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)

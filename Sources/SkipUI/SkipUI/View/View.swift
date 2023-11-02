@@ -437,19 +437,18 @@ extension View {
 
     public func foregroundColor(_ color: Color?) -> some View {
         #if SKIP
-        return environment(\._color, color)
+        return environment(\._foregroundStyle, color)
         #else
         return self
         #endif
     }
 
-    public func foregroundStyle(_ color: Color) -> some View {
-        return foregroundColor(color)
-    }
-
-    @available(*, unavailable)
     public func foregroundStyle(_ style: any ShapeStyle) -> some View {
+        #if SKIP
+        return environment(\._foregroundStyle, style)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

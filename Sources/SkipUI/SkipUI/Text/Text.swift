@@ -5,6 +5,7 @@
 #if SKIP
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Brush
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 #else
@@ -80,19 +81,32 @@ public struct Text: View, Equatable, Sendable {
             font = font.italic()
         }
 
-        let textColor: Color
-        if let environmentColor = EnvironmentValues.shared._color {
-            textColor = environmentColor
+        var textColor: androidx.compose.ui.graphics.Color? = nil
+        var textBrush: Brush? = nil
+        if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
+            if let color = foregroundStyle.asColor(opacity: 1.0) {
+                textColor = color
+            } else {
+                textBrush = foregroundStyle.asBrush(opacity: 1.0)
+            }
         } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
-            textColor = Color.secondary
+            textColor = Color.secondary.colorImpl()
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
-            textColor = Color.secondary
+            textColor = Color.secondary.colorImpl()
         } else {
-            textColor = Color(colorImpl: { androidx.compose.ui.graphics.Color.Unspecified })
+            textColor = androidx.compose.ui.graphics.Color.Unspecified
         }
         let modifier = context.modifier
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
-        androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor.colorImpl(), maxLines: maxLines, style: font.fontImpl())
+        var style = font.fontImpl()
+        if let textBrush {
+            style = style.copy(brush: textBrush)
+        }
+        if let textColor {
+            androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: style)
+        } else {
+            androidx.compose.material3.Text(text: text, modifier: modifier, brush: textBrush, maxLines: maxLines, style: style)
+        }
     }
     #else
     public var body: some View {

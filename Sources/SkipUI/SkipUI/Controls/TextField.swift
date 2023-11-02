@@ -91,7 +91,7 @@ public struct TextField<Label> : View where Label : View {
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
-        let textColor = (EnvironmentValues.shared._color ?? Color.primary).colorImpl()
+        let textColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? Color.primary.colorImpl()
         let colors: TextFieldColors
         if let tint = EnvironmentValues.shared._tint {
             let tintColor = tint.colorImpl()

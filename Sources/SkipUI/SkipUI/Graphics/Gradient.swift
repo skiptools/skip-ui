@@ -2,51 +2,145 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.LinearGradientShader
+import androidx.compose.ui.graphics.Shader
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
+#else
+import struct CoreGraphics.CGFloat
+#endif
+
+public struct Gradient : Hashable {
+    public struct Stop : Hashable, Sendable {
+        public let color: Color
+        public let location: CGFloat
+
+        public init(color: Color, location: CGFloat) {
+            self.color = color
+            self.location = location
+        }
+    }
+
+    public var stops: [Gradient.Stop]
+
+    public init(stops: [Gradient.Stop]) {
+        self.stops = stops
+    }
+
+    public init(colors: [Color]) {
+        if colors.isEmpty {
+            self.stops = []
+        } else {
+            let step = colors.count == 1 ? 0.0 : 1.0 / Double(colors.count - 1)
+            self.stops = colors.enumerated().map { Gradient.Stop(color: $0.1, location: step * Double($0.0)) }
+        }
+    }
+
+    #if SKIP
+    @Composable func colorStops(opacity: Double = 1.0) -> kotlin.collections.List<Pair<Float, androidx.compose.ui.graphics.Color>> {
+        let list = mutableListOf<Pair<Float, androidx.compose.ui.graphics.Color>>()
+        for stop in stops {
+            list.add(Pair(Float(stop.location), stop.color.opacity(opacity).colorImpl()))
+        }
+        return list
+    }
+    #endif
+}
+
+public struct AnyGradient : ShapeStyle, View, Sendable {
+    let gradient: LinearGradient
+
+    public init(gradient: Gradient) {
+        self.gradient = LinearGradient(gradient: gradient, startPoint: UnitPoint(x: 0.5, y: 0.0), endPoint: UnitPoint(x: 0.5, y: 1.0))
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let _ = gradient.Compose(context: context)
+    }
+
+    // MARK: - ShapeStyle
+
+    @Composable override func asBrush(opacity: Double) -> Brush? {
+        return gradient.asBrush(opacity: opacity)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct LinearGradient : ShapeStyle, View, Sendable {
+    let gradient: Gradient
+    let startPoint: UnitPoint
+    let endPoint: UnitPoint
+
+    public init(gradient: Gradient, startPoint: UnitPoint, endPoint: UnitPoint) {
+        self.gradient = gradient
+        self.startPoint = startPoint
+        self.endPoint = endPoint
+    }
+
+    public init(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) {
+        self.init(gradient: Gradient(colors: colors), startPoint: startPoint, endPoint: endPoint)
+    }
+
+    public init(stops: [Gradient.Stop], startPoint: UnitPoint, endPoint: UnitPoint) {
+        self.init(gradient: Gradient(stops: stops), startPoint: startPoint, endPoint: endPoint)
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let modifier = context.modifier.background(asBrush(opacity: 1.0)!).fillSize(expandContainer: false)
+        Box(modifier: modifier)
+    }
+
+    // MARK: - ShapeStyle
+
+    @Composable override func asBrush(opacity: Double) -> Brush? {
+        let stops = gradient.colorStops(opacity: opacity)
+        let brush = remember { LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint) }
+        return brush
+    }
+
+    private struct LinearGradientShaderBrush: ShaderBrush {
+        let colorStops: kotlin.collections.List<Pair<Float, androidx.compose.ui.graphics.Color>>
+        let startPoint: UnitPoint
+        let endPoint: UnitPoint
+
+        override func createShader(size: androidx.compose.ui.geometry.Size) -> Shader {
+            let from = Offset(x: size.width * Float(startPoint.x), y: size.height * Float(startPoint.y))
+            let to = Offset(x: size.width * Float(endPoint.x), y: size.height * Float(endPoint.y))
+            return LinearGradientShader(from, to, colors: colorStops.map { $0.second }, colorStops: colorStops.map { $0.first }, tileMode: TileMode.Clamp)
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
 
-import struct CoreGraphics.CGFloat
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Gradient : ShapeStyle {
 
-
-/// A color gradient represented as an array of color stops, each having a
-/// parametric location value.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Gradient : Equatable {
-
-    /// One color stop in the gradient.
-    @frozen public struct Stop : Equatable {
-
-        /// The color for the stop.
-        public var color: Color { get { fatalError() } }
-
-        /// The parametric location of the stop.
-        ///
-        /// This value must be in the range `[0, 1]`.
-        public var location: CGFloat { get { fatalError() } }
-
-        /// Creates a color stop with a color and location.
-        public init(color: Color, location: CGFloat) { fatalError() }
-
-        
-    }
-
-    /// The array of color stops.
-    public var stops: [Gradient.Stop]
-
-    /// Creates a gradient from an array of color stops.
-    public init(stops: [Gradient.Stop]) { fatalError() }
-
-    /// Creates a gradient from an array of colors.
+    /// The type of shape style this will resolve to.
     ///
-    /// The gradient synthesizes its location values to evenly space the colors
-    /// along the gradient.
-    public init(colors: [Color]) { fatalError() }
-
-    
+    /// When you create a custom shape style, Swift infers this type
+    /// from your implementation of the required `resolve` function.
+    public typealias Resolved = Never
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Gradient {
 
     /// A method of interpolating between the colors in a gradient.
@@ -57,11 +151,7 @@ extension Gradient {
 
         /// Interpolates gradient colors in a perceptual color space.
         public static let perceptual: Gradient.ColorSpace = { fatalError() }()
-
-    
-        
-
-        }
+    }
 
     /// Returns a version of the gradient that will use a specified
     /// color space for interpolating between its colors.
@@ -79,31 +169,7 @@ extension Gradient {
     public func colorSpace(_ space: Gradient.ColorSpace) -> AnyGradient { fatalError() }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Gradient : Hashable {
-
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Gradient : ShapeStyle {
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Gradient.Stop : Hashable {
-
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Gradient.Stop : Sendable {
-}
+// TODO: Process for use in SkipUI
 
 /// An angular gradient.
 ///
@@ -151,20 +217,6 @@ extension Gradient.Stop : Sendable {
     /// When you create a custom shape style, Swift infers this type
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
-}
-
-/// A type-erased gesture.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct AnyGesture<Value> : Gesture {
-
-    /// Creates an instance from another gesture.
-    ///
-    /// - Parameter gesture: A gesture that you use to create a new gesture.
-    public init<T>(_ gesture: T) where Value == T.Value, T : Gesture { fatalError() }
-
-    /// The type of gesture representing the body of `Self`.
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 /// A radial gradient that draws an ellipse.
@@ -264,37 +316,6 @@ extension Gradient.Stop : Sendable {
     public typealias Resolved = Never
 }
 
-
-/// A linear gradient.
-///
-/// The gradient applies the color function along an axis, as defined by its
-/// start and end points. The gradient maps the unit space points into the
-/// bounding rectangle of each shape filled with the gradient.
-///
-/// When using a linear gradient as a shape style, you can also use
-/// ``ShapeStyle/linearGradient(_:startPoint:endPoint:)-753nc``.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct LinearGradient : ShapeStyle, View, Sendable {
-
-    /// Creates a linear gradient from a base gradient.
-    public init(gradient: Gradient, startPoint: UnitPoint, endPoint: UnitPoint) { fatalError() }
-
-    /// Creates a linear gradient from a collection of colors.
-    public init(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) { fatalError() }
-
-    /// Creates a linear gradient from a collection of color stops.
-    public init(stops: [Gradient.Stop], startPoint: UnitPoint, endPoint: UnitPoint) { fatalError() }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
-}
-
 /// A radial gradient.
 ///
 /// The gradient applies the color function as the distance from a center
@@ -324,25 +345,6 @@ extension Gradient.Stop : Sendable {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
     public var body: Body { fatalError() }
-}
-
-/// A color gradient.
-///
-/// When used as a ``ShapeStyle``, this type draws a linear gradient
-/// with start-point [0.5, 0] and end-point [0.5, 1].
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct AnyGradient : Hashable, ShapeStyle, Sendable {
-
-    /// Creates a new instance from the specified gradient.
-    public init(_ gradient: Gradient) { fatalError() }
-
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
-
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)

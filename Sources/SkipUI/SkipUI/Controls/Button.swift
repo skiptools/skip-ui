@@ -106,12 +106,12 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
         let isEnabled = EnvironmentValues.shared.isEnabled
         let disabledAlpha = Double(ContentAlpha.disabled)
         EnvironmentValues.shared.setValues {
-            if $0._color == nil {
+            if $0._foregroundStyle == nil {
                 var buttonColor = $0._tint ?? Color.accentColor
                 if !isEnabled {
                     buttonColor = buttonColor.opacity(disabledAlpha)
                 }
-                $0.set_color(buttonColor)
+                $0.set_foregroundStyle(buttonColor)
             }
         } in: {
             label.Compose(context: context)
