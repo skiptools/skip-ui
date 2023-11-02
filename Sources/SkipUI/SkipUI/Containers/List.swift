@@ -52,8 +52,8 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         self.init(fixedContent: content())
     }
 
-    public init(_ data: Range<Int>, @ViewBuilder rowContent: @escaping (Int) -> Content) {
-        self.init(indexRange: data, indexedContent: rowContent)
+    public init(_ data: Range<Int>, id identifier: ((Any) -> AnyHashable)? = nil, @ViewBuilder rowContent: @escaping (Int) -> Content) {
+        self.init(indexRange: data, indexedContent: rowContent, identifier: identifier)
     }
 
     #if SKIP

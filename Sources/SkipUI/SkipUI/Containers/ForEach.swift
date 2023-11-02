@@ -22,10 +22,6 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
         self.objectContent = objectContent
     }
 
-    public init(_ data: Range<Int>, @ViewBuilder content: @escaping (Int) -> Content) {
-        self.init(indexRange: data, indexedContent: content)
-    }
-
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
         ComposeContent(context: context)
@@ -117,6 +113,10 @@ public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, @ViewBuil
 //}
 public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where Content: View {
     return ForEach(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! D) }, objectContent: { content($0 as! D) })
+}
+
+public func ForEach<Content>(_ data: Range<Int>, id: ((Any) -> AnyHashable)? = nil, @ViewBuilder content: @escaping (Int) -> Content) -> ForEach<Content> where Content: View {
+    return ForEach(indexRange: data, indexedContent: content, identifier: id)
 }
 
 #endif
