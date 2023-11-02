@@ -17,9 +17,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 #else
 import struct CoreGraphics.CGAffineTransform
@@ -651,7 +653,11 @@ extension View {
     public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
-            $0.modifier = $0.modifier.offset(x: x.dp, y: y.dp)
+            let density = LocalDensity.current
+            let offsetPx = with(density) {
+                IntOffset(Int(x.dp.toPx()), Int(y.dp.toPx()))
+            }
+            $0.modifier = $0.modifier.offset { offsetPx }
         }
         #else
         return self
@@ -679,7 +685,7 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = CoordinateSpaceProtocol.local, perform action: @escaping (HoverPhase) -> Void) -> some View {
+    public func onContinuousHover(coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (HoverPhase) -> Void) -> some View {
         return self
     }
 

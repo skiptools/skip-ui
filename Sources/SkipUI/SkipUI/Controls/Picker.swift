@@ -23,7 +23,6 @@ public struct Picker</* Label, */ SelectionValue, Content> : View where /* Label
     #endif
 }
 
-// Model `PickerStyle` a struct. Kotlin does not support static members of protocols
 public struct PickerStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

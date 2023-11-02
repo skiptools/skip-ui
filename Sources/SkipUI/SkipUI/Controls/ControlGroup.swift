@@ -26,7 +26,6 @@ public struct ControlGroup<Content> : View where Content : View {
     #endif
 }
 
-// Model `ControlGroupStyle` as a struct. Kotlin does not support static members of protocols
 public struct ControlGroupStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

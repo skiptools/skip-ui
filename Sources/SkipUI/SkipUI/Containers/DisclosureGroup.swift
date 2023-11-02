@@ -36,7 +36,6 @@ public struct DisclosureGroup<Label, Content> : View where Label : View, Content
     #endif
 }
 
-// Model `DisclosureGroupStyle` as a struct. Kotlin does not support static members of protocols
 public struct DisclosureGroupStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

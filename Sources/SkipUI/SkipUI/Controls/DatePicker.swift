@@ -51,7 +51,6 @@ public struct DatePickerComponents : OptionSet, Sendable {
     public static let date = DatePickerComponents(rawValue: 1 << 1)
 }
 
-// Model `DatePickerStyle` as a struct. Kotlin does not support static members of protocols
 public struct DatePickerStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

@@ -98,7 +98,6 @@ public struct Label : View, ListItemAdapting {
     #endif
 }
 
-// Model `LabelStyle` as a struct. Kotlin does not support static members of protocols
 public struct LabelStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 
@@ -142,7 +141,6 @@ public struct LabeledContent<Label, Content> {
     }
 }
 
-// Model `LabeledContentStyle` as a struct. Kotlin does not support static members of protocols
 public struct LabeledContentStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

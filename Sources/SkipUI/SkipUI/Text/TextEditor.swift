@@ -14,7 +14,6 @@ public struct TextEditor : View {
     #endif
 }
 
-// Model `TextEditorStyle` as a struct. Kotlin does not support static members of protocols
 public struct TextEditorStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

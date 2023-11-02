@@ -324,7 +324,6 @@ class Navigator {
 let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
 
-// Model `NavigationSplitViewStyle` as a struct. Kotlin does not support static members of protocols
 public struct NavigationSplitViewStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

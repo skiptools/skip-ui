@@ -135,7 +135,6 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     #endif
 }
 
-// Model `ButtonStyle` as a struct. Kotlin does not support static members of protocols
 public struct ButtonStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

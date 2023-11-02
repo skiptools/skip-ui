@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 #if SKIP
+//~~~
 // Model Shape as a concrete type so that it can have static properties
 public class Shape: View, Sendable {
     public static var circle: Circle {
@@ -17,11 +18,11 @@ public class Shape: View, Sendable {
         return Rectangle()
     }
 
-    public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> Rectangle {
+    public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
         return RoundedRectangle(cornerSize: cornerSize, style: style)
     }
 
-    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> Rectangle {
+    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
         return RoundedRectangle(cornerRadius: cornerRadius, style: style)
     }
 
@@ -32,7 +33,7 @@ public class Shape: View, Sendable {
     }
 
     @available(*, unavailable)
-    public static func rect(topLeadingRadius: CGFloat = 0, bottomLeadingRadius: CGFloat = 0, bottomTrailingRadius: CGFloat = 0, topTrailingRadius: CGFloat = 0, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
+    public static func rect(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
         fatalError()
         // return UnevenRoundedRectangle(topLeadingRadius: topLeadingRadius, bottomLeadingRadius: bottomLeadingRadius, bottomTrailingRadius: bottomTrailingRadius, topTrailingRadius: topTrailingRadius, style: style)
     }

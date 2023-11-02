@@ -120,13 +120,18 @@ public struct TextField<Label> : View where Label : View {
     #endif
 }
 
-// Model `TextFieldStyle` as an enum. Kotlin does not support static members of protocols
-public enum TextFieldStyle: Int, Equatable {
-    case automatic
-    case roundedBorder
+public struct TextFieldStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = TextFieldStyle(rawValue: 0)
+    public static let roundedBorder = TextFieldStyle(rawValue: 1)
 
     @available(*, unavailable)
-    case plain
+    public static let plain = TextFieldStyle(rawValue: 2)
 }
 
 extension View {

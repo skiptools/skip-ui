@@ -25,7 +25,6 @@ public struct Form<Content> : View where Content : View {
     #endif
 }
 
-// Model `FormStyle` as a struct. Kotlin does not support static members of protocols
 public struct FormStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

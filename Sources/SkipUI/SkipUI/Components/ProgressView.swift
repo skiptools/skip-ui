@@ -109,7 +109,6 @@ public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, 
     #endif
 }
 
-// Model `ProgressViewStyle` as a struct. Kotlin does not support static members of protocols
 public struct ProgressViewStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 

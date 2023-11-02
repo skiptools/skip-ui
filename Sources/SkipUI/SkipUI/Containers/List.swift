@@ -364,23 +364,28 @@ struct ListSectionFooter: View, ListItemFactory {
 }
 #endif
 
-// Model `ListStyle` as an enum. Kotlin does not support static members of protocols
-public enum ListStyle: Int, Equatable {
-    case automatic
-    
-    @available(*, unavailable)
-    case sidebar
+public struct ListStyle: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = ListStyle(rawValue: 0)
 
     @available(*, unavailable)
-    case insetGrouped
+    public static let sidebar = ListStyle(rawValue: 1)
 
     @available(*, unavailable)
-    case grouped
+    public static let insetGrouped = ListStyle(rawValue: 2)
 
     @available(*, unavailable)
-    case inset
+    public static let grouped = ListStyle(rawValue: 3)
 
-    case plain
+    @available(*, unavailable)
+    public static let inset = ListStyle(rawValue: 4)
+
+    public static let plain = ListStyle(rawValue: 5)
 }
 
 public enum ListItemTint : Sendable {

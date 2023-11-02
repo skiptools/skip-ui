@@ -16,37 +16,50 @@ public enum CoordinateSpace: Hashable {
     }
 }
 
-// Model `CoordinateSpaceProtocol` as a class. Kotlin does not support static members of protocols
-public class CoordinateSpaceProtocol {
-    public var coordinateSpace: CoordinateSpace {
-        return .global
-    }
+public protocol CoordinateSpaceProtocol {
+    var coordinateSpace: CoordinateSpace { get }
+}
 
+extension CoordinateSpaceProtocol {
+    // SKIP NOWARN
     public static func scrollView(axis: Axis) -> NamedCoordinateSpace {
         return named("_scrollView_axis_\(axis.rawValue)_")
     }
 
+    // SKIP NOWARN
     public static var scrollView: NamedCoordinateSpace {
         return named("_scrollView_")
     }
 
+    // SKIP NOWARN
     public static func named(_ name: some Hashable) -> NamedCoordinateSpace {
         return NamedCoordinateSpace(coordinateSpace: .named(name))
     }
+}
 
-    public static let local = LocalCoordinateSpace()
-    public static let global = GlobalCoordinateSpace()
+extension CoordinateSpaceProtocol where Self == LocalCoordinateSpace {
+    // SKIP NOWARN
+    public static var local: LocalCoordinateSpace {
+        return LocalCoordinateSpace()
+    }
+}
+
+extension CoordinateSpaceProtocol where Self == GlobalCoordinateSpace {
+    // SKIP NOWARN
+    public static var global: GlobalCoordinateSpace {
+        return GlobalCoordinateSpace()
+    }
 }
 
 public class NamedCoordinateSpace : CoordinateSpaceProtocol, Equatable {
-    public override var coordinateSpace: CoordinateSpace {
-        return _coordinateSpace
-    }
-
     private let _coordinateSpace: CoordinateSpace
 
     init(coordinateSpace: CoordinateSpace) {
         _coordinateSpace = coordinateSpace
+    }
+
+    public var coordinateSpace: CoordinateSpace {
+        return _coordinateSpace
     }
 
     public static func ==(lhs: NamedCoordinateSpace, rhs: NamedCoordinateSpace) -> Bool {
@@ -55,10 +68,13 @@ public class NamedCoordinateSpace : CoordinateSpaceProtocol, Equatable {
 }
 
 public class LocalCoordinateSpace : CoordinateSpaceProtocol {
-    public override var coordinateSpace: CoordinateSpace {
+    public var coordinateSpace: CoordinateSpace {
         return .local
     }
 }
 
 public class GlobalCoordinateSpace : CoordinateSpaceProtocol {
+    public var coordinateSpace: CoordinateSpace {
+        return .global
+    }
 }

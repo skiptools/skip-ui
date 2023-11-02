@@ -81,7 +81,6 @@ public struct Toggle<Label> : View where Label : View {
     #endif
 }
 
-// Model `ToggleStyle` as a struct. Kotlin does not support static members of protocols
 public struct ToggleStyle: RawRepresentable, Equatable {
     public let rawValue: Int
 
