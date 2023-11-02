@@ -3,26 +3,38 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
+#if SKIP
 // Model Shape as a concrete type so that it can have static properties
 public class Shape: View, Sendable {
-    @available(*, unavailable)
     public static var circle: Circle {
-        fatalError()
+        return Circle()
     }
 
-    @available(*, unavailable)
     public static var rect: Rectangle {
-        fatalError()
+        return Rectangle()
     }
 
-    @available(*, unavailable)
     public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> Rectangle {
-        fatalError()
+        return RoundedRectangle(cornerSize: cornerSize, style: style)
+    }
+
+    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> Rectangle {
+        return RoundedRectangle(cornerRadius: cornerRadius, style: style)
     }
 
     @available(*, unavailable)
-    public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> Rectangle {
+    public static func rect(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
         fatalError()
+        // return UnevenRoundedRectangle(cornerRadii: cornerRadii, style: style)
+    }
+
+    @available(*, unavailable)
+    public static func rect(topLeadingRadius: CGFloat = 0, bottomLeadingRadius: CGFloat = 0, bottomTrailingRadius: CGFloat = 0, topTrailingRadius: CGFloat = 0, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
+        fatalError()
+        // return UnevenRoundedRectangle(topLeadingRadius: topLeadingRadius, bottomLeadingRadius: bottomLeadingRadius, bottomTrailingRadius: bottomTrailingRadius, topTrailingRadius: topTrailingRadius, style: style)
     }
 
     @available(*, unavailable)
@@ -39,18 +51,23 @@ public class Shape: View, Sendable {
     public static var ellipse: Ellipse {
         fatalError()
     }
+
+    var fill: ShapeStyle?
+    var stroke: ShapeStyle?
+    var strokeWidth: CGFloat = 1.0
 }
 #else
 public protocol Shape : View, Sendable /*, Animatable */ {
 }
 #endif
 
-public struct Circle : Shape {
-    @available(*, unavailable)
+public final class Circle : Shape {
     public init() {
     }
 
-    #if !SKIP // TODO: Process for use in SkipUI
+    #if SKIP
+
+    #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
@@ -62,12 +79,12 @@ public struct Circle : Shape {
     #endif
 }
 
-public struct Rectangle : Shape {
-    @available(*, unavailable)
+public final class Rectangle : Shape {
     public init() {
     }
 
-    #if !SKIP // TODO: Process for use in SkipUI
+    #if SKIP
+    #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
@@ -79,23 +96,22 @@ public struct Rectangle : Shape {
     #endif
 }
 
-public struct RoundedRectangle : Shape {
+public final class RoundedRectangle : Shape {
     public let cornerSize: CGSize
     public let style: RoundedCornerStyle
 
-    @available(*, unavailable)
     public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = cornerSize
         self.style = style
     }
 
-    @available(*, unavailable)
     public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = CGSize(width: cornerRadius, height: cornerRadius)
         self.style = style
     }
 
-    #if !SKIP // TODO: Process for use in SkipUI
+    #if SKIP
+    #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
@@ -107,7 +123,34 @@ public struct RoundedRectangle : Shape {
     #endif
 }
 
-public struct Capsule : Shape {
+public final class UnevenRoundedRectangle : Shape {
+    public let cornerRadii: RectangleCornerRadii
+    public let style: RoundedCornerStyle
+
+    @available(*, unavailable)
+    public init(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) {
+        self.cornerRadii = cornerRadii
+        self.style = style
+    }
+
+    @available(*, unavailable)
+    public init(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) {
+        self.cornerRadii = RectangleCornerRadii(topLeading: topLeadingRadius, bottomLeading: bottomLeadingRadius, bottomTrailing: bottomTrailingRadius, topTrailing: topTrailingRadius)
+        self.style = style
+    }
+
+    #if SKIP
+    #else
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias AnimatableData = RectangleCornerRadii.AnimatableData
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public final class Capsule : Shape {
     public let style: RoundedCornerStyle
 
     @available(*, unavailable)
@@ -115,7 +158,8 @@ public struct Capsule : Shape {
         self.style = style
     }
 
-    #if !SKIP // TODO: Process for use in SkipUI
+    #if SKIP
+    #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
@@ -127,12 +171,13 @@ public struct Capsule : Shape {
     #endif
 }
 
-public struct Ellipse : Shape {
+public final class Ellipse : Shape {
     @available(*, unavailable)
     public init() {
     }
 
-    #if !SKIP // TODO: Process for use in SkipUI
+    #if SKIP
+    #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
@@ -142,6 +187,112 @@ public struct Ellipse : Shape {
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
+}
+
+public final class AnyShape : Shape, Sendable {
+    private let shape: any Shape
+
+    public init(_ shape: any Shape) {
+        self.shape = shape
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        shape.Compose(context: context)
+    }
+    #else
+    public func path(in rect: CGRect) -> Path { fatalError() }
+    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
+
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+public struct RectangleCornerRadii : Equatable, Sendable /*, Animatable */ {
+    public let topLeading: CGFloat
+    public let bottomLeading: CGFloat
+    public let bottomTrailing: CGFloat
+    public let topTrailing: CGFloat
+
+    public init(topLeading: CGFloat = 0.0, bottomLeading: CGFloat = 0.0, bottomTrailing: CGFloat = 0.0, topTrailing: CGFloat = 0.0) {
+        self.topLeading = topLeading
+        self.bottomLeading = bottomLeading
+        self.bottomTrailing = bottomTrailing
+        self.topTrailing = topTrailing
+    }
+
+    #if !SKIP
+    public typealias AnimatableData = AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>>
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+    #endif
+}
+
+extension Shape {
+    @available(*, unavailable)
+    public func stroke(_ content: any ShapeStyle, style: StrokeStyle, antialiased: Bool = true) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fill(_ content: any ShapeStyle, style: FillStyle = FillStyle()) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func fill(style: FillStyle = FillStyle()) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func stroke(_ content: any ShapeStyle, style: StrokeStyle) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat = 1.0) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func stroke(style: StrokeStyle) -> any Shape {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func stroke(lineWidth: CGFloat = 1.0) -> any Shape {
+        return self
+    }
+
+    //~~~
+    @available(*, unavailable)
+    public func strokeBorder(_ content: any ShapeStyle /* = .foreground */, style: StrokeStyle, antialiased: Bool = true) -> any View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> any View {
+        return self
+    }
+
+    //~~~
+    @available(*, unavailable)
+    public func strokeBorder(_ content: any ShapeStyle /* = .foreground */, lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func strokeBorder(lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any View {
+        return self
+    }
 }
 
 #if !SKIP
@@ -227,60 +378,6 @@ extension Shape {
     /// - Returns: A size that indicates how much space the shape needs.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
-}
-
-
-/// A type-erased shape value.
-///
-/// You can use this type to dynamically switch between shape types:
-///
-///     struct MyClippedView: View {
-///         var isCircular: Bool
-///
-///         var body: some View {
-///             OtherView().clipShape(isCircular ?
-///                 AnyShape(Circle()) : AnyShape(Capsule()))
-///         }
-///     }
-///
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct AnyShape : Shape, @unchecked Sendable {
-
-    /// Create an any shape instance from a shape.
-    public init<S>(_ shape: S) where S : Shape { fatalError() }
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// Returns the size of the view that will render the shape, given
-    /// a proposed size.
-    ///
-    /// Implement this method to tell the container of the shape how
-    /// much space the shape needs to render itself, given a size
-    /// proposal.
-    ///
-    /// See ``Layout/sizeThatFits(proposal:subviews:cache:)``
-    /// for more details about how the layout system chooses the size of
-    /// views.
-    ///
-    /// - Parameters:
-    ///   - proposal: A size proposal for the container.
-    ///
-    /// - Returns: A size that indicates how much space the shape needs.
-    public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = Never
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -570,18 +667,6 @@ extension Shape {
     public func transform(_ transform: CGAffineTransform) -> TransformedShape<Self> { fatalError() }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension Shape where Self == UnevenRoundedRectangle {
-
-    /// A rectangular shape with rounded corners with different values, aligned
-    /// inside the frame of the view containing it.
-    public static func rect(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) -> Self { fatalError() }
-
-    /// A rectangular shape with rounded corners with different values, aligned
-    /// inside the frame of the view containing it.
-    public static func rect(topLeadingRadius: CGFloat = 0, bottomLeadingRadius: CGFloat = 0, bottomTrailingRadius: CGFloat = 0, topTrailingRadius: CGFloat = 0, style: RoundedCornerStyle = .continuous) -> Self { fatalError() }
-}
-
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension Shape where Self == ContainerRelativeShape {
 
@@ -609,149 +694,6 @@ extension Shape {
 
 }
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Shape {
-
-    /// Fills this shape with a color or gradient.
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient to use when filling this shape.
-    ///   - style: The style options that determine how the fill renders.
-    /// - Returns: A shape filled with the color or gradient you supply.
-//    public func fill<S>(_ content: S = .foreground, style: FillStyle = FillStyle()) -> _ShapeView<Self, S> where S : ShapeStyle { fatalError() }
-
-    /// Traces the outline of this shape with a color or gradient.
-    ///
-    /// The following example adds a dashed purple stroke to a `Capsule`:
-    ///
-    ///     Capsule()
-    ///     .stroke(
-    ///         Color.purple,
-    ///         style: StrokeStyle(
-    ///             lineWidth: 5,
-    ///             lineCap: .round,
-    ///             lineJoin: .miter,
-    ///             miterLimit: 0,
-    ///             dash: [5, 10],
-    ///             dashPhase: 0
-    ///         )
-    ///     )
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient with which to stroke this shape.
-    ///   - style: The stroke characteristics --- such as the line's width and
-    ///     whether the stroke is dashed --- that determine how to render this
-    ///     shape.
-    /// - Returns: A stroked shape.
-    public func stroke<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> StrokeShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
-
-    /// Traces the outline of this shape with a color or gradient.
-    ///
-    /// The following example draws a circle with a purple stroke:
-    ///
-    ///     Circle().stroke(Color.purple, lineWidth: 5)
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient with which to stroke this shape.
-    ///   - lineWidth: The width of the stroke that outlines this shape.
-    /// - Returns: A stroked shape.
-    public func stroke<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> StrokeShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape {
-
-    /// Fills this shape with a color or gradient.
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient to use when filling this shape.
-    ///   - style: The style options that determine how the fill renders.
-    /// - Returns: A shape filled with the color or gradient you supply.
-    public func fill<S>(_ content: S, style: FillStyle = FillStyle()) -> some View where S : ShapeStyle { return stubView() }
-
-
-    /// Fills this shape with the foreground color.
-    ///
-    /// - Parameter style: The style options that determine how the fill
-    ///   renders.
-    /// - Returns: A shape filled with the foreground color.
-    public func fill(style: FillStyle = FillStyle()) -> some View { return stubView() }
-
-
-    /// Traces the outline of this shape with a color or gradient.
-    ///
-    /// The following example adds a dashed purple stroke to a `Capsule`:
-    ///
-    ///     Capsule()
-    ///     .stroke(
-    ///         Color.purple,
-    ///         style: StrokeStyle(
-    ///             lineWidth: 5,
-    ///             lineCap: .round,
-    ///             lineJoin: .miter,
-    ///             miterLimit: 0,
-    ///             dash: [5, 10],
-    ///             dashPhase: 0
-    ///         )
-    ///     )
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient with which to stroke this shape.
-    ///   - style: The stroke characteristics --- such as the line's width and
-    ///     whether the stroke is dashed --- that determine how to render this
-    ///     shape.
-    /// - Returns: A stroked shape.
-    public func stroke<S>(_ content: S, style: StrokeStyle) -> some View where S : ShapeStyle { return stubView() }
-
-
-    /// Traces the outline of this shape with a color or gradient.
-    ///
-    /// The following example draws a circle with a purple stroke:
-    ///
-    ///     Circle().stroke(Color.purple, lineWidth: 5)
-    ///
-    /// - Parameters:
-    ///   - content: The color or gradient with which to stroke this shape.
-    ///   - lineWidth: The width of the stroke that outlines this shape.
-    /// - Returns: A stroked shape.
-    public func stroke<S>(_ content: S, lineWidth: CGFloat = 1) -> some View where S : ShapeStyle { return stubView() }
-
-}
-
-/// A shape acts as view by filling itself with the foreground color and
-/// default fill style.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape {
-
-    //public var body: _ShapeView<Self, ForegroundStyle> { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape {
-
-    /// Returns a new shape that is a stroked copy of `self`, using the
-    /// contents of `style` to define the stroke characteristics.
-    public func stroke(style: StrokeStyle) -> some Shape { stubShape() }
-
-
-    /// Returns a new shape that is a stroked copy of `self` with
-    /// line-width defined by `lineWidth` and all other properties of
-    /// `StrokeStyle` having their default values.
-    public func stroke(lineWidth: CGFloat = 1) -> some Shape { stubShape() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Shape where Self == ButtonBorderShape {
-
-    /// A shape that defers to the environment to determine the resolved button border shape.
-    ///
-    /// You can override the resolved shape in a given view hierarchy by using
-    /// the ``View/buttonBorderShape(_:)`` modifier. If no button border shape
-    /// is specified, it is resolved automatically for the given context and platform.
-    public static var buttonBorder: ButtonBorderShape { get { fatalError() } }
-}
-
 /// Ways of styling a shape.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 public enum ShapeRole : Sendable {
@@ -766,10 +708,6 @@ public enum ShapeRole : Sendable {
     /// Indicates to the shape's style that SkipUI uses the shape as a
     /// separator.
     case separator
-
-    
-
-
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
@@ -842,46 +780,6 @@ extension Rectangle : InsettableShape {
 
     /// The type of the inset shape.
     public typealias InsetShape = Never
-}
-
-/// Describes the corner radius values of a rounded rectangle with
-/// uneven corners.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct RectangleCornerRadii : Equatable, Animatable {
-
-    /// The radius of the top-leading corner.
-    public var topLeading: CGFloat { get { fatalError() } }
-
-    /// The radius of the bottom-leading corner.
-    public var bottomLeading: CGFloat { get { fatalError() } }
-
-    /// The radius of the bottom-trailing corner.
-    public var bottomTrailing: CGFloat { get { fatalError() } }
-
-    /// The radius of the top-trailing corner.
-    public var topTrailing: CGFloat { get { fatalError() } }
-
-    /// Creates a new set of corner radii for a rounded rectangle with
-    /// uneven corners.
-    ///
-    /// - Parameters:
-    ///   - topLeading: the radius of the top-leading corner.
-    ///   - bottomLeading: the radius of the bottom-leading corner.
-    ///   - bottomTrailing: the radius of the bottom-trailing corner.
-    ///   - topTrailing: the radius of the top-trailing corner.
-    public init(topLeading: CGFloat = 0, bottomLeading: CGFloat = 0, bottomTrailing: CGFloat = 0, topTrailing: CGFloat = 0) { fatalError() }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>>
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension RectangleCornerRadii : Sendable {
 }
 
 /// A shape with a rotation transform applied to it.
@@ -1091,44 +989,6 @@ extension Circle : InsettableShape {
     public var body: Body { fatalError() }
 }
 
-/// A rectangular shape with rounded corners with different values, aligned
-/// inside the frame of the view containing it.
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-@frozen public struct UnevenRoundedRectangle : Shape {
-
-    /// The radii of each corner of the rounded rectangle.
-    public var cornerRadii: RectangleCornerRadii { get { fatalError() } }
-
-    /// The style of corners drawn by the rounded rectangle.
-    public var style: RoundedCornerStyle { get { fatalError() } }
-
-    /// Creates a new rounded rectangle shape with uneven corners.
-    ///
-    /// - Parameters:
-    ///   - cornerRadii: the radii of each corner.
-    ///   - style: the style of corners drawn by the shape.
-    @inlinable public init(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) { fatalError() }
-
-    /// Creates a new rounded rectangle shape with uneven corners.
-    public init(topLeadingRadius: CGFloat = 0, bottomLeadingRadius: CGFloat = 0, bottomTrailingRadius: CGFloat = 0, topTrailingRadius: CGFloat = 0, style: RoundedCornerStyle = .continuous) { fatalError() }
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    public func path(in rect: CGRect) -> Path { fatalError() }
-
-    /// The data to animate.
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
-
-    /// The type defining the data to animate.
-    public typealias AnimatableData = RectangleCornerRadii.AnimatableData
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension UnevenRoundedRectangle : InsettableShape {
 
@@ -1160,51 +1020,6 @@ public protocol InsettableShape : Shape {
 
     /// Returns `self` inset by `amount`.
     func inset(by amount: CGFloat) -> Self.InsetShape
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension InsettableShape {
-
-    /// Returns a view that is the result of insetting `self` by
-    /// `style.lineWidth / 2`, stroking the resulting shape with
-    /// `style`, and then filling with `content`.
-    public func strokeBorder<S>(_ content: S, style: StrokeStyle, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
-
-
-    /// Returns a view that is the result of insetting `self` by
-    /// `style.lineWidth / 2`, stroking the resulting shape with
-    /// `style`, and then filling with the foreground color.
-    public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> some View { return stubView() }
-
-
-    /// Returns a view that is the result of filling the `lineWidth`-sized
-    /// border (aka inner stroke) of `self` with `content`. This is
-    /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
-    /// resulting shape with `lineWidth` as the line-width.
-    public func strokeBorder<S>(_ content: S, lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View where S : ShapeStyle { return stubView() }
-
-
-    /// Returns a view that is the result of filling the `lineWidth`-sized
-    /// border (aka inner stroke) of `self` with the foreground color.
-    /// This is equivalent to insetting `self` by `lineWidth / 2` and
-    /// stroking the resulting shape with `lineWidth` as the line-width.
-    public func strokeBorder(lineWidth: CGFloat = 1, antialiased: Bool = true) -> some View { return stubView() }
-
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension InsettableShape {
-
-    /// Returns a view that is the result of insetting `self` by
-    /// `style.lineWidth / 2`, stroking the resulting shape with
-    /// `style`, and then filling with `content`.
-    public func strokeBorder<S>(_ content: S = .foreground, style: StrokeStyle, antialiased: Bool = true) -> StrokeBorderShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
-
-    /// Returns a view that is the result of filling the `lineWidth`-sized
-    /// border (aka inner stroke) of `self` with `content`. This is
-    /// equivalent to insetting `self` by `lineWidth / 2` and stroking the
-    /// resulting shape with `lineWidth` as the line-width.
-    public func strokeBorder<S>(_ content: S = .foreground, lineWidth: CGFloat = 1, antialiased: Bool = true) -> StrokeBorderShapeView<Self, S, EmptyView> where S : ShapeStyle { fatalError() }
 }
 
 /// A shape with a translation offset transform applied to it.

@@ -2,56 +2,34 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+public enum CGLineCap : Int, Sendable {
+    case butt, found, square
 
-#if !SKIP
-
+}
+public enum CGLineJoin : Int, Sendable {
+    case miter, found, bevel
+}
+#else
 import struct CoreGraphics.CGFloat
 import enum CoreGraphics.CGLineCap
 import enum CoreGraphics.CGLineJoin
-
-/// The characteristics of a stroke that traces a path.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct StrokeStyle : Equatable {
-
-    /// The width of the stroked path.
-    public var lineWidth: CGFloat { get { fatalError() } }
-
-    /// The endpoint style of a line.
-    public var lineCap: CGLineCap { get { fatalError() } }
-
-    /// The join type of a line.
-    public var lineJoin: CGLineJoin { get { fatalError() } }
-
-    /// A threshold used to determine whether to use a bevel instead of a
-    /// miter at a join.
-    public var miterLimit: CGFloat { get { fatalError() } }
-
-    /// The lengths of painted and unpainted segments used to make a dashed line.
-    public var dash: [CGFloat]
-
-    /// How far into the dash pattern the line starts.
-    public var dashPhase: CGFloat { get { fatalError() } }
-
-    /// Creates a new stroke style from the given components.
-    ///
-    /// - Parameters:
-    ///   - lineWidth: The width of the segment.
-    ///   - lineCap: The endpoint style of a segment.
-    ///   - lineJoin: The join type of a segment.
-    ///   - miterLimit: The threshold used to determine whether to use a bevel
-    ///     instead of a miter at a join.
-    ///   - dash: The lengths of painted and unpainted segments used to make a
-    ///     dashed line.
-    ///   - dashPhase: How far into the dash pattern the line starts.
-    public init(lineWidth: CGFloat = 1, lineCap: CGLineCap = .butt, lineJoin: CGLineJoin = .miter, miterLimit: CGFloat = 10, dash: [CGFloat] = [CGFloat](), dashPhase: CGFloat = 0) { fatalError() }
-
-    
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension StrokeStyle : Sendable {
-}
-
-
 #endif
+
+public struct StrokeStyle : Equatable, Sendable {
+    public var lineWidth: CGFloat
+    public var lineCap: CGLineCap
+    public var lineJoin: CGLineJoin
+    public var miterLimit: CGFloat
+    public var dash: [CGFloat]
+    public var dashPhase: CGFloat
+
+    public init(lineWidth: CGFloat = 1.0, lineCap: CGLineCap = .butt, lineJoin: CGLineJoin = .miter, miterLimit: CGFloat = 10.0, dash: [CGFloat] = [], dashPhase: CGFloat = 0.0) {
+        self.lineWidth = lineWidth
+        self.lineCap = lineCap
+        self.lineJoin = lineJoin
+        self.miterLimit = miterLimit
+        self.dash = dash
+        self.dashPhase = dashPhase
+    }
+}
