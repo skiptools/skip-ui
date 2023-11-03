@@ -32,12 +32,12 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     let fixedContent: Content?
     let forEach: ForEach<Content>?
 
-    init(fixedContent: Content? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, identifier: ((Any) -> AnyHashable)? = nil, objectContent: ((Any) -> Content)? = nil) {
+    init(fixedContent: Content? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil) {
         self.fixedContent = fixedContent
         if let indexRange {
-            self.forEach = ForEach(indexRange: indexRange, indexedContent: indexedContent)
+            self.forEach = ForEach(identifier: identifier, indexRange: indexRange, indexedContent: indexedContent)
         } else if let objects {
-            self.forEach = ForEach(objects: objects, identifier: identifier, objectContent: objectContent)
+            self.forEach = ForEach(identifier: identifier, objects: objects, objectContent: objectContent)
         } else {
             self.forEach = nil
         }
@@ -50,10 +50,6 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     @available(*, unavailable)
     public init(selection: Binding<Any>, @ViewBuilder content: () -> Content) {
         self.init(fixedContent: content())
-    }
-
-    public init(_ data: Range<Int>, id identifier: ((Any) -> AnyHashable)? = nil, @ViewBuilder rowContent: @escaping (Int) -> Content) {
-        self.init(indexRange: data, indexedContent: rowContent, identifier: identifier)
     }
 
     #if SKIP
@@ -78,16 +74,10 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
-        let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
-        let viewsCollector = context.content(composer: ClosureComposer { view, context in
-            if let factory = view as? ListItemFactory {
-                factory.appendListItemViews(to: views, appendingContext: context(true))
-            } else {
-                views.add(view)
-            }
-        })
+        let collectingComposer = ListItemCollectingComposer()
+        let viewsCollector = context.content(composer: collectingComposer)
         if let forEach {
-            forEach.appendListItemViews(to: views, appendingContext: viewsCollector)
+            forEach.appendListItemViews(to: collectingComposer.views, appendingContext: viewsCollector)
         } else if let fixedContent {
             fixedContent.Compose(context: viewsCollector)
         }
@@ -113,9 +103,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     }
                     itemCount += 1
                 },
-                indexedItems: { range, factory in
+                indexedItems: { range, identifier, factory in
                     let count = range.endExclusive - range.start
-                    items(count) { index in
+                    items(count: count, key: identifier == nil ? nil : { identifier!($0) }) { index in
                         factory(index).Compose(context: itemContext)
                     }
                     itemCount += count
@@ -151,7 +141,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             item {
                 ComposeHeader(style: style)
             }
-            for view in views {
+            for view in collectingComposer.views {
                 if let factory = view as? ListItemFactory {
                     factory.ComposeListItems(context: factoryContext)
                 } else {
@@ -268,14 +258,17 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 //    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
 //}
 public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Identifiable<Hashable>, Content: View {
-    return List(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! ObjectType).id }, objectContent: { rowContent($0 as! ObjectType) })
+    return List(identifier: { ($0 as! ObjectType).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
 
 //extension List {
 //    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
 //}
 public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Any, Content: View {
-    return List(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! ObjectType) }, objectContent: { rowContent($0 as! ObjectType) })
+    return List(identifier: { id($0 as! ObjectType) }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
+}
+public func List<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> Content) -> List<Content> where Content: View {
+    return List(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: rowContent)
 }
 #endif
 
@@ -306,11 +299,23 @@ protocol ListItemAdapting {
 #if SKIP
 public struct ListItemFactoryContext {
     let item: (View) -> Void
-    let indexedItems: (Range<Int>, (Int) -> View) -> Void
+    let indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void
     let objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void
 
     let sectionHeader: (View) -> Void
     let sectionFooter: (View) -> Void
+}
+
+struct ListItemCollectingComposer: Composer {
+    fileprivate let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
+
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
+        if let factory = view as? ListItemFactory {
+            factory.appendListItemViews(to: views, appendingContext: context(true))
+        } else {
+            views.add(view)
+        }
+    }
 }
 
 struct ListItemComposer: Composer {

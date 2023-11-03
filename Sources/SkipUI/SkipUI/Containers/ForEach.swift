@@ -8,24 +8,30 @@ import androidx.compose.runtime.Composable
 
 // Erase the Data and ID because they are currently unused in Kotlin, the compiler won't be able to calculate them
 public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
+    let identifier: ((Any) -> AnyHashable)?
     let indexedContent: ((Int) -> Content)?
     let indexRange: Range<Int>?
     let objectContent: ((Any) -> Content)?
     let objects: (any RandomAccessCollection<Any>)?
-    let identifier: ((Any) -> AnyHashable)?
 
-    init(indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, identifier: ((Any) -> AnyHashable)? = nil, objectContent: ((Any) -> Content)? = nil) {
+    init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil) {
+        self.identifier = identifier
         self.indexRange = indexRange
         self.indexedContent = indexedContent
         self.objects = objects
-        self.identifier = identifier
         self.objectContent = objectContent
     }
 
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
-        ComposeContent(context: context)
-        return .ok
+        // We typically want to be transparent and act as though our loop were unrolled. The exception is when we need
+        // to act as a list item factory
+        if context.composer is ListItemCollectingComposer {
+            return super.Compose(context: context)
+        } else {
+            ComposeContent(context: context)
+            return .ok
+        }
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {
@@ -85,7 +91,7 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
 
     func ComposeListItems(context: ListItemFactoryContext) {
         if let indexRange {
-            context.indexedItems(indexRange, indexedContent!)
+            context.indexedItems(indexRange, identifier, indexedContent!)
         } else if let objects {
             context.objectItems(objects, identifier!, objectContent!)
         }
@@ -105,18 +111,17 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
 //    public init(_ data: Data, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
 public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where D: Identifiable<Hashable>, Content: View {
-    return ForEach(objects: data as! RandomAccessCollection<Any>, identifier: { ($0 as! D).id }, objectContent: { content($0 as! D) })
+    return ForEach(identifier: { ($0 as! D).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
 }
 
 //extension ForEach where Content : AccessibilityRotorContent {
 //    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
 public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where Content: View {
-    return ForEach(objects: data as! RandomAccessCollection<Any>, identifier: { id($0 as! D) }, objectContent: { content($0 as! D) })
+    return ForEach(identifier: { id($0 as! D) }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
 }
-
-public func ForEach<Content>(_ data: Range<Int>, id: ((Any) -> AnyHashable)? = nil, @ViewBuilder content: @escaping (Int) -> Content) -> ForEach<Content> where Content: View {
-    return ForEach(indexRange: data, indexedContent: content, identifier: id)
+public func ForEach<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder content: @escaping (Int) -> Content) -> ForEach<Content> where Content: View {
+    return ForEach(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: content)
 }
 
 #endif
