@@ -89,12 +89,12 @@ public struct LinearGradient : ShapeStyle, View, Sendable {
         self.endPoint = endPoint
     }
 
-    public init(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) {
-        self.init(gradient: Gradient(colors: colors), startPoint: startPoint, endPoint: endPoint)
-    }
-
     public init(stops: [Gradient.Stop], startPoint: UnitPoint, endPoint: UnitPoint) {
         self.init(gradient: Gradient(stops: stops), startPoint: startPoint, endPoint: endPoint)
+    }
+
+    public init(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) {
+        self.init(gradient: Gradient(colors: colors), startPoint: startPoint, endPoint: endPoint)
     }
 
     #if SKIP

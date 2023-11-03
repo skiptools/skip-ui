@@ -43,12 +43,12 @@ public struct AnyShapeStyle : ShapeStyle {
     }
 
     #if SKIP
-    @Composable override func asColor(alpha: Float, defaultColor: androidx.compose.ui.graphics.Color?) -> androidx.compose.ui.graphics.Color? {
-        return style.toColor(alpha: alpha, defaultColor: defaultColor)
+    @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
+        return style.asColor(opacity: opacity)
     }
 
-    @Composable override func asBrush(alpha: Float) -> Brush? {
-        return style.asBrush(alpha: alpha)
+    @Composable override func asBrush(opacity: Double) -> Brush? {
+        return style.asBrush(opacity: opacity)
     }
     #endif
 }
@@ -64,7 +64,7 @@ public struct ForegroundStyle : ShapeStyle {
         return EnvironmentValues.shared._foregroundStyle?.asColor(opacity: opacity)
     }
 
-    @Composable override func asBrush(alpha: Float) -> Brush? {
+    @Composable override func asBrush(opacity: Double) -> Brush? {
         return EnvironmentValues.shared._foregroundStyle?.asBrush(opacity: opacity)
     }
     #endif

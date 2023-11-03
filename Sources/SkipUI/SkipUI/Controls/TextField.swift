@@ -104,7 +104,7 @@ public struct TextField<Label> : View where Label : View {
 
     @Composable private func Placeholder(context: ComposeContext) {
         EnvironmentValues.shared.setValues {
-            $0.set_color(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
+            $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
         } in: {
             if let prompt {
                 prompt.Compose(context: context)

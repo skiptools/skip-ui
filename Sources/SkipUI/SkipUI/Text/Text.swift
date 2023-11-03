@@ -105,7 +105,7 @@ public struct Text: View, Equatable, Sendable {
         if let textColor {
             androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: style)
         } else {
-            androidx.compose.material3.Text(text: text, modifier: modifier, brush: textBrush, maxLines: maxLines, style: style)
+            androidx.compose.material3.Text(text: text, modifier: modifier, maxLines: maxLines, style: style)
         }
     }
     #else

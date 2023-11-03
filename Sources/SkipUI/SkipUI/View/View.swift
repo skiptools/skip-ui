@@ -97,6 +97,7 @@ extension View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
+    //~~~ support backgroundStyle
     public func background(_ color: Color) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {

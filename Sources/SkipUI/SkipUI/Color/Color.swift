@@ -253,8 +253,8 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
 
     public var gradient: AnyGradient {
         #if SKIP
-        //~~~ NOT DONE: derive gradient
-        return AnyGradient(gradient: Gradient(colors: [self]))
+        //~~~
+        return AnyGradient(gradient: Gradient(colors: [Color.white, self]))
         #else
         fatalError()
         #endif

@@ -11,27 +11,35 @@ public protocol Shape: View, Sendable {
 
 extension Shape where Self == Circle {
     // SKIP NOWARN
+    @available(*, unavailable)
     public static var circle: Circle {
-        return Circle()
+        fatalError()
+        //return Circle()
     }
 }
 
 extension Shape where Self == Rectangle {
     // SKIP NOWARN
+    @available(*, unavailable)
     public static var rect: Rectangle {
-        return Rectangle()
+        fatalError()
+        //return Rectangle()
     }
 }
 
 extension Shape where Self == RoundedRectangle {
     // SKIP NOWARN
+    @available(*, unavailable)
     public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
-        return RoundedRectangle(cornerSize: cornerSize, style: style)
+        fatalError()
+        //return RoundedRectangle(cornerSize: cornerSize, style: style)
     }
 
     // SKIP NOWARN
+    @available(*, unavailable)
     public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
-        return RoundedRectangle(cornerRadius: cornerRadius, style: style)
+        fatalError()
+        //return RoundedRectangle(cornerRadius: cornerRadius, style: style)
     }
 }
 
@@ -74,6 +82,7 @@ extension Shape where Self == Ellipse {
 }
 
 public final class Circle : Shape {
+    @available(*, unavailable)
     public init() {
     }
 
@@ -92,6 +101,7 @@ public final class Circle : Shape {
 }
 
 public final class Rectangle : Shape {
+    @available(*, unavailable)
     public init() {
     }
 
@@ -112,11 +122,13 @@ public final class RoundedRectangle : Shape {
     public let cornerSize: CGSize
     public let style: RoundedCornerStyle
 
+    @available(*, unavailable)
     public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = cornerSize
         self.style = style
     }
 
+    @available(*, unavailable)
     public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = CGSize(width: cornerRadius, height: cornerRadius)
         self.style = style
