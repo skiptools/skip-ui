@@ -307,7 +307,7 @@ public struct ListItemFactoryContext {
 }
 
 struct ListItemCollectingComposer: Composer {
-    fileprivate let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
+    let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if let factory = view as? ListItemFactory {

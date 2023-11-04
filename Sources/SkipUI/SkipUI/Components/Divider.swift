@@ -3,7 +3,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 #endif
 
 public struct Divider : View {
@@ -21,9 +24,15 @@ public struct Divider : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        //~~~ TODO: Can we use .background modifier with Brush?
-        let dividerColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? androidx.compose.ui.graphics.Color.LightGray
-        androidx.compose.material3.Divider(modifier: context.modifier, color: dividerColor)
+        let dividerColor = androidx.compose.ui.graphics.Color.LightGray
+        let modifier: Modifier
+        if EnvironmentValues.shared._fillWidthModifier != nil {
+            // If in a horizontal container, create a vertical divider
+            modifier = Modifier.width(1.dp).then(context.modifier.fillHeight(expandContainer: false))
+        } else {
+            modifier = context.modifier
+        }
+        androidx.compose.material3.Divider(modifier: modifier, color: dividerColor)
     }
     #else
     public var body: some View {
