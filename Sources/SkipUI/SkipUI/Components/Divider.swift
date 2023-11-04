@@ -28,7 +28,7 @@ public struct Divider : View {
         let modifier: Modifier
         if EnvironmentValues.shared._fillWidthModifier != nil {
             // If in a horizontal container, create a vertical divider
-            modifier = Modifier.width(1.dp).then(context.modifier.fillHeight(expandContainer: false))
+            modifier = Modifier.width(1.dp).then(context.modifier.fillHeight())
         } else {
             modifier = context.modifier
         }
