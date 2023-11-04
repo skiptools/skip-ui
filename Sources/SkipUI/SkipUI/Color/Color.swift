@@ -253,8 +253,20 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
 
     public var gradient: AnyGradient {
         #if SKIP
-        //~~~
-        return AnyGradient(gradient: Gradient(colors: [Color.white, self]))
+        // Create a SwiftUI-like gradient by varying the saturation of this color
+        let startColorImpl: @Composable () -> androidx.compose.ui.graphics.Color = {
+            let color = colorImpl()
+            let hsv = FloatArray(3)
+            android.graphics.Color.RGBToHSV(Int(color.red * 255), Int(color.green * 255), Int(color.blue * 255), hsv)
+            androidx.compose.ui.graphics.Color.hsv(hsv[0], hsv[1] * Float(0.75), hsv[2], alpha: color.alpha)
+        }
+        let endColorImpl: @Composable () -> androidx.compose.ui.graphics.Color = {
+            let color = colorImpl()
+            let hsv = FloatArray(3)
+            android.graphics.Color.RGBToHSV(Int(color.red * 255), Int(color.green * 255), Int(color.blue * 255), hsv)
+            androidx.compose.ui.graphics.Color.hsv(hsv[0], min(Float(1.0), hsv[1] * (Float(1.0) / Float(0.75))), hsv[2], alpha: color.alpha)
+        }
+        return AnyGradient(gradient = Gradient(colors: [Color(colorImpl: startColorImpl), Color(colorImpl: endColorImpl)]))
         #else
         fatalError()
         #endif

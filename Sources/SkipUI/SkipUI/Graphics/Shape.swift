@@ -11,10 +11,8 @@ public protocol Shape: View, Sendable {
 
 extension Shape where Self == Circle {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static var circle: Circle {
-        fatalError()
-        //return Circle()
+        return Circle()
     }
 }
 
@@ -82,12 +80,14 @@ extension Shape where Self == Ellipse {
 }
 
 public final class Circle : Shape {
-    @available(*, unavailable)
     public init() {
     }
 
     #if SKIP
-
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let modifier = context.modifier.fillSize()
+        //~~~
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }

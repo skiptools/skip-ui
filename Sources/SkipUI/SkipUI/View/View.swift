@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.height
@@ -173,19 +174,18 @@ extension View {
         return self
     }
 
-    public func border(_ color: Color, width: CGFloat = 1.0) -> some View {
+    public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
-            $0.modifier = $0.modifier.border(width: width.dp, color: color.colorImpl())
+            if let color = style.asColor(opacity: 1.0) {
+                $0.modifier = $0.modifier.border(width: width.dp, color: color)
+            } else if let brush = style.asBrush(opacity: 1.0) {
+                $0.modifier = $0.modifier.border(BorderStroke(width: width.dp, brush: brush))
+            }
         }
         #else
         return self
         #endif
-    }
-
-    @available(*, unavailable)
-    public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
-        return self
     }
 
     @available(*, unavailable)
