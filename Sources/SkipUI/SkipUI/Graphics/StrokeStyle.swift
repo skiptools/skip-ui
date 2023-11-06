@@ -3,12 +3,21 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+
 public enum CGLineCap : Int, Sendable {
-    case butt, found, square
+    case butt, round, square
 
 }
 public enum CGLineJoin : Int, Sendable {
-    case miter, found, bevel
+    case miter, round, bevel
 }
 #else
 import struct CoreGraphics.CGFloat
@@ -32,4 +41,41 @@ public struct StrokeStyle : Equatable, Sendable {
         self.dash = dash
         self.dashPhase = dashPhase
     }
+
+    #if SKIP
+    @Composable func asDrawStyle() -> DrawStyle {
+        let density = LocalDensity.current
+        let widthPx = with(density) { lineWidth.dp.toPx() }
+       
+        let cap: StrokeCap
+        switch lineCap {
+        case CGLineCap.butt:
+            cap = StrokeCap.Butt
+        case CGLineCap.round:
+            cap = StrokeCap.Round
+        case CGLineCap.square:
+            cap = StrokeCap.Square
+        }
+
+        let join: StrokeJoin
+        switch lineJoin {
+        case CGLineJoin.bevel:
+            join = StrokeJoin.Bevel
+        case CGLineJoin.round:
+            join = StrokeJoin.Round
+        case CGLineJoin.miter:
+            join = StrokeJoin.Miter
+        }
+
+        var pathEffect: PathEffect? = nil
+        if (!dash.isEmpty) {
+            let intervals = FloatArray(dash.count) {
+                with(density) { dash[it].dp.toPx() }
+            }
+            let phase = with(density) { dashPhase.dp.toPx() }
+            pathEffect = PathEffect.dashPathEffect(intervals, phase)
+        }
+        return Stroke(width = widthPx, miter = Float(miterLimit), cap, join, pathEffect)
+    }
+    #endif
 }

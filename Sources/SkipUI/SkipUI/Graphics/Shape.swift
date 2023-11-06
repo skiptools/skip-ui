@@ -3,10 +3,23 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.inset
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 #endif
 
 public protocol Shape: View, Sendable {
+    #if SKIP
+    var modified: ModifiedShape { get }
+    func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool
+    #endif
 }
 
 extension Shape where Self == Circle {
@@ -79,14 +92,126 @@ extension Shape where Self == Ellipse {
     }
 }
 
-public final class Circle : Shape {
+#if SKIP
+extension Shape {
+    public var modified: ModifiedShape {
+        return ModifiedShape(shape: self)
+    }
+
+    public func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
+        return false
+    }
+}
+
+/// Modifications to a shape.
+enum ShapeModification {
+    case offset(CGPoint)
+    case inset(CGFloat)
+    case scale(CGSize, UnitPoint)
+    case rotation(Angle, UnitPoint)
+}
+
+/// A shape that has been modified.
+public struct ModifiedShape : Shape {
+    let shape: Shape
+    var modifications: [ShapeModification] = []
+    var fill: ShapeStyle?
+    var stroke: ShapeStyle?
+    var strokeStyle: StrokeStyle?
+    var isInsetStroke = false
+
+    init(shape: Shape) {
+        self.shape = shape
+    }
+
+    @Composable func ComposeContent(context: ComposeContext) {
+        let modifier = context.modifier.fillSize()
+        let brushes = self.brushes()
+        let density = LocalDensity.current
+        let mods = modifications.map {
+            switch $0 {
+            case .offset(let offset):
+                let offsetPx = CGPoint(x: Double(with(density) { offset.x.dp.toPx() }), y: Double(with(density) { offset.y.dp.toPx() }))
+                return ShapeModification.offset(offsetPx)
+            case .inset(let inset):
+                let insetPx = with(density) { inset.dp.toPx() }
+                return ShapeModification.inset(Double(insetPx))
+            default:
+                return $0
+            }
+        }
+        var strokeInset = Float(0.0)
+        if isInsetStroke, let strokeStyle {
+            strokeInset = with(density) { (strokeStyle.lineWidth / 2.0).dp.toPx() }
+        }
+
+        Canvas(modifier: modifier) {
+            let scope = self
+            scope.inset(strokeInset) {
+                scope.withTransform({
+                    for mod in mods {
+                        switch mod {
+                        case .offset(let offset):
+                            translate(Float(offset.x), Float(offset.y))
+                        case .inset(let inset):
+                            inset(Float(inset))
+                        case .scale(let size, let anchor):
+                            scale(Float(size.width), Float(size.height), Offset(Float(anchor.x * size.width), Float(anchor.y * size.height)))
+                        case .rotation(let angle, let anchor):
+                            rotate(Float(angle.degrees), Offset(Float(anchor.x * size.width), Float(anchor.y * size.height)))
+                        }
+                    }
+                }) {
+                    // TODO: Fall back to path
+                    let _ = draw(scope: scope, brushes: brushes)
+                }
+            }
+        }
+    }
+
+    override var modified: ModifiedShape {
+        return self
+    }
+
+    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
+        return shape.draw(scope: scope, brushes: brushes)
+    }
+
+    @Composable private func brushes() -> ShapeBrushes {
+        let fillBrush: Brush?
+        if let fill {
+            fillBrush = fill.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
+        } else {
+            fillBrush = nil
+        }
+        let strokeBrush: Brush?
+        if let stroke {
+            strokeBrush = stroke.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
+        } else {
+            strokeBrush = nil
+        }
+        return ShapeBrushes(fill: fillBrush, stroke: strokeBrush, strokeStyle: self.strokeStyle?.asDrawStyle())
+    }
+}
+
+/// Shape-rendering brushes.
+public struct ShapeBrushes {
+    let fill: Brush?
+    let stroke: Brush?
+    let strokeStyle: DrawStyle?
+}
+#endif
+
+public struct Circle : Shape {
     public init() {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.fillSize()
-        //~~~
+    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
+        if let brush = brushes.fill {
+            scope.drawCircle(brush: brush, center = scope.center, radius = min(scope.size.width, scope.size.height) / 2)
+        }
+        return true
     }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
@@ -100,7 +225,9 @@ public final class Circle : Shape {
     #endif
 }
 
-public final class Rectangle : Shape {
+public struct Rectangle : Shape {
+    var fillStyle: ShapeStyle?
+
     @available(*, unavailable)
     public init() {
     }
@@ -118,9 +245,10 @@ public final class Rectangle : Shape {
     #endif
 }
 
-public final class RoundedRectangle : Shape {
+public struct RoundedRectangle : Shape {
     public let cornerSize: CGSize
     public let style: RoundedCornerStyle
+    var fillStyle: ShapeStyle?
 
     @available(*, unavailable)
     public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
@@ -147,9 +275,10 @@ public final class RoundedRectangle : Shape {
     #endif
 }
 
-public final class UnevenRoundedRectangle : Shape {
+public struct UnevenRoundedRectangle : Shape {
     public let cornerRadii: RectangleCornerRadii
     public let style: RoundedCornerStyle
+
 
     @available(*, unavailable)
     public init(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) {
@@ -224,6 +353,14 @@ public final class AnyShape : Shape, Sendable {
     @Composable public override func ComposeContent(context: ComposeContext) {
         shape.Compose(context: context)
     }
+
+    override var modified: ModifiedShape {
+        return shape.modified
+    }
+
+    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
+        return shape.draw(scope: scope, brushes: brushes)
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
@@ -256,64 +393,121 @@ public struct RectangleCornerRadii : Equatable, Sendable /*, Animatable */ {
 }
 
 extension Shape {
-    @available(*, unavailable)
-    public func stroke(_ content: any ShapeStyle, style: StrokeStyle, antialiased: Bool = true) -> any Shape {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any Shape {
-        return self
-    }
-
-    @available(*, unavailable)
     public func fill(_ content: any ShapeStyle, style: FillStyle = FillStyle()) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.fill = content
+        return modifiedShape
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func fill(style: FillStyle = FillStyle()) -> any Shape {
+        #if SKIP
+        return fill(ForegroundStyle(), style: style)
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func stroke(_ content: any ShapeStyle, style: StrokeStyle) -> any Shape {
+    public func inset(by amount: CGFloat) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.inset(amount))
+        return modifiedShape
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat = 1.0) -> any Shape {
-        return self
+    public func offset(_ offset: CGSize) -> any Shape {
+        return self.offset(CGPoint(x: offset.width, y: offset.height))
     }
 
-    @available(*, unavailable)
+    public func offset(_ offset: CGPoint) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.offset(offset))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
+
+    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> any Shape {
+        return self.offset(CGPoint(x: x, y: y))
+    }
+
+    public func rotation(_ angle: Angle, anchor: UnitPoint = .center) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.rotation(angle, anchor))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
+
+    public func scale(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.scale(CGSize(width: x, height: y), anchor))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
+
+    public func scale(_ scale: CGFloat, anchor: UnitPoint = .center) -> any Shape {
+        return self.scale(x: scale, y: scale, anchor: anchor)
+    }
+
+    public func stroke(_ content: any ShapeStyle, style: StrokeStyle, antialiased: Bool = true) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.stroke = content
+        modifiedShape.strokeStyle = style
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
+
+    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any Shape {
+        return stroke(content, style: StrokeStyle(lineWidth: lineWidth), antialiased: antialiased)
+    }
+
     public func stroke(style: StrokeStyle) -> any Shape {
-        return self
+        return stroke(ForegroundStyle(), style: style)
     }
 
-    @available(*, unavailable)
     public func stroke(lineWidth: CGFloat = 1.0) -> any Shape {
-        return self
+        return stroke(ForegroundStyle(), style: StrokeStyle(lineWidth: lineWidth))
     }
 
-    @available(*, unavailable)
     public func strokeBorder(_ content: any ShapeStyle = .foreground, style: StrokeStyle, antialiased: Bool = true) -> any View {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.stroke = content
+        modifiedShape.strokeStyle = style
+        modifiedShape.isInsetStroke = true
+        return modifiedShape
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func strokeBorder(style: StrokeStyle, antialiased: Bool = true) -> any View {
-        return self
+        return strokeBorder(ForegroundStyle(), style: style, antialiased: antialiased)
     }
 
-    @available(*, unavailable)
     public func strokeBorder(_ content: any ShapeStyle = .foreground, lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any View {
-        return self
+        return strokeBorder(content, style: StrokeStyle(lineWidth: lineWidth), antialiased: antialiased)
     }
 
-    @available(*, unavailable)
     public func strokeBorder(lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any View {
-        return self
+        return strokeBorder(ForegroundStyle(), style: StrokeStyle(lineWidth: lineWidth), antialiased: antialiased)
     }
 }
 
@@ -568,115 +762,6 @@ extension Shape {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Shape {
-
-    /// Changes the relative position of this shape using the specified size.
-    ///
-    /// The following example renders two circles. It places one circle at its
-    /// default position. The second circle is outlined with a stroke,
-    /// positioned on top of the first circle and offset by 100 points to the
-    /// left and 50 points below.
-    ///
-    ///     Circle()
-    ///     .overlay(
-    ///         Circle()
-    ///         .offset(CGSize(width: -100, height: 50))
-    ///         .stroke()
-    ///     )
-    ///
-    /// - Parameter offset: The amount, in points, by which you offset the
-    ///   shape. Negative numbers are to the left and up; positive numbers are
-    ///   to the right and down.
-    ///
-    /// - Returns: A shape offset by the specified amount.
-    public func offset(_ offset: CGSize) -> OffsetShape<Self> { fatalError() }
-
-    /// Changes the relative position of this shape using the specified point.
-    ///
-    /// The following example renders two circles. It places one circle at its
-    /// default position. The second circle is outlined with a stroke,
-    /// positioned on top of the first circle and offset by 100 points to the
-    /// left and 50 points below.
-    ///
-    ///     Circle()
-    ///     .overlay(
-    ///         Circle()
-    ///         .offset(CGPoint(x: -100, y: 50))
-    ///         .stroke()
-    ///     )
-    ///
-    /// - Parameter offset: The amount, in points, by which you offset the
-    ///   shape. Negative numbers are to the left and up; positive numbers are
-    ///   to the right and down.
-    ///
-    /// - Returns: A shape offset by the specified amount.
-    public func offset(_ offset: CGPoint) -> OffsetShape<Self> { fatalError() }
-
-    /// Changes the relative position of this shape using the specified point.
-    ///
-    /// The following example renders two circles. It places one circle at its
-    /// default position. The second circle is outlined with a stroke,
-    /// positioned on top of the first circle and offset by 100 points to the
-    /// left and 50 points below.
-    ///
-    ///     Circle()
-    ///     .overlay(
-    ///         Circle()
-    ///         .offset(x: -100, y: 50)
-    ///         .stroke()
-    ///     )
-    ///
-    /// - Parameters:
-    ///   - x: The horizontal amount, in points, by which you offset the shape.
-    ///     Negative numbers are to the left and positive numbers are to the
-    ///     right.
-    ///   - y: The vertical amount, in points, by which you offset the shape.
-    ///     Negative numbers are up and positive numbers are down.
-    ///
-    /// - Returns: A shape offset by the specified amount.
-    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> OffsetShape<Self> { fatalError() }
-
-    /// Scales this shape without changing its bounding frame.
-    ///
-    /// Both the `x` and `y` multiplication factors halve their respective
-    /// dimension's size when set to `0.5`, maintain their existing size when
-    /// set to `1`, double their size when set to `2`, and so forth.
-    ///
-    /// - Parameters:
-    ///   - x: The multiplication factor used to resize this shape along its
-    ///     x-axis.
-    ///   - y: The multiplication factor used to resize this shape along its
-    ///     y-axis.
-    ///
-    /// - Returns: A scaled form of this shape.
-    public func scale(x: CGFloat = 1, y: CGFloat = 1, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
-
-    /// Scales this shape without changing its bounding frame.
-    ///
-    /// - Parameter scale: The multiplication factor used to resize this shape.
-    ///   A value of `0` scales the shape to have no size, `0.5` scales to half
-    ///   size in both dimensions, `2` scales to twice the regular size, and so
-    ///   on.
-    ///
-    /// - Returns: A scaled form of this shape.
-    public func scale(_ scale: CGFloat, anchor: UnitPoint = .center) -> ScaledShape<Self> { fatalError() }
-
-    /// Rotates this shape around an anchor point at the angle you specify.
-    ///
-    /// The following example rotates a square by 45 degrees to the right to
-    /// create a diamond shape:
-    ///
-    ///     RoundedRectangle(cornerRadius: 10)
-    ///     .rotation(Angle(degrees: 45))
-    ///     .aspectRatio(1.0, contentMode: .fit)
-    ///
-    /// - Parameters:
-    ///   - angle: The angle of rotation to apply. Positive angles rotate
-    ///     clockwise; negative angles rotate counterclockwise.
-    ///   - anchor: The point to rotate the shape around.
-    ///
-    /// - Returns: A rotated shape.
-    public func rotation(_ angle: Angle, anchor: UnitPoint = .center) -> RotatedShape<Self> { fatalError() }
-
     /// Applies an affine transform to this shape.
     ///
     /// Affine transforms present a mathematical approach to applying
@@ -696,24 +781,6 @@ extension Shape where Self == ContainerRelativeShape {
     /// container shape. If no container shape was defined, is replaced by
     /// a rectangle.
     public static var containerRelative: ContainerRelativeShape { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Shape {
-
-    /// Returns a new version of self representing the same shape, but
-    /// that will ask it to create its path from a rect of `size`. This
-    /// does not affect the layout properties of any views created from
-    /// the shape (e.g. by filling it).
-    public func size(_ size: CGSize) -> some Shape { stubShape() }
-
-
-    /// Returns a new version of self representing the same shape, but
-    /// that will ask it to create its path from a rect of size
-    /// `(width, height)`. This does not affect the layout properties
-    /// of any views created from the shape (e.g. by filling it).
-    public func size(width: CGFloat, height: CGFloat) -> some Shape { stubShape() }
-
 }
 
 /// Ways of styling a shape.
