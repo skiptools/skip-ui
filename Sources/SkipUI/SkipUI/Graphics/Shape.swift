@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.DrawStyle
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
@@ -209,7 +210,10 @@ public struct Circle : Shape {
     #if SKIP
     override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
         if let brush = brushes.fill {
-            scope.drawCircle(brush: brush, center = scope.center, radius = min(scope.size.width, scope.size.height) / 2)
+            scope.drawCircle(brush: brush, center: scope.center, radius: min(scope.size.width, scope.size.height) / 2)
+        }
+        if let brush = brushes.stroke {
+            scope.drawCircle(brush: brush, center: scope.center, radius: min(scope.size.width, scope.size.height) / 2, style: brushes.strokeStyle ?? Stroke())
         }
         return true
     }

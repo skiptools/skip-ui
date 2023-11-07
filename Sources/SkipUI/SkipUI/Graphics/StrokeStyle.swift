@@ -68,9 +68,9 @@ public struct StrokeStyle : Equatable, Sendable {
         }
 
         var pathEffect: PathEffect? = nil
-        if (!dash.isEmpty) {
-            let intervals = FloatArray(dash.count) {
-                with(density) { dash[it].dp.toPx() }
+        if !dash.isEmpty {
+            let intervals = FloatArray(max(2, dash.count)) {
+                with(density) { dash[min(it, dash.count - 1)].dp.toPx() }
             }
             let phase = with(density) { dashPhase.dp.toPx() }
             pathEffect = PathEffect.dashPathEffect(intervals, phase)
