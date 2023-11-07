@@ -77,6 +77,38 @@ extension ShapeStyle where Self == ForegroundStyle {
     }
 }
 
+public struct BackgroundStyle : ShapeStyle {
+    static let shared = BackgroundStyle()
+
+    public init() {
+    }
+
+    #if SKIP
+    @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
+        if let style = EnvironmentValues.shared.backgroundStyle {
+            return style.asColor(opacity: opacity)
+        } else {
+            return Color.background.asColor(opacity: opacity)
+        }
+    }
+
+    @Composable override func asBrush(opacity: Double) -> Brush? {
+        if let style = EnvironmentValues.shared.backgroundStyle {
+            return style.asBrush(opacity: opacity)
+        } else {
+            return Color.background.asBrush(opacity: opacity)
+        }
+    }
+    #endif
+}
+
+extension ShapeStyle where Self == BackgroundStyle {
+    // SKIP NOWARN
+    public static var background: BackgroundStyle {
+        return BackgroundStyle.shared
+    }
+}
+
 // For Kotlin to be able to compile `Color.red`, `red` must be a static member of Color. For Swift, however,
 // ShapeStyle.red and Color.red are the same, so one can't call the other without an infinite recursion warning
 extension ShapeStyle where Self == Color {
@@ -759,20 +791,6 @@ extension ShapeStyle where Self == PlaceholderTextShapeStyle {
     public static var placeholder: PlaceholderTextShapeStyle { get { fatalError() } }
 }
 
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension ShapeStyle where Self == BackgroundStyle {
-
-    /// The background style in the current context.
-    ///
-    /// Access this value to get the style SkipUI uses for the background
-    /// in the current context. The specific color that SkipUI renders depends
-    /// on factors like the platform and whether the user has turned on Dark
-    /// Mode.
-    ///
-    /// For information about how to use shape styles, see ``ShapeStyle``.
-    public static var background: BackgroundStyle { get { fatalError() } }
-}
-
 //@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 //extension ShapeStyle where Self.Resolved == Never {
 //
@@ -1073,22 +1091,6 @@ public struct SeparatorShapeStyle : ShapeStyle {
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 @available(watchOS, unavailable)
 extension Shader : ShapeStyle {
-}
-
-/// The background style in the current context.
-///
-/// You can also use ``ShapeStyle/background`` to construct this style.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-@frozen public struct BackgroundStyle : ShapeStyle {
-
-    /// Creates a background style instance.
-    @inlinable public init() { fatalError() }
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
 }
 
 /// A shape style that displays one of the overlay fills.

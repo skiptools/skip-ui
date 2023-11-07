@@ -166,6 +166,12 @@ extension EnvironmentValues {
 
     // MARK: - SwiftUI values
 
+    var backgroundStyle: ShapeStyle? {
+        get { builtinValue(key: "backgroundStyle", defaultValue: { nil }) as! ShapeStyle? }
+        // Avoid recursive background style lookup
+        set { setBuiltinValue(key: "backgroundStyle", value: newValue is BackgroundStyle ? nil : newValue, defaultValue: { nil }) }
+    }
+
     public var dismiss: () -> Void {
         get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
         set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }

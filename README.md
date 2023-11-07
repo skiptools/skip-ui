@@ -462,7 +462,8 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`VStack`|✅ Full||
 |`ZStack`|✅ Full||
 |`.aspectRatio`|🟡 Medium|Supported for images|
-|`.background`|🔴 Low|Only color supported|
+|`.background`|🔴 Low|Only color/ShapeStyle supported|
+|`.backgroundStyle`|✅ Full||
 |`.bold`|✅ Full||
 |`.border`|✅ Full||
 |`.buttonStyle`|🟢 High|Custom styles not supported|
@@ -473,7 +474,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.font`|✅ Full||
 |`.foregroundColor`|✅ Full||
 |`.foregroundStyle`|🟡 Medium|Only color supported|
-|`.frame`|🔴 Low|Only fixed dimensions supported|
+|`.frame`|🟢 High||
 |`.hidden`|✅ Full||
 |`.italic`|✅ Full||
 |`.labelsHidden`|✅ Full||
@@ -498,5 +499,3 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.task`|✅ Full||
 |`.tint`|✅ Full||
-
-

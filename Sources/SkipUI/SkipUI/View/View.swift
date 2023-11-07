@@ -98,30 +98,27 @@ extension View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
-    //~~~ support backgroundStyle
-    public func background(_ color: Color) -> some View {
+    @available(*, unavailable)
+    public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+        return self.background(BackgroundStyle.shared, ignoresSafeAreaEdges: edges)
+    }
+
+    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
         #if SKIP
         return ComposeModifierView(contextView: self) {
-            $0.modifier = $0.modifier.background(color.colorImpl())
+            if let color = style.asColor(opacity: 1.0) {
+                $0.modifier = $0.modifier.background(color)
+            } else if let brush = style.asBrush(opacity: 1.0) {
+                $0.modifier = $0.modifier.background(brush)
+            }
         }
         #else
         return self
         #endif
-    }
-
-    @available(*, unavailable)
-    public func background<V>(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
-        return self
     }
 
     @available(*, unavailable)
@@ -134,9 +131,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func backgroundStyle(_ style: any ShapeStyle) -> some View {
+        #if SKIP
+        return environment(\.backgroundStyle, style)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

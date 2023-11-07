@@ -162,6 +162,10 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
         MaterialTheme.colorScheme.onBackground.copy(alpha: ContentAlpha.medium)
     })
 
+    static let background = Color(colorImpl: {
+        MaterialTheme.colorScheme.surface
+    })
+
     static let systemBackground = Color(colorImpl: {
         // Matches Android's default bottom bar color
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
