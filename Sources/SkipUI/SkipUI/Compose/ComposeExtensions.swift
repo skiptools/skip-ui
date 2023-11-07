@@ -33,7 +33,7 @@ extension Modifier {
         return then(fill(expandContainer))
     }
 
-    /// Fill available remaining height.
+    /// Fill available remaining size.
     ///
     /// This is a replacement for `fillMaxSize` designed for situations when the composable may be in an `HStack` or `VStack` and does not want to push other items out.
     ///

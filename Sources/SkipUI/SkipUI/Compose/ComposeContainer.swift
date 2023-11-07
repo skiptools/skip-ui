@@ -54,47 +54,41 @@ import androidx.compose.ui.Modifier
     modifier = modifier.then(then)
 
     EnvironmentValues.shared.setValues {
-        // Setup the initial environment before rendering the container content. First, we reset the any saved fill modifiers because
-        // this is a new container. A directional container like 'HStack' or 'VStack' will set the correct modifier before rendering
-        // in the content block below, so that its own children can distribute available space
+        // Setup the initial environment before rendering the container content. First, we reset the container layout because this is a
+        // new container. A directional container like 'HStack' or 'VStack' will set the correct layout before rendering in the content
+        // block below, so that its own children can distribute available space
         $0.set_fillWidthModifier(nil)
         $0.set_fillHeightModifier(nil)
 
         // Set the 'fillWidth' and 'fillHeight' blocks to trigger a side effect to update our container's expansion state, which can
         // cause it to recompose and recalculate its own modifier. We must use `SideEffect` or the recomposition never happens
         $0.set_fillWidth { expandContainer in
-            if expandContainer && !isFillWidth.value {
+            let fillModifier = EnvironmentValues.shared._fillWidthModifier
+            if (expandContainer || fillModifier != nil) && !isFillWidth.value {
                 SideEffect {
                     isFillWidth.value = true
                 }
             }
-            if !expandContainer && !isNonExpandingFillWidth.value {
+            if (!expandContainer && fillModifier == nil) && !isNonExpandingFillWidth.value {
                 SideEffect {
                     isNonExpandingFillWidth.value = true
                 }
             }
-            if !expandContainer {
-                return Modifier.fillMaxWidth()
-            } else {
-                return EnvironmentValues.shared._fillWidthModifier ?? Modifier.fillMaxWidth()
-            }
+            return fillModifier ?? Modifier.fillMaxWidth()
         }
         $0.set_fillHeight { expandContainer in
-            if expandContainer && !isFillHeight.value {
+            let fillModifier = EnvironmentValues.shared._fillHeightModifier
+            if (expandContainer || fillModifier != nil) && !isFillHeight.value {
                 SideEffect {
                     isFillHeight.value = true
                 }
             }
-            if !expandContainer && !isNonExpandingFillHeight.value {
+            if (!expandContainer && fillModifier == nil) && !isNonExpandingFillHeight.value {
                 SideEffect {
                     isNonExpandingFillHeight.value = true
                 }
             }
-            if !expandContainer {
-                return Modifier.fillMaxHeight()
-            } else {
-                return EnvironmentValues.shared._fillHeightModifier ?? Modifier.fillMaxHeight()
-            }
+            return fillModifier ?? Modifier.fillMaxHeight()
         }
     } in: {
         // Render the container content with the above environment setup
