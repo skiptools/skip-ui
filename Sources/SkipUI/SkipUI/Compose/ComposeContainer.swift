@@ -39,18 +39,20 @@ import androidx.compose.ui.Modifier
     let isNonExpandingFillHeight = remember { mutableStateOf(false) }
 
     // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child views who
-    // want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`. We have a special
-    // case when only one dimension is fixed and our content wants a non-expanding fill in both dimensions. In this case using
-    // IntrinsicSize.Max fails, so we use fillWidth(false) instead, which calls fillMax and propagates the sizing to our parent
+    // want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
+    //
+    // We have a special case when our content is framed, meaning at least one dimension is fixed. If a non-fixed dimension wants
+    // a non-expanding fill, we do not set IntrinsicSize.Max and use an expanding fill instead
+    // TODO: This special case works in practice thus far, but I do not fully understand it
     var modifier = modifier
     if !fixedWidth {
         if isFillWidth.value {
             modifier = modifier.fillWidth()
         } else if isNonExpandingFillWidth.value {
-            if fixedHeight && isNonExpandingFillHeight.value {
-                modifier = modifier.fillWidth(false)
-            } else {
+            if !fixedHeight {
                 modifier = modifier.width(IntrinsicSize.Max)
+            } else {
+                modifier = modifier.fillWidth()
             }
         }
     }
@@ -58,10 +60,10 @@ import androidx.compose.ui.Modifier
         if isFillHeight.value {
             modifier = modifier.fillHeight()
         } else if isNonExpandingFillHeight.value {
-            if fixedWidth && isNonExpandingFillWidth.value {
-                modifier = modifier.fillHeight(false)
-            } else {
+            if !fixedWidth {
                 modifier = modifier.height(IntrinsicSize.Max)
+            } else {
+                modifier = modifier.fillHeight()
             }
         }
     }
@@ -78,12 +80,13 @@ import androidx.compose.ui.Modifier
         // cause it to recompose and recalculate its own modifier. We must use `SideEffect` or the recomposition never happens
         $0.set_fillWidth { expandContainer in
             let fillModifier = EnvironmentValues.shared._fillWidthModifier
-            if (expandContainer || fillModifier != nil) && !isFillWidth.value {
+            let isExpanding = expandContainer || fillModifier != nil
+            if isExpanding && !isFillWidth.value {
                 SideEffect {
                     isFillWidth.value = true
                 }
             }
-            if (!expandContainer && fillModifier == nil) && !isNonExpandingFillWidth.value {
+            if !isExpanding && !isNonExpandingFillWidth.value {
                 SideEffect {
                     isNonExpandingFillWidth.value = true
                 }
@@ -92,12 +95,13 @@ import androidx.compose.ui.Modifier
         }
         $0.set_fillHeight { expandContainer in
             let fillModifier = EnvironmentValues.shared._fillHeightModifier
-            if (expandContainer || fillModifier != nil) && !isFillHeight.value {
+            let isExpanding = expandContainer || fillModifier != nil
+            if isExpanding && !isFillHeight.value {
                 SideEffect {
                     isFillHeight.value = true
                 }
             }
-            if (!expandContainer && fillModifier == nil) && !isNonExpandingFillHeight.value {
+            if !isExpanding && !isNonExpandingFillHeight.value {
                 SideEffect {
                     isNonExpandingFillHeight.value = true
                 }
