@@ -467,25 +467,18 @@ extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            var context = context
+            var modifier = context.modifier
             if let width {
-                context.modifier = context.modifier.width(width.dp)
+                modifier = modifier.width(width.dp)
             }
             if let height {
-                context.modifier = context.modifier.height(height.dp)
+                modifier = modifier.height(height.dp)
             }
-
-            EnvironmentValues.shared.setValues {
-                if width != nil {
-                    $0.set_fillWidth(nil)
-                    $0.set_fillWidthModifier(nil)
+            let contentContext = context.content()
+            ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
+                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    view.Compose(context: contentContext)
                 }
-                if height != nil {
-                    $0.set_fillHeight(nil)
-                    $0.set_fillHeightModifier(nil)
-                }
-            } in: {
-                view.ComposeContent(context: context)
             }
         }
         #else
@@ -496,53 +489,33 @@ extension View {
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            var context = context
             // We translate 0,.infinity to a non-expanding fill in either dimension. If the min is not zero, we can't use a fill
             // because it could set a weight on the view in an HStack or VStack, which will only give the view space after all
             // other views and potentially give it less than its minimum. We use a max of Double.MAX_VALUE instead
+            var modifier = context.modifier
             if maxWidth == .infinity {
                 if let minWidth, minWidth > 0.0 {
-                    context.modifier = context.modifier.requiredWidthIn(min: minWidth.dp, max: Double.MAX_VALUE.dp)
+                    modifier = modifier.requiredWidthIn(min: minWidth.dp, max: Double.MAX_VALUE.dp)
                 } else {
-                    context.modifier = context.modifier.fillWidth(expandContainer: false)
+                    modifier = modifier.fillWidth(expandContainer: false)
                 }
             } else if minWidth != nil || maxWidth != nil {
-                context.modifier = context.modifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
+                modifier = modifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
             }
-
             if maxHeight == .infinity {
                 if let minHeight, minHeight > 0.0 {
-                    context.modifier = context.modifier.requiredHeightIn(min: minHeight.dp, max: Double.MAX_VALUE.dp)
+                    modifier = modifier.requiredHeightIn(min: minHeight.dp, max: Double.MAX_VALUE.dp)
                 } else {
-                    context.modifier = context.modifier.fillHeight(expandContainer: false)
+                    modifier = modifier.fillHeight(expandContainer: false)
                 }
             } else if minHeight != nil || maxHeight != nil {
-                context.modifier = context.modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
+                modifier = modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
             }
-
-            EnvironmentValues.shared.setValues {
-                // When a dimension is constrained to a max value, we erase any custom fill logic so that children who
-                // request a fill will use fillMax and fill up to the constrained value. If only a min is set, we replace the
-                // fill logic with an empty Modifier to prevent children from filling at all - instead they get the calculated
-                // frame in that dimension without the ability to change it
-                if minWidth != nil || maxWidth != nil {
-                    if maxWidth != nil {
-                        $0.set_fillWidth(nil)
-                    } else {
-                        $0.set_fillWidth({ _ in Modifier })
-                    }
-                    $0.set_fillWidthModifier(nil)
+            let contentContext = context.content()
+            ComposeContainer(modifier: modifier, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity) { modifier in
+                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    view.Compose(context: contentContext)
                 }
-                if minHeight != nil || maxHeight != nil {
-                    if maxHeight != nil {
-                        $0.set_fillHeight(nil)
-                    } else {
-                        $0.set_fillHeight({ _ in Modifier })
-                    }
-                    $0.set_fillHeightModifier(nil)
-                }
-            } in: {
-                view.ComposeContent(context: context)
             }
         }
         #else

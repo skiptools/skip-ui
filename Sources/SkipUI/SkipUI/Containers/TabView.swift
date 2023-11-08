@@ -149,7 +149,7 @@ struct TabItem: View {
             if let label = stripped as? Label {
                 label.ComposeImage(context: context(false))
             } else if stripped is Image {
-                view.Compose(context: context(false))
+                view.ComposeContent(context: context(false))
             }
         }))
     }

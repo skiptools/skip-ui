@@ -31,30 +31,9 @@ public struct ZStack<Content> : View where Content : View {
      )
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let boxAlignment: androidx.compose.ui.Alignment
-        switch alignment {
-        case .leading, .leadingFirstTextBaseline, .leadingLastTextBaseline:
-            boxAlignment = androidx.compose.ui.Alignment.CenterStart
-        case .trailing, .trailingFirstTextBaseline, .trailingLastTextBaseline:
-            boxAlignment = androidx.compose.ui.Alignment.CenterEnd
-        case .top:
-            boxAlignment = androidx.compose.ui.Alignment.TopCenter
-        case .bottom:
-            boxAlignment = androidx.compose.ui.Alignment.BottomCenter
-        case .topLeading:
-            boxAlignment = androidx.compose.ui.Alignment.TopStart
-        case .topTrailing:
-            boxAlignment = androidx.compose.ui.Alignment.TopEnd
-        case .bottomLeading:
-            boxAlignment = androidx.compose.ui.Alignment.BottomStart
-        case .bottomTrailing:
-            boxAlignment = androidx.compose.ui.Alignment.BottomEnd
-        default:
-            boxAlignment = androidx.compose.ui.Alignment.Center
-        }
         let contentContext = context.content()
         ComposeContainer(modifier: context.modifier) { modifier in
-            Box(modifier: modifier, contentAlignment: boxAlignment) {
+            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
                 content.Compose(context: contentContext)
             }
         }

@@ -5,6 +5,32 @@
 public struct Alignment : Equatable, Sendable {
     public var horizontal: HorizontalAlignment
     public var vertical: VerticalAlignment
+
+    #if SKIP
+    /// Return the Compose alignment equivalent.
+    func asComposeAlignment() -> androidx.compose.ui.Alignment {
+        switch self {
+        case .leading, .leadingFirstTextBaseline, .leadingLastTextBaseline:
+            return androidx.compose.ui.Alignment.CenterStart
+        case .trailing, .trailingFirstTextBaseline, .trailingLastTextBaseline:
+            return androidx.compose.ui.Alignment.CenterEnd
+        case .top:
+            return androidx.compose.ui.Alignment.TopCenter
+        case .bottom:
+            return androidx.compose.ui.Alignment.BottomCenter
+        case .topLeading:
+            return androidx.compose.ui.Alignment.TopStart
+        case .topTrailing:
+            return androidx.compose.ui.Alignment.TopEnd
+        case .bottomLeading:
+            return androidx.compose.ui.Alignment.BottomStart
+        case .bottomTrailing:
+            return androidx.compose.ui.Alignment.BottomEnd
+        default:
+            return androidx.compose.ui.Alignment.Center
+        }
+    }
+    #endif
 }
 
 extension Alignment {

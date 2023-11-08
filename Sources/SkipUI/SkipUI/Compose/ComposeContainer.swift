@@ -31,25 +31,39 @@ import androidx.compose.ui.Modifier
 /// that if the container content uses them, the container itself can recompose with the appropriate expansion to match its
 /// content. Note that this generally only affects final layout when an expanding child is in a container that is itself in a
 /// container, and it has to share space with other members of the parent container.
-@Composable public func ComposeContainer(modifier: Modifier = Modifier, fillWidth: Bool = false, fillHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
+@Composable public func ComposeContainer(modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
     // Use remembered expansion values to recompose on change
     let isFillWidth = remember { mutableStateOf(fillWidth) }
     let isNonExpandingFillWidth = remember { mutableStateOf(false) }
     let isFillHeight = remember { mutableStateOf(fillHeight) }
     let isNonExpandingFillHeight = remember { mutableStateOf(false) }
 
-    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child views who want to
-    // take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
+    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child views who
+    // want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`. We have a special
+    // case when only one dimension is fixed and our content wants a non-expanding fill in both dimensions. In this case using
+    // IntrinsicSize.Max fails, so we use fillWidth(false) instead, which calls fillMax and propagates the sizing to our parent
     var modifier = modifier
-    if isFillWidth.value {
-        modifier = modifier.fillWidth()
-    } else if isNonExpandingFillWidth.value {
-        modifier = modifier.width(IntrinsicSize.Max)
+    if !fixedWidth {
+        if isFillWidth.value {
+            modifier = modifier.fillWidth()
+        } else if isNonExpandingFillWidth.value {
+            if fixedHeight && isNonExpandingFillHeight.value {
+                modifier = modifier.fillWidth(false)
+            } else {
+                modifier = modifier.width(IntrinsicSize.Max)
+            }
+        }
     }
-    if isFillHeight.value {
-        modifier = modifier.fillHeight()
-    } else if isNonExpandingFillHeight.value {
-        modifier = modifier.height(IntrinsicSize.Max)
+    if !fixedHeight {
+        if isFillHeight.value {
+            modifier = modifier.fillHeight()
+        } else if isNonExpandingFillHeight.value {
+            if fixedWidth && isNonExpandingFillWidth.value {
+                modifier = modifier.fillHeight(false)
+            } else {
+                modifier = modifier.height(IntrinsicSize.Max)
+            }
+        }
     }
     modifier = modifier.then(then)
 

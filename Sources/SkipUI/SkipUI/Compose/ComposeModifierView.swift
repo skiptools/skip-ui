@@ -46,7 +46,7 @@ class ComposeModifierView: View {
         } else if let contextTransform {
             var context = context
             contextTransform(&context)
-            view.ComposeContent(context)
+            view.Compose(context: context)
         }
     }
 

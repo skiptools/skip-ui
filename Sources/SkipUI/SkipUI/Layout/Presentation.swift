@@ -245,7 +245,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             SheetPresentation(isPresented: isPresented, content: content, context: context, onDismiss: onDismiss)
-            view.ComposeContent(context: context)
+            view.Compose(context: context)
         }
         #else
         return self
