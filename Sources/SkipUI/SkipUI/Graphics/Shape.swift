@@ -5,21 +5,22 @@
 #if SKIP
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
-import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 #endif
 
 public protocol Shape: View, Sendable {
     #if SKIP
     var modified: ModifiedShape { get }
-    func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool
+    func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path
     #endif
 }
 
@@ -32,10 +33,8 @@ extension Shape where Self == Circle {
 
 extension Shape where Self == Rectangle {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static var rect: Rectangle {
-        fatalError()
-        //return Rectangle()
+        return Rectangle()
     }
 }
 
@@ -99,8 +98,8 @@ extension Shape {
         return ModifiedShape(shape: self)
     }
 
-    public func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
-        return false
+    public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        return androidx.compose.ui.graphics.Path()
     }
 }
 
@@ -112,14 +111,19 @@ enum ShapeModification {
     case rotation(Angle, UnitPoint)
 }
 
+/// Strokes on a shape.
+struct ShapeStroke {
+    let stroke: ShapeStyle
+    let style: StrokeStyle?
+    let isInset: Bool
+}
+
 /// A shape that has been modified.
 public struct ModifiedShape : Shape {
     let shape: Shape
     var modifications: [ShapeModification] = []
     var fill: ShapeStyle?
-    var stroke: ShapeStyle?
-    var strokeStyle: StrokeStyle?
-    var isInsetStroke = false
+    var strokes: [ShapeStroke] = []
 
     init(shape: Shape) {
         self.shape = shape
@@ -127,44 +131,40 @@ public struct ModifiedShape : Shape {
 
     @Composable func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier.fillSize()
-        let brushes = self.brushes()
         let density = LocalDensity.current
-        let mods = modifications.map {
-            switch $0 {
-            case .offset(let offset):
-                let offsetPx = CGPoint(x: Double(with(density) { offset.x.dp.toPx() }), y: Double(with(density) { offset.y.dp.toPx() }))
-                return ShapeModification.offset(offsetPx)
-            case .inset(let inset):
-                let insetPx = with(density) { inset.dp.toPx() }
-                return ShapeModification.inset(Double(insetPx))
-            default:
-                return $0
-            }
+
+        let fillBrush: Brush?
+        if let fill {
+            fillBrush = fill.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
+        } else {
+            fillBrush = nil
         }
-        var strokeInset = Float(0.0)
-        if isInsetStroke, let strokeStyle {
-            strokeInset = with(density) { (strokeStyle.lineWidth / 2.0).dp.toPx() }
+        var strokeBrushes: [(Brush, DrawStyle, Float)] = []
+        for stroke in strokes {
+            let brush = stroke.stroke.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)!
+            let drawStyle = stroke.style?.asDrawStyle() ?? Stroke()
+            var inset = Float(0.0)
+            if stroke.isInset, let style = stroke.style {
+                inset = with(density) { (style.lineWidth / 2.0).dp.toPx() }
+            }
+            strokeBrushes.append((brush, drawStyle, inset))
         }
 
         Canvas(modifier: modifier) {
             let scope = self
-            scope.inset(strokeInset) {
-                scope.withTransform({
-                    for mod in mods {
-                        switch mod {
-                        case .offset(let offset):
-                            translate(Float(offset.x), Float(offset.y))
-                        case .inset(let inset):
-                            inset(Float(inset))
-                        case .scale(let size, let anchor):
-                            scale(Float(size.width), Float(size.height), Offset(Float(anchor.x * size.width), Float(anchor.y * size.height)))
-                        case .rotation(let angle, let anchor):
-                            rotate(Float(angle.degrees), Offset(Float(anchor.x * size.width), Float(anchor.y * size.height)))
-                        }
+            let path = asComposePath(size: scope.size, density: density)
+            if let fillBrush {
+                scope.drawPath(path, fillBrush)
+            }
+            for strokeBrush in strokeBrushes {
+                let strokeInset = strokeBrush.2
+                if (strokeInset == Float(0.0)) {
+                    scope.drawPath(path, brush: strokeBrush.0, style: strokeBrush.1)
+                } else {
+                    scope.inset(strokeInset) {
+                        let strokePath = asComposePath(size: scope.size, density: density)
+                        scope.drawPath(strokePath, brush: strokeBrush.0, style: strokeBrush.1)
                     }
-                }) {
-                    // TODO: Fall back to path
-                    let _ = draw(scope: scope, brushes: brushes)
                 }
             }
         }
@@ -174,32 +174,30 @@ public struct ModifiedShape : Shape {
         return self
     }
 
-    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
-        return shape.draw(scope: scope, brushes: brushes)
-    }
-
-    @Composable private func brushes() -> ShapeBrushes {
-        let fillBrush: Brush?
-        if let fill {
-            fillBrush = fill.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
-        } else {
-            fillBrush = nil
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let matrix = Matrix()
+        var totalInset = Float(0.0)
+        // TODO: Support scale and rotation anchors
+        for mod in modifications {
+            switch mod {
+            case .offset(let offset):
+                let xpx = with(density) { offset.x.dp.toPx() }
+                let ypx = with(density) { offset.y.dp.toPx() }
+                matrix.translate(xpx, ypx, Float(0.0))
+            case .inset(let inset):
+                let px = with(density) { inset.dp.toPx() }
+                matrix.translate(px, px, Float(0.0))
+                totalInset += px * 2
+            case .scale(let size, _):
+                matrix.scale(Float(size.width), Float(size.height), Float(0.0))
+            case .rotation(let angle, _):
+                matrix.rotateZ(Float(angle.degrees))
+            }
         }
-        let strokeBrush: Brush?
-        if let stroke {
-            strokeBrush = stroke.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
-        } else {
-            strokeBrush = nil
-        }
-        return ShapeBrushes(fill: fillBrush, stroke: strokeBrush, strokeStyle: self.strokeStyle?.asDrawStyle())
+        let path = shape.asComposePath(size: Size(size.width - totalInset * 2, size.height - totalInset * 2), density)
+        path.transform(matrix)
+        return path
     }
-}
-
-/// Shape-rendering brushes.
-public struct ShapeBrushes {
-    let fill: Brush?
-    let stroke: Brush?
-    let strokeStyle: DrawStyle?
 }
 #endif
 
@@ -208,14 +206,13 @@ public struct Circle : Shape {
     }
 
     #if SKIP
-    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
-        if let brush = brushes.fill {
-            scope.drawCircle(brush: brush, center: scope.center, radius: min(scope.size.width, scope.size.height) / 2)
-        }
-        if let brush = brushes.stroke {
-            scope.drawCircle(brush: brush, center: scope.center, radius: min(scope.size.width, scope.size.height) / 2, style: brushes.strokeStyle ?? Stroke())
-        }
-        return true
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        let dim = min(size.width, size.height)
+        let x = (size.width - dim) / 2
+        let y = (size.height - dim) / 2
+        path.addOval(Rect(x, y, x + dim, y + dim))
+        return path
     }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
@@ -230,13 +227,15 @@ public struct Circle : Shape {
 }
 
 public struct Rectangle : Shape {
-    var fillStyle: ShapeStyle?
-
-    @available(*, unavailable)
     public init() {
     }
 
     #if SKIP
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        path.addRect(Rect(Float(0.0), Float(0.0), size.width, size.height))
+        return path
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
@@ -362,8 +361,8 @@ public final class AnyShape : Shape, Sendable {
         return shape.modified
     }
 
-    override func draw(scope: DrawScope, brushes: ShapeBrushes) -> Bool {
-        return shape.draw(scope: scope, brushes: brushes)
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        return shape.asComposePath(size: size, density: density)
     }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
@@ -470,8 +469,7 @@ extension Shape {
     public func stroke(_ content: any ShapeStyle, style: StrokeStyle, antialiased: Bool = true) -> any Shape {
         #if SKIP
         var modifiedShape = self.modified
-        modifiedShape.stroke = content
-        modifiedShape.strokeStyle = style
+        modifiedShape.strokes.append(ShapeStroke(content, style, false))
         return modifiedShape
         #else
         return self
@@ -493,9 +491,7 @@ extension Shape {
     public func strokeBorder(_ content: any ShapeStyle = .foreground, style: StrokeStyle, antialiased: Bool = true) -> any View {
         #if SKIP
         var modifiedShape = self.modified
-        modifiedShape.stroke = content
-        modifiedShape.strokeStyle = style
-        modifiedShape.isInsetStroke = true
+        modifiedShape.strokes.append(ShapeStroke(content, style, true))
         return modifiedShape
         #else
         return self
