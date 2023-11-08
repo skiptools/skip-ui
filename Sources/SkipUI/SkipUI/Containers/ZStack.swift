@@ -32,7 +32,7 @@ public struct ZStack<Content> : View where Content : View {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
-        ComposeContainer(modifier: context.modifier) { modifier in
+        ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
             Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
                 content.Compose(context: contentContext)
             }

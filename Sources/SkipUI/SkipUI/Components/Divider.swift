@@ -27,10 +27,11 @@ public struct Divider : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         let dividerColor = androidx.compose.ui.graphics.Color.LightGray
         let modifier: Modifier
-        if EnvironmentValues.shared._fillWidthModifier != nil {
+        switch EnvironmentValues.shared._layoutAxis {
+        case .horizontal:
             // If in a horizontal container, create a vertical divider
             modifier = Modifier.width(1.dp).then(context.modifier.fillHeight())
-        } else {
+        case .vertical, nil:
             modifier = context.modifier
         }
         androidx.compose.material3.Divider(modifier: modifier, color: dividerColor)

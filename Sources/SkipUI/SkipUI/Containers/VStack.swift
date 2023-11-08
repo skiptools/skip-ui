@@ -56,7 +56,7 @@ public struct VStack<Content> : View where Content : View {
             contentContext = context.content(composer: VStackComposer())
             columnArrangement = Arrangement.spacedBy(0.dp)
         }
-        ComposeContainer(modifier: context.modifier) { modifier in
+        ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
             Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
                 let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
                 EnvironmentValues.shared.setValues {

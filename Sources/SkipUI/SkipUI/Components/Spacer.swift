@@ -26,11 +26,12 @@ public struct Spacer : View {
      */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let fillModifier: Modifier
-        if EnvironmentValues.shared._fillWidthModifier != nil {
+        switch EnvironmentValues.shared._layoutAxis {
+        case .horizontal:
             fillModifier = EnvironmentValues.shared._fillWidth?(true) ?? Modifier
-        } else if EnvironmentValues.shared._fillHeightModifier != nil {
+        case .vertical:
             fillModifier = EnvironmentValues.shared._fillHeight?(true) ?? Modifier
-        } else {
+        case nil:
             fillModifier = Modifier
         }
         let modifier = fillModifier.then(context.modifier)

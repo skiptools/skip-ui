@@ -245,6 +245,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
     }
 
+    var _layoutAxis: Axis? {
+        get { builtinValue(key: "_layoutAxis", defaultValue: { nil }) as! Axis? }
+        set { setBuiltinValue(key: "_layoutAxis", value: newValue, defaultValue: { nil }) }
+    }
+
     var _listItemTint: Color? {
         get { builtinValue(key: "_listItemTint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
