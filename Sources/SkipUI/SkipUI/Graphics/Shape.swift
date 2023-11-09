@@ -4,6 +4,7 @@
 
 #if SKIP
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -92,6 +93,12 @@ extension Shape {
 
     public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
         return androidx.compose.ui.graphics.Path()
+    }
+
+    public func asComposeShape(density: Density) -> androidx.compose.ui.graphics.Shape {
+        return GenericShape { size, _ in
+            self.addPath(asComposePath(size: size, density: density))
+        }
     }
 }
 

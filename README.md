@@ -473,7 +473,8 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.bold`|✅ Full||
 |`.border`|✅ Full||
 |`.buttonStyle`|🟢 High|Custom styles not supported|
-|`.clipped`|🔴 Low|Any resizable image clips automatically|
+|`.clipped`|🔴 Low|Most content clips automatically|
+|`.clipShape`|✅ Full||
 |`.disabled`|✅ Full||
 |`.environment`|✅ Full||
 |`.environmentObject`|✅ Full||

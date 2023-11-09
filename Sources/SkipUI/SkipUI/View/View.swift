@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
@@ -125,8 +126,8 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func background<S>(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
-        return self
+    public func background(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+        return self //background(BackgroundStyle.shared, in: shape, fillStyle: fillStyle)
     }
 
     @available(*, unavailable)
@@ -196,9 +197,14 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
+        #if SKIP
+        return ComposeModifierView(contextView: self) {
+            $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
+        }
+        #else
         return self
+        #endif
     }
 
     public func clipped(antialiased: Bool = false) -> some View {
