@@ -5,8 +5,10 @@
 #if SKIP
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Matrix
@@ -41,17 +43,13 @@ extension Shape where Self == Rectangle {
 
 extension Shape where Self == RoundedRectangle {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
-        fatalError()
-        //return RoundedRectangle(cornerSize: cornerSize, style: style)
+        return RoundedRectangle(cornerSize: cornerSize, style: style)
     }
 
     // SKIP NOWARN
-    @available(*, unavailable)
     public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
-        fatalError()
-        //return RoundedRectangle(cornerRadius: cornerRadius, style: style)
+        return RoundedRectangle(cornerRadius: cornerRadius, style: style)
     }
 }
 
@@ -296,19 +294,25 @@ public struct RoundedRectangle : Shape {
     public let style: RoundedCornerStyle
     var fillStyle: ShapeStyle?
 
-    @available(*, unavailable)
     public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = cornerSize
         self.style = style
     }
 
-    @available(*, unavailable)
     public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = CGSize(width: cornerRadius, height: cornerRadius)
         self.style = style
     }
 
     #if SKIP
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        let width = with(density) { cornerSize.width.dp.toPx() }
+        let height = with(density) { cornerSize.height.dp.toPx() }
+        let cornerRadius = CornerRadius(width, height)
+        path.addRoundRect(RoundRect(Float(0.0), Float(0.0), size.width, size.height, cornerRadius))
+        return path
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
