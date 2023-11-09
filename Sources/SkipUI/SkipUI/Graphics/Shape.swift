@@ -5,6 +5,7 @@
 #if SKIP
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -86,9 +87,8 @@ extension Shape where Self == Capsule {
 
 extension Shape where Self == Ellipse {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static var ellipse: Ellipse {
-        fatalError()
+        Ellipse()
     }
 }
 
@@ -175,27 +175,70 @@ public struct ModifiedShape : Shape {
     }
 
     override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let matrix = Matrix()
-        var totalInset = Float(0.0)
+        // Due to Android API limitations, we can't just apply our modifications in order. Instead we calculate the final
+        // size of the path, draw it within that size, and then apply any translations and rotations
+        var totalOffset: CGPoint = .zero
+        var totalInset = 0.0
+        var totalScale = CGSize(width: 1.0, height: 1.0)
+        var totalRotationDegrees = 0.0
+        var totalRotationRadians = 0.0
+        var isRotationBeforeOffset = false
         // TODO: Support scale and rotation anchors
         for mod in modifications {
             switch mod {
             case .offset(let offset):
-                let xpx = with(density) { offset.x.dp.toPx() }
-                let ypx = with(density) { offset.y.dp.toPx() }
-                matrix.translate(xpx, ypx, Float(0.0))
+                totalOffset.x += with(density) { offset.x.dp.toPx() }
+                totalOffset.y += with(density) { offset.y.dp.toPx() }
             case .inset(let inset):
                 let px = with(density) { inset.dp.toPx() }
-                matrix.translate(px, px, Float(0.0))
-                totalInset += px * 2
+                totalInset += px
             case .scale(let size, _):
-                matrix.scale(Float(size.width), Float(size.height), Float(0.0))
+                // Attempting to use matrix.scale results in runtime exception when matrix is applied to path:
+                // java.lang.IllegalArgumentException: Android does not support arbitrary transforms
+                totalScale.width *= size.width
+                totalScale.height *= size.height
             case .rotation(let angle, _):
-                matrix.rotateZ(Float(angle.degrees))
+                totalRotationDegrees += angle.degrees
+                totalRotationRadians += angle.radians
+                isRotationBeforeOffset = totalOffset == .zero
             }
         }
-        let path = shape.asComposePath(size: Size(size.width - totalInset * 2, size.height - totalInset * 2), density)
-        path.transform(matrix)
+
+        // Scale size and translate to re-center
+        var sizeOffset: CGPoint = .zero
+        let scaledSize = Size(size.width * Float(totalScale.width), size.height * Float(totalScale.height))
+        sizeOffset.x += (size.width - scaledSize.width) / 2.0
+        sizeOffset.y += (size.height - scaledSize.height) / 2.0
+        // Apply insets
+        let finalSize = Size(max(Float(0.0), scaledSize.width - Float(totalInset * 2.0)), max(Float(0.0), scaledSize.height - Float(totalInset * 2.0)))
+        sizeOffset.x += totalInset
+        sizeOffset.y += totalInset
+
+        let path = shape.asComposePath(size: finalSize, density: density)
+
+        if totalRotationDegrees == 0.0 || !isRotationBeforeOffset {
+            path.translate(Offset(Float(totalOffset.x), Float(totalOffset.y)))
+        }
+        if totalRotationDegrees != 0.0 {
+            let matrix = Matrix()
+            matrix.rotateZ(Float(totalRotationDegrees))
+            path.transform(matrix)
+
+            // Android rotates around the origin rather than the center. Calculate the offset that this rotation
+            // causes to the center point and apply its inverse to get a rotation around the center. Note that we
+            // negate the y axis because mathmatical coordinate systems have the origin in the bottom left, not top
+            let xcenter = finalSize.width / 2
+            let ycenter = -finalSize.height / 2
+            let xnew = xcenter * cos(-totalRotationRadians) - ycenter * sin(-totalRotationRadians)
+            let ynew = xcenter * sin(-totalRotationRadians) + ycenter * cos(-totalRotationRadians)
+            path.translate(Offset(Float(xcenter - xnew), Float(-(ycenter - ynew))))
+            if isRotationBeforeOffset {
+                path.translate(Offset(Float(totalOffset.x), Float(totalOffset.y)))
+            }
+        }
+
+        // Finally, apply the offset from scaling and insetting
+        path.translate(Offset(Float(sizeOffset.x), Float(sizeOffset.y)))
         return path
     }
 }
@@ -328,11 +371,15 @@ public final class Capsule : Shape {
 }
 
 public final class Ellipse : Shape {
-    @available(*, unavailable)
     public init() {
     }
 
     #if SKIP
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        path.addOval(Rect(Float(0.0), Float(0.0), size.width, size.height))
+        return path
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
