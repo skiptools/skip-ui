@@ -19,12 +19,18 @@ import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+#else
+import struct CoreGraphics.CGFloat
+import struct CoreGraphics.CGRect
+import struct CoreGraphics.CGSize
 #endif
 
 public protocol Shape: View, Sendable {
+    func path(in rect: CGRect) -> Path
+    var layoutDirectionBehavior: LayoutDirectionBehavior { get }
+    func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize
     #if SKIP
     var modified: ModifiedShape { get }
-    func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path
     #endif
 }
 
@@ -85,23 +91,38 @@ extension Shape where Self == Ellipse {
     }
 }
 
-#if SKIP
 extension Shape {
+    public func path(in rect: CGRect) -> Path {
+        return Path()
+    }
+
+    public var layoutDirectionBehavior: LayoutDirectionBehavior {
+        return .mirrors
+    }
+
+    public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        return proposal.replacingUnspecifiedDimensions()
+    }
+
+    #if SKIP
     public var modified: ModifiedShape {
         return ModifiedShape(shape: self)
     }
 
     public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        return androidx.compose.ui.graphics.Path()
+        androidx.compose.ui.graphics.Path() //~~~
     }
 
     public func asComposeShape(density: Density) -> androidx.compose.ui.graphics.Shape {
         return GenericShape { size, _ in
+            //~~~
             self.addPath(asComposePath(size: size, density: density))
         }
     }
+    #endif
 }
 
+#if SKIP
 /// Modifications to a shape.
 enum ShapeModification {
     case offset(CGPoint)
@@ -236,9 +257,6 @@ public struct Circle : Shape {
         return path
     }
     #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
 
@@ -587,24 +605,7 @@ func stubShape() -> some Shape {
     return NeverShape()
 }
 
-/// A 2D shape that you can use when drawing a view.
-///
-/// Shapes without an explicit fill or stroke get a default fill based on the
-/// foreground color.
-///
-/// You can define shapes in relation to an implicit frame of reference, such as
-/// the natural size of the view that contains it. Alternatively, you can define
-/// shapes in terms of absolute coordinates.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Shape {
-
-    /// Describes this shape as a path within a rectangular frame of reference.
-    ///
-    /// - Parameter rect: The frame of reference for describing this shape.
-    ///
-    /// - Returns: A path that describes this shape.
-    func path(in rect: CGRect) -> Path { fatalError() }
-
     /// An indication of how to style a shape.
     ///
     /// SkipUI looks at a shape's role when deciding how to apply a
@@ -614,40 +615,6 @@ extension Shape {
     /// to return another value, if appropriate.
     @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
     static var role: ShapeRole { get { fatalError() } }
-
-    /// Returns the behavior this shape should use for different layout
-    /// directions.
-    ///
-    /// If the layoutDirectionBehavior for a Shape is one that mirrors, the
-    /// shape's path will be mirrored horizontally when in the specified layout
-    /// direction. When mirrored, the individual points of the path will be
-    /// transformed.
-    ///
-    /// Defaults to `.mirrors` when deploying on iOS 17.0, macOS 14.0,
-    /// tvOS 17.0, watchOS 10.0 and later, and to `.fixed` if not.
-    /// To mirror a path when deploying to earlier releases, either use
-    /// `View.flipsForRightToLeftLayoutDirection` for a filled or stroked
-    /// shape or conditionally mirror the points in the path of the shape.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
-    /// Returns the size of the view that will render the shape, given
-    /// a proposed size.
-    ///
-    /// Implement this method to tell the container of the shape how
-    /// much space the shape needs to render itself, given a size
-    /// proposal.
-    ///
-    /// See ``Layout/sizeThatFits(proposal:subviews:cache:)``
-    /// for more details about how the layout system chooses the size of
-    /// views.
-    ///
-    /// - Parameters:
-    ///   - proposal: A size proposal for the container.
-    ///
-    /// - Returns: A size that indicates how much space the shape needs.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize { fatalError() }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
