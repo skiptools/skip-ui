@@ -55,17 +55,13 @@ extension Shape where Self == RoundedRectangle {
 
 extension Shape where Self == UnevenRoundedRectangle {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static func rect(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
-        fatalError()
-        // return UnevenRoundedRectangle(cornerRadii: cornerRadii, style: style)
+        return UnevenRoundedRectangle(cornerRadii: cornerRadii, style: style)
     }
 
     // SKIP NOWARN
-    @available(*, unavailable)
     public static func rect(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
-        fatalError()
-        // return UnevenRoundedRectangle(topLeadingRadius: topLeadingRadius, bottomLeadingRadius: bottomLeadingRadius, bottomTrailingRadius: bottomTrailingRadius, topTrailingRadius: topTrailingRadius, style: style)
+        return UnevenRoundedRectangle(topLeadingRadius: topLeadingRadius, bottomLeadingRadius: bottomLeadingRadius, bottomTrailingRadius: bottomTrailingRadius, topTrailingRadius: topTrailingRadius, style: style)
     }
 }
 
@@ -330,19 +326,26 @@ public struct UnevenRoundedRectangle : Shape {
     public let style: RoundedCornerStyle
 
 
-    @available(*, unavailable)
     public init(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) {
         self.cornerRadii = cornerRadii
         self.style = style
     }
 
-    @available(*, unavailable)
     public init(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) {
         self.cornerRadii = RectangleCornerRadii(topLeading: topLeadingRadius, bottomLeading: bottomLeadingRadius, bottomTrailing: bottomTrailingRadius, topTrailing: topTrailingRadius)
         self.style = style
     }
 
     #if SKIP
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        let topLeft = with(density) { cornerRadii.topLeading.dp.toPx() }
+        let topRight = with(density) { cornerRadii.topTrailing.dp.toPx() }
+        let bottomLeft = with(density) { cornerRadii.bottomLeading.dp.toPx() }
+        let bottomRight = with(density) { cornerRadii.bottomTrailing.dp.toPx() }
+        path.addRoundRect(RoundRect(Float(0.0), Float(0.0), size.width, size.height, topLeftCornerRadius: CornerRadius(topLeft, topLeft), topRightCornerRadius: CornerRadius(topRight, topRight), bottomLeftCornerRadius: CornerRadius(bottomLeft, bottomLeft), bottomRightCornerRadius: CornerRadius(bottomRight, bottomRight)))
+        return path
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var animatableData: AnimatableData { get { fatalError() } set { } }
