@@ -67,15 +67,13 @@ extension Shape where Self == UnevenRoundedRectangle {
 
 extension Shape where Self == Capsule {
     // SKIP NOWARN
-    @available(*, unavailable)
     public static var capsule: Capsule {
-        fatalError()
+        return Capsule()
     }
 
     // SKIP NOWARN
-    @available(*, unavailable)
     public static func capsule(style: RoundedCornerStyle) -> Capsule {
-        fatalError()
+        return Capsule(style: style)
     }
 }
 
@@ -359,12 +357,28 @@ public struct UnevenRoundedRectangle : Shape {
 public final class Capsule : Shape {
     public let style: RoundedCornerStyle
 
-    @available(*, unavailable)
     public init(style: RoundedCornerStyle = .continuous) {
         self.style = style
     }
 
     #if SKIP
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        let path = androidx.compose.ui.graphics.Path()
+        if size.width >= size.height {
+            path.moveTo(size.height / 2, Float(0.0))
+            path.lineTo(size.width - size.height / 2, Float(0.0))
+            path.arcTo(Rect(size.width - size.height, Float(0.0), size.width, size.height), Float(-90.0), Float(180.0), false)
+            path.lineTo(size.height / 2, size.height)
+            path.arcTo(Rect(Float(0.0), Float(0.0), size.height, size.height), Float(90.0), Float(180.0), false)
+        } else {
+            path.moveTo(Float(0.0), size.width / 2)
+            path.arcTo(Rect(Float(0.0), Float(0.0), size.width, size.width), Float(-180.0), Float(180.0), false)
+            path.lineTo(size.width, size.height - size.width / 2)
+            path.arcTo(Rect(Float(0.0), size.height - size.width, size.width, size.height), Float(0.0), Float(180.0), false)
+        }
+        path.close()
+        return path
+    }
     #else
     public func path(in rect: CGRect) -> Path { fatalError() }
     public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
