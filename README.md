@@ -437,6 +437,8 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |Custom Views|✅ Full||
 |`AsyncImage`|🟢 High|Uses [Coil](https://coil-kt.github.io/coil/)|
 |`Button`|🟢 High||
+|`Capsule`|✅ Full||
+|`Circle`|✅ Full||
 |`Color`|🟢 High||
 |`Divider`|✅ Full||
 |`EmptyView`|✅ Full||
@@ -450,7 +452,10 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`List`|🟡 Medium|See [Lists](#lists)|
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
+|`Oval`|✅ Full||
 |`ProgressView`|🟡 Medium|Labels not supported|
+|`Rectangle`|✅ Full||
+|`RoundedRectangle`|✅ Full||
 |`ScrollView`|✅ Full||
 |`Section`|🟢 High|Only tested for Text content within List|
 |`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
@@ -459,6 +464,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`Text`|🟢 High|Formatting not supported|
 |`TextField`|🟢 High|Formatting not supported|
 |`Toggle`|🟡 Medium|Styling, `sources` not supported|
+|`UnevenRoundedRectangle`|✅ Full||
 |`VStack`|✅ Full||
 |`ZStack`|✅ Full||
 |`.aspectRatio`|🟡 Medium|Supported for images|
@@ -471,11 +477,13 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.disabled`|✅ Full||
 |`.environment`|✅ Full||
 |`.environmentObject`|✅ Full||
+|`.fill` (Shape)|✅ Full||
 |`.font`|✅ Full||
 |`.foregroundColor`|✅ Full||
 |`.foregroundStyle`|🟡 Medium|Only color supported|
 |`.frame`|🟢 High||
 |`.hidden`|✅ Full||
+|`.inset` (Shape)|🟢 High||
 |`.italic`|✅ Full||
 |`.labelsHidden`|✅ Full||
 |`.lineLimit`|🟡 Medium|Only `Int?` value supported|
@@ -490,11 +498,15 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.padding`|🟢 High|Compose does not support negative padding|
 |`.progressViewStyle`|🟢 High|Custom styles not supported|
 |`.resizable`|🔴 Low|`capInsets` and `resizingMode` not supported|
+|`.rotation` (Shape)|🟢 High|Anchor not supported|
 |`.rotationEffect`|🟡 Medium||
+|`.scale` (Shape)|🟢 High|Anchor not supported|
 |`.scaledToFill`|🟡 Medium|Supported for images|
 |`.scaledToFit`|🟡 Medium|Supported for images|
 |`.scaleEffect`|🟡 Medium||
 |`.sheet`|🟢 High|See [Navigation](#navigation)|
+|`.stroke` (Shape)|✅ Full||
+|`.strokeBorder` (Shape)|✅ Full||
 |`.tabItem`|✅ Full||
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.task`|✅ Full||
