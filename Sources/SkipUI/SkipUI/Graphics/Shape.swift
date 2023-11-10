@@ -106,7 +106,7 @@ extension Shape {
 enum ShapeModification {
     case offset(CGPoint)
     case inset(CGFloat)
-    case scale(CGSize, UnitPoint)
+    case scale(CGPoint, UnitPoint)
     case rotation(Angle, UnitPoint)
 }
 
@@ -174,70 +174,49 @@ public struct ModifiedShape : Shape {
     }
 
     override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        // Due to Android API limitations, we can't just apply our modifications in order. Instead we calculate the final
-        // size of the path, draw it within that size, and then apply any translations and rotations
-        var totalOffset: CGPoint = .zero
-        var totalInset = 0.0
-        var totalScale = CGSize(width: 1.0, height: 1.0)
-        var totalRotationDegrees = 0.0
-        var totalRotationRadians = 0.0
-        var isRotationBeforeOffset = false
+        let path = shape.asComposePath(size: size, density: density)
+        var scaledSize = size
         // TODO: Support scale and rotation anchors
         for mod in modifications {
             switch mod {
             case .offset(let offset):
-                totalOffset.x += with(density) { offset.x.dp.toPx() }
-                totalOffset.y += with(density) { offset.y.dp.toPx() }
+                let offsetX = with(density) { offset.x.dp.toPx() }
+                let offsetY = with(density) { offset.y.dp.toPx() }
+                path.translate(Offset(offsetX, offsetY))
             case .inset(let inset):
                 let px = with(density) { inset.dp.toPx() }
-                totalInset += px
-            case .scale(let size, _):
-                // Attempting to use matrix.scale results in runtime exception when matrix is applied to path:
-                // java.lang.IllegalArgumentException: Android does not support arbitrary transforms
-                totalScale.width *= size.width
-                totalScale.height *= size.height
+                let scaleX = Float(1.0) - (px * 2 / scaledSize.width)
+                let scaleY = Float(1.0) - (px * 2 / scaledSize.height)
+                let matrix = Matrix()
+                matrix.scale(scaleX, scaleY, Float(1.0))
+                path.transform(matrix)
+                path.translate(Offset(px, px))
+                scaledSize = Size(scaledSize.width - px * 2, scaledSize.height - px * 2)
+            case .scale(let scale, _):
+                let matrix = Matrix()
+                matrix.scale(Float(scale.x), Float(scale.y), Float(1.0))
+                path.transform(matrix)
+                // Android scales from the origin rather than the center. Calculate the offset that this scale
+                // causes to the center point and apply its inverse to get a scale around the center
+                let scaledWidth = scaledSize.width * Float(scale.x)
+                let scaledHeight = scaledSize.height * Float(scale.y)
+                path.translate(Offset((scaledSize.width - scaledWidth) / 2, (scaledSize.height - scaledHeight) / 2))
+                scaledSize = Size(scaledSize.width, scaledSize.height)
             case .rotation(let angle, _):
-                totalRotationDegrees += angle.degrees
-                totalRotationRadians += angle.radians
-                isRotationBeforeOffset = totalOffset == .zero
+                let matrix = Matrix()
+                matrix.rotateZ(Float(angle.degrees))
+                path.transform(matrix)
+                // Android rotates around the origin rather than the center. Calculate the offset that this rotation
+                // causes to the center point and apply its inverse to get a rotation around the center. Note that we
+                // negate the y axis because mathmatical coordinate systems have the origin in the bottom left, not top
+                let radians = angle.radians
+                let xcenter = scaledSize.width / 2
+                let ycenter = -scaledSize.height / 2
+                let xnew = xcenter * cos(-radians) - ycenter * sin(-radians)
+                let ynew = xcenter * sin(-radians) + ycenter * cos(-radians)
+                path.translate(Offset(Float(xcenter - xnew), Float(-(ycenter - ynew))))
             }
         }
-
-        // Scale size and translate to re-center
-        var sizeOffset: CGPoint = .zero
-        let scaledSize = Size(size.width * Float(totalScale.width), size.height * Float(totalScale.height))
-        sizeOffset.x += (size.width - scaledSize.width) / 2.0
-        sizeOffset.y += (size.height - scaledSize.height) / 2.0
-        // Apply insets
-        let finalSize = Size(max(Float(0.0), scaledSize.width - Float(totalInset * 2.0)), max(Float(0.0), scaledSize.height - Float(totalInset * 2.0)))
-        sizeOffset.x += totalInset
-        sizeOffset.y += totalInset
-
-        let path = shape.asComposePath(size: finalSize, density: density)
-
-        if totalRotationDegrees == 0.0 || !isRotationBeforeOffset {
-            path.translate(Offset(Float(totalOffset.x), Float(totalOffset.y)))
-        }
-        if totalRotationDegrees != 0.0 {
-            let matrix = Matrix()
-            matrix.rotateZ(Float(totalRotationDegrees))
-            path.transform(matrix)
-
-            // Android rotates around the origin rather than the center. Calculate the offset that this rotation
-            // causes to the center point and apply its inverse to get a rotation around the center. Note that we
-            // negate the y axis because mathmatical coordinate systems have the origin in the bottom left, not top
-            let xcenter = finalSize.width / 2
-            let ycenter = -finalSize.height / 2
-            let xnew = xcenter * cos(-totalRotationRadians) - ycenter * sin(-totalRotationRadians)
-            let ynew = xcenter * sin(-totalRotationRadians) + ycenter * cos(-totalRotationRadians)
-            path.translate(Offset(Float(xcenter - xnew), Float(-(ycenter - ynew))))
-            if isRotationBeforeOffset {
-                path.translate(Offset(Float(totalOffset.x), Float(totalOffset.y)))
-            }
-        }
-
-        // Finally, apply the offset from scaling and insetting
-        path.translate(Offset(Float(sizeOffset.x), Float(sizeOffset.y)))
         return path
     }
 }
@@ -530,7 +509,7 @@ extension Shape {
     public func scale(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> any Shape {
         #if SKIP
         var modifiedShape = self.modified
-        modifiedShape.modifications.append(.scale(CGSize(width: x, height: y), anchor))
+        modifiedShape.modifications.append(.scale(CGPoint(x: x, y: y), anchor))
         return modifiedShape
         #else
         return self
