@@ -99,7 +99,7 @@ public struct Image : View, Equatable, Sendable {
     }
 
     @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?) {
-        guard let image = composeImageVector(named: systemName) else {
+        guard let image = Self.composeImageVector(named: systemName) else {
             print("Unable to find system image named: \(systemName)")
             Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             return
@@ -171,7 +171,7 @@ public struct Image : View, Equatable, Sendable {
         }
     }
 
-    private func composeSymbolName(for symbolName: String) -> String? {
+    private static func composeSymbolName(for symbolName: String) -> String? {
         switch symbolName {
         case "person.crop.square": return "Icons.Outlined.AccountBox" //􀉹
         case "person.crop.circle": return "Icons.Outlined.AccountCircle" //􀉭
@@ -280,7 +280,7 @@ public struct Image : View, Equatable, Sendable {
     /// Returns the `androidx.compose.ui.graphics.vector.ImageVector` for the given constant name.
     ///
     /// See: https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons.Outlined
-    private func composeImageVector(named name: String) -> ImageVector? {
+    static func composeImageVector(named name: String) -> ImageVector? {
         switch composeSymbolName(for: name) ?? name {
         case "Icons.Outlined.AccountBox": return Icons.Outlined.AccountBox
         case "Icons.Outlined.AccountCircle": return Icons.Outlined.AccountCircle

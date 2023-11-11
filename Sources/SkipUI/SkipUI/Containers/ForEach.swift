@@ -9,17 +9,23 @@ import androidx.compose.runtime.Composable
 // Erase the Data and ID because they are currently unused in Kotlin, the compiler won't be able to calculate them
 public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
     let identifier: ((Any) -> AnyHashable)?
-    let indexedContent: ((Int) -> Content)?
     let indexRange: Range<Int>?
-    let objectContent: ((Any) -> Content)?
+    let indexedContent: ((Int) -> Content)?
     let objects: (any RandomAccessCollection<Any>)?
+    let objectContent: ((Any) -> Content)?
+    let objectsBinding: Binding<any RandomAccessCollection<Any>>?
+    let objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)?
+    let editActions: EditActions
 
-    init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil) {
+    init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)? = nil, editActions: EditActions = []) {
         self.identifier = identifier
         self.indexRange = indexRange
         self.indexedContent = indexedContent
         self.objects = objects
         self.objectContent = objectContent
+        self.objectsBinding = objectsBinding
+        self.objectsBindingContent = objectsBindingContent
+        self.editActions = editActions
     }
 
     #if SKIP
@@ -42,6 +48,10 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
         } else if let objects {
             for object in objects {
                 objectContent!(object).Compose(context: context)
+            }
+        } else if let objectsBinding {
+            for i in 0..<objectsBinding.wrappedValue.count {
+                objectsBindingContent!(objectsBinding, i).Compose(context: context)
             }
         }
     }
@@ -74,6 +84,17 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
                 }
                 contentView.Compose(appendingContext)
             }
+        } else if let objectsBinding {
+            for i in 0..<objectsBinding.wrappedValue.count {
+                let contentView = objectsBindingContent!(objectsBinding, i)
+                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                    views.add(self)
+                    return
+                } else {
+                    isFirstView = false
+                }
+                contentView.Compose(appendingContext)
+            }
         }
     }
 
@@ -94,6 +115,8 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
             context.indexedItems(indexRange, identifier, indexedContent!)
         } else if let objects {
             context.objectItems(objects, identifier!, objectContent!)
+        } else if let objectsBinding {
+            context.objectBindingItems(objectsBinding, identifier!, editActions, objectsBindingContent!)
         }
     }
     #else
@@ -124,146 +147,24 @@ public func ForEach<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = n
     return ForEach(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: content)
 }
 
-#endif
-
-#if !SKIP
-
-// TODO: Process for use in SkipUI
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension ForEach {
-
-    /// Creates an instance that uniquely identifies and creates views across
-    /// updates based on the identity of the underlying data.
-    ///
-    /// It's important that the `id` of a data element doesn't change unless you
-    /// replace the data element with a new data element that has a new
-    /// identity. If the `id` of a data element changes, the content view
-    /// generated from that data element loses any current state and animations.
-    ///
-    /// When placed inside a `List` the edit actions (like delete or move)
-    /// can be automatically synthesized by specifying an appropriate
-    /// `EditActions`.
-    ///
-    /// The following example shows a list of recipes whose elements can be
-    /// deleted and reordered:
-    ///
-    ///     List {
-    ///         ForEach($recipes, editActions: [.delete, .move]) { $recipe in
-    ///             RecipeCell($recipe)
-    ///         }
-    ///     }
-    ///
-    /// Use ``View/deleteDisabled(_:)`` and ``View/moveDisabled(_:)``
-    /// to disable respectively delete or move actions on a per-row basis.
-    ///
-    /// The following example shows a list of recipes whose elements can be
-    /// deleted only if they satisfy a condition:
-    ///
-    ///     List {
-    ///         ForEach($recipes, editActions: .delete) { $recipe in
-    ///             RecipeCell($recipe)
-    ///                 .deleteDisabled(recipe.isFromMom)
-    ///         }
-    ///     }
-    ///
-    /// Explicit ``DynamicViewContent.onDelete(perform:)``,
-    /// ``DynamicViewContent.onMove(perform:)``, or
-    /// ``View.swipeActions(edge:allowsFullSwipe:content:)``
-    /// modifiers will override any synthesized actions.
-    /// Use this modifier if you need fine-grain control on how mutations are
-    /// applied to the data driving the `ForEach`. For example, if you need to
-    /// execute side effects or call into your existing model code.
-    ///
-    /// - Parameters:
-    ///   - data: The identified data that the ``ForEach`` instance uses to
-    ///     create views dynamically and can be edited by the user.
-    ///   - editActions: The edit actions that are synthesized on `data`.
-    ///   - content: The view builder that creates views dynamically.
-//    public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable { fatalError() }
-
-    /// Creates an instance that uniquely identifies and creates views across
-    /// updates based on the identity of the underlying data.
-    ///
-    /// It's important that the `id` of a data element doesn't change unless you
-    /// replace the data element with a new data element that has a new
-    /// identity. If the `id` of a data element changes, the content view
-    /// generated from that data element loses any current state and animations.
-    ///
-    /// When placed inside a `List` the edit actions (like delete or move)
-    /// can be automatically synthesized by specifying an appropriate
-    /// `EditActions`.
-    ///
-    /// The following example shows a list of recipes whose elements can be
-    /// deleted and reordered:
-    ///
-    ///     List {
-    ///         ForEach($recipes, editActions: [.delete, .move]) { $recipe in
-    ///             RecipeCell($recipe)
-    ///         }
-    ///     }
-    ///
-    /// Use ``View/deleteDisabled(_:)`` and ``View/moveDisabled(_:)``
-    /// to disable respectively delete or move actions on a per-row basis.
-    ///
-    /// The following example shows a list of recipes whose elements can be
-    /// deleted only if they satisfy a condition:
-    ///
-    ///     List {
-    ///         ForEach($recipes, editActions: .delete) { $recipe in
-    ///             RecipeCell($recipe)
-    ///                 .deleteDisabled(recipe.isFromMom)
-    ///         }
-    ///     }
-    ///
-    /// Explicit ``DynamicViewContent.onDelete(perform:)``,
-    /// ``DynamicViewContent.onMove(perform:)``, or
-    /// ``View.swipeActions(edge:allowsFullSwipe:content:)``
-    /// modifiers will override any synthesized actions.
-    /// Use this modifier if you need fine-grain control on how mutations are
-    /// applied to the data driving the `ForEach`. For example, if you need to
-    /// execute side effects or call into your existing model code.
-    ///
-    /// - Parameters:
-    ///   - data: The identified data that the ``ForEach`` instance uses to
-    ///     create views dynamically and can be edited by the user.
-    ///   - id: The key path to the provided data's identifier.
-    ///   - editActions: The edit actions that are synthesized on `data`.
-    ///   - content: The view builder that creates views dynamically.
-//    public init<C, R>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Index : Hashable { fatalError() }
+//extension ForEach {
+//  public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable
+//}
+public func ForEach<C, E, Content>(_ data: Binding<C>, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> Content) -> ForEach<Content> where C: any RandomAccessCollection<E>, E: Identifiable<Hashable>, Content: View {
+    return ForEach(identifier: { ($0 as! E).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
+        let binding = Binding<E>(get: { data.wrappedValue[index] as! E }, set: { (data.wrappedValue as! skip.lib.MutableCollection<E>)[index] = $0 })
+        return content(binding)
+    }, editActions: editActions)
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension ForEach where Content : View {
-
-    /// Creates an instance that uniquely identifies and creates views across
-    /// updates based on the identity of the underlying data.
-    ///
-    /// It's important that the `id` of a data element doesn't change unless you
-    /// replace the data element with a new data element that has a new
-    /// identity. If the `id` of a data element changes, the content view
-    /// generated from that data element loses any current state and animations.
-    ///
-    /// - Parameters:
-    ///   - data: The identified data that the ``ForEach`` instance uses to
-    ///     create views dynamically.
-    ///   - content: The view builder that creates views dynamically.
-//    public init<C>(_ data: Binding<C>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, ID == C.Element.ID, C : MutableCollection, C : RandomAccessCollection, C.Element : Identifiable, C.Index : Hashable { fatalError() }
-
-    /// Creates an instance that uniquely identifies and creates views across
-    /// updates based on the identity of the underlying data.
-    ///
-    /// It's important that the `id` of a data element doesn't change unless you
-    /// replace the data element with a new data element that has a new
-    /// identity. If the `id` of a data element changes, the content view
-    /// generated from that data element loses any current state and animations.
-    ///
-    /// - Parameters:
-    ///   - data: The identified data that the ``ForEach`` instance uses to
-    ///     create views dynamically.
-    ///   - id: The key path to the provided data's identifier.
-    ///   - content: The view builder that creates views dynamically.
-//    public init<C>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, @ViewBuilder content: @escaping (Binding<C.Element>) -> Content) where Data == LazyMapSequence<C.Indices, (C.Index, ID)>, C : MutableCollection, C : RandomAccessCollection, C.Index : Hashable { fatalError() }
+//extension ForEach {
+//    public init<C, R>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Index : Hashable { fatalError() }
+//}
+public func ForEach<C, E, Content>(_ data: Binding<C>, id: (E) -> AnyHashable, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> Content) -> ForEach<Content> where C: RandomAccessCollection<E>, Content: View {
+    return ForEach(identifier: { id($0 as! E) }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
+        let binding = Binding<E>(get: { data.wrappedValue[index] as! E }, set: { (data.wrappedValue as! skip.lib.MutableCollection<E>)[index] = $0 })
+        return content(binding)
+    }, editActions: editActions)
 }
 
 #endif

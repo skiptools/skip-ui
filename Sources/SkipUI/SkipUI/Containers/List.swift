@@ -5,19 +5,23 @@
 #if SKIP
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
@@ -32,12 +36,14 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     let fixedContent: Content?
     let forEach: ForEach<Content>?
 
-    init(fixedContent: Content? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil) {
+    init(fixedContent: Content? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)? = nil, editActions: EditActions = []) {
         self.fixedContent = fixedContent
         if let indexRange {
             self.forEach = ForEach(identifier: identifier, indexRange: indexRange, indexedContent: indexedContent)
         } else if let objects {
             self.forEach = ForEach(identifier: identifier, objects: objects, objectContent: objectContent)
+        } else if let objectsBinding {
+            self.forEach = ForEach(identifier: identifier, objectsBinding: objectsBinding, objectsBindingContent: objectsBindingContent, editActions: editActions)
         } else {
             self.forEach = nil
         }
@@ -83,9 +89,6 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
 
         LazyColumn(modifier: modifier) {
-            let itemContext = context.content(composer: ClosureComposer { view, context in
-                ComposeItem(view: view, context: context(false), style: style)
-            })
             let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), style: style, isTop: false)
             })
@@ -95,26 +98,36 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             let sectionFooterContext = context.content(composer: ClosureComposer { view, context in
                 ComposeSectionFooter(view: view, context: context(false), style: style)
             })
+
             var itemCount = 0
             let factoryContext = ListItemFactoryContext(
                 item: { view in
                     item {
-                        view.Compose(context: itemContext)
+                        view.Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
                     }
                     itemCount += 1
                 },
                 indexedItems: { range, identifier, factory in
                     let count = range.endExclusive - range.start
                     items(count: count, key: identifier == nil ? nil : { identifier!($0) }) { index in
-                        factory(index).Compose(context: itemContext)
+                        factory(index).Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
                     }
                     itemCount += count
                 },
                 objectItems: { objects, identifier, factory in
                     items(count: objects.count, key: { identifier(objects[$0]) }) { index in
-                        factory(objects[index]).Compose(context: itemContext)
+                        factory(objects[index]).Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
                     }
                     itemCount += objects.count
+                },
+                objectBindingItems: { objectsBinding, identifier, editActions, factory in
+                    items(count: objectsBinding.wrappedValue.count, key: { identifier(objectsBinding.wrappedValue[$0]) }) { index in
+                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                            ComposeEditableItem(view: view, context: context(false), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, animate: Modifier.animateItemPlacement())
+                        })
+                        factory(objectsBinding, index).Compose(context: editableItemContext)
+                    }
+                    itemCount += objectsBinding.wrappedValue.count
                 },
                 sectionHeader: { view in
                     // Important to check the count immediately, outside the lazy list scope blocks
@@ -146,7 +159,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     factory.ComposeListItems(context: factoryContext)
                 } else {
                     item {
-                        view.Compose(context: itemContext)
+                        view.Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
                     }
                     itemCount += 1
                 }
@@ -157,19 +170,49 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
     }
 
+    /// Create a list item-rendering compose context for item views.
+    private func itemContext(for context: ComposeContext, style: ListStyle, animate: Modifier) -> ComposeContext {
+        return context.content(composer: ClosureComposer { view, context in
+            ComposeItem(view: view, context: context(false), style: style, animate: animate)
+        })
+    }
+
     private static let horizontalInset = 16.0
     private static let verticalInset = 32.0
     private static let minimumItemHeight = 44.0
     private static let horizontalItemInset = 16.0
     private static let verticalItemInset = 4.0
 
-    @Composable private func ComposeItem(view: View, context: ComposeContext, style: ListStyle) {
+    @Composable private func ComposeItem(view: View, context: ComposeContext, style: ListStyle, animate: Modifier = Modifier) {
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
-        Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier)) {
+        Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier).then(animate)) {
             // Note that we're calling the same view's Compose function again with a new context
             view.Compose(context: context.content(composer: ListItemComposer(contentModifier: contentModifier)))
             ComposeSeparator()
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], animate: Modifier) {
+        guard editActions.contains(.delete) else {
+            ComposeItem(view: view, context: context, style: style, animate: animate)
+            return
+        }
+        let rememberedIndex = rememberUpdatedState(index)
+        let dismissState = rememberDismissState(confirmValueChange: {
+            if $0 == DismissValue.DismissedToStart, objectsBinding.wrappedValue.count > rememberedIndex.value {
+                (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
+            }
+            return true
+        }, positionalThreshold = { 164.dp.toPx() })
+        SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(DismissDirection.EndToStart), modifier: animate, background: {
+            let trashVector = Image.composeImageVector(named: "trash")!
+            Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+                Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+            }
+        }, dismissContent: {
+            ComposeItem(view: view, context: context, style: style, animate: animate)
+        })
     }
 
     @Composable private func ComposeSeparator() {
@@ -270,6 +313,27 @@ public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectT
 public func List<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> Content) -> List<Content> where Content: View {
     return List(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: rowContent)
 }
+
+//extension List {
+//  public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable
+//}
+public func List<Data, ObjectType, Content>(_ data: Binding<Data>, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> Content) -> List<Content> where Data: RandomAccessCollection<ObjectType>, ObjectType: Identifiable<Hashable>, Content: View {
+    return List(identifier: { ($0 as! ObjectType).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
+        let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
+        return rowContent(binding)
+    }, editActions: editActions)
+}
+
+//extension List {
+//  public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable
+//}
+public func List<Data, ObjectType, Content>(_ data: Binding<Data>, id: (ObjectType) -> AnyHashable, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> Content) -> List<Content> where Data: RandomAccessCollection<ObjectType>, Content: View {
+    return List(identifier: { id($0 as! ObjectType) }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
+        let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
+        return rowContent(binding)
+    }, editActions: editActions)
+}
+
 #endif
 
 /// Adopted by views that generate list items.
@@ -301,6 +365,7 @@ public struct ListItemFactoryContext {
     let item: (View) -> Void
     let indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void
     let objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void
+    let objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void
 
     let sectionHeader: (View) -> Void
     let sectionFooter: (View) -> Void
@@ -747,29 +812,6 @@ extension List {
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension List where SelectionValue == Never {
-
-    /// Creates a list that computes its rows on demand from an underlying
-    /// collection of identifiable data.
-    ///
-    /// - Parameters:
-    ///   - data: A collection of identifiable data for computing the list.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, Data.Element.ID)>, Data.Element.ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
-
-    /// Creates a list that identifies its rows based on a key path to the
-    /// identifier of the underlying data.
-    ///
-    /// - Parameters:
-    ///   - data: The data for populating the list.
-    ///   - id: The key path to the data model's identifier.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<LazyMapSequence<Data.Indices, (Data.Index, ID)>, ID, RowContent>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
-}
-
 @available(iOS 15.0, macOS 12.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
@@ -1037,69 +1079,6 @@ extension List {
     ///     the list.
 //    @available(watchOS, unavailable)
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension List where SelectionValue == Never {
-
-    /// Creates a list that computes its rows on demand from an underlying
-    /// collection of identifiable data and allows to edit the collection.
-    ///
-    /// The following example creates a list to display a collection of favorite
-    /// foods allowing the user to delete or move elements from the
-    /// collection.
-    ///
-    ///     List($foods, editActions: [.delete, .move]) { $food in
-    ///        HStack {
-    ///            Text(food.name)
-    ///            Toggle("Favorite", isOn: $food.isFavorite)
-    ///        }
-    ///     }
-    ///
-    /// Use ``View/deleteDisabled(_:)`` and ``View/moveDisabled(_:)``
-    /// to disable respectively delete or move actions on a per-row basis.
-    ///
-    /// Explicit ``DynamicViewContent.onDelete(perform:)``,
-    /// ``DynamicViewContent.onMove(perform:)``, or
-    /// ``View.swipeActions(edge:allowsFullSwipe:content:)``
-    /// modifiers will override any synthesized action
-    ///
-    /// - Parameters:
-    ///   - data: A collection of identifiable data for computing the list.
-    ///   - editActions: The edit actions that are synthesized on `data`.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable { fatalError() }
-
-    /// Creates a list that computes its rows on demand from an underlying
-    /// collection of identifiable data and allows to edit the collection.
-    ///
-    /// The following example creates a list to display a collection of favorite
-    /// foods allowing the user to delete or move elements from the
-    /// collection.
-    ///
-    ///     List($foods, editActions: [.delete, .move]) { $food in
-    ///        HStack {
-    ///            Text(food.name)
-    ///            Toggle("Favorite", isOn: $food.isFavorite)
-    ///        }
-    ///     }
-    ///
-    /// Use ``View/deleteDisabled(_:)`` and ``View/moveDisabled(_:)``
-    /// to disable respectively delete or move actions on a per-row basis.
-    ///
-    /// Explicit ``DynamicViewContent.onDelete(perform:)``,
-    /// ``DynamicViewContent.onMove(perform:)``, or
-    /// ``View.swipeActions(edge:allowsFullSwipe:content:)``
-    /// modifiers will override any synthesized action
-    ///
-    /// - Parameters:
-    ///   - data: A collection of identifiable data for computing the list.
-    ///   - id: The key path to the data model's identifier.
-    ///   - editActions: The edit actions that are synthesized on `data`.
-    ///   - rowContent: A view builder that creates the view for a single row of
-    ///     the list.
-//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
 #endif
