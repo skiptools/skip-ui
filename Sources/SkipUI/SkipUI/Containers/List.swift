@@ -194,7 +194,8 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func ComposeEditableItem(view: View, context: ComposeContext, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], animate: Modifier) {
-        guard editActions.contains(.delete) else {
+        let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
+        guard editActions.contains(.delete), editActionsModifiers?.isDeleteDisabled != true else {
             ComposeItem(view: view, context: context, style: style, animate: animate)
             return
         }
@@ -472,11 +473,6 @@ public enum ListSectionSpacing : Sendable {
 
 extension View {
     @available(*, unavailable)
-    public func deleteDisabled(_ isDisabled: Bool) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         return self
     }
@@ -534,11 +530,6 @@ extension View {
 
     @available(*, unavailable)
     public func listSectionSpacing(_ spacing: CGFloat) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func moveDisabled(_ isDisabled: Bool) -> some View {
         return self
     }
 

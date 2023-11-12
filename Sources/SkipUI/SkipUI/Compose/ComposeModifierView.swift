@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 /// Recognized modifier roles.
 public enum ComposeModifierRole {
     case accessibility
+    case editActions
     case gesture
     case spacing
     case unspecified
