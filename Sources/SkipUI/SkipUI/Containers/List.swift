@@ -25,6 +25,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.ReorderableLazyListState
+import org.burnoutcrew.reorderable.detectReorderAfterLongPress
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -77,6 +82,14 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
         modifier = modifier.fillWidth()
 
+        let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
+//            data.value = data.value.toMutableList().apply {
+//                add(to.index, removeAt(from.index))
+//            }
+        })
+        modifier = modifier.reorderable(reorderableState)
+//            .detectReorderAfterLongPress(reorderableState)
+
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -88,7 +101,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             fixedContent.Compose(context: viewsCollector)
         }
 
-        LazyColumn(modifier: modifier) {
+        LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), style: style, isTop: false)
             })
@@ -123,7 +136,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 objectBindingItems: { objectsBinding, identifier, editActions, factory in
                     items(count: objectsBinding.wrappedValue.count, key: { identifier(objectsBinding.wrappedValue[$0]) }) { index in
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, animate: Modifier.animateItemPlacement())
+                            ComposeEditableItem(view: view, context: context(false), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, reorderableState: reorderableState, animate: Modifier.animateItemPlacement())
                         })
                         factory(objectsBinding, index).Compose(context: editableItemContext)
                     }
@@ -193,7 +206,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], animate: Modifier) {
+    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], reorderableState: ReorderableLazyListState, animate: Modifier) {
         let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
         guard editActions.contains(.delete), editActionsModifiers?.isDeleteDisabled != true else {
             ComposeItem(view: view, context: context, style: style, animate: animate)
