@@ -363,7 +363,17 @@ List {
 }
 ```
 
-SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists.
+SkipUI does **not** support placing modifiers on `Section` or `ForEach` views within lists.
+
+When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions. Skip currently supports the `.delete` edit action, but does not yet support `.move`. 
+
+```swift
+List($people, id: \.fullName, editActions: .delete) { $person in
+    Text(person.fullName)
+        .deleteDisabled(!person.isDeletable)
+    }
+}
+```
 
 ### Navigation
 
@@ -449,7 +459,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`HStack`|✅ Full||
 |`Image`|🔴 Low|See [Images](#images)|
 |`Label`|🔴 Low|See [Images](#images)|
-|`List`|🟡 Medium|See [Lists](#lists)|
+|`List`|🟢 High|See [Lists](#lists)|
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
 |`Oval`|✅ Full||
@@ -475,6 +485,7 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.buttonStyle`|🟢 High|Custom styles not supported|
 |`.clipped`|🔴 Low|Most content clips automatically|
 |`.clipShape`|✅ Full||
+|`.deleteDisabled`|✅ Full||
 |`.disabled`|✅ Full||
 |`.environment`|✅ Full||
 |`.environmentObject`|✅ Full||
