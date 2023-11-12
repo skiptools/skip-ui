@@ -569,4 +569,3 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 - DropdownMenu (androidx.compose.material3.DropdownMenu): Creates a dropdown menu with a list of items.
 - Drawer (androidx.compose.material3.Drawer): Creates a sliding drawer panel for navigation.
 - MaterialTheme (androidx.compose.material3.MaterialTheme): Applies Material Design styles to its children.
->>>>>>> 1a1e94a (Support additional .frame specifications)
