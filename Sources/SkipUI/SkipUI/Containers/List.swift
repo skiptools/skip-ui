@@ -95,9 +95,11 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
         modifier = modifier.fillWidth()
 
+        // Remember the factory because we use it in the remembered reorderable state
         let factoryContext = ListItemFactoryContext()
+        let remberedFactoryContext = rememberUpdatedState(factoryContext)
         let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
-            factoryContext.move(from: from.index, to: to.index)
+            remberedFactoryContext.value.move(from: from.index, to: to.index)
         })
         modifier = modifier.reorderable(reorderableState)
 
@@ -210,9 +212,10 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         let key = identifier(objectsBinding.wrappedValue[index])
         if isDeleteEnabled {
             let rememberedIndex = rememberUpdatedState(index)
+            let rememberedBinding = rememberUpdatedState(objectsBinding)
             let dismissState = rememberDismissState(confirmValueChange: {
-                if $0 == DismissValue.DismissedToStart, objectsBinding.wrappedValue.count > rememberedIndex.value {
-                    (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
+                if $0 == DismissValue.DismissedToStart, rememberedBinding.value.wrappedValue.count > rememberedIndex.value {
+                    (rememberedBinding.value.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
                 }
                 return true
             }, positionalThreshold = { 164.dp.toPx() })
