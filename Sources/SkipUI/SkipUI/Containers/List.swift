@@ -3,6 +3,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,6 +24,7 @@ import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -76,20 +78,6 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
     @Composable private func ComposeList(context: ComposeContext, style: ListStyle) {
-        var modifier: Modifier = Modifier
-        if style != .plain {
-            modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
-        }
-        modifier = modifier.fillWidth()
-
-        let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
-//            data.value = data.value.toMutableList().apply {
-//                add(to.index, removeAt(from.index))
-//            }
-        })
-        modifier = modifier.reorderable(reorderableState)
-//            .detectReorderAfterLongPress(reorderableState)
-
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -100,6 +88,18 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         } else if let fixedContent {
             fixedContent.Compose(context: viewsCollector)
         }
+
+        var modifier: Modifier = Modifier
+        if style != .plain {
+            modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
+        }
+        modifier = modifier.fillWidth()
+
+        let factoryContext = ListItemFactoryContext()
+        let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
+            factoryContext.move(from: from.index, to: to.index)
+        })
+        modifier = modifier.reorderable(reorderableState)
 
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
@@ -112,39 +112,34 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 ComposeSectionFooter(view: view, context: context(false), style: style)
             })
 
-            var itemCount = 0
-            let factoryContext = ListItemFactoryContext(
+            factoryContext.initialize(
                 item: { view in
                     item {
-                        view.Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
+                        view.Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
                     }
-                    itemCount += 1
                 },
                 indexedItems: { range, identifier, factory in
                     let count = range.endExclusive - range.start
                     items(count: count, key: identifier == nil ? nil : { identifier!($0) }) { index in
-                        factory(index).Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
+                        factory(index).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
                     }
-                    itemCount += count
                 },
                 objectItems: { objects, identifier, factory in
                     items(count: objects.count, key: { identifier(objects[$0]) }) { index in
-                        factory(objects[index]).Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
+                        factory(objects[index]).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
                     }
-                    itemCount += objects.count
                 },
                 objectBindingItems: { objectsBinding, identifier, editActions, factory in
                     items(count: objectsBinding.wrappedValue.count, key: { identifier(objectsBinding.wrappedValue[$0]) }) { index in
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, reorderableState: reorderableState, animate: Modifier.animateItemPlacement())
+                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, reorderableState: reorderableState)
                         })
                         factory(objectsBinding, index).Compose(context: editableItemContext)
                     }
-                    itemCount += objectsBinding.wrappedValue.count
                 },
                 sectionHeader: { view in
                     // Important to check the count immediately, outside the lazy list scope blocks
-                    let context = itemCount == 0 ? topSectionHeaderContext : sectionHeaderContext
+                    let context = factoryContext.count == 0 ? topSectionHeaderContext : sectionHeaderContext
                     if style == .plain {
                         stickyHeader {
                             view.Compose(context: context)
@@ -154,13 +149,11 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                             view.Compose(context: context)
                         }
                     }
-                    itemCount += 1
                 },
                 sectionFooter: { view in
                     item {
                         view.Compose(context: sectionFooterContext)
                     }
-                    itemCount += 1
                 }
             )
 
@@ -171,10 +164,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 if let factory = view as? ListItemFactory {
                     factory.ComposeListItems(context: factoryContext)
                 } else {
-                    item {
-                        view.Compose(context: itemContext(for: context, style: style, animate: Modifier.animateItemPlacement()))
-                    }
-                    itemCount += 1
+                    factoryContext.item(view)
                 }
             }
             item {
@@ -184,9 +174,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     /// Create a list item-rendering compose context for item views.
-    private func itemContext(for context: ComposeContext, style: ListStyle, animate: Modifier) -> ComposeContext {
+    private func itemContext(for context: ComposeContext, modifier: Modifier, style: ListStyle) -> ComposeContext {
         return context.content(composer: ClosureComposer { view, context in
-            ComposeItem(view: view, context: context(false), style: style, animate: animate)
+            ComposeItem(view: view, context: context(false), modifier: modifier, style: style)
         })
     }
 
@@ -196,9 +186,11 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let horizontalItemInset = 16.0
     private static let verticalItemInset = 4.0
 
-    @Composable private func ComposeItem(view: View, context: ComposeContext, style: ListStyle, animate: Modifier = Modifier) {
+    @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, style: ListStyle) {
+        // The given modifiers include elevation shadow for dragging, etc that need to go before the others
+        let containerModifier = modifier.then(Modifier.background(BackgroundColor(style: .plain))).then(context.modifier)
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
-        Column(modifier: Modifier.background(BackgroundColor(style: .plain)).then(context.modifier).then(animate)) {
+        Column(modifier: containerModifier) {
             // Note that we're calling the same view's Compose function again with a new context
             view.Compose(context: context.content(composer: ListItemComposer(contentModifier: contentModifier)))
             ComposeSeparator()
@@ -206,27 +198,56 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], reorderableState: ReorderableLazyListState, animate: Modifier) {
+    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, modifier: Modifier, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], reorderableState: ReorderableLazyListState) {
         let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
-        guard editActions.contains(.delete), editActionsModifiers?.isDeleteDisabled != true else {
-            ComposeItem(view: view, context: context, style: style, animate: animate)
+        let isDeleteEnabled = editActions.contains(.delete) && editActionsModifiers?.isDeleteDisabled != true
+        let isMoveEnabled = editActions.contains(.move) && editActionsModifiers?.isMoveDisabled != true
+        guard isDeleteEnabled || isMoveEnabled else {
+            ComposeItem(view: view, context: context, modifier: modifier, style: style)
             return
         }
-        let rememberedIndex = rememberUpdatedState(index)
-        let dismissState = rememberDismissState(confirmValueChange: {
-            if $0 == DismissValue.DismissedToStart, objectsBinding.wrappedValue.count > rememberedIndex.value {
-                (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
+
+        let key = identifier(objectsBinding.wrappedValue[index])
+        if isDeleteEnabled {
+            let rememberedIndex = rememberUpdatedState(index)
+            let dismissState = rememberDismissState(confirmValueChange: {
+                if $0 == DismissValue.DismissedToStart, objectsBinding.wrappedValue.count > rememberedIndex.value {
+                    (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
+                }
+                return true
+            }, positionalThreshold = { 164.dp.toPx() })
+
+            let content: @Composable (Modifier) -> Void = {
+                SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(DismissDirection.EndToStart), modifier: $0, background: {
+                    let trashVector = Image.composeImageVector(named: "trash")!
+                    Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+                        Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+                    }
+                }, dismissContent: {
+                    ComposeItem(view: view, context: context, style: style)
+                })
             }
-            return true
-        }, positionalThreshold = { 164.dp.toPx() })
-        SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(DismissDirection.EndToStart), modifier: animate, background: {
-            let trashVector = Image.composeImageVector(named: "trash")!
-            Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
-                Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+            if isMoveEnabled {
+                ComposeReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: content)
+            } else {
+                content(modifier)
             }
-        }, dismissContent: {
-            ComposeItem(view: view, context: context, style: style, animate: animate)
-        })
+        } else {
+            ComposeReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier) {
+                ComposeItem(view: view, context: context, modifier: $0, style: style)
+            }
+        }
+    }
+
+    @Composable private func ComposeReorderableItem(reorderableState: ReorderableLazyListState, key: AnyHashable, modifier: Modifier, content: @Composable (Modifier) -> Void) {
+        ReorderableItem(state: reorderableState, key: key, defaultDraggingModifier: modifier) { dragging in
+            var itemModifier = Modifier.detectReorderAfterLongPress(reorderableState)
+            if dragging {
+                let elevation = animateDpAsState(8.dp)
+                itemModifier = itemModifier.shadow(elevation.value)
+            }
+            content(itemModifier)
+        }
     }
 
     @Composable private func ComposeSeparator() {
@@ -375,14 +396,92 @@ protocol ListItemAdapting {
 }
 
 #if SKIP
-public struct ListItemFactoryContext {
-    let item: (View) -> Void
-    let indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void
-    let objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void
-    let objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void
+/// Allows `ListItemFactory` instances to define the content of the list.
+public class ListItemFactoryContext {
+    private(set) var item: (View) -> Void = { _ in }
+    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void = { _, _, _ in  }
+    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void = { _, _, _ in }
+    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _ in }
 
-    let sectionHeader: (View) -> Void
-    let sectionFooter: (View) -> Void
+    private(set) var sectionHeader: (View) -> Void = { _ in }
+    private(set) var sectionFooter: (View) -> Void = { _ in }
+
+    /// Initialize the content factories.
+    func initialize(item: (View) -> Void,
+                    indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void,
+                    objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void,
+                    objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
+                    sectionHeader: (View) -> Void,
+                    sectionFooter: (View) -> Void) {
+        content.removeAll()
+        self.item = { view in
+            item(view)
+            content.append(.items(1))
+        }
+        self.indexedItems = { range, identifier, factory in
+            indexedItems(range, identifier, factory)
+            content.append(.items(range.endExclusive - range.start))
+        }
+        self.objectItems = { objects, identifier, factory in
+            objectItems(objects, identifier, factory)
+            content.append(.objectItems(objects))
+        }
+        self.objectBindingItems = { binding, identifier, editActions, factory in
+            objectBindingItems(binding, identifier, editActions, factory)
+            content.append(.objectBindingItems(binding))
+        }
+        self.sectionHeader = { view in
+            sectionHeader(view)
+            content.append(.items(1))
+        }
+        self.sectionFooter = { view in
+            sectionFooter(view)
+            content.append(.items(1))
+        }
+    }
+
+    /// The current number of items.
+    var count: Int {
+        var itemCount = 0
+        for content in self.content {
+            switch content {
+            case .items(let count): itemCount += count
+            case .objectItems(let objects): itemCount += objects.count
+            case .objectBindingItems(let binding): itemCount += binding.wrappedValue.count
+            }
+        }
+        return itemCount
+    }
+
+    /// Move an item.
+    func move(from fromIndex: Int, to toIndex: Int) {
+        if fromIndex == toIndex {
+            return
+        }
+        var itemIndex = 1 // List header
+        for content in self.content {
+            switch content {
+            case .items(let count): itemIndex += count
+            case .objectItems(let objects): itemIndex += objects.count
+            case .objectBindingItems(let binding):
+                if min(fromIndex, toIndex) >= itemIndex && max(fromIndex, toIndex) < itemIndex + binding.wrappedValue.count {
+                    if let element = (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: fromIndex - itemIndex) {
+                        (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.insert(element, at: toIndex - itemIndex)
+                    }
+                    return
+                } else {
+                    itemIndex += binding.wrappedValue.count
+                }
+            }
+        }
+    }
+
+    private enum Content {
+        case items(Int)
+        case objectItems(RandomAccessCollection<Any>)
+        case objectBindingItems(Binding<RandomAccessCollection<Any>>)
+    }
+    private var content: [Content] = []
 }
 
 struct ListItemCollectingComposer: Composer {

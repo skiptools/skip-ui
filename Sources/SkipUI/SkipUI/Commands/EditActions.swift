@@ -14,12 +14,8 @@ public struct EditActions /* <Data> */ : OptionSet, Sendable {
         self.rawValue = rawValue
     }
 
-    @available(*, unavailable)
     public static let move = EditActions(rawValue: 1)
-
     public static let delete = EditActions(rawValue: 2)
-    
-    @available(*, unavailable)
     public static let all = EditActions(rawValue: 3)
 }
 
