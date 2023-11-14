@@ -455,7 +455,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`@State`|✅ Full||
 |`@StateObject`|✅ Full||
 |Custom Views|✅ Full||
-|`AsyncImage`|🟢 High|Uses [Coil](https://coil-kt.github.io/coil/)|
+|`AsyncImage`|🟢 High||
 |`Button`|🟢 High||
 |`Capsule`|✅ Full||
 |`Circle`|✅ Full||
@@ -463,7 +463,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Divider`|✅ Full||
 |`EmptyView`|✅ Full||
 |`Font`|🟡 Medium||
-|`ForEach`|🟡 Medium|Bindings as data not supported|
+|`ForEach`|🟢 High|See [Lists](#lists)|
 |`Form`|✅ Full||
 |`Group`|✅ Full||
 |`HStack`|✅ Full||
@@ -502,7 +502,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.fill` (Shape)|✅ Full||
 |`.font`|✅ Full||
 |`.foregroundColor`|✅ Full||
-|`.foregroundStyle`|🟡 Medium|Only color supported|
+|`.foregroundStyle`|✅ Full||
 |`.frame`|🟢 High||
 |`.hidden`|✅ Full||
 |`.inset` (Shape)|🟢 High||
@@ -511,6 +511,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.lineLimit`|🟡 Medium|Only `Int?` value supported|
 |`.listItemTint`|✅ Full||
 |`.listStyle`|✅ Full||
+|`.moveDisabled`|✅ Full||
 |`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|✅ Full||
 |`.offset`|✅ Full||
