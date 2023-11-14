@@ -98,8 +98,8 @@ SkipUI contains stubs for the entire SwiftUI framework. API generally goes throu
 1. Code that no one has begun to port to Skip starts in `#if !SKIP` blocks. This hides it from the Skip transpiler.
 1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(*, unavailable)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
     - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
-    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully.
-    - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient. You may, should, however, leave `View` modifiers that are specific to a given component - e.g. `.navigationTitle` is specific to `NavigationStack` - within the component's source file.
+    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully. Typing will still be enforced in user code by the Swift compiler.
+    - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient. You should, however, leave `View` modifiers that are specific to a given component - e.g. `.navigationTitle` is specific to `NavigationStack` - within the component's source file.
 1. Finally, we add a Compose implementation and remove any `unavailable` attribute.
 
 Note that SkipUI should remain buildable throughout this process. Being able to successfully compile SkipUI in Xcode helps us validate that our ported components still mesh with the rest of the framework.
@@ -140,7 +140,7 @@ As you can see, the `Text` type is defined just as it is in SwiftUI. We then use
 
 ### Modifiers
 
-Most modifiers, on the other hand, use the `ComposeModifierView` to change the `context` passed to the modified view. Here is the `.opacity` modifier:
+Modifiers, on the other hand, use the `ComposeModifierView` to change the `context` passed to the modified view. Here is the `.opacity` modifier:
 
 ```swift
 extension View {
@@ -363,17 +363,20 @@ List {
 }
 ```
 
-SkipUI does **not** support placing modifiers on `Section` or `ForEach` views within lists.
-
-When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions. Skip currently supports the `.delete` edit action, but does not yet support `.move`. 
+When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions. This also works with `ForEach` components.
 
 ```swift
-List($people, id: \.fullName, editActions: .delete) { $person in
+List($people, id: \.fullName, editActions: .all) { $person in
     Text(person.fullName)
         .deleteDisabled(!person.isDeletable)
     }
 }
 ```
+
+#### List Limitations
+
+- Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
+- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists.
 
 ### Navigation
 
@@ -427,6 +430,8 @@ SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests 
 Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
 
 ## Supported SwiftUI
+
+The following table summarizes SkipUI's SwiftUI support on Android. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
 
   - ✅ – Full
   - 🟢 – High
@@ -524,48 +529,3 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 |`.task`|✅ Full||
 |`.tint`|✅ Full||
 
-## Helpful Compose components
-
-[androidx.compose.material package](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary)
-[androidx.compose.ui.Modifier list](https://developer.android.com/jetpack/compose/modifiers-list)
-
-- Text (androidx.compose.material3.Text): Displays a text element on the screen.
-- Button (androidx.compose.material3.Button): Creates a clickable button.
-- Surface (androidx.compose.material3.Surface): Defines a surface with a background color and elevation.
-- Image (androidx.compose.foundation.Image): Displays an image.
-- Box (androidx.compose.foundation.Box): A composable that places its children in a box layout.
-- Row (androidx.compose.foundation.layout.Row): Lays out its children in a horizontal row.
-- Column (androidx.compose.foundation.layout.Column): Lays out its children in a vertical column.
-- Spacer (androidx.compose.ui.layout.Spacer): Adds empty space between composables.
-- Card (androidx.compose.material3.Card): Creates a Material Design card.
-- TextField (androidx.compose.material3.TextField): Creates an editable text field.
-- TopAppBar (androidx.compose.material3.TopAppBar): Creates a Material Design top app bar.
-- BottomAppBar (androidx.compose.material3.BottomAppBar): Creates a Material Design bottom app bar.
-- FloatingActionButton (androidx.compose.material3.FloatingActionButton): Creates a floating action button.
-- AlertDialog (androidx.compose.material3.AlertDialog): Creates a Material Design alert dialog.
-- ModalBottomSheetLayout (androidx.compose.material3.ModalBottomSheetLayout): Creates a modal bottom sheet.
-- IconButton (androidx.compose.material3.IconButton): Creates an icon button.
-- OutlinedTextField (androidx.compose.material3.OutlinedTextField): Creates an outlined text field.
-- LazyColumn (androidx.compose.foundation.lazy.LazyColumn): Creates a lazily laid out column.
-- LazyRow (androidx.compose.foundation.lazy.LazyRow): Creates a lazily laid out row.
-- LazyVerticalGrid (androidx.compose.foundation.lazy.LazyVerticalGrid): Creates a lazily laid out vertical grid.
-- LazyRow (androidx.compose.foundation.lazy.LazyRow): Creates a lazily laid out row with horizontally scrolling items.
-- LazyColumnFor (androidx.compose.foundation.lazy.LazyColumnFor): Creates a lazily laid out column for a list of items.
-- LazyRowFor (androidx.compose.foundation.lazy.LazyRowFor): Creates a lazily laid out row for a list of items.
-- LazyVerticalGridFor (androidx.compose.foundation.lazy.LazyVerticalGridFor): Creates a lazily laid out vertical grid for a list of items.
-- Clickable (androidx.compose.ui.Modifier.clickable): Adds a click listener to a composable.
-- Icon (androidx.compose.material3.Icon): Displays an icon from the Material Icons font.
-- IconButton (androidx.compose.material3.IconButton): Creates an icon button with optional click listener.
-- Checkbox (androidx.compose.material3.Checkbox): Creates a checkbox.
-- RadioButton (androidx.compose.material3.RadioButton): Creates a radio button.
-- Switch (androidx.compose.material3.Switch): Creates a switch (on/off toggle).
-- Slider (androidx.compose.material3.Slider): Creates a slider for selecting a value within a range.
-- LinearProgressIndicator (androidx.compose.material3.LinearProgressIndicator): Creates a linear progress indicator.
-- CircularProgressIndicator (androidx.compose.material3.CircularProgressIndicator): Creates a circular progress indicator.
-- Divider (androidx.compose.material3.Divider): Creates a horizontal divider.
-- Spacer (androidx.compose.foundation.layout.Spacer): Adds empty space between composables.
-- AlertDialog (androidx.compose.material3.AlertDialog): Creates an alert dialog with customizable buttons and content.
-- Snackbar (androidx.compose.material3.SnackbarHost): Creates a snackbar to display short messages.
-- DropdownMenu (androidx.compose.material3.DropdownMenu): Creates a dropdown menu with a list of items.
-- Drawer (androidx.compose.material3.Drawer): Creates a sliding drawer panel for navigation.
-- MaterialTheme (androidx.compose.material3.MaterialTheme): Applies Material Design styles to its children.
