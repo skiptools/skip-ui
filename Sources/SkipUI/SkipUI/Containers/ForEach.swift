@@ -56,7 +56,7 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
         }
     }
 
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
         // ForEach views might or might not contain nested list item factories such as Sections or other ForEach instances.
         // We execute our content closure for the first item in the ForEach and examine its content to see if it contains
         // list item factories. If it does, we perform the full ForEach to append all items so that they can be expanded.
@@ -67,7 +67,7 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
                 let contentView = indexedContent!(index)
                 if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
-                    return
+                    return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
@@ -78,7 +78,7 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
                 let contentView = objectContent!(object)
                 if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
-                    return
+                    return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
@@ -89,13 +89,14 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
                 let contentView = objectsBindingContent!(objectsBinding, i)
                 if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
-                    return
+                    return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
                 contentView.Compose(appendingContext)
             }
         }
+        return ComposeResult.ok
     }
 
     @Composable private func appendContentAsListItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {

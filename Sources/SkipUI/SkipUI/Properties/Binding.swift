@@ -17,6 +17,11 @@ public struct Binding<Value> {
         let capturedObject = object
         return Binding(get: { get(capturedObject) }, set: { value in set(capturedObject, value) })
     }
+
+    /// Used to implement @Bindable.
+    public static func boundInstance<ObjectType, Value>(_ binding: Binding<ObjectType>, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
+        return Binding(get: { get(binding.wrappedValue) }, set: { value in set(binding.wrappedValue, value) })
+    }
     #endif
 
     public init(projectedValue: Binding<Value>) {

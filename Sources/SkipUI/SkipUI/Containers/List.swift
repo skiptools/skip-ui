@@ -100,6 +100,8 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         let remberedFactoryContext = rememberUpdatedState(factoryContext)
         let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
             remberedFactoryContext.value.move(from: from.index, to: to.index)
+        }, canDragOver: { candidate, dragging in
+            remberedFactoryContext.value.canMove(from: dragging.index, to: candidate.index)
         })
         modifier = modifier.reorderable(reorderableState)
 
@@ -281,7 +283,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             ComposeItem(view: view, context: context, style: style)
         } else {
             let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
-                .zIndex(Float(2.0))
+                .zIndex(Float(0.5))
                 .background(BackgroundColor(style: style))
                 .then(context.modifier)
             let contentModifier = Modifier.fillWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
@@ -312,7 +314,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         let modifier = Modifier.fillWidth()
             .height(Self.verticalInset.dp)
             .offset(y: -1.dp) // Cover last row's divider
-            .zIndex(Float(2.0))
+            .zIndex(Float(0.5))
             .background(BackgroundColor(style: style))
         Box(modifier: modifier)
     }
@@ -380,7 +382,9 @@ protocol ListItemFactory {
     /// Append views and view factories representing list itemsto the given mutable list.
     ///
     /// - Parameter appendingContext: Pass this context to the `Compose` function of a `ComposableView` to append all its child views.
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext)
+    /// - Returns A `ComposeResult` to force the calling `List` to be fully re-evaluated on state change. Otherwise if only this
+    ///   function were called again, it could continue appending to the given mutable list.
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult
 
     /// Use the given context to compose individual list items and ranges of items.
     func ComposeListItems(context: ListItemFactoryContext)
@@ -479,6 +483,27 @@ public class ListItemFactoryContext {
         }
     }
 
+    /// Whether a given move would be permitted.
+    func canMove(from fromIndex: Int, to toIndex: Int) -> Bool {
+        if fromIndex == toIndex {
+            return true
+        }
+        var itemIndex = 1 // List header
+        for content in self.content {
+            switch content {
+            case .items(let count): itemIndex += count
+            case .objectItems(let objects): itemIndex += objects.count
+            case .objectBindingItems(let binding):
+                if fromIndex >= itemIndex && fromIndex < itemIndex + binding.wrappedValue.count {
+                    return toIndex >= itemIndex && toIndex < itemIndex + binding.wrappedValue.count
+                } else {
+                    itemIndex += binding.wrappedValue.count
+                }
+            }
+        }
+        return false
+    }
+
     private enum Content {
         case items(Int)
         case objectItems(RandomAccessCollection<Any>)
@@ -523,8 +548,9 @@ struct ListSectionHeader: View, ListItemFactory {
         let _ = content.Compose(context: context)
     }
 
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
         views.add(self)
+        return ComposeResult.ok
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {
@@ -540,8 +566,9 @@ struct ListSectionFooter: View, ListItemFactory {
         let _ = content.Compose(context: context)
     }
 
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
         views.add(self)
+        return ComposeResult.ok
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {

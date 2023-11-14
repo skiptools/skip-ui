@@ -60,7 +60,7 @@ public struct Section : View, ListItemFactory {
     }
 
     #if SKIP
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) {
+    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
         if let header {
             views.add(ListSectionHeader(content: header))
         }
@@ -68,6 +68,7 @@ public struct Section : View, ListItemFactory {
         if let footer {
             views.add(ListSectionFooter(content: footer))
         }
+        return ComposeResult.ok
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {
