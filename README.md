@@ -13,6 +13,11 @@ SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. 
 SkipUI is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted through the translation of `import SwiftUI` into `import skip.ui.*` by the Skip transpiler.
 
+### Android Libraries
+
+- SkipUI adds an Android dependency on [Coil](https://coil-kt.github.io/coil/) to implement `AsyncImage`.
+- SkipUI includes source code from the [ComposeReorderable](https://github.com/aclassen/ComposeReorderable) project to implement drag-to-reorder in `Lists`.
+
 ## Status
 
 SkipUI - together with the Skip transpiler - has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. SkipUI also implements many of SwiftUI's basic layout and control views, as well as many core modifiers. It is possible to write an Android app entirely in SwiftUI utilizing SkipUI's current component set.
@@ -528,4 +533,3 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.task`|✅ Full||
 |`.tint`|✅ Full||
-
