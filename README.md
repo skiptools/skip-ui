@@ -411,7 +411,6 @@ struct ListView : View {
         }
     }
 }
-        
 ```
 
 SkipUI does not support embedding a destination view directly in a `NavigationLink`, and future support may prove difficult. Compose forces you to define fixed navigation routes, making any dynamic navigation a challenge. 
@@ -461,6 +460,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Circle`|✅ Full||
 |`Color`|🟢 High||
 |`Divider`|✅ Full||
+|`EllipticalGradient`|🟡 Medium|Fills as circular unless used as a `View`|
 |`EmptyView`|✅ Full||
 |`Font`|🟡 Medium||
 |`ForEach`|🟢 High|See [Lists](#lists)|
@@ -469,11 +469,13 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`HStack`|✅ Full||
 |`Image`|🔴 Low|See [Images](#images)|
 |`Label`|🔴 Low|See [Images](#images)|
+|`LinearGradient`|✅ Full||
 |`List`|🟢 High|See [Lists](#lists)|
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
 |`Oval`|✅ Full||
 |`ProgressView`|🟡 Medium|Labels not supported|
+|`RadialGradient`|✅ Full||
 |`Rectangle`|✅ Full||
 |`RoundedRectangle`|✅ Full||
 |`ScrollView`|✅ Full||
@@ -504,6 +506,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.foregroundColor`|✅ Full||
 |`.foregroundStyle`|✅ Full||
 |`.frame`|🟢 High||
+|`.gradient` (Color)|✅ Full||
 |`.hidden`|✅ Full||
 |`.inset` (Shape)|🟢 High||
 |`.italic`|✅ Full||

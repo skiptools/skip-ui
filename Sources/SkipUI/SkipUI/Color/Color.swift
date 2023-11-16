@@ -277,6 +277,139 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     }
 }
 
+// For Kotlin to be able to compile `Color.red`, `red` must be a static member of Color. For Swift, however,
+// ShapeStyle.red and Color.red are the same, so one can't call the other without an infinite recursion warning
+extension ShapeStyle where Self == Color {
+    // SKIP NOWARN
+    public static var red: Color {
+        #if SKIP
+        Color.red
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var orange: Color {
+        #if SKIP
+        Color.orange
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var yellow: Color {
+        #if SKIP
+        Color.yellow
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var green: Color {
+        #if SKIP
+        Color.green
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var mint: Color {
+        #if SKIP
+        Color.mint
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var teal: Color {
+        #if SKIP
+        Color.teal
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var cyan: Color {
+        #if SKIP
+        Color.cyan
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var blue: Color {
+        #if SKIP
+        Color.blue
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var indigo: Color {
+        #if SKIP
+        Color.indigo
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var purple: Color {
+        #if SKIP
+        Color.purple
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var pink: Color {
+        #if SKIP
+        Color.pink
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var brown: Color {
+        #if SKIP
+        Color.brown
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var white: Color {
+        #if SKIP
+        Color.white
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var gray: Color {
+        #if SKIP
+        Color.gray
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var black: Color {
+        #if SKIP
+        Color.black
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var clear: Color {
+        #if SKIP
+        Color.clear
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+}
+
 #if !SKIP
 
 // Unneeded stubs:
