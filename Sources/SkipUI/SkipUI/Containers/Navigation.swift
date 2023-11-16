@@ -124,6 +124,8 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let uncomposedTitle = "__UNCOMPOSED__"
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
+        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
+        let toolbarItems = ToolbarItems(content: toolbarContent)
 
         let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
         var modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier)
@@ -132,6 +134,7 @@ public struct NavigationStack<Root> : View where Root: View {
         if title.value == uncomposedTitle {
             modifier = modifier.alpha(Float(0.0))
         }
+        let contentContext = context.content()
 
         // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
@@ -145,16 +148,24 @@ public struct NavigationStack<Root> : View where Root: View {
                     colors: TopAppBarDefaults.topAppBarColors(
                         containerColor: Color.systemBackground.colorImpl(),
                         titleContentColor: MaterialTheme.colorScheme.onSurface
-                    ),
-                    title: {
+                    ), title: {
                         androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
-                    },
-                    navigationIcon: {
-                        if !isRoot {
-                            IconButton(onClick: { navController.popBackStack() }) {
-                                Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+                    }, navigationIcon: {
+                        let topLeadingItems = toolbarItems.filterTopLeading()
+                        if !isRoot || !topLeadingItems.isEmpty {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 16.dp, end: 8.dp))
+                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                if !isRoot {
+                                    IconButton(onClick: { navController.popBackStack() }) {
+                                        Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+                                    }
+                                }
+                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
                             }
                         }
+                    }, actions: {
+                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 8.dp, end: 16.dp))
+                        toolbarItems.filterTopTrailing().forEach { $0.Compose(context: toolbarItemContext) }
                     },
                     scrollBehavior: scrollBehavior
                 )
@@ -164,10 +175,11 @@ public struct NavigationStack<Root> : View where Root: View {
             // will be composed, and we want to retain destinations from previous entries
             let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
             let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference]) {
+            let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarContentPreference]) {
                 // Only use the top padding; the Scaffold will also set bottom padding matching the home swipe area
                 Box(modifier: Modifier.padding(top: padding.calculateTopPadding()).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    content(context.content())
+                    content(contentContext)
                 }
             }
             if title.value == uncomposedTitle {

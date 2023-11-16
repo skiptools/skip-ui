@@ -2,6 +2,10 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
 public protocol ToolbarContent {
 //    associatedtype Body : ToolbarContent
 //    @ToolbarContentBuilder var body: Self.Body { get }
@@ -28,15 +32,25 @@ extension CustomizableToolbarContent {
 
 // Erase the generic ID to facilitate specialized constructor support.
 public struct ToolbarItem</* ID, */ Content> : CustomizableToolbarContent, View where Content : View {
-    @available(*, unavailable)
+    let placement: ToolbarItemPlacement
+    let content: Content
+
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+        self.placement = placement
+        self.content = content()
     }
 
     @available(*, unavailable)
     public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+        self.placement = placement
+        self.content = content()
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let _ = content.Compose(context: context)
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -44,15 +58,25 @@ public struct ToolbarItem</* ID, */ Content> : CustomizableToolbarContent, View 
 }
 
 public struct ToolbarItemGroup<Content> : CustomizableToolbarContent, View where Content : View  {
-    @available(*, unavailable)
+    let placement: ToolbarItemPlacement
+    let content: Content
+
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+        self.placement = placement
+        self.content = content()
     }
 
     @available(*, unavailable)
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> any View) {
+        self.placement = placement
+        self.content = content()
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let _ = content.Compose(context: context)
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -129,9 +153,12 @@ public struct ToolbarCustomizationOptions : OptionSet, Sendable {
 }
 
 extension View {
-    @available(*, unavailable)
     public func toolbar(@ViewBuilder content: () -> any View) -> some View {
+        #if SKIP
+        return preference(key: ToolbarContentPreferenceKey.self, value: [content()])
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -174,6 +201,67 @@ extension View {
         return self
     }
 }
+
+#if SKIP
+struct ToolbarContentPreferenceKey: PreferenceKey {
+    typealias Value = [View]
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Array<View>>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: [View] = []
+        func reduce(value: inout [View], nextValue: () -> [View]) {
+            value.append(contentsOf: nextValue())
+        }
+    }
+}
+
+struct ToolbarItems {
+    let content: androidx.compose.runtime.State<[View]>
+
+    @Composable func filterTopLeading() -> [View] {
+        return filter {
+            switch $0 {
+            case .topBarLeading:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+
+    @Composable func filterTopTrailing() -> [View] {
+        return filter {
+            switch $0 {
+            case .automatic, .principal, .primaryAction, .secondaryAction, .topBarTrailing:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+
+    @Composable private func filter(placement: (ToolbarItemPlacement) -> Bool) -> [View] {
+        var allViews: [View] = []
+        let context = ComposeContext(composer: ClosureComposer { view, _ in allViews.append(view) })
+        content.value.forEach { $0.Compose(context: context) }
+        return allViews.filter { view in
+            android.util.Log.e("", "FOUND VIEW: \(view)") //~~~
+            return view.strippingModifiers() { view in
+                guard let view else {
+                    return false
+                }
+                if let itemGroup = view as? ToolbarItemGroup {
+                    return placement(itemGroup.placement)
+                } else if let item = view as? ToolbarItem {
+                    return placement(item.placement)
+                } else {
+                    return placement(.automatic)
+                }
+            }
+        }
+    }
+}
+#endif
 
 #if !SKIP
 
