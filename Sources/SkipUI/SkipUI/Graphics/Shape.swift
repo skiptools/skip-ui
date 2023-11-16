@@ -105,17 +105,22 @@ extension Shape {
     }
 
     #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        fill().ComposeContent(context: context)
+    }
+
     public var modified: ModifiedShape {
         return ModifiedShape(shape: self)
     }
 
     public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        androidx.compose.ui.graphics.Path() //~~~
+        let px = with(density) { 1.dp.toPx() }
+        let path = path(in: CGRect(x: 0.0, y: 0.0, width: Double(size.width / px), height: Double(size.height / px)))
+        return path.asComposePath(density: density)
     }
 
     public func asComposeShape(density: Density) -> androidx.compose.ui.graphics.Shape {
         return GenericShape { size, _ in
-            //~~~
             self.addPath(asComposePath(size: size, density: density))
         }
     }
@@ -149,7 +154,7 @@ public struct ModifiedShape : Shape {
         self.shape = shape
     }
 
-    @Composable func ComposeContent(context: ComposeContext) {
+    @Composable public override func ComposeContent(context: ComposeContext) {
         let modifier = context.modifier.fillSize()
         let density = LocalDensity.current
 
@@ -247,19 +252,16 @@ public struct Circle : Shape {
     public init() {
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        let dim = min(size.width, size.height)
-        let x = (size.width - dim) / 2
-        let y = (size.height - dim) / 2
-        path.addOval(Rect(x, y, x + dim, y + dim))
-        return path
+    public func path(in rect: CGRect) -> Path {
+        let dim = min(rect.width, rect.height)
+        let x = rect.minX + (rect.width - dim) / 2.0
+        let y = rect.minY + (rect.height - dim) / 2.0
+        return Path(ellipseIn: CGRect(x: x, y: y, width: dim, height: dim))
     }
-    #else
+
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
@@ -269,19 +271,13 @@ public struct Rectangle : Shape {
     public init() {
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        path.addRect(Rect(Float(0.0), Float(0.0), size.width, size.height))
-        return path
+    public func path(in rect: CGRect) -> Path {
+        return Path(rect)
     }
-    #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
@@ -302,22 +298,13 @@ public struct RoundedRectangle : Shape {
         self.style = style
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        let width = with(density) { cornerSize.width.dp.toPx() }
-        let height = with(density) { cornerSize.height.dp.toPx() }
-        let cornerRadius = CornerRadius(width, height)
-        path.addRoundRect(RoundRect(Float(0.0), Float(0.0), size.width, size.height, cornerRadius))
-        return path
+    public func path(in rect: CGRect) -> Path {
+        return Path(roundedRect: rect, cornerSize: cornerSize, style: style)
     }
-    #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
@@ -326,7 +313,6 @@ public struct RoundedRectangle : Shape {
 public struct UnevenRoundedRectangle : Shape {
     public let cornerRadii: RectangleCornerRadii
     public let style: RoundedCornerStyle
-
 
     public init(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) {
         self.cornerRadii = cornerRadii
@@ -338,20 +324,12 @@ public struct UnevenRoundedRectangle : Shape {
         self.style = style
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        let topLeft = with(density) { cornerRadii.topLeading.dp.toPx() }
-        let topRight = with(density) { cornerRadii.topTrailing.dp.toPx() }
-        let bottomLeft = with(density) { cornerRadii.bottomLeading.dp.toPx() }
-        let bottomRight = with(density) { cornerRadii.bottomTrailing.dp.toPx() }
-        path.addRoundRect(RoundRect(Float(0.0), Float(0.0), size.width, size.height, topLeftCornerRadius: CornerRadius(topLeft, topLeft), topRightCornerRadius: CornerRadius(topRight, topRight), bottomLeftCornerRadius: CornerRadius(bottomLeft, bottomLeft), bottomRightCornerRadius: CornerRadius(bottomRight, bottomRight)))
-        return path
+    public func path(in rect: CGRect) -> Path {
+        return Path(roundedRect: rect, cornerRadii: cornerRadii, style: style)
     }
-    #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var animatableData: AnimatableData { get { fatalError() } set { } }
 
+    #if !SKIP
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias AnimatableData = RectangleCornerRadii.AnimatableData
     public typealias Body = NeverView
     public var body: Body { fatalError() }
@@ -365,31 +343,26 @@ public final class Capsule : Shape {
         self.style = style
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        if size.width >= size.height {
-            path.moveTo(size.height / 2, Float(0.0))
-            path.lineTo(size.width - size.height / 2, Float(0.0))
-            path.arcTo(Rect(size.width - size.height, Float(0.0), size.width, size.height), Float(-90.0), Float(180.0), false)
-            path.lineTo(size.height / 2, size.height)
-            path.arcTo(Rect(Float(0.0), Float(0.0), size.height, size.height), Float(90.0), Float(180.0), false)
+    public func path(in rect: CGRect) -> Path {
+        var path = Path()
+        if rect.width >= rect.height {
+            path.move(to: CGPoint(x: rect.minX + rect.height / 2.0, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.maxX - rect.height / 2.0, y: rect.minY))
+            path.addRelativeArc(center: CGPoint(x: rect.maxX - rect.height / 2.0, y: rect.midY), radius: rect.height / 2.0, startAngle: Angle(degrees: -90.0), delta: Angle(degrees: 180.0))
+            path.addLine(to: CGPoint(x: rect.minX + rect.height / 2.0, y: rect.maxY))
+            path.addRelativeArc(center: CGPoint(x: rect.minX + rect.height / 2.0, y: rect.midY), radius: rect.height / 2.0, startAngle: Angle(degrees: 90.0), delta: Angle(degrees: 180.0))
         } else {
-            path.moveTo(Float(0.0), size.width / 2)
-            path.arcTo(Rect(Float(0.0), Float(0.0), size.width, size.width), Float(-180.0), Float(180.0), false)
-            path.lineTo(size.width, size.height - size.width / 2)
-            path.arcTo(Rect(Float(0.0), size.height - size.width, size.width, size.height), Float(0.0), Float(180.0), false)
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY + rect.width / 2.0))
+            path.addRelativeArc(center: CGPoint(x: rect.midX, y: rect.minY + rect.width / 2.0), radius: rect.width / 2.0, startAngle: Angle(degrees: -180.0), delta: Angle(degrees: 180.0))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - rect.width / 2.0))
+            path.addRelativeArc(center: CGPoint(x: rect.midX, y: rect.maxY - rect.width / 2.0), radius: rect.width / 2.0, startAngle: Angle(degrees: 0.0), delta: Angle(degrees: 180.0))
         }
-        path.close()
         return path
     }
-    #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
@@ -399,19 +372,13 @@ public final class Ellipse : Shape {
     public init() {
     }
 
-    #if SKIP
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        let path = androidx.compose.ui.graphics.Path()
-        path.addOval(Rect(Float(0.0), Float(0.0), size.width, size.height))
-        return path
+    public func path(in rect: CGRect) -> Path {
+        return Path(ellipseIn: rect)
     }
-    #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
 
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
@@ -424,6 +391,10 @@ public final class AnyShape : Shape, Sendable {
         self.shape = shape
     }
 
+    public func path(in rect: CGRect) -> Path {
+        return shape.path(in: rect)
+    }
+
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         shape.Compose(context: context)
@@ -432,17 +403,9 @@ public final class AnyShape : Shape, Sendable {
     override var modified: ModifiedShape {
         return shape.modified
     }
-
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        return shape.asComposePath(size: size, density: density)
-    }
     #else
-    public func path(in rect: CGRect) -> Path { fatalError() }
-    public var layoutDirectionBehavior: LayoutDirectionBehavior { get { fatalError() } }
-
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-
     public typealias Body = NeverView
     public var body: Body { fatalError() }
     #endif
