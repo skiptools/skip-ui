@@ -493,6 +493,8 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Text`|🟢 High|Formatting not supported|
 |`TextField`|🟢 High|Formatting not supported|
 |`Toggle`|🟡 Medium|Styling, `sources` not supported|
+|`ToolbarItem`|🟡 Medium|Only top bar placements supported|
+|`ToolbarItemGroup`|🟡 Medium|Only top bar placements supported|
 |`UnevenRoundedRectangle`|✅ Full||
 |`VStack`|✅ Full||
 |`ZStack`|✅ Full||
@@ -541,6 +543,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.stroke` (Shape)|✅ Full||
 |`.strokeBorder` (Shape)|✅ Full||
 |`.tabItem`|✅ Full||
-|`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.task`|✅ Full||
+|`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.tint`|✅ Full||
+|`.toolbar`|🟡 Medium|Only navigation bar items supported|
