@@ -324,7 +324,7 @@ extension UIApplicationDelegateAdaptor where DelegateType : ObservableObject {
     ///         }
     ///     }
     ///
-    @MainActor public var projectedValue: ObservedObject<DelegateType>.Wrapper { get { fatalError() } }
+    @MainActor public var projectedValue: ObservedObject<DelegateType> /* .Wrapper */ { get { fatalError() } }
 }
 
 @available(iOS 14.0, tvOS 14.0, *)

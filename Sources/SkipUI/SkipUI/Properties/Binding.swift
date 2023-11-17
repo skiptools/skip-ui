@@ -12,13 +12,18 @@ public struct Binding<Value> {
     }
 
     #if SKIP
-    /// Used to implement @Bindable.
+    /// Create a binding by traversing from an existing binding.
+    public static func fromBinding<ObjectType, Value>(_ binding: Binding<ObjectType>, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
+        return Binding(get: { get(binding.wrappedValue) }, set: { value in set(binding.wrappedValue, value) })
+    }
+
+    /// REMOVE: Used by previous versions of the transpiler, and here for temporary backwards compatibility.
     public static func instance<ObjectType, Value>(_ object: ObjectType, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
         let capturedObject = object
         return Binding(get: { get(capturedObject) }, set: { value in set(capturedObject, value) })
     }
 
-    /// Used to implement @Bindable.
+    /// REMOVE: Used by previous versions of the transpiler, and here for temporary backwards compatibility.
     public static func boundInstance<ObjectType, Value>(_ binding: Binding<ObjectType>, get: @escaping (ObjectType) -> Value, set: @escaping (ObjectType, Value) -> Void) -> Binding<Value> {
         return Binding(get: { get(binding.wrappedValue) }, set: { value in set(binding.wrappedValue, value) })
     }

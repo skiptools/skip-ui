@@ -2,30 +2,19 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// `Bindable` support is implemented in the Skip transpiler. Its code is not needed
+// Model Bindable as a class rather than struct to avoid copy overhead on mutation
+public final class Bindable<Value> {
+    public init(_ wrappedValue: Value) {
+        self.wrappedValue = wrappedValue
+    }
 
-//import Observation
-//
-//@dynamicMemberLookup @propertyWrapper public struct Bindable<Value> {
-//    public var wrappedValue: Value { get { fatalError() } }
-//    public var projectedValue: Bindable<Value> { get { fatalError() } }
-//    public init(wrappedValue: Value) { fatalError() }
-//}
-//
-//extension Bindable where Value : AnyObject {
-//    public subscript<Subject>(dynamicMember keyPath: ReferenceWritableKeyPath<Value, Subject>) -> Binding<Subject> { get { fatalError() } }
-//}
-//
-//extension Bindable : Identifiable where Value : Identifiable {
-//    public var id: Value.ID { get { fatalError() } }
-//    public typealias ID = Value.ID
-//}
-//
-//extension Bindable : Sendable where Value : Sendable {
-//}
-//
-//extension Bindable where Value : AnyObject, Value : Observable {
-//    public init(wrappedValue: Value) { fatalError() }
-//    public init(_ wrappedValue: Value) { fatalError() }
-//    public init(projectedValue: Bindable<Value>) { fatalError() }
-//}
+    public init(wrappedValue: Value) {
+        self.wrappedValue = wrappedValue
+    }
+
+    public var wrappedValue: Value
+
+    public var projectedValue: Bindable<Value> {
+        return Bindable(wrappedValue: wrappedValue)
+    }
+}
