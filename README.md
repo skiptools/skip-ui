@@ -381,6 +381,7 @@ List($people, id: \.fullName, editActions: .all) { $person in
 #### List Limitations
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
+- Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
 - SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists.
 
 ### Navigation
@@ -417,15 +418,21 @@ SkipUI does not support embedding a destination view directly in a `NavigationLi
 
 SkipUI **does** support navigation with `.navigationDestination` as in the example above, because we can map each modifier to a fixed Compose navigation route. Even this support, however, required some abuse of Compose's system in order to allow newly-pushed views to defined additional `.navigationDestinations`. In fact, it is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
-Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. SkipUI uses the following stringification algorithm:
-
-- If the type is `Identifiable`, use `String(describing: target.id)`
-- If the type is `RawRepresentable`, use `String(describing: target.rawValue)`
-- Else use `String(describing: target)`
+Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
 
 Finally, SkipUI does not yet support binding to an array of destination values to specify the navigation stack.
 
 For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
+
+### Restrictions on Identifiers
+
+Compose requires all state values to be serializable. This restriction is typically transparent to your code, because when you use property wrappers like `@State`, SkipUI automatically tracks your state objects and gives Compose serializable identifiers in their place. Some SwiftUI values, however, must be stored directly in Compose, including `navigationDestination` values and `List` item identifiers. When this is the case, SkipUI creates a `String` from the value you supply using the following algorithm:
+
+- If the value is `Identifiable`, use `String(describing: value.id)`
+- If the value is `RawRepresentable`, use `String(describing: value.rawValue)`
+- Else use `String(describing: value)`
+
+Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
 
 ## Tests
 

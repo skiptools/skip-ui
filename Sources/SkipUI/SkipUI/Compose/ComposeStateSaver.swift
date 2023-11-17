@@ -8,6 +8,20 @@ import android.os.Parcelable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope
 
+/// Use to make a Bundle-saveable string from a SwiftUI value.
+///
+/// We typically use a `ComposeStateSaver` to save state, but when working with Compose internal state like `LazyList` state, use this function
+/// to turn user-supplied values into strings that Compose can save natively.
+func composeBundleString(for value: Any?) -> String {
+    if let identifiable = value as? Identifiable {
+        return String(describing: identifiable.id)
+    } else if let rawRepresentable = value as? RawRepresentable {
+        return String(describing: rawRepresentable.rawValue)
+    } else {
+        return String(describing: value)
+    }
+}
+
 /// Used in conjunction with `rememberSaveable` to save and restore state with SwiftUI-like behavior.
 struct ComposeStateSaver: Saver<Any?, Any> {
     private static let nilMarker = "__SkipUI.ComposeStateSaver.nilMarker"

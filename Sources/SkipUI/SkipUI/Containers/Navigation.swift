@@ -299,15 +299,8 @@ class Navigator {
         guard let index = destinationIndexes[targetType] else {
             return String(describing: targetType) + "?"
         }
-        var valueString: String
-        if let identifiable = value as? Identifiable {
-            valueString = String(describing: identifiable.id)
-        } else if let rawRepresentable = value as? RawRepresentable {
-            valueString = String(describing: rawRepresentable.rawValue)
-        } else {
-            valueString = String(describing: value)
-        }
         // Escape '/' because it is meaningful in navigation routes
+        var valueString = composeBundleString(for: value)
         valueString = valueString.replacingOccurrences(of: "/", with: "%2F")
         return route(for: index, valueString: valueString)
     }

@@ -124,17 +124,17 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 },
                 indexedItems: { range, identifier, factory in
                     let count = range.endExclusive - range.start
-                    items(count: count, key: identifier == nil ? nil : { identifier!($0) }) { index in
+                    items(count: count, key: identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }) { index in
                         factory(index).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
                     }
                 },
                 objectItems: { objects, identifier, factory in
-                    items(count: objects.count, key: { identifier(objects[$0]) }) { index in
+                    items(count: objects.count, key: { composeBundleString(for: identifier(objects[$0])) }) { index in
                         factory(objects[index]).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, editActions, factory in
-                    items(count: objectsBinding.wrappedValue.count, key: { identifier(objectsBinding.wrappedValue[$0]) }) { index in
+                    items(count: objectsBinding.wrappedValue.count, key: { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }) { index in
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, reorderableState: reorderableState)
                         })
@@ -211,7 +211,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             return
         }
 
-        let key = identifier(objectsBinding.wrappedValue[index])
+        let key = composeBundleString(for: identifier(objectsBinding.wrappedValue[index]))
         if isDeleteEnabled {
             let rememberedIndex = rememberUpdatedState(index)
             let rememberedBinding = rememberUpdatedState(objectsBinding)
@@ -244,7 +244,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
     }
 
-    @Composable private func ComposeReorderableItem(reorderableState: ReorderableLazyListState, key: AnyHashable, modifier: Modifier, content: @Composable (Modifier) -> Void) {
+    @Composable private func ComposeReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, content: @Composable (Modifier) -> Void) {
         ReorderableItem(state: reorderableState, key: key, defaultDraggingModifier: modifier) { dragging in
             var itemModifier = Modifier.detectReorderAfterLongPress(reorderableState)
             if dragging {
