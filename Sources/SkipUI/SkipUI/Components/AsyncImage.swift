@@ -59,8 +59,13 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
             return
         }
 
+        let urlString = url.absoluteString
+        // Coil does not automatically handle embedded jar URLs like jar:file:/data/app/…/base.apk!/showcase/module/Resources/swift-logo.png, so
+        // we load it here
+        // We would prefer to just pass the URLConnection or InputStream rather than loading the whole image eagerly, but that would require implementing a custom Coil loader
+        let requestSource: Any = urlString.hasPrefix("file:") || urlString.hasPrefix("jar:") ? url.platformURL.openConnection().getInputStream().readBytes() : urlString
         let model = ImageRequest.Builder(LocalContext.current)
-            .data(url.absoluteString)
+            .data(requestSource)
             .size(Size.ORIGINAL)
             .build()
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
