@@ -236,9 +236,9 @@ Note that `ComposeView` and the `Compose()` function are only available in Andro
 
 SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
 
-To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources is also not yet supported. These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
+To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources is also not yet supported. You can, however, display any emoji using `Text`.
 
-In addition to the system images below, you can display any emoji using `Text`. 
+These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
 
 If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
 
@@ -493,8 +493,8 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Text`|🟢 High|Formatting not supported|
 |`TextField`|🟢 High|Formatting not supported|
 |`Toggle`|🟡 Medium|Styling, `sources` not supported|
-|`ToolbarItem`|🟡 Medium|Only top bar placements supported|
-|`ToolbarItemGroup`|🟡 Medium|Only top bar placements supported|
+|`ToolbarItem`|✅ Full||
+|`ToolbarItemGroup`|✅ Full||
 |`UnevenRoundedRectangle`|✅ Full||
 |`VStack`|✅ Full||
 |`ZStack`|✅ Full||
@@ -546,4 +546,4 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.task`|✅ Full||
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.tint`|✅ Full||
-|`.toolbar`|🟡 Medium|Only navigation bar items supported|
+|`.toolbar`|🟢 High||

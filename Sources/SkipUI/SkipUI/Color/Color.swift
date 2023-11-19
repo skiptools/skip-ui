@@ -166,10 +166,12 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
         MaterialTheme.colorScheme.surface
     })
 
-    static let systemBackground = Color(colorImpl: {
-        // Matches Android's default bottom bar color
+    /// Matches Android's default bottom bar color.
+    static let systemBarBackground: Color = Color(colorImpl: {
         MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     })
+
+    static let systemBackground: Color = systemBarBackground
 
     static let placeholder = Color(colorImpl: {
         // Close to iOS's AsyncImage placeholder values

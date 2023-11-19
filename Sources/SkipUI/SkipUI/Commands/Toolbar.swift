@@ -218,19 +218,12 @@ struct ToolbarContentPreferenceKey: PreferenceKey {
 struct ToolbarItems {
     let content: androidx.compose.runtime.State<[View]>
 
-    @Composable func filterTopLeading() -> [View] {
-        return filter {
-            switch $0 {
-            case .topBarLeading:
-                return true
-            default:
-                return false
-            }
-        }
+    @Composable func filterTopBarLeading() -> [View] {
+        return filter(expandGroups: false) { $0 == .topBarLeading }
     }
 
-    @Composable func filterTopTrailing() -> [View] {
-        return filter {
+    @Composable func filterTopBarTrailing() -> [View] {
+        return filter(expandGroups: false) {
             switch $0 {
             case .automatic, .principal, .primaryAction, .secondaryAction, .topBarTrailing:
                 return true
@@ -240,25 +233,43 @@ struct ToolbarItems {
         }
     }
 
-    @Composable private func filter(placement: (ToolbarItemPlacement) -> Bool) -> [View] {
-        var allViews: [View] = []
-        let context = ComposeContext(composer: ClosureComposer { view, _ in allViews.append(view) })
-        content.value.forEach { $0.Compose(context: context) }
-        return allViews.filter { view in
-            android.util.Log.e("", "FOUND VIEW: \(view)") //~~~
-            return view.strippingModifiers() { view in
-                guard let view else {
-                    return false
-                }
-                if let itemGroup = view as? ToolbarItemGroup {
-                    return placement(itemGroup.placement)
-                } else if let item = view as? ToolbarItem {
-                    return placement(item.placement)
-                } else {
-                    return placement(.automatic)
-                }
-            }
+    @Composable func filterBottomBar() -> [View] {
+        var views = filter(expandGroups: true) { $0 == .bottomBar }
+        // SwiftUI inserts a spacer between the first and remaining items
+        if views.count > 1 && !views.contains(where: { $0.strippingModifiers { $0 is Spacer } }) {
+            views.insert(Spacer(), at: 1)
         }
+        return views
+    }
+
+    @Composable private func filter(expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
+        var filtered: [View] = []
+        let context = ComposeContext(composer: ClosureComposer { view, _ in
+            if let itemGroup = view as? ToolbarItemGroup {
+                if placement(itemGroup.placement) {
+                    if expandGroups {
+                        filtered.append(contentsOf: expand(itemGroup: itemGroup))
+                    } else {
+                        filtered.append(itemGroup)
+                    }
+                }
+            } else if let item = view as? ToolbarItem {
+                if placement(item.placement) {
+                    filtered.append(item)
+                }
+            } else if placement(.automatic) {
+                filtered.append(view)
+            }
+        })
+        content.value.forEach { $0.Compose(context: context) }
+        return filtered
+    }
+
+    @Composable private func expand(itemGroup: View) -> [View] {
+        var views: [View] = []
+        let context = ComposeContext(composer: ClosureComposer { view, _ in views.append(view) })
+        itemGroup.ComposeContent(context: context) // Calling `Compose` will just collect this ToolbarItemGroup
+        return views
     }
 }
 #endif

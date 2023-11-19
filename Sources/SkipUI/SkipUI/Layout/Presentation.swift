@@ -40,14 +40,16 @@ import struct CoreGraphics.CGFloat
         ) {
             let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
             let sheetDepth = EnvironmentValues.shared._sheetDepth
+            // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
+            let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
             let modifier = Modifier
                 .fillMaxWidth()
                 .height((LocalConfiguration.current.screenHeightDp - 20 * sheetDepth).dp)
-                // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
-                .padding(bottom: WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
+                .padding(bottom: bottomSystemBarPadding)
             EnvironmentValues.shared.setValues {
                 $0.set_sheetDepth(sheetDepth + 1)
                 $0.setdismiss({ isPresented.set(false) })
+                $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
             } in: {
                 Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content().Compose(context: context.content(stateSaver: stateSaver.value))

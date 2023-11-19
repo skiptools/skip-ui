@@ -12,6 +12,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -197,6 +199,11 @@ extension EnvironmentValues {
     var _aspectRatio: (CGFloat?, ContentMode)? {
         get { builtinValue(key: "_aspectRatio", defaultValue: { nil }) as! (CGFloat?, ContentMode)? }
         set { setBuiltinValue(key: "_aspectRatio", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _bottomSystemBarPadding: Dp {
+        get { builtinValue(key: "_bottomSystemBarPadding", defaultValue: { 0.dp }) as! Dp }
+        set { setBuiltinValue(key: "_bottomSystemBarPadding", value: newValue, defaultValue: { 0.dp }) }
     }
 
     var _buttonStyle: ButtonStyle? {

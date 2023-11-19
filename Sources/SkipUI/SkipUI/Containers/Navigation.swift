@@ -9,12 +9,14 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -144,31 +146,56 @@ public struct NavigationStack<Root> : View where Root: View {
                 guard !isRoot || !title.value.isEmpty else {
                     return
                 }
-                MediumTopAppBar(
-                    colors: TopAppBarDefaults.topAppBarColors(
-                        containerColor: Color.systemBackground.colorImpl(),
-                        titleContentColor: MaterialTheme.colorScheme.onSurface
-                    ), title: {
-                        androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
-                    }, navigationIcon: {
-                        let topLeadingItems = toolbarItems.filterTopLeading()
-                        if !isRoot || !topLeadingItems.isEmpty {
-                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 16.dp, end: 8.dp))
-                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                if !isRoot {
-                                    IconButton(onClick: { navController.popBackStack() }) {
-                                        Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back")
+                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                EnvironmentValues.shared.setValues {
+                    $0.set_tint(tint)
+                } in: {
+                    MediumTopAppBar(
+                        colors: TopAppBarDefaults.topAppBarColors(
+                            containerColor: Color.systemBarBackground.colorImpl(),
+                            titleContentColor: MaterialTheme.colorScheme.onSurface
+                        ), title: {
+                            androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        }, navigationIcon: {
+                            let topLeadingItems = toolbarItems.filterTopBarLeading()
+                            if !isRoot || !topLeadingItems.isEmpty {
+                                let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                                Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                    if !isRoot {
+                                        IconButton(onClick: { navController.popBackStack() }) {
+                                            Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back", tint: tint.colorImpl())
+                                        }
                                     }
+                                    topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
                                 }
-                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
                             }
+                        }, actions: {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                            toolbarItems.filterTopBarTrailing().forEach { $0.Compose(context: toolbarItemContext) }
+                        },
+                        scrollBehavior: scrollBehavior
+                    )
+                }
+            }, bottomBar: {
+                let bottomItems = toolbarItems.filterBottomBar()
+                if !bottomItems.isEmpty {
+                    let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                    EnvironmentValues.shared.setValues {
+                        $0.set_tint(tint)
+                    } in: {
+                        BottomAppBar(
+                            containerColor: Color.systemBarBackground.colorImpl(),
+                            contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp)) {
+                            // Use an HStack so that it sets up the environment for bottom toolbar Spacers
+                            HStack(spacing: 24.0) {
+                                ComposeView { itemContext in
+                                    bottomItems.forEach { $0.Compose(context: itemContext) }
+                                    return .ok
+                                }
+                            }.Compose(contentContext)
                         }
-                    }, actions: {
-                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 8.dp, end: 16.dp))
-                        toolbarItems.filterTopTrailing().forEach { $0.Compose(context: toolbarItemContext) }
-                    },
-                    scrollBehavior: scrollBehavior
-                )
+                    }
+                }
             }
         ) { padding in
             // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
@@ -177,8 +204,8 @@ public struct NavigationStack<Root> : View where Root: View {
             let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
             let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
             PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarContentPreference]) {
-                // Only use the top padding; the Scaffold will also set bottom padding matching the home swipe area
-                Box(modifier: Modifier.padding(top: padding.calculateTopPadding()).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
+                Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(contentContext)
                 }
             }
