@@ -534,6 +534,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.listItemTint`|✅ Full||
 |`.listStyle`|✅ Full||
 |`.moveDisabled`|✅ Full||
+|`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
 |`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|✅ Full||
 |`.offset`|✅ Full||

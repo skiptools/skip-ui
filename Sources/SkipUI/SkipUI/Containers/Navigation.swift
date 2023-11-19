@@ -128,6 +128,7 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let uncomposedTitle = "__UNCOMPOSED__"
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
+        let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
         let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
 
@@ -159,11 +160,12 @@ public struct NavigationStack<Root> : View where Root: View {
                         ), title: {
                             androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
                         }, navigationIcon: {
+                            let hasBackButton = !isRoot && !backButtonHidden.value
                             let topLeadingItems = toolbarItems.filterTopBarLeading()
-                            if !isRoot || !topLeadingItems.isEmpty {
+                            if hasBackButton || !topLeadingItems.isEmpty {
                                 let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                    if !isRoot {
+                                    if hasBackButton {
                                         IconButton(onClick: { navController.popBackStack() }) {
                                             Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back", tint: tint.colorImpl())
                                         }
@@ -204,8 +206,9 @@ public struct NavigationStack<Root> : View where Root: View {
             // will be composed, and we want to retain destinations from previous entries
             let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
             let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+            let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
             let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarContentPreference]) {
+            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference]) {
                 let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
                 Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                     content(contentContext)
@@ -379,9 +382,12 @@ public struct NavigationBarItem : Hashable, Sendable {
 }
 
 extension View {
-    @available(*, unavailable)
     public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View {
+        #if SKIP
+        return preference(key: NavigationBarBackButtonHiddenPreferenceKey.self, value: hidesBackButton)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -468,6 +474,18 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
     class Companion: PreferenceKeyCompanion {
         let defaultValue = ""
         func reduce(value: inout String, nextValue: () -> String) {
+            value = nextValue()
+        }
+    }
+}
+
+struct NavigationBarBackButtonHiddenPreferenceKey: PreferenceKey {
+    typealias Value = Bool
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue = false
+        func reduce(value: inout Bool, nextValue: () -> Bool) {
             value = nextValue()
         }
     }
