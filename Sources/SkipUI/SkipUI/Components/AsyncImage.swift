@@ -61,10 +61,10 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
 
         let urlString = url.absoluteString
         // Coil does not automatically handle embedded jar URLs like jar:file:/data/app/…/base.apk!/showcase/module/Resources/swift-logo.png, so
-        // we load it here
-        // We would prefer to just pass the URLConnection or InputStream rather than loading the whole image eagerly, but that would require implementing a custom Coil loader
-        let requestSource: Any = urlString.hasPrefix("file:") || urlString.hasPrefix("jar:") ? url.platformURL.openConnection().getInputStream().readBytes() : urlString
+        // we add a custom `SkipURLFetcher` fetcher that will handle loading the URL
+        let requestSource: Any = urlString.hasPrefix("jar:") ? url : urlString
         let model = ImageRequest.Builder(LocalContext.current)
+            .fetcherFactory(SkipURLFetcher.Factory())
             .data(requestSource)
             .size(Size.ORIGINAL)
             .build()
@@ -115,3 +115,55 @@ public enum AsyncImagePhase : Sendable {
         }
     }
 }
+
+#if SKIP
+import android.net.Uri
+import android.webkit.MimeTypeMap
+import coil.fetch.Fetcher
+import coil.fetch.FetchResult
+import coil.fetch.SourceResult
+import coil.ImageLoader
+import coil.decode.AssetMetadata
+import coil.decode.DataSource
+import coil.decode.ImageSource
+import coil.request.Options
+import okio.Source
+import okio.__
+
+/// A Coil fetcher that handles `skip.foundation.URL` instances for the `jar:` scheme.
+internal class SkipURLFetcher : Fetcher {
+    private let data: URL
+    private let options: Options
+
+    init(data: URL, options: Options) {
+        self.data = data
+        self.options = options
+    }
+
+    override func fetch() async -> FetchResult {
+        return SourceResult(
+            source: ImageSource(
+                source: data.platformURL.openConnection().getInputStream().source().buffer(),
+                context: options.context
+            ),
+            mimeType: MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(data.absoluteString)),
+            dataSource: DataSource.DISK
+        )
+    }
+
+    class Factory : Fetcher.Factory<URL> {
+
+        override func create(data: URL, options: Options, imageLoader: ImageLoader) -> Fetcher? {
+            if (!isJarURL(data)) { return nil }
+            return SkipURLFetcher(data: data, options: options)
+        }
+    }
+}
+
+internal func isJarURL(url: URL) -> Boolean {
+    //return url.scheme == "jar"
+    return url.absoluteString.hasPrefix("jar")
+}
+
+#endif
+
