@@ -236,11 +236,21 @@ Note that `ComposeView` and the `Compose()` function are only available in Andro
 
 SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
 
-To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported. Loading images from resources is also not yet supported. You can, however, display any emoji using `Text`.
+To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported, though you can display any emoji using `Text`. These restrictions also apply to other components that load images, such as `Label`.
 
-These restrictions also apply to other components that load images, such as `SwiftUI.Label`.
+Skip cannot yet read iOS asset catalogs, so `Image(name:)` is not yet available on Android. You can, however, use `AsyncImage` to display local image resources. This works on both iOS and through Skip on Android. So if you have an image `Sources/MyModule/Resources/sample.jpg` and your `.target` in `Package.swift` properly marks the `Resources` folder for SPM resource processing:
 
-If these options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
+```swift
+.target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
+```
+
+Then the following SwiftUI will display the image on both platforms:
+
+```swift
+AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
+```
+
+If these image display options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
 
 | iOS | Android |
 |---|-------|

@@ -11,6 +11,16 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import coil.size.Size
+import android.webkit.MimeTypeMap
+import coil.fetch.Fetcher
+import coil.fetch.FetchResult
+import coil.fetch.SourceResult
+import coil.ImageLoader
+import coil.decode.DataSource
+import coil.decode.ImageSource
+import coil.request.Options
+import okio.buffer
+import okio.source
 #endif
 
 public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
@@ -63,12 +73,14 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
 
         let urlString = url.absoluteString
         // Coil does not automatically handle embedded jar URLs like jar:file:/data/app/…/base.apk!/showcase/module/Resources/swift-logo.png, so
-        // we add a custom `SkipURLFetcher` fetcher that will handle loading the URL
-        let requestSource: Any = urlString.hasPrefix("jar:") ? url : urlString
+        // we add a custom `JarURLFetcher` fetcher that will handle loading the URL. Otherwise use Coil's default URL string handling
+        let requestSource: Any = JarURLFetcher.isJarURL(url) ? url : urlString
         let model = ImageRequest.Builder(LocalContext.current)
-            .fetcherFactory(SkipURLFetcher.Factory())
+            .fetcherFactory(JarURLFetcher.Factory())
             .data(requestSource)
             .size(Size.ORIGINAL)
+            .memoryCacheKey(urlString)
+            .diskCacheKey(urlString)
             .build()
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
             content(AsyncImagePhase.empty).Compose(context: context)
@@ -119,23 +131,14 @@ public enum AsyncImagePhase : Sendable {
 }
 
 #if SKIP
-import android.net.Uri
-import android.webkit.MimeTypeMap
-import coil.fetch.Fetcher
-import coil.fetch.FetchResult
-import coil.fetch.SourceResult
-import coil.ImageLoader
-import coil.decode.AssetMetadata
-import coil.decode.DataSource
-import coil.decode.ImageSource
-import coil.request.Options
-import okio.Source
-import okio.__
-
 /// A Coil fetcher that handles `skip.foundation.URL` instances for the `jar:` scheme.
-internal class SkipURLFetcher : Fetcher {
+internal class JarURLFetcher : Fetcher {
     private let data: URL
     private let options: Options
+
+    static func isJarURL(_ url: URL) -> Bool {
+        return url.absoluteString.hasPrefix("jar")
+    }
 
     init(data: URL, options: Options) {
         self.data = data
@@ -145,7 +148,7 @@ internal class SkipURLFetcher : Fetcher {
     override func fetch() async -> FetchResult {
         return SourceResult(
             source: ImageSource(
-                source: data.platformURL.openConnection().getInputStream().source().buffer(),
+                source: data.kotlin().openConnection().getInputStream().source().buffer(),
                 context: options.context
             ),
             mimeType: MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(data.absoluteString)),
@@ -154,18 +157,10 @@ internal class SkipURLFetcher : Fetcher {
     }
 
     class Factory : Fetcher.Factory<URL> {
-
         override func create(data: URL, options: Options, imageLoader: ImageLoader) -> Fetcher? {
-            if (!isJarURL(data)) { return nil }
-            return SkipURLFetcher(data: data, options: options)
+            if (!JarURLFetcher.isJarURL(data)) { return nil }
+            return JarURLFetcher(data: data, options: options)
         }
     }
 }
-
-internal func isJarURL(url: URL) -> Boolean {
-    //return url.scheme == "jar"
-    return url.absoluteString.hasPrefix("jar")
-}
-
 #endif
-
