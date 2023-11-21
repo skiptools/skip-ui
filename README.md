@@ -516,6 +516,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.buttonStyle`|🟢 High|Custom styles not supported|
 |`.clipped`|🔴 Low|Most content clips automatically|
 |`.clipShape`|✅ Full||
+|`.confirmationDialog`|✅ Full||
 |`.deleteDisabled`|✅ Full||
 |`.disabled`|✅ Full||
 |`.environment`|✅ Full||
