@@ -146,7 +146,9 @@ public struct NavigationStack<Root> : View where Root: View {
         Scaffold(
             modifier: modifier,
             topBar: {
-                guard !isRoot || !title.value.isEmpty else {
+                let topLeadingItems = toolbarItems.filterTopBarLeading()
+                let topTrailingItems = toolbarItems.filterTopBarTrailing()
+                guard !isRoot || !title.value.isEmpty || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty else {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
@@ -161,7 +163,6 @@ public struct NavigationStack<Root> : View where Root: View {
                             androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
                         }, navigationIcon: {
                             let hasBackButton = !isRoot && !backButtonHidden.value
-                            let topLeadingItems = toolbarItems.filterTopBarLeading()
                             if hasBackButton || !topLeadingItems.isEmpty {
                                 let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -175,7 +176,7 @@ public struct NavigationStack<Root> : View where Root: View {
                             }
                         }, actions: {
                             let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                            toolbarItems.filterTopBarTrailing().forEach { $0.Compose(context: toolbarItemContext) }
+                            topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
                         },
                         scrollBehavior: scrollBehavior
                     )
