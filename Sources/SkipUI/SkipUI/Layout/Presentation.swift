@@ -307,7 +307,7 @@ extension View {
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            ConfirmationDialogPresentation(title: titleVisibility == .hidden ? nil : title, isPresented: isPresented, context: context, actions: actions())
+            ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions())
             view.Compose(context: context)
         }
         #else
@@ -326,7 +326,7 @@ extension View {
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            ConfirmationDialogPresentation(title: titleVisibility == .hidden ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
+            ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
             view.Compose(context: context)
         }
         #else
