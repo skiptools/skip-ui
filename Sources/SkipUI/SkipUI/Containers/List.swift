@@ -193,6 +193,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     private static let verticalItemInset = 4.0
 
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, style: ListStyle) {
+        guard !view.isEmptyView else {
+            return
+        }
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerModifier = modifier.then(Modifier.background(BackgroundColor(style: .plain))).then(context.modifier)
         let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
@@ -205,6 +208,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func ComposeEditableItem(view: View, context: ComposeContext, modifier: Modifier, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], reorderableState: ReorderableLazyListState) {
+        guard !view.isEmptyView else {
+            return
+        }
         let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
         let isDeleteEnabled = editActions.contains(.delete) && editActionsModifiers?.isDeleteDisabled != true
         let isMoveEnabled = editActions.contains(.move) && editActionsModifiers?.isMoveDisabled != true

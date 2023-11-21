@@ -77,6 +77,11 @@ extension View {
         body.ComposeContent(context)
     }
 
+    /// Whether this is an empty view.
+    public var isEmptyView: Bool {
+        return self is EmptyView
+    }
+
     /// Strip modifier views.
     ///
     /// - Parameter until: Return `true` to stop stripping at a modifier with a given role.

@@ -250,7 +250,7 @@ struct ToolbarItems {
             if let itemGroup = view as? ToolbarItemGroup {
                 if placement(itemGroup.placement) {
                     if expandGroups {
-                        filtered.append(contentsOf: itemGroup.collectViews(context: context(false)))
+                        filtered.append(contentsOf: itemGroup.collectViews(context: context(false)).filter { !$0.isEmptyView })
                     } else {
                         filtered.append(itemGroup)
                     }
@@ -259,7 +259,7 @@ struct ToolbarItems {
                 if placement(item.placement) {
                     filtered.append(item)
                 }
-            } else if placement(.automatic) {
+            } else if placement(.automatic), !view.isEmptyView {
                 filtered.append(view)
             }
         })

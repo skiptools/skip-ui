@@ -89,6 +89,9 @@ class VStackComposer: Composer {
     }
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
+        guard !view.isEmptyView else {
+            return
+        }
         // If the Text has spacing modifiers, no longer special case its spacing
         let isText = view.strippingModifiers(until: { $0 == .spacing }) { $0 is Text }
         var contentContext = context(false)

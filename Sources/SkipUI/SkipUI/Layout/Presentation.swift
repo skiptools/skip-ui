@@ -38,6 +38,10 @@ import struct CoreGraphics.CGFloat
 #endif
 
 #if SKIP
+
+/// Common corner radius for our overlay presentations.
+let overlayPresentationCornerRadius = 16.dp
+
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> View, onDismiss: (() -> Void)?) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
@@ -47,7 +51,7 @@ import struct CoreGraphics.CGFloat
             onDismissRequest: { isPresented.set(false) },
             sheetState: sheetState,
             containerColor: androidx.compose.ui.graphics.Color.Unspecified,
-            shape: RoundedCornerShape(topStart: 16.dp, topEnd: 16.dp),
+            shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius, topEnd: overlayPresentationCornerRadius),
             dragHandle: nil,
             windowInsets: WindowInsets(0, 0, 0, 0)
         ) {
@@ -85,15 +89,18 @@ import struct CoreGraphics.CGFloat
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
-        let views = actions.collectViews(context: context)
-        let buttons = views.compactMap {
-            // Skip tries to use Button<*>, so customize Kotlin:
-            // SKIP REPLACE: it as? Button
-            $0 as? Button
+        let buttons = actions.collectViews(context: context).compactMap {
+            $0.strippingModifiers {
+                // Skip tries to use Button<*>, so customize Kotlin:
+                // SKIP REPLACE: it as? Button
+                $0 as? Button
+            }
         }
         var messageText: Text? = nil
         if let message {
-            messageText = message.collectViews(context: context).first as? Text
+            messageText = message.collectViews(context: context).compactMap {
+                $0.strippingModifiers { $0 as? Text }
+            }.first
         }
 
         ModalBottomSheet(
@@ -113,7 +120,7 @@ import struct CoreGraphics.CGFloat
             let modifier = Modifier
                 .fillMaxWidth()
                 .padding(start: 8.dp, end: 8.dp, bottom: bottomSystemBarPadding)
-                .clip(shape = RoundedCornerShape(topStart: 16.dp, topEnd: 16.dp))
+                .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius, topEnd: overlayPresentationCornerRadius))
                 .background(Color.overlayBackground.colorImpl())
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver.value)
@@ -161,7 +168,9 @@ import struct CoreGraphics.CGFloat
             continue
         }
         ConfirmationDialogButton(action: { isPresented.set(false); button.action() }) {
-            let text = button.label.collectViews(context: context).first?.strippingModifiers { $0 as? Text }
+            let text = button.label.collectViews(context: context).compactMap {
+                $0.strippingModifiers { $0 as? Text }
+            }.first
             let color = button.role == .destructive ? Color.red.colorImpl() : tint
             androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.text ?? "", maxLines: 1, style: buttonFont.fontImpl())
         }
@@ -169,7 +178,9 @@ import struct CoreGraphics.CGFloat
     }
     if let cancelButton {
         ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
-            let text = cancelButton.label.collectViews(context: context).first?.strippingModifiers { $0 as? Text }
+            let text = cancelButton.label.collectViews(context: context).compactMap {
+                $0.strippingModifiers { $0 as? Text }
+            }.first
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.text ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
         }
     } else {
