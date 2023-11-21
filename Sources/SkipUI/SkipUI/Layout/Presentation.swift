@@ -5,13 +5,21 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -21,7 +29,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 #else
 import struct CoreGraphics.CGFloat
@@ -29,7 +39,7 @@ import struct CoreGraphics.CGFloat
 
 #if SKIP
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-@Composable func SheetPresentation(isPresented: Binding<Bool>, content: () -> View, context: ComposeContext, onDismiss: (() -> Void)?) {
+@Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> View, onDismiss: (() -> Void)?) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         let sheetDepth = EnvironmentValues.shared._sheetDepth
@@ -37,6 +47,7 @@ import struct CoreGraphics.CGFloat
             onDismissRequest: { isPresented.set(false) },
             sheetState: sheetState,
             containerColor: androidx.compose.ui.graphics.Color.Unspecified,
+            shape: RoundedCornerShape(topStart: 16.dp, topEnd: 16.dp),
             dragHandle: nil,
             windowInsets: WindowInsets(0, 0, 0, 0)
         ) {
@@ -66,6 +77,111 @@ import struct CoreGraphics.CGFloat
                 onDismiss?()
             }
         }
+    }
+}
+
+// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+@Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: View, message: View? = nil) {
+    let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
+    if isPresented.get() || sheetState.isVisible {
+        // Collect buttons and message text
+        let views = actions.collectViews(context: context)
+        let buttons = views.compactMap {
+            // Skip tries to use Button<*>, so customize Kotlin:
+            // SKIP REPLACE: it as? Button
+            $0 as? Button
+        }
+        var messageText: Text? = nil
+        if let message {
+            messageText = message.collectViews(context: context).first as? Text
+        }
+
+        ModalBottomSheet(
+            onDismissRequest: { isPresented.set(false) },
+            sheetState: sheetState,
+            containerColor: androidx.compose.ui.graphics.Color.Transparent,
+            dragHandle: nil,
+            windowInsets: WindowInsets(0, 0, 0, 0)
+        ) {
+            // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
+            let interactionSource = remember { MutableInteractionSource() }
+            Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: { isPresented.set(false) }))
+
+            let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
+            let scrollState = rememberScrollState()
+            let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+            let modifier = Modifier
+                .fillMaxWidth()
+                .padding(start: 8.dp, end: 8.dp, bottom: bottomSystemBarPadding)
+                .clip(shape = RoundedCornerShape(topStart: 16.dp, topEnd: 16.dp))
+                .background(Color.overlayBackground.colorImpl())
+                .verticalScroll(scrollState)
+            let contentContext = context.content(stateSaver: stateSaver.value)
+            Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+                ComposeConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, buttons: buttons, message: messageText)
+            }
+        }
+    }
+    if !isPresented.get() {
+        LaunchedEffect(true) {
+            if sheetState.targetValue != SheetValue.Hidden {
+                sheetState.hide()
+            }
+        }
+    }
+}
+
+@Composable func ComposeConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, buttons: [Button], message: Text?) {
+    let padding = 16.dp
+    if let title {
+        androidx.compose.material3.Text(modifier = Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.secondary.colorImpl(), text: title.text, style: Font.callout.bold().fontImpl())
+    }
+    if let message {
+        androidx.compose.material3.Text(modifier = Modifier.padding(start: padding, top: 8.dp, end: padding, bottom: padding), color: Color.secondary.colorImpl(), text: message.text, style: Font.callout.fontImpl())
+    }
+    if title != nil || message != nil {
+        androidx.compose.material3.Divider()
+    }
+
+    let buttonModifier = Modifier.padding(horizontal: padding, vertical: padding)
+    let buttonFont = Font.title3
+    let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
+    guard !buttons.isEmpty else {
+        ConfirmationDialogButton(action: { isPresented.set(false) }) {
+            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
+        }
+        return
+    }
+
+
+    var cancelButton: Button? = nil
+    for button in buttons {
+        guard button.role != .cancel else {
+            cancelButton = button
+            continue
+        }
+        ConfirmationDialogButton(action: { isPresented.set(false); button.action() }) {
+            let text = button.label.collectViews(context: context).first?.strippingModifiers { $0 as? Text }
+            let color = button.role == .destructive ? Color.red.colorImpl() : tint
+            androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.text ?? "", maxLines: 1, style: buttonFont.fontImpl())
+        }
+        androidx.compose.material3.Divider()
+    }
+    if let cancelButton {
+        ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
+            let text = cancelButton.label.collectViews(context: context).first?.strippingModifiers { $0 as? Text }
+            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.text ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
+        }
+    } else {
+        ConfirmationDialogButton(action: { isPresented.set(false) }) {
+            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.cancel), style: buttonFont.bold().fontImpl())
+        }
+    }
+}
+
+@Composable func ConfirmationDialogButton(action: () -> Void, content: @Composable () -> Void) {
+    Box(modifier: Modifier.fillMaxWidth().requiredHeightIn(min: 60.dp).clickable(onClick: action), contentAlignment: androidx.compose.ui.Alignment.Center) {
+        content()
     }
 }
 #endif
@@ -180,6 +296,91 @@ public protocol CustomPresentationDetent {
 //}
 
 extension View {
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
+    }
+
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        return confirmationDialog(Text(title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
+    }
+
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            ConfirmationDialogPresentation(title: titleVisibility == .hidden ? nil : title, isPresented: isPresented, context: context, actions: actions())
+            view.Compose(context: context)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
+    }
+
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return confirmationDialog(Text(title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
+    }
+
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            ConfirmationDialogPresentation(title: titleVisibility == .hidden ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
+            view.Compose(context: context)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
+    }
+
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
+    }
+
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
+        #if SKIP
+        let actionsWithData: () -> View
+        if let data {
+            actionsWithData = { actions(data) }
+        } else {
+            actionsWithData = { EmptyView() }
+        }
+        return confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: actionsWithData)
+        #else
+        return self
+        #endif
+    }
+
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
+    }
+
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
+    }
+
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
+        #if SKIP
+        let actionsWithData: () -> View
+        let messageWithData: () -> View
+        if let data {
+            actionsWithData = { actions(data) }
+            messageWithData = { message(data) }
+        } else {
+            actionsWithData = { EmptyView() }
+            messageWithData = { EmptyView() }
+        }
+        return confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: actionsWithData, message: messageWithData)
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func fullScreenCover<Item, Content>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View where /* Item : Identifiable, */ Content : View {
         return self
@@ -248,7 +449,7 @@ extension View {
     public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            SheetPresentation(isPresented: isPresented, content: content, context: context, onDismiss: onDismiss)
+            SheetPresentation(isPresented: isPresented, context: context, content: content, onDismiss: onDismiss)
             view.Compose(context: context)
         }
         #else

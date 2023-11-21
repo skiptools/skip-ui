@@ -105,12 +105,7 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
         guard isFirstView else {
             return true
         }
-        var hasViewFactory = false
-        let factoryChecker = context.content(composer: ClosureComposer { view, _ in
-            hasViewFactory = hasViewFactory || view is ListItemFactory
-        })
-        let _ = contentView.Compose(factoryChecker)
-        return hasViewFactory
+        return contentView.collectViews(context: context).contains { $0 is ListItemFactory }
     }
 
     func ComposeListItems(context: ListItemFactoryContext) {

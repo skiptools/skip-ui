@@ -83,6 +83,14 @@ extension View {
     public func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
         return perform(self)
     }
+
+    /// Use a custom composer to collect the views composed within this view.
+    @Composable public func collectViews(context: ComposeContext) -> [View] {
+        var views: [View] = []
+        let viewCollectingContext = context.content(composer: ClosureComposer { view, _ in views.append(view) })
+        ComposeContent(context: viewCollectingContext)
+        return views
+    }
 }
 #endif
 
@@ -231,66 +239,6 @@ extension View {
 
     @available(*, unavailable)
     public func compositingGroup() -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
         return self
     }
 

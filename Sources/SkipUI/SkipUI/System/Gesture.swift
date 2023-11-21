@@ -309,7 +309,7 @@ class GestureModifierView: ComposeModifierView {
             return modifier
         }
         let density = LocalDensity.current
-         return modifier.pointerInput(true) {
+        return modifier.pointerInput(true) {
              let onDoubleTap: ((Offset) -> Void)? = if let doubleTapAction {
                  { offset in
                      let x = with(density) { offset.x.toDp() }

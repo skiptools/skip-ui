@@ -42,29 +42,16 @@ public struct TabView<Content> : View where Content : View {
     #if SKIP
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // Use a custom composer to count the number of child views in our content
-        var tabCount = 0
-        content.Compose(context: context.content(composer: ClosureComposer { _, _ in tabCount += 1 }))
-
         let navController = rememberNavController()
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             Scaffold(
                 modifier: modifier,
                 bottomBar: {
                     NavigationBar(modifier: Modifier.fillMaxWidth()) {
-                        for tabIndex in 0..<tabCount {
-                            // Use a custom composer to get the tabIndex'th tab item
-                            var composeIndex = 0
-                            var tabItem: TabItem? = nil
-                            content.Compose(context: context.content(composer: ClosureComposer { view, _ in
-                                if composeIndex == tabIndex {
-                                    tabItem = view.strippingModifiers { $0 as? TabItem }
-                                }
-                                composeIndex += 1
-                            }))
-                            
-                            // Render it
-                            let tabItemContext = context.content()
+                        let tabItemContext = context.content()
+                        let tabViews = content.collectViews(context: tabItemContext)
+                        for tabIndex in 0..<tabViews.count {
+                            let tabItem = tabViews[tabIndex].strippingModifiers { $0 as? TabItem }
                             NavigationBarItem(
                                 icon: {
                                     tabItem?.ComposeImage(context: tabItemContext)

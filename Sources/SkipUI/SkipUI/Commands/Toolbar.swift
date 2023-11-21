@@ -246,11 +246,11 @@ struct ToolbarItems {
 
     @Composable private func filter(expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
         var filtered: [View] = []
-        let context = ComposeContext(composer: ClosureComposer { view, _ in
+        let context = ComposeContext(composer: ClosureComposer { view, context in
             if let itemGroup = view as? ToolbarItemGroup {
                 if placement(itemGroup.placement) {
                     if expandGroups {
-                        filtered.append(contentsOf: expand(itemGroup: itemGroup))
+                        filtered.append(contentsOf: itemGroup.collectViews(context: context(false)))
                     } else {
                         filtered.append(itemGroup)
                     }
@@ -265,13 +265,6 @@ struct ToolbarItems {
         })
         content.value.forEach { $0.Compose(context: context) }
         return filtered
-    }
-
-    @Composable private func expand(itemGroup: View) -> [View] {
-        var views: [View] = []
-        let context = ComposeContext(composer: ClosureComposer { view, _ in views.append(view) })
-        itemGroup.ComposeContent(context: context) // Calling `Compose` will just collect this ToolbarItemGroup
-        return views
     }
 }
 #endif

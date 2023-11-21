@@ -25,10 +25,10 @@ import struct CoreGraphics.CGRect
 public struct Button<Label> : View, ListItemAdapting where Label : View {
     let action: () -> Void
     let label: any View
+    let role: ButtonRole?
 
     public init(action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
-        self.action = action
-        self.label = label()
+        self.init(role: nil, action: action, label: label)
     }
 
     public init(_ title: String, action: @escaping () -> Void) {
@@ -36,22 +36,21 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     }
 
     public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
-        self.init(titleKey.value, action: action)
+        self.init(action: action, label: { Text(titleKey) })
     }
 
-    @available(*, unavailable)
     public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
-        self.init(action: action, label: label)
+        self.role = role
+        self.action = action
+        self.label = label()
     }
 
-    @available(*, unavailable)
     public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(title, action: action)
+        self.init(role: role, action: action, label: { Text(title) })
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(titleKey, action: action)
+        self.init(role: role, action: action, label: { Text(titleKey) })
     }
 
     #if SKIP
@@ -77,8 +76,9 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
             case .bordered:
+                let tint = role == .destructive ? Color.red : EnvironmentValues.shared._tint
                 let colors: ButtonColors
-                if let tint = EnvironmentValues.shared._tint {
+                if let tint {
                     let tintColor = tint.colorImpl()
                     colors = ButtonDefaults.filledTonalButtonColors(containerColor: tintColor.copy(alpha: Float(0.15)), contentColor: tintColor, disabledContainerColor: tintColor.copy(alpha: Float(0.15)), disabledContentColor: tintColor.copy(alpha: ContentAlpha.medium))
                 } else {
@@ -88,8 +88,9 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
                     label.Compose(context: contentContext)
                 }
             case .borderedProminent:
+                let tint = role == .destructive ? Color.red : EnvironmentValues.shared._tint
                 let colors: ButtonColors
-                if let tint = EnvironmentValues.shared._tint {
+                if let tint {
                     let tintColor = tint.colorImpl()
                     colors = ButtonDefaults.buttonColors(containerColor: tintColor, disabledContainerColor: tintColor.copy(alpha: ContentAlpha.disabled))
                 } else {
@@ -105,16 +106,18 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     }
 
     @Composable private func ComposePlain(context: ComposeContext) {
-        let isEnabled = EnvironmentValues.shared.isEnabled
-        let disabledAlpha = Double(ContentAlpha.disabled)
+        var foregroundStyle: ShapeStyle?
+        if role == .destructive {
+            foregroundStyle = Color.red
+        } else {
+            foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? EnvironmentValues.shared._tint ?? Color.accentColor
+        }
+        if !EnvironmentValues.shared.isEnabled {
+            let disabledAlpha = Double(ContentAlpha.disabled)
+            foregroundStyle = AnyShapeStyle(foregroundStyle, opacity: disabledAlpha)
+        }
         EnvironmentValues.shared.setValues {
-            if $0._foregroundStyle == nil {
-                var buttonColor = $0._tint ?? Color.accentColor
-                if !isEnabled {
-                    buttonColor = buttonColor.opacity(disabledAlpha)
-                }
-                $0.set_foregroundStyle(buttonColor)
-            }
+            $0.set_foregroundStyle(foregroundStyle)
         } in: {
             label.Compose(context: context)
         }

@@ -39,18 +39,20 @@ extension ShapeStyle {
 
 public struct AnyShapeStyle : ShapeStyle {
     let style: any ShapeStyle
+    let opacity: Double
 
-    public init(_ style: any ShapeStyle) {
+    public init(_ style: any ShapeStyle, opacity: Double = 1.0) {
         self.style = style
+        self.opacity = opacity
     }
 
     #if SKIP
     @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
-        return style.asColor(opacity: opacity)
+        return style.asColor(opacity: opacity * self.opacity)
     }
 
     @Composable override func asBrush(opacity: Double) -> Brush? {
-        return style.asBrush(opacity: opacity)
+        return style.asBrush(opacity: opacity * self.opacity)
     }
     #endif
 }
@@ -260,7 +262,7 @@ extension ShapeStyle where Self == LinkShapeStyle {
 extension ShapeStyle {
 
     /// Returns a new style based on `self` that multiplies by the
-    /// specified opacity when drawing.
+    /// specified opaciopacity when drawing.
     public func opacity(_ opacity: Double) -> some ShapeStyle { stubShapeStyle() }
 
 }
