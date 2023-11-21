@@ -148,7 +148,7 @@ public struct NavigationStack<Root> : View where Root: View {
             topBar: {
                 let topLeadingItems = toolbarItems.filterTopBarLeading()
                 let topTrailingItems = toolbarItems.filterTopBarTrailing()
-                guard (!isRoot || !title.value.isEmpty) && !(topLeadingItems + topTrailingItems).isEmpty else {
+                guard !isRoot || !title.value.isEmpty || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty else {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
