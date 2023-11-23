@@ -245,7 +245,7 @@ extension View {
 
     public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void) -> some View {
         #if SKIP
-        return GestureModifierView(contextView: self, longPressAction: action)
+        return GestureModifierView(view: self, longPressAction: action)
         #else
         return self
         #endif
@@ -259,9 +259,9 @@ extension View {
     public func onTapGesture(count: Int = 1, perform action: @escaping (CGPoint) -> Void) -> some View {
         #if SKIP
         if count == 1 {
-            return GestureModifierView(contextView: self, tapAction: action)
+            return GestureModifierView(view: self, tapAction: action)
         } else if count == 2 {
-            return GestureModifierView(contextView: self, doubleTapAction: action)
+            return GestureModifierView(view: self, doubleTapAction: action)
         } else {
             return self
         }
@@ -287,10 +287,10 @@ class GestureModifierView: ComposeModifierView {
     var doubleTapAction: ((CGPoint) -> Void)?
     var longPressAction: (() -> Void)?
 
-    init(contextView: View, tapAction: ((CGPoint) -> Void)? = nil, doubleTapAction: ((CGPoint) -> Void)? = nil, longPressAction: (() -> Void)? = nil) {
-        super.init(contextView: contextView, role: ComposeModifierRole.gesture, contextTransform: { _ in })
+    init(view: View, tapAction: ((CGPoint) -> Void)? = nil, doubleTapAction: ((CGPoint) -> Void)? = nil, longPressAction: (() -> Void)? = nil) {
+        super.init(view: view, role: ComposeModifierRole.gesture)
         // Compose doesn't support multiple pointerInput modifiers, so combine them into this view
-        let wrappedGestureView = contextView.strippingModifiers(until: { $0 == .gesture }, perform: { $0 as? GestureModifierView })
+        let wrappedGestureView = view.strippingModifiers(until: { $0 == .gesture }, perform: { $0 as? GestureModifierView })
         self.tapAction = tapAction ?? wrappedGestureView?.tapAction
         self.doubleTapAction = doubleTapAction ?? wrappedGestureView?.doubleTapAction
         self.longPressAction = longPressAction ?? wrappedGestureView?.longPressAction

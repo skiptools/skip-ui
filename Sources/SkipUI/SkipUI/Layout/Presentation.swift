@@ -40,7 +40,7 @@ import struct CoreGraphics.CGFloat
 #if SKIP
 
 /// Common corner radius for our overlay presentations.
-let overlayPresentationCornerRadius = 16.dp
+let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> View, onDismiss: (() -> Void)?) {
@@ -51,7 +51,7 @@ let overlayPresentationCornerRadius = 16.dp
             onDismissRequest: { isPresented.set(false) },
             sheetState: sheetState,
             containerColor: androidx.compose.ui.graphics.Color.Unspecified,
-            shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius, topEnd: overlayPresentationCornerRadius),
+            shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp),
             dragHandle: nil,
             windowInsets: WindowInsets(0, 0, 0, 0)
         ) {
@@ -120,7 +120,7 @@ let overlayPresentationCornerRadius = 16.dp
             let modifier = Modifier
                 .fillMaxWidth()
                 .padding(start: 8.dp, end: 8.dp, bottom: bottomSystemBarPadding)
-                .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius, topEnd: overlayPresentationCornerRadius))
+                .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
                 .background(Color.overlayBackground.colorImpl())
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver.value)

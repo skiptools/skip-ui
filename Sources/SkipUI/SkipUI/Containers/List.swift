@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -24,11 +25,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
@@ -98,12 +103,15 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         modifier = modifier.fillWidth()
 
         // Remember the factory because we use it in the remembered reorderable state
-        let factoryContext = ListItemFactoryContext()
-        let remberedFactoryContext = rememberUpdatedState(factoryContext)
+        let factoryContext = remember { mutableStateOf(ListItemFactoryContext()) }
+        let moveTrigger = remember { mutableStateOf(0) }
         let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
-            remberedFactoryContext.value.move(from: from.index, to: to.index)
+            // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
+            factoryContext.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
+        }, onDragEnd: { _, _ in
+            factoryContext.value.commitMove()
         }, canDragOver: { candidate, dragging in
-            remberedFactoryContext.value.canMove(from: dragging.index, to: candidate.index)
+            factoryContext.value.canMove(from: dragging.index, to: candidate.index)
         })
         modifier = modifier.reorderable(reorderableState)
 
@@ -118,34 +126,57 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 ComposeSectionFooter(view: view, context: context(false), style: style)
             })
 
-            factoryContext.initialize(
+            // Read move trigger here so that a move will recompose list content
+            let _ = moveTrigger.value
+
+            // Initialize the factory context with closures that use the LazyListScope to generate items
+            factoryContext.value.initialize(
+                startItemIndex: 1, // List header item
                 item: { view in
                     item {
-                        view.Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
+                        let itemContext = context.content(composer: ClosureComposer { view, context in
+                            ComposeItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style)
+                        })
+                        view.Compose(context: itemContext)
                     }
                 },
-                indexedItems: { range, identifier, factory in
+                indexedItems: { range, identifier, offset, onDelete, onMove, factory in
                     let count = range.endExclusive - range.start
-                    items(count: count, key: identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }) { index in
-                        factory(index).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
-                    }
-                },
-                objectItems: { objects, identifier, factory in
-                    items(count: objects.count, key: { composeBundleString(for: identifier(objects[$0])) }) { index in
-                        factory(objects[index]).Compose(context: itemContext(for: context, modifier: Modifier.animateItemPlacement(), style: style))
-                    }
-                },
-                objectBindingItems: { objectsBinding, identifier, editActions, factory in
-                    items(count: objectsBinding.wrappedValue.count, key: { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }) { index in
+                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(factoryContext.value.remapIndex($0, from: offset))) }
+                    items(count: count, key: key) { index in
+                        let keyValue = key?(index) // Key closure already remaps index
+                        let index = factoryContext.value.remapIndex(index, from: offset)
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, objectsBinding: objectsBinding, identifier: identifier, index: index, editActions: editActions, reorderableState: reorderableState)
+                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        })
+                        factory(index).Compose(context: editableItemContext)
+                    }
+                },
+                objectItems: { objects, identifier, offset, onDelete, onMove, factory in
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objects[factoryContext.value.remapIndex($0, from: offset)])) }
+                    items(count: objects.count, key: key) { index in
+                        let keyValue = key(index) // Key closure already remaps index
+                        let index = factoryContext.value.remapIndex(index, from: offset)
+                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        })
+                        factory(objects[index]).Compose(context: editableItemContext)
+                    }
+                },
+                objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, factory in
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[factoryContext.value.remapIndex($0, from: offset)])) }
+                    items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                        let keyValue = key(index) // Key closure already remaps index
+                        let index = factoryContext.value.remapIndex(index, from: offset)
+                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(objectsBinding, index).Compose(context: editableItemContext)
                     }
                 },
                 sectionHeader: { view in
                     // Important to check the count immediately, outside the lazy list scope blocks
-                    let context = factoryContext.count == 0 ? topSectionHeaderContext : sectionHeaderContext
+                    let context = factoryContext.value.count == 0 ? topSectionHeaderContext : sectionHeaderContext
                     if style == .plain {
                         stickyHeader {
                             view.Compose(context: context)
@@ -168,22 +199,15 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
             }
             for view in collectingComposer.views {
                 if let factory = view as? ListItemFactory {
-                    factory.ComposeListItems(context: factoryContext)
+                    factory.ComposeListItems(context: factoryContext.value)
                 } else {
-                    factoryContext.item(view)
+                    factoryContext.value.item(view)
                 }
             }
             item {
                 ComposeFooter(style: style)
             }
         }
-    }
-
-    /// Create a list item-rendering compose context for item views.
-    private func itemContext(for context: ComposeContext, modifier: Modifier, style: ListStyle) -> ComposeContext {
-        return context.content(composer: ClosureComposer { view, context in
-            ComposeItem(view: view, context: context(false), modifier: modifier, style: style)
-        })
     }
 
     private static let horizontalInset = 16.0
@@ -207,27 +231,38 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, modifier: Modifier, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>, identifier: (Any) -> AnyHashable, index: Int, editActions: EditActions = [], reorderableState: ReorderableLazyListState) {
+    @Composable private func ComposeEditableItem(view: View, context: ComposeContext, modifier: Modifier, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
         guard !view.isEmptyView else {
             return
         }
+        guard let key else {
+            ComposeItem(view: view, context: context, modifier: modifier, style: style)
+            return
+        }
         let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
-        let isDeleteEnabled = editActions.contains(.delete) && editActionsModifiers?.isDeleteDisabled != true
-        let isMoveEnabled = editActions.contains(.move) && editActionsModifiers?.isMoveDisabled != true
+        let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifiers?.isDeleteDisabled != true
+        let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifiers?.isMoveDisabled != true
         guard isDeleteEnabled || isMoveEnabled else {
             ComposeItem(view: view, context: context, modifier: modifier, style: style)
             return
         }
 
-        let key = composeBundleString(for: identifier(objectsBinding.wrappedValue[index]))
         if isDeleteEnabled {
-            let rememberedIndex = rememberUpdatedState(index)
-            let rememberedBinding = rememberUpdatedState(objectsBinding)
-            let dismissState = rememberDismissState(confirmValueChange: {
-                if $0 == DismissValue.DismissedToStart, rememberedBinding.value.wrappedValue.count > rememberedIndex.value {
-                    (rememberedBinding.value.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: rememberedIndex.value)
+            let rememberedOnDelete = rememberUpdatedState({
+                if let onDelete {
+                    onDelete(IndexSet(integer: index))
+                } else if let objectsBinding, objectsBinding.wrappedValue.count > index {
+                    (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index)
                 }
-                return true
+            })
+            let coroutineScope = rememberCoroutineScope()
+            let dismissState = rememberDismissState(confirmValueChange: {
+                if $0 == DismissValue.DismissedToStart {
+                    coroutineScope.launch {
+                        rememberedOnDelete.value()
+                    }
+                }
+                return false
             }, positionalThreshold = { 164.dp.toPx() })
 
             let content: @Composable (Modifier) -> Void = {
@@ -414,81 +449,153 @@ protocol ListItemAdapting {
 /// Allows `ListItemFactory` instances to define the content of the list.
 public class ListItemFactoryContext {
     private(set) var item: (View) -> Void = { _ in }
-    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void = { _, _, _ in  }
-    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void = { _, _, _ in }
-    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _ in }
-
+    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void = { _, _, _, _, _ in  }
+    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void = { _, _, _, _, _ in }
+    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _ in }
     private(set) var sectionHeader: (View) -> Void = { _ in }
     private(set) var sectionFooter: (View) -> Void = { _ in }
+    private var startItemIndex = 0
 
     /// Initialize the content factories.
-    func initialize(item: (View) -> Void,
-                    indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, (Int) -> View) -> Void,
-                    objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, (Any) -> View) -> Void,
-                    objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
-                    sectionHeader: (View) -> Void,
-                    sectionFooter: (View) -> Void) {
+    func initialize(
+        startItemIndex: Int,
+        item: (View) -> Void,
+        indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void,
+        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void,
+        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
+        sectionHeader: (View) -> Void,
+        sectionFooter: (View) -> Void
+    ) {
+        self.startItemIndex = startItemIndex
+
         content.removeAll()
         self.item = { view in
             item(view)
-            content.append(.items(1))
+            content.append(.items(1, nil))
         }
-        self.indexedItems = { range, identifier, factory in
-            indexedItems(range, identifier, factory)
-            content.append(.items(range.endExclusive - range.start))
+        self.indexedItems = { range, identifier, onDelete, onMove, factory in
+            indexedItems(range, identifier, count, onDelete, onMove, factory)
+            content.append(.items(range.endExclusive - range.start, onMove))
         }
-        self.objectItems = { objects, identifier, factory in
-            objectItems(objects, identifier, factory)
-            content.append(.objectItems(objects))
+        self.objectItems = { objects, identifier, onDelete, onMove, factory in
+            objectItems(objects, identifier, count, onDelete, onMove, factory)
+            content.append(.objectItems(objects, onMove))
         }
-        self.objectBindingItems = { binding, identifier, editActions, factory in
-            objectBindingItems(binding, identifier, editActions, factory)
-            content.append(.objectBindingItems(binding))
+        self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, factory in
+            objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, factory)
+            content.append(.objectBindingItems(binding, onMove))
         }
         self.sectionHeader = { view in
             sectionHeader(view)
-            content.append(.items(1))
+            content.append(.items(1, nil))
         }
         self.sectionFooter = { view in
             sectionFooter(view)
-            content.append(.items(1))
+            content.append(.items(1, nil))
         }
     }
 
-    /// The current number of items.
+    /// The current number of content items.
     var count: Int {
         var itemCount = 0
         for content in self.content {
             switch content {
-            case .items(let count): itemCount += count
-            case .objectItems(let objects): itemCount += objects.count
-            case .objectBindingItems(let binding): itemCount += binding.wrappedValue.count
+            case .items(let count, _): itemCount += count
+            case .objectItems(let objects, _): itemCount += objects.count
+            case .objectBindingItems(let binding, _): itemCount += binding.wrappedValue.count
             }
         }
         return itemCount
     }
 
-    /// Move an item.
-    func move(from fromIndex: Int, to toIndex: Int) {
-        if fromIndex == toIndex {
+    private var moving: (fromIndex: Int, toIndex: Int)?
+    private var moveTrigger = 0
+
+    /// Re-map indexes for any in-progress operations.
+    func remapIndex(_ index: Int, from offset: Int) -> Int {
+        guard let moving else {
+            return index
+        }
+        // While a move is in progress we have to make the list appear reordered even though we don't change
+        // the underlying data until the user ends the drag
+        let offsetIndex = index + offset + startItemIndex
+        if offsetIndex == moving.toIndex {
+            return moving.fromIndex - offset - startItemIndex
+        }
+        if moving.fromIndex < moving.toIndex && offsetIndex >= moving.fromIndex && offsetIndex < moving.toIndex {
+            return index + 1
+        } else if moving.fromIndex > moving.toIndex && offsetIndex > moving.toIndex && offsetIndex <= moving.fromIndex {
+            return index - 1
+        } else {
+            return index
+        }
+    }
+
+    /// Commit the current active move operation, if any.
+    func commitMove() {
+        guard let moving else {
             return
         }
-        var itemIndex = 1 // List header
+        let fromIndex = moving.fromIndex
+        let toIndex = moving.toIndex
+        self.moving = nil
+        performMove(fromIndex: fromIndex, toIndex: toIndex)
+    }
+
+    /// Call this function during an active move operation with the current move progress.
+    func move(from fromIndex: Int, to toIndex: Int, trigger: (Int) -> Void) {
+        if moving == nil {
+            if fromIndex != toIndex {
+                moving = (fromIndex, toIndex)
+                trigger(++moveTrigger) // Trigger recompose to see change
+            }
+        } else {
+            // Keep the original fromIndex, not the in-progress one. The framework assumes we move one position at a time
+            if moving!.fromIndex == toIndex {
+                moving = nil
+            } else {
+                moving = (moving!.fromIndex, toIndex)
+            }
+            trigger(++moveTrigger) // Trigger recompose to see change
+        }
+    }
+
+    private func performMove(fromIndex: Int, toIndex: Int) {
+        var itemIndex = startItemIndex
         for content in self.content {
             switch content {
-            case .items(let count): itemIndex += count
-            case .objectItems(let objects): itemIndex += objects.count
-            case .objectBindingItems(let binding):
-                if min(fromIndex, toIndex) >= itemIndex && max(fromIndex, toIndex) < itemIndex + binding.wrappedValue.count {
+            case .items(let count, let onMove):
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: onMove) {
+                    return
+                }
+            case .objectItems(let objects, let onMove):
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: objects.count, onMove: onMove) {
+                    return
+                }
+            case .objectBindingItems(let binding, let onMove):
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count, onMove: onMove, customMove: {
                     if let element = (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: fromIndex - itemIndex) {
                         (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.insert(element, at: toIndex - itemIndex)
                     }
+                }) {
                     return
-                } else {
-                    itemIndex += binding.wrappedValue.count
                 }
             }
         }
+    }
+
+    private func performMove(fromIndex: Int, toIndex: Int, itemIndex: inout Int, count: Int, onMove: ((IndexSet, Int) -> Void)?, customMove: (() -> Void)? = nil) -> Bool {
+        guard min(fromIndex, toIndex) >= itemIndex && max(fromIndex, toIndex) < itemIndex + count else {
+            itemIndex += count
+            return false
+        }
+        if let onMove {
+            let indexSet = IndexSet(integer: fromIndex - itemIndex)
+            onMove(indexSet, fromIndex < toIndex ? toIndex - itemIndex + 1 : toIndex - itemIndex)
+        } else if let customMove {
+            customMove()
+        }
+        return true
     }
 
     /// Whether a given move would be permitted.
@@ -496,26 +603,39 @@ public class ListItemFactoryContext {
         if fromIndex == toIndex {
             return true
         }
-        var itemIndex = 1 // List header
+        var itemIndex = startItemIndex
         for content in self.content {
             switch content {
-            case .items(let count): itemIndex += count
-            case .objectItems(let objects): itemIndex += objects.count
-            case .objectBindingItems(let binding):
-                if fromIndex >= itemIndex && fromIndex < itemIndex + binding.wrappedValue.count {
-                    return toIndex >= itemIndex && toIndex < itemIndex + binding.wrappedValue.count
-                } else {
-                    itemIndex += binding.wrappedValue.count
+            case .items(let count, _):
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
+                    return ret
+                }
+            case .objectItems(let objects, _):
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: objects.count) {
+                    return ret
+                }
+            case .objectBindingItems(let binding, _):
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count) {
+                    return ret
                 }
             }
         }
         return false
     }
 
+    private func canMove(fromIndex: Int, toIndex: Int, itemIndex: inout Int, count: Int) -> Bool? {
+        if fromIndex >= itemIndex && fromIndex < itemIndex + count {
+            return toIndex >= itemIndex && toIndex < itemIndex + count
+        } else {
+            itemIndex += count
+            return nil
+        }
+    }
+
     private enum Content {
-        case items(Int)
-        case objectItems(RandomAccessCollection<Any>)
-        case objectBindingItems(Binding<RandomAccessCollection<Any>>)
+        case items(Int, ((IndexSet, Int) -> Void)?)
+        case objectItems(RandomAccessCollection<Any>, ((IndexSet, Int) -> Void)?)
+        case objectBindingItems(Binding<RandomAccessCollection<Any>>, ((IndexSet, Int) -> Void)?)
     }
     private var content: [Content] = []
 }

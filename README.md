@@ -378,7 +378,7 @@ List {
 }
 ```
 
-When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions. This also works with `ForEach` components.
+When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions.
 
 ```swift
 List($people, id: \.fullName, editActions: .all) { $person in
@@ -388,11 +388,14 @@ List($people, id: \.fullName, editActions: .all) { $person in
 }
 ```
 
+You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMove` modifiers. Make sure your `ForEach` also supplies an `id` for each item.
+
 #### List Limitations
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
 - Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
-- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists.
+- `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
+- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
 
 ### Navigation
 
@@ -539,7 +542,9 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|✅ Full||
 |`.offset`|✅ Full||
+|`.onDelete`|✅ Full||
 |`.onLongPressGesture`|🟡 Medium|`minimumDuration`, `maximumDistance`, `onPressingChanged` not supported|
+|`.onMove`|✅ Full||
 |`.onTapGesture`|🟢 High|Tap count > 2 not supported|
 |`.opacity`|✅ Full||
 |`.padding`|🟢 High|Compose does not support negative padding|

@@ -30,7 +30,6 @@ class ComposeModifierView: View {
         self.view = contextView
         self.role = role
         self.contextTransform = contextTransform
-        self.composeContent = nil
     }
 
     /// A modifier that takes over the composition of the modified view.
@@ -39,8 +38,15 @@ class ComposeModifierView: View {
         // SKIP REPLACE: this.view = contentView
         self.view = contentView
         self.role = role
-        self.contextTransform = nil
         self.composeContent = composeContent
+    }
+
+    /// Constructor for subclasses.
+    init(view: any View, role: ComposeModifierRole = .unspecified) {
+        // Don't copy view
+        // SKIP REPLACE: this.view = view
+        self.view = view
+        self.role = role
     }
 
     @Composable override func ComposeContent(context: ComposeContext) {
@@ -49,6 +55,8 @@ class ComposeModifierView: View {
         } else if let contextTransform {
             var context = context
             contextTransform(&context)
+            view.Compose(context: context)
+        } else {
             view.Compose(context: context)
         }
     }

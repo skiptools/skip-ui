@@ -4,12 +4,13 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
 #endif
 
 // Erase the Data and ID because they are currently unused in Kotlin, the compiler won't be able to calculate them
-public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
+public class ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* Data : RandomAccessCollection, ID : Hashable, */ Content : View {
     let identifier: ((Any) -> AnyHashable)?
     let indexRange: Range<Int>?
     let indexedContent: ((Int) -> Content)?
@@ -18,6 +19,8 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
     let objectsBinding: Binding<any RandomAccessCollection<Any>>?
     let objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)?
     let editActions: EditActions
+    var onDeleteAction: ((IndexSet) -> Void)?
+    var onMoveAction: ((IndexSet, Int) -> Void)?
 
     init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)? = nil, editActions: EditActions = []) {
         self.identifier = identifier
@@ -28,6 +31,16 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
         self.objectsBinding = objectsBinding
         self.objectsBindingContent = objectsBindingContent
         self.editActions = editActions
+    }
+
+    public func onDelete(perform action: ((IndexSet) -> Void)?) -> ForEach {
+        onDeleteAction = action
+        return self
+    }
+
+    public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> ForEach {
+        onMoveAction = action
+        return self
     }
 
     #if SKIP
@@ -110,11 +123,11 @@ public struct ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* 
 
     func ComposeListItems(context: ListItemFactoryContext) {
         if let indexRange {
-            context.indexedItems(indexRange, identifier, indexedContent!)
+            context.indexedItems(indexRange, identifier, onDeleteAction, onMoveAction, indexedContent!)
         } else if let objects {
-            context.objectItems(objects, identifier!, objectContent!)
+            context.objectItems(objects, identifier!, onDeleteAction, onMoveAction, objectContent!)
         } else if let objectsBinding {
-            context.objectBindingItems(objectsBinding, identifier!, editActions, objectsBindingContent!)
+            context.objectBindingItems(objectsBinding, identifier!, editActions, onDeleteAction, onMoveAction, objectsBindingContent!)
         }
     }
     #else
