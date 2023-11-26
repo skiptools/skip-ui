@@ -914,11 +914,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func symbolEffectsRemoved(_ isEnabled: Bool = true) -> some View {
         return self
     }

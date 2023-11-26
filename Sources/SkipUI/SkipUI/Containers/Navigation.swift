@@ -8,12 +8,16 @@ import Foundation
 #if SKIP
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -40,11 +44,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -68,6 +77,7 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
@@ -77,7 +87,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
         let navController = rememberNavController()
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
-        navigator.value.didCompose(navController: navController, destinations: destinations.value)
+        navigator.value.didCompose(navController: navController, destinations: destinations.value, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -132,14 +142,18 @@ public struct NavigationStack<Root> : View where Root: View {
         let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
 
-        let scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-        var modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier)
+        let searchFieldPadding = 16.dp
+        let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
+        let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
+        let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
+
+        let scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        var modifier = Modifier.nestedScroll(searchFieldScrollConnection).nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier)
         // Perform an invisible compose pass to gather preference information. Otherwise we may see the content render one way, then
         // immediately re-render with an updated top bar
         if title.value == uncomposedTitle {
             modifier = modifier.alpha(Float(0.0))
         }
-        let contentContext = context.content()
 
         // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
@@ -197,26 +211,45 @@ public struct NavigationStack<Root> : View where Root: View {
                                     bottomItems.forEach { $0.Compose(context: itemContext) }
                                     return .ok
                                 }
-                            }.Compose(contentContext)
+                            }.Compose(context.content())
                         }
                     }
                 }
             }
         ) { padding in
-            // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
-            // will be composed, and we want to retain destinations from previous entries
-            let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
-            let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-            PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference]) {
-                let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
-                Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+            let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
+            Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+
+                // Searchable state may come from our content via preference or from a `NavigationStack` modifier via environment
+                let preferenceSearchableState = rememberSaveable(stateSaver: context.stateSaver as! Saver<SearchableState?, Any>) { mutableStateOf<SearchableState?>(nil) }
+                let environmentSearchableState = isRoot ? EnvironmentValues.shared._searchableState : nil
+                let searchablePreferenceUpdates = remember { mutableStateOf(0) }
+                let _ = searchablePreferenceUpdates.value // Read to trigger composition on change
+
+                let contentContext: ComposeContext
+                if preferenceSearchableState.value != nil || environmentSearchableState != nil {
+                    let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
+                    let searchFieldState = preferenceSearchableState.value != nil ? preferenceSearchableState : mutableStateOf(environmentSearchableState)
+                    SearchField(state: searchFieldState, context: context.content(modifier: searchFieldModifier))
+                    let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
+                    contentContext = context.content(modifier: Modifier.padding(top: searchFieldPlaceholderPadding))
+                } else {
+                    contentContext = context.content()
+                }
+
+                // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
+                // will be composed, and we want to retain destinations from previous entries
+                let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
+                let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let searchableStatePreference = Preference<SearchableState?>(key: SearchableStatePreferenceKey.self, update: { preferenceSearchableState.value = $0 }, didChange: { searchablePreferenceUpdates.value += 1 })
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, searchableStatePreference]) {
                     content(contentContext)
                 }
-            }
-            if title.value == uncomposedTitle {
-                title.value = NavigationTitlePreferenceKey.defaultValue
+                if title.value == uncomposedTitle {
+                    title.value = NavigationTitlePreferenceKey.defaultValue
+                }
             }
         }
     }
@@ -237,6 +270,7 @@ struct NavigationDestination {
     }
 }
 
+// SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
 @Stable
 class Navigator {
     /// Route for the root of the navigation stack.
@@ -255,6 +289,7 @@ class Navigator {
 
     private var navController: NavHostController
     private var destinations: NavigationDestinations
+    private var keyboardController: SoftwareKeyboardController?
 
     private var destinationIndexes: [Any.Type: Int] = [:]
     private var backStackState: [String: BackStackState] = [:]
@@ -282,9 +317,10 @@ class Navigator {
     }
 
     /// Call with updated state on recompose.
-    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations) {
+    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations, keyboardController: SoftwareKeyboardController?) {
         self.navController = navController
         self.destinations = destinations
+        self.keyboardController = keyboardController
         updateDestinationIndexes()
         syncState()
     }
@@ -334,6 +370,10 @@ class Navigator {
             }
             return false
         }
+        
+        // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
+        keyboardController?.hide()
+
         let route = route(for: type, value: targetValue)
         navigatingToState = BackStackState(route: route, destination: destination.destination, targetValue: targetValue)
         navController.navigate(route)

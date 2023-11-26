@@ -4,107 +4,207 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+#endif
+
+extension View {
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
+            let state = SearchableState(text: text, prompt: prompt, isSearching: isSearching)
+            // SwiftUI allows you to place .searchable on the NavigationStack or its content. The former requires environment, the latter preferences
+            let isOnNavigationStack = strippingModifiers(perform: { $0 is NavigationStack })
+            EnvironmentValues.shared.setValues {
+                $0.setisSearching(isSearching.value)
+                if isOnNavigationStack {
+                    $0.set_searchableState(state)
+                }
+            } in: {
+                if !isOnNavigationStack {
+                    syncPreference(key: SearchableStatePreferenceKey.self, value: state)
+                }
+                view.Compose(context: context)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View {
+        return searchable(text: text, placement: placement, prompt: Text(prompt))
+    }
+
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: String) -> some View {
+        return searchable(text: text, placement: placement, prompt: Text(prompt))
+    }
+}
+
+public struct SearchFieldPlacement : RawRepresentable, Sendable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = SearchFieldPlacement(rawValue: 0)
+
+    @available(*, unavailable)
+    public static let toolbar = SearchFieldPlacement(rawValue: 1)
+
+    @available(*, unavailable)
+    public static let sidebar = SearchFieldPlacement(rawValue: 2)
+
+    @available(*, unavailable)
+    public static let navigationBarDrawer = SearchFieldPlacement(rawValue: 3)
+
+    @available(*, unavailable)
+    public static func navigationBarDrawer(displayMode: SearchFieldPlacement.NavigationBarDrawerDisplayMode) -> SearchFieldPlacement {
+        return SearchFieldPlacement(rawValue: 4)
+    }
+
+    public enum NavigationBarDrawerDisplayMode : Sendable {
+        case automatic
+        case always
+    }
+}
+
+#if SKIP
+let searchFieldHeight = 56.0
+
+/// Renders a search field.
+@ExperimentalMaterial3Api
+@Composable func SearchField(state: MutableState<SearchableState?>, context: ComposeContext) {
+    // We must use a MutableState to get the latest value or else we see the cursor lag one letter behind when the
+    // search text changes the view
+    let colors = TextField.colors()
+    let disabledTextColor = TextField.textColor(enabled: false)
+    let prompt = state.value?.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
+    let focusManager = LocalFocusManager.current
+    let focusRequester = remember { FocusRequester() }
+    let contentContext = context.content()
+    Row(horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically, modifier: context.modifier) {
+        let isFocused = remember { mutableStateOf(false) }
+        OutlinedTextField(value: state.value?.text.wrappedValue ?? "", onValueChange: {
+            state.value?.text.wrappedValue = $0
+        }, modifier: Modifier.weight(Float(1.0)).focusRequester(focusRequester).onFocusChanged {
+            if it.isFocused {
+                state.value?.isSearching.value = true
+            }
+        }, placeholder: {
+            TextField.Placeholder(prompt: prompt, context: contentContext)
+        }, leadingIcon: {
+            Icon(imageVector: Icons.Outlined.Search, tint: disabledTextColor, contentDescription: nil)
+        }, trailingIcon: {
+            if state.value?.text.wrappedValue.isEmpty == false {
+                Icon(imageVector: Icons.Outlined.Clear, tint: disabledTextColor, contentDescription: "Clear", modifier: Modifier.clickable {
+                    state.value?.text.wrappedValue = ""
+                    focusRequester.requestFocus()
+                })
+            }
+        }, keyboardActions = KeyboardActions(onSearch = {
+            if state.value?.text.wrappedValue.isEmpty == false {
+                focusManager.clearFocus()
+            }
+        }), keyboardOptions: KeyboardOptions(imeAction: ImeAction.Search), singleLine: true, colors: colors)
+        AnimatedVisibility(visible: state.value?.isSearching.value == true) {
+            Button(stringResource(android.R.string.cancel)) {
+                state.value?.text.wrappedValue = ""
+                focusManager.clearFocus()
+                state.value?.isSearching.value = false
+            }.Compose(context: contentContext)
+        }
+    }
+}
+
+/// Searchable state.
+struct SearchableState {
+    let text: Binding<String>
+    let prompt: Text?
+    let isSearching: MutableState<Bool>
+}
+
+/// Communicate searchable state to owning `NavigationStack`.
+struct SearchableStatePreferenceKey: PreferenceKey {
+    typealias Value = SearchableState?
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<SearchableState?>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: SearchableState? = nil
+        func reduce(value: inout SearchableState?, nextValue: () -> SearchableState?) {
+            value = nextValue()
+        }
+    }
+}
+
+/// Used by the `NavigationStack` to scroll the search field with screen content.
+class SearchFieldScrollConnection: NestedScrollConnection {
+    let heightPx: Float
+    var offsetPx: MutableState<Float>
+
+    init(heightPx: Float, offsetPx: MutableState<Float>) {
+        self.heightPx = heightPx
+        self.offsetPx = offsetPx
+    }
+
+    override func onPreScroll(available: Offset, source: NestedScrollSource) -> Offset {
+        // Handle scrolls back to top in post scroll so that nav bar expansion can consume them first
+        guard available.y <= Float(0.0) else {
+            return Offset.Zero
+        }
+        // Consume content scrolling downward until the search field is pushed up under the nav bar
+        let previousOffset = offsetPx.value
+        offsetPx.value = min(Float(0.0), max(Float(-heightPx), offsetPx.value + available.y))
+        return Offset(x: Float(0.0), y: offsetPx.value - previousOffset)
+    }
+
+    override func onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource) -> Offset {
+        // Scrolling downward is handled in pre scroll
+        guard available.y > Float(0.0) else {
+            return Offset.Zero
+        }
+        // Consume scrolling to top until the search field is fully expanded
+        let previousOffset = offsetPx.value
+        offsetPx.value = min(Float(0.0), max(Float(-heightPx), offsetPx.value + available.y))
+        return Offset(x: Float(0.0), y: offsetPx.value - previousOffset)
+    }
+}
+#endif
 
 #if !SKIP
 
-/// The placement of a search field in a view hierarchy.
-///
-/// You can give a preferred placement to any of the searchable modifiers, like
-/// ``View/searchable(text:placement:prompt:)-co5e``:
-///
-///     var body: some View {
-///         NavigationView {
-///             PrimaryView()
-///             SecondaryView()
-///             Text("Select a primary and secondary item")
-///         }
-///         .searchable(text: $text, placement: .sidebar)
-///     }
-///
-/// Depending on the containing view hierachy, SkipUI might not be able to
-/// fulfill your request.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public struct SearchFieldPlacement : Sendable {
-
-    /// SkipUI places the search field automatically.
-    ///
-    /// Placement of the search field depends on the platform:
-    /// * In iOS, iPadOS, and macOS, the search field appears in the toolbar.
-    /// * In tvOS and watchOS, the search field appears inline with its
-    ///   content.
-    public static let automatic: SearchFieldPlacement = { fatalError() }()
-
-    /// The search field appears in the toolbar.
-    ///
-    /// The precise placement depends on the platform:
-    /// * In iOS and watchOS, the search field appears below the
-    ///   navigation bar and is revealed by scrolling.
-    /// * In iPadOS, the search field appears in the trailing
-    ///   navigation bar.
-    /// * In macOS, the search field appears in the trailing toolbar.
-    @available(tvOS, unavailable)
-    public static let toolbar: SearchFieldPlacement = { fatalError() }()
-
-    /// The search field appears in the sidebar of a navigation view.
-    ///
-    /// The precise placement depends on the platform:
-    /// * In iOS and iPadOS the search field appears in the section of
-    ///   the navigation bar associated with the sidebar.
-    /// * In macOS, the search field appears inline with the sidebar's content.
-    ///
-    /// If a sidebar isn't available, like when you apply the searchable
-    /// modifier to a view other than a navigation split view, SkipUI uses
-    /// automatic placement instead.
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static let sidebar: SearchFieldPlacement = { fatalError() }()
-
-    /// The search field appears in the navigation bar.
-    ///
-    /// The field appears below any navigation bar title and uses the
-    /// ``NavigationBarDrawerDisplayMode/automatic`` display mode to configure
-    /// when to hide the search field. To choose a different display mode,
-    /// use ``navigationBarDrawer(displayMode:)`` instead.
-    @available(iOS 15.0, watchOS 8.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    public static let navigationBarDrawer: SearchFieldPlacement = { fatalError() }()
-
-    /// The search field appears in the navigation bar using the specified
-    /// display mode.
-    ///
-    /// The field appears below any navigation bar title. The system can
-    /// hide the field in response to scrolling, depending on the `displayMode`
-    /// that you set.
-    ///
-    /// - Parameter displayMode: A control that indicates whether to hide
-    ///   the search field in response to scrolling.
-    @available(iOS 15.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public static func navigationBarDrawer(displayMode: SearchFieldPlacement.NavigationBarDrawerDisplayMode) -> SearchFieldPlacement { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension SearchFieldPlacement {
-
-    /// A mode that determines when to display a search field that appears in a
-    /// navigation bar.
-    @available(iOS 15.0, *)
-    @available(macOS, unavailable)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    public struct NavigationBarDrawerDisplayMode : Sendable {
-
-        /// Enable hiding the search field in response to scrolling.
-        public static let automatic: SearchFieldPlacement.NavigationBarDrawerDisplayMode = { fatalError() }()
-
-        /// Always display the search field regardless of the scroll activity.
-        public static let always: SearchFieldPlacement.NavigationBarDrawerDisplayMode = { fatalError() }()
-    }
-}
+// TODO: Process for use in SkipUI
 
 /// The ways that searchable modifiers can show or hide search scopes.
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
@@ -625,55 +725,6 @@ extension View {
     @available(tvOS, introduced: 15.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, message: "Use the searchable modifier with the searchSuggestions modifier")
     public func searchable<V, S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S, @ViewBuilder suggestions: () -> V) -> some View where V : View, S : StringProtocol { return stubView() }
-
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension View {
-
-    /// Marks this view as searchable, which configures the display of a
-    /// search field.
-    ///
-    /// For more information about using searchable modifiers, see
-    /// <doc:Adding-a-search-interface-to-your-app>.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit in the search field.
-    ///   - placement: The preferred placement of the search field within the
-    ///     containing view hierarchy.
-    ///   - prompt: A ``Text`` view representing the prompt of the search field
-    ///     which provides users with guidance on what to search for.
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View { return stubView() }
-
-
-    /// Marks this view as searchable, which configures the display of a
-    /// search field.
-    ///
-    /// For more information about using searchable modifiers, see
-    /// <doc:Adding-a-search-interface-to-your-app>.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit in the search field.
-    ///   - placement: The preferred placement of the search field within the
-    ///     containing view hierarchy.
-    ///   - prompt: The key for the localized prompt of the search field
-    ///     which provides users with guidance on what to search for.
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View { return stubView() }
-
-
-    /// Marks this view as searchable, which configures the display of a
-    /// search field.
-    ///
-    /// For more information about using searchable modifiers, see
-    /// <doc:Adding-a-search-interface-to-your-app>.
-    ///
-    /// - Parameters:
-    ///   - text: The text to display and edit in the search field.
-    ///   - placement: The preferred placement of the search field within the
-    ///     containing view hierarchy.
-    ///   - prompt: A string representing the prompt of the search field
-    ///     which provides users with guidance on what to search for.
-    public func searchable<S>(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: S) -> some View where S : StringProtocol { return stubView() }
 
 }
 

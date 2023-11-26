@@ -17,15 +17,6 @@ public struct Divider : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Divider.kt
-     @Composable
-     fun Divider(
-        modifier: Modifier = Modifier,
-        thickness: Dp = DividerDefaults.Thickness,
-        color: Color = DividerDefaults.color,
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let dividerColor = androidx.compose.ui.graphics.Color.LightGray
         let modifier: Modifier

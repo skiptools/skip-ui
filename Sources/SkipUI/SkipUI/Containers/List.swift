@@ -134,8 +134,11 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                 startItemIndex: 1, // List header item
                 item: { view in
                     item {
+                        // Animate list operations. If we're searching, however, we disable animation to prevent weird
+                        // animations during search filtering. This is ugly and not robust, but it works in most cases
+                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
                         let itemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style)
+                            ComposeItem(view: view, context: context(false), modifier: itemModifier, style: style)
                         })
                         view.Compose(context: itemContext)
                     }
@@ -146,8 +149,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
+                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                            ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(index).Compose(context: editableItemContext)
                     }
@@ -157,8 +161,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
+                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                            ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(objects[index]).Compose(context: editableItemContext)
                     }
@@ -168,8 +173,9 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
+                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
-                            ComposeEditableItem(view: view, context: context(false), modifier: Modifier.animateItemPlacement(), style: style, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                            ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(objectsBinding, index).Compose(context: editableItemContext)
                     }

@@ -21,11 +21,6 @@ public struct Spacer : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Spacer.kt
-     @Composable
-     fun Spacer(modifier: Modifier)
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let fillModifier: Modifier
         switch EnvironmentValues.shared._layoutAxis {

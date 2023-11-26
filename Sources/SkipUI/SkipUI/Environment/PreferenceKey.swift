@@ -116,15 +116,21 @@ extension View {
     public func preference(key: Any.Type, value: Any) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            let pvalue = remember { mutableStateOf<Any?>(nil) }
-            PreferenceValues.shared.preference(key: key)?.reduce(savedValue: pvalue.value, newValue: value)
-            pvalue.value = value
+            syncPreference(key: key, value: value)
             view.Compose(context: context)
         }
         #else
         return self
         #endif
     }
+
+    #if SKIP
+    @Composable public func syncPreference(key: Any.Type, value: Any) {
+        let pvalue = remember { mutableStateOf<Any?>(nil) }
+        PreferenceValues.shared.preference(key: key)?.reduce(savedValue: pvalue.value, newValue: value)
+        pvalue.value = value
+    }
+    #endif
 }
 
 #if !SKIP

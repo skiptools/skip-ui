@@ -29,16 +29,6 @@ public struct VStack<Content> : View where Content : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Column.kt
-     @Composable
-     inline fun Column(
-         modifier: Modifier = Modifier,
-         verticalArrangement: Arrangement.Vertical = Arrangement.Top,
-         horizontalAlignment: Alignment.Horizontal = Alignment.Start,
-         content: @Composable ColumnScope.() -> Unit
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let columnAlignment: androidx.compose.ui.Alignment.Horizontal
         switch alignment {

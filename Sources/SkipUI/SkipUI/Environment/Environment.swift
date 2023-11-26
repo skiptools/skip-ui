@@ -191,6 +191,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "isEnabled", value: newValue, defaultValue: { true }) }
     }
 
+    public var isSearching: Bool {
+        get { builtinValue(key: "isSearching", defaultValue: { false }) as! Bool }
+        set { setBuiltinValue(key: "isSearching", value: newValue, defaultValue: { false }) }
+    }
+
     public var lineLimit: Int? {
         get { builtinValue(key: "lineLimit", defaultValue: { nil }) as! Int? }
         set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
@@ -282,6 +287,11 @@ extension EnvironmentValues {
     var _progressViewStyle: ProgressViewStyle? {
         get { builtinValue(key: "_progressViewStyle", defaultValue: { nil }) as! ProgressViewStyle? }
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _searchableState: SearchableState? {
+        get { builtinValue(key: "_searchableState", defaultValue: { nil }) as! SearchableState? }
+        set { setBuiltinValue(key: "_searchableState", value: newValue, defaultValue: { nil }) }
     }
 
     var _sheetDepth: Int {

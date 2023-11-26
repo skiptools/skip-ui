@@ -28,16 +28,6 @@ public struct HStack<Content> : View where Content : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Row.kt
-     @Composable
-     inline fun Row(
-         modifier: Modifier = Modifier,
-         horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-         verticalAlignment: Alignment.Vertical = Alignment.Top,
-         content: @Composable RowScope.() -> Unit
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let rowAlignment: androidx.compose.ui.Alignment.Vertical
         switch alignment {

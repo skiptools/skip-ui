@@ -41,20 +41,6 @@ public struct Toggle<Label> : View where Label : View {
         self.init(isOn: isOn, label: { Text(title) })
     }
     
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Switch.kt
-     @Composable
-     @Suppress("ComposableLambdaParameterNaming", "ComposableLambdaParameterPosition")
-     fun Switch(
-         checked: Boolean,
-         onCheckedChange: ((Boolean) -> Unit)?,
-         modifier: Modifier = Modifier,
-         thumbContent: (@Composable () -> Unit)? = null,
-         enabled: Boolean = true,
-         colors: SwitchColors = SwitchDefaults.colors(),
-         interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let colors: SwitchColors
         if let tint = EnvironmentValues.shared._tint {

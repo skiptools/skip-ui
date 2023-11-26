@@ -61,58 +61,42 @@ public struct TextField<Label> : View where Label : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/TextField.kt
-     @Composable
-     fun TextField(
-         value: String,
-         onValueChange: (String) -> Unit,
-         modifier: Modifier = Modifier,
-         enabled: Boolean = true,
-         readOnly: Boolean = false,
-         textStyle: TextStyle = LocalTextStyle.current,
-         label: @Composable (() -> Unit)? = null,
-         placeholder: @Composable (() -> Unit)? = null,
-         leadingIcon: @Composable (() -> Unit)? = null,
-         trailingIcon: @Composable (() -> Unit)? = null,
-         prefix: @Composable (() -> Unit)? = null,
-         suffix: @Composable (() -> Unit)? = null,
-         supportingText: @Composable (() -> Unit)? = null,
-         isError: Boolean = false,
-         visualTransformation: VisualTransformation = VisualTransformation.None,
-         keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-         keyboardActions: KeyboardActions = KeyboardActions.Default,
-         singleLine: Boolean = false,
-         maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
-         minLines: Int = 1,
-         interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-         shape: Shape = TextFieldDefaults.shape,
-         colors: TextFieldColors = TextFieldDefaults.colors()
-     )
-     */
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
-        let textColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? Color.primary.colorImpl()
-        let colors: TextFieldColors
-        if let tint = EnvironmentValues.shared._tint {
-            let tintColor = tint.colorImpl()
-            colors = TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: textColor.copy(alpha: ContentAlpha.disabled), cursorColor: tintColor, focusedBorderColor: tintColor)
-        } else {
-            colors = TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: textColor.copy(alpha: ContentAlpha.disabled))
-        }
-        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, placeholder: { Placeholder(context: contentContext) }, singleLine: true, colors: colors)
+        let colors = Self.colors()
+        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, placeholder: { Self.Placeholder(prompt: prompt ?? label, context: contentContext) }, singleLine: true, colors: colors)
     }
 
-    @Composable private func Placeholder(context: ComposeContext) {
+    @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {
+        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? Color.primary.colorImpl()
+        if enabled {
+            return color
+        } else {
+            return color.copy(alpha: ContentAlpha.disabled)
+        }
+    }
+
+    @ExperimentalMaterial3Api
+    @Composable static func colors() -> TextFieldColors {
+        let textColor = textColor(enabled: true)
+        let disabledTextColor = textColor(enabled: false)
+        if let tint = EnvironmentValues.shared._tint {
+            let tintColor = tint.colorImpl()
+            return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor)
+        } else {
+            return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor)
+        }
+    }
+
+    @Composable static func Placeholder(prompt: View?, context: ComposeContext) {
+        guard let prompt else {
+            return
+        }
         EnvironmentValues.shared.setValues {
             $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
         } in: {
-            if let prompt {
-                prompt.Compose(context: context)
-            } else {
-                label.Compose(context: context)
-            }
+            prompt.Compose(context: context)
         }
     }
     #else
@@ -139,6 +123,11 @@ public struct TextFieldStyle: RawRepresentable, Equatable {
 extension View {
     @available(*, unavailable)
     public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
         return self
     }
 

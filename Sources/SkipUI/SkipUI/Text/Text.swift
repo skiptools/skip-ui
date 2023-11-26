@@ -36,29 +36,6 @@ public struct Text: View, Equatable, Sendable {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Text.kt
-     @Composable
-     fun Text(
-         text: String,
-         modifier: Modifier = Modifier,
-         color: Color = Color.Unspecified,
-         fontSize: TextUnit = TextUnit.Unspecified,
-         fontStyle: FontStyle? = null,
-         fontWeight: FontWeight? = null,
-         fontFamily: FontFamily? = null,
-         letterSpacing: TextUnit = TextUnit.Unspecified,
-         textDecoration: TextDecoration? = null,
-         textAlign: TextAlign? = null,
-         lineHeight: TextUnit = TextUnit.Unspecified,
-         overflow: TextOverflow = TextOverflow.Clip,
-         softWrap: Boolean = true,
-         maxLines: Int = Int.MAX_VALUE,
-         minLines: Int = 1,
-         onTextLayout: ((TextLayoutResult) -> Unit)? = null,
-         style: TextStyle = LocalTextStyle.current
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         var font: Font
         var text = self.text

@@ -556,6 +556,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.scaledToFill`|🟡 Medium|Supported for images|
 |`.scaledToFit`|🟡 Medium|Supported for images|
 |`.scaleEffect`|🟡 Medium||
+|`.searchable`|🔴 Low|Suggestions, scope not implemented|
 |`.sheet`|🟢 High|See [Navigation](#navigation)|
 |`.stroke` (Shape)|✅ Full||
 |`.strokeBorder` (Shape)|✅ Full||

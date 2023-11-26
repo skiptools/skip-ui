@@ -4,11 +4,30 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.ui.text.input.KeyboardCapitalization
+#endif
+
 public enum TextInputAutocapitalization : Sendable {
     case never
     case words
     case sentences
     case characters
+
+    #if SKIP
+    func asKeyboardCapitalization() -> KeyboardCapitalization {
+        switch self {
+        case .never:
+            return KeyboardCapitalization.None
+        case .words:
+            return KeyboardCapitalization.Words
+        case .sentences:
+            return KeyboardCapitalization.Sentences
+        case .characters:
+            return KeyboardCapitalization.Characters
+        }
+    }
+    #endif
 }
 
 #if !SKIP

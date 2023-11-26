@@ -54,22 +54,6 @@ public struct Button<Label> : View, ListItemAdapting where Label : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/Button.kt
-     @Composable
-     fun Button(
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-        enabled: Boolean = true,
-        shape: Shape = ButtonDefaults.shape,
-        colors: ButtonColors = ButtonDefaults.buttonColors(),
-        elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
-        border: BorderStroke? = null,
-        contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-        interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-        content: @Composable RowScope.() -> Unit
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
         let contentContext = context.content()

@@ -22,16 +22,6 @@ public struct ZStack<Content> : View where Content : View {
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation-layout/src/commonMain/kotlin/androidx/compose/foundation/layout/Box.kt
-     @Composable
-     inline fun Box(
-        modifier: Modifier = Modifier,
-        contentAlignment: Alignment = Alignment.TopStart,
-        propagateMinConstraints: Boolean = false,
-        content: @Composable BoxScope.() -> Unit
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
         ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in

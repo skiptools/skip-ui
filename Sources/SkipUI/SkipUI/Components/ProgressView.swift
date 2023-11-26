@@ -68,17 +68,6 @@ public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, 
     }
 
     #if SKIP
-    /*
-     https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/ProgressIndicator.kt
-     @Composable
-     fun Circular/LinearProgressIndicator(
-        progress: () -> Float,
-        modifier: Modifier = Modifier,
-        color: Color = ProgressIndicatorDefaults.circular/linearColor
-        trackColor: Color = ProgressIndicatorDefaults.circular/linearTrackColor
-        strokeCap: StrokeCap = ProgressIndicatorDefaults.circular/Circular/LinearStrokeCap
-     )
-     */
     @Composable public override func ComposeContent(context: ComposeContext) {
         var style = EnvironmentValues.shared._progressViewStyle ?? ProgressViewStyle.automatic
         if style == .automatic {
