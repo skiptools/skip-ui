@@ -44,9 +44,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 // Erase the SelectionValue because it is currently unused in Kotlin, the compiler won't be able to calculate it
-//
-// SKIP DECLARE: class List<Content>: View where Content: View
-public class List<SelectionValue, Content> : View where SelectionValue: Hashable, Content : View {
+public class List<Content> : View where Content : View {
     let fixedContent: Content?
     let forEach: ForEach<Content>?
 
@@ -995,8 +993,8 @@ extension List {
 //    @MainActor public init<RowContent>(_ data: Range<Int>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Int) -> RowContent) where Content == ForEach<Range<Int>, Int, RowContent>, RowContent : View { fatalError() }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension List where SelectionValue == Never {
+//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//extension List where SelectionValue == Never {
     /// Creates a hierarchical list that computes its rows on demand from an
     /// underlying collection of identifiable data.
     ///
@@ -1033,7 +1031,7 @@ extension List where SelectionValue == Never {
 //    @available(tvOS, unavailable)
 //    @available(watchOS, unavailable)
 //    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
-}
+//}
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension List {
@@ -1165,10 +1163,10 @@ extension List {
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 }
 
-@available(iOS 15.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension List where SelectionValue == Never {
+//@available(iOS 15.0, macOS 12.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension List where SelectionValue == Never {
 
     /// Creates a hierarchical list that computes its rows on demand from a
     /// binding to an underlying collection of identifiable data.
@@ -1200,7 +1198,7 @@ extension List where SelectionValue == Never {
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
-}
+//}
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension List {

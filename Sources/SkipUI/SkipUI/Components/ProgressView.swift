@@ -16,8 +16,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // Erase the generic Labels to facilitate specialized constructor support.
-// SKIP DECLARE: class ProgressView : View
-public struct ProgressView<Label, CurrentValueLabel> : View where Label : View, CurrentValueLabel : View {
+public struct ProgressView : View {
     let value: Double?
     let total: Double?
 
@@ -180,11 +179,11 @@ extension ProgressView {
     ///       view.
     ///     - currentValueLabel: A view that displays the current value of the
     ///       timer.
-    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label, @ViewBuilder currentValueLabel: () -> CurrentValueLabel) { fatalError() }
+//    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label, @ViewBuilder currentValueLabel: () -> CurrentValueLabel) { fatalError() }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension ProgressView where CurrentValueLabel == DefaultDateProgressLabel {
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+//extension ProgressView where CurrentValueLabel == DefaultDateProgressLabel {
 
     /// Creates a progress view for showing continuous progress as time passes,
     /// with a descriptive label.
@@ -232,11 +231,11 @@ extension ProgressView where CurrentValueLabel == DefaultDateProgressLabel {
     ///       view empties.
     ///     - label: An optional view that describes the purpose of the progress
     ///       view.
-    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label) { fatalError() }
-}
+//    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true, @ViewBuilder label: () -> Label) { fatalError() }
+//}
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension ProgressView where Label == EmptyView, CurrentValueLabel == DefaultDateProgressLabel {
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+//extension ProgressView where Label == EmptyView, CurrentValueLabel == DefaultDateProgressLabel {
 
     /// Creates a progress view for showing continuous progress as time passes.
     ///
@@ -276,8 +275,8 @@ extension ProgressView where Label == EmptyView, CurrentValueLabel == DefaultDat
     /// - Parameters:
     ///     - timerInterval: The date range over which the view progresses.
     ///     - countsDown: If `true` (the default), the view empties as time passes.
-    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true) { fatalError() }
-}
+//    public init(timerInterval: ClosedRange<Date>, countsDown: Bool = true) { fatalError() }
+//}
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
 extension ProgressView {
@@ -286,7 +285,7 @@ extension ProgressView {
     ///
     /// The progress view synthesizes a default label using the
     /// `localizedDescription` of the given progress instance.
-    public init(_ progress: Progress) where Label == EmptyView, CurrentValueLabel == EmptyView { fatalError() }
+//    public init(_ progress: Progress) where Label == EmptyView, CurrentValueLabel == EmptyView { fatalError() }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
@@ -321,7 +320,7 @@ extension ProgressView {
     /// border.](ProgressView-4-macOS)
     ///
     /// - Note: Progress views in widgets don't apply custom styles.
-    public init(_ configuration: ProgressViewStyleConfiguration) where Label == ProgressViewStyleConfiguration.Label, CurrentValueLabel == ProgressViewStyleConfiguration.CurrentValueLabel { fatalError() }
+//    public init(_ configuration: ProgressViewStyleConfiguration) where Label == ProgressViewStyleConfiguration.Label, CurrentValueLabel == ProgressViewStyleConfiguration.CurrentValueLabel { fatalError() }
 }
 
 /// The properties of a progress view instance.

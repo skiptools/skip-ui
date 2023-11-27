@@ -120,8 +120,7 @@ public struct LabelStyle: RawRepresentable, Equatable {
 }
 
 // Erase the generic Label and Content to facilitate specialized constructor support.
-// SKIP DECLARE: class LabeledContent: View
-public struct LabeledContent<Label, Content> {
+public struct LabeledContent {
     @available(*, unavailable)
     public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
     }
@@ -238,8 +237,8 @@ extension LabelStyleConfiguration.Icon : View {
     public var body: Body { fatalError() }
 }
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LabeledContent where Label == Text, Content == Text {
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+//extension LabeledContent where Label == Text, Content == Text {
     /// Creates a labeled informational view from a formatted value.
     ///
     /// This initializer creates a ``Text`` label on your behalf, and treats the
@@ -258,7 +257,7 @@ extension LabeledContent where Label == Text, Content == Text {
     ///   - value: The value being labeled.
     ///   - format: A format style of type `F` to convert the underlying value
     ///     of type `F.FormatInput` to a string representation.
-    public init<F>(_ titleKey: LocalizedStringKey, value: F.FormatInput, format: F) where F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
+//    public init<F>(_ titleKey: LocalizedStringKey, value: F.FormatInput, format: F) where F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
 
     /// Creates a labeled informational view from a formatted value.
     ///
@@ -280,11 +279,11 @@ extension LabeledContent where Label == Text, Content == Text {
     ///   - value: The value being labeled.
     ///   - format: A format style of type `F` to convert the underlying value
     ///     of type `F.FormatInput` to a string representation.
-    public init<S, F>(_ title: S, value: F.FormatInput, format: F) where S : StringProtocol, F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
-}
+//    public init<S, F>(_ title: S, value: F.FormatInput, format: F) where S : StringProtocol, F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
+//}
 
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension LabeledContent where Label == LabeledContentStyleConfiguration.Label, Content == LabeledContentStyleConfiguration.Content {
+//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+//extension LabeledContent where Label == LabeledContentStyleConfiguration.Label, Content == LabeledContentStyleConfiguration.Content {
 
     /// Creates labeled content based on a labeled content style configuration.
     ///
@@ -305,8 +304,8 @@ extension LabeledContent where Label == LabeledContentStyleConfiguration.Label, 
     ///     }
     ///
     /// - Parameter configuration: The properties of the labeled content
-    public init(_ configuration: LabeledContentStyleConfiguration) { fatalError() }
-}
+//    public init(_ configuration: LabeledContentStyleConfiguration) { fatalError() }
+//}
 
 /// The properties of a labeled content instance.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)

@@ -21,8 +21,7 @@ import struct CoreGraphics.CGRect
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
-// SKIP DECLARE: class Button: View, ListItemAdapting
-public struct Button<Label> : View, ListItemAdapting where Label : View {
+public struct Button : View, ListItemAdapting {
     let action: () -> Void
     let label: any View
     let role: ButtonRole?
@@ -173,8 +172,8 @@ extension View {
 
 // TODO: Process for use in SkipUI
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
+//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
 
     /// Creates a button based on a configuration for a style with a custom
     /// appearance and custom interaction behavior.
@@ -197,9 +196,9 @@ extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
     ///
     /// - Parameter configuration: A configuration for a style with a custom
     ///   appearance and custom interaction behavior.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init(_ configuration: PrimitiveButtonStyleConfiguration) { fatalError() }
-}
+//    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//    public init(_ configuration: PrimitiveButtonStyleConfiguration) { fatalError() }
+//}
 
 /// A shape that is used to draw a button's border.
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)

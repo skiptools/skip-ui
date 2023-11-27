@@ -15,9 +15,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
-//
-// SKIP DECLARE: class TextField: View
-public struct TextField<Label> : View where Label : View {
+public struct TextField : View {
     let text: Binding<String>
     let label: any View
     let prompt: Text?
@@ -212,7 +210,7 @@ extension View {
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 
-extension TextField where Label == Text {
+//extension TextField where Label == Text {
 
     /// Creates a text field that applies a format style to a bound optional
     /// value, with a label generated from a localized title string.
@@ -256,8 +254,8 @@ extension TextField where Label == Text {
     ///     field sets `binding.value` to `nil`.
     ///   - prompt: A `Text` which provides users with guidance on what to type
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
 
     /// Creates a text field that applies a format style to a bound optional
     /// value, with a label generated from a title string.
@@ -302,8 +300,8 @@ extension TextField where Label == Text {
     ///     field sets `binding.value` to `nil`.
     ///   - prompt: A `Text` which provides users with guidance on what to type
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, F>(_ title: S, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<S, F>(_ title: S, value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
 
     /// Creates a text field that applies a format style to a bound
     /// value, with a label generated from a localized title string.
@@ -355,8 +353,8 @@ extension TextField where Label == Text {
     ///     text to the last known valid value.
     ///   - prompt: A `Text` which provides users with guidance on what to type
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
 
     /// Creates a text field that applies a format style to a bound
     /// value, with a label generated from a title string.
@@ -407,9 +405,9 @@ extension TextField where Label == Text {
     ///     text to the last known valid value.
     ///   - prompt: A `Text` which provides users with guidance on what to type
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, F>(_ title: S, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
-}
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<S, F>(_ title: S, value: Binding<F.FormatInput>, format: F, prompt: Text? = nil) where S : StringProtocol, F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//}
 
 extension TextField {
 
@@ -457,8 +455,8 @@ extension TextField {
     ///     into the text field.
     ///   - label: A view builder that produces a label for the text field,
     ///     describing its purpose.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<F>(value: Binding<F.FormatInput?>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
 
     /// Creates a text field that applies a format style to a bound
     /// value, with a label generated from a view builder.
@@ -511,11 +509,11 @@ extension TextField {
     ///     into the text field.
     ///   - label: A view builder that produces a label for the text field,
     ///     describing its purpose.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<F>(value: Binding<F.FormatInput>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<F>(value: Binding<F.FormatInput>, format: F, prompt: Text? = nil, @ViewBuilder label: () -> Label) where F : ParseableFormatStyle, F.FormatOutput == String { fatalError() }
 }
 
-extension TextField where Label == Text {
+//extension TextField where Label == Text {
 
     /// Creates a text field that applies a formatter to a bound
     /// value, with a label generated from a localized title string.
@@ -570,8 +568,8 @@ extension TextField where Label == Text {
     ///     modify `binding.value`.
     ///   - prompt: A `Text` which provides users with guidance on what to enter
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, prompt: Text?) { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter, prompt: Text?) { fatalError() }
 
     /// Creates a text field that applies a formatter to a bound
     /// value, with a label generated from a title string.
@@ -627,9 +625,9 @@ extension TextField where Label == Text {
     ///     modify `binding.value`.
     ///   - prompt: A `Text` which provides users with guidance on what to enter
     ///     into the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, prompt: Text?) where S : StringProtocol { fatalError() }
-}
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter, prompt: Text?) where S : StringProtocol { fatalError() }
+//}
 
 extension TextField {
 
@@ -686,11 +684,11 @@ extension TextField {
     ///   - prompt: A `Text` which provides users with guidance on what to enter
     ///     into the text field.
     ///   - label: A view that describes the purpose of the text field.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public init<V>(value: Binding<V>, formatter: Formatter, prompt: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
+//    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
+//    public init<V>(value: Binding<V>, formatter: Formatter, prompt: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
 }
 
-extension TextField where Label == Text {
+//extension TextField where Label == Text {
 
     /// Create an instance which binds over an arbitrary type, `V`.
     ///
@@ -743,8 +741,8 @@ extension TextField where Label == Text {
     ///     string the user edits and the underlying value of type `V`.
     ///     If `formatter` can't perform the conversion, the text field doesn't
     ///     modify `binding.value`.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter) { fatalError() }
+//    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//    public init<V>(_ titleKey: LocalizedStringKey, value: Binding<V>, formatter: Formatter) { fatalError() }
 
     /// Create an instance which binds over an arbitrary type, `V`.
     ///
@@ -796,8 +794,8 @@ extension TextField where Label == Text {
     ///     string the user edits and the underlying value of type `V`.
     ///     If `formatter` can't perform the conversion, the text field doesn't
     ///     modify `binding.value`.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
-}
+//    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
+//}
 
 #endif

@@ -16,8 +16,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // Erase the generic to facilitate specialization.
-// SKIP DECLARE: interface Gesture
-public protocol Gesture<Value> {
+public protocol Gesture {
     #if !SKIP
     associatedtype Value
     associatedtype Body : Gesture

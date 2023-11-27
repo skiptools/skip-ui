@@ -90,11 +90,7 @@ let overlayPresentationCornerRadius = 16.0
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
         let buttons = actions.collectViews(context: context).compactMap {
-            $0.strippingModifiers {
-                // Skip tries to use Button<*>, so customize Kotlin:
-                // SKIP REPLACE: it as? Button
-                $0 as? Button
-            }
+            $0.strippingModifiers { $0 as? Button }
         }
         var messageText: Text? = nil
         if let message {

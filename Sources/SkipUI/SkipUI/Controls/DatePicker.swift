@@ -7,8 +7,7 @@
 import Foundation
 
 // Erase the generic Label to facilitate specialized constructor support.
-// SKIP DECLARE: class DatePicker: View
-public struct DatePicker<Label> : View where Label : View {
+public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 
     @available(*, unavailable)

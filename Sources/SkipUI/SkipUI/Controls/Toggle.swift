@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
-//
-// SKIP DECLARE: class Toggle: View
-public struct Toggle<Label> : View where Label : View {
+public struct Toggle : View {
     let isOn: Binding<Bool>
     let label: any View
 
@@ -95,8 +93,8 @@ extension View {
 
 // TODO: Process for use in SkipUI
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Toggle where Label == ToggleStyleConfiguration.Label {
+//@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//extension Toggle where Label == ToggleStyleConfiguration.Label {
 
     /// Creates a toggle based on a toggle style configuration.
     ///
@@ -119,9 +117,9 @@ extension Toggle where Label == ToggleStyleConfiguration.Label {
     ///
     /// - Parameter configuration: The properties of the toggle, including a
     ///   label and a binding to the toggle's state.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public init(_ configuration: ToggleStyleConfiguration) { fatalError() }
-}
+//    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+//    public init(_ configuration: ToggleStyleConfiguration) { fatalError() }
+//}
 
 /// The properties of a toggle instance.
 ///

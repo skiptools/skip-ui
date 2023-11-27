@@ -5,8 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 // Erase the generic Label to facilitate specialized constructor support.
-// SKIP DECLARE: class DisclosureGroup<Content>: View where Content: View
-public struct DisclosureGroup<Label, Content> : View where Label : View, Content : View {
+public struct DisclosureGroup<Content> : View where Content : View {
     @available(*, unavailable)
     public init(@ViewBuilder content: @escaping () -> Content, @ViewBuilder label: () -> any View) {
     }
