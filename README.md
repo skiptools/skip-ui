@@ -512,6 +512,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`VStack`|✅ Full||
 |`ZStack`|✅ Full||
 |`.aspectRatio`|🟡 Medium|Supported for images|
+|`.autocorrectionDisabled`|✅ Full||
 |`.background`|🔴 Low|Only color/ShapeStyle supported|
 |`.backgroundStyle`|✅ Full||
 |`.bold`|✅ Full||
@@ -533,6 +534,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.hidden`|✅ Full||
 |`.inset` (Shape)|🟢 High||
 |`.italic`|✅ Full||
+|`.keyboardType`|✅ Full||
 |`.labelsHidden`|✅ Full||
 |`.lineLimit`|🟡 Medium|Only `Int?` value supported|
 |`.listItemTint`|✅ Full||
@@ -560,8 +562,10 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.sheet`|🟢 High|See [Navigation](#navigation)|
 |`.stroke` (Shape)|✅ Full||
 |`.strokeBorder` (Shape)|✅ Full||
+|`.submitLabel`|✅ Full||
 |`.tabItem`|✅ Full||
 |`.task`|✅ Full||
+|`.textInputAutocapitalization`|✅ Full||
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.tint`|✅ Full||
 |`.toolbar`|🟢 High||

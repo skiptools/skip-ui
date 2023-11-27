@@ -9,6 +9,7 @@ import Observation
 #endif
 
 #if SKIP
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -170,7 +171,11 @@ extension EnvironmentValues {
 
     // MARK: - SwiftUI values
 
-    var backgroundStyle: ShapeStyle? {
+    public var autocorrectionDisabled: Bool {
+        return _keyboardOptions?.autoCorrect == false
+    }
+
+    public var backgroundStyle: ShapeStyle? {
         get { builtinValue(key: "backgroundStyle", defaultValue: { nil }) as! ShapeStyle? }
         // Avoid recursive background style lookup
         set { setBuiltinValue(key: "backgroundStyle", value: newValue is BackgroundStyle ? nil : newValue, defaultValue: { nil }) }
@@ -192,8 +197,7 @@ extension EnvironmentValues {
     }
 
     public var isSearching: Bool {
-        get { builtinValue(key: "isSearching", defaultValue: { false }) as! Bool }
-        set { setBuiltinValue(key: "isSearching", value: newValue, defaultValue: { false }) }
+        return _searchableState?.isSearching.value == true
     }
 
     public var lineLimit: Int? {
@@ -252,6 +256,11 @@ extension EnvironmentValues {
     var _isItalic: Bool {
         get { builtinValue(key: "_isItalic", defaultValue: { false }) as! Bool }
         set { setBuiltinValue(key: "_isItalic", value: newValue, defaultValue: { false }) }
+    }
+
+    var _keyboardOptions: KeyboardOptions? {
+        get { builtinValue(key: "_keyboardOptions", defaultValue: { nil }) as! KeyboardOptions? }
+        set { setBuiltinValue(key: "_keyboardOptions", value: newValue, defaultValue: { nil }) }
     }
 
     var _labelsHidden: Bool {
@@ -483,16 +492,6 @@ extension EnvironmentValues {
     @available(watchOS, unavailable)
     public subscript<K>(key: K.Type) -> K.Value where K : UITraitBridgedEnvironmentKey { get { fatalError() } }
     #endif
-}
-
-extension EnvironmentValues {
-
-    /// A Boolean value that determines whether the view hierarchy has
-    /// auto-correction enabled.
-    ///
-    /// The default value is `false`.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 8.0, *)
-    public var autocorrectionDisabled: Bool { get { fatalError() } }
 }
 
 extension EnvironmentValues {

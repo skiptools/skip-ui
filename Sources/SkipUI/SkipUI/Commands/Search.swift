@@ -42,14 +42,11 @@ extension View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-            let state = SearchableState(text: text, prompt: prompt, isSearching: isSearching)
+            let isOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
+            let state = SearchableState(text: text, prompt: prompt, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
             // SwiftUI allows you to place .searchable on the NavigationStack or its content. The former requires environment, the latter preferences
-            let isOnNavigationStack = strippingModifiers(perform: { $0 is NavigationStack })
             EnvironmentValues.shared.setValues {
-                $0.setisSearching(isSearching.value)
-                if isOnNavigationStack {
-                    $0.set_searchableState(state)
-                }
+                $0.set_searchableState(state)
             } in: {
                 if !isOnNavigationStack {
                     syncPreference(key: SearchableStatePreferenceKey.self, value: state)
@@ -153,6 +150,7 @@ struct SearchableState {
     let text: Binding<String>
     let prompt: Text?
     let isSearching: MutableState<Bool>
+    let isOnNavigationStack: Bool
 }
 
 /// Communicate searchable state to owning `NavigationStack`.

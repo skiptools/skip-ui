@@ -46,7 +46,7 @@ import struct CoreGraphics.CGFloat
 // Erase the SelectionValue because it is currently unused in Kotlin, the compiler won't be able to calculate it
 //
 // SKIP DECLARE: class List<Content>: View where Content: View
-public struct List<SelectionValue, Content> : View where SelectionValue: Hashable, Content : View {
+public class List<SelectionValue, Content> : View where SelectionValue: Hashable, Content : View {
     let fixedContent: Content?
     let forEach: ForEach<Content>?
 
@@ -63,12 +63,12 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
         }
     }
 
-    public init(@ViewBuilder content: () -> Content) {
+    public convenience init(@ViewBuilder content: () -> Content) {
         self.init(fixedContent: content())
     }
 
     @available(*, unavailable)
-    public init(selection: Binding<Any>, @ViewBuilder content: () -> Content) {
+    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> Content) {
         self.init(fixedContent: content())
     }
 
@@ -128,15 +128,25 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
 
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
+            // Animate list operations. If we're searching, however, we disable animation to prevent weird
+            // animations during search filtering. This is ugly and not robust, but it works in most cases
+            let shouldAnimateItems: @Composable () -> Bool = {
+                guard let searchableState = EnvironmentValues.shared._searchableState, searchableState.isSearching.value else {
+                    return true
+                }
+                guard searchableState.isOnNavigationStack else {
+                    return false
+                }
+                // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
+                return LocalNavigator.current?.isRoot != true
+            }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
             factoryContext.value.initialize(
                 startItemIndex: 1, // List header item
                 item: { view in
                     item {
-                        // Animate list operations. If we're searching, however, we disable animation to prevent weird
-                        // animations during search filtering. This is ugly and not robust, but it works in most cases
-                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let itemContext = context.content(composer: ClosureComposer { view, context in
                             ComposeItem(view: view, context: context(false), modifier: itemModifier, style: style)
                         })
@@ -149,7 +159,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -161,7 +171,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -173,7 +183,7 @@ public struct List<SelectionValue, Content> : View where SelectionValue: Hashabl
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = EnvironmentValues.shared.isSearching ? Modifier : Modifier.animateItemPlacement()
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let editableItemContext = context.content(composer: ClosureComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -849,10 +859,10 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a list that identifies its rows based on a key path to the
     /// identifier of the underlying data, optionally allowing users to select
@@ -883,10 +893,10 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a list that computes its views on demand over a constant range,
     /// optionally allowing users to select multiple rows.
@@ -930,10 +940,10 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a list that identifies its rows based on a key path to the
     /// identifier of the underlying data, optionally allowing users to select a
@@ -964,10 +974,10 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a list that computes its views on demand over a constant range,
     /// optionally allowing users to select a single row.
@@ -1000,10 +1010,10 @@ extension List where SelectionValue == Never {
     ///     like a regular file in a file system.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, RowContent>(_ data: Data, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data.
@@ -1019,10 +1029,10 @@ extension List where SelectionValue == Never {
     ///     like a regular file in a file system.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @available(iOS 14.0, macOS 11.0, *)
-    @available(tvOS, unavailable)
-    @available(watchOS, unavailable)
-    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @available(iOS 14.0, macOS 11.0, *)
+//    @available(tvOS, unavailable)
+//    @available(watchOS, unavailable)
+//    @MainActor public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == OutlineGroup<Data, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1099,7 +1109,7 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data, optionally allowing users to
@@ -1117,7 +1127,7 @@ extension List {
     ///   - selection: A binding to a set that identifies selected rows.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 
     /// Creates a hierarchical list that computes its rows on demand from a
     /// binding to an underlying collection of identifiable data, optionally
@@ -1134,7 +1144,7 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data, optionally allowing users to
@@ -1152,7 +1162,7 @@ extension List {
     ///   - selection: A binding to a selected value.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 }
 
 @available(iOS 15.0, macOS 12.0, *)
@@ -1173,7 +1183,7 @@ extension List where SelectionValue == Never {
     ///     like a regular file in a file system.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
+//    @MainActor public init<Data, RowContent>(_ data: Binding<Data>, children: WritableKeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, Data.Element.ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable { fatalError() }
 
     /// Creates a hierarchical list that identifies its rows based on a key path
     /// to the identifier of the underlying data.
@@ -1189,7 +1199,7 @@ extension List where SelectionValue == Never {
     ///     like a regular file in a file system.
     ///   - rowContent: A view builder that creates the view for a single row of
     ///     the list.
-    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
+//    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, children: WritableKeyPath<Data.Element, Data?>, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == OutlineGroup<Binding<Data>, ID, RowContent, RowContent, DisclosureGroup<RowContent, OutlineSubgroupChildren>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View { fatalError() }
 }
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)

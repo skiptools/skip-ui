@@ -65,7 +65,7 @@ import kotlinx.coroutines.delay
 #endif
 
 public struct NavigationStack<Root> : View where Root: View {
-    private let root: Root
+    let root: Root
 
     public init(@ViewBuilder root: () -> Root) {
         self.root = root()
@@ -143,8 +143,8 @@ public struct NavigationStack<Root> : View where Root: View {
         let toolbarItems = ToolbarItems(content: toolbarContent)
 
         let searchFieldPadding = 16.dp
-        let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
+        let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
         let scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -323,6 +323,11 @@ class Navigator {
         self.keyboardController = keyboardController
         updateDestinationIndexes()
         syncState()
+    }
+
+    /// Whether we're at the root of the navigation stack.
+    var isRoot: Bool {
+        return navController.currentBackStack.value.size <= 2 // graph entry, root entry
     }
 
     /// Navigate to a target value specified in a `NavigationLink`.

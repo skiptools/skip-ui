@@ -143,11 +143,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func autocorrectionDisabled(_ disable: Bool = true) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func baselineOffset(_ baselineOffset: CGFloat) -> some View {
         return self
     }

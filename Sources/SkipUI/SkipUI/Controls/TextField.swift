@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
@@ -65,7 +66,11 @@ public struct TextField<Label> : View where Label : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
         let colors = Self.colors()
-        OutlinedTextField(value: text.wrappedValue, onValueChange: { text.wrappedValue = $0 }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, placeholder: { Self.Placeholder(prompt: prompt ?? label, context: contentContext) }, singleLine: true, colors: colors)
+        OutlinedTextField(value: text.wrappedValue, onValueChange: {
+            text.wrappedValue = $0
+        }, placeholder: {
+            Self.Placeholder(prompt: prompt ?? label, context: contentContext)
+        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default, colors: colors)
     }
 
     @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {
@@ -121,13 +126,29 @@ public struct TextFieldStyle: RawRepresentable, Equatable {
 }
 
 extension View {
-    @available(*, unavailable)
-    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
+    public func autocorrectionDisabled(_ disable: Bool = true) -> some View {
+        #if SKIP
+        return keyboardOptionsModifierView { options in
+            return options == nil ? KeyboardOptions(autoCorrect: !disable) : options.copy(autoCorrect: !disable)
+        }
+        #else
         return self
+        #endif
+    }
+
+    public func keyboardType(_ type: UIKeyboardType) -> some View {
+        #if SKIP
+        let keyboardType = type.asComposeKeyboardType()
+        return keyboardOptionsModifierView { options in
+            return options == nil ? KeyboardOptions(keyboardType: keyboardType) : options.copy(keyboardType: keyboardType)
+        }
+        #else
+        return self
+        #endif
     }
 
     @available(*, unavailable)
-    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
+    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
         return self
     }
 
@@ -136,25 +157,52 @@ extension View {
         return self
     }
 
-    public func textFieldStyle(_ style: TextFieldStyle) -> some View {
-        // We only support Android's outline style
+    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
+        #if SKIP
+        let imeAction = submitLabel.asImeAction()
+        return keyboardOptionsModifierView { options in
+            return options == nil ? KeyboardOptions(imeAction: imeAction) : options.copy(imeAction: imeAction)
+        }
+        #else
         return self
-    }
-
-    @available(*, unavailable)
-    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func keyboardType(_ type: UIKeyboardType) -> some View {
-        return self
+        #endif
     }
 
     @available(*, unavailable)
     public func textContentType(_ textContentType: UITextContentType?) -> some View {
         return self
     }
+
+    public func textFieldStyle(_ style: TextFieldStyle) -> some View {
+        // We only support Android's outline style
+        return self
+    }
+
+    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View {
+        #if SKIP
+        let capitalization = (autocapitalization ?? TextInputAutocapitalization.sentences).asKeyboardCapitalization()
+        return keyboardOptionsModifierView { options in
+            return options == nil ? KeyboardOptions(capitalization: capitalization) : options.copy(capitalization: capitalization)
+        }
+        #else
+        return self
+        #endif
+    }
+
+    #if SKIP
+    /// Return a modifier view that updates the environment's keyboard options.
+    public func keyboardOptionsModifierView(update: (KeyboardOptions?) -> KeyboardOptions) -> View {
+        return ComposeModifierView(contentView: self) { view, context in
+            let options = EnvironmentValues.shared._keyboardOptions
+            let updatedOptions = update(options)
+            EnvironmentValues.shared.setValues {
+                $0.set_keyboardOptions(updatedOptions)
+            } in: {
+                view.Compose(context: context)
+            }
+        }
+    }
+    #endif
 }
 
 #if !SKIP
