@@ -313,9 +313,8 @@ extension View {
 
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return PresentationModifierView(view: self) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions())
-            view.Compose(context: context)
         }
         #else
         return self
@@ -332,9 +331,8 @@ extension View {
 
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return PresentationModifierView(view: self) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
-            view.Compose(context: context)
         }
         #else
         return self
@@ -455,12 +453,32 @@ extension View {
 
     public func sheet<Content>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View where Content : View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return PresentationModifierView(view: self) { context in
             SheetPresentation(isPresented: isPresented, context: context, content: content, onDismiss: onDismiss)
-            view.Compose(context: context)
         }
         #else
         return self
         #endif
     }
 }
+
+#if SKIP
+class PresentationModifierView: ComposeModifierView {
+    private let presentation: @Composable (ComposeContext) -> Void
+
+    init(view: View, presentation: @Composable (ComposeContext) -> Void) {
+        super.init(view: view)
+        self.presentation = presentation
+    }
+
+    @Composable override func ComposeContent(context: ComposeContext) {
+        EnvironmentValues.shared.setValues {
+            // Clear environment state that should not transfer to presentations
+            $0.set_searchableState(nil)
+        } in: {
+            presentation(context.content())
+        }
+        view.Compose(context: context)
+    }
+}
+#endif
