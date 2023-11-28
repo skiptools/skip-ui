@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,6 +13,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
@@ -63,12 +67,14 @@ public struct TextField : View {
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
+        let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
+        let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = Self.colors()
         OutlinedTextField(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default, colors: colors)
+        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors)
     }
 
     @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {
@@ -145,9 +151,20 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let state = EnvironmentValues.shared._onSubmitState
+            let updatedState = state == nil ? OnSubmitState(triggers: triggers, action: action) : state!.appending(triggers: triggers, action: action)
+            EnvironmentValues.shared.setValues {
+                $0.set_onSubmitState(updatedState)
+            } in: {
+                view.Compose(context: context)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -202,6 +219,60 @@ extension View {
     }
     #endif
 }
+
+/// State for `onSubmit` actions.
+struct OnSubmitState {
+    let actions: [(SubmitTriggers, () -> Void)]
+
+    init(triggers: SubmitTriggers, action: @escaping () -> Void) {
+        actions = [(triggers, action)]
+    }
+
+    private init(actions: [(SubmitTriggers, () -> Void)]) {
+        self.actions = actions
+    }
+
+    func appending(triggers: SubmitTriggers, action: @escaping () -> Void) -> OnSubmitState {
+        return OnSubmitState(actions: actions + [(triggers, action)])
+    }
+
+    func appending(_ state: OnSubmitState) -> OnSubmitState {
+        return OnSubmitState(actions: actions + state.actions)
+    }
+
+    func onSubmit(trigger: SubmitTriggers) {
+        for action in actions {
+            if action.0.contains(trigger) {
+                action.1()
+            }
+        }
+    }
+}
+
+#if SKIP
+/// Create keyboard actions that execute the given submit state.
+func KeyboardActions(submitState: OnSubmitState?, clearFocusWith: FocusManager? = nil) -> KeyboardActions {
+    return KeyboardActions(onDone: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .text)
+    }, onGo: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .text)
+    }, onNext: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .text)
+    }, onPrevious: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .text)
+    }, onSearch: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .search)
+    }, onSend: {
+        clearFocusWith?.clearFocus()
+        submitState?.onSubmit(trigger: .text)
+    })
+}
+#endif
 
 #if !SKIP
 

@@ -547,6 +547,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.onDelete`|✅ Full||
 |`.onLongPressGesture`|🟡 Medium|`minimumDuration`, `maximumDistance`, `onPressingChanged` not supported|
 |`.onMove`|✅ Full||
+|`.onSubmit`|✅ Full||
 |`.onTapGesture`|🟢 High|Tap count > 2 not supported|
 |`.opacity`|✅ Full||
 |`.padding`|🟢 High|Compose does not support negative padding|

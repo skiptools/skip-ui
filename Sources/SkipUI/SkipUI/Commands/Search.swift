@@ -41,9 +41,10 @@ extension View {
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
+            let submitState = EnvironmentValues.shared._onSubmitState
             let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
             let isOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
-            let state = SearchableState(text: text, prompt: prompt, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
+            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
             // SwiftUI allows you to place .searchable on the NavigationStack or its content. The former requires environment, the latter preferences
             EnvironmentValues.shared.setValues {
                 $0.set_searchableState(state)
@@ -111,6 +112,16 @@ let searchFieldHeight = 56.0
     let focusManager = LocalFocusManager.current
     let focusRequester = remember { FocusRequester() }
     let contentContext = context.content()
+    let keyboardOptions = KeyboardOptions(imeAction: ImeAction.Search)
+    let submitState = OnSubmitState(triggers: .search) {
+        if state.value?.text.wrappedValue.isEmpty == false {
+            focusManager.clearFocus()
+            if let searchableSubmitState = state.value?.submitState {
+                searchableSubmitState.onSubmit(trigger: SubmitTriggers.search)
+            }
+        }
+    }
+    let keyboardActions = KeyboardActions(submitState)
     Row(horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically, modifier: context.modifier) {
         let isFocused = remember { mutableStateOf(false) }
         OutlinedTextField(value: state.value?.text.wrappedValue ?? "", onValueChange: {
@@ -130,11 +141,7 @@ let searchFieldHeight = 56.0
                     focusRequester.requestFocus()
                 })
             }
-        }, keyboardActions = KeyboardActions(onSearch = {
-            if state.value?.text.wrappedValue.isEmpty == false {
-                focusManager.clearFocus()
-            }
-        }), keyboardOptions: KeyboardOptions(imeAction: ImeAction.Search), singleLine: true, colors: colors)
+        }, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors)
         AnimatedVisibility(visible: state.value?.isSearching.value == true) {
             Button(stringResource(android.R.string.cancel)) {
                 state.value?.text.wrappedValue = ""
@@ -149,6 +156,7 @@ let searchFieldHeight = 56.0
 struct SearchableState {
     let text: Binding<String>
     let prompt: Text?
+    let submitState: OnSubmitState?
     let isSearching: MutableState<Bool>
     let isOnNavigationStack: Bool
 }
