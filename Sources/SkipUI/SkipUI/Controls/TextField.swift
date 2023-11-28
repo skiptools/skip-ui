@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
 // Erase the generic Label to facilitate specialized constructor support.
@@ -23,11 +25,13 @@ public struct TextField : View {
     let text: Binding<String>
     let label: any View
     let prompt: Text?
+    let isSecure: Bool
 
-    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
         self.text = text
         self.label = label()
         self.prompt = prompt
+        self.isSecure = isSecure
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
@@ -70,11 +74,12 @@ public struct TextField : View {
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = Self.colors()
+        let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
         OutlinedTextField(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors)
+        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
     }
 
     @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {

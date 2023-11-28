@@ -4,29 +4,31 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.runtime.Composable
+#endif
+
 // Erase the generic Label to facilitate specialized constructor support.
 public struct SecureField : View {
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?) {
-    }
+    let textField: TextField
 
-    @available(*, unavailable)
-    public init(_ title: String, text: Binding<String>, prompt: Text?) {
-    }
-
-    @available(*, unavailable)
     public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> any View) {
+        textField = TextField(text: text, prompt: prompt, isSecure: true, label: label)
     }
 
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>) {
+    public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
+        self.init(text: text, prompt: prompt, label: { Text(title) })
     }
 
-    @available(*, unavailable)
-    public init(_ title: String, text: Binding<String>) {
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
+        self.init(text: text, prompt: prompt, label: { Text(titleKey.value) })
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        textField.Compose(context: context)
+    }
+    #else
     public var body: some View {
         stubView()
     }
