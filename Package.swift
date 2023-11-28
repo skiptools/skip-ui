@@ -5,7 +5,7 @@ let package = Package(
     name: "skip-ui",
     platforms: [.iOS(.v16), .macOS(.v13), .tvOS(.v16), .watchOS(.v9), .macCatalyst(.v16)],
     products: [
-        .library(name: "SkipUI", type: .dynamic, targets: ["SkipUI"]),
+        .library(name: "SkipUI", targets: ["SkipUI"]),
     ],
     dependencies: [ 
         .package(url: "https://source.skip.tools/skip.git", from: "0.7.29"),
