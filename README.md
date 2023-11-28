@@ -461,14 +461,13 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
   - 🟢 – High
   - 🟡 – Medium 
   - 🔴 – Low
-  - ⛔️ – None
 
 |Component|Support Level|Notes|
 |---------|-------------|-----|
 |`@AppStorage`|🟡 Medium||
 |`@Bindable`|✅ Full||
 |`@Binding`|✅ Full||
-|`@Environment`|✅ Full|Custom keys supported, but most builtin keys not yet available|
+|`@Environment`|✅ Full|See [Supported Environment Keys](#supported-environment-keys)|
 |`@EnvironmentObject`|✅ Full||
 |`@ObservedObject`|✅ Full||
 |`@State`|✅ Full||
@@ -499,7 +498,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Rectangle`|✅ Full||
 |`RoundedRectangle`|✅ Full||
 |`ScrollView`|✅ Full||
-|`Section`|🟢 High|Only tested for Text content within List|
+|`Section`|🟢 High|See [Lists](#lists)|
 |`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
 |`Spacer`|🟡 Medium|`minLength` not supported|
 |`TabView`|🟡 Medium|See [Navigation](#navigation)|
@@ -570,3 +569,15 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.tint`|✅ Full||
 |`.toolbar`|🟢 High||
+
+### Supported Environment Keys
+
+SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your own environment values, SkipUI exposes the following built-in environment keys:
+
+- `autocorrectionDisabled`
+- `backgroundStyle`
+- `dismiss`
+- `font`
+- `isEnabled`
+- `isSearching`
+- `lineLimit`
