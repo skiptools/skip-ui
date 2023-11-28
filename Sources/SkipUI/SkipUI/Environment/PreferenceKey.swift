@@ -115,9 +115,8 @@ class Preference<Value> {
 extension View {
     public func preference(key: Any.Type, value: Any) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ComposeModifierView(targetView: self) { _ in
             syncPreference(key: key, value: value)
-            view.Compose(context: context)
         }
         #else
         return self

@@ -297,7 +297,7 @@ class GestureModifierView: ComposeModifierView {
         wrappedGestureView?.doubleTapAction = nil
         wrappedGestureView?.longPressAction = nil
 
-        self.contextTransform = { $0.modifier = addGestures(to: $0.modifier) }
+        self.action = { $0.modifier = addGestures(to: $0.modifier) }
     }
 
     @Composable private func addGestures(to modifier: Modifier) -> Modifier {

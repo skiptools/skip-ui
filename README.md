@@ -543,7 +543,9 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
 |`.navigationTitle`|✅ Full||
 |`.offset`|✅ Full||
+|`.onAppear`|✅ Full||
 |`.onDelete`|✅ Full||
+|`.onDisappear`|✅ Full||
 |`.onLongPressGesture`|🟡 Medium|`minimumDuration`, `maximumDistance`, `onPressingChanged` not supported|
 |`.onMove`|✅ Full||
 |`.onSubmit`|✅ Full||

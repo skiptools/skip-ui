@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -128,7 +129,7 @@ extension View {
 
     public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             if let color = style.asColor(opacity: 1.0) {
                 $0.modifier = $0.modifier.background(color)
             } else if let brush = style.asBrush(opacity: 1.0) {
@@ -195,7 +196,7 @@ extension View {
 
     public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             if let color = style.asColor(opacity: 1.0) {
                 $0.modifier = $0.modifier.border(width: width.dp, color: color)
             } else if let brush = style.asBrush(opacity: 1.0) {
@@ -214,7 +215,7 @@ extension View {
 
     public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
         }
         #else
@@ -224,7 +225,7 @@ extension View {
 
     public func clipped(antialiased: Bool = false) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clipToBounds()
         }
         #else
@@ -636,7 +637,7 @@ extension View {
 
     public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             let density = LocalDensity.current
             let offsetPx = with(density) {
                 IntOffset(Int(x.dp.toPx()), Int(y.dp.toPx()))
@@ -648,9 +649,18 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func onAppear(perform action: (() -> Void)? = nil) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { _ in
+            let hasAppeared = remember { mutableStateOf(false) }
+            if !hasAppeared.value {
+                hasAppeared.value = true
+                action?()
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -673,9 +683,19 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { _ in
+            let disposeAction = rememberUpdatedState(action)
+            DisposableEffect(true) {
+                onDispose {
+                    disposeAction.value?()
+                }
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -685,7 +705,7 @@ extension View {
 
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.alpha(Float(opacity))
         }
         #else
@@ -710,7 +730,7 @@ extension View {
 
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self, role: .spacing) {
+        return ComposeModifierView(targetView: self, role: .spacing) {
             // Compose throws a runtime error for negative padding
             $0.modifier = $0.modifier.padding(start: max(insets.leading, 0.0).dp, top: max(insets.top, 0.0).dp, end: max(insets.trailing, 0.0).dp, bottom: max(insets.bottom, 0.0).dp)
         }
@@ -726,7 +746,7 @@ extension View {
         let end = edges.contains(.trailing) ? amount : 0.dp
         let top = edges.contains(.top) ? amount : 0.dp
         let bottom = edges.contains(.bottom) ? amount : 0.dp
-        return ComposeModifierView(contextView: self, role: .spacing) {
+        return ComposeModifierView(targetView: self, role: .spacing) {
             $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
         }
         #else
@@ -790,7 +810,7 @@ extension View {
 
     public func rotationEffect(_ angle: Angle) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.rotate(Float(angle.degrees))
         }
         #else
@@ -870,7 +890,7 @@ extension View {
 
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) {
+        return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
         }
         #else
@@ -928,12 +948,11 @@ extension View {
 
     public func task(id value: Any, priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ComposeModifierView(targetView: self) { _ in
             let handler = rememberUpdatedState(action)
             LaunchedEffect(value) {
                 handler.value()
             }
-            view.Compose(context: context)
         }
         #else
         return self
