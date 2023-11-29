@@ -2669,6 +2669,7 @@ extension Never : Keyframes {
 }
 
 extension Never : KeyframeTrackContent {
+    public typealias Value = Never
 }
 
 #endif

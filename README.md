@@ -145,13 +145,13 @@ As you can see, the `Text` type is defined just as it is in SwiftUI. We then use
 
 ### Modifiers
 
-Modifiers, on the other hand, use the `ComposeModifierView` to change the `context` passed to the modified view. Here is the `.opacity` modifier:
+Modifiers, on the other hand, use the `ComposeModifierView` to perform actions, including changing the `context` passed to the modified view. Here is the `.opacity` modifier:
 
 ```swift
 extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
-        return ComposeModifierView(contextView: self) { context in
+        return ComposeModifierView(targetView: self) { context in
             context.modifier = context.modifier.alpha(Float(opacity))
         }
         #else
@@ -161,18 +161,26 @@ extension View {
 }
 ```
 
-Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.task` uses Compose's `LaunchedEffect` to run an asynchronous block the first time it is composed:
+Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
 
 ```swift
 extension View {
-    public func task(id value: Any, priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            let handler = rememberUpdatedState(action)
-            LaunchedEffect(value) {
-                handler.value()
+            var modifier = context.modifier
+            if let width {
+                modifier = modifier.width(width.dp)
             }
-            view.Compose(context: context)
+            if let height {
+                modifier = modifier.height(height.dp)
+            }
+            let contentContext = context.content()
+            ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
+                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    view.Compose(context: contentContext)
+                }
+            }
         }
         #else
         return self
@@ -183,9 +191,7 @@ extension View {
 
 Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 
-## Topics
-
-### ComposeView
+## ComposeView
 
 `ComposeView` is an Android-only SwiftUI view that you can use to embed Compose code directly into your SwiftUI view tree. In the following example, we use a SwiftUI `Text` to write "Hello from SwiftUI", followed by calling the `androidx.compose.material3.Text()` Compose function to write "Hello from Compose" below it:
 
@@ -231,6 +237,158 @@ ComposeView { context in
 With `ComposeView` and the `Compose()` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
 
 Note that `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
+
+## Tests
+
+SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
+
+Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
+
+## Supported SwiftUI
+
+The following table summarizes SkipUI's SwiftUI support on Android. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
+
+  - ✅ – Full
+  - 🟢 – High
+  - 🟡 – Medium 
+  - 🔴 – Low
+
+|Component|Support Level|Notes|
+|---------|-------------|-----|
+|`@AppStorage`|🟡 Medium||
+|`@Bindable`|✅ Full||
+|`@Binding`|✅ Full||
+|`@Environment`|✅ Full|See [Environment Keys](#environment-keys)|
+|`@EnvironmentObject`|✅ Full||
+|`@ObservedObject`|✅ Full||
+|`@State`|✅ Full||
+|`@StateObject`|✅ Full||
+|Custom Views|✅ Full||
+|`AsyncImage`|🟢 High||
+|`Button`|🟢 High||
+|`Capsule`|✅ Full||
+|`Circle`|✅ Full||
+|`Color`|🟢 High||
+|`Divider`|✅ Full||
+|`DragGesture`|🟢 High|See [Gestures](#gestures)|
+|`EllipticalGradient`|🟡 Medium|Fills as circular unless used as a `View`|
+|`EmptyView`|✅ Full||
+|`Font`|🟡 Medium||
+|`ForEach`|🟢 High|See [Lists](#lists)|
+|`Form`|✅ Full||
+|`Group`|✅ Full||
+|`HStack`|✅ Full||
+|`Image`|🔴 Low|See [Images](#images)|
+|`Label`|🔴 Low|See [Images](#images)|
+|`LinearGradient`|✅ Full||
+|`List`|🟢 High|See [Lists](#lists)|
+|`LongPressGesture`|🟢 High|See [Gestures](#gestures)|
+|`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
+|`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
+|`Oval`|✅ Full||
+|`ProgressView`|🟡 Medium|Labels not supported|
+|`RadialGradient`|✅ Full||
+|`Rectangle`|✅ Full||
+|`RoundedRectangle`|✅ Full||
+|`ScrollView`|✅ Full||
+|`Section`|🟢 High|See [Lists](#lists)|
+|`SecureField`|✅ Full||
+|`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
+|`Spacer`|🟡 Medium|`minLength` not supported|
+|`TabView`|🟡 Medium|See [Navigation](#navigation)|
+|`TapGesture`|🟢 High|See [Gestures](#gestures)|
+|`Text`|🟢 High|Formatting not supported|
+|`TextField`|🟢 High|Formatting not supported|
+|`Toggle`|🟡 Medium|Styling, `sources` not supported|
+|`ToolbarItem`|✅ Full||
+|`ToolbarItemGroup`|✅ Full||
+|`UnevenRoundedRectangle`|✅ Full||
+|`VStack`|✅ Full||
+|`ZStack`|✅ Full||
+|`.aspectRatio`|🟡 Medium|Supported for images|
+|`.autocorrectionDisabled`|✅ Full||
+|`.background`|🔴 Low|Only color/ShapeStyle supported|
+|`.backgroundStyle`|✅ Full||
+|`.bold`|✅ Full||
+|`.border`|✅ Full||
+|`.buttonStyle`|🟢 High|Custom styles not supported|
+|`.clipped`|🔴 Low|Most content clips automatically|
+|`.clipShape`|✅ Full||
+|`.confirmationDialog`|✅ Full||
+|`.deleteDisabled`|✅ Full||
+|`.disabled`|✅ Full||
+|`.environment`|✅ Full||
+|`.environmentObject`|✅ Full||
+|`.fill` (Shape)|✅ Full||
+|`.font`|✅ Full||
+|`.foregroundColor`|✅ Full||
+|`.foregroundStyle`|✅ Full||
+|`.frame`|🟢 High||
+|`.gesture`|🟢 High|See [Gestures](#gestures)|
+|`.gradient` (Color)|✅ Full||
+|`.hidden`|✅ Full||
+|`.inset` (Shape)|🟢 High||
+|`.italic`|✅ Full||
+|`.keyboardType`|✅ Full||
+|`.labelsHidden`|✅ Full||
+|`.lineLimit`|🟡 Medium|Only `Int?` value supported|
+|`.listItemTint`|✅ Full||
+|`.listStyle`|✅ Full||
+|`.moveDisabled`|✅ Full||
+|`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
+|`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
+|`.navigationTitle`|✅ Full||
+|`.offset`|✅ Full||
+|`.onAppear`|✅ Full||
+|`.onDelete`|✅ Full||
+|`.onDisappear`|✅ Full||
+|`.onLongPressGesture`|🟢 High|See [Gestures](#gestures)|
+|`.onMove`|✅ Full||
+|`.onSubmit`|✅ Full||
+|`.onTapGesture`|🟢 High|See [Gestures](#gestures)|
+|`.opacity`|✅ Full||
+|`.padding`|🟢 High|Compose does not support negative padding|
+|`.progressViewStyle`|🟢 High|Custom styles not supported|
+|`.resizable`|🔴 Low|`capInsets` and `resizingMode` not supported|
+|`.rotation` (Shape)|🟢 High|Anchor not supported|
+|`.rotationEffect`|🟡 Medium||
+|`.scale` (Shape)|🟢 High|Anchor not supported|
+|`.scaledToFill`|🟡 Medium|Supported for images|
+|`.scaledToFit`|🟡 Medium|Supported for images|
+|`.scaleEffect`|🟡 Medium||
+|`.searchable`|🔴 Low|Suggestions, scope not implemented|
+|`.sheet`|🟢 High|See [Navigation](#navigation)|
+|`.stroke` (Shape)|✅ Full||
+|`.strokeBorder` (Shape)|✅ Full||
+|`.submitLabel`|✅ Full||
+|`.tabItem`|✅ Full||
+|`.task`|✅ Full||
+|`.textInputAutocapitalization`|✅ Full||
+|`.textFieldStyle`|🟡 Medium|`.plain` not supported|
+|`.tint`|✅ Full||
+|`.toolbar`|🟢 High||
+
+### Environment Keys
+
+SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
+
+- `autocorrectionDisabled`
+- `backgroundStyle`
+- `dismiss`
+- `font`
+- `isEnabled`
+- `isSearching`
+- `lineLimit`
+
+### Gestures
+
+SkipUI currently supports tap, long press, and drag gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
+
+- `@GestureState` is not yet supported. Use the `Gesture.onEnded` modifier to reset your state.
+- Tap counts > 2 are not supported.
+- Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
+- Only the `onChanged` and `onEnded` gesture modifiers are supported.
+- Customization of minimum touch duration, distance, etc. is not supported.
 
 ### Images
 
@@ -446,141 +604,3 @@ Compose requires all state values to be serializable. This restriction is typica
 - Else use `String(describing: value)`
 
 Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
-
-## Tests
-
-SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
-
-Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
-
-## Supported SwiftUI
-
-The following table summarizes SkipUI's SwiftUI support on Android. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
-
-  - ✅ – Full
-  - 🟢 – High
-  - 🟡 – Medium 
-  - 🔴 – Low
-
-|Component|Support Level|Notes|
-|---------|-------------|-----|
-|`@AppStorage`|🟡 Medium||
-|`@Bindable`|✅ Full||
-|`@Binding`|✅ Full||
-|`@Environment`|✅ Full|See [Supported Environment Keys](#supported-environment-keys)|
-|`@EnvironmentObject`|✅ Full||
-|`@ObservedObject`|✅ Full||
-|`@State`|✅ Full||
-|`@StateObject`|✅ Full||
-|Custom Views|✅ Full||
-|`AsyncImage`|🟢 High||
-|`Button`|🟢 High||
-|`Capsule`|✅ Full||
-|`Circle`|✅ Full||
-|`Color`|🟢 High||
-|`Divider`|✅ Full||
-|`EllipticalGradient`|🟡 Medium|Fills as circular unless used as a `View`|
-|`EmptyView`|✅ Full||
-|`Font`|🟡 Medium||
-|`ForEach`|🟢 High|See [Lists](#lists)|
-|`Form`|✅ Full||
-|`Group`|✅ Full||
-|`HStack`|✅ Full||
-|`Image`|🔴 Low|See [Images](#images)|
-|`Label`|🔴 Low|See [Images](#images)|
-|`LinearGradient`|✅ Full||
-|`List`|🟢 High|See [Lists](#lists)|
-|`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
-|`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
-|`Oval`|✅ Full||
-|`ProgressView`|🟡 Medium|Labels not supported|
-|`RadialGradient`|✅ Full||
-|`Rectangle`|✅ Full||
-|`RoundedRectangle`|✅ Full||
-|`ScrollView`|✅ Full||
-|`Section`|🟢 High|See [Lists](#lists)|
-|`SecureField`|✅ Full||
-|`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
-|`Spacer`|🟡 Medium|`minLength` not supported|
-|`TabView`|🟡 Medium|See [Navigation](#navigation)|
-|`Text`|🟢 High|Formatting not supported|
-|`TextField`|🟢 High|Formatting not supported|
-|`Toggle`|🟡 Medium|Styling, `sources` not supported|
-|`ToolbarItem`|✅ Full||
-|`ToolbarItemGroup`|✅ Full||
-|`UnevenRoundedRectangle`|✅ Full||
-|`VStack`|✅ Full||
-|`ZStack`|✅ Full||
-|`.aspectRatio`|🟡 Medium|Supported for images|
-|`.autocorrectionDisabled`|✅ Full||
-|`.background`|🔴 Low|Only color/ShapeStyle supported|
-|`.backgroundStyle`|✅ Full||
-|`.bold`|✅ Full||
-|`.border`|✅ Full||
-|`.buttonStyle`|🟢 High|Custom styles not supported|
-|`.clipped`|🔴 Low|Most content clips automatically|
-|`.clipShape`|✅ Full||
-|`.confirmationDialog`|✅ Full||
-|`.deleteDisabled`|✅ Full||
-|`.disabled`|✅ Full||
-|`.environment`|✅ Full||
-|`.environmentObject`|✅ Full||
-|`.fill` (Shape)|✅ Full||
-|`.font`|✅ Full||
-|`.foregroundColor`|✅ Full||
-|`.foregroundStyle`|✅ Full||
-|`.frame`|🟢 High||
-|`.gradient` (Color)|✅ Full||
-|`.hidden`|✅ Full||
-|`.inset` (Shape)|🟢 High||
-|`.italic`|✅ Full||
-|`.keyboardType`|✅ Full||
-|`.labelsHidden`|✅ Full||
-|`.lineLimit`|🟡 Medium|Only `Int?` value supported|
-|`.listItemTint`|✅ Full||
-|`.listStyle`|✅ Full||
-|`.moveDisabled`|✅ Full||
-|`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
-|`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
-|`.navigationTitle`|✅ Full||
-|`.offset`|✅ Full||
-|`.onAppear`|✅ Full||
-|`.onDelete`|✅ Full||
-|`.onDisappear`|✅ Full||
-|`.onLongPressGesture`|🟡 Medium|`minimumDuration`, `maximumDistance`, `onPressingChanged` not supported|
-|`.onMove`|✅ Full||
-|`.onSubmit`|✅ Full||
-|`.onTapGesture`|🟢 High|Tap count > 2 not supported|
-|`.opacity`|✅ Full||
-|`.padding`|🟢 High|Compose does not support negative padding|
-|`.progressViewStyle`|🟢 High|Custom styles not supported|
-|`.resizable`|🔴 Low|`capInsets` and `resizingMode` not supported|
-|`.rotation` (Shape)|🟢 High|Anchor not supported|
-|`.rotationEffect`|🟡 Medium||
-|`.scale` (Shape)|🟢 High|Anchor not supported|
-|`.scaledToFill`|🟡 Medium|Supported for images|
-|`.scaledToFit`|🟡 Medium|Supported for images|
-|`.scaleEffect`|🟡 Medium||
-|`.searchable`|🔴 Low|Suggestions, scope not implemented|
-|`.sheet`|🟢 High|See [Navigation](#navigation)|
-|`.stroke` (Shape)|✅ Full||
-|`.strokeBorder` (Shape)|✅ Full||
-|`.submitLabel`|✅ Full||
-|`.tabItem`|✅ Full||
-|`.task`|✅ Full||
-|`.textInputAutocapitalization`|✅ Full||
-|`.textFieldStyle`|🟡 Medium|`.plain` not supported|
-|`.tint`|✅ Full||
-|`.toolbar`|🟢 High||
-
-### Supported Environment Keys
-
-SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your own environment values, SkipUI exposes the following built-in environment keys:
-
-- `autocorrectionDisabled`
-- `backgroundStyle`
-- `dismiss`
-- `font`
-- `isEnabled`
-- `isSearching`
-- `lineLimit`
