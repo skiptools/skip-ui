@@ -87,8 +87,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
         let navController = rememberNavController()
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
-        // navigator.value might be null after a rotation change
-        navigator.value?.didCompose(navController: navController, destinations: destinations.value, keyboardController: LocalSoftwareKeyboardController.current)
+        navigator.value.didCompose(navController: navController, destinations: destinations.value, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -97,7 +96,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     composable(route: Navigator.rootRoute,
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * -1 / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * -1 / 3 }) }) { entry in
-                        if let state = navigator.value?.state(for: entry) {
+                        if let state = navigator.value.state(for: entry) {
                             let entryContext = context.content(stateSaver: state.stateSaver)
                             ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
                                 root.Compose(context: context)
@@ -111,7 +110,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                    exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * -1 / 3 }) },
                                    popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * -1 / 3 }) },
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 }) }) { entry in
-                            if let state = navigator.value?.state(for: entry), let targetValue = state.targetValue {
+                            if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss({ navController.popBackStack() })
