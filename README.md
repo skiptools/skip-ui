@@ -340,6 +340,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.navigationTitle`|✅ Full||
 |`.offset`|✅ Full||
 |`.onAppear`|✅ Full||
+|`.onChange`|✅ Full||
 |`.onDelete`|✅ Full||
 |`.onDisappear`|✅ Full||
 |`.onLongPressGesture`|🟢 High|See [Gestures](#gestures)|

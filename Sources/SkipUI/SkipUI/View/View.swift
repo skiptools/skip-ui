@@ -663,19 +663,66 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View where V : Equatable {
+    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
+            if rememberedValue.value != value {
+                rememberedValue.value = value
+                action(value)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View where V : Equatable {
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
+            let rememberedInitial = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(true) }
+            
+            let isInitial = rememberedInitial.value
+            rememberedInitial.value = false
+            
+            let oldValue = rememberedValue.value
+            let isUpdate = oldValue != value
+            if isUpdate {
+                rememberedValue.value = value
+            }
+
+            if (initial && isInitial) || isUpdate {
+                action(oldValue, value)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View where V : Equatable {
+    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
+            let rememberedInitial = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(true) }
+
+            let isInitial = rememberedInitial.value
+            rememberedInitial.value = false
+
+            let oldValue = rememberedValue.value
+            let isUpdate = oldValue != value
+            if isUpdate {
+                rememberedValue.value = value
+            }
+
+            if (initial && isInitial) || isUpdate {
+                action()
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
