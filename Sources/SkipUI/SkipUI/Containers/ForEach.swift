@@ -144,8 +144,8 @@ public class ForEach</* Data, ID, */ Content> : View, ListItemFactory where /* D
 //extension ForEach where ID == Data.Element.ID, Content : AccessibilityRotorContent, Data.Element : Identifiable {
 //    public init(_ data: Data, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
-public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where D: Identifiable<Hashable>, Content: View {
-    return ForEach(identifier: { ($0 as! D).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
+public func ForEach<D, Content>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> Content) -> ForEach<Content> where Content: View {
+    return ForEach(identifier: { ($0 as! Identifiable<Hashable>).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
 }
 
 //extension ForEach where Content : AccessibilityRotorContent {
@@ -161,8 +161,8 @@ public func ForEach<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = n
 //extension ForEach {
 //  public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable
 //}
-public func ForEach<C, E, Content>(_ data: Binding<C>, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> Content) -> ForEach<Content> where C: any RandomAccessCollection<E>, E: Identifiable<Hashable>, Content: View {
-    return ForEach(identifier: { ($0 as! E).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
+public func ForEach<C, E, Content>(_ data: Binding<C>, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> Content) -> ForEach<Content> where C: any RandomAccessCollection<E>, Content: View {
+    return ForEach(identifier: { ($0 as! Identifiable<Hashable>).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<E>(get: { data.wrappedValue[index] as! E }, set: { (data.wrappedValue as! skip.lib.MutableCollection<E>)[index] = $0 })
         return content(binding)
     }, editActions: editActions)
