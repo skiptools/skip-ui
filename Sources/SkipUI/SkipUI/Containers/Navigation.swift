@@ -220,17 +220,10 @@ public struct NavigationStack<Root> : View where Root: View {
             let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
             Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
 
-                // Searchable state may come from our content via preference or from a `NavigationStack` modifier via environment
-                let preferenceSearchableState = rememberSaveable(stateSaver: context.stateSaver as! Saver<SearchableState?, Any>) { mutableStateOf<SearchableState?>(nil) }
-                let environmentSearchableState = isRoot ? EnvironmentValues.shared._searchableState : nil
-                let searchablePreferenceUpdates = remember { mutableStateOf(0) }
-                let _ = searchablePreferenceUpdates.value // Read to trigger composition on change
-
                 let contentContext: ComposeContext
-                if preferenceSearchableState.value != nil || environmentSearchableState != nil {
+                if isRoot, let searchableState = EnvironmentValues.shared._searchableState {
                     let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
-                    let searchFieldState = preferenceSearchableState.value != nil ? preferenceSearchableState : mutableStateOf(environmentSearchableState)
-                    SearchField(state: searchFieldState, context: context.content(modifier: searchFieldModifier))
+                    SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
                     let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
                     contentContext = context.content(modifier: Modifier.padding(top: searchFieldPlaceholderPadding))
                 } else {
@@ -243,8 +236,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let searchableStatePreference = Preference<SearchableState?>(key: SearchableStatePreferenceKey.self, update: { preferenceSearchableState.value = $0 }, didChange: { searchablePreferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, searchableStatePreference]) {
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {

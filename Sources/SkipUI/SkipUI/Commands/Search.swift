@@ -45,13 +45,9 @@ extension View {
             let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
             let isOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
             let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
-            // SwiftUI allows you to place .searchable on the NavigationStack or its content. The former requires environment, the latter preferences
             EnvironmentValues.shared.setValues {
                 $0.set_searchableState(state)
             } in: {
-                if !isOnNavigationStack {
-                    syncPreference(key: SearchableStatePreferenceKey.self, value: state)
-                }
                 view.Compose(context: context)
             }
         }
@@ -103,20 +99,18 @@ let searchFieldHeight = 56.0
 
 /// Renders a search field.
 @ExperimentalMaterial3Api
-@Composable func SearchField(state: MutableState<SearchableState?>, context: ComposeContext) {
-    // We must use a MutableState to get the latest value or else we see the cursor lag one letter behind when the
-    // search text changes the view
+@Composable func SearchField(state: SearchableState, context: ComposeContext) {
     let colors = TextField.colors()
     let disabledTextColor = TextField.textColor(enabled: false)
-    let prompt = state.value?.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
+    let prompt = state.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
     let focusManager = LocalFocusManager.current
     let focusRequester = remember { FocusRequester() }
     let contentContext = context.content()
     let keyboardOptions = KeyboardOptions(imeAction: ImeAction.Search)
     let submitState = OnSubmitState(triggers: .search) {
-        if state.value?.text.wrappedValue.isEmpty == false {
+        if state.text.wrappedValue.isEmpty == false {
             focusManager.clearFocus()
-            if let searchableSubmitState = state.value?.submitState {
+            if let searchableSubmitState = state.submitState {
                 searchableSubmitState.onSubmit(trigger: SubmitTriggers.search)
             }
         }
@@ -124,54 +118,41 @@ let searchFieldHeight = 56.0
     let keyboardActions = KeyboardActions(submitState)
     Row(horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically, modifier: context.modifier) {
         let isFocused = remember { mutableStateOf(false) }
-        OutlinedTextField(value: state.value?.text.wrappedValue ?? "", onValueChange: {
-            state.value?.text.wrappedValue = $0
+        OutlinedTextField(value: state.text.wrappedValue, onValueChange: {
+            state.text.wrappedValue = $0
         }, modifier: Modifier.weight(Float(1.0)).focusRequester(focusRequester).onFocusChanged {
             if it.isFocused {
-                state.value?.isSearching.value = true
+                state.isSearching.value = true
             }
         }, placeholder: {
             TextField.Placeholder(prompt: prompt, context: contentContext)
         }, leadingIcon: {
             Icon(imageVector: Icons.Outlined.Search, tint: disabledTextColor, contentDescription: nil)
         }, trailingIcon: {
-            if state.value?.text.wrappedValue.isEmpty == false {
+            if state.text.wrappedValue.isEmpty == false {
                 Icon(imageVector: Icons.Outlined.Clear, tint: disabledTextColor, contentDescription: "Clear", modifier: Modifier.clickable {
-                    state.value?.text.wrappedValue = ""
+                    state.text.wrappedValue = ""
                     focusRequester.requestFocus()
                 })
             }
         }, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors)
-        AnimatedVisibility(visible: state.value?.isSearching.value == true) {
+        AnimatedVisibility(visible: state.isSearching.value == true) {
             Button(stringResource(android.R.string.cancel)) {
-                state.value?.text.wrappedValue = ""
+                state.text.wrappedValue = ""
                 focusManager.clearFocus()
-                state.value?.isSearching.value = false
+                state.isSearching.value = false
             }.Compose(context: contentContext)
         }
     }
 }
 
-/// Searchable state.
+/// Searchable state placed in the environment.
 struct SearchableState {
     let text: Binding<String>
     let prompt: Text?
     let submitState: OnSubmitState?
     let isSearching: MutableState<Bool>
     let isOnNavigationStack: Bool
-}
-
-/// Communicate searchable state to owning `NavigationStack`.
-struct SearchableStatePreferenceKey: PreferenceKey {
-    typealias Value = SearchableState?
-
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<SearchableState?>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue: SearchableState? = nil
-        func reduce(value: inout SearchableState?, nextValue: () -> SearchableState?) {
-            value = nextValue()
-        }
-    }
 }
 
 /// Used by the `NavigationStack` to scroll the search field with screen content.

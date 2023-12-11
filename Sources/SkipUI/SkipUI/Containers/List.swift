@@ -12,11 +12,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,10 +103,14 @@ public class List<Content> : View where Content : View {
         }
         modifier = modifier.fillWidth()
 
+        let searchableState = EnvironmentValues.shared._searchableState
+        let isSearchable = searchableState?.isOnNavigationStack == false
+
         // Remember the factory because we use it in the remembered reorderable state
         let factoryContext = remember { mutableStateOf(ListItemFactoryContext()) }
         let moveTrigger = remember { mutableStateOf(0) }
-        let reorderableState = rememberReorderableLazyListState(onMove: { from, to in
+        let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+        let reorderableState = rememberReorderableLazyListState(listState: listState, onMove: { from, to in
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             factoryContext.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
         }, onDragEnd: { _, _ in
@@ -141,7 +148,7 @@ public class List<Content> : View where Content : View {
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
             factoryContext.value.initialize(
-                startItemIndex: 1, // List header item
+                startItemIndex: isSearchable ? 2 : 1,  // search field, list header
                 item: { view in
                     item {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
@@ -208,6 +215,11 @@ public class List<Content> : View where Content : View {
                 }
             )
 
+            if isSearchable {
+                item {
+                    ComposeSearchField(state: searchableState!, context: context, style: style)
+                }
+            }
             item {
                 ComposeHeader(style: style)
             }
@@ -352,6 +364,18 @@ public class List<Content> : View where Content : View {
                 }
             }
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeSearchField(state: SearchableState, context: ComposeContext, style: ListStyle) {
+        var modifier = Modifier.background(BackgroundColor(style: style))
+        if style == .plain {
+            modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
+        } else {
+            modifier = modifier.padding(top: Self.verticalInset.dp)
+        }
+        modifier = modifier.fillMaxWidth()
+        SearchField(state: state, context: context.content(modifier: modifier))
     }
 
     @Composable private func ComposeHeader(style: ListStyle) {
