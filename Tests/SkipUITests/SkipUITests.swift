@@ -173,6 +173,17 @@ import org.junit.Test
 import skip.ui.Text
 #endif
 
+
+#if SKIP
+typealias SkipUIEvaluator = ComposeContentTestRule
+#else
+/// A context for evaluating a SkipUI component.
+///
+/// This is currently only implemented on the Compose side, since inspecting the SwiftUI view hierarchy is challenging.
+struct SkipUIEvaluator {
+}
+#endif
+
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class SkipUITests: XCTestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
@@ -181,13 +192,13 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual(3, 1 + 2)
     }
 
-    #if SKIP
-    typealias Evaluator = ComposeContentTestRule
-    #else
-    typealias Evaluator = Never
-    #endif
+    func check(_ rule: SkipUIEvaluator, id: String, hasText text: String, exactly: Bool = true) {
+        #if SKIP
+        rule.onNodeWithTag(id).assert(hasTextExactly(text))
+        #endif
+    }
 
-    func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (Evaluator) throws -> ()) throws {
+    func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (SkipUIEvaluator) throws -> ()) throws {
         #if !SKIP
         let v = try view()
         _ = v
@@ -238,6 +249,7 @@ final class SkipUITests: XCTestCase {
         try testUI(view: {
             SliderTestView().accessibilityIdentifier("test-view")
         }, eval: { rule in
+            check(rule, id: "label", hasText: "0%")
             #if SKIP
             // https://developer.android.com/jetpack/compose/testing-cheatsheet
             rule.onNodeWithTag("label").assertIsDisplayed()
@@ -249,6 +261,7 @@ final class SkipUITests: XCTestCase {
             }
             rule.onNodeWithTag("label").assert(hasTextExactly("100%"))
             #endif
+            check(rule, id: "label", hasText: "100%")
         })
     }
     struct SliderTestView: View {
@@ -260,6 +273,24 @@ final class SkipUITests: XCTestCase {
                 Slider(value: $sliderValue, in: 0.0...1.0)
                     .accessibilityIdentifier("slider")
             }
+        }
+    }
+
+    func testLocalizedText() throws {
+        try testUI(view: {
+            LocalizedTextView()
+        }, eval: { rule in
+            check(rule, id: "loc-text", hasText: "String: ABC integer: 123gcpd")
+        })
+    }
+
+    struct LocalizedTextView: View {
+        @State var string = "ABC"
+        let integer = 123
+
+        var body: some View {
+            Text("String: \(string) integer: \(123)", bundle: .module, comment: "test localization comment")
+                .accessibilityIdentifier("loc-text")
         }
     }
 
