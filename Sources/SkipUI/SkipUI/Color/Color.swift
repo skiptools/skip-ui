@@ -291,6 +291,22 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
 // ShapeStyle.red and Color.red are the same, so one can't call the other without an infinite recursion warning
 extension ShapeStyle where Self == Color {
     // SKIP NOWARN
+    public static var primary: Color {
+        #if SKIP
+        Color.primary
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
+    public static var secondary: Color {
+        #if SKIP
+        Color.secondary
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    // SKIP NOWARN
     public static var red: Color {
         #if SKIP
         Color.red
