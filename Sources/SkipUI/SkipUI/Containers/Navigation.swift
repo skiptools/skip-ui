@@ -472,8 +472,10 @@ extension View {
         return self
     }
 
+    @available(*, unavailable)
     public func navigationTitle(_ title: Text) -> some View {
-        return navigationTitle(title.text)
+        //return navigationTitle(title.text) // TODO: we would need to change NavigationTitlePreferenceKey from String to Text in order to be able to defer localization lookup
+        return self
     }
 
     public func navigationTitle(_ title: String) -> some View {
@@ -540,7 +542,11 @@ public struct NavigationLink : View, ListItemAdapting {
     }
 
     public init(_ title: String, value: Any?) {
-        self.init(value: value, label: { Text(title) })
+        self.init(value: value, label: { Text(verbatim: title) })
+    }
+
+    public init(_ titleKey: LocalizedStringKey, value: Any?) {
+        self.init(value: value, label: { Text(titleKey) })
     }
 
     @available(*, unavailable)

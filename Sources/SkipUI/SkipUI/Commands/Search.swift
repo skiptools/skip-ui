@@ -61,7 +61,7 @@ extension View {
     }
 
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: String) -> some View {
-        return searchable(text: text, placement: placement, prompt: Text(prompt))
+        return searchable(text: text, placement: placement, prompt: Text(verbatim: prompt))
     }
 }
 

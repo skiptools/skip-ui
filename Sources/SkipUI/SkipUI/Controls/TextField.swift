@@ -35,11 +35,11 @@ public struct TextField : View {
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(title) })
+        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(titleKey.value) })
+        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
     }
 
     @available(*, unavailable)

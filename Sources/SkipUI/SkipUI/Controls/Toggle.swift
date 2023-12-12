@@ -31,7 +31,7 @@ public struct Toggle : View {
 
     @available(*, unavailable)
     public init(_ title: String, sources: Any, isOn: (Any) -> Binding<Bool>) {
-        self.init(isOn: isOn(0), label: { Text(title) })
+        self.init(isOn: isOn(0), label: { Text(verbatim: title) })
     }
 
     #if SKIP

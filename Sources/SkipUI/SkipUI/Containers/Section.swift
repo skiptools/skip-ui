@@ -39,11 +39,11 @@ public struct Section : View, ListItemFactory {
     }
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
-        self.init(titleKey.value, content: content)
+        self.init(content: content, header: { Text(titleKey) })
     }
 
     public init(_ title: String, @ViewBuilder content: () -> any View) {
-        self.init(content: content, header: { Text(title) })
+        self.init(content: content, header: { Text(verbatim: title) })
     }
 
     @available(*, unavailable)

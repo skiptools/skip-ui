@@ -31,7 +31,7 @@ public struct Button : View, ListItemAdapting {
     }
 
     public init(_ title: String, action: @escaping () -> Void) {
-        self.init(action: action, label: { Text(title) })
+        self.init(action: action, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
@@ -45,7 +45,7 @@ public struct Button : View, ListItemAdapting {
     }
 
     public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(role: role, action: action, label: { Text(title) })
+        self.init(role: role, action: action, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {

@@ -91,6 +91,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.down
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTextExactly
 import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
@@ -240,13 +241,13 @@ final class SkipUITests: XCTestCase {
             #if SKIP
             // https://developer.android.com/jetpack/compose/testing-cheatsheet
             rule.onNodeWithTag("label").assertIsDisplayed()
-            rule.onNodeWithTag("label").assert(hasText("0.0"))
+            rule.onNodeWithTag("label").assert(hasTextExactly("0%"))
             rule.onNodeWithTag("slider").performGesture {
                 down(Offset(Float(0.0), Float(0.0)))
                 moveTo(Offset(Float(1000.0), Float(0.0)))
                 up()
             }
-            rule.onNodeWithTag("label").assert(hasText("1.0"))
+            rule.onNodeWithTag("label").assert(hasTextExactly("100%"))
             #endif
         })
     }
@@ -254,7 +255,7 @@ final class SkipUITests: XCTestCase {
         @State var sliderValue = 0.0
         var body: some View {
             VStack {
-                Text("\(sliderValue)")
+                Text("\(Int(sliderValue * 100.0))%%")
                     .accessibilityIdentifier("label")
                 Slider(value: $sliderValue, in: 0.0...1.0)
                     .accessibilityIdentifier("slider")
@@ -269,8 +270,8 @@ final class SkipUITests: XCTestCase {
                 .accessibilityIdentifier("test-view")
         }, eval: { rule in
             #if SKIP
-            rule.onNodeWithTag("outer-label").assert(hasText("outer"))
-            rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+            rule.onNodeWithTag("outer-label").assert(hasTextExactly("outer"))
+            rule.onNodeWithTag("inner-label").assert(hasTextExactly("inner"))
             #endif
         })
     }
@@ -308,9 +309,9 @@ final class SkipUITests: XCTestCase {
                     .accessibilityIdentifier("test-view")
             }, eval: { rule in
                 #if SKIP
-                rule.onNodeWithTag("outer-label").assert(hasText("outer"))
-                rule.onNodeWithTag("inner-label").assert(hasText("inner"))
-                rule.onNodeWithTag("null-label").assert(hasText("null"))
+                rule.onNodeWithTag("outer-label").assert(hasTextExactly("outer"))
+                rule.onNodeWithTag("inner-label").assert(hasTextExactly("inner"))
+                rule.onNodeWithTag("null-label").assert(hasTextExactly("null"))
                 #endif
             })
         }
@@ -353,9 +354,9 @@ final class SkipUITests: XCTestCase {
                 .accessibilityIdentifier("test-view")
         }, eval: { rule in
             #if SKIP
-            rule.onNodeWithTag("default-label").assert(hasText("default"))
-            rule.onNodeWithTag("outer-label").assert(hasText("outer"))
-            rule.onNodeWithTag("inner-label").assert(hasText("inner"))
+            rule.onNodeWithTag("default-label").assert(hasTextExactly("default"))
+            rule.onNodeWithTag("outer-label").assert(hasTextExactly("outer"))
+            rule.onNodeWithTag("inner-label").assert(hasTextExactly("inner"))
             #endif
         })
     }
@@ -396,22 +397,22 @@ final class SkipUITests: XCTestCase {
 //                .accessibilityIdentifier("test-view")
 //        }, eval: { rule in
 //            #if SKIP
-//            rule.onNodeWithTag("state-label").assert(hasText("initialState"))
-//            rule.onNodeWithTag("environment-label").assert(hasText("initialEnvironment"))
-//            rule.onNodeWithTag("observable-state-label").assert(hasText("initialState"))
-//            rule.onNodeWithTag("observable-environment-label").assert(hasText("initialEnvironment"))
+//            rule.onNodeWithTag("state-label").assert(hasTextExactly("initialState"))
+//            rule.onNodeWithTag("environment-label").assert(hasTextExactly("initialEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasTextExactly("initialState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasTextExactly("initialEnvironment"))
 //
 //            rule.onNodeWithTag("observable-button").performClick()
-//            rule.onNodeWithTag("state-label").assert(hasText("observableState"))
-//            rule.onNodeWithTag("environment-label").assert(hasText("observableEnvironment"))
-//            rule.onNodeWithTag("observable-state-label").assert(hasText("observableState"))
-//            rule.onNodeWithTag("observable-environment-label").assert(hasText("observableEnvironment"))
+//            rule.onNodeWithTag("state-label").assert(hasTextExactly("observableState"))
+//            rule.onNodeWithTag("environment-label").assert(hasTextExactly("observableEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasTextExactly("observableState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasTextExactly("observableEnvironment"))
 //
 //            rule.onNodeWithTag("binding-button").performClick()
-//            rule.onNodeWithTag("state-label").assert(hasText("bindingState"))
-//            rule.onNodeWithTag("environment-label").assert(hasText("observableEnvironment"))
-//            rule.onNodeWithTag("observable-state-label").assert(hasText("bindingState"))
-//            rule.onNodeWithTag("observable-environment-label").assert(hasText("observableEnvironment"))
+//            rule.onNodeWithTag("state-label").assert(hasTextExactly("bindingState"))
+//            rule.onNodeWithTag("environment-label").assert(hasTextExactly("observableEnvironment"))
+//            rule.onNodeWithTag("observable-state-label").assert(hasTextExactly("bindingState"))
+//            rule.onNodeWithTag("observable-environment-label").assert(hasTextExactly("observableEnvironment"))
 //            #endif
 //        })
 //    }

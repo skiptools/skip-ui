@@ -16,26 +16,40 @@ import struct Foundation.LocalizedStringResource
 import class Foundation.Bundle
 #endif
 
-public struct Text: View, Equatable, Sendable {
-    let text: String
+public struct Text: View, Equatable {
+    private let verbatim: String?
+    private let key: LocalizedStringKey?
+    private let tableName: String?
+    private let bundle: Bundle?
+    //@Environment(\.locale) var locale: Locale // TODO
 
     public init(verbatim: String) {
-        self.text = verbatim
+        self.verbatim = verbatim
+        self.key = nil
+        self.tableName = nil
+        self.bundle = nil
     }
 
-    public init(_ text: String) {
-        self.text = text
+    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
+        self.verbatim = nil
+        self.key = key
+        self.tableName = tableName
+        self.bundle = bundle
     }
 
-    public init(_ key: LocalizedStringKey, bundle: Bundle? = nil, comment: StaticString? = nil) {
-        self.text = key.value
-    }
-    
-    public init(_ resource: LocalizedStringResource) {
-        self.text = resource.key
+    /// Interpret the key against the given bundle
+    var text: String {
+        if let verbatim = self.verbatim { return verbatim }
+        guard let key = self.key else { return "" }
+        // TODO: use the bundle corresponding to the Locale environment key (\.locale)
+        let locfmt = self.bundle?.localizedString(forKey: key.patternFormat, value: nil, table: self.tableName) ?? key.patternFormat
+        // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
+        let replaced = String(format: locfmt, key.stringInterpolation.values)
+        return replaced
     }
 
     #if SKIP
+
     @Composable public override func ComposeContent(context: ComposeContext) {
         var font: Font
         var text = self.text
@@ -559,79 +573,6 @@ extension Text {
     ///     - showsHours: Whether to include an hours component if there are
     ///         more than 60 minutes left on the timer. The default is `true`.
     public init(timerInterval: ClosedRange<Date>, pauseTime: Date? = nil, countsDown: Bool = true, showsHours: Bool = true) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// Creates a text view that displays localized content identified by a key.
-    ///
-    /// Use this initializer to look for the `key` parameter in a localization
-    /// table and display the associated string value in the initialized text
-    /// view. If the initializer can't find the key in the table, or if no table
-    /// exists, the text view displays the string representation of the key
-    /// instead.
-    ///
-    ///     Text("pencil") // Localizes the key if possible, or displays "pencil" if not.
-    ///
-    /// When you initialize a text view with a string literal, the view triggers
-    /// this initializer because it assumes you want the string localized, even
-    /// when you don't explicitly specify a table, as in the above example. If
-    /// you haven't provided localization for a particular string, you still get
-    /// reasonable behavior, because the initializer displays the key, which
-    /// typically contains the unlocalized string.
-    ///
-    /// If you initialize a text view with a string variable rather than a
-    /// string literal, the view triggers the ``Text/init(_:)-9d1g4``
-    /// initializer instead, because it assumes that you don't want localization
-    /// in that case. If you do want to localize the value stored in a string
-    /// variable, you can choose to call the `init(_:tableName:bundle:comment:)`
-    /// initializer by first creating a ``LocalizedStringKey`` instance from the
-    /// string variable:
-    ///
-    ///     Text(LocalizedStringKey(someString)) // Localizes the contents of `someString`.
-    ///
-    /// If you have a string literal that you don't want to localize, use the
-    /// ``Text/init(verbatim:)`` initializer instead.
-    ///
-    /// ### Styling localized strings with markdown
-    ///
-    /// If the localized string or the fallback key contains Markdown, the
-    /// view displays the text with appropriate styling. For example, consider
-    /// an app with the following entry in its Spanish localization file:
-    ///
-    ///     "_Please visit our [website](https://www.example.com)._" = "_Visita nuestro [sitio web](https://www.example.com)._";
-    ///
-    /// You can create a `Text` view with the Markdown-formatted base language
-    /// version of the string as the localization key, like this:
-    ///
-    ///     Text("_Please visit our [website](https://www.example.com)._")
-    ///
-    /// When viewed in a Spanish locale, the view uses the Spanish text from the
-    /// strings file, applying the Markdown styling.
-    ///
-    /// ![A text view that says Visita nuestro sitio web, with all text
-    /// displayed in italics. The words sitio web are colored blue to indicate
-    /// they are a link.](SkipUI-Text-init-localized.png)
-    ///
-    /// > Important: `Text` doesn't render all styling possible in Markdown. It
-    /// doesn't support line breaks, soft breaks, or any style of paragraph- or
-    /// block-based formatting like lists, block quotes, code blocks, or tables.
-    /// It also doesn't support the
-    /// attribute. Parsing with SkipUI treats any whitespace in the Markdown
-    /// string as described by the
-    /// parsing option.
-    ///
-    /// - Parameters:
-    ///   - key: The key for a string in the table identified by `tableName`.
-    ///   - tableName: The name of the string table to search. If `nil`, use the
-    ///     table in the `Localizable.strings` file.
-    ///   - bundle: The bundle containing the strings file. If `nil`, use the
-    ///     main bundle.
-    ///   - comment: Contextual information about this key-value pair.
-    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
-        self.text = key.value
-    }
 }
 
 extension Text {

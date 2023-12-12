@@ -37,12 +37,12 @@ public struct Label : View, ListItemAdapting {
 
     @available(*, unavailable)
     public init(_ title: String, image name: String) {
-        self.title = Text(title)
+        self.title = Text(verbatim: title)
         self.image = EmptyView()
     }
 
     public init(_ title: String, systemImage name: String) {
-        self.title = Text(title)
+        self.title = Text(verbatim: title)
         self.image = Image(systemName: name)
     }
 
