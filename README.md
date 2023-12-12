@@ -281,6 +281,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Image`|🔴 Low|See [Images](#images)|
 |`Label`|🔴 Low|See [Images](#images)|
 |`LinearGradient`|✅ Full||
+|`Link`|✅ Full||
 |`List`|🟢 High|See [Lists](#lists)|
 |`LongPressGesture`|🟢 High|See [Gestures](#gestures)|
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
@@ -380,6 +381,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `isEnabled`
 - `isSearching`
 - `lineLimit`
+- `openURL`
 
 ### Gestures
 

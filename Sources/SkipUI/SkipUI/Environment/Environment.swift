@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if canImport(Observation)
 import Observation
 #endif
@@ -15,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.reflect.full.companionObjectInstance
@@ -184,6 +186,11 @@ extension EnvironmentValues {
     public var dismiss: () -> Void {
         get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
         set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
+    }
+
+    public var openURL: (URL) -> Void {
+        let uriHandler = LocalUriHandler.current
+        return { uriHandler.openUri($0.absoluteString) }
     }
 
     public var font: Font? {
