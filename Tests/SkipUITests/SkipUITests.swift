@@ -280,7 +280,7 @@ final class SkipUITests: XCTestCase {
         try testUI(view: {
             LocalizedTextView()
         }, eval: { rule in
-            check(rule, id: "loc-text", hasText: "String: ABC integer: 123gcpd")
+            check(rule, id: "loc-text", hasText: "String: ABC integer: 123")
         })
     }
 
