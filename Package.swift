@@ -16,7 +16,7 @@ let package = Package(
             .product(name: "SkipModel", package: "skip-model")
             ],
             plugins: [.plugin(name: "skipstone", package: "skip")]),
-        .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")],
+        .testTarget(name: "SkipUITests", dependencies: ["SkipUI", .product(name: "SkipTest", package: "skip")], resources: [.process("Resources")],
             plugins: [.plugin(name: "skipstone", package: "skip")]),
     ]
 )

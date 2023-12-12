@@ -192,8 +192,10 @@ final class SkipUITests: XCTestCase {
         XCTAssertEqual(3, 1 + 2)
     }
 
-    func check(_ rule: SkipUIEvaluator, id: String, hasText text: String, exactly: Bool = true) {
-        #if SKIP
+    func check(_ rule: SkipUIEvaluator, id: String, hasText text: String, exactly: Bool = true) throws {
+        #if !SKIP
+        throw XCTSkip("Headless UI testing not available for SwiftUI")
+        #else
         rule.onNodeWithTag(id).assert(hasTextExactly(text))
         #endif
     }
@@ -249,7 +251,7 @@ final class SkipUITests: XCTestCase {
         try testUI(view: {
             SliderTestView().accessibilityIdentifier("test-view")
         }, eval: { rule in
-            check(rule, id: "label", hasText: "0%")
+            try check(rule, id: "label", hasText: "0%")
             #if SKIP
             // https://developer.android.com/jetpack/compose/testing-cheatsheet
             rule.onNodeWithTag("label").assertIsDisplayed()
@@ -261,7 +263,7 @@ final class SkipUITests: XCTestCase {
             }
             rule.onNodeWithTag("label").assert(hasTextExactly("100%"))
             #endif
-            check(rule, id: "label", hasText: "100%")
+            try check(rule, id: "label", hasText: "100%")
         })
     }
     struct SliderTestView: View {
@@ -276,22 +278,28 @@ final class SkipUITests: XCTestCase {
         }
     }
 
-    func testLocalizedText() throws {
-        try testUI(view: {
-            LocalizedTextView()
-        }, eval: { rule in
-            check(rule, id: "loc-text", hasText: "String: ABC integer: 123")
-        })
+    func testLocalizedString() throws {
+        XCTAssertEqual("تم", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ar", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("Terminé", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "fr", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("סיום", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "he", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("完了", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ja", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("OK", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "pt-BR", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ru", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("Klar", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "sv", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "uk", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("完成", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj")!)!, comment: "Done"))
     }
 
-    struct LocalizedTextView: View {
-        @State var string = "ABC"
-        let integer = 123
-
-        var body: some View {
-            Text("String: \(string) integer: \(123)", bundle: .module, comment: "test localization comment")
-                .accessibilityIdentifier("loc-text")
-        }
+    func testLocalizedText() throws {
+        try testUI(view: {
+            Text("String: \("ABC") integer: \(123)", bundle: .module, comment: "test localization comment")
+                .accessibilityIdentifier("loc-text1")
+            Text("String: \("XYZ") integer: \(987)", bundle: .module, comment: "test localization comment")
+                .accessibilityIdentifier("loc-text2")
+        }, eval: { rule in
+            try check(rule, id: "loc-text1", hasText: "String: ABC integer: 123")
+            try check(rule, id: "loc-text2", hasText: "String: XYZ integer: 987")
+        })
     }
 
     func testEnvironmentObject() throws {
