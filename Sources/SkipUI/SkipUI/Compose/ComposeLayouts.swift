@@ -68,35 +68,35 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given background.
 @Composable func BackgroundLayout(view: View, context: ComposeContext, background: View, alignment: Alignment) {
-    TargetViewLayout(target: view, targetIndex: 1, context: context, dependent: background, alignment: alignment)
+    TargetViewLayout(target: view, context: context, dependent: background, isOverlay: false, alignment: alignment)
 }
 
 /// Compose a view with the given overlay.
 @Composable func OverlayLayout(view: View, context: ComposeContext, overlay: View, alignment: Alignment) {
-    TargetViewLayout(target: view, targetIndex: 0, context: context, dependent: overlay, alignment: alignment)
+    TargetViewLayout(target: view, context: context, dependent: overlay, isOverlay: true, alignment: alignment)
 }
 
-@Composable private func TargetViewLayout(target: View, targetIndex: Int, context: ComposeContext, dependent: View, alignment: Alignment) {
+@Composable private func TargetViewLayout(target: View, context: ComposeContext, dependent: View, isOverlay: Bool, alignment: Alignment) {
     let contentContext = context.content()
     Layout(modifier: context.modifier, content: {
-        if targetIndex == 0 {
-            target.Compose(context: contentContext)
-        }
+        target.Compose(context: contentContext)
         // Dependent view lays out with fixed bounds dictated by the target view size
         ComposeContainer(fixedWidth: true, fixedHeight: true) { modifier in
             dependent.Compose(context: context.content(modifier: modifier))
         }
-        if targetIndex != 0 {
-            target.Compose(context: contentContext)
-        }
     }) { measurables, constraints in
         // Base layout entirely on the target view size
-        let targetPlaceable = measurables[targetIndex].measure(constraints)
-        let dependentPlaceable = measurables[1 - targetIndex].measure(Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height))
+        let targetPlaceable = measurables[0].measure(constraints)
+        let dependentPlaceable = measurables[1].measure(Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height))
         layout(width: targetPlaceable.width, height: targetPlaceable.height) {
             let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
-            dependentPlaceable.placeRelative(x: x, y: y)
+            if !isOverlay {
+                dependentPlaceable.placeRelative(x: x, y: y)
+            }
             targetPlaceable.placeRelative(x: 0, y: 0)
+            if isOverlay {
+                dependentPlaceable.placeRelative(x: x, y: y)
+            }
         }
     }
 }
