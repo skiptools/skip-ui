@@ -308,12 +308,12 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`ZStack`|✅ Full||
 |`.aspectRatio`|🟡 Medium|Supported for images|
 |`.autocorrectionDisabled`|✅ Full||
-|`.background`|🔴 Low|Only color/ShapeStyle supported|
+|`.background`|🟢 High||
 |`.backgroundStyle`|✅ Full||
 |`.bold`|✅ Full||
 |`.border`|✅ Full||
 |`.buttonStyle`|🟢 High|Custom styles not supported|
-|`.clipped`|🔴 Low|Most content clips automatically|
+|`.clipped`|🟡 Medium|Most content clips automatically|
 |`.clipShape`|✅ Full||
 |`.confirmationDialog`|✅ Full||
 |`.deleteDisabled`|✅ Full||
@@ -349,6 +349,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.onSubmit`|✅ Full||
 |`.onTapGesture`|🟢 High|See [Gestures](#gestures)|
 |`.opacity`|✅ Full||
+|`.overlay`|🟢 High||
 |`.padding`|🟢 High|Compose does not support negative padding|
 |`.progressViewStyle`|🟢 High|Custom styles not supported|
 |`.resizable`|🔴 Low|`capInsets` and `resizingMode` not supported|

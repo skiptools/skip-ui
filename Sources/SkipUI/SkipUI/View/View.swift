@@ -8,12 +8,8 @@
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeightIn
-import androidx.compose.foundation.layout.requiredWidthIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +25,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 #else
 import struct CoreGraphics.CGAffineTransform
@@ -118,9 +113,15 @@ extension View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
-    @available(*, unavailable)
     public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        #if SKIP
+        let background = content()
+        return ComposeModifierView(contentView: self) { view, context in
+            BackgroundLayout(view: view, context: context, background: background, alignment: alignment)
+        }
+        #else
         return self
+        #endif
     }
 
     public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
@@ -141,14 +142,12 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func background(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
-        return self //background(BackgroundStyle.shared, in: shape, fillStyle: fillStyle)
+        return background(BackgroundStyle.shared, in: shape, fillStyle: fillStyle)
     }
 
-    @available(*, unavailable)
     public func background(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
-        return self
+        return background(content: { shape.fill(style) })
     }
 
     public func backgroundStyle(_ style: any ShapeStyle) -> some View {
@@ -429,19 +428,7 @@ extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            var modifier = context.modifier
-            if let width {
-                modifier = modifier.width(width.dp)
-            }
-            if let height {
-                modifier = modifier.height(height.dp)
-            }
-            let contentContext = context.content()
-            ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
-                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    view.Compose(context: contentContext)
-                }
-            }
+            FrameLayout(view: view, context: context, width: width, height: height, alignment: alignment)
         }
         #else
         return self
@@ -451,34 +438,7 @@ extension View {
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            // We translate 0,.infinity to a non-expanding fill in either dimension. If the min is not zero, we can't use a fill
-            // because it could set a weight on the view in an HStack or VStack, which will only give the view space after all
-            // other views and potentially give it less than its minimum. We use a max of Double.MAX_VALUE instead
-            var modifier = context.modifier
-            if maxWidth == .infinity {
-                if let minWidth, minWidth > 0.0 {
-                    modifier = modifier.requiredWidthIn(min: minWidth.dp, max: Double.MAX_VALUE.dp)
-                } else {
-                    modifier = modifier.fillWidth(expandContainer: false)
-                }
-            } else if minWidth != nil || maxWidth != nil {
-                modifier = modifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
-            }
-            if maxHeight == .infinity {
-                if let minHeight, minHeight > 0.0 {
-                    modifier = modifier.requiredHeightIn(min: minHeight.dp, max: Double.MAX_VALUE.dp)
-                } else {
-                    modifier = modifier.fillHeight(expandContainer: false)
-                }
-            } else if minHeight != nil || maxHeight != nil {
-                modifier = modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
-            }
-            let contentContext = context.content()
-            ComposeContainer(modifier: modifier, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity) { modifier in
-                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    view.Compose(context: contentContext)
-                }
-            }
+            FrameLayout(view: view, context: context, minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
         }
         #else
         return self
@@ -760,19 +720,23 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        #if SKIP
+        let overlay = content()
+        return ComposeModifierView(contentView: self) { view, context in
+            OverlayLayout(view: view, context: context, overlay: overlay, alignment: alignment)
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
-        return self
+        return overlay(style, in: Rectangle())
     }
 
-    @available(*, unavailable)
     public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
-        return self
+        return overlay(content: { shape.fill(style) })
     }
 
     public func padding(_ insets: EdgeInsets) -> some View {
