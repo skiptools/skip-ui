@@ -580,7 +580,7 @@ final class LayoutTests: XCSnapshotTestCase {
         . . . . . . . . . . . .
         . . . . . . . . . . . .
 
-
+        . . . . . . . . . . . .
         """))
     }
 
