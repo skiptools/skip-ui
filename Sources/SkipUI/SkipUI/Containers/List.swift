@@ -243,7 +243,7 @@ public class List<Content> : View where Content : View {
     private static let verticalItemInset = 4.0
 
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, style: ListStyle) {
-        guard !view.isEmptyView else {
+        guard !view.isSwiftUIEmptyView else {
             return
         }
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
@@ -258,7 +258,7 @@ public class List<Content> : View where Content : View {
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func ComposeEditableItem(view: View, context: ComposeContext, modifier: Modifier, style: ListStyle, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
-        guard !view.isEmptyView else {
+        guard !view.isSwiftUIEmptyView else {
             return
         }
         guard let key else {
@@ -696,7 +696,8 @@ struct ListItemComposer: Composer {
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
             listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
-        } else if view is ComposeModifierView {
+        } else if view is ComposeModifierView || !view.isSwiftUIModuleView {
+            // Allow content of modifier views and custom views to adapt to list item rendering
             view.ComposeContent(context: context(true))
         } else {
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {

@@ -79,7 +79,7 @@ class VStackComposer: Composer {
     }
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
-        guard !view.isEmptyView else {
+        guard !view.isSwiftUIEmptyView else {
             return
         }
         // If the Text has spacing modifiers, no longer special case its spacing

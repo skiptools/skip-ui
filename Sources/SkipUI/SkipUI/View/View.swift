@@ -74,8 +74,13 @@ extension View {
     }
 
     /// Whether this is an empty view.
-    public var isEmptyView: Bool {
+    public var isSwiftUIEmptyView: Bool {
         return self is EmptyView
+    }
+
+    /// Whether this is a builtin SwiftUI view.
+    public var isSwiftUIModuleView: Bool {
+        return javaClass.name.startsWith("skip.ui.")
     }
 
     /// Strip modifier views.

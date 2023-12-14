@@ -305,6 +305,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_onSubmitState", value: newValue, defaultValue: { nil }) }
     }
 
+    var _placement: ViewPlacement {
+        get { builtinValue(key: "_placement", defaultValue: { ViewPlacement.content }) as! ViewPlacement }
+        set { setBuiltinValue(key: "_placement", value: newValue, defaultValue: { ViewPlacement.content }) }
+    }
+
     var _progressViewStyle: ProgressViewStyle? {
         get { builtinValue(key: "_progressViewStyle", defaultValue: { nil }) as! ProgressViewStyle? }
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }

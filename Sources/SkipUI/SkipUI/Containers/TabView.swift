@@ -49,7 +49,7 @@ public struct TabView<Content> : View where Content : View {
                 bottomBar: {
                     NavigationBar(modifier: Modifier.fillMaxWidth()) {
                         let tabItemContext = context.content()
-                        let tabViews = content.collectViews(context: tabItemContext).filter { !$0.isEmptyView }
+                        let tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
                         for tabIndex in 0..<tabViews.count {
                             let tabItem = tabViews[tabIndex].strippingModifiers { $0 as? TabItem }
                             NavigationBarItem(
@@ -158,7 +158,7 @@ class TabIndexComposer: Composer {
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         // Be sure to keep the filtering of empty views consistent with our rendering of corresponding TabItems in the navigation bar
-        guard !view.isEmptyView else {
+        guard !view.isSwiftUIEmptyView else {
             return
         }
         if currentIndex == index {

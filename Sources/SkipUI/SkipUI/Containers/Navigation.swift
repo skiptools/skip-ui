@@ -167,6 +167,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
                 EnvironmentValues.shared.setValues {
+                    $0.set_placement(ViewPlacement.toolbar)
                     $0.set_tint(tint)
                 } in: {
                     MediumTopAppBar(
@@ -201,6 +202,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
                     EnvironmentValues.shared.setValues {
                         $0.set_tint(tint)
+                        $0.set_placement(ViewPlacement.toolbar)
                     } in: {
                         BottomAppBar(
                             containerColor: Color.systemBarBackground.colorImpl(),

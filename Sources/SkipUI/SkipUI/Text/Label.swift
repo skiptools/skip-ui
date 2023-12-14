@@ -48,7 +48,11 @@ public struct Label : View, ListItemAdapting {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        ComposeLabel(context: context)
+        if EnvironmentValues.shared._placement == .toolbar {
+            ComposeImage(context: context)
+        } else {
+            ComposeLabel(context: context)
+        }
     }
 
     @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color? = nil, imageScale: Double? = nil, titlePadding: Double = 0.0) {
