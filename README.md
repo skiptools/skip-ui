@@ -264,6 +264,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`@State`|✅ Full||
 |`@StateObject`|✅ Full||
 |Custom Views|✅ Full||
+|Custom ViewModifiers|✅ Full||
 |`AsyncImage`|🟢 High||
 |`Button`|🟢 High||
 |`Capsule`|✅ Full||
@@ -335,6 +336,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.lineLimit`|🟡 Medium|Only `Int?` value supported|
 |`.listItemTint`|✅ Full||
 |`.listStyle`|✅ Full||
+|`.modifier`|✅ Full||
 |`.moveDisabled`|✅ Full||
 |`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
 |`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
