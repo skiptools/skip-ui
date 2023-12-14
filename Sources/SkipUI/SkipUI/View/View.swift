@@ -586,11 +586,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func modifier(_ modifier: Any) -> some View {
-        return self
-    }
-
     public func offset(_ offset: CGSize) -> some View {
         return self.offset(x: offset.width, y: offset.height)
     }
