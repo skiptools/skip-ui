@@ -26,6 +26,13 @@ import androidx.compose.ui.unit.dp
     if let height {
         modifier = modifier.requiredHeight(height.dp)
     }
+
+    // If our content has a zIndex, we need to pull it into our modifiers so that it applies within the original
+    // parent container. Otherwise the Box we use below would hide it
+    if let zIndex = view.strippingModifiers(until: { $0 == .zIndex }, perform: { $0 as? ZIndexModifierView }) {
+        modifier = zIndex.consume(with: modifier)
+    }
+
     let contentContext = context.content()
     ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
         Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {

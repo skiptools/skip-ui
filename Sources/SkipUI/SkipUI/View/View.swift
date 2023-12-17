@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 #else
@@ -1008,11 +1009,44 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func zIndex(_ value: Double) -> some View {
+        #if SKIP
+        return ZIndexModifierView(targetView: self, zIndex: value)
+        #else
         return self
+        #endif
     }
 }
+
+#if SKIP
+/// Use a special modifier for `zIndex` so that the artificial parent container created by `.frame` can pull the `zIndex` value into its own modifiers.
+///
+/// Otherwise the extra frame container hides the `zIndex` value from this view's logical parent container.
+///
+/// - Seealso: `FrameLayout`
+class ZIndexModifierView : ComposeModifierView {
+    private var zIndex: Double
+
+    init(targetView: View, zIndex: Double) {
+        self.zIndex = zIndex
+        super.init(targetView: targetView, role: .zIndex) {
+            if zIndex != 0.0 {
+                $0.modifier = $0.modifier.zIndex(Float(zIndex))
+            }
+        }
+    }
+
+    /// Move the application of the `zIndex` to the given modifier, erasing it from this view.
+    func consume(with modifier: Modifier) -> Modifier {
+        guard zIndex != 0.0 else {
+            return modifier
+        }
+        let zIndexModifier = modifier.zIndex(Float(zIndex))
+        zIndex = 0.0
+        return zIndexModifier
+    }
+}
+#endif
 
 #if !SKIP
 

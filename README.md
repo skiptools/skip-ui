@@ -372,6 +372,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|
 |`.tint`|✅ Full||
 |`.toolbar`|🟢 High||
+|`.zIndex`|✅ Full||
 
 ### Environment Keys
 

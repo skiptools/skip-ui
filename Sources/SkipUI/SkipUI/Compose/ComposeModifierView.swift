@@ -14,6 +14,7 @@ public enum ComposeModifierRole {
     case gesture
     case spacing
     case unspecified
+    case zIndex
 }
 
 /// Used internally by modifiers to apply changes to the context supplied to modified views.
