@@ -285,6 +285,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Link`|✅ Full||
 |`List`|🟢 High|See [Lists](#lists)|
 |`LongPressGesture`|🟢 High|See [Gestures](#gestures)|
+|`Menu`|🟢 High||
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
 |`Oval`|✅ Full||

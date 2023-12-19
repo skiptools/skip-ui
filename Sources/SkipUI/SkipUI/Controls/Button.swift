@@ -55,7 +55,6 @@ public struct Button : View, ListItemAdapting {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
-        let contentContext = context.content()
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
             case .bordered:
@@ -67,6 +66,7 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.filledTonalButtonColors()
                 }
+                let contentContext = context.content()
                 FilledTonalButton(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
                     label.Compose(context: contentContext)
                 }
@@ -79,30 +79,13 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
+                let contentContext = context.content()
                 androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
                     label.Compose(context: contentContext)
                 }
             default:
-                ComposePlain(context: context.content(modifier: modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled)))
+                ComposePlainButton(label: label, context: context.content(modifier: modifier), role: role, action: action)
             }
-        }
-    }
-
-    @Composable private func ComposePlain(context: ComposeContext) {
-        var foregroundStyle: ShapeStyle?
-        if role == .destructive {
-            foregroundStyle = Color.red
-        } else {
-            foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? EnvironmentValues.shared._tint ?? Color.accentColor
-        }
-        if !EnvironmentValues.shared.isEnabled {
-            let disabledAlpha = Double(ContentAlpha.disabled)
-            foregroundStyle = AnyShapeStyle(foregroundStyle, opacity: disabledAlpha)
-        }
-        EnvironmentValues.shared.setValues {
-            $0.set_foregroundStyle(foregroundStyle)
-        } in: {
-            label.Compose(context: context)
         }
     }
 
@@ -113,7 +96,7 @@ public struct Button : View, ListItemAdapting {
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: Modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-            ComposePlain(context: context)
+            ComposePlainButton(label: label, context: context, role: role)
         }
     }
     #else
@@ -122,6 +105,35 @@ public struct Button : View, ListItemAdapting {
     }
     #endif
 }
+
+#if SKIP
+/// Render a plain-style button.
+@Composable func ComposePlainButton(label: View, context: ComposeContext, role: ButtonRole? = nil, action: (() -> Void)? = nil) {
+    var foregroundStyle: ShapeStyle?
+    if role == .destructive {
+        foregroundStyle = Color.red
+    } else {
+        foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? EnvironmentValues.shared._tint ?? Color.accentColor
+    }
+    let isEnabled = EnvironmentValues.shared.isEnabled
+    if !isEnabled {
+        let disabledAlpha = Double(ContentAlpha.disabled)
+        foregroundStyle = AnyShapeStyle(foregroundStyle, opacity: disabledAlpha)
+    }
+
+    var modifier = context.modifier
+    if let action {
+        modifier = modifier.clickable(onClick: action, enabled: isEnabled)
+    }
+    let contentContext = context.content(modifier: modifier)
+
+    EnvironmentValues.shared.setValues {
+        $0.set_foregroundStyle(foregroundStyle)
+    } in: {
+        label.Compose(context: contentContext)
+    }
+}
+#endif
 
 public struct ButtonStyle: RawRepresentable, Equatable {
     public let rawValue: Int
