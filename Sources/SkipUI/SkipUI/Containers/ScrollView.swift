@@ -10,7 +10,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -28,9 +30,18 @@ public struct ScrollView<Content> : View where Content : View {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let scrollState = rememberScrollState()
+        let coroutineScope = rememberCoroutineScope()
         var scrollModifier: Modifier = Modifier
         if axes.contains(.vertical) {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
+            if !axes.contains(.horizontal) {
+                // Integrate with our scroll-to-top navigation bar taps
+                syncPreference(key: ScrollToTopPreferenceKey.self, value: {
+                    coroutineScope.launch {
+                        scrollState.animateScrollTo(0)
+                    }
+                })
+            }
         }
         if axes.contains(.horizontal) {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
@@ -48,6 +59,20 @@ public struct ScrollView<Content> : View where Content : View {
     }
     #endif
 }
+
+#if SKIP
+struct ScrollToTopPreferenceKey: PreferenceKey {
+    typealias Value = (() -> Void)?
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<(() -> Unit)?>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: (() -> Void)? = nil
+        func reduce(value: inout (() -> Void)?, nextValue: () -> (() -> Void)?) {
+            value = nextValue()
+        }
+    }
+}
+#endif
 
 public enum ScrollBounceBehavior : Sendable {
     case automatic

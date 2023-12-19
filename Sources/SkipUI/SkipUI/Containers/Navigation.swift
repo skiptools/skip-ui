@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -141,6 +142,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
         let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
+        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
 
         let searchFieldPadding = 16.dp
         let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -170,7 +172,9 @@ public struct NavigationStack<Root> : View where Root: View {
                     $0.set_placement(ViewPlacement.toolbar)
                     $0.set_tint(tint)
                 } in: {
+                    let interactionSource = remember { MutableInteractionSource() }
                     MediumTopAppBar(
+                        modifier: Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: { scrollToTop.value?() }),
                         colors: TopAppBarDefaults.topAppBarColors(
                             containerColor: Color.systemBarBackground.colorImpl(),
                             titleContentColor: MaterialTheme.colorScheme.onSurface
@@ -238,7 +242,8 @@ public struct NavigationStack<Root> : View where Root: View {
                 let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference]) {
+                let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {

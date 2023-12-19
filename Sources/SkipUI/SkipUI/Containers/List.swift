@@ -120,6 +120,14 @@ public class List<Content> : View where Content : View {
         })
         modifier = modifier.reorderable(reorderableState)
 
+        // Integrate with our scroll-to-top navigation bar taps
+        let coroutineScope = rememberCoroutineScope()
+        syncPreference(key: ScrollToTopPreferenceKey.self, value: {
+            coroutineScope.launch {
+                reorderableState.listState.animateScrollToItem(0)
+            }
+        })
+
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), style: style, isTop: false)

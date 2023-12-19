@@ -751,7 +751,7 @@ extension View {
         #endif
     }
 
-    public func padding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
+    public func padding(_ edges: Edge.Set, _ length: CGFloat? = nil) -> some View {
         #if SKIP
         let amount = max(length ?? CGFloat(16.0), CGFloat(0.0)).dp
         let start = edges.contains(.leading) ? amount : 0.dp
@@ -766,7 +766,7 @@ extension View {
         #endif
     }
 
-    public func padding(_ length: CGFloat) -> some View {
+    public func padding(_ length: CGFloat? = nil) -> some View {
         return padding(.all, length)
     }
 
