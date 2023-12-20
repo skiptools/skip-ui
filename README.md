@@ -296,6 +296,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`ScrollView`|✅ Full||
 |`Section`|🟢 High|See [Lists](#lists)|
 |`SecureField`|✅ Full||
+|`ShareLink`|🔴 Low|`String` or `URL` data only|
 |`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
 |`Spacer`|🟡 Medium|`minLength` not supported|
 |`TabView`|🟡 Medium|See [Navigation](#navigation)|

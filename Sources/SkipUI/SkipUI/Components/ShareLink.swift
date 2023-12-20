@@ -4,584 +4,432 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+import Foundation
+#if SKIP
+import android.content.Intent
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat.startActivity
+#endif
+
+// Erase the generics to facilitate specialized constructor support.
+// Use a class to be able to update our openURL action on compose by reference.
+public class ShareLink : View {
+    private static let defaultSystemImageName = "square.and.arrow.up"
+
+    let content: any View
+    var action: () -> Void = {}
+    #if SKIP
+    let intent: Intent
+    #endif
+
+    init(text: String, subject: String? = nil, message: String? = nil, @ViewBuilder label: () -> any View) {
+        #if SKIP
+        self.intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, text)
+            if let subject {
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+            }
+            type = "text/plain"
+        }
+        self.content = Button(action: { self.action() }, label: label)
+        #else
+        self.content = stubView()
+        #endif
+    }
+
+    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+        self.init(text: item.absoluteString, subject: subject?.text, message: message?.text, label: label)
+    }
+
+    public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+        self.init(text: item, subject: subject?.text, message: message?.text, label: label)
+    }
+
+    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
+            Image(systemName: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item, subject: subject?.text, message: message?.text) {
+            Image(systemName: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ titleKey: LocalizedStringKey, item: URL, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
+            Label(titleKey, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item, subject: subject?.text, message: message?.text) {
+            Label(titleKey, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ title: String, item: URL, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
+            Label(title, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ title: String, item: String, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item, subject: subject?.text, message: message?.text) {
+            Label(title, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ title: Text, item: URL, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
+            Label(title.text, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ title: Text, item: String, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item, subject: subject?.text, message: message?.text) {
+            Label(title.text, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    #if SKIP
+    @Composable override func ComposeContent(context: ComposeContext) {
+        let localContext = LocalContext.current
+        action = {
+            let shareIntent = Intent.createChooser(intent, nil)
+            localContext.startActivity(shareIntent)
+        }
+        content.Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
 
 #if !SKIP
-import protocol CoreTransferable.Transferable
-import struct Foundation.URL
-import struct UniformTypeIdentifiers.UTType
 
-/// A view that controls a sharing presentation.
-///
-/// People tap or click on a share link to present a share interface. The link
-/// typically uses a system-standard appearance; you only need to supply the
-/// content to share:
-///
-///     ShareLink(item: URL(string: "https://example.org/")!)
-///
-/// You can control the appearance of the link by providing view content.
-/// For example, you can use a ``Label`` to display a
-/// link with a custom icon:
-///
-///     ShareLink(item: URL(string: "https://example.org/")!) {
-///         Label("Share", image: "MyCustomShareIcon")
-///     }
-///
-/// If you only wish to customize the link's title, you can use one of the
-/// convenience initializers that takes a string and creates a `Label` for you:
-///
-///     ShareLink("Share URL", item: URL(string: "https://example.org/")!)
-///
-/// The link can share any content that is
-/// .
-/// Many framework types, like
-/// ,
-/// already conform to this protocol. You can also make your own types
-/// transferable.
-///
-/// For example, you can use
-///
-/// to resolve your own type to a framework type:
-///
-///     struct Photo: Transferable {
-///         static var transferRepresentation: some TransferRepresentation {
-///             ProxyRepresentation(\.image)
-///         }
-///
-///         public var image: Image { get { fatalError() } }
-///         public var caption: String { get { fatalError() } }
-///     }
-///
-///     struct PhotoView: View {
-///         let photo: Photo
-///
-///         var body: View {
-///             photo.image
-///                 .toolbar {
-///                     ShareLink(
-///                         item: photo,
-///                         preview: SharePreview(
-///                             photo.caption,
-///                             image: photo.image))
-///                 }
-///         }
-///     }
-///
-/// Sometimes the content that your app shares isn't immediately available. You
-/// can use
-///
-/// or
-///
-/// when you need an asynchronous operation, like a network request, to
-/// retrieve and prepare the content.
-///
-/// A `Transferable` type also lets you provide multiple content types for a
-/// single shareable item. The share interface shows relevant sharing services
-/// based on the types that you provide.
-///
-/// The previous example also shows how you provide a preview of your content
-/// to show in the share interface.
-///
-/// A preview isn't required when sharing URLs or non-attributed strings. When
-/// sharing these types of content, the system can automatically determine a
-/// preview.
-///
-/// You can provide a preview even when it's optional. For instance, when
-/// sharing URLs, the automatic preview first shows a placeholder link icon
-/// alongside the base URL while fetching the link's metadata over the network.
-/// The preview updates once the link's icon and title become available. If you
-/// provide a preview instead, the preview appears immediately
-/// without fetching data over the network.
-///
-/// Some share activities support subject and message fields. You can
-/// pre-populate these fields with the `subject` and `message` parameters:
-///
-///     ShareLink(
-///         item: photo,
-///         subject: Text("Cool Photo"),
-///         message: Text("Check it out!")
-///         preview: SharePreview(
-///             photo.caption,
-///             image: photo.image))
-///
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-public struct ShareLink<Data, PreviewImage, PreviewIcon, Label> : View where Data : RandomAccessCollection, PreviewImage : Transferable, PreviewIcon : Transferable, Label : View, Data.Element : Transferable {
+// TODO: Process for use in SkipUI
 
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A closure that returns a representation of each item to
-    ///     render in a preview.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>, @ViewBuilder label: () -> Label) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A representation of the item to render in a preview.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init<I>(item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>, @ViewBuilder label: () -> Label) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
-}
-
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Data.Element == URL {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Data.Element == String {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) where Data == CollectionOfOne<URL> { fatalError() }
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - label: A view builder that produces a label that describes the
-    ///     share action.
-    public init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) where Data == CollectionOfOne<String> { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where Label == DefaultShareLinkLabel {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A closure that returns a representation of each item to
-    ///     render in a preview.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A closure that returns a representation of each item to
-    ///     render in a preview.
-    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The item to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A closure that returns a representation of each item to
-    ///     render in a preview.
-    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A closure that returns a representation of each item to
-    ///     render in a preview.
-    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where Label == DefaultShareLinkLabel {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A representation of the item to render in a preview.
-    public init<I>(item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A representation of the item to render in a preview.
-    public init<I>(_ titleKey: LocalizedStringKey, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A representation of the item to render in a preview.
-    public init<S, I>(_ title: S, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, S : StringProtocol, I : Transferable { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    ///     - preview: A representation of the item to render in a preview.
-    public init<I>(_ title: Text, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel, Data.Element == URL {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The item to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel, Data.Element == String {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The item to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil) where S : StringProtocol { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - items: The items to share.
-    ///     - subject: A title for the items to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the items to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
-}
-
-
-/// The default label used for a share link.
-///
-/// You don't use this type directly. Instead, ``ShareLink`` uses it
-/// automatically depending on how you create a share link.
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-public struct DefaultShareLinkLabel : View {
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
-}
-
-@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
-@available(tvOS, unavailable)
-extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel {
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(item: URL, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<URL> { fatalError() }
-
-    /// Creates an instance that presents the share interface.
-    ///
-    /// Use this initializer when you want the system-standard appearance for
-    /// `ShareLink`.
-    ///
-    /// - Parameters:
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(item: String, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<String> { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ titleKey: LocalizedStringKey, item: URL, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<URL> { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - titleKey: A key identifying the title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<String> { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init<S>(_ title: S, item: URL, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<URL>, S : StringProtocol { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init<S>(_ title: S, item: String, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<String>, S : StringProtocol { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ title: Text, item: URL, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<URL> { fatalError() }
-
-    /// Creates an instance, with a custom label, that presents the share
-    /// interface.
-    ///
-    /// - Parameters:
-    ///     - title: The title of the share action.
-    ///     - item: The item to share.
-    ///     - subject: A title for the item to show when sharing to activities
-    ///     that support a subject field.
-    ///     - message: A description of the item to show when sharing to
-    ///     activities that support a message field. Activities may
-    ///     support attributed text or HTML strings.
-    public init(_ title: Text, item: String, subject: Text? = nil, message: Text? = nil) where Data == CollectionOfOne<String> { fatalError() }
-}
+//import protocol CoreTransferable.Transferable
+//import struct UniformTypeIdentifiers.UTType
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// - Parameters:
+//    ///     - item: The item to share.
+//    ///     - subject: A title for the item to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the item to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A representation of the item to render in a preview.
+//    ///     - label: A view builder that produces a label that describes the
+//    ///     share action.
+//    public init<I>(item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>, @ViewBuilder label: () -> Label) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
+//}
+//
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Data.Element == URL {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// - Parameters:
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - label: A view builder that produces a label that describes the
+//    ///     share action.
+//    public init(items: Data, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
+//}
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Data.Element == String {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// - Parameters:
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - label: A view builder that produces a label that describes the
+//    ///     share action.
+//    public init(items: Data, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> Label) { fatalError() }
+//}
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where Label == DefaultShareLinkLabel {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// Use this initializer when you want the system-standard appearance for
+//    /// `ShareLink`.
+//    ///
+//    /// - Parameters:
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A closure that returns a representation of each item to
+//    ///     render in a preview.
+//    public init(items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - titleKey: A key identifying the title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A closure that returns a representation of each item to
+//    ///     render in a preview.
+//    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The item to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A closure that returns a representation of each item to
+//    ///     render in a preview.
+//    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) where S : StringProtocol { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A closure that returns a representation of each item to
+//    ///     render in a preview.
+//    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil, preview: @escaping (Data.Element) -> SharePreview<PreviewImage, PreviewIcon>) { fatalError() }
+//}
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where Label == DefaultShareLinkLabel {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// Use this initializer when you want the system-standard appearance for
+//    /// `ShareLink`.
+//    ///
+//    /// - Parameters:
+//    ///     - item: The item to share.
+//    ///     - subject: A title for the item to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the item to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A representation of the item to render in a preview.
+//    public init<I>(item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - titleKey: A key identifying the title of the share action.
+//    ///     - item: The item to share.
+//    ///     - subject: A title for the item to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the item to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A representation of the item to render in a preview.
+//    public init<I>(_ titleKey: LocalizedStringKey, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - item: The item to share.
+//    ///     - subject: A title for the item to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the item to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A representation of the item to render in a preview.
+//    public init<S, I>(_ title: S, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, S : StringProtocol, I : Transferable { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - item: The item to share.
+//    ///     - subject: A title for the item to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the item to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    ///     - preview: A representation of the item to render in a preview.
+//    public init<I>(_ title: Text, item: I, subject: Text? = nil, message: Text? = nil, preview: SharePreview<PreviewImage, PreviewIcon>) where Data == CollectionOfOne<I>, I : Transferable { fatalError() }
+//}
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel, Data.Element == URL {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// Use this initializer when you want the system-standard appearance for
+//    /// `ShareLink`.
+//    ///
+//    /// - Parameters:
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - titleKey: A key identifying the title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The item to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil) where S : StringProtocol { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//}
+//
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//extension ShareLink where PreviewImage == Never, PreviewIcon == Never, Label == DefaultShareLinkLabel, Data.Element == String {
+//
+//    /// Creates an instance that presents the share interface.
+//    ///
+//    /// Use this initializer when you want the system-standard appearance for
+//    /// `ShareLink`.
+//    ///
+//    /// - Parameters:
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - titleKey: A key identifying the title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(_ titleKey: LocalizedStringKey, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The item to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init<S>(_ title: S, items: Data, subject: Text? = nil, message: Text? = nil) where S : StringProtocol { fatalError() }
+//
+//    /// Creates an instance, with a custom label, that presents the share
+//    /// interface.
+//    ///
+//    /// - Parameters:
+//    ///     - title: The title of the share action.
+//    ///     - items: The items to share.
+//    ///     - subject: A title for the items to show when sharing to activities
+//    ///     that support a subject field.
+//    ///     - message: A description of the items to show when sharing to
+//    ///     activities that support a message field. Activities may
+//    ///     support attributed text or HTML strings.
+//    public init(_ title: Text, items: Data, subject: Text? = nil, message: Text? = nil) { fatalError() }
+//}
+//
+//
+///// The default label used for a share link.
+/////
+///// You don't use this type directly. Instead, ``ShareLink`` uses it
+///// automatically depending on how you create a share link.
+//@available(iOS 16.0, macOS 13.0, watchOS 9.0, *)
+//@available(tvOS, unavailable)
+//public struct DefaultShareLinkLabel : View {
+//
+//    @MainActor public var body: some View { get { return stubView() } }
+//
+////    public typealias Body = some View
+//}
 
 #endif
