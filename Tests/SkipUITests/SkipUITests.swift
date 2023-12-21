@@ -6,6 +6,7 @@
 
 import Foundation
 import Observation
+import OSLog
 import SwiftUI
 import XCTest
 
@@ -184,6 +185,8 @@ struct SkipUIEvaluator {
 }
 #endif
 
+fileprivate let logger: Logger = Logger(subsystem: "test", category: "SkipUITests")
+
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class SkipUITests: XCTestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
@@ -219,11 +222,11 @@ final class SkipUITests: XCTestCase {
         try testUI(view: {
             ButtonTestView().accessibilityIdentifier("test-view")
         }, eval: { rule in
+            try check(rule, id: "label", hasText: "Counter: 1")
             #if SKIP
-            rule.onNodeWithTag("label").assert(hasText("Counter: 1"))
             rule.onNodeWithTag("button").performClick()
-            rule.onNodeWithTag("label").assert(hasText("Counter: 2"))
             #endif
+            try check(rule, id: "label", hasText: "Counter: 2")
         })
     }
     struct ButtonTestView: View {
@@ -304,20 +307,30 @@ final class SkipUITests: XCTestCase {
     }
 
     func testLocalizedText() throws {
-        // There's a strange problem on Android with the Bundle.module accessor not getting generated:
-        // java.lang.NoSuchMethodError: No static method getModule(Lskip/foundation/Bundle$Companion;)Lskip/foundation/Bundle; in class Lskip/ui/PackageSupportKt; or its super classes (declaration of 'skip.ui.PackageSupportKt' appears in /data/app/~~dpP5y0gq08SFYLzoJuvMdQ==/skip.ui.test--AS1FCYI-flZAAXoydOFBw==/base.apk!classes2.dex)
-        if isAndroid {
-            throw XCTSkip("Test not working on Android emulator")
-        }
+        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"))))
+        let zh = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj"))))
 
         try testUI(view: {
             Text("String: \("ABC") integer: \(123)", bundle: .module, comment: "test localization comment")
                 .accessibilityIdentifier("loc-text1")
             Text("String: \("XYZ") integer: \(987)", bundle: .module, comment: "test localization comment")
                 .accessibilityIdentifier("loc-text2")
+
+            //Text("Done", bundle: fr) // TODO: this doesn't create a LocalizedStringKey based on the inferred type
+            Text(LocalizedStringKey("Done"), bundle: fr)
+                .accessibilityIdentifier("loc-text3")
+
+            Text("Done: \("XYZ")", bundle: fr)
+                .accessibilityIdentifier("loc-text4")
+            
+            Text(LocalizedStringKey("Done"), bundle: zh)
+                .accessibilityIdentifier("loc-text5")
         }, eval: { rule in
             try check(rule, id: "loc-text1", hasText: "String: ABC integer: 123")
             try check(rule, id: "loc-text2", hasText: "String: XYZ integer: 987")
+            try check(rule, id: "loc-text3", hasText: "Terminé")
+            try check(rule, id: "loc-text4", hasText: "Terminé: XYZ")
+            try check(rule, id: "loc-text5", hasText: "完成")
         })
     }
 
@@ -327,10 +340,8 @@ final class SkipUITests: XCTestCase {
                 .environmentObject(TestEnvironmentObject(text: "outer"))
                 .accessibilityIdentifier("test-view")
         }, eval: { rule in
-            #if SKIP
-            rule.onNodeWithTag("outer-label").assert(hasTextExactly("outer"))
-            rule.onNodeWithTag("inner-label").assert(hasTextExactly("inner"))
-            #endif
+            try check(rule, id: "outer-label", hasText: "outer")
+            try check(rule, id: "inner-label", hasText: "inner")
         })
     }
     class TestEnvironmentObject: ObservableObject {
@@ -411,11 +422,9 @@ final class SkipUITests: XCTestCase {
             EnvironmentValueDefaultView()
                 .accessibilityIdentifier("test-view")
         }, eval: { rule in
-            #if SKIP
-            rule.onNodeWithTag("default-label").assert(hasTextExactly("default"))
-            rule.onNodeWithTag("outer-label").assert(hasTextExactly("outer"))
-            rule.onNodeWithTag("inner-label").assert(hasTextExactly("inner"))
-            #endif
+            try check(rule, id: "default-label", hasText: "default")
+            try check(rule, id: "outer-label", hasText: "outer")
+            try check(rule, id: "inner-label", hasText: "inner")
         })
     }
     struct EnvironmentValueDefaultView: View {

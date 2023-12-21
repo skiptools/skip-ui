@@ -58,6 +58,17 @@
           }
         }
       }
+    },
+    "Done: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé: %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
