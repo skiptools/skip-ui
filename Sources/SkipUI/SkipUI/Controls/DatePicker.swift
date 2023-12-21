@@ -5,35 +5,111 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+#if SKIP
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+#endif
 
 public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 
-    @available(*, unavailable)
+    let selection: Binding<Date>
+    let label: any View
+    let dateFormatter: DateFormatter?
+    let timeFormatter: DateFormatter?
+
     public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
+        self.selection = selection
+        self.label = label()
+        if displayedComponents.contains(.date) {
+            dateFormatter = DateFormatter()
+            dateFormatter?.dateStyle = .short
+            dateFormatter?.timeStyle = .none
+        } else {
+            dateFormatter = nil
+        }
+        if displayedComponents.contains(.hourAndMinute) {
+            timeFormatter = DateFormatter()
+            timeFormatter?.dateStyle = .none
+            timeFormatter?.timeStyle = .short
+        } else {
+            timeFormatter = nil
+        }
     }
 
     @available(*, unavailable)
     public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
+        self.selection = selection
+        self.dateFormatter = nil
+        self.timeFormatter = nil
+        self.label = label()
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
     }
 
-    @available(*, unavailable)
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
     @available(*, unavailable)
     public init(_ title: String, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable override func ComposeContent(context: ComposeContext) {
+        let contentContext = context.content()
+        let horizontalArrangement = Arrangement.spacedBy(8.dp)
+        if EnvironmentValues.shared._labelsHidden {
+            Row(modifier: context.modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                ComposeDialogButtons(context: contentContext)
+            }
+        } else {
+            ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
+                Row(modifier: modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                    label.Compose(context: contentContext)
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                    ComposeDialogButtons(context: contentContext)
+                }
+            }
+        }
+    }
+
+    @Composable private func ComposeDialogButtons(context: ComposeContext) {
+        let isEnabled = EnvironmentValues.shared.isEnabled
+        let date = selection.wrappedValue
+        if let dateString = dateFormatter?.string(from: date) {
+            let text = Text(verbatim: dateString)
+            if isEnabled {
+                ComposeTextButton(label: text, context: context) {
+                    //~~~
+                }
+            } else {
+                text.Compose(context: context)
+            }
+        }
+        if let timeString = timeFormatter?.string(from: date) {
+            let text = Text(verbatim: timeString)
+            if isEnabled {
+                ComposeTextButton(label: text, context: context) {
+                    //~~~
+                }
+            } else {
+                text.Compose(context: context)
+            }
+        }
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -66,13 +142,12 @@ public struct DatePickerStyle: RawRepresentable, Equatable {
     @available(*, unavailable)
     public static let wheel = ButtonStyle(rawValue: 2)
 
-    @available(*, unavailable)
     public static let compact = ButtonStyle(rawValue: 3)
 }
 
 extension View {
     public func datePickerStyle(_ style: DatePickerStyle) -> some View {
-        // We only support .automatic
+        // We only support .automatic / .compact
         return self
     }
 }

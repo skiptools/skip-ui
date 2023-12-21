@@ -82,8 +82,10 @@ public struct Button : View, ListItemAdapting {
                 androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
                     label.Compose(context: contentContext)
                 }
+            case .plain:
+                ComposeTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, action: action)
             default:
-                ComposePlainButton(label: label, context: context.content(modifier: modifier), role: role, action: action)
+                ComposeTextButton(label: label, context: context.content(modifier: modifier), role: role, action: action)
             }
         }
     }
@@ -95,7 +97,7 @@ public struct Button : View, ListItemAdapting {
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: Modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-            ComposePlainButton(label: label, context: context, role: role)
+            ComposeTextButton(label: label, context: context, role: role)
         }
     }
     #else
@@ -107,12 +109,12 @@ public struct Button : View, ListItemAdapting {
 
 #if SKIP
 /// Render a plain-style button.
-@Composable func ComposePlainButton(label: View, context: ComposeContext, role: ButtonRole? = nil, action: (() -> Void)? = nil) {
+@Composable func ComposeTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, action: (() -> Void)? = nil) {
     var foregroundStyle: ShapeStyle?
     if role == .destructive {
         foregroundStyle = Color.red
-    } else {
-        foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? EnvironmentValues.shared._tint ?? Color.accentColor
+    } else if !isPlain && EnvironmentValues.shared._foregroundStyle == nil {
+        foregroundStyle = EnvironmentValues.shared._tint ?? Color.accentColor
     }
     let isEnabled = EnvironmentValues.shared.isEnabled
     if !isEnabled {
@@ -126,9 +128,13 @@ public struct Button : View, ListItemAdapting {
     }
     let contentContext = context.content(modifier: modifier)
 
-    EnvironmentValues.shared.setValues {
-        $0.set_foregroundStyle(foregroundStyle)
-    } in: {
+    if let foregroundStyle {
+        EnvironmentValues.shared.setValues {
+            $0.set_foregroundStyle(foregroundStyle)
+        } in: {
+            label.Compose(context: contentContext)
+        }
+    } else {
         label.Compose(context: contentContext)
     }
 }

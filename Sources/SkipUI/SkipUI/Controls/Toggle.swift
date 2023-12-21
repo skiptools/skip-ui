@@ -29,13 +29,22 @@ public struct Toggle : View {
     }
 
     @available(*, unavailable)
+    public init(_ titleKey: LocalizedStringKey, sources: Any, isOn: (Any) -> Binding<Bool>) {
+        self.init(isOn: isOn(0), label: { Text(titleKey) })
+    }
+
+    @available(*, unavailable)
     public init(_ title: String, sources: Any, isOn: (Any) -> Binding<Bool>) {
         self.init(isOn: isOn(0), label: { Text(verbatim: title) })
     }
 
     #if SKIP
+    public init(_ titleKey: LocalizedStringKey, isOn: Binding<Bool>) {
+        self.init(isOn: isOn, label: { Text(titleKey) })
+    }
+
     public init(_ title: String, isOn: Binding<Bool>) {
-        self.init(isOn: isOn, label: { Text(title) })
+        self.init(isOn: isOn, label: { Text(verbatim: title) })
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {

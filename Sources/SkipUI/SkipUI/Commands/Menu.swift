@@ -75,7 +75,7 @@ public class Menu : View {
                         onLongClick = { toggleMenu() },
                         onClick = primaryAction
                     )
-                    ComposePlainButton(label: label, context: context.content(modifier: primaryActionModifier))
+                    ComposeTextButton(label: label, context: context.content(modifier: primaryActionModifier))
                 } else {
                     label.Compose(context: contentContext)
                 }
