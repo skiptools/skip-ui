@@ -328,10 +328,14 @@ final class SkipUITests: SkipUITestCase {
         uk.lproj/Localizable.strings
         zh-Hans.lproj/Localizable.strings
         """)
+        #else
+        if ({ true }()) {
+            throw XCTSkip("not running checks on non-Skip platform")
+        }
         #endif
 
-        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"))), "cannot locate fr.lproj bundle resource")
-        let zh = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj"))))
+        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"), "cannot locate fr.lproj bundle resource")))
+        let zh = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj"), "cannot locate zh-Hans.lproj bundle resource")))
 
         try testUI(view: {
             Text("String: \("ABC") integer: \(123)", bundle: .module, comment: "test localization comment")
