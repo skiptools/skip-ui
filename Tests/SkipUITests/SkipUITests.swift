@@ -313,7 +313,7 @@ final class SkipUITests: SkipUITestCase {
         XCTAssertEqual("完成", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj")!)!, comment: "Done"))
     }
 
-    func testLocalizedText() throws {
+    func testLocalizableStringsIndex() throws {
         #if SKIP
         // verify that the resources index contains the localized strings files derived from the `Localizable.xcstrings` file
         let resourcesIndex = try String(contentsOf: XCTUnwrap(Bundle.module.url(forResource: "resources", withExtension: "lst")))
@@ -329,6 +329,12 @@ final class SkipUITests: SkipUITestCase {
         zh-Hans.lproj/Localizable.strings
         """)
         #else
+        throw XCTSkip("non-Android platforms do not create a resources.lst index file")
+        #endif
+    }
+
+    func testLocalizedText() throws {
+        #if !SKIP
         if ({ true }()) {
             throw XCTSkip("not running checks on non-Skip platform")
         }

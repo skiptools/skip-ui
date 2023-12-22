@@ -1,3 +1,14 @@
+## 0.3.35
+
+Released 2023-12-22
+
+  - Add unit test diagnostics
+  - Add Text(String) initialized to infer it as a LocalizedStringKey
+  - Add test utilities
+  - Add CHANGELOG.md
+  - Add parameterized Text localization
+  - Basic support for ShareLink
+
 ## 0.3.34
 
 Released 2023-12-19
