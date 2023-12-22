@@ -314,7 +314,23 @@ final class SkipUITests: SkipUITestCase {
     }
 
     func testLocalizedText() throws {
-        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"))))
+        #if SKIP
+        // verify that the resources index contains the localized strings files derived from the `Localizable.xcstrings` file
+        let resourcesIndex = try String(contentsOf: XCTUnwrap(Bundle.module.url(forResource: "resources", withExtension: "lst")))
+        XCTAssertEqual(resourcesIndex, """
+        ar.lproj/Localizable.strings
+        fr.lproj/Localizable.strings
+        he.lproj/Localizable.strings
+        ja.lproj/Localizable.strings
+        pt-BR.lproj/Localizable.strings
+        ru.lproj/Localizable.strings
+        sv.lproj/Localizable.strings
+        uk.lproj/Localizable.strings
+        zh-Hans.lproj/Localizable.strings
+        """)
+        #endif
+
+        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"))), "cannot locate fr.lproj bundle resource")
         let zh = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj"))))
 
         try testUI(view: {
@@ -323,14 +339,13 @@ final class SkipUITests: SkipUITestCase {
             Text("String: \("XYZ") integer: \(987)", bundle: .module, comment: "test localization comment")
                 .accessibilityIdentifier("loc-text2")
 
-            //Text("Done", bundle: fr) // TODO: this doesn't create a LocalizedStringKey based on the inferred type
-            Text(LocalizedStringKey("Done"), bundle: fr)
+            Text("Done", bundle: fr)
                 .accessibilityIdentifier("loc-text3")
 
             Text("Done: \("XYZ")", bundle: fr)
                 .accessibilityIdentifier("loc-text4")
             
-            Text(LocalizedStringKey("Done"), bundle: zh)
+            Text("Done", bundle: zh)
                 .accessibilityIdentifier("loc-text5")
         }, eval: { rule in
             try check(rule, id: "loc-text1", hasText: "String: ABC integer: 123")

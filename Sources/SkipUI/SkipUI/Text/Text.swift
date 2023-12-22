@@ -37,6 +37,13 @@ public struct Text: View, Equatable {
         self.bundle = bundle
     }
 
+    public init(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
+        self.verbatim = nil
+        self.key = LocalizedStringKey(stringLiteral: key)
+        self.tableName = tableName
+        self.bundle = bundle
+    }
+
     /// Interpret the key against the given bundle
     var text: String {
         if let verbatim = self.verbatim { return verbatim }
