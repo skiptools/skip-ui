@@ -7,7 +7,7 @@
 import SwiftUI
 import XCTest
 
-final class ModifierTests: XCTestCase {
+final class ModifierTests: SkipUITestCase {
     func testModifierViewDoesNotCopy() {
         #if SKIP
         let text = Text("test")

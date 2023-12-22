@@ -5,6 +5,8 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+import XCTest
+
 #if os(macOS)
 import SkipTest
 
@@ -17,6 +19,32 @@ final class XCSkipTests: XCTestCase, XCGradleHarness {
     }
 }
 #endif
+
+
+class SkipUITestCase : XCTestCase {
+
+    #if SKIP
+    @org.junit.Rule private let _testName: org.junit.rules.TestName = org.junit.rules.TestName()
+    #endif
+
+    private var testName: String? {
+        #if SKIP
+        _testName.methodName
+        #else
+        testRun?.test.name
+        #endif
+    }
+
+    override func setUp() {
+        // this is where we could try to identify whether we are just running a single test case, and if so, we can run the `gradle test` command with flags to filter the test cases to just run the single transpiled equivalent test case – see https://github.com/skiptools/skip-unit/issues/1
+        super.setUp()
+    }
+
+    override func tearDown() {
+        super.tearDown()
+    }
+}
+
 
 /// True when running in a transpiled Java runtime environment
 let isJava = ProcessInfo.processInfo.environment["java.io.tmpdir"] != nil

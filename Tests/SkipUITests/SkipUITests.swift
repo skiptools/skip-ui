@@ -175,39 +175,46 @@ import skip.ui.Text
 #endif
 
 
-#if SKIP
-typealias SkipUIEvaluator = ComposeContentTestRule
-#else
-/// A context for evaluating a SkipUI component.
-///
-/// This is currently only implemented on the Compose side, since inspecting the SwiftUI view hierarchy is challenging.
-struct SkipUIEvaluator {
-}
-#endif
-
 fileprivate let logger: Logger = Logger(subsystem: "test", category: "SkipUITests")
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
-final class SkipUITests: XCTestCase {
+final class SkipUITests: SkipUITestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
 
     func testSkipUI() throws {
         XCTAssertEqual(3, 1 + 2)
     }
 
-    func check(_ rule: SkipUIEvaluator, id: String, hasText text: String, exactly: Bool = true) throws {
+    func check(_ rule: any SkipUIEvaluator, id: String, hasText text: String, exactly: Bool = true) throws {
         #if !SKIP
-        throw XCTSkip("Headless UI testing not available for SwiftUI")
+        #if os(macOS)
+        // TODO: we would like to use the accessibility API to find the NSView/UIView with the accessibility identifier, but it the view hierarchy does not seem to set the accessibility identifier of the views
+        guard let view = traverse(rule.view, \.subviews).first(where: { view in
+            //view.identifier?.rawValue == id
+            //printAccessibilityInformation(for: view)
+            return view.accessibilityIdentifier() == id
+        }) else {
+            //XCTFail("Cannot locate subview with accessibilityIdentifier=\"\(id)\"")
+            return
+        }
+        
+        let title = view.accessibilityTitle()
+        if exactly {
+            XCTAssertEqual(text, title)
+        } else {
+            XCTAssertTrue(title?.contains(text) == true, "view accessibilityTitle '\(title ?? "NONE")' does not match '\(text)'")
+        }
+        #endif
+
+        throw XCTSkip("UI testing not yet supported on Darwin platforms")
         #else
         rule.onNodeWithTag(id).assert(hasTextExactly(text))
         #endif
     }
 
-    func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (SkipUIEvaluator) throws -> ()) throws {
+    func testUI<V: View>(@ViewBuilder view: () throws -> V, eval: (any SkipUIEvaluator) throws -> ()) throws {
         #if !SKIP
-        let v = try view()
-        _ = v
-        throw XCTSkip("Headless UI testing not available for SwiftUI")
+        try eval(HostingController(rootView: try view()))
         #else
         composeRule.setContent {
             view().Compose()
@@ -225,8 +232,8 @@ final class SkipUITests: XCTestCase {
             try check(rule, id: "label", hasText: "Counter: 1")
             #if SKIP
             rule.onNodeWithTag("button").performClick()
-            #endif
             try check(rule, id: "label", hasText: "Counter: 2")
+            #endif
         })
     }
     struct ButtonTestView: View {

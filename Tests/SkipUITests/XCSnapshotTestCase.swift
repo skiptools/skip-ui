@@ -170,7 +170,7 @@ import org.junit.Test
 import skip.ui.Text
 #endif
 
-class XCSnapshotTestCase: XCTestCase {
+class XCSnapshotTestCase: SkipUITestCase {
     let logger: Logger = Logger(subsystem: "test", category: "XCSnapshotTestCase")
 
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
@@ -268,14 +268,14 @@ class XCSnapshotTestCase: XCTestCase {
 
         let v = content.environment(\.colorScheme, darkMode ? .dark : .light).environment(\.displayScale, 1.0)
 
+        let controller = HostingController(rootView: v)
+
         #if canImport(UIKit)
-        let controller = UIHostingController(rootView: v)
         guard let view: UIView = controller.view else {
             throw RenderViewError(errorDescription: "cannot access view of hosting controller")
         }
         view.backgroundColor = darkMode ? UIColor.black : UIColor.white
         #elseif canImport(AppKit)
-        let controller = NSHostingController(rootView: v)
         let view: NSView = controller.view
         view.layer!.backgroundColor = darkMode ? CGColor.black : CGColor.white
         //view.layer!.contentsScale = 0.5
@@ -283,6 +283,7 @@ class XCSnapshotTestCase: XCTestCase {
         #else
         fatalError("unsupported platform for rendering a view") // e.g., Windows/Linux
         #endif
+
 
         let viewSize = view.intrinsicContentSize
         let bounds = CGRect(origin: .zero, size: viewSize)
@@ -292,16 +293,16 @@ class XCSnapshotTestCase: XCTestCase {
 
         #if canImport(UIKit) // i.e., iOS
 
-        let format = UIGraphicsImageRendererFormat.default() // (for: traits)
-        format.opaque = false
-        format.scale = 1.0
-        let renderer = UIGraphicsImageRenderer(size: viewSize, format: format)
-
         let win = UIWindow()
         win.makeKeyAndVisible() // seems to be the only way to avoid empty screenshots
         defer { win.resignKey() }
         win.bounds = bounds
         win.rootViewController = controller
+
+        let format = UIGraphicsImageRendererFormat.default() // (for: traits)
+        format.opaque = false
+        format.scale = 1.0
+        let renderer = UIGraphicsImageRenderer(size: viewSize, format: format)
 
         let image: UIImage = renderer.image { ctx in
             // doesn't work for SwiftUI shape/color views
@@ -532,7 +533,80 @@ class XCSnapshotTestCase: XCTestCase {
     #endif
 }
 
+#if !SKIP
+extension View {
+    
+    /// Render the current view to a PDF.
+    @MainActor public func createPDF() -> Void {
+        let renderer = ImageRenderer(content: self)
+        let url = URL.temporaryDirectory.appending(path: "SkipUI_createPDF.pdf")
+
+        // Start the rendering process
+        renderer.render { size, context in
+            var box = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+            guard let pdf = CGContext(url as CFURL, mediaBox: &box, nil) else {
+                return
+            }
+            pdf.beginPDFPage(nil)
+            context(pdf)
+            pdf.endPDFPage()
+            pdf.closePDF()
+        }
+    }
+}
+
+
+#endif
+
 extension Sequence where Element == UInt8 {
     /// Convert this sequence of bytes into a hex string
     public func hex() -> String { map { String(format: "%02x", $0) }.joined() }
 }
+
+#if SKIP
+typealias SkipUIEvaluator = ComposeContentTestRule
+#else
+#if os(macOS)
+typealias UXHostingController = NSHostingController
+typealias UXView = NSView
+typealias UXAccessibility = NSAccessibility
+#else
+typealias UXHostingController = UIHostingController
+typealias UXView = UIView
+typealias UXAccessibility = UIAccessibility
+#endif
+
+/// A context for evaluating a SkipUI component.
+///
+/// This is currently only implemented on the Compose side, since inspecting the SwiftUI view hierarchy is challenging.
+protocol SkipUIEvaluator {
+    var view: UXView { get }
+}
+
+class HostingController<V: View> : UXHostingController<V>, SkipUIEvaluator {
+}
+
+
+/// Create a lazy sequence that performs a depth-first traversal of the given child closure or keyPath.
+///
+/// For example, to lazily iterator over all the subviews in a UIKit view hierarchy, you can do:
+///
+/// ```swift
+/// for subview in traverseDepths(view, \.subviews) { … }
+/// ```
+/// - Parameters:
+///   - node: the root node of the hiererchy
+///   - children: the child accessor closure or keyPath
+/// - Returns: a sequence of all the elements of the tree
+@inlinable public func traverse<T>(_ node: T, _ children: @escaping (T) -> [T]) -> some Sequence<T> {
+    var stack: [T] = [node]
+    return sequence(state: stack) { stack in
+        if stack.isEmpty { return nil }
+        let current = stack.removeLast()
+        stack.append(contentsOf: children(current))
+        return current
+    }
+}
+
+#endif
+
