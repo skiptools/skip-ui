@@ -23,27 +23,27 @@ import okio.buffer
 import okio.source
 #endif
 
-public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
+public struct AsyncImage : View {
     let url: URL?
     let scale: CGFloat
-    let content: (AsyncImagePhase) -> any View
+    let content: (AsyncImagePhase) -> ComposeView
 
-    public init(url: URL?, scale: CGFloat = 1.0) /* where Content == Image */ {
+    public init(url: URL?, scale: CGFloat = 1.0) {
         self.url = url
         self.scale = scale
         self.content = { phase in
             switch phase {
             case .empty:
-                return Self.defaultPlaceholder()
+                return ComposeView(view: Self.defaultPlaceholder())
             case .failure:
-                return Self.defaultPlaceholder()
+                return ComposeView(view: Self.defaultPlaceholder())
             case .success(let image):
-                return image
+                return ComposeView(view: image)
             }
         }
     }
 
-    public init(url: URL?, scale: CGFloat = 1.0, @ViewBuilder content: @escaping (Image) -> any View, @ViewBuilder placeholder: @escaping () -> any View) {
+    public init(url: URL?, scale: CGFloat = 1.0, @ViewBuilder content: @escaping (Image) -> ComposeView, @ViewBuilder placeholder: @escaping () -> ComposeView) {
         self.url = url
         self.scale = scale
         self.content = { phase in
@@ -58,7 +58,7 @@ public struct AsyncImage /* <Content> */ : View /* where Content : View */ {
         }
     }
 
-    public init(url: URL?, scale: CGFloat = 1.0, transaction: Any? = nil /* Transaction = Transaction() */, @ViewBuilder content: @escaping (AsyncImagePhase) -> any View) {
+    public init(url: URL?, scale: CGFloat = 1.0, transaction: Any? = nil /* Transaction = Transaction() */, @ViewBuilder content: @escaping (AsyncImagePhase) -> ComposeView) {
         self.url = url
         self.scale = scale
         self.content = content

@@ -8,20 +8,19 @@
 import androidx.compose.runtime.Composable
 #endif
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct SecureField : View {
     let textField: TextField
 
-    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> ComposeView) {
         textField = TextField(text: text, prompt: prompt, isSecure: true, label: label)
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
+        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
+        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(titleKey)) })
     }
 
     #if SKIP

@@ -20,36 +20,35 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct Button : View, ListItemAdapting {
     let action: () -> Void
-    let label: any View
+    let label: ComposeView
     let role: ButtonRole?
 
-    public init(action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
+    public init(action: @escaping () -> Void, @ViewBuilder label: () -> ComposeView) {
         self.init(role: nil, action: action, label: label)
     }
 
     public init(_ title: String, action: @escaping () -> Void) {
-        self.init(action: action, label: { Text(verbatim: title) })
+        self.init(action: action, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
-        self.init(action: action, label: { Text(titleKey) })
+        self.init(action: action, label: { ComposeView(view: Text(titleKey)) })
     }
 
-    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
+    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> ComposeView) {
         self.role = role
         self.action = action
         self.label = label()
     }
 
     public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(role: role, action: action, label: { Text(verbatim: title) })
+        self.init(role: role, action: action, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(role: role, action: action, label: { Text(titleKey) })
+        self.init(role: role, action: action, label: { ComposeView(view: Text(titleKey)) })
     }
 
     #if SKIP

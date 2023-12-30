@@ -140,7 +140,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let uncomposedTitle = "__UNCOMPOSED__"
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
         let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
+        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[ComposeView], Any>) { mutableStateOf(Array<ComposeView>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
 
@@ -215,7 +215,7 @@ public struct NavigationStack<Root> : View where Root: View {
                             HStack(spacing: 24.0) {
                                 ComposeView { itemContext in
                                     bottomItems.forEach { $0.Compose(context: itemContext) }
-                                    return .ok
+                                    return ComposeResult.ok
                                 }
                             }.Compose(context.content())
                         }
@@ -241,7 +241,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
                 let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let toolbarContentPreference = Preference<[ComposeView]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
                     content(contentContext)

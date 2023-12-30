@@ -27,15 +27,15 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 #endif
 
-public struct TabView<Content> : View where Content : View {
-    let content: Content
+public struct TabView : View {
+    let content: ComposeView
 
-    public init(@ViewBuilder content: () -> Content) {
+    public init(@ViewBuilder content: () -> ComposeView) {
         self.content = content()
     }
 
     @available(*, unavailable)
-    public init(selection: Binding<Any>?, @ViewBuilder content: () -> Content) {
+    public init(selection: Binding<Any>?, @ViewBuilder content: () -> ComposeView) {
         self.content = content()
     }
 
@@ -108,9 +108,9 @@ public struct TabView<Content> : View where Content : View {
 #if SKIP
 struct TabItem: View {
     let view: View
-    let label: View
+    let label: ComposeView
 
-    init(view: View, @ViewBuilder label: () -> View) {
+    init(view: View, @ViewBuilder label: () -> ComposeView) {
         // Don't copy view
         // SKIP REPLACE: this.view = view
         self.view = view
@@ -122,7 +122,7 @@ struct TabItem: View {
     }
 
     @Composable func ComposeTitle(context: ComposeContext) {
-        label.Compose(context: context.content(composer: ClosureComposer { view, context in
+        label.Compose(context: context.content(composer: RenderingComposer { view, context in
             let stripped = view.strippingModifiers { $0 }
             if let label = stripped as? Label {
                 label.ComposeTitle(context: context(false))
@@ -133,7 +133,7 @@ struct TabItem: View {
     }
 
     @Composable func ComposeImage(context: ComposeContext) {
-        label.Compose(context: context.content(composer: ClosureComposer { view, context in
+        label.Compose(context: context.content(composer: RenderingComposer { view, context in
             let stripped = view.strippingModifiers { $0 }
             if let label = stripped as? Label {
                 label.ComposeImage(context: context(false))
@@ -144,12 +144,13 @@ struct TabItem: View {
     }
 }
 
-class TabIndexComposer: Composer {
+class TabIndexComposer: RenderingComposer {
     let index: Int
     var currentIndex = 0
 
     init(index: Int) {
         self.index = index
+        super.init()
     }
 
     override func willCompose() {
@@ -183,7 +184,7 @@ public struct TabViewStyle: RawRepresentable, Equatable {
 }
 
 extension View {
-    public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
+    public func tabItem(@ViewBuilder _ label: () -> ComposeView) -> some View {
         #if SKIP
         return TabItem(view: self, label: label)
         #else

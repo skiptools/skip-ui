@@ -16,34 +16,34 @@ import androidx.compose.ui.unit.dp
 #endif
 
 public struct Label : View, ListItemAdapting {
-    let title: any View
-    let image: any View
+    let title: ComposeView
+    let image: ComposeView
 
-    public init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View) {
+    public init(@ViewBuilder title: () -> ComposeView, @ViewBuilder icon: () -> ComposeView) {
         self.title = title()
         self.image = icon()
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, image name: String) {
-        self.title = Text(titleKey)
-        self.image = EmptyView()
+        self.title = ComposeView(view: Text(titleKey))
+        self.image = ComposeView(view: EmptyView())
     }
 
     public init(_ titleKey: LocalizedStringKey, systemImage name: String) {
-        self.title = Text(titleKey)
-        self.image = Image(systemName: name)
+        self.title = ComposeView(view: Text(titleKey))
+        self.image = ComposeView(view: Image(systemName: name))
     }
 
     @available(*, unavailable)
     public init(_ title: String, image name: String) {
-        self.title = Text(verbatim: title)
-        self.image = EmptyView()
+        self.title = ComposeView(view: Text(verbatim: title))
+        self.image = ComposeView(view: EmptyView())
     }
 
     public init(_ title: String, systemImage name: String) {
-        self.title = Text(verbatim: title)
-        self.image = Image(systemName: name)
+        self.title = ComposeView(view: Text(verbatim: title))
+        self.image = ComposeView(view: Image(systemName: name))
     }
 
     #if SKIP
@@ -123,7 +123,6 @@ public struct LabelStyle: RawRepresentable, Equatable {
     public static let titleAndIcon = LabelStyle(rawValue: 3)
 }
 
-// Erase the generic Label and Content to facilitate specialized constructor support.
 public struct LabeledContent {
     @available(*, unavailable)
     public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {

@@ -4,21 +4,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-public struct ControlGroup<Content> : View where Content : View {
+public struct ControlGroup : View {
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> Content) {
+    public init(@ViewBuilder content: () -> ComposeView) {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> any View) /* where Content == LabeledControlGroupContent<C, L>, C : View, L : View */ {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, L>, C : View, L : View */ {
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> Content) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
     }
 
     @available(*, unavailable)
-    public init(_ title: String, @ViewBuilder content: () -> Content) /* where Content == LabeledControlGroupContent<C, Text> */ {
+    public init(_ title: String, @ViewBuilder content: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, Text> */ {
     }
 
     #if !SKIP
@@ -60,29 +60,29 @@ extension View {
 
 // TODO: Process for use in SkipUI
 
-@available(watchOS, unavailable)
-extension ControlGroup where Content == ControlGroupStyleConfiguration.Content {
-
-    /// Creates a control group based on a style configuration.
-    ///
-    /// Use this initializer within the
-    /// ``ControlGroupStyle/makeBody(configuration:)`` method of a
-    /// ``ControlGroupStyle`` instance to create an instance of the control group
-    /// being styled. This is useful for custom control group styles that modify
-    /// the current control group style.
-    ///
-    /// For example, the following code creates a new, custom style that places a
-    /// red border around the current control group:
-    ///
-    ///     struct RedBorderControlGroupStyle: ControlGroupStyle {
-    ///         func makeBody(configuration: Configuration) -> some View {
-    ///             ControlGroup(configuration)
-    ///                 .border(Color.red)
-    ///         }
-    ///     }
-    ///
-    public init(_ configuration: ControlGroupStyleConfiguration) { fatalError() }
-}
+//@available(watchOS, unavailable)
+//extension ControlGroup where Content == ControlGroupStyleConfiguration.Content {
+//
+//    /// Creates a control group based on a style configuration.
+//    ///
+//    /// Use this initializer within the
+//    /// ``ControlGroupStyle/makeBody(configuration:)`` method of a
+//    /// ``ControlGroupStyle`` instance to create an instance of the control group
+//    /// being styled. This is useful for custom control group styles that modify
+//    /// the current control group style.
+//    ///
+//    /// For example, the following code creates a new, custom style that places a
+//    /// red border around the current control group:
+//    ///
+//    ///     struct RedBorderControlGroupStyle: ControlGroupStyle {
+//    ///         func makeBody(configuration: Configuration) -> some View {
+//    ///             ControlGroup(configuration)
+//    ///                 .border(Color.red)
+//    ///         }
+//    ///     }
+//    ///
+//    public init(_ configuration: ControlGroupStyleConfiguration) { fatalError() }
+//}
 
 /// The properties of a control group.
 @available(iOS 15.0, macOS 12.0, tvOS 17.0, *)

@@ -12,11 +12,11 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-public struct ZStack<Content> : View where Content : View {
+public struct ZStack : View {
     let alignment: Alignment
-    let content: Content
+    let content: ComposeView
 
-    public init(alignment: Alignment = .center, @ViewBuilder content: () -> Content) {
+    public init(alignment: Alignment = .center, @ViewBuilder content: () -> ComposeView) {
         self.alignment = alignment
         self.content = content()
     }

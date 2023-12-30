@@ -30,14 +30,14 @@ public struct Slider : View {
     }
 
     @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> ComposeView, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
         self.bounds = bounds
         self.step = step
     }
 
     @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View, @ViewBuilder minimumValueLabel: () -> any View, @ViewBuilder maximumValueLabel: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> ComposeView, @ViewBuilder minimumValueLabel: () -> ComposeView, @ViewBuilder maximumValueLabel: () -> ComposeView, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
         self.bounds = bounds
         self.step = step

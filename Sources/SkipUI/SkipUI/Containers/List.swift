@@ -46,12 +46,11 @@ import org.burnoutcrew.reorderable.reorderable
 import struct CoreGraphics.CGFloat
 #endif
 
-// Erase the SelectionValue because it is currently unused in Kotlin, the compiler won't be able to calculate it
-public class List<Content> : View where Content : View {
-    let fixedContent: Content?
-    let forEach: ForEach<Content>?
+public class List : View {
+    let fixedContent: ComposeView?
+    let forEach: ForEach?
 
-    init(fixedContent: Content? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> Content)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> Content)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> Content)? = nil, editActions: EditActions = []) {
+    init(fixedContent: ComposeView? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> ComposeView)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> ComposeView)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> ComposeView)? = nil, editActions: EditActions = []) {
         self.fixedContent = fixedContent
         if let indexRange {
             self.forEach = ForEach(identifier: identifier, indexRange: indexRange, indexedContent: indexedContent)
@@ -64,12 +63,12 @@ public class List<Content> : View where Content : View {
         }
     }
 
-    public convenience init(@ViewBuilder content: () -> Content) {
+    public convenience init(@ViewBuilder content: () -> ComposeView) {
         self.init(fixedContent: content())
     }
 
     @available(*, unavailable)
-    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> Content) {
+    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> ComposeView) {
         self.init(fixedContent: content())
     }
 
@@ -129,13 +128,13 @@ public class List<Content> : View where Content : View {
         })
 
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
-            let sectionHeaderContext = context.content(composer: ClosureComposer { view, context in
+            let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), style: style, isTop: false)
             })
-            let topSectionHeaderContext = context.content(composer: ClosureComposer { view, context in
+            let topSectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), style: style, isTop: true)
             })
-            let sectionFooterContext = context.content(composer: ClosureComposer { view, context in
+            let sectionFooterContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionFooter(view: view, context: context(false), style: style)
             })
 
@@ -160,7 +159,7 @@ public class List<Content> : View where Content : View {
                 item: { view in
                     item {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
-                        let itemContext = context.content(composer: ClosureComposer { view, context in
+                        let itemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeItem(view: view, context: context(false), modifier: itemModifier, style: style)
                         })
                         view.Compose(context: itemContext)
@@ -173,7 +172,7 @@ public class List<Content> : View where Content : View {
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
-                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(index).Compose(context: editableItemContext)
@@ -185,7 +184,7 @@ public class List<Content> : View where Content : View {
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
-                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(objects[index]).Compose(context: editableItemContext)
@@ -197,7 +196,7 @@ public class List<Content> : View where Content : View {
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
-                        let editableItemContext = context.content(composer: ClosureComposer { view, context in
+                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, style: style, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
                         factory(objectsBinding, index).Compose(context: editableItemContext)
@@ -233,7 +232,7 @@ public class List<Content> : View where Content : View {
             }
             for view in collectingComposer.views {
                 if let factory = view as? ListItemFactory {
-                    factory.ComposeListItems(context: factoryContext.value)
+                    factory.composeListItems(context: factoryContext.value)
                 } else {
                     factoryContext.value.item(view)
                 }
@@ -429,24 +428,24 @@ public class List<Content> : View where Content : View {
 //extension List {
 //    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
 //}
-public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where Content: View {
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> ComposeView) -> List {
     return List(identifier: { ($0 as! Identifiable<Hashable>).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
 
 //extension List {
 //    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
 //}
-public func List<ObjectType, Content>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> Content) -> List<Content> where ObjectType: Any, Content: View {
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> ComposeView) -> List where ObjectType: Any {
     return List(identifier: { id($0 as! ObjectType) }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
-public func List<Content>(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> Content) -> List<Content> where Content: View {
+public func List(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> ComposeView) -> List {
     return List(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: rowContent)
 }
 
 //extension List {
 //  public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable
 //}
-public func List<Data, ObjectType, Content>(_ data: Binding<Data>, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> Content) -> List<Content> where Data: RandomAccessCollection<ObjectType>, Content: View {
+public func List<Data, ObjectType>(_ data: Binding<Data>, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> ComposeView) -> List where Data: RandomAccessCollection<ObjectType> {
     return List(identifier: { ($0 as! Identifiable<Hashable>).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
         return rowContent(binding)
@@ -456,7 +455,7 @@ public func List<Data, ObjectType, Content>(_ data: Binding<Data>, editActions: 
 //extension List {
 //  public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable
 //}
-public func List<Data, ObjectType, Content>(_ data: Binding<Data>, id: (ObjectType) -> AnyHashable, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> Content) -> List<Content> where Data: RandomAccessCollection<ObjectType>, Content: View {
+public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> AnyHashable, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> ComposeView) -> List where Data: RandomAccessCollection<ObjectType> {
     return List(identifier: { id($0 as! ObjectType) }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
         return rowContent(binding)
@@ -476,7 +475,7 @@ protocol ListItemFactory {
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult
 
     /// Use the given context to compose individual list items and ranges of items.
-    func ComposeListItems(context: ListItemFactoryContext)
+    func composeListItems(context: ListItemFactoryContext)
     #endif
 }
 
@@ -686,20 +685,25 @@ public class ListItemFactoryContext {
     private var content: [Content] = []
 }
 
-struct ListItemCollectingComposer: Composer {
+class ListItemCollectingComposer: SideEffectComposer {
     let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
 
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
         if let factory = view as? ListItemFactory {
             factory.appendListItemViews(to: views, appendingContext: context(true))
         } else {
             views.add(view)
         }
+        return ComposeResult.ok
     }
 }
 
-struct ListItemComposer: Composer {
+class ListItemComposer: RenderingComposer {
     let contentModifier: Modifier
+
+    init(contentModifier: Modifier) {
+        self.contentModifier = contentModifier
+    }
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
@@ -720,7 +724,7 @@ struct ListSectionHeader: View, ListItemFactory {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
 
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
@@ -728,7 +732,7 @@ struct ListSectionHeader: View, ListItemFactory {
         return ComposeResult.ok
     }
 
-    func ComposeListItems(context: ListItemFactoryContext) {
+    override func composeListItems(context: ListItemFactoryContext) {
         context.sectionHeader(content)
     }
 }
@@ -738,7 +742,7 @@ struct ListSectionFooter: View, ListItemFactory {
     let content: View
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
 
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
@@ -746,7 +750,7 @@ struct ListSectionFooter: View, ListItemFactory {
         return ComposeResult.ok
     }
 
-    func ComposeListItems(context: ListItemFactoryContext) {
+    override func composeListItems(context: ListItemFactoryContext) {
         context.sectionFooter(content)
     }
 }

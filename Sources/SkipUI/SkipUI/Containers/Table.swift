@@ -3633,81 +3633,81 @@ extension TableRowContent {
     public var tableRowBody: TableRowBody { fatalError() }
 }
 
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension ForEach : TableRowContent where Content : TableRowContent {
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Content.TableRowValue
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
-
-    /// Creates an instance that uniquely identifies and creates table rows
-    /// across updates based on the identity of the underlying data.
-    ///
-    /// - Parameters:
-    ///   - data: The identified data that the ``ForEach`` instance uses to
-    ///     create table rows dynamically.
-    ///   - content: The table row builder that creates rows dynamically.
+//@available(iOS 16.0, macOS 12.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension ForEach : TableRowContent where Content : TableRowContent {
+//    /// The type of value represented by this table row content.
+//    public typealias TableRowValue = Content.TableRowValue
+//
+//    /// The type of content representing the body of this table row content.
+//    public typealias TableRowBody = NeverView
+//
+//    /// Creates an instance that uniquely identifies and creates table rows
+//    /// across updates based on the identity of the underlying data.
+//    ///
+//    /// - Parameters:
+//    ///   - data: The identified data that the ``ForEach`` instance uses to
+//    ///     create table rows dynamically.
+//    ///   - content: The table row builder that creates rows dynamically.
 //    public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where ID == Data.Element.ID, V == Content.TableRowValue, Data.Element : Identifiable { fatalError() }
-
-    /// Creates an instance that uniquely identifies and creates table rows
-    /// across updates based on the provided key path to the underlying data's
-    /// identifier.
-    ///
-    /// - Parameters:
-    ///   - data: The data that the ``ForEach`` instance uses to create table
-    ///     rows dynamically.
-    ///   - id: The key path to the provided data's identifier.
-    ///   - content: The table row builder that creates rows dynamically.
+//
+//    /// Creates an instance that uniquely identifies and creates table rows
+//    /// across updates based on the provided key path to the underlying data's
+//    /// identifier.
+//    ///
+//    /// - Parameters:
+//    ///   - data: The data that the ``ForEach`` instance uses to create table
+//    ///     rows dynamically.
+//    ///   - id: The key path to the provided data's identifier.
+//    ///   - content: The table row builder that creates rows dynamically.
 //    public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where V == Content.TableRowValue { fatalError() }
-
-    /// Creates an instance that uniquely identifies and creates table rows
-    /// across updates based on the identity of the underlying data.
-    ///
-    /// The following example creates a `Person` type that conforms to
-    /// , and an
-    /// array of this type called `people`. A `ForEach` instance iterates over
-    /// the array, producing new ``TableRow`` instances implicitly.
-    ///
-    ///     private struct Person: Identifiable {
-    ///         var id = UUID()
-    ///         var name: String
-    ///     }
-    ///
-    ///     @State private var people: [Person] = /* ... */
-    ///
-    ///     Table(of: Person.self) {
-    ///         TableColumn("ID", value: \.id.uuidString)
-    ///         TableColumn("Name", value: \.name)
-    ///     } rows: {
-    ///         Section("Team") {
-    ///             /* This is equivalent to the line below:
-    ///             ForEach(people) { TableRow($0) }
-    ///             */
-    ///             ForEach(people)
-    ///         }
-    ///     }
-    ///
-    /// - Parameter data: The identified data that the ``ForEach`` instance uses
-    ///     to create table rows dynamically.
+//
+//    /// Creates an instance that uniquely identifies and creates table rows
+//    /// across updates based on the identity of the underlying data.
+//    ///
+//    /// The following example creates a `Person` type that conforms to
+//    /// , and an
+//    /// array of this type called `people`. A `ForEach` instance iterates over
+//    /// the array, producing new ``TableRow`` instances implicitly.
+//    ///
+//    ///     private struct Person: Identifiable {
+//    ///         var id = UUID()
+//    ///         var name: String
+//    ///     }
+//    ///
+//    ///     @State private var people: [Person] = /* ... */
+//    ///
+//    ///     Table(of: Person.self) {
+//    ///         TableColumn("ID", value: \.id.uuidString)
+//    ///         TableColumn("Name", value: \.name)
+//    ///     } rows: {
+//    ///         Section("Team") {
+//    ///             /* This is equivalent to the line below:
+//    ///             ForEach(people) { TableRow($0) }
+//    ///             */
+//    ///             ForEach(people)
+//    ///         }
+//    ///     }
+//    ///
+//    /// - Parameter data: The identified data that the ``ForEach`` instance uses
+//    ///     to create table rows dynamically.
 //    public init(_ data: Data) where ID == Data.Element.ID, Content == TableRow<Data.Element>, Data.Element : Identifiable { fatalError() }
-
-    /// Creates an instance that computes table rows on demand over a given
-    /// constant range.
-    ///
-    /// The instance only reads the initial value of the provided `data` and
-    /// doesn't need to identify rows across updates. To compute rows on
-    /// demand over a dynamic range, use ``ForEach/init(_:id:content:)``.
-    ///
-    /// - Parameters:
-    ///   - data: A constant range.
-    ///   - content: The table row builder that creates rows dynamically.
+//
+//    /// Creates an instance that computes table rows on demand over a given
+//    /// constant range.
+//    ///
+//    /// The instance only reads the initial value of the provided `data` and
+//    /// doesn't need to identify rows across updates. To compute rows on
+//    /// demand over a dynamic range, use ``ForEach/init(_:id:content:)``.
+//    ///
+//    /// - Parameters:
+//    ///   - data: A constant range.
+//    ///   - content: The table row builder that creates rows dynamically.
 //    public init<V>(_ data: Range<Int>, @TableRowBuilder<V> content: @escaping (Int) -> Content) where Data == Range<Int>, ID == Int, V == Content.TableRowValue { fatalError() }
-
-    public var tableRowBody: Never { fatalError() }
-}
+//
+//    public var tableRowBody: Never { fatalError() }
+//}
 
 //@available(iOS 16.0, macOS 12.0, *)
 //@available(tvOS, unavailable)
@@ -3715,48 +3715,48 @@ extension ForEach : TableRowContent where Content : TableRowContent {
 //extension ForEach : DynamicTableRowContent where Content : TableRowContent {
 //}
 
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Group : TableColumnContent where Content : TableColumnContent {
+//@available(iOS 16.0, macOS 12.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension Group : TableColumnContent where Content : TableColumnContent {
+//
+//    /// The type of value of rows presented by this column content.
+//    public typealias TableRowValue = Content.TableRowValue
+//
+//    /// The type of sort comparator associated with this table column content.
+//    public typealias TableColumnSortComparator = Content.TableColumnSortComparator
+//
+//    /// The type of content representing the body of this table column content.
+//    public typealias TableColumnBody = NeverView
+//
+//    /// Creates a group of table columns.
+//    ///
+//    /// - Parameter content: A ``SkipUI/TableColumnBuilder`` that produces the
+//    ///   columns to group.
+//    @inlinable public init<R, C>(@TableColumnBuilder<R, C> content: () -> Content) where R == Content.TableRowValue, C == Content.TableColumnSortComparator { fatalError() }
+//
+//    public var tableColumnBody: Never { fatalError() }
+//}
 
-    /// The type of value of rows presented by this column content.
-    public typealias TableRowValue = Content.TableRowValue
-
-    /// The type of sort comparator associated with this table column content.
-    public typealias TableColumnSortComparator = Content.TableColumnSortComparator
-
-    /// The type of content representing the body of this table column content.
-    public typealias TableColumnBody = NeverView
-
-    /// Creates a group of table columns.
-    ///
-    /// - Parameter content: A ``SkipUI/TableColumnBuilder`` that produces the
-    ///   columns to group.
-    @inlinable public init<R, C>(@TableColumnBuilder<R, C> content: () -> Content) where R == Content.TableRowValue, C == Content.TableColumnSortComparator { fatalError() }
-
-    public var tableColumnBody: Never { fatalError() }
-}
-
-@available(iOS 16.0, macOS 12.0, *)
-@available(tvOS, unavailable)
-@available(watchOS, unavailable)
-extension Group : TableRowContent where Content : TableRowContent {
-    public var tableRowBody: Never { fatalError() }
-
-
-    /// The type of value represented by this table row content.
-    public typealias TableRowValue = Content.TableRowValue
-
-    /// The type of content representing the body of this table row content.
-    public typealias TableRowBody = NeverView
-
-    /// Creates a group of table rows.
-    ///
-    /// - Parameter content: A ``SkipUI/TableRowBuilder`` that produces the
-    ///   rows to group.
-    @inlinable public init<R>(@TableRowBuilder<R> content: () -> Content) where R == Content.TableRowValue { fatalError() }
-}
+//@available(iOS 16.0, macOS 12.0, *)
+//@available(tvOS, unavailable)
+//@available(watchOS, unavailable)
+//extension Group : TableRowContent where Content : TableRowContent {
+//    public var tableRowBody: Never { fatalError() }
+//
+//
+//    /// The type of value represented by this table row content.
+//    public typealias TableRowValue = Content.TableRowValue
+//
+//    /// The type of content representing the body of this table row content.
+//    public typealias TableRowBody = NeverView
+//
+//    /// Creates a group of table rows.
+//    ///
+//    /// - Parameter content: A ``SkipUI/TableRowBuilder`` that produces the
+//    ///   rows to group.
+//    @inlinable public init<R>(@TableRowBuilder<R> content: () -> Content) where R == Content.TableRowValue { fatalError() }
+//}
 
 /// A type that applies a custom appearance to all tables within a view.
 ///

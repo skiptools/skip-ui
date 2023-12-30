@@ -4,8 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Erase the generic Content to facilitate specialized constructor support.
-public struct WindowGroup /* <Content> */ : Scene /* where Content : View */ {
+public struct WindowGroup : Scene {
     @available(*, unavailable)
     public init(id: String, @ViewBuilder content: () -> any View) {
     }

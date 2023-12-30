@@ -8,12 +8,12 @@
 import androidx.compose.runtime.Composable
 #endif
 
-public struct Form<Content> : View where Content : View {
+public struct Form : View {
     #if SKIP
     // It appears that on iOS, List and Form render the same
-    let list: List<Content>
+    let list: List
 
-    public init(@ViewBuilder content: () -> Content) {
+    public init(@ViewBuilder content: () -> ComposeView) {
         list = List(content: content)
     }
 

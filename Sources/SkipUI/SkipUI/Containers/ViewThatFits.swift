@@ -4,9 +4,9 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-public struct ViewThatFits<Content> : View where Content : View {
+public struct ViewThatFits : View {
     @available(*, unavailable)
-    public init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> Content) {
+    public init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> ComposeView) {
     }
 
     #if !SKIP

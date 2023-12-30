@@ -32,25 +32,24 @@ extension CustomizableToolbarContent {
 // `@ViewBuilder` logic built into the transpiler. The Swift compiler will guarantee that the
 // only allowed toolbar content are types that conform to `ToolbarContent`
 
-// Erase the generic ID to facilitate specialized constructor support.
-public struct ToolbarItem</* ID, */ Content> : CustomizableToolbarContent, View where Content : View {
+public struct ToolbarItem : CustomizableToolbarContent, View {
     let placement: ToolbarItemPlacement
-    let content: Content
+    let content: ComposeView
 
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
         self.placement = placement
         self.content = content()
     }
 
     @available(*, unavailable)
-    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
         self.placement = placement
         self.content = content()
     }
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
     #else
     public var body: some View {
@@ -59,24 +58,24 @@ public struct ToolbarItem</* ID, */ Content> : CustomizableToolbarContent, View 
     #endif
 }
 
-public struct ToolbarItemGroup<Content> : CustomizableToolbarContent, View where Content : View  {
+public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     let placement: ToolbarItemPlacement
-    let content: Content
+    let content: ComposeView
 
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
         self.placement = placement
         self.content = content()
     }
 
     @available(*, unavailable)
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> any View) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
         self.placement = placement
         self.content = content()
     }
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
     #else
     public var body: some View {
@@ -85,13 +84,13 @@ public struct ToolbarItemGroup<Content> : CustomizableToolbarContent, View where
     #endif
 }
 
-public struct ToolbarTitleMenu /* <Content> */ : CustomizableToolbarContent, View /* where Content : View */ {
+public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
     @available(*, unavailable)
     public init() {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView) {
     }
 
     #if !SKIP
@@ -155,7 +154,7 @@ public struct ToolbarCustomizationOptions : OptionSet, Sendable {
 }
 
 extension View {
-    public func toolbar(@ViewBuilder content: () -> any View) -> some View {
+    public func toolbar(@ViewBuilder content: () -> ComposeView) -> some View {
         #if SKIP
         return preference(key: ToolbarContentPreferenceKey.self, value: [content()])
         #else
@@ -206,19 +205,19 @@ extension View {
 
 #if SKIP
 struct ToolbarContentPreferenceKey: PreferenceKey {
-    typealias Value = [View]
+    typealias Value = [ComposeView]
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Array<View>>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Array<ComposeView>>
     class Companion: PreferenceKeyCompanion {
-        let defaultValue: [View] = []
-        func reduce(value: inout [View], nextValue: () -> [View]) {
+        let defaultValue: [ComposeView] = []
+        func reduce(value: inout [ComposeView], nextValue: () -> [ComposeView]) {
             value.append(contentsOf: nextValue())
         }
     }
 }
 
 struct ToolbarItems {
-    let content: androidx.compose.runtime.State<[View]>
+    let content: androidx.compose.runtime.State<[ComposeView]>
 
     @Composable func filterTopBarLeading() -> [View] {
         return filter(expandGroups: false) { $0 == .topBarLeading }
@@ -246,11 +245,11 @@ struct ToolbarItems {
 
     @Composable private func filter(expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
         var filtered: [View] = []
-        let context = ComposeContext(composer: ClosureComposer { view, context in
+        let context = ComposeContext(composer: SideEffectComposer { view, context in
             if let itemGroup = view as? ToolbarItemGroup {
                 if placement(itemGroup.placement) {
                     if expandGroups {
-                        filtered.append(contentsOf: itemGroup.collectViews(context: context(false)).filter { !$0.isSwiftUIEmptyView })
+                        filtered.append(contentsOf: itemGroup.content.collectViews(context: context(false)).filter { !$0.isSwiftUIEmptyView })
                     } else {
                         filtered.append(itemGroup)
                     }
@@ -262,6 +261,7 @@ struct ToolbarItems {
             } else if placement(.automatic), !view.isSwiftUIEmptyView {
                 filtered.append(view)
             }
+            return ComposeResult.ok
         })
         content.value.forEach { $0.Compose(context: context) }
         return filtered

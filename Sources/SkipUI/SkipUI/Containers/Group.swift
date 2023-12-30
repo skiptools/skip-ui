@@ -8,21 +8,21 @@
 import androidx.compose.runtime.Composable
 #endif
 
-public struct Group<Content> : View where Content : View {
-    let content: Content
+public struct Group : View {
+    let content: ComposeView
 
-    public init(@ViewBuilder content: () -> Content) {
+    public init(@ViewBuilder content: () -> ComposeView) {
         self.content = content()
     }
 
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
         ComposeContent(context: context)
-        return .ok
+        return ComposeResult.ok
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
     #else
     public var body: some View {

@@ -14,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct Toggle : View {
     let isOn: Binding<Bool>
     let label: any View

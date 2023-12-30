@@ -17,12 +17,12 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-public struct VStack<Content> : View where Content : View {
+public struct VStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
-    let content: Content
+    let content: ComposeView
 
-    public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+    public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> ComposeView) {
         self.alignment = alignment
         self.spacing = spacing
         self.content = content()
@@ -67,7 +67,7 @@ public struct VStack<Content> : View where Content : View {
 }
 
 #if SKIP
-class VStackComposer: Composer {
+class VStackComposer: RenderingComposer {
     private static let defaultSpacing = 8.0
     // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
     private static let textSpacing = 1.0

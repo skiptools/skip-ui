@@ -20,14 +20,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct TextField : View {
     let text: Binding<String>
-    let label: any View
+    let label: ComposeView
     let prompt: Text?
     let isSecure: Bool
 
-    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> ComposeView) {
         self.text = text
         self.label = label()
         self.prompt = prompt
@@ -35,11 +34,11 @@ public struct TextField : View {
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
+        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
+        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(titleKey)) })
     }
 
     @available(*, unavailable)
@@ -63,7 +62,7 @@ public struct TextField : View {
     }
 
     @available(*, unavailable)
-    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> ComposeView) {
         self.init(text: text, prompt: prompt, label: label)
     }
 

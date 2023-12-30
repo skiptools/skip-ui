@@ -6,7 +6,6 @@
 
 import Foundation
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 

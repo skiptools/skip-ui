@@ -4,7 +4,6 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Erase the generic Label to facilitate specialized constructor support.
 public struct Picker</* Label, */ SelectionValue, Content> : View where /* Label : View, */ SelectionValue : Hashable, Content : View {
     @available(*, unavailable)
     public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> any View) {

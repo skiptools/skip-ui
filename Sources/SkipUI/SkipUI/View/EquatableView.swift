@@ -8,16 +8,16 @@
 import androidx.compose.runtime.Composable
 #endif
 
-public struct EquatableView<Content> : View where /* Content : Equatable, */ Content : View {
-    public let content: Content
+public struct EquatableView : View {
+    public let content: any View
 
-    public init(content: Content) {
+    public init(content: any View) {
         self.content = content
     }
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = content.Compose(context: context)
+        content.Compose(context: context)
     }
     #else
     public var body: some View {

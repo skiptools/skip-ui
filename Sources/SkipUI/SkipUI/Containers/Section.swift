@@ -10,54 +10,54 @@ import androidx.compose.runtime.Composable
 
 // Erase generics to facilitate specialized constructor support.
 public struct Section : View, ListItemFactory {
-    let header: (any View)?
-    let footer: (any View)?
-    let content: any View
+    let header: ComposeView?
+    let footer: ComposeView?
+    let content: ComposeView
 
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View, @ViewBuilder footer: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView, @ViewBuilder footer: () -> ComposeView) {
         self.header = header()
         self.footer = footer()
         self.content = content()
     }
 
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder footer: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder footer: () -> ComposeView) {
         self.header = nil
         self.footer = footer()
         self.content = content()
     }
 
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView) {
         self.header = header()
         self.footer = nil
         self.content = content()
     }
 
-    public init(@ViewBuilder content: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView) {
         self.header = nil
         self.footer = nil
         self.content = content()
     }
 
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
-        self.init(content: content, header: { Text(titleKey) })
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) {
+        self.init(content: content, header: { ComposeView(view: Text(titleKey)) })
     }
 
-    public init(_ title: String, @ViewBuilder content: () -> any View) {
-        self.init(content: content, header: { Text(verbatim: title) })
+    public init(_ title: String, @ViewBuilder content: () -> ComposeView) {
+        self.init(content: content, header: { ComposeView(view: Text(verbatim: title)) })
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
+    public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView) {
         self.init(titleKey, content: content)
     }
 
     @available(*, unavailable)
-    public init(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
+    public init(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView) {
         self.init(title, content: content)
     }
 
     @available(*, unavailable)
-    public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
+    public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView) {
         self.init(content: content, header: header)
     }
 
@@ -73,7 +73,7 @@ public struct Section : View, ListItemFactory {
         return ComposeResult.ok
     }
 
-    func ComposeListItems(context: ListItemFactoryContext) {
+    override func composeListItems(context: ListItemFactoryContext) {
         // Not called because the section does not append itself as a list item view
     }
     #else

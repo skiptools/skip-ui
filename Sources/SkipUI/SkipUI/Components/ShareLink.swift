@@ -12,18 +12,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.startActivity
 #endif
 
-// Erase the generics to facilitate specialized constructor support.
 // Use a class to be able to update our openURL action on compose by reference.
 public class ShareLink : View {
     private static let defaultSystemImageName = "square.and.arrow.up"
 
-    let content: any View
+    let content: Button
     var action: () -> Void = {}
     #if SKIP
     let intent: Intent
     #endif
 
-    init(text: String, subject: String? = nil, message: String? = nil, @ViewBuilder label: () -> any View) {
+    init(text: String, subject: String? = nil, message: String? = nil, @ViewBuilder label: () -> ComposeView) {
         #if SKIP
         self.intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -35,63 +34,63 @@ public class ShareLink : View {
         }
         self.content = Button(action: { self.action() }, label: label)
         #else
-        self.content = stubView()
+        self.content = Button("", action: {})
         #endif
     }
 
-    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> ComposeView) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text, label: label)
     }
 
-    public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+    public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> ComposeView) {
         self.init(text: item, subject: subject?.text, message: message?.text, label: label)
     }
 
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            Image(systemName: Self.defaultSystemImageName)
+            ComposeView(view: Image(systemName: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            Image(systemName: Self.defaultSystemImageName)
+            ComposeView(view: Image(systemName: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            Label(titleKey, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(titleKey, systemImage: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            Label(titleKey, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(titleKey, systemImage: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ title: String, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            Label(title, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(title, systemImage: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ title: String, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            Label(title, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(title, systemImage: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ title: Text, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            Label(title.text, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(title.text, systemImage: Self.defaultSystemImageName))
         }
     }
 
     public convenience init(_ title: Text, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            Label(title.text, systemImage: Self.defaultSystemImageName)
+            ComposeView(view: Label(title.text, systemImage: Self.defaultSystemImageName))
         }
     }
 

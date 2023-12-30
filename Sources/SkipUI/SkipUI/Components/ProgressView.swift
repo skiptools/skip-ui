@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
-// Erase the generic Labels to facilitate specialized constructor support.
 public struct ProgressView : View {
     let value: Double?
     let total: Double?
@@ -26,7 +25,7 @@ public struct ProgressView : View {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder label: () -> some View /* Label */) {
+    public init(@ViewBuilder label: () -> ComposeView) {
         self.value = nil
         self.total = nil
     }
@@ -49,7 +48,7 @@ public struct ProgressView : View {
     }
 
     @available(*, unavailable)
-    public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> some View /* Label */) {
+    public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> ComposeView) {
         self.value = value
         self.total = total
     }

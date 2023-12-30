@@ -18,11 +18,11 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
-public struct ScrollView<Content> : View where Content : View {
-    let content: Content
+public struct ScrollView : View {
+    let content: ComposeView
     let axes: Axis.Set
 
-    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> Content) {
+    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> ComposeView) {
         self.axes = axes
         self.content = content()
     }

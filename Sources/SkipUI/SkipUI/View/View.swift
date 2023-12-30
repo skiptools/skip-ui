@@ -55,18 +55,26 @@ extension View {
     /// Calls to `Compose` are added by the transpiler.
     @Composable public func Compose(context: ComposeContext) -> ComposeResult {
         if let composer = context.composer {
-            composer.Compose(view: self, context: { retain in
+            let composerContext: (Bool) -> ComposeContext = { retain in
                 guard !retain else {
                     return context
                 }
                 var context = context
                 context.composer = nil
                 return context
-            })
+            }
+            if let renderingComposer = composer as? RenderingComposer {
+                renderingComposer.Compose(self, composerContext)
+                return ComposeResult.ok
+            } else if let sideEffectComposer = composer as? SideEffectComposer {
+                return sideEffectComposer.Compose(self, composerContext)
+            } else {
+                return ComposeResult.ok
+            }
         } else {
             ComposeContent(context: context)
+            return ComposeResult.ok
         }
-        return .ok
     }
 
     /// Compose this view's content.
@@ -89,14 +97,6 @@ extension View {
     /// - Parameter until: Return `true` to stop stripping at a modifier with a given role.
     public func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
         return perform(self)
-    }
-
-    /// Use a custom composer to collect the views composed within this view.
-    @Composable public func collectViews(context: ComposeContext) -> [View] {
-        var views: [View] = []
-        let viewCollectingContext = context.content(composer: ClosureComposer { view, _ in views.append(view) })
-        ComposeContent(context: viewCollectingContext)
-        return views
     }
 }
 #endif

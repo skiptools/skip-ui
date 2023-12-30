@@ -8,7 +8,6 @@
 
 #if !SKIP
 
-
 /// A stylized view, with an optional label, that visually collects a logical
 /// grouping of content.
 ///

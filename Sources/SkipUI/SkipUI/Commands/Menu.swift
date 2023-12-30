@@ -20,33 +20,32 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
 
-// Erase the generics to facilitate specialized constructor support.
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
 public class Menu : View {
-    let content: any View
-    let label: any View
+    let content: ComposeView
+    let label: ComposeView
     let primaryAction: (() -> Void)?
     var toggleMenu: () -> Void = {}
 
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
         self.content = content()
         #if SKIP
-        self.label = Button(action: { self.toggleMenu() }, label: label)
+        self.label = ComposeView(view: Button(action: { self.toggleMenu() }, label: label))
         #else
-        self.label = stubView()
+        self.label = ComposeView(view: EmptyView())
         #endif
         self.primaryAction = nil
     }
 
-    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
-        self.init(content: content, label: { Text(titleKey) })
+    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) {
+        self.init(content: content, label: { ComposeView(view: Text(titleKey)) })
     }
 
-    public convenience init(_ title: String, @ViewBuilder content: () -> any View) {
-        self.init(content: content, label: { Text(verbatim: title) })
+    public convenience init(_ title: String, @ViewBuilder content: () -> ComposeView) {
+        self.init(content: content, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View, primaryAction: @escaping () -> Void) {
+    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView, primaryAction: @escaping () -> Void) {
         self.content = content()
         // We don't use a Button because we can't attach a long press detector to it
         // So currently, any Menu with a primaryAction ignores .buttonStyle
@@ -54,12 +53,12 @@ public class Menu : View {
         self.primaryAction = primaryAction
     }
 
-    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
-        self.init(content: content, label: { Text(titleKey) }, primaryAction: primaryAction)
+    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView, primaryAction: @escaping () -> Void) {
+        self.init(content: content, label: { ComposeView(view: Text(titleKey)) }, primaryAction: primaryAction)
     }
 
-    public convenience init(_ title: String, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
-        self.init(content: content, label: { Text(verbatim: title) }, primaryAction: primaryAction)
+    public convenience init(_ title: String, @ViewBuilder content: () -> ComposeView, primaryAction: @escaping () -> Void) {
+        self.init(content: content, label: { ComposeView(view: Text(verbatim: title)) }, primaryAction: primaryAction)
 
     }
 
@@ -118,7 +117,7 @@ public class Menu : View {
         }
     }
 
-    @Composable private func ComposeDropdownMenuItems(for content: View, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
+    @Composable private func ComposeDropdownMenuItems(for content: ComposeView, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
         let itemViews = content.collectViews(context: context)
         for itemView in itemViews {
             if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
@@ -136,7 +135,7 @@ public class Menu : View {
                     ComposeDropdownMenuItems(for: section.content, context: context, replaceMenu: replaceMenu)
                     Divider().Compose(context: context)
                 } else if let menu = strippedItemView as? Menu {
-                    if let button = menu.label as? Button {
+                    if let button = menu.label.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Button }) {
                         ComposeDropdownMenuItem(for: button.label, context: context) {
                             replaceMenu(menu)
                         }
@@ -149,7 +148,7 @@ public class Menu : View {
         }
     }
 
-    @Composable private func ComposeDropdownMenuItem(for view: View, context: ComposeContext, action: () -> Void) {
+    @Composable private func ComposeDropdownMenuItem(for view: ComposeView, context: ComposeContext, action: () -> Void) {
         if let label = view.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Label }) {
             DropdownMenuItem(text: { label.ComposeTitle(context: context) }, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
         } else {

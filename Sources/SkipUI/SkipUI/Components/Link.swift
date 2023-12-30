@@ -9,26 +9,25 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-// Erase the generic Label to facilitate specialized constructor support.
 // Use a class to be able to update our openURL action on compose by reference.
 public class Link : View {
-    let content: any View
+    let content: Button
     var openURL: (URL) -> Void = { _ in }
 
-    public init(destination: URL, @ViewBuilder label: () -> any View) {
+    public init(destination: URL, @ViewBuilder label: () -> ComposeView) {
         #if SKIP
         content = Button(action: { self.openURL(destination) }, label: label)
         #else
-        content = stubView()
+        content = Button("", action: {})
         #endif
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, destination: URL) {
-        self.init(destination: destination, label: { Text(titleKey) })
+        self.init(destination: destination, label: { ComposeView(view: Text(titleKey)) })
     }
 
     public convenience init(_ title: String, destination: URL) {
-        self.init(destination: destination, label: { Text(verbatim: title) })
+        self.init(destination: destination, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     #if SKIP

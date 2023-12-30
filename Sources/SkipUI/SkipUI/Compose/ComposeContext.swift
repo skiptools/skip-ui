@@ -41,38 +41,54 @@ public struct ComposeResult {
 
 /// Mechanism for a parent view to change how a child view is composed.
 public protocol Composer {
-    /// Called before a `ComposeView` composes its content.
-    public func willCompose()
-
-    /// Called after a `ComposeView` composes its content.
-    public func didCompose(result: ComposeResult)
-
-    /// Compose the given view.
-    ///
-    /// - Parameter context: The context to use to render the view, optionally retaining this composer.
-    @Composable public func Compose(view: View, context: (Bool) -> ComposeContext)
 }
 
-extension Composer {
-    public func willCompose() {
-    }
+/// Base type for composers that render content.
+public class RenderingComposer : Composer {
+    private let compose: (@Composable (View, (Bool) -> ComposeContext) -> Void)?
 
-    public func didCompose(result: ComposeResult) {
-    }
-}
-
-/// Builtin composer that executes a closure to compose.
-///
-/// - Warning: Child composables may recompose at any time. Be careful with relying on block capture.
-struct ClosureComposer: Composer {
-    private let compose: @Composable (View, (Bool) -> ComposeContext) -> Void
-
-    init(compose: @Composable (View, (Bool) -> ComposeContext) -> Void) {
+    /// Optionally provide a compose block to execute instead of subclassing.
+    init(compose: (@Composable (View, (Bool) -> ComposeContext) -> Void)? = nil) {
         self.compose = compose
     }
 
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
-        compose(view, context)
+    /// Called before a `ComposeView` composes its content.
+    public func willCompose() {
+    }
+
+    /// Called after a `ComposeView` composes its content.
+    public func didCompose(result: ComposeResult) {
+    }
+
+    /// Compose the given view's content.
+    ///
+    /// - Parameter context: The context to use to render the view, optionally retaining this composer.
+    @Composable public func Compose(view: View, context: (Bool) -> ComposeContext) {
+        if let compose {
+            compose(view, context)
+        } else {
+            view.ComposeContent(context: context(false))
+        }
+    }
+}
+
+/// Base type for composers that are used for side effects.
+///
+/// Side effect composers are escaping, meaning that if the internal content needs to recompose, the calling context will also recompose.
+public class SideEffectComposer : Composer {
+    private let compose: (@Composable (View, (Bool) -> ComposeContext) -> ComposeResult)?
+
+    /// Optionally provide a compose block to execute instead of subclassing.
+    init(compose: (@Composable (View, (Bool) -> ComposeContext) -> ComposeResult)? = nil) {
+        self.compose = compose
+    }
+
+    @Composable public func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
+        if let compose {
+            return compose(view, context)
+        } else {
+            return ComposeResult.ok
+        }
     }
 }
 
