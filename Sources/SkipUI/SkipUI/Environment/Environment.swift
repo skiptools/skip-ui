@@ -16,6 +16,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -186,6 +187,10 @@ extension EnvironmentValues {
     public var dismiss: () -> Void {
         get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
         set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
+    }
+
+    public var layoutDirection: LayoutDirection {
+        return LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl ? LayoutDirection.rightToLeft : LayoutDirection.leftToRight
     }
 
     public var openURL: (URL) -> Void {

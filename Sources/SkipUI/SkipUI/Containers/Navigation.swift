@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -93,10 +94,11 @@ public struct NavigationStack<Root> : View where Root: View {
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                 NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
                     composable(route: Navigator.rootRoute,
-                               exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * -1 / 3 }) },
-                               popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * -1 / 3 }) }) { entry in
+                               exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                               popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                         if let state = navigator.value.state(for: entry) {
                             let entryContext = context.content(stateSaver: state.stateSaver)
                             ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
@@ -107,10 +109,10 @@ public struct NavigationStack<Root> : View where Root: View {
                     for destinationIndex in 0..<Navigator.destinationCount {
                         composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"),
                                    arguments: listOf(navArgument("identifier") { type = NavType.StringType }),
-                                   enterTransition: { slideInHorizontally(initialOffsetX: { $0 }) },
-                                   exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * -1 / 3 }) },
-                                   popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * -1 / 3 }) },
-                                   popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 }) }) { entry in
+                                   enterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? -1 : 1) }) },
+                                   exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                   popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                   popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
                                 EnvironmentValues.shared.setValues {
@@ -187,7 +189,8 @@ public struct NavigationStack<Root> : View where Root: View {
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                                     if hasBackButton {
                                         IconButton(onClick: { navController.popBackStack() }) {
-                                            Icon(imageVector: Icons.Filled.ArrowBack, contentDescription: "Back", tint: tint.colorImpl())
+                                            let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                                            Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
                                         }
                                     }
                                     topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
