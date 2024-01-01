@@ -62,6 +62,10 @@ public struct Section : View, ListItemFactory {
     }
 
     #if SKIP
+    @Composable override func ComposeContent(context: ComposeContext) {
+        content.Compose(context: context)
+    }
+
     @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
         views.add(ListSectionHeader(content: header ?? EmptyView()))
         content.Compose(context: appendingContext)

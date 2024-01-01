@@ -113,8 +113,8 @@ public struct Button : View, ListItemAdapting {
     var foregroundStyle: ShapeStyle?
     if role == .destructive {
         foregroundStyle = Color.red
-    } else if !isPlain && EnvironmentValues.shared._foregroundStyle == nil {
-        foregroundStyle = EnvironmentValues.shared._tint ?? Color.accentColor
+    } else {
+        foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? (isPlain ? Color.primary : (EnvironmentValues.shared._tint ?? Color.accentColor))
     }
     let isEnabled = EnvironmentValues.shared.isEnabled
     if !isEnabled {
@@ -128,13 +128,9 @@ public struct Button : View, ListItemAdapting {
     }
     let contentContext = context.content(modifier: modifier)
 
-    if let foregroundStyle {
-        EnvironmentValues.shared.setValues {
-            $0.set_foregroundStyle(foregroundStyle)
-        } in: {
-            label.Compose(context: contentContext)
-        }
-    } else {
+    EnvironmentValues.shared.setValues {
+        $0.set_foregroundStyle(foregroundStyle)
+    } in: {
         label.Compose(context: contentContext)
     }
 }

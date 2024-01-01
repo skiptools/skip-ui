@@ -201,7 +201,6 @@ VStack {
     #if SKIP
     ComposeView { _ in
         androidx.compose.material3.Text("Hello from Compose")
-        return .ok
     }
     #endif
 }
@@ -216,7 +215,6 @@ ComposeView { context in
         Text("Hello from SwiftUI").Compose(context: context.content())
         androidx.compose.material3.Text("Hello from Compose")
     }
-    return .ok
 }
 #endif
 ```
@@ -229,14 +227,25 @@ ComposeView { context in
     VStack {
         Text("Hello from SwiftUI").Compose(context: context.content())
         androidx.compose.material3.Text("Hello from Compose")
-    }.Compose(context: context) // Returns .ok
+    }.Compose(context: context)
 }
 #endif
 ```
 
 With `ComposeView` and the `Compose()` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
 
-Note that `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
+`ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
+
+**Note**: `ComposeView`'s content block must return `ComposeResult.ok`. The reason the examples above do not include a return value is that the Skip transpiler will add one for you. You can, however, also specify it explicitly:
+
+```swift
+#if SKIP
+ComposeView { _ in 
+    androidx.compose.material3.Text("Hello from Compose")
+    return ComposeResult.ok
+}
+#endif
+```
 
 ## Tests
 
@@ -270,6 +279,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`Capsule`|✅ Full||
 |`Circle`|✅ Full||
 |`Color`|🟢 High||
+|`DatePicker`|🟡 Medium|Ranges not supported, only `.automatic` style|
 |`Divider`|✅ Full||
 |`DragGesture`|🟢 High|See [Gestures](#gestures)|
 |`EllipticalGradient`|🟡 Medium|Fills as circular unless used as a `View`|

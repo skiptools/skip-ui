@@ -7,9 +7,25 @@
 import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 #endif
 
@@ -17,16 +33,16 @@ public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 
     let selection: Binding<Date>
-    let label: any View
+    let label: ComposeView
     let dateFormatter: DateFormatter?
     let timeFormatter: DateFormatter?
 
-    public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
+    public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> ComposeView) {
         self.selection = selection
         self.label = label()
         if displayedComponents.contains(.date) {
             dateFormatter = DateFormatter()
-            dateFormatter?.dateStyle = .short
+            dateFormatter?.dateStyle = .medium
             dateFormatter?.timeStyle = .none
         } else {
             dateFormatter = nil
@@ -41,7 +57,7 @@ public struct DatePicker : View {
     }
 
     @available(*, unavailable)
-    public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
+    public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> ComposeView) {
         self.selection = selection
         self.dateFormatter = nil
         self.timeFormatter = nil
@@ -49,21 +65,21 @@ public struct DatePicker : View {
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(titleKey)) })
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(titleKey)) })
     }
 
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     @available(*, unavailable)
     public init(_ title: String, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     #if SKIP
@@ -72,27 +88,30 @@ public struct DatePicker : View {
         let horizontalArrangement = Arrangement.spacedBy(8.dp)
         if EnvironmentValues.shared._labelsHidden {
             Row(modifier: context.modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                ComposeDialogButtons(context: contentContext)
+                ComposePickerContent(context: contentContext)
             }
         } else {
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     label.Compose(context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                    ComposeDialogButtons(context: contentContext)
+                    ComposePickerContent(context: contentContext)
                 }
             }
         }
     }
 
-    @Composable private func ComposeDialogButtons(context: ComposeContext) {
+    @Composable private func ComposePickerContent(context: ComposeContext) {
+        let isDatePickerPresented = remember { mutableStateOf(false) }
+        let isTimePickerPresented = remember { mutableStateOf(false) }
         let isEnabled = EnvironmentValues.shared.isEnabled
         let date = selection.wrappedValue
+        let (hour, minute) = hourAndMinute(from: date)
         if let dateString = dateFormatter?.string(from: date) {
             let text = Text(verbatim: dateString)
             if isEnabled {
                 ComposeTextButton(label: text, context: context) {
-                    //~~~
+                    isDatePickerPresented.value = true
                 }
             } else {
                 text.Compose(context: context)
@@ -102,18 +121,82 @@ public struct DatePicker : View {
             let text = Text(verbatim: timeString)
             if isEnabled {
                 ComposeTextButton(label: text, context: context) {
-                    //~~~
+                    isTimePickerPresented.value = true
                 }
             } else {
                 text.Compose(context: context)
             }
         }
+
+        let tintColor = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
+        ComposeDatePicker(context: context, isPresented: isDatePickerPresented, tintColor: tintColor) {
+            didSelect(date: $0, hour: hour, minute: minute)
+        }
+        ComposeTimePicker(context: context, isPresented: isTimePickerPresented, tintColor: tintColor, hour: hour, minute: minute) {
+            didSelect(date: date, hour: $0, minute: $1)
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, dateSelected: (Date) -> Void) {
+        guard isPresented.value else {
+            return
+        }
+        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT())
+        let initialSeconds = selection.wrappedValue.timeIntervalSince1970 + timeZoneOffset
+        let state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0))
+        let colors = DatePickerDefaults.colors(selectedDayContainerColor: tintColor, selectedYearContainerColor: tintColor, todayDateBorderColor: tintColor, currentYearContentColor: tintColor)
+        DatePickerDialog(onDismissRequest: { isPresented.value = false }, confirmButton: {
+            Button(stringResource(android.R.string.ok), action: { isPresented.value = false }).padding().Compose(context: context)
+        }, content: {
+            DatePicker(state: state, modifier: context.modifier, colors: colors)
+        })
+        if let millis = state.selectedDateMillis {
+            dateSelected(Date(timeIntervalSince1970: Double(millis / 1000.0) - timeZoneOffset))
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeTimePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, hour: Int, minute: Int, timeSelected: (Int, Int) -> Void) {
+        guard isPresented.value else {
+            return
+        }
+        let state = rememberTimePickerState(initialHour: hour, initialMinute: minute)
+        let containerColor = tintColor.copy(alpha: Float(0.25))
+        let colors = TimePickerDefaults.colors(selectorColor: tintColor, periodSelectorSelectedContainerColor: containerColor, timeSelectorSelectedContainerColor: containerColor)
+        DatePickerDialog(onDismissRequest = { isPresented.value = false }, confirmButton = {
+            Button(stringResource(android.R.string.ok), action: { isPresented.value = false }).padding().Compose(context: context)
+        }, content = {
+            Box(modifier: Modifier.fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+                TimePicker(modifier: Modifier.padding(16.dp), state: state, colors: colors)
+            }
+        })
+        timeSelected(state.hour, state.minute)
     }
     #else
     public var body: some View {
         stubView()
     }
     #endif
+
+    private func didSelect(date: Date, hour: Int, minute: Int) {
+        // Subtract out any existing hour and minute from the given date, then add the selected values
+        let (baseHour, baseMinute) = hourAndMinute(from: date)
+        let baseSeconds = date.timeIntervalSince1970 - Double(baseHour * 60 * 60) - Double(baseMinute * 60)
+        let selectedSeconds = baseSeconds + Double(hour * 60 * 60) + Double(minute * 60)
+        #if SKIP
+        if selectedSeconds != selection.wrappedValue.timeIntervalSince1970 {
+            // selection is a 'let' constant so Swift would not allow us to assign to it
+            selection.wrappedValue = Date(timeIntervalSince1970: selectedSeconds)
+        }
+        #endif
+    }
+
+    private func hourAndMinute(from date: Date) -> (Int, Int) {
+        let calendar = Calendar.current
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: date)
+        return (timeComponents.hour!, timeComponents.minute!)
+    }
 }
 
 public struct DatePickerComponents : OptionSet, Sendable {
@@ -134,15 +217,15 @@ public struct DatePickerStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = ButtonStyle(rawValue: 0)
+    public static let automatic = DatePickerStyle(rawValue: 0)
 
     @available(*, unavailable)
-    public static let graphical = ButtonStyle(rawValue: 1)
+    public static let graphical = DatePickerStyle(rawValue: 1)
 
     @available(*, unavailable)
-    public static let wheel = ButtonStyle(rawValue: 2)
+    public static let wheel = DatePickerStyle(rawValue: 2)
 
-    public static let compact = ButtonStyle(rawValue: 3)
+    public static let compact = DatePickerStyle(rawValue: 3)
 }
 
 extension View {

@@ -310,6 +310,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_onSubmitState", value: newValue, defaultValue: { nil }) }
     }
 
+    var _pickerStyle: PickerStyle? {
+        get { builtinValue(key: "_pickerStyle", defaultValue: { nil }) as! PickerStyle? }
+        set { setBuiltinValue(key: "_pickerStyle", value: newValue, defaultValue: { nil }) }
+    }
+
     var _placement: ViewPlacement {
         get { builtinValue(key: "_placement", defaultValue: { ViewPlacement.content }) as! ViewPlacement }
         set { setBuiltinValue(key: "_placement", value: newValue, defaultValue: { ViewPlacement.content }) }
