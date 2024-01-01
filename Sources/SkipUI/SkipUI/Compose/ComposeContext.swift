@@ -48,8 +48,15 @@ public class RenderingComposer : Composer {
     private let compose: (@Composable (View, (Bool) -> ComposeContext) -> Void)?
 
     /// Optionally provide a compose block to execute instead of subclassing.
-    init(compose: (@Composable (View, (Bool) -> ComposeContext) -> Void)? = nil) {
+    ///
+    /// - Note: This is a separate method from the default constructor rather than giving `compose` a default value to work around Kotlin runtime
+    ///   crashes related to using composable closures.
+    init(compose: @Composable (View, (Bool) -> ComposeContext) -> Void) {
         self.compose = compose
+    }
+
+    init() {
+        self.compose = nil
     }
 
     /// Called before a `ComposeView` composes its content.
@@ -79,8 +86,15 @@ public class SideEffectComposer : Composer {
     private let compose: (@Composable (View, (Bool) -> ComposeContext) -> ComposeResult)?
 
     /// Optionally provide a compose block to execute instead of subclassing.
-    init(compose: (@Composable (View, (Bool) -> ComposeContext) -> ComposeResult)? = nil) {
+    ///
+    /// - Note: This is a separate method from the default constructor rather than giving `compose` a default value to work around Kotlin runtime
+    ///   crashes related to using composable closures.
+    init(compose: @Composable (View, (Bool) -> ComposeContext) -> ComposeResult) {
         self.compose = compose
+    }
+
+    init() {
+        self.compose = nil
     }
 
     @Composable public func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
