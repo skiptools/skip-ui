@@ -24,6 +24,8 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -49,13 +51,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -280,8 +283,9 @@ class Navigator {
 
     /// Number of possible destiation routes.
     ///
-    /// We route to destinations by static index rather than a dynamic system based on the provided destination keys because changing the destinations of a `NavHost`
-    /// wipes out its back stack. By using a fixed set of indexes, we can maintain the back stack even as we add destination mappings.
+    /// We route to destinations by static index rather than a dynamic system based on the provided destination
+    /// keys because changing the destinations of a `NavHost` wipes out its back stack. By using a fixed set of
+    /// indexes, we can maintain the back stack even as we add destination mappings.
     static let destinationCount = 100
 
     /// Route for the given destination index and value string.
@@ -573,7 +577,7 @@ public struct NavigationLink : View, ListItemAdapting {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
+        label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
     }
 
     @Composable func shouldComposeListItem() -> Bool {
@@ -586,8 +590,8 @@ public struct NavigationLink : View, ListItemAdapting {
                 // Continue to specialize for list rendering within the NavigationLink (e.g. Label)
                 label.Compose(context: context.content(composer: ListItemComposer(contentModifier: Modifier)))
             }
-            // Chevron
-            androidx.compose.material3.Text("\u{203A}", color: androidx.compose.ui.graphics.Color.LightGray, fontWeight: androidx.compose.ui.text.font.FontWeight.Bold, style: MaterialTheme.typography.titleLarge)
+            let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
+            Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: "chevron", tint: androidx.compose.ui.graphics.Color.Gray)
         }
     }
 

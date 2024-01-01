@@ -5,7 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.ContentAlpha
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
@@ -33,24 +35,43 @@ public struct Picker<SelectionValue> : View, ListItemAdapting where SelectionVal
     @Composable override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
         if EnvironmentValues.shared._labelsHidden || style != .navigationLink {
-            ComposeSelectedValue(context: context)
+            ComposeSelectedValue(context: context, style: style)
         } else {
             // Navigation link style outside of a List
             let contentContext = context.content()
-            ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
+            let modifier = context.modifier.clickable(onClick: {
+                //~~~
+            }, enabled: EnvironmentValues.shared.isEnabled)
+            ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     label.Compose(context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                    ComposeSelectedValue(context: contentContext)
+                    ComposeSelectedValue(context: contentContext, style: style, performsAction: false)
                 }
             }
         }
     }
 
-    @Composable private func ComposeSelectedValue(context: ComposeContext) {
-        let text = Text(verbatim: String(describing: selection.wrappedValue))
-        ComposeTextButton(label: text, context: context) {
-            //~~~
+    @Composable private func ComposeSelectedValue(context: ComposeContext, style: PickerStyle, performsAction: Bool = true) {
+        let selectedValueLabel: View
+        if style == .automatic || style == .menu {
+            selectedValueLabel = HStack(spacing: 2.0) {
+                Text(verbatim: String(describing: selection.wrappedValue))
+                Image(systemName: "chevron.down")
+            }
+        } else {
+            selectedValueLabel = Text(verbatim: String(describing: selection.wrappedValue))
+        }
+        if performsAction {
+            ComposeTextButton(label: selectedValueLabel, context: context) {
+                //~~~
+            }
+        } else {
+            var foregroundStyle = EnvironmentValues.shared._tint ?? Color(colorImpl: { androidx.compose.ui.graphics.Color.Gray })
+            if !EnvironmentValues.shared.isEnabled {
+                foregroundStyle = foregroundStyle.opacity(Double(ContentAlpha.disabled))
+            }
+            selectedValueLabel.foregroundStyle(foregroundStyle).Compose(context: context)
         }
     }
 
@@ -59,15 +80,17 @@ public struct Picker<SelectionValue> : View, ListItemAdapting where SelectionVal
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        let style = EnvironmentValues.shared._pickerStyle
-        if EnvironmentValues.shared._labelsHidden {
-            ComposeSelectedValue(context: context)
-        } else {
-            Row(modifier: contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+        let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
+        if style == .navigationLink {
+            //~~~
+        }
+        let modifier = Modifier.clickable(onClick: { /* ~~~ */ }, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier)
+        Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            if !EnvironmentValues.shared._labelsHidden {
                 label.Compose(context: context)
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                ComposeSelectedValue(context: context)
             }
+            ComposeSelectedValue(context: context, style: style, performsAction: false)
         }
     }
     #else
