@@ -268,7 +268,7 @@ public struct NavigationStack<Root> : View where Root: View {
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, NavigationDestination>
 struct NavigationDestination {
-    let destination: (Any) -> View
+    let destination: (Any) -> ComposeView
     // No way to compare closures. Assume equal so we don't think our destinations are constantly updating
     public override func equals(other: Any?) -> Bool {
         return true
@@ -294,20 +294,25 @@ class Navigator {
     }
 
     private var navController: NavHostController
-    private var destinations: NavigationDestinations
     private var keyboardController: SoftwareKeyboardController?
-
+    private var destinations: NavigationDestinations
     private var destinationIndexes: [Any.Type: Int] = [:]
+
+    // We reserve the last destination index for static destinations. Every time we navigate to a static destination view, we increment the
+    // destination value to give it a unique navigation path of e.g. 99/0, 99/1, 99/2, etc
+    private let viewDestinationIndex = Self.destinationCount - 1
+    private var viewDestinationValue = 0
+
     private var backStackState: [String: BackStackState] = [:]
     private var navigatingToState: BackStackState? = BackStackState(route: Self.rootRoute)
     struct BackStackState {
         let id: String?
         let route: String
-        let destination: ((Any) -> View)?
+        let destination: ((Any) -> ComposeView)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
 
-        init(id: String? = nil, route: String, destination: ((Any) -> View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+        init(id: String? = nil, route: String, destination: ((Any) -> ComposeView)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
             self.route = route
             self.destination = destination
@@ -339,6 +344,15 @@ class Navigator {
     /// Navigate to a target value specified in a `NavigationLink`.
     func navigate(to targetValue: Any) {
         let _ = navigate(to: targetValue, type: type(of: targetValue))
+    }
+
+    /// Navigate to a destination view.
+    func navigateToView(_ view: ComposeView) {
+        let targetValue = viewDestinationValue
+        viewDestinationValue += 1
+
+        let route = Self.route(for: viewDestinationIndex, valueString: String(describing: targetValue))
+        navigate(route: route, destination: { _ in view }, targetValue: targetValue)
     }
 
     /// The entry being navigated to.
@@ -381,14 +395,17 @@ class Navigator {
             }
             return false
         }
-        
-        // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
-        keyboardController?.hide()
 
         let route = route(for: type, value: targetValue)
-        navigatingToState = BackStackState(route: route, destination: destination.destination, targetValue: targetValue)
-        navController.navigate(route)
+        navigate(route: route, destination: destination.destination, targetValue: targetValue)
         return true
+    }
+
+    private func navigate(route: String, destination: ((Any) -> ComposeView)?, targetValue: Any) {
+        // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
+        keyboardController?.hide()
+        navigatingToState = BackStackState(route: route, destination: destination, targetValue: targetValue)
+        navController.navigate(route)
     }
 
     private func route(for targetType: Any.Type, value: Any) -> String {
@@ -447,7 +464,7 @@ extension View {
         return self
     }
 
-    public func navigationDestination<D, V>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> V) -> some View where D: Any, V : View {
+    public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> ComposeView) -> some View where D: Any {
         #if SKIP
         let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
         return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
@@ -548,36 +565,41 @@ struct NavigationBarBackButtonHiddenPreferenceKey: PreferenceKey {
 
 public struct NavigationLink : View, ListItemAdapting {
     let value: Any?
-    let label: any View
+    let destination: ComposeView?
+    let label: ComposeView
 
-    public init(value: Any?, @ViewBuilder label: () -> any View) {
+    public init(value: Any?, @ViewBuilder label: () -> ComposeView) {
         self.value = value
+        self.destination = nil
         self.label = label()
     }
 
     public init(_ title: String, value: Any?) {
-        self.init(value: value, label: { Text(verbatim: title) })
+        self.init(value: value, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     public init(_ titleKey: LocalizedStringKey, value: Any?) {
-        self.init(value: value, label: { Text(titleKey) })
+        self.init(value: value, label: { ComposeView(view: Text(titleKey)) })
     }
 
-    @available(*, unavailable)
-    public init(@ViewBuilder destination: () -> any View, @ViewBuilder label: () -> any View) {
+    public init(@ViewBuilder destination: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
         self.value = nil
+        self.destination = destination()
         self.label = label()
     }
 
-    @available(*, unavailable)
-    public init(_ title: String, @ViewBuilder destination: () -> any View) {
-        self.label = EmptyView()
-        self.value = nil
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> ComposeView) {
+        self.init(destination: destination, label: { ComposeView(view: Text(titleKey)) })
+    }
+
+    public init(_ title: String, @ViewBuilder destination: () -> ComposeView) {
+        self.init(destination: destination, label: { ComposeView(view: Text(verbatim: title)) })
     }
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        label.Compose(context: context.content(modifier: NavigationModifier(context.modifier)))
+        let navigationContext = context.content(modifier: NavigationModifier(context.modifier))
+        ComposeTextButton(label: label, context: navigationContext)
     }
 
     @Composable func shouldComposeListItem() -> Bool {
@@ -597,9 +619,11 @@ public struct NavigationLink : View, ListItemAdapting {
 
     @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {
         let navigator = LocalNavigator.current
-        return modifier.clickable(enabled: value != nil && EnvironmentValues.shared.isEnabled) {
-            if let value, let navigator  {
-                navigator.navigate(to: value)
+        return modifier.clickable(enabled: (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled) {
+            if let value {
+                navigator?.navigate(to: value)
+            } else if let destination {
+                navigator?.navigateToView(destination)
             }
         }
     }

@@ -579,9 +579,7 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 
 SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has implemented all three, albeit with the restrictions explained below.
 
-SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab.
-
-Otherwise, `TabView` acts as you would expect. `NavigationStack`, however, has several restrictions you must be aware of.
+SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Otherwise, `TabView` acts as you would expect.
 
 In SwiftUI, you push vies onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
 
@@ -605,9 +603,7 @@ struct ListView : View {
 }
 ```
 
-SkipUI does not support embedding a destination view directly in a `NavigationLink`, and future support may prove difficult. Compose forces you to define fixed navigation routes, making any dynamic navigation a challenge. 
-
-SkipUI **does** support navigation with `.navigationDestination` as in the example above, because we can map each modifier to a fixed Compose navigation route. Even this support, however, required some abuse of Compose's system in order to allow newly-pushed views to defined additional `.navigationDestinations`. In fact, it is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
+SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
 
