@@ -299,7 +299,6 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
 |`Oval`|✅ Full||
-|`Picker`|🟡 Medium|Only .automatic, .menu, .navigationLink styles|
 |`ProgressView`|🟡 Medium|Labels not supported|
 |`RadialGradient`|✅ Full||
 |`Rectangle`|✅ Full||
