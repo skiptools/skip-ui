@@ -25,30 +25,30 @@ public struct Button : View, ListItemAdapting {
     let label: ComposeView
     let role: ButtonRole?
 
-    public init(action: @escaping () -> Void, @ViewBuilder label: () -> ComposeView) {
+    public init(action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
         self.init(role: nil, action: action, label: label)
     }
 
     public init(_ title: String, action: @escaping () -> Void) {
-        self.init(action: action, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(action: action, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, action: @escaping () -> Void) {
-        self.init(action: action, label: { ComposeView(view: Text(titleKey)) })
+        self.init(action: action, label: { Text(titleKey) })
     }
 
-    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> ComposeView) {
+    public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
         self.role = role
         self.action = action
-        self.label = label()
+        self.label = ComposeView.from(label)
     }
 
     public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(role: role, action: action, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(role: role, action: action, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
-        self.init(role: role, action: action, label: { ComposeView(view: Text(titleKey)) })
+        self.init(role: role, action: action, label: { Text(titleKey) })
     }
 
     #if SKIP

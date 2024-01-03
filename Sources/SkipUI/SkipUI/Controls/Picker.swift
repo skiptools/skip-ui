@@ -17,18 +17,18 @@ public struct Picker<SelectionValue> : View, ListItemAdapting where SelectionVal
     let label: ComposeView
     let content: ComposeView
 
-    public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
+    public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.selection = selection
-        self.content = content()
-        self.label = label()
+        self.content = ComposeView.from(content)
+        self.label = ComposeView.from(label)
     }
 
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, @ViewBuilder content: () -> ComposeView) {
-        self.init(selection: selection, content: content, label: { ComposeView(view: Text(titleKey)) })
+    public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {
+        self.init(selection: selection, content: content, label: { Text(titleKey) })
     }
 
-    public init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> ComposeView) {
-        self.init(selection: selection, content: content, label: { ComposeView(view: Text(verbatim: title)) })
+    public init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {
+        self.init(selection: selection, content: content, label: { Text(verbatim: title) })
     }
 
     #if SKIP

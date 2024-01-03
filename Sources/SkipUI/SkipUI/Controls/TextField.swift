@@ -26,19 +26,19 @@ public struct TextField : View {
     let prompt: Text?
     let isSecure: Bool
 
-    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> ComposeView) {
+    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
         self.text = text
-        self.label = label()
+        self.label = ComposeView.from(label)
         self.prompt = prompt
         self.isSecure = isSecure
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(titleKey)) })
+        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
     }
 
     @available(*, unavailable)
@@ -62,7 +62,7 @@ public struct TextField : View {
     }
 
     @available(*, unavailable)
-    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> ComposeView) {
+    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> any View) {
         self.init(text: text, prompt: prompt, label: label)
     }
 

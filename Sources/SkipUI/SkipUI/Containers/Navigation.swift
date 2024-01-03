@@ -145,7 +145,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let uncomposedTitle = "__UNCOMPOSED__"
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
         let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[ComposeView], Any>) { mutableStateOf(Array<ComposeView>()) }
+        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
 
@@ -247,7 +247,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
                 let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let toolbarContentPreference = Preference<[ComposeView]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
                     content(contentContext)
@@ -268,7 +268,7 @@ public struct NavigationStack<Root> : View where Root: View {
 #if SKIP
 typealias NavigationDestinations = Dictionary<Any.Type, NavigationDestination>
 struct NavigationDestination {
-    let destination: (Any) -> ComposeView
+    let destination: (Any) -> any View
     // No way to compare closures. Assume equal so we don't think our destinations are constantly updating
     public override func equals(other: Any?) -> Bool {
         return true
@@ -308,11 +308,11 @@ class Navigator {
     struct BackStackState {
         let id: String?
         let route: String
-        let destination: ((Any) -> ComposeView)?
+        let destination: ((Any) -> any View)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
 
-        init(id: String? = nil, route: String, destination: ((Any) -> ComposeView)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+        init(id: String? = nil, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
             self.route = route
             self.destination = destination
@@ -347,7 +347,7 @@ class Navigator {
     }
 
     /// Navigate to a destination view.
-    func navigateToView(_ view: ComposeView) {
+    func navigateToView(_ view: any View) {
         let targetValue = viewDestinationValue
         viewDestinationValue += 1
 
@@ -401,7 +401,7 @@ class Navigator {
         return true
     }
 
-    private func navigate(route: String, destination: ((Any) -> ComposeView)?, targetValue: Any) {
+    private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any) {
         // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
         keyboardController?.hide()
         navigatingToState = BackStackState(route: route, destination: destination, targetValue: targetValue)
@@ -464,7 +464,7 @@ extension View {
         return self
     }
 
-    public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> ComposeView) -> some View where D: Any {
+    public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D: Any {
         #if SKIP
         let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
         return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
@@ -568,32 +568,32 @@ public struct NavigationLink : View, ListItemAdapting {
     let destination: ComposeView?
     let label: ComposeView
 
-    public init(value: Any?, @ViewBuilder label: () -> ComposeView) {
+    public init(value: Any?, @ViewBuilder label: () -> any View) {
         self.value = value
         self.destination = nil
-        self.label = label()
+        self.label = ComposeView.from(label)
     }
 
     public init(_ title: String, value: Any?) {
-        self.init(value: value, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(value: value, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, value: Any?) {
-        self.init(value: value, label: { ComposeView(view: Text(titleKey)) })
+        self.init(value: value, label: { Text(titleKey) })
     }
 
-    public init(@ViewBuilder destination: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
+    public init(@ViewBuilder destination: () -> any View, @ViewBuilder label: () -> any View) {
         self.value = nil
-        self.destination = destination()
-        self.label = label()
+        self.destination = ComposeView.from(destination)
+        self.label = ComposeView.from(label)
     }
 
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> ComposeView) {
-        self.init(destination: destination, label: { ComposeView(view: Text(titleKey)) })
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> any View) {
+        self.init(destination: destination, label: { Text(titleKey) })
     }
 
-    public init(_ title: String, @ViewBuilder destination: () -> ComposeView) {
-        self.init(destination: destination, label: { ComposeView(view: Text(verbatim: title)) })
+    public init(_ title: String, @ViewBuilder destination: () -> any View) {
+        self.init(destination: destination, label: { Text(verbatim: title) })
     }
 
     #if SKIP

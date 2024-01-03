@@ -6,19 +6,19 @@
 
 public struct ControlGroup : View {
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> ComposeView) {
+    public init(@ViewBuilder content: () -> any View) {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, L>, C : View, L : View */ {
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) /* where Content == LabeledControlGroupContent<C, L>, C : View, L : View */ {
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
     }
 
     @available(*, unavailable)
-    public init(_ title: String, @ViewBuilder content: () -> ComposeView) /* where Content == LabeledControlGroupContent<C, Text> */ {
+    public init(_ title: String, @ViewBuilder content: () -> any View) /* where Content == LabeledControlGroupContent<C, Text> */ {
     }
 
     #if !SKIP

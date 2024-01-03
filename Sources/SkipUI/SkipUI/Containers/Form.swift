@@ -13,7 +13,7 @@ public struct Form : View {
     // It appears that on iOS, List and Form render the same
     let list: List
 
-    public init(@ViewBuilder content: () -> ComposeView) {
+    public init(@ViewBuilder content: () -> any View) {
         list = List(content: content)
     }
 

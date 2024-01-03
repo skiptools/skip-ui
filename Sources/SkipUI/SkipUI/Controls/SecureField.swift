@@ -11,16 +11,16 @@ import androidx.compose.runtime.Composable
 public struct SecureField : View {
     let textField: TextField
 
-    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> ComposeView) {
+    public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> any View) {
         textField = TextField(text: text, prompt: prompt, isSecure: true, label: label)
     }
 
     public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
     }
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { ComposeView(view: Text(titleKey)) })
+        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
     }
 
     #if SKIP

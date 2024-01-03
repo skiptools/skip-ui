@@ -27,8 +27,8 @@ public class Menu : View {
     let primaryAction: (() -> Void)?
     var toggleMenu: () -> Void = {}
 
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
-        self.content = content()
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
+        self.content = ComposeView.from(content)
         #if SKIP
         self.label = ComposeView(view: Button(action: { self.toggleMenu() }, label: label))
         #else
@@ -37,28 +37,28 @@ public class Menu : View {
         self.primaryAction = nil
     }
 
-    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) {
-        self.init(content: content, label: { ComposeView(view: Text(titleKey)) })
+    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
+        self.init(content: content, label: { Text(titleKey) })
     }
 
-    public convenience init(_ title: String, @ViewBuilder content: () -> ComposeView) {
-        self.init(content: content, label: { ComposeView(view: Text(verbatim: title)) })
+    public convenience init(_ title: String, @ViewBuilder content: () -> any View) {
+        self.init(content: content, label: { Text(verbatim: title) })
     }
 
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView, primaryAction: @escaping () -> Void) {
-        self.content = content()
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View, primaryAction: @escaping () -> Void) {
+        self.content = ComposeView.from(content)
         // We don't use a Button because we can't attach a long press detector to it
         // So currently, any Menu with a primaryAction ignores .buttonStyle
-        self.label = label()
+        self.label = ComposeView.from(label)
         self.primaryAction = primaryAction
     }
 
-    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView, primaryAction: @escaping () -> Void) {
-        self.init(content: content, label: { ComposeView(view: Text(titleKey)) }, primaryAction: primaryAction)
+    public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
+        self.init(content: content, label: { Text(titleKey) }, primaryAction: primaryAction)
     }
 
-    public convenience init(_ title: String, @ViewBuilder content: () -> ComposeView, primaryAction: @escaping () -> Void) {
-        self.init(content: content, label: { ComposeView(view: Text(verbatim: title)) }, primaryAction: primaryAction)
+    public convenience init(_ title: String, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
+        self.init(content: content, label: { Text(verbatim: title) }, primaryAction: primaryAction)
 
     }
 

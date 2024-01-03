@@ -14,50 +14,50 @@ public struct Section : View, ListItemFactory {
     let footer: ComposeView?
     let content: ComposeView
 
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView, @ViewBuilder footer: () -> ComposeView) {
-        self.header = header()
-        self.footer = footer()
-        self.content = content()
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View, @ViewBuilder footer: () -> any View) {
+        self.header = ComposeView.from(header)
+        self.footer = ComposeView.from(footer)
+        self.content = ComposeView.from(content)
     }
 
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder footer: () -> ComposeView) {
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder footer: () -> any View) {
         self.header = nil
-        self.footer = footer()
-        self.content = content()
+        self.footer = ComposeView.from(footer)
+        self.content = ComposeView.from(content)
     }
 
-    public init(@ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView) {
-        self.header = header()
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
+        self.header = ComposeView.from(header)
         self.footer = nil
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
-    public init(@ViewBuilder content: () -> ComposeView) {
+    public init(@ViewBuilder content: () -> any View) {
         self.header = nil
         self.footer = nil
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> ComposeView) {
-        self.init(content: content, header: { ComposeView(view: Text(titleKey)) })
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
+        self.init(content: content, header: { Text(titleKey) })
     }
 
-    public init(_ title: String, @ViewBuilder content: () -> ComposeView) {
-        self.init(content: content, header: { ComposeView(view: Text(verbatim: title)) })
+    public init(_ title: String, @ViewBuilder content: () -> any View) {
+        self.init(content: content, header: { Text(verbatim: title) })
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView) {
+    public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(titleKey, content: content)
     }
 
     @available(*, unavailable)
-    public init(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView) {
+    public init(_ title: String, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(title, content: content)
     }
 
     @available(*, unavailable)
-    public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> ComposeView, @ViewBuilder header: () -> ComposeView) {
+    public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
         self.init(content: content, header: header)
     }
 

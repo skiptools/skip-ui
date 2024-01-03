@@ -12,16 +12,16 @@ import androidx.compose.runtime.Composable
 public class ForEach : View, ListItemFactory {
     let identifier: ((Any) -> AnyHashable)?
     let indexRange: Range<Int>?
-    let indexedContent: ((Int) -> ComposeView)?
+    let indexedContent: ((Int) -> any View)?
     let objects: (any RandomAccessCollection<Any>)?
-    let objectContent: ((Any) -> ComposeView)?
+    let objectContent: ((Any) -> any View)?
     let objectsBinding: Binding<any RandomAccessCollection<Any>>?
-    let objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> ComposeView)?
+    let objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)?
     let editActions: EditActions
     var onDeleteAction: ((IndexSet) -> Void)?
     var onMoveAction: ((IndexSet, Int) -> Void)?
 
-    init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> ComposeView)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> ComposeView)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> ComposeView)? = nil, editActions: EditActions = []) {
+    init(identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
         self.identifier = identifier
         self.indexRange = indexRange
         self.indexedContent = indexedContent
@@ -113,11 +113,15 @@ public class ForEach : View, ListItemFactory {
         return ComposeResult.ok
     }
 
-    @Composable private func appendContentAsListItemViewFactories(contentView: ComposeView, isFirstView: Bool, context: ComposeContext) -> Bool {
+    @Composable private func appendContentAsListItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {
         guard isFirstView else {
             return true
         }
-        return contentView.collectViews(context: context).contains { $0 is ListItemFactory }
+        if let composeView = contentView as? ComposeView {
+            return composeView.collectViews(context: context).contains { $0 is ListItemFactory }
+        } else {
+            return contentView is ListItemFactory
+        }
     }
 
     override func composeListItems(context: ListItemFactoryContext) {
@@ -143,24 +147,24 @@ public class ForEach : View, ListItemFactory {
 //extension ForEach where ID == Data.Element.ID, Content : AccessibilityRotorContent, Data.Element : Identifiable {
 //    public init(_ data: Data, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
-public func ForEach<D>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> ComposeView) -> ForEach {
+public func ForEach<D>(_ data: any RandomAccessCollection<D>, @ViewBuilder content: @escaping (D) -> any View) -> ForEach {
     return ForEach(identifier: { ($0 as! Identifiable<Hashable>).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
 }
 
 //extension ForEach where Content : AccessibilityRotorContent {
 //    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @AccessibilityRotorContentBuilder content: @escaping (Data.Element) -> Content) { fatalError() }
 //}
-public func ForEach<D>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> ComposeView) -> ForEach {
+public func ForEach<D>(_ data: any RandomAccessCollection<D>, id: (D) -> AnyHashable, @ViewBuilder content: @escaping (D) -> any View) -> ForEach {
     return ForEach(identifier: { id($0 as! D) }, objects: data as! RandomAccessCollection<Any>, objectContent: { content($0 as! D) })
 }
-public func ForEach(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder content: @escaping (Int) -> ComposeView) -> ForEach {
+public func ForEach(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder content: @escaping (Int) -> any View) -> ForEach {
     return ForEach(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: content)
 }
 
 //extension ForEach {
 //  public init<C, R>(_ data: Binding<C>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, ID == C.Element.ID, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Element : Identifiable, C.Index : Hashable
 //}
-public func ForEach<C, E>(_ data: Binding<C>, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> ComposeView) -> ForEach where C: any RandomAccessCollection<E> {
+public func ForEach<C, E>(_ data: Binding<C>, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> any View) -> ForEach where C: any RandomAccessCollection<E> {
     return ForEach(identifier: { ($0 as! Identifiable<Hashable>).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<E>(get: { data.wrappedValue[index] as! E }, set: { (data.wrappedValue as! skip.lib.MutableCollection<E>)[index] = $0 })
         return content(binding)
@@ -170,7 +174,7 @@ public func ForEach<C, E>(_ data: Binding<C>, editActions: EditActions = [], @Vi
 //extension ForEach {
 //    public init<C, R>(_ data: Binding<C>, id: KeyPath<C.Element, ID>, editActions: EditActions /* <C> */, @ViewBuilder content: @escaping (Binding<C.Element>) -> R) where Data == IndexedIdentifierCollection<C, ID>, Content == EditableCollectionContent<R, C>, C : MutableCollection, C : RandomAccessCollection, R : View, C.Index : Hashable { fatalError() }
 //}
-public func ForEach<C, E>(_ data: Binding<C>, id: (E) -> AnyHashable, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> ComposeView) -> ForEach where C: RandomAccessCollection<E> {
+public func ForEach<C, E>(_ data: Binding<C>, id: (E) -> AnyHashable, editActions: EditActions = [], @ViewBuilder content: @escaping (Binding<E>) -> any View) -> ForEach where C: RandomAccessCollection<E> {
     return ForEach(identifier: { id($0 as! E) }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<E>(get: { data.wrappedValue[index] as! E }, set: { (data.wrappedValue as! skip.lib.MutableCollection<E>)[index] = $0 })
         return content(binding)

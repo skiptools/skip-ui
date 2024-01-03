@@ -19,31 +19,27 @@ public struct Label : View, ListItemAdapting {
     let title: ComposeView
     let image: ComposeView
 
-    public init(@ViewBuilder title: () -> ComposeView, @ViewBuilder icon: () -> ComposeView) {
-        self.title = title()
-        self.image = icon()
+    public init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View) {
+        self.title = ComposeView.from(title)
+        self.image = ComposeView.from(icon)
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, image name: String) {
-        self.title = ComposeView(view: Text(titleKey))
-        self.image = ComposeView(view: EmptyView())
+        self.init(title: { Text(titleKey) }, icon: { EmptyView() })
     }
 
-    public init(_ titleKey: LocalizedStringKey, systemImage name: String) {
-        self.title = ComposeView(view: Text(titleKey))
-        self.image = ComposeView(view: Image(systemName: name))
+    public init(_ titleKey: LocalizedStringKey, systemImage: String) {
+        self.init(title: { Text(titleKey) }, icon: { Image(systemName: systemImage) })
     }
 
     @available(*, unavailable)
     public init(_ title: String, image name: String) {
-        self.title = ComposeView(view: Text(verbatim: title))
-        self.image = ComposeView(view: EmptyView())
+        self.init(title: { Text(verbatim: title) }, icon: { EmptyView() })
     }
 
-    public init(_ title: String, systemImage name: String) {
-        self.title = ComposeView(view: Text(verbatim: title))
-        self.image = ComposeView(view: Image(systemName: name))
+    public init(_ title: String, systemImage: String) {
+        self.init(title: { Text(verbatim: title) }, icon: { Image(systemName: systemImage) })
     }
 
     #if SKIP

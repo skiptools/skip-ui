@@ -36,15 +36,15 @@ public struct ToolbarItem : CustomizableToolbarContent, View {
     let placement: ToolbarItemPlacement
     let content: ComposeView
 
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     @available(*, unavailable)
-    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
+    public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP
@@ -62,15 +62,15 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     let placement: ToolbarItemPlacement
     let content: ComposeView
 
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     @available(*, unavailable)
-    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> ComposeView, @ViewBuilder label: () -> ComposeView) {
+    public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.placement = placement
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP
@@ -90,7 +90,7 @@ public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder content: () -> ComposeView) {
+    public init(@ViewBuilder content: () -> any View) {
     }
 
     #if !SKIP
@@ -154,7 +154,7 @@ public struct ToolbarCustomizationOptions : OptionSet, Sendable {
 }
 
 extension View {
-    public func toolbar(@ViewBuilder content: () -> ComposeView) -> some View {
+    public func toolbar(@ViewBuilder content: () -> any View) -> some View {
         #if SKIP
         return preference(key: ToolbarContentPreferenceKey.self, value: [content()])
         #else
@@ -205,19 +205,19 @@ extension View {
 
 #if SKIP
 struct ToolbarContentPreferenceKey: PreferenceKey {
-    typealias Value = [ComposeView]
+    typealias Value = [View]
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Array<ComposeView>>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Array<View>>
     class Companion: PreferenceKeyCompanion {
-        let defaultValue: [ComposeView] = []
-        func reduce(value: inout [ComposeView], nextValue: () -> [ComposeView]) {
+        let defaultValue: [View] = []
+        func reduce(value: inout [View], nextValue: () -> [View]) {
             value.append(contentsOf: nextValue())
         }
     }
 }
 
 struct ToolbarItems {
-    let content: androidx.compose.runtime.State<[ComposeView]>
+    let content: androidx.compose.runtime.State<[View]>
 
     @Composable func filterTopBarLeading() -> [View] {
         return filter(expandGroups: false) { $0 == .topBarLeading }

@@ -21,10 +21,10 @@ public struct HStack : View {
     let spacing: CGFloat?
     let content: ComposeView
 
-    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> ComposeView) {
+    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.spacing = spacing
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP

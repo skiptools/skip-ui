@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 public struct Group : View {
     let content: ComposeView
 
-    public init(@ViewBuilder content: () -> ComposeView) {
-        self.content = content()
+    public init(@ViewBuilder content: () -> any View) {
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP

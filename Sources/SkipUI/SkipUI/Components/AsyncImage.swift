@@ -26,7 +26,7 @@ import okio.source
 public struct AsyncImage : View {
     let url: URL?
     let scale: CGFloat
-    let content: (AsyncImagePhase) -> ComposeView
+    let content: (AsyncImagePhase) -> any View
 
     public init(url: URL?, scale: CGFloat = 1.0) {
         self.url = url
@@ -34,16 +34,16 @@ public struct AsyncImage : View {
         self.content = { phase in
             switch phase {
             case .empty:
-                return ComposeView(view: Self.defaultPlaceholder())
+                return Self.defaultPlaceholder()
             case .failure:
-                return ComposeView(view: Self.defaultPlaceholder())
+                return Self.defaultPlaceholder()
             case .success(let image):
-                return ComposeView(view: image)
+                return image
             }
         }
     }
 
-    public init(url: URL?, scale: CGFloat = 1.0, @ViewBuilder content: @escaping (Image) -> ComposeView, @ViewBuilder placeholder: @escaping () -> ComposeView) {
+    public init(url: URL?, scale: CGFloat = 1.0, @ViewBuilder content: @escaping (Image) -> any View, @ViewBuilder placeholder: @escaping () -> any View) {
         self.url = url
         self.scale = scale
         self.content = { phase in
@@ -58,7 +58,7 @@ public struct AsyncImage : View {
         }
     }
 
-    public init(url: URL?, scale: CGFloat = 1.0, transaction: Any? = nil /* Transaction = Transaction() */, @ViewBuilder content: @escaping (AsyncImagePhase) -> ComposeView) {
+    public init(url: URL?, scale: CGFloat = 1.0, transaction: Any? = nil /* Transaction = Transaction() */, @ViewBuilder content: @escaping (AsyncImagePhase) -> any View) {
         self.url = url
         self.scale = scale
         self.content = content

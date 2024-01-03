@@ -25,7 +25,7 @@ public struct ProgressView : View {
     }
 
     @available(*, unavailable)
-    public init(@ViewBuilder label: () -> ComposeView) {
+    public init(@ViewBuilder label: () -> any View) {
         self.value = nil
         self.total = nil
     }
@@ -48,7 +48,7 @@ public struct ProgressView : View {
     }
 
     @available(*, unavailable)
-    public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> ComposeView) {
+    public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> any View) {
         self.value = value
         self.total = total
     }

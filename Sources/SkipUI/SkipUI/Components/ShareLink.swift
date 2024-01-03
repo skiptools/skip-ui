@@ -22,7 +22,7 @@ public class ShareLink : View {
     let intent: Intent
     #endif
 
-    init(text: String, subject: String? = nil, message: String? = nil, @ViewBuilder label: () -> ComposeView) {
+    init(text: String, subject: String? = nil, message: String? = nil, @ViewBuilder label: () -> any View) {
         #if SKIP
         self.intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -38,59 +38,59 @@ public class ShareLink : View {
         #endif
     }
 
-    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> ComposeView) {
+    public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text, label: label)
     }
 
-    public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> ComposeView) {
+    public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
         self.init(text: item, subject: subject?.text, message: message?.text, label: label)
     }
 
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Image(systemName: Self.defaultSystemImageName))
+            Image(systemName: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Image(systemName: Self.defaultSystemImageName))
+            Image(systemName: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(titleKey, systemImage: Self.defaultSystemImageName))
+            Label(titleKey, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(titleKey, systemImage: Self.defaultSystemImageName))
+            Label(titleKey, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: String, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(title, systemImage: Self.defaultSystemImageName))
+            Label(title, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: String, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(title, systemImage: Self.defaultSystemImageName))
+            Label(title, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: Text, item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item.absoluteString, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(title.text, systemImage: Self.defaultSystemImageName))
+            Label(title.text, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: Text, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject?.text, message: message?.text) {
-            ComposeView(view: Label(title.text, systemImage: Self.defaultSystemImageName))
+            Label(title.text, systemImage: Self.defaultSystemImageName)
         }
     }
 

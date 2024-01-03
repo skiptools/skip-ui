@@ -30,13 +30,13 @@ import androidx.navigation.compose.rememberNavController
 public struct TabView : View {
     let content: ComposeView
 
-    public init(@ViewBuilder content: () -> ComposeView) {
-        self.content = content()
+    public init(@ViewBuilder content: () -> any View) {
+        self.content = ComposeView.from(content)
     }
 
     @available(*, unavailable)
-    public init(selection: Binding<Any>?, @ViewBuilder content: () -> ComposeView) {
-        self.content = content()
+    public init(selection: Binding<Any>?, @ViewBuilder content: () -> any View) {
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP
@@ -110,11 +110,11 @@ struct TabItem: View {
     let view: View
     let label: ComposeView
 
-    init(view: View, @ViewBuilder label: () -> ComposeView) {
+    init(view: View, @ViewBuilder label: () -> any View) {
         // Don't copy view
         // SKIP REPLACE: this.view = view
         self.view = view
-        self.label = label()
+        self.label = ComposeView.from(label)
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
@@ -184,7 +184,7 @@ public struct TabViewStyle: RawRepresentable, Equatable {
 }
 
 extension View {
-    public func tabItem(@ViewBuilder _ label: () -> ComposeView) -> some View {
+    public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
         #if SKIP
         return TabItem(view: self, label: label)
         #else

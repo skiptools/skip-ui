@@ -27,6 +27,13 @@ public struct ComposeView: View {
         #endif
     }
 
+    /// If the result of the given block is a `ComposeView` return it, else create a `ComposeView` whose content is the
+    /// resulting view.
+    public static func from(_ content: () -> any View) -> ComposeView {
+        let view = content()
+        return view as? ComposeView ?? ComposeView(view: view)
+    }
+
     #if SKIP
     /// Constructor.
     ///

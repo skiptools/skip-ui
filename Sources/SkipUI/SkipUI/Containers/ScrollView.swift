@@ -22,9 +22,9 @@ public struct ScrollView : View {
     let content: ComposeView
     let axes: Axis.Set
 
-    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> ComposeView) {
+    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> any View) {
         self.axes = axes
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP

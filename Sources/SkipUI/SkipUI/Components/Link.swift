@@ -14,7 +14,7 @@ public class Link : View {
     let content: Button
     var openURL: (URL) -> Void = { _ in }
 
-    public init(destination: URL, @ViewBuilder label: () -> ComposeView) {
+    public init(destination: URL, @ViewBuilder label: () -> any View) {
         #if SKIP
         content = Button(action: { self.openURL(destination) }, label: label)
         #else
@@ -23,11 +23,11 @@ public class Link : View {
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, destination: URL) {
-        self.init(destination: destination, label: { ComposeView(view: Text(titleKey)) })
+        self.init(destination: destination, label: { Text(titleKey) })
     }
 
     public convenience init(_ title: String, destination: URL) {
-        self.init(destination: destination, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(destination: destination, label: { Text(verbatim: title) })
     }
 
     #if SKIP

@@ -16,9 +16,9 @@ public struct ZStack : View {
     let alignment: Alignment
     let content: ComposeView
 
-    public init(alignment: Alignment = .center, @ViewBuilder content: () -> ComposeView) {
+    public init(alignment: Alignment = .center, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
-        self.content = content()
+        self.content = ComposeView.from(content)
     }
 
     #if SKIP

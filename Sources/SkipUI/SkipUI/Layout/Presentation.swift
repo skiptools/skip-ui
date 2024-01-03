@@ -43,9 +43,10 @@ import struct CoreGraphics.CGFloat
 let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-@Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> ComposeView, onDismiss: (() -> Void)?) {
+@Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
+        let contentView = ComposeView.from(content)
         let sheetDepth = EnvironmentValues.shared._sheetDepth
         ModalBottomSheet(
             onDismissRequest: { isPresented.set(false) },
@@ -69,7 +70,7 @@ let overlayPresentationCornerRadius = 16.0
                 $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
             } in: {
                 Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    content().Compose(context: context.content(stateSaver: stateSaver.value))
+                    contentView.Compose(context: context.content(stateSaver: stateSaver.value))
                 }
             }
         }
@@ -85,19 +86,30 @@ let overlayPresentationCornerRadius = 16.0
 }
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-@Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: ComposeView, message: ComposeView? = nil) {
+@Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
-        let buttons = actions.collectViews(context: context).compactMap {
+        let actionViews: [View]
+        if let composeView = actions as? ComposeView {
+            actionViews = composeView.collectViews(context: context)
+        } else {
+            actionViews = [actions]
+        }
+        let buttons = actionViews.compactMap {
             $0.strippingModifiers { $0 as? Button }
         }
-        var messageText: Text? = nil
-        if let message {
-            messageText = message.collectViews(context: context).compactMap {
-                $0.strippingModifiers { $0 as? Text }
-            }.first
+        let messageViews: [View]
+        if let composeView = message as? ComposeView {
+            messageViews = composeView.collectViews(context: context)
+        } else if let message {
+            messageViews = [message]
+        } else {
+            messageViews = []
         }
+        let messageText = messageViews.compactMap {
+            $0.strippingModifiers { $0 as? Text }
+        }.first
 
         ModalBottomSheet(
             onDismissRequest: { isPresented.set(false) },
@@ -302,15 +314,15 @@ public protocol CustomPresentationDetent {
 //}
 
 extension View {
-    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
 
-    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
 
-    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         #if SKIP
         return PresentationModifierView(view: self) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions())
@@ -320,15 +332,15 @@ extension View {
         #endif
     }
 
-    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView, @ViewBuilder message: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
     }
 
-    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView, @ViewBuilder message: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
     }
 
-    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> ComposeView, @ViewBuilder message: () -> ComposeView) -> some View {
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         #if SKIP
         return PresentationModifierView(view: self) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
@@ -338,21 +350,21 @@ extension View {
         #endif
     }
 
-    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
     }
 
-    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
     }
 
-    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
         #if SKIP
-        let actionsWithData: () -> ComposeView
+        let actionsWithData: () -> any View
         if let data {
             actionsWithData = { actions(data) }
         } else {
-            actionsWithData = { ComposeView(view: EmptyView()) }
+            actionsWithData = { EmptyView() }
         }
         return confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: actionsWithData)
         #else
@@ -360,24 +372,24 @@ extension View {
         #endif
     }
 
-    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView, @ViewBuilder message: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
     }
 
-    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView, @ViewBuilder message: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
     }
 
-    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> ComposeView, @ViewBuilder message: @escaping (T) -> ComposeView) -> any View {
+    public func confirmationDialog<T>(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
         #if SKIP
-        let actionsWithData: () -> ComposeView
-        let messageWithData: () -> ComposeView
+        let actionsWithData: () -> any View
+        let messageWithData: () -> any View
         if let data {
             actionsWithData = { actions(data) }
             messageWithData = { message(data) }
         } else {
-            actionsWithData = { ComposeView(view: EmptyView()) }
-            messageWithData = { ComposeView(view: EmptyView()) }
+            actionsWithData = { EmptyView() }
+            messageWithData = { EmptyView() }
         }
         return confirmationDialog(title, isPresented: isPresented, titleVisibility: titleVisibility, actions: actionsWithData, message: messageWithData)
         #else
@@ -386,12 +398,12 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> ComposeView) -> some View /* where Item : Identifiable, */ {
+    public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
         return self
     }
 
     @available(*, unavailable)
-    public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> ComposeView) -> some View {
+    public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
         return self
     }
 
@@ -446,11 +458,11 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func sheet<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> ComposeView) -> some View /* where Item : Identifiable, */ {
+    public func sheet<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
         return self
     }
 
-    public func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> ComposeView) -> some View {
+    public func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
         #if SKIP
         return PresentationModifierView(view: self) { context in
             SheetPresentation(isPresented: isPresented, context: context, content: content, onDismiss: onDismiss)

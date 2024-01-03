@@ -6,7 +6,7 @@
 
 public struct ViewThatFits : View {
     @available(*, unavailable)
-    public init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> ComposeView) {
+    public init(in axes: Axis.Set = [.horizontal, .vertical], @ViewBuilder content: () -> any View) {
     }
 
     #if !SKIP

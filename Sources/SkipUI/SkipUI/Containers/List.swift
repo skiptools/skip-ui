@@ -50,8 +50,12 @@ public class List : View {
     let fixedContent: ComposeView?
     let forEach: ForEach?
 
-    init(fixedContent: ComposeView? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> ComposeView)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> ComposeView)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> ComposeView)? = nil, editActions: EditActions = []) {
-        self.fixedContent = fixedContent
+    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
+        if let fixedContent {
+            self.fixedContent = fixedContent as? ComposeView ?? ComposeView(view: fixedContent)
+        } else {
+            self.fixedContent = nil
+        }
         if let indexRange {
             self.forEach = ForEach(identifier: identifier, indexRange: indexRange, indexedContent: indexedContent)
         } else if let objects {
@@ -63,12 +67,12 @@ public class List : View {
         }
     }
 
-    public convenience init(@ViewBuilder content: () -> ComposeView) {
+    public convenience init(@ViewBuilder content: () -> any View) {
         self.init(fixedContent: content())
     }
 
     @available(*, unavailable)
-    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> ComposeView) {
+    public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> any View) {
         self.init(fixedContent: content())
     }
 
@@ -428,24 +432,24 @@ public class List : View {
 //extension List {
 //    public init<Data, RowContent>(_ data: Data, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, Data.Element.ID, RowContent>, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable
 //}
-public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> ComposeView) -> List {
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder rowContent: (ObjectType) -> any View) -> List {
     return List(identifier: { ($0 as! Identifiable<Hashable>).id }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
 
 //extension List {
 //    public init<Data, ID, RowContent>(_ data: Data, id: KeyPath<Data.Element, ID>, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Content == ForEach<Data, ID, RowContent>, Data : RandomAccessCollection, ID : Hashable, RowContent : View
 //}
-public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> ComposeView) -> List where ObjectType: Any {
+public func List<ObjectType>(_ data: any RandomAccessCollection<ObjectType>, id: (ObjectType) -> AnyHashable, @ViewBuilder rowContent: (ObjectType) -> any View) -> List where ObjectType: Any {
     return List(identifier: { id($0 as! ObjectType) }, objects: data as! RandomAccessCollection<Any>, objectContent: { rowContent($0 as! ObjectType) })
 }
-public func List(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> ComposeView) -> List {
+public func List(_ data: Range<Int>, id: ((Int) -> AnyHashable)? = nil, @ViewBuilder rowContent: (Int) -> any View) -> List {
     return List(identifier: id == nil ? nil : { id!($0 as! Int) }, indexRange: data, indexedContent: rowContent)
 }
 
 //extension List {
 //  public init<Data, RowContent>(_ data: Binding<Data>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, Data.Element.ID>, Data.Element.ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, RowContent : View, Data.Element : Identifiable, Data.Index : Hashable
 //}
-public func List<Data, ObjectType>(_ data: Binding<Data>, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> ComposeView) -> List where Data: RandomAccessCollection<ObjectType> {
+public func List<Data, ObjectType>(_ data: Binding<Data>, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> any View) -> List where Data: RandomAccessCollection<ObjectType> {
     return List(identifier: { ($0 as! Identifiable<Hashable>).id }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
         return rowContent(binding)
@@ -455,7 +459,7 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, editActions: EditActio
 //extension List {
 //  public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable
 //}
-public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> AnyHashable, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> ComposeView) -> List where Data: RandomAccessCollection<ObjectType> {
+public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> AnyHashable, editActions: EditActions = [], @ViewBuilder rowContent: (Binding<ObjectType>) -> any View) -> List where Data: RandomAccessCollection<ObjectType> {
     return List(identifier: { id($0 as! ObjectType) }, objectsBinding: data as! Binding<RandomAccessCollection<Any>>, objectsBindingContent: { data, index in
         let binding = Binding<ObjectType>(get: { data.wrappedValue[index] as! ObjectType }, set: { (data.wrappedValue as! skip.lib.MutableCollection<ObjectType>)[index] = $0 })
         return rowContent(binding)

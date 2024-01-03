@@ -37,9 +37,9 @@ public struct DatePicker : View {
     let dateFormatter: DateFormatter?
     let timeFormatter: DateFormatter?
 
-    public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> ComposeView) {
+    public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
         self.selection = selection
-        self.label = label()
+        self.label = ComposeView.from(label)
         if displayedComponents.contains(.date) {
             dateFormatter = DateFormatter()
             dateFormatter?.dateStyle = .medium
@@ -57,29 +57,29 @@ public struct DatePicker : View {
     }
 
     @available(*, unavailable)
-    public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> ComposeView) {
+    public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
         self.selection = selection
         self.dateFormatter = nil
         self.timeFormatter = nil
-        self.label = label()
+        self.label = ComposeView.from(label)
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(titleKey)) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(titleKey)) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
     }
 
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
     @available(*, unavailable)
     public init(_ title: String, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { ComposeView(view: Text(verbatim: title)) })
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
     #if SKIP
