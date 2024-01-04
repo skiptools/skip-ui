@@ -6,8 +6,6 @@
 
 // Model State as a class rather than struct to avoid copy overhead on mutation
 public final class State<Value> {
-    private var onUpdate: ((Value) -> Void)?
-
     public init(initialValue: Value) {
         wrappedValue = initialValue
     }
@@ -27,10 +25,7 @@ public final class State<Value> {
     }
 
     /// Used to keep the state value synchronized with an external Compose value.
-    public func sync(value: Value, onUpdate: @escaping (Value) -> Void) {
-        self.wrappedValue = value
-        self.onUpdate = onUpdate
-    }
+    public var onUpdate: ((Value) -> Void)?
 }
 
 #if SKIP
