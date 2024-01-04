@@ -125,11 +125,11 @@ public class Menu : View {
         for itemView in itemViews {
             if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
                 if let button = strippedItemView as? Button {
-                    let isSelected: Bool
+                    let isSelected: Bool?
                     if let tagView = itemView as? TagModifierView {
                         isSelected = tagView.tag == selection
                     } else {
-                        isSelected = false
+                        isSelected = nil
                     }
                     ComposeDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
                         button.action()

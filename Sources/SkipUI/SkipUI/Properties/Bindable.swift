@@ -19,4 +19,11 @@ public final class Bindable<Value> {
     public var projectedValue: Bindable<Value> {
         return Bindable(wrappedValue: wrappedValue)
     }
+
+    #if SKIP
+    /// - Seealso: `ComposeStateTracking`
+    public func trackstate() {
+        (wrappedValue as? skip.model.ComposeStateTracking)?.trackstate()
+    }
+    #endif
 }

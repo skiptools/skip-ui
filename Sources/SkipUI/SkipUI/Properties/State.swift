@@ -4,28 +4,55 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// Model State as a class rather than struct to avoid copy overhead on mutation
+#if SKIP
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+#endif
+
+// Model State as a class rather than struct to mutate by reference and void copy overhead
 public final class State<Value> {
     public init(initialValue: Value) {
-        wrappedValue = initialValue
+        _wrappedValue = initialValue
     }
 
     public init(wrappedValue: Value) {
-        self.wrappedValue = wrappedValue
+        _wrappedValue = wrappedValue
     }
 
     public var wrappedValue: Value {
-        didSet {
-            onUpdate?(wrappedValue)
+        get {
+            #if SKIP
+            if let _wrappedValueState {
+                return _wrappedValueState.value
+            }
+            #endif
+            return _wrappedValue
+        }
+        set {
+            _wrappedValue = newValue
+            #if SKIP
+            _wrappedValueState?.value = _wrappedValue
+            #endif
         }
     }
+    private var _wrappedValue: Value
+    #if SKIP
+    private var _wrappedValueState: MutableState<Value>?
+    #endif
 
     public var projectedValue: Binding<Value> {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 
-    /// Used to keep the state value synchronized with an external Compose value.
-    public var onUpdate: ((Value) -> Void)?
+    #if SKIP
+    /// - Seealso: `ComposeStateTracking`
+    public func trackstate() {
+        if _wrappedValueState == nil {
+            _wrappedValueState = mutableStateOf(_wrappedValue)
+        }
+        (_wrappedValue as? skip.model.ComposeStateTracking)?.trackstate()
+    }
+    #endif
 }
 
 #if SKIP

@@ -5,58 +5,80 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+#if SKIP
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+#endif
 
 public final class AppStorage<Value> {
     public let key: String
     public let store: UserDefaults?
-    private var onUpdate: ((Value) -> Void)?
     /// The property change listener from the UserDefaults
     private var listener: AnyObject? = nil
 
     public init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil) {
         self.key = key
         self.store = store
-        self.wrappedValue = wrappedValue
+        _wrappedValue = wrappedValue
     }
 
     public var wrappedValue: Value {
-        didSet {
-            onUpdate?(wrappedValue)
+        get {
+            #if SKIP
+            if let _wrappedValueState {
+                return _wrappedValueState.value
+            }
+            #endif
+            return _wrappedValue
+        }
+        set {
+            #if SKIP
+            // Changing the store value should trigger our listener to update our own state
+            currentStore.set(newValue, forKey: key)
+            #endif
+            // Unless we haven't started tracking
+            if listener == nil {
+                _wrappedValue = newValue
+            }
         }
     }
+    private var _wrappedValue: Value
+    #if SKIP
+    private var _wrappedValueState: MutableState<Value>?
+    #endif
 
     public var projectedValue: Binding<Value> {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 
     #if SKIP
-    /// The current active store
-    private var currentStore: UserDefaults {
-        // TODO: handle Scene.defaultAppStorage() and View.defaultAppStorage() by storing it in the environment
-        return store ?? UserDefaults.standard
-    }
-
-    /// Used to keep the state value synchronized with an external Compose value.
-    public func sync(value initialValue: Value, onUpdate: @escaping (Value) -> Void) {
-        let store = self.currentStore
-
-        func currentValue() -> Value {
-            store.object(forKey: key) as? Value ?? initialValue
+    /// - Seealso: `ComposeStateTracking`
+    public func trackstate() {
+        guard _wrappedValueState == nil else {
+            return // Already tracking
         }
 
-        self.wrappedValue = currentValue()
-        onUpdate(currentValue())
+        // Create our Compose-trackable backing state and keep it in sync with the store. Note that we have to seed the store with a value
+        // for the key in order for our listener to work
+        let store = self.currentStore
+        _wrappedValue = (store.object(forKey: key) as? Value) ?? _wrappedValue
+        store.set(_wrappedValue, forKey: key)
+        _wrappedValueState = mutableStateOf(_wrappedValue)
 
         // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
         // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
         self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
-            onUpdate(currentValue())
+            if let value = store.object(forKey: key) as? Value {
+                _wrappedValue = value
+                _wrappedValueState?.value = value
+            }
         }
+    }
 
-        self.onUpdate = { value in
-            onUpdate(value)
-            currentStore.set(value, forKey: key)
-        }
+    /// The current active store
+    private var currentStore: UserDefaults {
+        // TODO: handle Scene.defaultAppStorage() and View.defaultAppStorage() by storing it in the environment
+        return store ?? UserDefaults.standard
     }
     #endif
 }
