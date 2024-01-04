@@ -7,5 +7,6 @@
 /// Allow views to specialize based on their placement.
 enum ViewPlacement {
     case content
+    case picker
     case toolbar
 }

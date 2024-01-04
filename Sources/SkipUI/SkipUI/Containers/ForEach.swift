@@ -55,18 +55,46 @@ public class ForEach : View, ListItemFactory {
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {
+        let isTagging = EnvironmentValues.shared._placement == ViewPlacement.picker
         if let indexRange {
             for index in indexRange {
-                indexedContent!(index).Compose(context: context)
+                var view = indexedContent!(index)
+                if isTagging {
+                    view = taggedView(for: view, defaultTag: index, context: context)
+                }
+                view.Compose(context: context)
             }
         } else if let objects {
             for object in objects {
-                objectContent!(object).Compose(context: context)
+                var view = objectContent!(object)
+                if isTagging, let identifier {
+                    view = taggedView(for: view, defaultTag: identifier(object), context: context)
+                }
+                view.Compose(context: context)
             }
         } else if let objectsBinding {
-            for i in 0..<objectsBinding.wrappedValue.count {
-                objectsBindingContent!(objectsBinding, i).Compose(context: context)
+            let objects = objectsBinding.wrappedValue
+            for i in 0..<objects.count {
+                var view = objectsBindingContent!(objectsBinding, i)
+                if isTagging, let identifier {
+                    view = taggedView(for: view, defaultTag: identifier(objects[i]), context: context)
+                }
+                view.Compose(context: context)
             }
+        }
+    }
+
+    @Composable private func taggedView(for view: any View, defaultTag: Any, context: ComposeContext) -> TagModifierView {
+        let contentView: View
+        if let composeView = view as? ComposeView {
+            contentView = composeView.collectViews(context: context).first ?? view
+        } else {
+            contentView = view
+        }
+        if let taggedView = contentView.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView }) {
+            return taggedView
+        } else {
+            return TagModifierView(view: view, tag: defaultTag)
         }
     }
 

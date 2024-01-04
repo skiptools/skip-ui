@@ -503,10 +503,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func navigationTitle(_ title: Text) -> some View {
-        //return navigationTitle(title.text) // TODO: we would need to change NavigationTitlePreferenceKey from String to Text in order to be able to defer localization lookup
+        #if SKIP
+        return preference(key: NavigationTitlePreferenceKey.self, value: title.text)
+        #else
         return self
+        #endif
     }
 
     public func navigationTitle(_ title: String) -> some View {
@@ -612,9 +614,13 @@ public struct NavigationLink : View, ListItemAdapting {
                 // Continue to specialize for list rendering within the NavigationLink (e.g. Label)
                 label.Compose(context: context.content(composer: ListItemComposer(contentModifier: Modifier)))
             }
-            let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
-            Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: "chevron", tint: androidx.compose.ui.graphics.Color.Gray)
+            Self.ComposeChevron()
         }
+    }
+
+    @Composable static func ComposeChevron() {
+        let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
+        Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: "chevron", tint: androidx.compose.ui.graphics.Color.Gray)
     }
 
     @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {

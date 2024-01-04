@@ -950,8 +950,12 @@ extension View {
         return self
     }
 
-    public func tag(_ tag: any Hashable) -> some View {
+    public func tag(_ tag: Any) -> some View {
+        #if SKIP
+        return TagModifierView(view: self, tag: tag)
+        #else
         return self
+        #endif
     }
 
     public func task(priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
@@ -1019,6 +1023,15 @@ extension View {
 }
 
 #if SKIP
+struct TagModifierView: ComposeModifierView {
+    let tag: Any
+
+    init(view: View, tag: Any) {
+        self.tag = tag
+        super.init(view: view, role: .tag)
+    }
+}
+
 /// Use a special modifier for `zIndex` so that the artificial parent container created by `.frame` can pull the `zIndex` value into its own modifiers.
 ///
 /// Otherwise the extra frame container hides the `zIndex` value from this view's logical parent container.

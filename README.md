@@ -299,6 +299,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
 |`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
 |`Oval`|✅ Full||
+|`Picker`|🟡 Medium|Only .automatic, .menu, .navigationLink styles|
 |`ProgressView`|🟡 Medium|Labels not supported|
 |`RadialGradient`|✅ Full||
 |`Rectangle`|✅ Full||
@@ -351,8 +352,8 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.modifier`|✅ Full||
 |`.moveDisabled`|✅ Full||
 |`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
-|`.navigationDestination`|🟡 Medium|See [Navigation](#navigation)|
-|`.navigationTitle`|✅ Full||
+|`.navigationDestination`|🟢 High|See [Navigation](#navigation)|
+|`.navigationTitle`|🟢 High|Binding value not supported|
 |`.offset`|✅ Full||
 |`.onAppear`|✅ Full||
 |`.onChange`|✅ Full||
@@ -379,6 +380,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.strokeBorder` (Shape)|✅ Full||
 |`.submitLabel`|✅ Full||
 |`.tabItem`|✅ Full||
+|`.tag`|✅ Full||
 |`.task`|✅ Full||
 |`.textInputAutocapitalization`|✅ Full||
 |`.textFieldStyle`|🟡 Medium|`.plain` not supported|

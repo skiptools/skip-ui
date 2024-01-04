@@ -92,12 +92,12 @@ public struct Button : View, ListItemAdapting {
 
     @Composable func shouldComposeListItem() -> Bool {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
-        return buttonStyle == nil || buttonStyle == .automatic
+        return buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
         Box(modifier: Modifier.clickable(onClick: action, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-            ComposeTextButton(label: label, context: context, role: role)
+            ComposeTextButton(label: label, context: context, isPlain: EnvironmentValues.shared._buttonStyle == .plain, role: role)
         }
     }
     #else
@@ -110,7 +110,7 @@ public struct Button : View, ListItemAdapting {
 #if SKIP
 /// Render a plain-style button.
 @Composable func ComposeTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, action: (() -> Void)? = nil) {
-    var foregroundStyle: ShapeStyle?
+    var foregroundStyle: ShapeStyle
     if role == .destructive {
         foregroundStyle = Color.red
     } else {

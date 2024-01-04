@@ -8,8 +8,11 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -108,7 +111,8 @@ public class Menu : View {
                             nestedMenu.value = nil
                         }
                     }) {
-                        ComposeDropdownMenuItems(for: nestedMenu.value?.content ?? content, context: contentContext, replaceMenu: replaceMenu)
+                        let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
+                        Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
                     }
                 } else {
                     toggleMenu = {}
@@ -117,12 +121,17 @@ public class Menu : View {
         }
     }
 
-    @Composable private func ComposeDropdownMenuItems(for content: ComposeView, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
-        let itemViews = content.collectViews(context: context)
+    @Composable static func ComposeDropdownMenuItems(for itemViews: [View], selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
         for itemView in itemViews {
             if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
                 if let button = strippedItemView as? Button {
-                    ComposeDropdownMenuItem(for: button.label, context: context) {
+                    let isSelected: Bool
+                    if let tagView = itemView as? TagModifierView {
+                        isSelected = tagView.tag == selection
+                    } else {
+                        isSelected = false
+                    }
+                    ComposeDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
                         button.action()
                         replaceMenu(nil)
                     }
@@ -132,7 +141,8 @@ public class Menu : View {
                     if let header = section.header {
                         DropdownMenuItem(text: { header.Compose(context: context) }, onClick: {}, enabled: false)
                     }
-                    ComposeDropdownMenuItems(for: section.content, context: context, replaceMenu: replaceMenu)
+                    let sectionViews = section.content.collectViews(context: context)
+                    ComposeDropdownMenuItems(for: sectionViews, context: context, replaceMenu: replaceMenu)
                     Divider().Compose(context: context)
                 } else if let menu = strippedItemView as? Menu {
                     if let button = menu.label.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Button }) {
@@ -148,11 +158,26 @@ public class Menu : View {
         }
     }
 
-    @Composable private func ComposeDropdownMenuItem(for view: ComposeView, context: ComposeContext, action: () -> Void) {
-        if let label = view.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Label }) {
-            DropdownMenuItem(text: { label.ComposeTitle(context: context) }, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
+    @Composable private static func ComposeDropdownMenuItem(for view: ComposeView, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
+        let label = view.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Label })
+        if let isSelected {
+            let selectedIcon: @Composable () -> Void
+            if isSelected {
+                selectedIcon = { Icon(imageVector: Icons.Outlined.Check, contentDescription: "selected") }
+            } else {
+                selectedIcon = {}
+            }
+            if let label {
+                DropdownMenuItem(text: { label.ComposeTitle(context: context) }, leadingIcon: selectedIcon, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
+            } else {
+                DropdownMenuItem(text: { view.Compose(context: context) }, leadingIcon: selectedIcon, onClick: action)
+            }
         } else {
-            DropdownMenuItem(text: { view.Compose(context: context) }, onClick: action)
+            if let label {
+                DropdownMenuItem(text: { label.ComposeTitle(context: context) }, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
+            } else {
+                DropdownMenuItem(text: { view.Compose(context: context) }, onClick: action)
+            }
         }
     }
     #else
