@@ -89,21 +89,21 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given background.
 @Composable func BackgroundLayout(view: View, context: ComposeContext, background: View, alignment: Alignment) {
-    TargetViewLayout(target: view, context: context, dependent: background, isOverlay: false, alignment: alignment)
+    TargetViewLayout(target: { view.Compose(context: $0) }, context: context, dependent: { background.Compose(context: $0) }, isOverlay: false, alignment: alignment)
 }
 
 /// Compose a view with the given overlay.
 @Composable func OverlayLayout(view: View, context: ComposeContext, overlay: View, alignment: Alignment) {
-    TargetViewLayout(target: view, context: context, dependent: overlay, isOverlay: true, alignment: alignment)
+    TargetViewLayout(target: { view.Compose(context: $0) }, context: context, dependent: { overlay.Compose(context: $0) }, isOverlay: true, alignment: alignment)
 }
 
-@Composable private func TargetViewLayout(target: View, context: ComposeContext, dependent: View, isOverlay: Bool, alignment: Alignment) {
+@Composable func TargetViewLayout(target: @Composable (ComposeContext) -> Void, context: ComposeContext, dependent: @Composable (ComposeContext) -> Void, isOverlay: Bool, alignment: Alignment) {
     let contentContext = context.content()
     Layout(modifier: context.modifier, content: {
-        target.Compose(context: contentContext)
+        target(contentContext)
         // Dependent view lays out with fixed bounds dictated by the target view size
         ComposeContainer(fixedWidth: true, fixedHeight: true) { modifier in
-            dependent.Compose(context: context.content(modifier: modifier))
+            dependent(context.content(modifier: modifier))
         }
     }) { measurables, constraints in
         // Base layout entirely on the target view size

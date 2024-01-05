@@ -323,6 +323,10 @@ extension View {
         return self
     }
 
+    public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View {
+        return clipShape(RoundedRectangle(cornerRadius: radius))
+    }
+
     @available(*, unavailable)
     public func defaultHoverEffect(_ effect: HoverEffect?) -> some View {
         return self

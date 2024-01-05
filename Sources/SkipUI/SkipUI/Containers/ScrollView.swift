@@ -141,9 +141,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func scrollContentBackground(_ visibility: Visibility) -> some View {
+        #if SKIP
+        return environment(\._scrollContentBackground, visibility)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

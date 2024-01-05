@@ -12,6 +12,7 @@ public enum ComposeModifierRole {
     case accessibility
     case editActions
     case gesture
+    case listItem
     case spacing
     case tag
     case unspecified

@@ -330,6 +330,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.clipped`|🟡 Medium|Most content clips automatically|
 |`.clipShape`|✅ Full||
 |`.confirmationDialog`|✅ Full||
+|`.cornerRadius`|✅ Full||
 |`.deleteDisabled`|✅ Full||
 |`.disabled`|✅ Full||
 |`.environment`|✅ Full||
@@ -348,6 +349,8 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.labelsHidden`|✅ Full||
 |`.lineLimit`|🟡 Medium|Only `Int?` value supported|
 |`.listItemTint`|✅ Full||
+|`.listRowBackground`|✅ Full||
+|`.listRowSeparator`|✅ Full||
 |`.listStyle`|✅ Full||
 |`.modifier`|✅ Full||
 |`.moveDisabled`|✅ Full||
@@ -374,6 +377,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.scaledToFill`|🟡 Medium|Supported for images|
 |`.scaledToFit`|🟡 Medium|Supported for images|
 |`.scaleEffect`|🟡 Medium||
+|`.scrollContentBackground`|✅ Full||
 |`.searchable`|🔴 Low|Suggestions, scope not implemented|
 |`.sheet`|🟢 High|See [Navigation](#navigation)|
 |`.stroke` (Shape)|✅ Full||

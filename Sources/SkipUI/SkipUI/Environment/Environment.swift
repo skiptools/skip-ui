@@ -172,7 +172,7 @@ extension EnvironmentValues {
         lastSetValues[compositionLocal] = value ?? Unit
     }
 
-    // MARK: - SwiftUI values
+    // MARK: - Public values
 
     public var autocorrectionDisabled: Bool {
         return _keyboardOptions?.autoCorrect == false
@@ -216,6 +216,110 @@ extension EnvironmentValues {
         get { builtinValue(key: "lineLimit", defaultValue: { nil }) as! Int? }
         set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
     }
+
+    /* Not yet supported
+    var accessibilityDimFlashingLights: Bool
+    var accessibilityDifferentiateWithoutColor: Bool
+    var accessibilityEnabled: Bool
+    var accessibilityInvertColors: Bool
+    var accessibilityLargeContentViewerEnabled: Bool
+    var accessibilityPlayAnimatedImages: Bool
+    var accessibilityPrefersHeadAnchorAlternative: Bool
+    var accessibilityQuickActionsEnabled: Bool
+    var accessibilityReduceMotion: Bool
+    var accessibilityReduceTransparency: Bool
+    var accessibilityShowButtonShapes: Bool
+    var accessibilitySwitchControlEnabled: Bool
+    var accessibilityVoiceOverEnabled: Bool
+    var legibilityWeight: LegibilityWeight?
+
+    var dismissSearch: DismissSearchAction
+    var dismissWindow: DismissWindowAction
+    var openImmersiveSpace: OpenImmersiveSpaceAction
+    var dismissImmersiveSpace: DismissImmersiveSpaceAction
+    var newDocument: NewDocumentAction
+    var openDocument: OpenDocumentAction
+    var openWindow: OpenWindowAction
+    var purchase: PurchaseAction
+    var refresh: RefreshAction?
+    var rename: RenameAction?
+    var resetFocus: ResetFocusAction
+    var authorizationController: AuthorizationController
+    var webAuthenticationSession: WebAuthenticationSession
+
+    var buttonRepeatBehavior: ButtonRepeatBehavior
+    var controlSize: ControlSize
+    var controlActiveState: ControlActiveState
+    var defaultWheelPickerItemHeight: CGFloat
+    var keyboardShortcut: KeyboardShortcut?
+    var menuIndicatorVisibility: Visibility
+    var menuOrder: MenuOrder
+    var searchSuggestionsPlacement: SearchSuggestionsPlacement
+    var colorScheme: ColorScheme
+    var colorSchemeContrast: ColorSchemeContrast
+    var displayScale: CGFloat
+    var horizontalSizeClass: UserInterfaceSizeClass?
+    var imageScale: Image.Scale
+    var pixelLength: CGFloat
+    var sidebarRowSize: SidebarRowSize
+    var verticalSizeClass: UserInterfaceSizeClass?
+    var calendar: Calendar
+    var documentConfiguration: DocumentConfiguration?
+    var locale: Locale
+    var managedObjectContext: NSManagedObjectContext
+    var modelContext: ModelContext
+    var timeZone: TimeZone
+    var undoManager: UndoManager?
+
+    var isScrollEnabled: Bool
+    var horizontalScrollIndicatorVisibility: ScrollIndicatorVisibility
+    var verticalScrollIndicatorVisibility: ScrollIndicatorVisibility
+    var scrollDismissesKeyboardMode: ScrollDismissesKeyboardMode
+    var horizontalScrollBounceBehavior: ScrollBounceBehavior
+    var verticalScrollBounceBehavior: ScrollBounceBehavior
+
+    var editMode: Binding<EditMode>?
+    var isActivityFullscreen: Bool
+    var isFocused: Bool
+    var isHoverEffectEnabled: Bool
+    var isLuminanceReduced: Bool
+    var isPresented: Bool
+    var isSceneCaptured: Bool
+    var scenePhase: ScenePhase
+    var supportsMultipleWindows: Bool
+
+    var displayStoreKitMessage: DisplayMessageAction
+    var requestReview: RequestReviewAction
+
+    var allowsTightening: Bool
+    var dynamicTypeSize: DynamicTypeSize
+    var lineSpacing: CGFloat
+    var minimumScaleFactor: CGFloat
+    var multilineTextAlignment: TextAlignment
+    var textCase: Text.Case?
+    var truncationMode: Text.TruncationMode
+
+    var allowedDynamicRange: Image.DynamicRange?
+    var backgroundMaterial: Material?
+    var backgroundProminence: BackgroundProminence
+    var badgeProminence: BadgeProminence
+    var contentTransition: ContentTransition
+    var contentTransitionAddsDrawingGroup: Bool
+    var defaultMinListHeaderHeight: CGFloat?
+    var defaultMinListRowHeight: CGFloat
+    var isFocusEffectEnabled: Bool
+    var headerProminence: Prominence
+    var physicalMetrics: PhysicalMetricsConverter
+    var springLoadingBehavior: SpringLoadingBehavior
+    var symbolRenderingMode: SymbolRenderingMode?
+    var symbolVariants: SymbolVariants
+
+    var showsWidgetContainerBackground: Bool
+    var showsWidgetLabel: Bool
+    var widgetFamily: WidgetFamily
+    var widgetRenderingMode: WidgetRenderingMode
+    var widgetContentMargins: EdgeInsets
+    */
 
     // MARK: - Internal values
 
@@ -323,6 +427,11 @@ extension EnvironmentValues {
     var _progressViewStyle: ProgressViewStyle? {
         get { builtinValue(key: "_progressViewStyle", defaultValue: { nil }) as! ProgressViewStyle? }
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _scrollContentBackground: Visibility? {
+        get { builtinValue(key: "_scrollContentBackground", defaultValue: { nil }) as! Visibility? }
+        set { setBuiltinValue(key: "_scrollContentBackground", value: newValue, defaultValue: { nil }) }
     }
 
     var _searchableState: SearchableState? {
