@@ -827,8 +827,7 @@ public enum ListSectionSpacing : Sendable {
 }
 
 extension View {
-    // Note: typed to Any to work around current Skip type checking bug
-    public func listRowBackground(_ view: Any) -> some View {
+    public func listRowBackground(_ view: Any?) -> some View {
         #if SKIP
         return ListItemModifierView(view: self, background: view as! View?)
         #else
