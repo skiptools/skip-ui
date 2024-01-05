@@ -573,11 +573,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func listRowBackground(_ view: (any View)?) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func luminanceToAlpha() -> some View {
         return self
     }

@@ -798,6 +798,11 @@ public enum ListSectionSpacing : Sendable {
 
 extension View {
     @available(*, unavailable)
+    public func listRowBackground(_ view: (any View)?) -> some View {
+        return self
+    }
+    
+    @available(*, unavailable)
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         return self
     }

@@ -33,10 +33,17 @@ import androidx.compose.ui.unit.dp
         modifier = zIndex.consume(with: modifier)
     }
 
-    let contentContext = context.content()
+    let isContainerView = view.strippingModifiers(perform: { $0 is HStack || $0 is VStack || $0 is ZStack })
     ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
-        Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+        // Apply the sizing modifier directly to containers, which would otherwise fit their size to their content instead
+        if isContainerView {
+            let contentContext = context.content(modifier: modifier)
             view.Compose(context: contentContext)
+        } else {
+            let contentContext = context.content()
+            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                view.Compose(context: contentContext)
+            }
         }
     }
 }
@@ -65,10 +72,17 @@ import androidx.compose.ui.unit.dp
     } else if minHeight != nil || maxHeight != nil {
         modifier = modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
     }
-    let contentContext = context.content()
+    let isContainerView = view.strippingModifiers(perform: { $0 is HStack || $0 is VStack || $0 is ZStack })
     ComposeContainer(modifier: modifier, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity) { modifier in
-        Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+        // Apply the sizing modifier directly to containers, which would otherwise fit their size to their content instead
+        if isContainerView {
+            let contentContext = context.content(modifier: modifier)
             view.Compose(context: contentContext)
+        } else {
+            let contentContext = context.content()
+            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                view.Compose(context: contentContext)
+            }
         }
     }
 }
