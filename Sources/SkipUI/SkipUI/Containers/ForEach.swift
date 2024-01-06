@@ -91,7 +91,7 @@ public class ForEach : View, ListItemFactory {
         } else {
             contentView = view
         }
-        if let taggedView = contentView.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView }) {
+        if let taggedView = TagModifierView.strip(from: contentView) {
             return taggedView
         } else {
             return TagModifierView(view: view, tag: defaultTag)

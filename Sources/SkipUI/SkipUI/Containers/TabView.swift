@@ -110,12 +110,12 @@ public struct TabView : View {
         guard let tabIndex = Int(string: route), tabIndex >= 0, tabIndex < tabViews.count else {
             return nil
         }
-        return tabViews[tabIndex].strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })?.tag
+        return TagModifierView.strip(from: tabViews[tabIndex])?.tag
     }
 
     private func route(tagValue: Any, in tabViews: [View]) -> String? {
         for tabIndex in 0..<tabViews.count {
-            let tabTagValue = tabViews[tabIndex].strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })?.tag
+            let tabTagValue = TagModifierView.strip(from: tabViews[tabIndex])?.tag
             if tagValue == tabTagValue {
                 return String(describing: tabIndex)
             }

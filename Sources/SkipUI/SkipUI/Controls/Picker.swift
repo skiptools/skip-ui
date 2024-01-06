@@ -160,8 +160,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         EnvironmentValues.shared.setValues {
             $0.set_placement(ViewPlacement.tagged)
         } in: {
-            views = content.collectViews(context: context)
-                .compactMap { $0.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView }) }
+            views = content.collectViews(context: context).compactMap { TagModifierView.strip(from: $0) }
         }
         return views
     }

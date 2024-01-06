@@ -1029,6 +1029,11 @@ struct TagModifierView: ComposeModifierView {
         self.tag = tag
         super.init(view: view, role: .tag)
     }
+
+    /// Extract the existing tag modifier view from the given view's modifiers.
+    static func strip(from view: View) -> TagModifierView? {
+        return view.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })
+    }
 }
 
 /// Use a special modifier for `zIndex` so that the artificial parent container created by `.frame` can pull the `zIndex` value into its own modifiers.
