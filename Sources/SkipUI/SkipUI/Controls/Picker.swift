@@ -158,7 +158,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
     @Composable private func taggedViews(context: ComposeContext) -> [TagModifierView] {
         var views: [TagModifierView] = []
         EnvironmentValues.shared.setValues {
-            $0.set_placement(ViewPlacement.picker)
+            $0.set_placement(ViewPlacement.tagged)
         } in: {
             views = content.collectViews(context: context)
                 .compactMap { $0.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView }) }

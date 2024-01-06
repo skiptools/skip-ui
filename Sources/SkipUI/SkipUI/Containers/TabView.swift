@@ -28,30 +28,46 @@ import androidx.navigation.compose.rememberNavController
 #endif
 
 public struct TabView : View {
+    let selection: Binding<Any>?
     let content: ComposeView
 
     public init(@ViewBuilder content: () -> any View) {
+        self.selection = nil
         self.content = ComposeView.from(content)
     }
 
-    @available(*, unavailable)
-    public init(selection: Binding<Any>?, @ViewBuilder content: () -> any View) {
+    public init(selection: Any?, @ViewBuilder content: () -> any View) {
+        self.selection = selection as! Binding<Any>?
         self.content = ComposeView.from(content)
     }
 
     #if SKIP
     @ExperimentalMaterial3Api
     @Composable public override func ComposeContent(context: ComposeContext) {
+        let tabItemContext = context.content()
+        var tabViews: [View] = []
+        EnvironmentValues.shared.setValues {
+            $0.set_placement(ViewPlacement.tagged)
+        } in: {
+            tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
+        }
+
         let navController = rememberNavController()
+        let currentRoute = currentRoute(for: navController)
+        if let selection, let currentRoute, selection.wrappedValue != tagValue(route: currentRoute, in: tabViews) {
+            if let route = route(tagValue: selection.wrappedValue, in: tabViews) {
+                navigate(controller: navController, route: route)
+            }
+        }
+
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             Scaffold(
                 modifier: modifier,
                 bottomBar: {
                     NavigationBar(modifier: Modifier.fillMaxWidth()) {
-                        let tabItemContext = context.content()
-                        let tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
                         for tabIndex in 0..<tabViews.count {
-                            let tabItem = tabViews[tabIndex].strippingModifiers { $0 as? TabItem }
+                            let route = String(describing: tabIndex)
+                            let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
                             NavigationBarItem(
                                 icon: {
                                     tabItem?.ComposeImage(context: tabItemContext)
@@ -59,16 +75,12 @@ public struct TabView : View {
                                 label: {
                                     tabItem?.ComposeTitle(context: tabItemContext)
                                 },
-                                selected: String(describing: tabIndex) == currentRoute(for: navController),
+                                selected: route == currentRoute,
                                 onClick: {
-                                    navController.navigate(String(describing: tabIndex)) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        // Avoid multiple copies of the same destination when reselecting the same item
-                                        launchSingleTop = true
-                                        // Restore state when reselecting a previously selected item
-                                        restoreState = true
+                                    if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                                        selection.wrappedValue = tagValue
+                                    } else {
+                                        navigate(controller: navController, route: route)
                                     }
                                 }
                             )
@@ -94,6 +106,35 @@ public struct TabView : View {
         }
     }
 
+    private func tagValue(route: String, in tabViews: [View]) -> Any? {
+        guard let tabIndex = Int(string: route), tabIndex >= 0, tabIndex < tabViews.count else {
+            return nil
+        }
+        return tabViews[tabIndex].strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })?.tag
+    }
+
+    private func route(tagValue: Any, in tabViews: [View]) -> String? {
+        for tabIndex in 0..<tabViews.count {
+            let tabTagValue = tabViews[tabIndex].strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })?.tag
+            if tagValue == tabTagValue {
+                return String(describing: tabIndex)
+            }
+        }
+        return nil
+    }
+
+    private func navigate(controller navController: NavHostController, route: String) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            // Avoid multiple copies of the same destination when reselecting the same item
+            launchSingleTop = true
+            // Restore state when reselecting a previously selected item
+            restoreState = true
+        }
+    }
+
     @Composable private func currentRoute(for navController: NavHostController) -> String? {
         // In your BottomNavigation composable, get the current NavBackStackEntry using the currentBackStackEntryAsState() function. This entry gives you access to the current NavDestination. The selected state of each BottomNavigationItem can then be determined by comparing the item's route with the route of the current destination and its parent destinations (to handle cases when you are using nested navigation) via the NavDestination hierarchy.
         navController.currentBackStackEntryAsState().value?.destination?.route
@@ -106,19 +147,16 @@ public struct TabView : View {
 }
 
 #if SKIP
-struct TabItem: View {
-    let view: View
+struct TabItemModifierView: ComposeModifierView {
     let label: ComposeView
 
     init(view: View, @ViewBuilder label: () -> any View) {
-        // Don't copy view
-        // SKIP REPLACE: this.view = view
-        self.view = view
         self.label = ComposeView.from(label)
+        super.init(view: view, role: .tabItem)
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = view.Compose(context: context)
+        view.Compose(context: context)
     }
 
     @Composable func ComposeTitle(context: ComposeContext) {
@@ -186,7 +224,7 @@ public struct TabViewStyle: RawRepresentable, Equatable {
 extension View {
     public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
         #if SKIP
-        return TabItem(view: self, label: label)
+        return TabItemModifierView(view: self, label: label)
         #else
         return self
         #endif

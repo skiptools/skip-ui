@@ -14,6 +14,7 @@ public enum ComposeModifierRole {
     case gesture
     case listItem
     case spacing
+    case tabItem
     case tag
     case unspecified
     case zIndex
