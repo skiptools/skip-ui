@@ -13,12 +13,16 @@ import androidx.compose.runtime.mutableStateOf
 public final class AppStorage<Value> {
     public let key: String
     public let store: UserDefaults?
+    private let serializer: ((Value) -> Any)?
+    private let deserializer: ((Any) -> Value?)?
     /// The property change listener from the UserDefaults
     private var listener: AnyObject? = nil
 
-    public init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil) {
+    public init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil, serializer: ((Value) -> Any)? = nil, deserializer: ((Any) -> Value?)? = nil) {
         self.key = key
         self.store = store
+        self.serializer = serializer
+        self.deserializer = deserializer
         _wrappedValue = wrappedValue
     }
 
@@ -34,7 +38,11 @@ public final class AppStorage<Value> {
         set {
             #if SKIP
             // Changing the store value should trigger our listener to update our own state
-            currentStore.set(newValue, forKey: key)
+            if let serializer {
+                currentStore.set(serializer(newValue), forKey: key)
+            } else {
+                currentStore.set(newValue, forKey: key)
+            }
             #endif
             // Unless we haven't started tracking
             if listener == nil {
@@ -61,14 +69,33 @@ public final class AppStorage<Value> {
         // Create our Compose-trackable backing state and keep it in sync with the store. Note that we have to seed the store with a value
         // for the key in order for our listener to work
         let store = self.currentStore
-        _wrappedValue = (store.object(forKey: key) as? Value) ?? _wrappedValue
-        store.set(_wrappedValue, forKey: key)
+        let object = store.object(forKey: key)
+        let value: Value?
+        if let object, let deserializer {
+            value = deserializer(object)
+        } else {
+            value = object as? Value
+        }
+        if let value {
+            _wrappedValue = value
+        } else if let serializer {
+            store.set(serializer(_wrappedValue), forKey: key)
+        } else {
+            store.set(_wrappedValue, forKey: key)
+        }
         _wrappedValueState = mutableStateOf(_wrappedValue)
 
         // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
         // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
         self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
-            if let value = store.object(forKey: key) as? Value {
+            let object = store.object(forKey: key)
+            let value: Value?
+            if let object, let deserializer {
+                value = deserializer(object)
+            } else {
+                value = object as? Value
+            }
+            if let value {
                 _wrappedValue = value
                 _wrappedValueState?.value = value
             }
@@ -114,56 +141,6 @@ extension AppStorage {
     ///   - store: The user defaults store to read and write to. A value
     ///     of `nil` will use the user default store from the environment.
     public convenience init<RowValue>(wrappedValue: Value = TableColumnCustomization<RowValue>(), _ key: String, store: UserDefaults? = nil) where Value == TableColumnCustomization<RowValue>, RowValue : Identifiable { fatalError() }
-}
-
-extension AppStorage {
-    /// Creates a property that can read and write to an integer user default,
-    /// transforming that to `RawRepresentable` data type.
-    ///
-    /// A common usage is with enumerations:
-    ///
-    ///    enum MyEnum: Int {
-    ///        case a
-    ///        case b
-    ///        case c
-    ///    }
-    ///    struct MyView: View {
-    ///        @AppStorage("MyEnumValue") private var value = MyEnum.a
-    ///        var body: some View { ... }
-    ///    }
-    ///
-    /// - Parameters:
-    ///   - wrappedValue: The default value if an integer value
-    ///     is not specified for the given key.
-    ///   - key: The key to read and write the value to in the user defaults
-    ///     store.
-    ///   - store: The user defaults store to read and write to. A value
-    ///     of `nil` will use the user default store from the environment.
-    public convenience init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil) where Value : RawRepresentable, Value.RawValue == Int { fatalError() }
-
-    /// Creates a property that can read and write to a string user default,
-    /// transforming that to `RawRepresentable` data type.
-    ///
-    /// A common usage is with enumerations:
-    ///
-    ///    enum MyEnum: String {
-    ///        case a
-    ///        case b
-    ///        case c
-    ///    }
-    ///    struct MyView: View {
-    ///        @AppStorage("MyEnumValue") private var value = MyEnum.a
-    ///        var body: some View { ... }
-    ///    }
-    ///
-    /// - Parameters:
-    ///   - wrappedValue: The default value if a string value
-    ///     is not specified for the given key.
-    ///   - key: The key to read and write the value to in the user defaults
-    ///     store.
-    ///   - store: The user defaults store to read and write to. A value
-    ///     of `nil` will use the user default store from the environment.
-    public convenience init(wrappedValue: Value, _ key: String, store: UserDefaults? = nil) where Value : RawRepresentable, Value.RawValue == String { fatalError() }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
