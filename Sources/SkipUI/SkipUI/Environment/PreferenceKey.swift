@@ -7,6 +7,7 @@
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.compositionLocalOf
 import kotlin.reflect.full.companionObjectInstance
 #endif
@@ -48,10 +49,11 @@ class PreferenceValues {
             }
             // SKIP INSERT: val element = compositionLocal!! provides preference
             element
-        }.kotlin(nocopy: true).toTypedArray()
-        
+        }
+        // SKIP INSERT: val kprovided = (provided.kotlin(nocopy = true) as MutableList<ProvidedValue<*>>).toTypedArray()
+
         preferences.forEach { $0.beginCollecting() }
-        CompositionLocalProvider(*provided) {
+        CompositionLocalProvider(*kprovided) {
             content()
         }
         preferences.forEach { $0.endCollecting() }
