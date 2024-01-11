@@ -15,6 +15,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
@@ -24,7 +25,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 #else
@@ -934,9 +934,14 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) {
+            $0.modifier = $0.modifier.shadow(color: color.colorImpl(), offsetX: x.dp, offsetY: y.dp, blurRadius: radius.dp)
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
