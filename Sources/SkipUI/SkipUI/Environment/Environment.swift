@@ -189,15 +189,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
     }
 
-    public var layoutDirection: LayoutDirection {
-        return LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl ? LayoutDirection.rightToLeft : LayoutDirection.leftToRight
-    }
-
-    public var openURL: (URL) -> Void {
-        let uriHandler = LocalUriHandler.current
-        return { uriHandler.openUri($0.absoluteString) }
-    }
-
     public var font: Font? {
         get { builtinValue(key: "font", defaultValue: { nil }) as! Font? }
         set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
@@ -212,9 +203,26 @@ extension EnvironmentValues {
         return _searchableState?.isSearching.value == true
     }
 
+    public var layoutDirection: LayoutDirection {
+        return LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl ? LayoutDirection.rightToLeft : LayoutDirection.leftToRight
+    }
+
     public var lineLimit: Int? {
         get { builtinValue(key: "lineLimit", defaultValue: { nil }) as! Int? }
         set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
+    }
+
+    public var locale: Locale {
+        return Locale.current
+    }
+
+    public var openURL: (URL) -> Void {
+        let uriHandler = LocalUriHandler.current
+        return { uriHandler.openUri($0.absoluteString) }
+    }
+
+    public var timeZone: TimeZone {
+        return TimeZone.current
     }
 
     /* Not yet supported
@@ -265,10 +273,8 @@ extension EnvironmentValues {
     var verticalSizeClass: UserInterfaceSizeClass?
     var calendar: Calendar
     var documentConfiguration: DocumentConfiguration?
-    var locale: Locale
     var managedObjectContext: NSManagedObjectContext
     var modelContext: ModelContext
-    var timeZone: TimeZone
     var undoManager: UndoManager?
 
     var isScrollEnabled: Bool

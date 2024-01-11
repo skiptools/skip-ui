@@ -264,7 +264,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 
 |Component|Support Level|Notes|
 |---------|-------------|-----|
-|`@AppStorage`|🟡 Medium||
+|`@AppStorage`|🟢 High|Optional values not supported|
 |`@Bindable`|✅ Full||
 |`@Binding`|✅ Full||
 |`@Environment`|✅ Full|See [Environment Keys](#environment-keys)|
@@ -402,8 +402,11 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `font`
 - `isEnabled`
 - `isSearching`
+- `layoutDirection` (read-only)
 - `lineLimit`
+- `locale` (read-only)
 - `openURL`
+- `timeZone` (read-only)
 
 ### Gestures
 
