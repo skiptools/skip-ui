@@ -396,17 +396,17 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 
 SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
 
-- `autocorrectionDisabled`
+- `autocorrectionDisabled` (read-only)
 - `backgroundStyle`
 - `dismiss`
 - `font`
 - `isEnabled`
-- `isSearching`
-- `layoutDirection` (read-only)
+- `isSearching` (read-only)
+- `layoutDirection`
 - `lineLimit`
-- `locale` (read-only)
+- `locale`
 - `openURL`
-- `timeZone` (read-only)
+- `timeZone`
 
 ### Gestures
 

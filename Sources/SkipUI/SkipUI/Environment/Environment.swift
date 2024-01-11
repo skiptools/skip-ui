@@ -10,12 +10,14 @@ import Observation
 #endif
 
 #if SKIP
+import android.content.res.Configuration
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
@@ -44,6 +46,7 @@ public class EnvironmentValues {
     // We type erase all keys and values. The alternative would be to reify these functions.
     let compositionLocals: MutableMap<Any, ProvidableCompositionLocal<Any>> = mutableMapOf()
     let lastSetValues: MutableMap<ProvidableCompositionLocal<Any>, Any> = mutableMapOf()
+    let lastSetActions: MutableList<@Composable () -> Void> = mutableListOf()
 
     // SKIP DECLARE: @Composable operator fun <Key, Value> get(key: KClass<Key>): Value where Key: EnvironmentKey<Value>
     /// Retrieve an environment value by its `EnvironmentKey`.
@@ -67,6 +70,10 @@ public class EnvironmentValues {
     @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
         // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
         execute(self)
+        for action in lastSetActions {
+            action()
+        }
+        lastSetActions.clear()
         let provided = lastSetValues.map { entry in
             // SKIP INSERT: val element = entry.key provides entry.value
             element
@@ -204,7 +211,8 @@ extension EnvironmentValues {
     }
 
     public var layoutDirection: LayoutDirection {
-        return LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl ? LayoutDirection.rightToLeft : LayoutDirection.leftToRight
+        get { LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl ? LayoutDirection.rightToLeft : LayoutDirection.leftToRight }
+        set { lastSetValues[LocalLayoutDirection as! ProvidableCompositionLocal<Any>] = newValue == LayoutDirection.rightToLeft ? androidx.compose.ui.unit.LayoutDirection.Rtl : androidx.compose.ui.unit.LayoutDirection.Ltr }
     }
 
     public var lineLimit: Int? {
@@ -213,7 +221,16 @@ extension EnvironmentValues {
     }
 
     public var locale: Locale {
-        return Locale.current
+        get { Locale(LocalConfiguration.current.locales[0]) }
+        set {
+            let action: @Composable () -> Void = {
+                // Requires a @Composable context to copy LocalConfiguration.current
+                let configuration = Configuration(LocalConfiguration.current)
+                configuration.setLocale(newValue.kotlin())
+                lastSetValues[LocalConfiguration as! ProvidableCompositionLocal<Any>] = configuration
+            }
+            lastSetActions.add(action)
+        }
     }
 
     public var openURL: (URL) -> Void {
@@ -222,7 +239,8 @@ extension EnvironmentValues {
     }
 
     public var timeZone: TimeZone {
-        return TimeZone.current
+        get { builtinValue(key: "timeZone", defaultValue: { TimeZone.current }) as! TimeZone }
+        set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
     }
 
     /* Not yet supported
