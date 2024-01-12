@@ -580,10 +580,11 @@ typealias UXAccessibility = UIAccessibility
 ///
 /// This is currently only implemented on the Compose side, since inspecting the SwiftUI view hierarchy is challenging.
 protocol SkipUIEvaluator {
-    var view: UXView { get }
+    var hostView: UXView? { get }
 }
 
 class HostingController<V: View> : UXHostingController<V>, SkipUIEvaluator {
+    var hostView: UXView? { self.view }
 }
 
 
