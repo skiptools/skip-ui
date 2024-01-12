@@ -9,75 +9,76 @@
 
 package skip.ui
 
-import android.graphics.BlurMaskFilter
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
 
-fun Modifier.shadow(
-    color: Color = Color.Black,
-    offsetX: Dp = 0.dp,
-    offsetY: Dp = 0.dp,
-    blurRadius: Dp = 0.dp,
-    shapeRadius: Dp = 0.dp,
-) = composed {
-    val paint: Paint = remember { Paint() }
-    val blurRadiusPx = blurRadius.px(LocalDensity.current)
-    val maskFilter = remember {
-        BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
-    }
-    drawBehind {
-        drawIntoCanvas { canvas ->
-            val frameworkPaint = paint.asFrameworkPaint()
-            if (blurRadius != 0.dp) {
-                frameworkPaint.maskFilter = maskFilter
+/// Compose the given content with a drop shadow on all non-transparent pixels.
+@Composable fun Shadowed(context: ComposeContext, color: Color, offsetX: Dp, offsetY: Dp, blurRadius: Dp, content: @Composable (ComposeContext) -> Unit) {
+    val contentContext = context.content()
+    val density = LocalDensity.current
+    val offsetXPx = with(density) { offsetX.toPx() }.toInt()
+    val offsetYPx = with(density) { offsetY.toPx() }.toInt()
+    // Pad by the shadow layer by the radius to prevent clipping the blur
+    val paddingPx = ceil(with(density) { blurRadius.toPx() }).toInt()
+    Layout(modifier = context.modifier, content = {
+        // Render content normally
+        content(contentContext)
+        ComposeContainer(fixedWidth = true, fixedHeight = true) { modifier ->
+            Box(modifier = modifier
+                .drawWithContent {
+                    val matrix = shadowColorMatrix(color)
+                    val filter = ColorFilter.colorMatrix(matrix)
+                    val paint = Paint().apply {
+                        colorFilter = filter
+                    }
+                    drawIntoCanvas { canvas ->
+                        canvas.saveLayer(Rect(0f, 0f, size.width, size.height), paint)
+                        drawContent()
+                        canvas.restore()
+                    }
+                }
+                .blur(radius = blurRadius, BlurredEdgeTreatment.Unbounded)
+                .padding(all = blurRadius)
+            ) {
+                content(contentContext)
             }
-            frameworkPaint.color = color.toArgb()
-
-            val leftPixel = offsetX.toPx()
-            val topPixel = offsetY.toPx()
-            val rightPixel = size.width + leftPixel
-            val bottomPixel = size.height + topPixel
-
-            if (shapeRadius > 0.dp) {
-                val radiusPx = shapeRadius.toPx()
-                canvas.drawRoundRect(
-                    left = leftPixel,
-                    top = topPixel,
-                    right = rightPixel,
-                    bottom = bottomPixel,
-                    radiusX = radiusPx,
-                    radiusY = radiusPx,
-                    paint = paint,
-                )
-            } else {
-                canvas.drawRect(
-                    left = leftPixel,
-                    top = topPixel,
-                    right = rightPixel,
-                    bottom = bottomPixel,
-                    paint = paint,
-                )
-            }
+        }
+    }) { measurables, constraints ->
+        val contentPlaceable = measurables[0].measure(constraints)
+        val shadowPlaceable = measurables[1].measure(Constraints(maxWidth = contentPlaceable.width + paddingPx * 2, maxHeight = contentPlaceable.height + paddingPx * 2))
+        layout(width = contentPlaceable.width, height = contentPlaceable.height) {
+            shadowPlaceable.placeRelative(x = offsetXPx - paddingPx, y = offsetYPx - paddingPx)
+            contentPlaceable.placeRelative(x = 0, y = 0)
         }
     }
 }
 
-private fun Dp.px(density: Density): Float =
-    with(density) { toPx() }
+/// Return a color matrix with which to paint our content as a shadow of the given color.
+private fun shadowColorMatrix(color: Color): ColorMatrix {
+    return ColorMatrix().apply {
+        set(0, 0, 0f) // Do not preserve original R
+        set(1, 1, 0f) // Do not preserve original G
+        set(2, 2, 0f) // Do not preserve original B
+
+        set(0, 4, color.red * 255) // Use given color's R
+        set(1, 4, color.green * 255) // Use given color's G
+        set(2, 4, color.blue * 255) // Use given color's B
+        set(3, 3, color.alpha) // Multiply original alpha by shadow alpha
+    }
+}

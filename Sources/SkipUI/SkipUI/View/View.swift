@@ -936,8 +936,11 @@ extension View {
 
     public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self) {
-            $0.modifier = $0.modifier.shadow(color: color.colorImpl(), offsetX: x.dp, offsetY: y.dp, blurRadius: radius.dp)
+        return ComposeModifierView(contentView: self) { view, context in
+            // See Shadowed.kt
+            Shadowed(context: context, color: color.colorImpl(), offsetX: x.dp, offsetY: y.dp, blurRadius: radius.dp) { context in
+                view.Compose(context: context)
+            }
         }
         #else
         return self

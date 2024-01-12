@@ -379,6 +379,7 @@ The following table summarizes SkipUI's SwiftUI support on Android. Note that in
 |`.scaleEffect`|🟡 Medium||
 |`.scrollContentBackground`|✅ Full||
 |`.searchable`|🔴 Low|Suggestions, scope not implemented|
+|`.shadow`|🟢 High|Place before `.background`, `.overlay`|
 |`.sheet`|🟢 High|See [Navigation](#navigation)|
 |`.stroke` (Shape)|✅ Full||
 |`.strokeBorder` (Shape)|✅ Full||
