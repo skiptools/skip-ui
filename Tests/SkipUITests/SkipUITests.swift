@@ -189,7 +189,7 @@ final class SkipUITests: SkipUITestCase {
         #if !SKIP
         #if os(macOS)
         // TODO: we would like to use the accessibility API to find the NSView/UIView with the accessibility identifier, but it the view hierarchy does not seem to set the accessibility identifier of the views
-        guard let view = traverse(rule.view, \.subviews).first(where: { view in
+        guard let view = traverse(rule.hostView, \.subviews).first(where: { view in
             //view.identifier?.rawValue == id
             //printAccessibilityInformation(for: view)
             return view.accessibilityIdentifier() == id
