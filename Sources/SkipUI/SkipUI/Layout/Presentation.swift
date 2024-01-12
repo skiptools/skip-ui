@@ -149,10 +149,10 @@ let overlayPresentationCornerRadius = 16.0
 @Composable func ComposeConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, buttons: [Button], message: Text?) {
     let padding = 16.dp
     if let title {
-        androidx.compose.material3.Text(modifier = Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.secondary.colorImpl(), text: title.text, style: Font.callout.bold().fontImpl())
+        androidx.compose.material3.Text(modifier = Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.secondary.colorImpl(), text: title.localizedTextString(), style: Font.callout.bold().fontImpl())
     }
     if let message {
-        androidx.compose.material3.Text(modifier = Modifier.padding(start: padding, top: 8.dp, end: padding, bottom: padding), color: Color.secondary.colorImpl(), text: message.text, style: Font.callout.fontImpl())
+        androidx.compose.material3.Text(modifier = Modifier.padding(start: padding, top: 8.dp, end: padding, bottom: padding), color: Color.secondary.colorImpl(), text: message.localizedTextString(), style: Font.callout.fontImpl())
     }
     if title != nil || message != nil {
         androidx.compose.material3.Divider()
@@ -179,7 +179,7 @@ let overlayPresentationCornerRadius = 16.0
                 $0.strippingModifiers { $0 as? Text }
             }.first
             let color = button.role == .destructive ? Color.red.colorImpl() : tint
-            androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.text ?? "", maxLines: 1, style: buttonFont.fontImpl())
+            androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
         }
         androidx.compose.material3.Divider()
     }
@@ -188,7 +188,7 @@ let overlayPresentationCornerRadius = 16.0
             let text = cancelButton.label.collectViews(context: context).compactMap {
                 $0.strippingModifiers { $0 as? Text }
             }.first
-            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.text ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
+            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
         }
     } else {
         ConfirmationDialogButton(action: { isPresented.set(false) }) {

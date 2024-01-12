@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
+import skip.foundation.Locale
 #else
 import struct CoreGraphics.CGFloat
 import struct Foundation.LocalizedStringResource
 import class Foundation.Bundle
+import struct Foundation.Locale
 #endif
 
 public struct Text: View, Equatable {
@@ -21,7 +23,6 @@ public struct Text: View, Equatable {
     private let key: LocalizedStringKey?
     private let tableName: String?
     private let bundle: Bundle?
-    //@Environment(\.locale) var locale: Locale // TODO
 
     public init(verbatim: String) {
         self.verbatim = verbatim
@@ -44,22 +45,23 @@ public struct Text: View, Equatable {
         self.bundle = bundle
     }
 
-    /// Interpret the key against the given bundle
-    var text: String {
+
+    #if SKIP
+    /// Interpret the key against the given bundle and the environment's current locale
+    @Composable public func localizedTextString() -> String {
         if let verbatim = self.verbatim { return verbatim }
         guard let key = self.key else { return "" }
-        // TODO: use the bundle corresponding to the Locale environment key (\.locale)
-        let locfmt = self.bundle?.localizedString(forKey: key.patternFormat, value: nil, table: self.tableName) ?? key.patternFormat
+
+        let locfmt = EnvironmentValues.shared.locale.localize(key: key.patternFormat, value: nil, bundle: self.bundle, tableName: self.tableName)
+        
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-        let replaced = String(format: locfmt, key.stringInterpolation.values)
+        let replaced = String(format: locfmt ?? key.patternFormat, key.stringInterpolation.values)
         return replaced
     }
 
-    #if SKIP
-
     @Composable public override func ComposeContent(context: ComposeContext) {
         var font: Font
-        var text = self.text
+        var text = self.localizedTextString()
         if let environmentFont = EnvironmentValues.shared.font {
             font = environmentFont
         } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {

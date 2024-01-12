@@ -142,8 +142,8 @@ public struct NavigationStack<Root> : View where Root: View {
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
-        let uncomposedTitle = "__UNCOMPOSED__"
-        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<String, Any>) { mutableStateOf(uncomposedTitle) }
+        let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
+        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
         let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
         let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
@@ -169,7 +169,7 @@ public struct NavigationStack<Root> : View where Root: View {
             topBar: {
                 let topLeadingItems = toolbarItems.filterTopBarLeading()
                 let topTrailingItems = toolbarItems.filterTopBarTrailing()
-                guard !isRoot || !title.value.isEmpty || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty else {
+                guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty else {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
@@ -184,7 +184,7 @@ public struct NavigationStack<Root> : View where Root: View {
                             containerColor: Color.systemBarBackground.colorImpl(),
                             titleContentColor: MaterialTheme.colorScheme.onSurface
                         ), title: {
-                            androidx.compose.material3.Text(title.value, maxLines: 1, overflow: TextOverflow.Ellipsis)
+                            androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
                         }, navigationIcon: {
                             let hasBackButton = !isRoot && !backButtonHidden.value
                             if hasBackButton || !topLeadingItems.isEmpty {
@@ -245,7 +245,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
                 // will be composed, and we want to retain destinations from previous entries
                 let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
-                let titlePreference = Preference<String>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
@@ -505,7 +505,15 @@ extension View {
 
     public func navigationTitle(_ title: Text) -> some View {
         #if SKIP
-        return preference(key: NavigationTitlePreferenceKey.self, value: title.text)
+        return preference(key: NavigationTitlePreferenceKey.self, value: title)
+        #else
+        return self
+        #endif
+    }
+
+    public func navigationTitle(_ title: LocalizedStringKey) -> some View {
+        #if SKIP
+        return preference(key: NavigationTitlePreferenceKey.self, value: Text(title))
         #else
         return self
         #endif
@@ -513,7 +521,7 @@ extension View {
 
     public func navigationTitle(_ title: String) -> some View {
         #if SKIP
-        return preference(key: NavigationTitlePreferenceKey.self, value: title)
+        return preference(key: NavigationTitlePreferenceKey.self, value: Text(verbatim: title))
         #else
         return self
         #endif
@@ -541,12 +549,12 @@ struct NavigationDestinationsPreferenceKey: PreferenceKey {
 }
 
 struct NavigationTitlePreferenceKey: PreferenceKey {
-    typealias Value = String
+    typealias Value = Text
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<String>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Text>
     class Companion: PreferenceKeyCompanion {
-        let defaultValue = ""
-        func reduce(value: inout String, nextValue: () -> String) {
+        let defaultValue = Text("")
+        func reduce(value: inout Text, nextValue: () -> Text) {
             value = nextValue()
         }
     }

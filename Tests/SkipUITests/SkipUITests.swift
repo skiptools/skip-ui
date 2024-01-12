@@ -288,13 +288,12 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
-    func testLocalizedString() throws {
-        // There's a strange problem on Android with the Bundle.module accessor not getting generated:
-        // java.lang.NoSuchMethodError: No static method getModule(Lskip/foundation/Bundle$Companion;)Lskip/foundation/Bundle; in class Lskip/ui/PackageSupportKt; or its super classes (declaration of 'skip.ui.PackageSupportKt' appears in /data/app/~~dpP5y0gq08SFYLzoJuvMdQ==/skip.ui.test--AS1FCYI-flZAAXoydOFBw==/base.apk!classes2.dex)
-        if isAndroid {
-            throw XCTSkip("Test not working on Android emulator")
-        }
+    // look up a localized string in the current bundle using the given language
+    func localizedBundle(_ lang: String) throws -> Bundle {
+        try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: lang)).deletingLastPathComponent()))
+    }
 
+    func testLocalizedString() throws {
         #if !SKIP
         // SwiftPM does not handle Localizable.xcstrings (like Xcode does), so no Localizable.strings files are created at runtime
         if Bundle.module.localizations == [] {
@@ -302,15 +301,15 @@ final class SkipUITests: SkipUITestCase {
         }
         #endif
 
-        XCTAssertEqual("تم", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ar", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("Terminé", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "fr", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("סיום", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "he", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("完了", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ja", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("OK", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "pt-BR", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "ru", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("Klar", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "sv", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "uk", withExtension: "lproj")!)!, comment: "Done"))
-        XCTAssertEqual("完成", NSLocalizedString("Done", bundle: Bundle(url: Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj")!)!, comment: "Done"))
+        XCTAssertEqual("تم", NSLocalizedString("Done", bundle: try localizedBundle("ar"), comment: ""))
+        XCTAssertEqual("Terminé", NSLocalizedString("Done", bundle: try localizedBundle("fr"), comment: ""))
+        XCTAssertEqual("סיום", NSLocalizedString("Done", bundle: try localizedBundle("he"), comment: ""))
+        XCTAssertEqual("完了", NSLocalizedString("Done", bundle: try localizedBundle("ja"), comment: ""))
+        XCTAssertEqual("OK", NSLocalizedString("Done", bundle: try localizedBundle("pt-BR"), comment: ""))
+        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: try localizedBundle("ru"), comment: ""))
+        XCTAssertEqual("Klar", NSLocalizedString("Done", bundle: try localizedBundle("sv"), comment: ""))
+        XCTAssertEqual("Готово", NSLocalizedString("Done", bundle: try localizedBundle("uk"), comment: ""))
+        XCTAssertEqual("完成", NSLocalizedString("Done", bundle: try localizedBundle("zh-Hans"), comment: ""))
     }
 
     func testLocalizableStringsIndex() throws {
@@ -327,6 +326,7 @@ final class SkipUITests: SkipUITestCase {
         sv.lproj/Localizable.strings
         uk.lproj/Localizable.strings
         zh-Hans.lproj/Localizable.strings
+        zh-Hant.lproj/Localizable.strings
         """)
         #else
         throw XCTSkip("non-Android platforms do not create a resources.lst index file")
@@ -340,29 +340,42 @@ final class SkipUITests: SkipUITestCase {
         }
         #endif
 
-        let fr = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "fr", withExtension: "lproj"), "cannot locate fr.lproj bundle resource")))
-        let zh = try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "zh-Hans", withExtension: "lproj"), "cannot locate zh-Hans.lproj bundle resource")))
-
         try testUI(view: {
             Text("String: \("ABC") integer: \(123)", bundle: .module, comment: "test localization comment")
                 .accessibilityIdentifier("loc-text1")
             Text("String: \("XYZ") integer: \(987)", bundle: .module, comment: "test localization comment")
                 .accessibilityIdentifier("loc-text2")
 
-            Text("Done", bundle: fr)
+            Text("Done", bundle: .module)
                 .accessibilityIdentifier("loc-text3")
+                .environment(\.locale, Locale(identifier: "fr"))
 
-            Text("Done: \("XYZ")", bundle: fr)
+            //Group {
+            //    Label {
+            //        Text("Done: \("XYZ")", bundle: .module)
+            //    } icon: {
+            //        Image(systemName: "house.fill")
+            //    }
+            //}
+            Text("Done: \("XYZ")", bundle: .module)
+                .environment(\.locale, Locale(identifier: "fr"))
                 .accessibilityIdentifier("loc-text4")
-            
-            Text("Done", bundle: zh)
+
+            Text("Welcome", bundle: .module)
                 .accessibilityIdentifier("loc-text5")
+                .environment(\.locale, Locale(identifier: "zh-Hans"))
+
+            Text("Welcome", bundle: .module)
+                .environment(\.locale, Locale(identifier: "zh-Hant"))
+                .accessibilityIdentifier("loc-text6")
+
         }, eval: { rule in
             try check(rule, id: "loc-text1", hasText: "String: ABC integer: 123")
             try check(rule, id: "loc-text2", hasText: "String: XYZ integer: 987")
             try check(rule, id: "loc-text3", hasText: "Terminé")
             try check(rule, id: "loc-text4", hasText: "Terminé: XYZ")
-            try check(rule, id: "loc-text5", hasText: "完成")
+            try check(rule, id: "loc-text5", hasText: "欢迎") // simplified Chinese "Welcome"
+            try check(rule, id: "loc-text6", hasText: "歡迎") // traditional Chinese "Welcome"
         })
     }
 

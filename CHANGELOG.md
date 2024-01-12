@@ -1,3 +1,14 @@
+## 0.4.1
+
+Released 2024-01-12
+
+  - Rename ShadowModifier.kt -> Shadowed.kt to match function name
+  - Simplify and comment shadow implementation
+  - Snapshot shadow work
+  - Snapshot shadow work
+  - Make locale, layoutDirection, timeZone settable in EnvironmentValues
+  - Expose locale and timezone in environment
+
 ## 0.3.35
 
 Released 2023-12-22

@@ -165,8 +165,8 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         return views
     }
 
-    @Composable private func titleFromLabel(context: ComposeContext) -> String {
-        return label.collectViews(context: context).compactMap { $0.strippingModifiers(perform: { $0 as? Text }) }.first?.text ?? String(describing: selection.wrappedValue)
+    @Composable private func titleFromLabel(context: ComposeContext) -> Text {
+        return label.collectViews(context: context).compactMap { $0.strippingModifiers(perform: { $0 as? Text }) }.first ?? Text(verbatim: String(describing: selection.wrappedValue))
     }
     #else
     public var body: some View {
@@ -214,11 +214,11 @@ extension View {
 struct PickerSelectionView<SelectionValue> : View {
     let views: [TagModifierView]
     let selection: Binding<SelectionValue>
-    let title: String
+    let title: Text
     @State private var selectionValue: SelectionValue
     @Environment(\.dismiss) private var dismiss
 
-    init(views: [TagModifierView], selection: Binding<SelectionValue>, title: String) {
+    init(views: [TagModifierView], selection: Binding<SelectionValue>, title: Text) {
         self.views = views
         self.selection = selection
         self.title = title
