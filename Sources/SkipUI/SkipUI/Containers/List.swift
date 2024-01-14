@@ -175,13 +175,13 @@ public class List : View {
                     let count = range.endExclusive - range.start
                     let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(factoryContext.value.remapIndex($0, from: offset))) }
                     items(count: count, key: key) { index in
-                        let keyValue = key?(index) // Key closure already remaps index
+                        let keyValue = key?(index + range.start) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, context: context(false), modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
-                        factory(index).Compose(context: editableItemContext)
+                        factory(index + range.start).Compose(context: editableItemContext)
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, factory in
