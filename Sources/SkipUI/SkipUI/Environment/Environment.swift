@@ -468,6 +468,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_sheetDepth", value: newValue, defaultValue: { 0 }) }
     }
 
+    var _textFieldStyle: TextFieldStyle? {
+        get { builtinValue(key: "_textFieldStyle", defaultValue: { nil }) as! TextFieldStyle? }
+        set { setBuiltinValue(key: "_textFieldStyle", value: newValue, defaultValue: { nil }) }
+    }
+
     var _tint: Color? {
         get { builtinValue(key: "_tint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_tint", value: newValue, defaultValue: { nil }) }

@@ -94,11 +94,22 @@ public struct TextField : View {
     @Composable static func colors() -> TextFieldColors {
         let textColor = textColor(enabled: true)
         let disabledTextColor = textColor(enabled: false)
-        if let tint = EnvironmentValues.shared._tint {
-            let tintColor = tint.colorImpl()
-            return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor)
+        let isPlainStyle = EnvironmentValues.shared._textFieldStyle == TextFieldStyle.plain
+        if isPlainStyle {
+            let clearColor = androidx.compose.ui.graphics.Color.Transparent
+            if let tint = EnvironmentValues.shared._tint {
+                let tintColor = tint.colorImpl()
+                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
+            } else {
+                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
+            }
         } else {
-            return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor)
+            if let tint = EnvironmentValues.shared._tint {
+                let tintColor = tint.colorImpl()
+                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor)
+            } else {
+                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor)
+            }
         }
     }
 
@@ -128,8 +139,6 @@ public struct TextFieldStyle: RawRepresentable, Equatable {
 
     public static let automatic = TextFieldStyle(rawValue: 0)
     public static let roundedBorder = TextFieldStyle(rawValue: 1)
-
-    @available(*, unavailable)
     public static let plain = TextFieldStyle(rawValue: 2)
 }
 
@@ -193,8 +202,11 @@ extension View {
     }
 
     public func textFieldStyle(_ style: TextFieldStyle) -> some View {
-        // We only support Android's outline style
+        #if SKIP
+        return environment(\._textFieldStyle, style)
+        #else
         return self
+        #endif
     }
 
     public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View {
