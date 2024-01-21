@@ -670,7 +670,6 @@ extension EnvironmentValues {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "autocorrectionDisabled")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "autocorrectionDisabled")
     @available(watchOS, introduced: 8.0, deprecated: 100000.0, renamed: "autocorrectionDisabled")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "autocorrectionDisabled")
     public var disableAutocorrection: Bool? { fatalError() }
 }
 
@@ -1200,7 +1199,6 @@ extension EnvironmentValues {
     /// ``View/scrollDismissesKeyboard(_:)`` modifier to configure this
     /// property.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    @available(xrOS, unavailable)
     public var scrollDismissesKeyboardMode: ScrollDismissesKeyboardMode { get { fatalError() } }
 }
 

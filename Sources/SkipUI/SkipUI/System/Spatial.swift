@@ -16,13 +16,11 @@ import typealias Foundation.TimeInterval
 /// You can look up a specific event using its `ID`
 /// or iterate over all touches in the collection to apply logic depending
 /// on the touch's states.
-@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
 @available(tvOS, unavailable)
 public struct SpatialEventCollection : Collection {
 
     /// A spatial event generated from a finger, pointing device, or other input mechanism
     /// that can drive gestures in the system.
-    @available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
     @available(tvOS, unavailable)
     public struct Event : Identifiable {
 
@@ -46,12 +44,10 @@ public struct SpatialEventCollection : Collection {
             @available(macOS, unavailable)
             @available(tvOS, unavailable)
             @available(watchOS, unavailable)
-            @available(xrOS, unavailable)
             case pencil
 
             /// An event representing a click-based, indirect input device
             /// describing the input sequence from click to click release.
-            @available(xrOS 1.0, iOS 17.0, macOS 14.0, *)
             @available(tvOS, unavailable)
             @available(watchOS, unavailable)
             case pointer
@@ -117,7 +113,6 @@ public struct SpatialEventCollection : Collection {
 
         #if canImport(UIKit)
         /// The 3D position and orientation of the device controlling the touch, if one exists.
-        @available(xrOS 1.0, iOS 17.0, *)
         @available(macOS, unavailable)
         @available(watchOS, unavailable)
         @available(tvOS, unavailable)
@@ -234,16 +229,13 @@ public struct SpatialEventCollection : Collection {
     public typealias SubSequence = Slice<SpatialEventCollection>
 }
 
-@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
 extension SpatialEventCollection.Event {
 }
 
-@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
 @available(tvOS, unavailable)
 extension SpatialEventCollection.Event.Phase : Equatable {
 }
 
-@available(xrOS 1.0, iOS 17.0, macOS 14.0, watchOS 10.0, *)
 @available(tvOS, unavailable)
 extension SpatialEventCollection.Event.Phase : Hashable {
 }

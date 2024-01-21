@@ -711,7 +711,6 @@ extension Text {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
     public func foregroundColor(_ color: Color?) -> Text { fatalError() }
 
     /// Sets the style of the text displayed by this view.

@@ -150,7 +150,6 @@ public struct DropInfo {
 @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Provide `UTType`s as the `types` instead.")
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Provide `UTType`s as the `types` instead.")
 extension DropInfo {
 
     /// Returns whether at least one item conforms to at least one of the
@@ -1098,7 +1097,6 @@ extension View {
 @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
-@available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
 extension View {
 
     /// Defines the destination for a drag and drop operation, using the same
@@ -1213,7 +1211,6 @@ extension DynamicViewContent {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
     @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, message: "Provide `UTType`s as the `supportedContentTypes` instead.")
     public func onInsert(of acceptedTypeIdentifiers: [String], perform action: @escaping (Int, [NSItemProvider]) -> Void) -> some DynamicViewContent { return stubDynamicViewContent() }
 
 }

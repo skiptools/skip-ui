@@ -384,7 +384,6 @@ extension View {
     @available(macOS, introduced: 10.15, deprecated: 12.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(tvOS, introduced: 13.0, deprecated: 15.0, message: "Use withAnimation or animation(_:value:) instead.")
     @available(watchOS, introduced: 6.0, deprecated: 8.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @available(xrOS, introduced: 1.0, deprecated: 1.0, message: "Use withAnimation or animation(_:value:) instead.")
     public func animation(_ animation: Animation?) -> some View { return stubView() }
 
 }

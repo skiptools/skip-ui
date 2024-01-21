@@ -351,7 +351,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityHidden(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityHidden(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityHidden(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityHidden(_:)")
     public func accessibility(hidden: Bool) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Adds a label to the view that describes its contents.
@@ -364,7 +363,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityLabel(_:)")
     public func accessibility(label: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Communicates to the user what happens after performing the view's
@@ -376,7 +374,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityHint(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityHint(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityHint(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityHint(_:)")
     public func accessibility(hint: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Sets alternate input labels with which users identify a view.
@@ -388,7 +385,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityInputLabels(_:)")
     public func accessibility(inputLabels: [Text]) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Uses the specified string to identify the view.
@@ -398,14 +394,12 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityIdentifier(_:)")
     public func accessibility(identifier: String) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     @available(iOS, deprecated, introduced: 13.0)
     @available(macOS, deprecated, introduced: 10.15)
     @available(tvOS, deprecated, introduced: 13.0)
     @available(watchOS, deprecated, introduced: 6)
-    @available(xrOS, introduced: 1.0, deprecated: 1.0)
     public func accessibility(selectionIdentifier: AnyHashable) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Sets the sort priority order for this view's accessibility
@@ -416,7 +410,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilitySortPriority(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilitySortPriority(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilitySortPriority(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilitySortPriority(_:)")
     public func accessibility(sortPriority: Double) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Specifies the point where activations occur in the view.
@@ -424,7 +417,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     public func accessibility(activationPoint: CGPoint) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Specifies the unit point where activations occur in the view.
@@ -432,7 +424,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityActivationPoint(_:)")
     public func accessibility(activationPoint: UnitPoint) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
 
@@ -463,7 +454,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityAddTraits(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityAddTraits(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityAddTraits(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityAddTraits(_:)")
     public func accessibility(addTraits traits: AccessibilityTraits) -> ModifiedContent<Content, Modifier> { fatalError() }
 
     /// Removes the given traits from this view.
@@ -471,7 +461,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityRemoveTraits(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityRemoveTraits(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityRemoveTraits(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityRemoveTraits(_:)")
     public func accessibility(removeTraits traits: AccessibilityTraits) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
 
@@ -622,7 +611,6 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
-    @available(xrOS, introduced: 1.0, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     public func accessibility(value: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
 

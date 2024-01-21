@@ -126,7 +126,6 @@ extension GroupBox {
 
     @available(iOS, deprecated: 100000.0, renamed: "GroupBox(content:label:)")
     @available(macOS, deprecated: 100000.0, renamed: "GroupBox(content:label:)")
-    @available(xrOS, deprecated: 100000.0, renamed: "GroupBox(content:label:)")
     public init(label: Label, @ViewBuilder content: () -> Content) { fatalError() }
 }
 
