@@ -725,7 +725,7 @@ public struct DismissSearchAction {
 ///             }
 ///         }
 ///     }
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 public struct DismissWindowAction {

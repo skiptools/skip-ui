@@ -13,7 +13,7 @@ import class Foundation.FileWrapper
 import struct Foundation.URL
 import protocol Combine.ObservableObject
 
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 public struct DocumentConfiguration {
@@ -36,7 +36,7 @@ public struct DocumentConfiguration {
     public var fileURL: URL? { get { fatalError() } }
 }
 
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 extension DocumentConfiguration : Sendable {

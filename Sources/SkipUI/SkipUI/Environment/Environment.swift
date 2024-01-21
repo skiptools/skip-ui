@@ -1225,7 +1225,7 @@ extension EnvironmentValues {
     public subscript<T>(objectType: T.Type) -> T? where T : AnyObject, T : Observable { get { fatalError() } }
 }
 
-@available(iOS 17.0, tvOS 17.0, xrOS 1.0, *)
+@available(iOS 17.0, tvOS 17.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
 extension EnvironmentValues {
@@ -1620,7 +1620,7 @@ extension EnvironmentValues {
     ///         }
     ///     }
     ///
-    @available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+    @available(iOS 17.0, macOS 14.0, *)
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     public var documentConfiguration: DocumentConfiguration? { get { fatalError() } }
@@ -2134,7 +2134,7 @@ extension EnvironmentValues {
     public var sidebarRowSize: SidebarRowSize { get { fatalError() } }
 }
 
-@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 extension EnvironmentValues {

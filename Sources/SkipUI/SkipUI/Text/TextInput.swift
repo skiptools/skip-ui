@@ -34,7 +34,7 @@ public enum TextInputAutocapitalization : Sendable {
 
 // TODO: Process for use in SkipUI
 
-@available(iOS 17.0, xrOS 1.0, *)
+@available(iOS 17.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
 @available(tvOS, unavailable)
@@ -42,7 +42,7 @@ public struct TextInputDictationActivation : Equatable, Sendable {
 
     /// A configuration that activates dictation when someone selects the
     /// microphone.
-    @available(iOS 17.0, xrOS 1.0, *)
+    @available(iOS 17.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
@@ -50,7 +50,7 @@ public struct TextInputDictationActivation : Equatable, Sendable {
 
     /// A configuration that activates dictation when someone selects the
     /// microphone or looks at the entry field.
-    @available(iOS 17.0, xrOS 1.0, *)
+    @available(iOS 17.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
@@ -59,7 +59,7 @@ public struct TextInputDictationActivation : Equatable, Sendable {
     
 }
 
-@available(iOS 17.0, xrOS 1.0, *)
+@available(iOS 17.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
 @available(tvOS, unavailable)
@@ -70,14 +70,14 @@ public struct TextInputDictationBehavior : Equatable, Sendable {
     /// The automatic behavior uses a ``TextInputDictationActivation`` value of
     /// ``TextInputDictationActivation/onLook`` for visionOS apps and
     /// ``TextInputDictationActivation/onSelect`` for iOS apps.
-    @available(iOS 17.0, xrOS 1.0, *)
+    @available(iOS 17.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
     public static let automatic: TextInputDictationBehavior = { fatalError() }()
 
     /// Adds a dictation microphone in the search bar.
-    @available(iOS 17.0, xrOS 1.0, *)
+    @available(iOS 17.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)

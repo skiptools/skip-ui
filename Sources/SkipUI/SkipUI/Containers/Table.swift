@@ -3542,7 +3542,7 @@ extension TableRowContent {
 //    public var tableRowBody: Never { fatalError() }
 //}
 //
-//@available(iOS 17.0, macOS 14.0, xrOS 1.0, *)
+//@available(iOS 17.0, macOS 14.0, *)
 //@available(tvOS, unavailable)
 //@available(watchOS, unavailable)
 //extension Section where Parent : TableRowContent, Content : TableRowContent {

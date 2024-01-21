@@ -1221,7 +1221,7 @@ extension View {
 
 extension View {
 
-    @available(iOS 17.0, xrOS 1.0, *)
+    @available(iOS 17.0, *)
     @available(macOS, unavailable)
     @available(watchOS, unavailable)
     @available(tvOS, unavailable)
