@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 
 public struct Color: View, Hashable, Sendable, ShapeStyle {
     #if SKIP
-    let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
+    public let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 
-    init(colorImpl: @Composable () -> androidx.compose.ui.graphics.Color) {
+    public init(colorImpl: @Composable () -> androidx.compose.ui.graphics.Color) {
         self.colorImpl = colorImpl
     }
 
@@ -144,26 +144,6 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     }
 
     #if SKIP
-    public static let clear = Color(colorImpl: {
-        androidx.compose.ui.graphics.Color.Transparent
-    })
-
-    public static let white = Color(colorImpl: {
-        androidx.compose.ui.graphics.Color.White
-    })
-
-    public static let black = Color(colorImpl: {
-        androidx.compose.ui.graphics.Color.Black
-    })
-
-    public static let primary = Color(colorImpl: {
-        MaterialTheme.colorScheme.onBackground
-    })
-    
-    public static let secondary = Color(colorImpl: {
-        MaterialTheme.colorScheme.onBackground.copy(alpha: ContentAlpha.medium)
-    })
-
     static let background = Color(colorImpl: {
         MaterialTheme.colorScheme.surface
     })
@@ -183,53 +163,62 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
 
     static let placeholder = Color(colorImpl: {
         // Close to iOS's AsyncImage placeholder values
-        color(light: 0xFFDDDDDD, dark: 0xFF777777)
+        ComposeColor(light: 0xFFDDDDDD, dark: 0xFF777777)
     })
 
-    /// Returns the given color value based on whether the view is in dark mode or light mode
-    @Composable private static func color(light: Int64, dark: Int64) -> androidx.compose.ui.graphics.Color {
-        // TODO: EnvironmentValues.shared.colorMode == .dark ? dark : light
-        androidx.compose.ui.graphics.Color(isSystemInDarkTheme() ? dark : light)
-    }
-
-    public static let gray = Color(colorImpl: {
-        color(light: 0xFF8E8E93, dark: 0xFF8E8E93)
+    fileprivate static let _primary = Color(colorImpl: {
+        MaterialTheme.colorScheme.onBackground
     })
-    public static let red = Color(colorImpl: {
-        color(light: 0xFFFF3B30, dark: 0xFFFF453A)
+    fileprivate static let _secondary = Color(colorImpl: {
+        MaterialTheme.colorScheme.onBackground.copy(alpha: ContentAlpha.medium)
     })
-    public static let orange = Color(colorImpl: {
-        color(light: 0xFFFF9500, dark: 0xFFFF9F0A)
+    fileprivate static let _clear = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.Transparent
     })
-    public static let yellow = Color(colorImpl: {
-        color(light: 0xFFFFCC00, dark: 0xFFFFD60A)
+    fileprivate static let _white = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.White
     })
-    public static let green = Color(colorImpl: {
-        color(light: 0xFF34C759, dark: 0xFF30D158)
+    fileprivate static let _black = Color(colorImpl: {
+        androidx.compose.ui.graphics.Color.Black
     })
-    public static let mint = Color(colorImpl: {
-        color(light: 0xFF00C7BE, dark: 0xFF63E6E2)
+    fileprivate static let _gray = Color(colorImpl: {
+        ComposeColor(light: 0xFF8E8E93, dark: 0xFF8E8E93)
     })
-    public static let teal = Color(colorImpl: {
-        color(light: 0xFF30B0C7, dark: 0xFF40C8E0)
+    fileprivate static let _red = Color(colorImpl: {
+        ComposeColor(light: 0xFFFF3B30, dark: 0xFFFF453A)
     })
-    public static let cyan = Color(colorImpl: {
-        color(light: 0xFF32ADE6, dark: 0xFF64D2FF)
+    fileprivate static let _orange = Color(colorImpl: {
+        ComposeColor(light: 0xFFFF9500, dark: 0xFFFF9F0A)
     })
-    public static let blue = Color(colorImpl: {
-        color(light: 0xFF007AFF, dark: 0xFF0A84FF)
+    fileprivate static let _yellow = Color(colorImpl: {
+        ComposeColor(light: 0xFFFFCC00, dark: 0xFFFFD60A)
     })
-    public static let indigo = Color(colorImpl: {
-        color(light: 0xFF5856D6, dark: 0xFF5E5CE6)
+    fileprivate static let _green = Color(colorImpl: {
+        ComposeColor(light: 0xFF34C759, dark: 0xFF30D158)
     })
-    public static let purple = Color(colorImpl: {
-        color(light: 0xFFAF52DE, dark: 0xFFBF5AF2)
+    fileprivate static let _mint = Color(colorImpl: {
+        ComposeColor(light: 0xFF00C7BE, dark: 0xFF63E6E2)
     })
-    public static let pink = Color(colorImpl: {
-        color(light: 0xFFFF2D55, dark: 0xFFFF375F)
+    fileprivate static let _teal = Color(colorImpl: {
+        ComposeColor(light: 0xFF30B0C7, dark: 0xFF40C8E0)
     })
-    public static let brown = Color(colorImpl: {
-        color(light: 0xFFA2845E, dark: 0xFFAC8E68)
+    fileprivate static let _cyan = Color(colorImpl: {
+        ComposeColor(light: 0xFF32ADE6, dark: 0xFF64D2FF)
+    })
+    fileprivate static let _blue = Color(colorImpl: {
+        ComposeColor(light: 0xFF007AFF, dark: 0xFF0A84FF)
+    })
+    fileprivate static let _indigo = Color(colorImpl: {
+        ComposeColor(light: 0xFF5856D6, dark: 0xFF5E5CE6)
+    })
+    fileprivate static let _purple = Color(colorImpl: {
+        ComposeColor(light: 0xFFAF52DE, dark: 0xFFBF5AF2)
+    })
+    fileprivate static let _pink = Color(colorImpl: {
+        ComposeColor(light: 0xFFFF2D55, dark: 0xFFFF375F)
+    })
+    fileprivate static let _brown = Color(colorImpl: {
+        ComposeColor(light: 0xFFA2845E, dark: 0xFFAC8E68)
     })
     #endif
 
@@ -287,149 +276,137 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     }
 }
 
-// For Kotlin to be able to compile `Color.red`, `red` must be a static member of Color. For Swift, however,
-// ShapeStyle.red and Color.red are the same, so one can't call the other without an infinite recursion warning
+#if SKIP
+/// Returns the given color value based on whether the view is in dark mode or light mode.
+@Composable private func ComposeColor(light: Int64, dark: Int64) -> androidx.compose.ui.graphics.Color {
+    // TODO: EnvironmentValues.shared.colorMode == .dark ? dark : light
+    androidx.compose.ui.graphics.Color(isSystemInDarkTheme() ? dark : light)
+}
+#endif
+
 extension ShapeStyle where Self == Color {
-    // SKIP NOWARN
     public static var primary: Color {
         #if SKIP
-        Color.primary
+        Color._primary
         #else
         Color(white: 1.0)
         #endif
     }
-    // SKIP NOWARN
     public static var secondary: Color {
         #if SKIP
-        Color.secondary
+        Color._secondary
         #else
         Color(white: 1.0)
         #endif
     }
-    // SKIP NOWARN
-    public static var red: Color {
-        #if SKIP
-        Color.red
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var orange: Color {
-        #if SKIP
-        Color.orange
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var yellow: Color {
-        #if SKIP
-        Color.yellow
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var green: Color {
-        #if SKIP
-        Color.green
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var mint: Color {
-        #if SKIP
-        Color.mint
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var teal: Color {
-        #if SKIP
-        Color.teal
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var cyan: Color {
-        #if SKIP
-        Color.cyan
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var blue: Color {
-        #if SKIP
-        Color.blue
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var indigo: Color {
-        #if SKIP
-        Color.indigo
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var purple: Color {
-        #if SKIP
-        Color.purple
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var pink: Color {
-        #if SKIP
-        Color.pink
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var brown: Color {
-        #if SKIP
-        Color.brown
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var white: Color {
-        #if SKIP
-        Color.white
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var gray: Color {
-        #if SKIP
-        Color.gray
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
-    public static var black: Color {
-        #if SKIP
-        Color.black
-        #else
-        Color(white: 1.0)
-        #endif
-    }
-    // SKIP NOWARN
     public static var clear: Color {
         #if SKIP
-        Color.clear
+        Color._clear
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var white: Color {
+        #if SKIP
+        Color._white
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var black: Color {
+        #if SKIP
+        Color._black
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var gray: Color {
+        #if SKIP
+        Color._gray
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var red: Color {
+        #if SKIP
+        Color._red
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var orange: Color {
+        #if SKIP
+        Color._orange
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var yellow: Color {
+        #if SKIP
+        Color._yellow
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var green: Color {
+        #if SKIP
+        Color._green
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var mint: Color {
+        #if SKIP
+        Color._mint
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var teal: Color {
+        #if SKIP
+        Color._teal
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var cyan: Color {
+        #if SKIP
+        Color._cyan
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var blue: Color {
+        #if SKIP
+        Color._blue
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var indigo: Color {
+        #if SKIP
+        Color._indigo
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var purple: Color {
+        #if SKIP
+        Color._purple
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var pink: Color {
+        #if SKIP
+        Color._pink
+        #else
+        Color(white: 1.0)
+        #endif
+    }
+    public static var brown: Color {
+        #if SKIP
+        Color._brown
         #else
         Color(white: 1.0)
         #endif

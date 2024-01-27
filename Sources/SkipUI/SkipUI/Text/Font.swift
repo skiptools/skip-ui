@@ -16,9 +16,9 @@ import struct CoreGraphics.CGFloat
 
 public struct Font : Hashable, Sendable {
     #if SKIP
-    let fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle
+    public let fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle
 
-    init(fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle) {
+    public init(fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle) {
         self.fontImpl = fontImpl
     }
     #endif

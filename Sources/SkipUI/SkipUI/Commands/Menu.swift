@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 #endif
 
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
-public class Menu : View {
+public final class Menu : View {
     let content: ComposeView
     let label: ComposeView
     let primaryAction: (() -> Void)?

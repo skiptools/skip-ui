@@ -277,7 +277,7 @@ struct NavigationDestination {
 
 // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
 @Stable
-class Navigator {
+final class Navigator {
     /// Route for the root of the navigation stack.
     static let rootRoute = "navigationroot"
 
@@ -538,7 +538,7 @@ struct NavigationDestinationsPreferenceKey: PreferenceKey {
     typealias Value = NavigationDestinations
 
     // SKIP DECLARE: companion object: PreferenceKeyCompanion<NavigationDestinations>
-    class Companion: PreferenceKeyCompanion {
+    final class Companion: PreferenceKeyCompanion {
         let defaultValue: NavigationDestinations = [:]
         func reduce(value: inout NavigationDestinations, nextValue: () -> NavigationDestinations) {
             for (type, destination) in nextValue() {
@@ -552,7 +552,7 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
     typealias Value = Text
 
     // SKIP DECLARE: companion object: PreferenceKeyCompanion<Text>
-    class Companion: PreferenceKeyCompanion {
+    final class Companion: PreferenceKeyCompanion {
         let defaultValue = Text("")
         func reduce(value: inout Text, nextValue: () -> Text) {
             value = nextValue()
@@ -564,7 +564,7 @@ struct NavigationBarBackButtonHiddenPreferenceKey: PreferenceKey {
     typealias Value = Bool
 
     // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
-    class Companion: PreferenceKeyCompanion {
+    final class Companion: PreferenceKeyCompanion {
         let defaultValue = false
         func reduce(value: inout Bool, nextValue: () -> Bool) {
             value = nextValue()

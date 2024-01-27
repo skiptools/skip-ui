@@ -37,7 +37,7 @@ extension View {
 }
 
 #if SKIP
-class EditActionsModifierView: ComposeModifierView {
+final class EditActionsModifierView: ComposeModifierView {
     var isDeleteDisabled: Bool?
     var isMoveDisabled: Bool?
 

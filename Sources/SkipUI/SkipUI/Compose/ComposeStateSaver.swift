@@ -81,7 +81,7 @@ struct ComposeStateSaver: Saver<Any?, Any> {
 
         static let CREATOR: Parcelable.Creator<Key> = Creator()
 
-        private class Creator: Parcelable.Creator<Key> {
+        private final class Creator: Parcelable.Creator<Key> {
             override func createFromParcel(parcel: Parcel) -> Key {
                 return Key(parcel)
             }

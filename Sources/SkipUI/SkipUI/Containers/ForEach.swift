@@ -9,7 +9,7 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-public class ForEach : View, ListItemFactory {
+public final class ForEach : View, ListItemFactory {
     let identifier: ((Any) -> AnyHashable)?
     let indexRange: Range<Int>?
     let indexedContent: ((Int) -> any View)?

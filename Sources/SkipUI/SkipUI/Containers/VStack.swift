@@ -67,7 +67,7 @@ public struct VStack : View {
 }
 
 #if SKIP
-class VStackComposer: RenderingComposer {
+final class VStackComposer: RenderingComposer {
     private static let defaultSpacing = 8.0
     // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
     private static let textSpacing = 1.0

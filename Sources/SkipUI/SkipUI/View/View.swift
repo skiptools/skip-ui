@@ -1049,7 +1049,7 @@ struct TagModifierView: ComposeModifierView {
 /// Otherwise the extra frame container hides the `zIndex` value from this view's logical parent container.
 ///
 /// - Seealso: `FrameLayout`
-class ZIndexModifierView : ComposeModifierView {
+final class ZIndexModifierView : ComposeModifierView {
     private var zIndex: Double
 
     init(targetView: View, zIndex: Double) {

@@ -37,57 +37,48 @@ public protocol Shape: View, Sendable {
 }
 
 extension Shape where Self == Circle {
-    // SKIP NOWARN
     public static var circle: Circle {
         return Circle()
     }
 }
 
 extension Shape where Self == Rectangle {
-    // SKIP NOWARN
     public static var rect: Rectangle {
         return Rectangle()
     }
 }
 
 extension Shape where Self == RoundedRectangle {
-    // SKIP NOWARN
     public static func rect(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
         return RoundedRectangle(cornerSize: cornerSize, style: style)
     }
 
-    // SKIP NOWARN
     public static func rect(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) -> RoundedRectangle {
         return RoundedRectangle(cornerRadius: cornerRadius, style: style)
     }
 }
 
 extension Shape where Self == UnevenRoundedRectangle {
-    // SKIP NOWARN
     public static func rect(cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
         return UnevenRoundedRectangle(cornerRadii: cornerRadii, style: style)
     }
 
-    // SKIP NOWARN
     public static func rect(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) -> UnevenRoundedRectangle {
         return UnevenRoundedRectangle(topLeadingRadius: topLeadingRadius, bottomLeadingRadius: bottomLeadingRadius, bottomTrailingRadius: bottomTrailingRadius, topTrailingRadius: topTrailingRadius, style: style)
     }
 }
 
 extension Shape where Self == Capsule {
-    // SKIP NOWARN
     public static var capsule: Capsule {
         return Capsule()
     }
 
-    // SKIP NOWARN
     public static func capsule(style: RoundedCornerStyle) -> Capsule {
         return Capsule(style: style)
     }
 }
 
 extension Shape where Self == Ellipse {
-    // SKIP NOWARN
     public static var ellipse: Ellipse {
         Ellipse()
     }

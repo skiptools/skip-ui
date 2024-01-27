@@ -333,7 +333,7 @@ public struct ModifiedGesture<V> : Gesture {
 }
 
 /// Modifier view that collects and executes gestures.
-class GestureModifierView: ComposeModifierView {
+final class GestureModifierView: ComposeModifierView {
     var gestures: [ModifiedGesture<Any>]
 
     init(view: View, gesture: Gesture<Any>) {

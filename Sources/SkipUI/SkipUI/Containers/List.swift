@@ -46,7 +46,7 @@ import org.burnoutcrew.reorderable.reorderable
 import struct CoreGraphics.CGFloat
 #endif
 
-public class List : View {
+public final class List : View {
     let fixedContent: ComposeView?
     let forEach: ForEach?
 
@@ -526,7 +526,7 @@ protocol ListItemAdapting {
 
 #if SKIP
 /// Allows `ListItemFactory` instances to define the content of the list.
-public class ListItemFactoryContext {
+public final class ListItemFactoryContext {
     private(set) var item: (View) -> Void = { _ in }
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void = { _, _, _, _, _ in  }
     private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void = { _, _, _, _, _ in }
@@ -719,7 +719,7 @@ public class ListItemFactoryContext {
     private var content: [Content] = []
 }
 
-class ListItemCollectingComposer: SideEffectComposer {
+final class ListItemCollectingComposer: SideEffectComposer {
     let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
@@ -732,7 +732,7 @@ class ListItemCollectingComposer: SideEffectComposer {
     }
 }
 
-class ListItemComposer: RenderingComposer {
+final class ListItemComposer: RenderingComposer {
     let contentModifier: Modifier
 
     init(contentModifier: Modifier) {
@@ -906,7 +906,7 @@ extension View {
 }
 
 #if SKIP
-class ListItemModifierView: ComposeModifierView, ListItemAdapting {
+final class ListItemModifierView: ComposeModifierView, ListItemAdapting {
     var background: View?
     var separator: Visibility?
 

@@ -302,88 +302,73 @@ public struct AngularGradient : ShapeStyle, View, Sendable {
 }
 
 extension ShapeStyle where Self == LinearGradient {
-    // SKIP NOWARN
     public static func linearGradient(_ gradient: Gradient, startPoint: UnitPoint, endPoint: UnitPoint) -> LinearGradient {
         return LinearGradient(gradient: gradient, startPoint: startPoint, endPoint: endPoint)
     }
 
-    // SKIP NOWARN
     public static func linearGradient(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) -> LinearGradient {
         return LinearGradient(colors: colors, startPoint: startPoint, endPoint: endPoint)
     }
 
-    // SKIP NOWARN
     public static func linearGradient(stops: [Gradient.Stop], startPoint: UnitPoint, endPoint: UnitPoint) -> LinearGradient {
         return LinearGradient(stops: stops, startPoint: startPoint, endPoint: endPoint)
     }
 }
 
 extension ShapeStyle where Self == RadialGradient {
-    // SKIP NOWARN
     public static func radialGradient(_ gradient: Gradient, center: UnitPoint, startRadius: CGFloat, endRadius: CGFloat) -> RadialGradient {
         return RadialGradient(gradient: gradient, center: center, startRadius: startRadius, endRadius: endRadius)
     }
 
-    // SKIP NOWARN
     public static func radialGradient(colors: [Color], center: UnitPoint, startRadius: CGFloat, endRadius: CGFloat) -> RadialGradient {
         return RadialGradient(colors: colors, center: center, startRadius: startRadius, endRadius: endRadius)
     }
 
-    // SKIP NOWARN
     public static func radialGradient(stops: [Gradient.Stop], center: UnitPoint, startRadius: CGFloat, endRadius: CGFloat) -> RadialGradient {
         return RadialGradient(stops: stops, center: center, startRadius: startRadius, endRadius: endRadius)
     }
 }
 
 extension ShapeStyle where Self == EllipticalGradient {
-    // SKIP NOWARN
     public static func ellipticalGradient(_ gradient: Gradient, center: UnitPoint = .center, startRadiusFraction: CGFloat = 0.0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
         return EllipticalGradient(gradient: gradient, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
     }
 
-    // SKIP NOWARN
     public static func ellipticalGradient(colors: [Color], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0.0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
         return EllipticalGradient(colors: colors, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
     }
 
-    // SKIP NOWARN
     public static func ellipticalGradient(stops: [Gradient.Stop], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0.0, endRadiusFraction: CGFloat = 0.5) -> EllipticalGradient {
         return EllipticalGradient(stops: stops, center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
     }
 }
 
 extension ShapeStyle where Self == AngularGradient {
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func angularGradient(_ gradient: Gradient, center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
         fatalError()
     }
 
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func angularGradient(colors: [Color], center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
         fatalError()
     }
 
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func angularGradient(stops: [Gradient.Stop], center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
         fatalError()
     }
 
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func conicGradient(_ gradient: Gradient, center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
         fatalError()
     }
 
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func conicGradient(colors: [Color], center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
         fatalError()
     }
 
-    // SKIP NOWARN
     @available(*, unavailable)
     public static func conicGradient(stops: [Gradient.Stop], center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
         fatalError()

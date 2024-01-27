@@ -156,7 +156,7 @@ struct SearchableState {
 }
 
 /// Used by the `NavigationStack` to scroll the search field with screen content.
-class SearchFieldScrollConnection: NestedScrollConnection {
+final class SearchFieldScrollConnection: NestedScrollConnection {
     let heightPx: Float
     var offsetPx: MutableState<Float>
 

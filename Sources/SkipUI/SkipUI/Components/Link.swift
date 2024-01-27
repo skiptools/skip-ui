@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Use a class to be able to update our openURL action on compose by reference.
-public class Link : View {
+public final class Link : View {
     let content: Button
     var openURL: (URL) -> Void = { _ in }
 

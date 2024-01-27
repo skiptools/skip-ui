@@ -23,31 +23,26 @@ public protocol CoordinateSpaceProtocol {
 }
 
 extension CoordinateSpaceProtocol {
-    // SKIP NOWARN
     public static func scrollView(axis: Axis) -> NamedCoordinateSpace {
         return named("_scrollView_axis_\(axis.rawValue)_")
     }
 
-    // SKIP NOWARN
     public static var scrollView: NamedCoordinateSpace {
         return named("_scrollView_")
     }
 
-    // SKIP NOWARN
     public static func named(_ name: some Hashable) -> NamedCoordinateSpace {
         return NamedCoordinateSpace(coordinateSpace: .named(name))
     }
 }
 
 extension CoordinateSpaceProtocol where Self == LocalCoordinateSpace {
-    // SKIP NOWARN
     public static var local: LocalCoordinateSpace {
         return LocalCoordinateSpace()
     }
 }
 
 extension CoordinateSpaceProtocol where Self == GlobalCoordinateSpace {
-    // SKIP NOWARN
     public static var global: GlobalCoordinateSpace {
         return GlobalCoordinateSpace()
     }

@@ -182,7 +182,7 @@ struct TabItemModifierView: ComposeModifierView {
     }
 }
 
-class TabIndexComposer: RenderingComposer {
+final class TabIndexComposer: RenderingComposer {
     let index: Int
     var currentIndex = 0
 

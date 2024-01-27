@@ -39,7 +39,7 @@ public protocol EnvironmentKeyCompanion {
 
 // Model as a class because our implementation only holds the global environment keys, and so does not need to copy.
 // Each key handles its own scoping of values using Android's `CompositionLocal` system
-public class EnvironmentValues {
+public final class EnvironmentValues {
     public static let shared = EnvironmentValues()
 
     #if SKIP

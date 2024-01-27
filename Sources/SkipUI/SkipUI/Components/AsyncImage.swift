@@ -132,7 +132,7 @@ public enum AsyncImagePhase : Sendable {
 
 #if SKIP
 /// A Coil fetcher that handles `skip.foundation.URL` instances for the `jar:` scheme.
-internal class JarURLFetcher : Fetcher {
+final class JarURLFetcher : Fetcher {
     private let data: URL
     private let options: Options
 
@@ -156,7 +156,7 @@ internal class JarURLFetcher : Fetcher {
         )
     }
 
-    class Factory : Fetcher.Factory<URL> {
+    final class Factory : Fetcher.Factory<URL> {
         override func create(data: URL, options: Options, imageLoader: ImageLoader) -> Fetcher? {
             if (!JarURLFetcher.isJarURL(data)) { return nil }
             return JarURLFetcher(data: data, options: options)

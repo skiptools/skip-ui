@@ -29,7 +29,7 @@ public protocol PreferenceKeyCompanion {
 /// Uses environment `CompositionLocals` internally.
 ///
 /// - Seealso: `EnvironmentValues`
-class PreferenceValues {
+final class PreferenceValues {
     static let shared = PreferenceValues()
 
     // SKIP DECLARE: @Composable internal fun preference(key: KClass<*>): Preference<*>?
@@ -61,7 +61,7 @@ class PreferenceValues {
 }
 
 /// Used internally by our preferences system to collect preferences and recompose on change.
-class Preference<Value> {
+final class Preference<Value> {
     let key: Any.Type
     private let update: (Value) -> Void
     private let didChange: () -> Void

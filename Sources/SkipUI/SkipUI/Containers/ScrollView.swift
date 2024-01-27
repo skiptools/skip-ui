@@ -65,7 +65,7 @@ struct ScrollToTopPreferenceKey: PreferenceKey {
     typealias Value = (() -> Void)?
 
     // SKIP DECLARE: companion object: PreferenceKeyCompanion<(() -> Unit)?>
-    class Companion: PreferenceKeyCompanion {
+    final class Companion: PreferenceKeyCompanion {
         let defaultValue: (() -> Void)? = nil
         func reduce(value: inout (() -> Void)?, nextValue: () -> (() -> Void)?) {
             value = nextValue()

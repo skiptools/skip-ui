@@ -75,7 +75,6 @@ public struct ForegroundStyle : ShapeStyle {
 }
 
 extension ShapeStyle where Self == ForegroundStyle {
-    // SKIP NOWARN
     public static var foreground: ForegroundStyle {
         return ForegroundStyle.shared
     }
@@ -107,7 +106,6 @@ public struct BackgroundStyle : ShapeStyle {
 }
 
 extension ShapeStyle where Self == BackgroundStyle {
-    // SKIP NOWARN
     public static var background: BackgroundStyle {
         return BackgroundStyle.shared
     }

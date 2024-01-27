@@ -474,7 +474,7 @@ extension View {
 }
 
 #if SKIP
-class PresentationModifierView: ComposeModifierView {
+final class PresentationModifierView: ComposeModifierView {
     private let presentation: @Composable (ComposeContext) -> Void
 
     init(view: View, presentation: @Composable (ComposeContext) -> Void) {
