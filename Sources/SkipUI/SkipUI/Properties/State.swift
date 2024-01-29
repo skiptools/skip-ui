@@ -4,19 +4,21 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import SkipModel
 #if SKIP
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 #endif
 
 // Model State as a class rather than struct to mutate by reference and void copy overhead
-public final class State<Value> {
+public final class State<Value>: StateTracker {
     public init(initialValue: Value) {
         _wrappedValue = initialValue
+        StateTracking.register(self)
     }
 
-    public init(wrappedValue: Value) {
-        _wrappedValue = wrappedValue
+    public convenience init(wrappedValue: Value) {
+        self.init(initialValue: wrappedValue)
     }
 
     public var wrappedValue: Value {
@@ -44,15 +46,11 @@ public final class State<Value> {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 
-    #if SKIP
-    /// - Seealso: `ComposeStateTracking`
-    public func trackstate() {
-        if _wrappedValueState == nil {
-            _wrappedValueState = mutableStateOf(_wrappedValue)
-        }
-        (_wrappedValue as? skip.model.ComposeStateTracking)?.trackstate()
+    public func trackState() {
+        #if SKIP
+        _wrappedValueState = mutableStateOf(_wrappedValue)
+        #endif
     }
-    #endif
 }
 
 #if SKIP

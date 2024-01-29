@@ -5,12 +5,13 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+import SkipModel
 #if SKIP
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 #endif
 
-public final class AppStorage<Value> {
+public final class AppStorage<Value>: StateTracker {
     public let key: String
     public let store: UserDefaults?
     private let serializer: ((Value) -> Any)?
@@ -24,6 +25,7 @@ public final class AppStorage<Value> {
         self.serializer = serializer
         self.deserializer = deserializer
         _wrappedValue = wrappedValue
+        StateTracking.register(self)
     }
 
     public var wrappedValue: Value {
@@ -59,13 +61,8 @@ public final class AppStorage<Value> {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 
-    #if SKIP
-    /// - Seealso: `ComposeStateTracking`
-    public func trackstate() {
-        guard _wrappedValueState == nil else {
-            return // Already tracking
-        }
-
+    public func trackState() {
+        #if SKIP
         // Create our Compose-trackable backing state and keep it in sync with the store. Note that we have to seed the store with a value
         // for the key in order for our listener to work
         let store = self.currentStore
@@ -100,8 +97,10 @@ public final class AppStorage<Value> {
                 _wrappedValueState?.value = value
             }
         }
+        #endif
     }
 
+    #if SKIP
     /// The current active store
     private var currentStore: UserDefaults {
         // TODO: handle Scene.defaultAppStorage() and View.defaultAppStorage() by storing it in the environment

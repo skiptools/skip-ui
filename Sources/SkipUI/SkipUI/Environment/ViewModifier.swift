@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import SkipModel
 #if SKIP
 import androidx.compose.runtime.Composable
 #endif
@@ -24,7 +25,10 @@ public protocol ViewModifier {
 extension ViewModifier {
     /// Compose this modifier's content.
     @Composable public func Compose(content: Content, context: ComposeContext) -> Void {
+        // Unfortunately we can't use try/finally around a @Composable invocation
+        StateTracking.pushBody()
         body(content: content).Compose(context: context)
+        StateTracking.popBody()
     }
 }
 #endif

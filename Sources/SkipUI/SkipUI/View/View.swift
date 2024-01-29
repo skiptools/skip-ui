@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
@@ -79,7 +80,9 @@ extension View {
 
     /// Compose this view's content.
     @Composable public func ComposeContent(context: ComposeContext) -> Void {
+        StateTracking.pushBody()
         body.ComposeContent(context)
+        StateTracking.popBody()
     }
 
     /// Whether this is an empty view.
@@ -615,7 +618,7 @@ extension View {
             let hasAppeared = remember { mutableStateOf(false) }
             if !hasAppeared.value {
                 hasAppeared.value = true
-                action?()
+                SideEffect { action?() }
             }
         }
         #else
@@ -629,7 +632,7 @@ extension View {
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
             if rememberedValue.value != value {
                 rememberedValue.value = value
-                action(value)
+                SideEffect { action(value) }
             }
         }
         #else
@@ -653,7 +656,7 @@ extension View {
             }
 
             if (initial && isInitial) || isUpdate {
-                action(oldValue, value)
+                SideEffect { action(oldValue, value) }
             }
         }
         #else
@@ -677,7 +680,7 @@ extension View {
             }
 
             if (initial && isInitial) || isUpdate {
-                action()
+                SideEffect { action() }
             }
         }
         #else
