@@ -14,11 +14,11 @@ import struct CoreGraphics.CGSize
 
 public struct ZStack : View {
     let alignment: Alignment
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(alignment: Alignment = .center, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP

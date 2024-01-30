@@ -47,12 +47,12 @@ import struct CoreGraphics.CGFloat
 #endif
 
 public final class List : View {
-    let fixedContent: ComposeView?
+    let fixedContent: ComposeBuilder?
     let forEach: ForEach?
 
     init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
         if let fixedContent {
-            self.fixedContent = fixedContent as? ComposeView ?? ComposeView(view: fixedContent)
+            self.fixedContent = fixedContent as? ComposeBuilder ?? ComposeBuilder(view: fixedContent)
         } else {
             self.fixedContent = nil
         }

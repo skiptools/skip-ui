@@ -26,13 +26,13 @@ import kotlinx.coroutines.launch
 
 public struct Picker<SelectionValue> : View, ListItemAdapting {
     let selection: Binding<SelectionValue>
-    let label: ComposeView
-    let content: ComposeView
+    let label: ComposeBuilder
+    let content: ComposeBuilder
 
     public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.selection = selection
-        self.content = ComposeView.from(content)
-        self.label = ComposeView.from(label)
+        self.content = ComposeBuilder.from(content)
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {

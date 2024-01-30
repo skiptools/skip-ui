@@ -219,7 +219,7 @@ public struct NavigationStack<Root> : View where Root: View {
                             contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp)) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
-                                ComposeView { itemContext in
+                                ComposeBuilder { itemContext in
                                     bottomItems.forEach { $0.Compose(context: itemContext) }
                                     return ComposeResult.ok
                                 }
@@ -575,13 +575,13 @@ struct NavigationBarBackButtonHiddenPreferenceKey: PreferenceKey {
 
 public struct NavigationLink : View, ListItemAdapting {
     let value: Any?
-    let destination: ComposeView?
-    let label: ComposeView
+    let destination: ComposeBuilder?
+    let label: ComposeBuilder
 
     public init(value: Any?, @ViewBuilder label: () -> any View) {
         self.value = value
         self.destination = nil
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ title: String, value: Any?) {
@@ -594,8 +594,8 @@ public struct NavigationLink : View, ListItemAdapting {
 
     public init(@ViewBuilder destination: () -> any View, @ViewBuilder label: () -> any View) {
         self.value = nil
-        self.destination = ComposeView.from(destination)
-        self.label = ComposeView.from(label)
+        self.destination = ComposeBuilder.from(destination)
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> any View) {

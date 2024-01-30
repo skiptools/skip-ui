@@ -10,32 +10,32 @@ import androidx.compose.runtime.Composable
 
 // Erase generics to facilitate specialized constructor support.
 public struct Section : View, ListItemFactory {
-    let header: ComposeView?
-    let footer: ComposeView?
-    let content: ComposeView
+    let header: ComposeBuilder?
+    let footer: ComposeBuilder?
+    let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View, @ViewBuilder footer: () -> any View) {
-        self.header = ComposeView.from(header)
-        self.footer = ComposeView.from(footer)
-        self.content = ComposeView.from(content)
+        self.header = ComposeBuilder.from(header)
+        self.footer = ComposeBuilder.from(footer)
+        self.content = ComposeBuilder.from(content)
     }
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder footer: () -> any View) {
         self.header = nil
-        self.footer = ComposeView.from(footer)
-        self.content = ComposeView.from(content)
+        self.footer = ComposeBuilder.from(footer)
+        self.content = ComposeBuilder.from(content)
     }
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
-        self.header = ComposeView.from(header)
+        self.header = ComposeBuilder.from(header)
         self.footer = nil
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     public init(@ViewBuilder content: () -> any View) {
         self.header = nil
         self.footer = nil
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {

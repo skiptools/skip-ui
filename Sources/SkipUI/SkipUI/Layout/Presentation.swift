@@ -46,7 +46,7 @@ let overlayPresentationCornerRadius = 16.0
 @Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
-        let contentView = ComposeView.from(content)
+        let contentView = ComposeBuilder.from(content)
         let sheetDepth = EnvironmentValues.shared._sheetDepth
         ModalBottomSheet(
             onDismissRequest: { isPresented.set(false) },
@@ -91,8 +91,8 @@ let overlayPresentationCornerRadius = 16.0
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
         let actionViews: [View]
-        if let composeView = actions as? ComposeView {
-            actionViews = composeView.collectViews(context: context)
+        if let composeBuilder = actions as? ComposeBuilder {
+            actionViews = composeBuilder.collectViews(context: context)
         } else {
             actionViews = [actions]
         }
@@ -100,8 +100,8 @@ let overlayPresentationCornerRadius = 16.0
             $0.strippingModifiers { $0 as? Button }
         }
         let messageViews: [View]
-        if let composeView = message as? ComposeView {
-            messageViews = composeView.collectViews(context: context)
+        if let composeBuilder = message as? ComposeBuilder {
+            messageViews = composeBuilder.collectViews(context: context)
         } else if let message {
             messageViews = [message]
         } else {

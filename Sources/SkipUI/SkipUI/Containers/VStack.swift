@@ -20,12 +20,12 @@ import struct CoreGraphics.CGSize
 public struct VStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.spacing = spacing
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP

@@ -36,13 +36,13 @@ public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 
     let selection: Binding<Date>
-    let label: ComposeView
+    let label: ComposeBuilder
     let dateFormatter: DateFormatter?
     let timeFormatter: DateFormatter?
 
     public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
         self.selection = selection
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
         if displayedComponents.contains(.date) {
             dateFormatter = DateFormatter()
             dateFormatter?.dateStyle = .medium
@@ -64,7 +64,7 @@ public struct DatePicker : View {
         self.selection = selection
         self.dateFormatter = nil
         self.timeFormatter = nil
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {

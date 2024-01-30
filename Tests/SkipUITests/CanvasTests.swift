@@ -71,7 +71,7 @@ final class CanvasTests: XCSnapshotTestCase {
         #if !SKIP
         throw XCTSkip("Android-only function")
         #else
-        XCTAssertEqual(try render(compact: 1, view: ComposeView(content: { ctx in
+        XCTAssertEqual(try render(compact: 1, view: ComposeBuilder(content: { ctx in
             androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.background(androidx.compose.ui.graphics.Color.White).size(12.dp), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.background(androidx.compose.ui.graphics.Color.Black).size(6.dp, 6.dp))
             }
@@ -98,7 +98,7 @@ final class CanvasTests: XCSnapshotTestCase {
         #if !SKIP
         throw XCTSkip("Android-only function")
         #else
-        XCTAssertEqual(try render(compact: 1, view: ComposeView(content: { ctx in
+        XCTAssertEqual(try render(compact: 1, view: ComposeBuilder(content: { ctx in
             androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.size(12.dp).background(androidx.compose.ui.graphics.Color.White), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 androidx.compose.foundation.layout.Box(modifier: androidx.compose.ui.Modifier.size(6.dp, 6.dp).background(androidx.compose.ui.graphics.Color.Black))
             }

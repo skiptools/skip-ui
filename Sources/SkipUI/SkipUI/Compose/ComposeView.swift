@@ -8,74 +8,22 @@
 import androidx.compose.runtime.Composable
 #endif
 
-/// View that wraps `Composable` content.
+/// Used to directly wrap user Compose content.
 ///
-/// Used to wrap the content of SwiftUI `@ViewBuilders`, and may be used manually to embed raw Compose code.
+/// - Seealso: `ComposeBuilder`
 public struct ComposeView: View {
     #if SKIP
-    private let content: @Composable (ComposeContext) -> ComposeResult
-    #endif
+    private let content: @Composable (ComposeContext) -> Void
 
-    /// Construct with static content.
-    ///
-    /// Used primarily when manually constructing views for internal use.
-    public init(view: any View) {
-        #if SKIP
-        self.init(content: { context in
-            return view.Compose(context: context)
-        })
-        #endif
-    }
-
-    /// If the result of the given block is a `ComposeView` return it, else create a `ComposeView` whose content is the
-    /// resulting view.
-    public static func from(_ content: () -> any View) -> ComposeView {
-        let view = content()
-        return view as? ComposeView ?? ComposeView(view: view)
-    }
-
-    #if SKIP
     /// Constructor.
     ///
-    /// The supplied `content` is the content to compose. When transpiling SwiftUI code, this is the logic embedded in the user's `body` and within each container view in
-    /// that `body`, as well as within other `@ViewBuilders`.
-    ///
-    /// - Note: Returning a result from `content` is important. This prevents Compose from recomposing `content` on its own. Instead, a change that would recompose
-    ///   `content` elevates to our void `ComposeContent` function. This allows us to prepare for recompositions, e.g. making the proper callbacks to the context's `composer`.
-    public init(content: @Composable (ComposeContext) -> ComposeResult) {
+    /// The supplied `content` is the content to compose.
+    public init(content: @Composable (ComposeContext) -> Void) {
         self.content = content
     }
 
-    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
-        // If there is a composer that should recompose its caller, we execute it here so that its result escapes.
-        // Otherwise we wait for ComposeContent where recomposes don't affect the caller
-        if let composer = context.composer as? SideEffectComposer {
-            return content(context)
-        } else {
-            ComposeContent(context)
-            return ComposeResult.ok
-        }
-    }
-
     @Composable public override func ComposeContent(context: ComposeContext) {
-        if let composer = context.composer as? RenderingComposer {
-            composer.willCompose()
-            let result = content(context)
-            composer.didCompose(result: result)
-        } else {
-            content(context)
-        }
-    }
-
-    /// Use a custom composer to collect the views composed within this view.
-    @Composable public func collectViews(context: ComposeContext) -> [View] {
-        var views: [View] = []
-        let viewCollectingContext = context.content(composer: SideEffectComposer { view, _ in
-            views.append(view)
-            return ComposeResult.ok
-        })
-        content(viewCollectingContext)
-        return views
+        content(context)
     }
     #else
     public var body: some View {

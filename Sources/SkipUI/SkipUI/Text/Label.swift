@@ -16,12 +16,12 @@ import androidx.compose.ui.unit.dp
 #endif
 
 public struct Label : View, ListItemAdapting {
-    let title: ComposeView
-    let image: ComposeView
+    let title: ComposeBuilder
+    let image: ComposeBuilder
 
     public init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View) {
-        self.title = ComposeView.from(title)
-        self.image = ComposeView.from(icon)
+        self.title = ComposeBuilder.from(title)
+        self.image = ComposeBuilder.from(icon)
     }
 
     @available(*, unavailable)

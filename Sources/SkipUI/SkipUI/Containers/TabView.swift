@@ -29,16 +29,16 @@ import androidx.navigation.compose.rememberNavController
 
 public struct TabView : View {
     let selection: Binding<Any>?
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View) {
         self.selection = nil
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     public init(selection: Any?, @ViewBuilder content: () -> any View) {
         self.selection = selection as! Binding<Any>?
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP
@@ -148,10 +148,10 @@ public struct TabView : View {
 
 #if SKIP
 struct TabItemModifierView: ComposeModifierView {
-    let label: ComposeView
+    let label: ComposeBuilder
 
     init(view: View, @ViewBuilder label: () -> any View) {
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
         super.init(view: view, role: .tabItem)
     }
 

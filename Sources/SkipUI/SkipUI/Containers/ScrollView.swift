@@ -19,12 +19,12 @@ import struct CoreGraphics.CGRect
 #endif
 
 public struct ScrollView : View {
-    let content: ComposeView
+    let content: ComposeBuilder
     let axes: Axis.Set
 
     public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> any View) {
         self.axes = axes
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP

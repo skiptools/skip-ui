@@ -22,13 +22,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 
 public struct TextField : View {
     let text: Binding<String>
-    let label: ComposeView
+    let label: ComposeBuilder
     let prompt: Text?
     let isSecure: Bool
 
     public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
         self.text = text
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
         self.prompt = prompt
         self.isSecure = isSecure
     }

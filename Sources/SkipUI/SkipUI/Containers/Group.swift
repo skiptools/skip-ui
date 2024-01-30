@@ -9,10 +9,10 @@ import androidx.compose.runtime.Composable
 #endif
 
 public struct Group : View {
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View) {
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP

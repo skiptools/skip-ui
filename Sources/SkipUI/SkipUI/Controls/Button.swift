@@ -22,7 +22,7 @@ import struct CoreGraphics.CGRect
 
 public struct Button : View, ListItemAdapting {
     let action: () -> Void
-    let label: ComposeView
+    let label: ComposeBuilder
     let role: ButtonRole?
 
     public init(action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
@@ -40,7 +40,7 @@ public struct Button : View, ListItemAdapting {
     public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
         self.role = role
         self.action = action
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ title: String, role: ButtonRole?, action: @escaping () -> Void) {

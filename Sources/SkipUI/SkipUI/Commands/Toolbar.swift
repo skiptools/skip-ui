@@ -34,17 +34,17 @@ extension CustomizableToolbarContent {
 
 public struct ToolbarItem : CustomizableToolbarContent, View {
     let placement: ToolbarItemPlacement
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     @available(*, unavailable)
     public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP
@@ -60,17 +60,17 @@ public struct ToolbarItem : CustomizableToolbarContent, View {
 
 public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     let placement: ToolbarItemPlacement
-    let content: ComposeView
+    let content: ComposeBuilder
 
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     @available(*, unavailable)
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.placement = placement
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
     }
 
     #if SKIP

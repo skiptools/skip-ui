@@ -34,7 +34,7 @@ public struct ComposeContext {
 
 /// The result of composing content.
 ///
-/// Reserved for future use. Having a return value also expands recomposition scope. See `ComposeView` for details.
+/// Reserved for future use. Having a return value also expands recomposition scope. See `ComposeBuilder` for details.
 public struct ComposeResult {
     public static let ok = ComposeResult()
 }
@@ -59,11 +59,11 @@ public class RenderingComposer : Composer {
         self.compose = nil
     }
 
-    /// Called before a `ComposeView` composes its content.
+    /// Called before a `ComposeBuilder` composes its content.
     public func willCompose() {
     }
 
-    /// Called after a `ComposeView` composes its content.
+    /// Called after a `ComposeBuilder` composes its content.
     public func didCompose(result: ComposeResult) {
     }
 

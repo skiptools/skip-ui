@@ -86,8 +86,8 @@ public final class ForEach : View, ListItemFactory {
 
     @Composable private func taggedView(for view: any View, defaultTag: Any, context: ComposeContext) -> TagModifierView {
         let contentView: View
-        if let composeView = view as? ComposeView {
-            contentView = composeView.collectViews(context: context).first ?? view
+        if let composeBuilder = view as? ComposeBuilder {
+            contentView = composeBuilder.collectViews(context: context).first ?? view
         } else {
             contentView = view
         }
@@ -145,8 +145,8 @@ public final class ForEach : View, ListItemFactory {
         guard isFirstView else {
             return true
         }
-        if let composeView = contentView as? ComposeView {
-            return composeView.collectViews(context: context).contains { $0 is ListItemFactory }
+        if let composeBuilder = contentView as? ComposeBuilder {
+            return composeBuilder.collectViews(context: context).contains { $0 is ListItemFactory }
         } else {
             return contentView is ListItemFactory
         }

@@ -25,17 +25,17 @@ import kotlinx.coroutines.launch
 
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
 public final class Menu : View {
-    let content: ComposeView
-    let label: ComposeView
+    let content: ComposeBuilder
+    let label: ComposeBuilder
     let primaryAction: (() -> Void)?
     var toggleMenu: () -> Void = {}
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
         #if SKIP
-        self.label = ComposeView(view: Button(action: { self.toggleMenu() }, label: label))
+        self.label = ComposeBuilder(view: Button(action: { self.toggleMenu() }, label: label))
         #else
-        self.label = ComposeView(view: EmptyView())
+        self.label = ComposeBuilder(view: EmptyView())
         #endif
         self.primaryAction = nil
     }
@@ -49,10 +49,10 @@ public final class Menu : View {
     }
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View, primaryAction: @escaping () -> Void) {
-        self.content = ComposeView.from(content)
+        self.content = ComposeBuilder.from(content)
         // We don't use a Button because we can't attach a long press detector to it
         // So currently, any Menu with a primaryAction ignores .buttonStyle
-        self.label = ComposeView.from(label)
+        self.label = ComposeBuilder.from(label)
         self.primaryAction = primaryAction
     }
 
@@ -158,7 +158,7 @@ public final class Menu : View {
         }
     }
 
-    @Composable private static func ComposeDropdownMenuItem(for view: ComposeView, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
+    @Composable private static func ComposeDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
         let label = view.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Label })
         if let isSelected {
             let selectedIcon: @Composable () -> Void
