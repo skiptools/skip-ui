@@ -48,7 +48,6 @@ public struct Image : View, Equatable, Sendable {
         #endif
     }
 
-    @available(*, unavailable)
     public init(_ name: String, bundle: Bundle? = nil) {
         self.image = .named(name: name, bundle: bundle, label: nil)
     }
@@ -543,7 +542,7 @@ public struct Image : View, Equatable, Sendable {
     }
     #endif
 
-    public enum ResizingMode : Sendable {
+    public enum ResizingMode : Hashable, Sendable {
         case tile
         case stretch
     }
@@ -567,6 +566,66 @@ public struct Image : View, Equatable, Sendable {
         image.capInsets = capInsets
         image.resizingMode = resizingMode
         return image
+    }
+
+    public enum Interpolation : Hashable, Sendable {
+        case none
+        case low
+        case medium
+        case high
+    }
+
+    public func interpolation(_ interpolation: Interpolation) -> Image {
+        return self
+    }
+
+    public func antialiased(_ isAntialiased: Bool) -> Image {
+        return self
+    }
+
+    public enum DynamicRange : Hashable, Sendable {
+        case standard
+        case constrainedHigh
+        case high
+    }
+
+    public enum TemplateRenderingMode : Hashable, Sendable {
+        case template
+        case original
+    }
+
+    @available(*, unavailable)
+    public func renderingMode(_ renderingMode: TemplateRenderingMode?) -> Image {
+        return self
+    }
+
+    public enum Orientation : UInt8, CaseIterable, Hashable, Sendable {
+        case up
+        case upMirrored
+        case down
+        case downMirrored
+        case left
+        case leftMirrored
+        case right
+        case rightMirrored
+    }
+
+    public enum Scale : Hashable, Sendable {
+        case small
+        case medium
+        case large
+    }
+}
+
+extension View {
+    @available(*, unavailable)
+    public func imageScale(_ scale: Image.Scale) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View {
+        return self
     }
 }
 
@@ -712,382 +771,6 @@ extension Image {
 }
 #endif
 
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-extension Image {
-
-    public struct DynamicRange : Hashable, Sendable {
-
-        /// Restrict the image content dynamic range to the standard range.
-        public static let standard: Image.DynamicRange = { fatalError() }()
-
-        /// Allow image content to use some extended range. This is
-        /// appropriate for placing HDR content next to SDR content.
-        public static let constrainedHigh: Image.DynamicRange = { fatalError() }()
-
-        /// Allow image content to use an unrestricted extended range.
-        public static let high: Image.DynamicRange = { fatalError() }()
-
-    
-        
-
-        }
-
-    /// Returns a new image configured with the specified allowed
-    /// dynamic range.
-    ///
-    /// The following example enables HDR rendering for a specific
-    /// image view, assuming that the image has an HDR (ITU-R 2100)
-    /// color space and the output device supports it:
-    ///
-    ///     Image("hdr-asset").allowedDynamicRange(.high)
-    ///
-    /// - Parameter range: the requested dynamic range, or nil to
-    ///   restore the default allowed range.
-    ///
-    /// - Returns: a new image.
-    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> Image { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
-@available(watchOS, unavailable)
-extension View {
-
-    /// Returns a new view configured with the specified allowed
-    /// dynamic range.
-    ///
-    /// The following example enables HDR rendering within a view
-    /// hierarchy:
-    ///
-    ///     MyView().allowedDynamicRange(.high)
-    ///
-    /// - Parameter range: the requested dynamic range, or nil to
-    ///   restore the default allowed range.
-    ///
-    /// - Returns: a new view.
-    public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View { return stubView() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// Indicates whether SkipUI renders an image as-is, or
-    /// by using a different mode.
-    ///
-    /// The ``TemplateRenderingMode`` enumeration has two cases:
-    /// ``TemplateRenderingMode/original`` and ``TemplateRenderingMode/template``.
-    /// The original mode renders pixels as they appear in the original source
-    /// image. Template mode renders all nontransparent pixels as the
-    /// foreground color, which you can use for purposes like creating image
-    /// masks.
-    ///
-    /// The following example shows both rendering modes, as applied to an icon
-    /// image of a green circle with darker green border:
-    ///
-    ///     Image("dot_green")
-    ///         .renderingMode(.original)
-    ///     Image("dot_green")
-    ///         .renderingMode(.template)
-    ///
-    /// ![Two identically-sized circle images. The circle on top is green
-    /// with a darker green border. The circle at the bottom is a solid color,
-    /// either white on a black background, or black on a white background,
-    /// depending on the system's current dark mode
-    /// setting.](SkipUI-Image-TemplateRenderingMode-dots.png)
-    ///
-    /// You also use `renderingMode` to produce multicolored system graphics
-    /// from the SF Symbols set. Use the ``TemplateRenderingMode/original``
-    /// mode to apply a foreground color to all parts of the symbol except
-    /// those that have a distinct color in the graphic. The following
-    /// example shows three uses of the `person.crop.circle.badge.plus` symbol
-    /// to achieve different effects:
-    ///
-    /// * A default appearance with no foreground color or template rendering
-    /// mode specified. The symbol appears all black in light mode, and all
-    /// white in Dark Mode.
-    /// * The multicolor behavior achieved by using `original` template
-    /// rendering mode, along with a blue foreground color. This mode causes the
-    /// graphic to override the foreground color for distinctive parts of the
-    /// image, in this case the plus icon.
-    /// * A single-color template behavior achieved by using `template`
-    /// rendering mode with a blue foreground color. This mode applies the
-    /// foreground color to the entire image, regardless of the user's Appearance preferences.
-    ///
-    ///```swift
-    ///HStack {
-    ///    Image(systemName: "person.crop.circle.badge.plus")
-    ///    Image(systemName: "person.crop.circle.badge.plus")
-    ///        .renderingMode(.original)
-    ///        .foregroundColor(.blue)
-    ///    Image(systemName: "person.crop.circle.badge.plus")
-    ///        .renderingMode(.template)
-    ///        .foregroundColor(.blue)
-    ///}
-    ///.font(.largeTitle)
-    ///```
-    ///
-    /// ![A horizontal layout of three versions of the same symbol: a person
-    /// icon in a circle with a plus icon overlaid at the bottom left. Each
-    /// applies a diffent set of colors based on its rendering mode, as
-    /// described in the preceding
-    /// list.](SkipUI-Image-TemplateRenderingMode-sfsymbols.png)
-    ///
-    /// Use the SF Symbols app to find system images that offer the multicolor
-    /// feature. Keep in mind that some multicolor symbols use both the
-    /// foreground and accent colors.
-    ///
-    /// - Parameter renderingMode: The mode SkipUI uses to render images.
-    /// - Returns: A modified ``Image``.
-    public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> Image { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// The orientation of an image.
-    ///
-    /// Many image formats such as JPEG include orientation metadata in the
-    /// image data. In other cases, you can specify image orientation
-    /// in code. Properly specifying orientation is often important both for
-    /// displaying the image and for certain kinds of image processing.
-    ///
-    /// In SkipUI, you provide an orientation value when initializing an
-    /// ``Image`` from an existing
-    /// .
-    @frozen public enum Orientation : UInt8, CaseIterable, Hashable {
-
-        /// A value that indicates the original pixel data matches the image's
-        /// intended display orientation.
-        case up
-
-        /// A value that indicates a horizontal flip of the image from the
-        /// orientation of its original pixel data.
-        case upMirrored
-
-        /// A value that indicates a 180° rotation of the image from the
-        /// orientation of its original pixel data.
-        case down
-
-        /// A value that indicates a vertical flip of the image from the
-        /// orientation of its original pixel data.
-        case downMirrored
-
-        /// A value that indicates a 90° counterclockwise rotation from the
-        /// orientation of its original pixel data.
-        case left
-
-        /// A value that indicates a 90° clockwise rotation and horizontal
-        /// flip of the image from the orientation of its original pixel
-        /// data.
-        case leftMirrored
-
-        /// A value that indicates a 90° clockwise rotation of the image from
-        /// the orientation of its original pixel data.
-        case right
-
-        /// A value that indicates a 90° counterclockwise rotation and
-        /// horizontal flip from the orientation of its original pixel data.
-        case rightMirrored
-
-        /// Creates a new instance with the specified raw value.
-        ///
-        /// If there is no value of the type that corresponds with the specified raw
-        /// value, this initializer returns `nil`. For example:
-        ///
-        ///     enum PaperSize: String {
-        ///         case A4, A5, Letter, Legal
-        ///     }
-        ///
-        ///     print(PaperSize(rawValue: "Legal"))
-        ///     // Prints "Optional("PaperSize.Legal")"
-        ///
-        ///     print(PaperSize(rawValue: "Tabloid"))
-        ///     // Prints "nil"
-        ///
-        /// - Parameter rawValue: The raw value to use for the new instance.
-        public init?(rawValue: UInt8) { fatalError() }
-
-        /// A type that can represent a collection of all values of this type.
-        public typealias AllCases = [Image.Orientation]
-
-        /// The raw type that can be used to represent all values of the conforming
-        /// type.
-        ///
-        /// Every distinct value of the conforming type has a corresponding unique
-        /// value of the `RawValue` type, but there may be values of the `RawValue`
-        /// type that don't have a corresponding value of the conforming type.
-        public typealias RawValue = UInt8
-
-        /// A collection of all values of this type.
-        public static var allCases: [Image.Orientation] { get { fatalError() } }
-
-        /// The corresponding value of the raw type.
-        ///
-        /// A new instance initialized with `rawValue` will be equivalent to this
-        /// instance. For example:
-        ///
-        ///     enum PaperSize: String {
-        ///         case A4, A5, Letter, Legal
-        ///     }
-        ///
-        ///     let selectedSize = PaperSize.Letter
-        ///     print(selectedSize.rawValue)
-        ///     // Prints "Letter"
-        ///
-        ///     print(selectedSize == PaperSize(rawValue: selectedSize.rawValue)!)
-        ///     // Prints "true"
-        public var rawValue: UInt8 { get { fatalError() } }
-    }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// A type that indicates how SkipUI renders images.
-    public enum TemplateRenderingMode : Sendable {
-
-        /// A mode that renders all non-transparent pixels as the foreground
-        /// color.
-        case template
-
-        /// A mode that renders pixels of bitmap images as-is.
-        ///
-        /// For system images created from the SF Symbol set, multicolor symbols
-        /// respect the current foreground and accent colors.
-        case original
-
-        
-
-    
-        }
-
-    /// A scale to apply to vector images relative to text.
-    ///
-    /// Use this type with the ``View/imageScale(_:)`` modifier, or the
-    /// ``EnvironmentValues/imageScale`` environment key, to set the image scale.
-    ///
-    /// The following example shows the three `Scale` values as applied to
-    /// a system symbol image, each set against a text view:
-    ///
-    ///     HStack { Image(systemName: "swift").imageScale(.small); Text("Small") }
-    ///     HStack { Image(systemName: "swift").imageScale(.medium); Text("Medium") }
-    ///     HStack { Image(systemName: "swift").imageScale(.large); Text("Large") }
-    ///
-    /// ![Vertically arranged text views that read Small, Medium, and
-    /// Large. On the left of each view is a system image that uses the Swift symbol.
-    /// The image next to the Small text is slightly smaller than the text.
-    /// The image next to the Medium text matches the size of the text. The
-    /// image next to the Large text is larger than the
-    /// text.](SkipUI-EnvironmentAdditions-Image-scale.png)
-    ///
-    @available(macOS 11.0, *)
-    public enum Scale : Sendable {
-
-        /// A scale that produces small images.
-        case small
-
-        /// A scale that produces medium-sized images.
-        case medium
-
-        /// A scale that produces large images.
-        case large
-    
-        }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Scales images within the view according to one of the relative sizes
-    /// available including small, medium, and large images sizes.
-    ///
-    /// The example below shows the relative scaling effect. The system renders
-    /// the image at a relative size based on the available space and
-    /// configuration options of the image it is scaling.
-    ///
-    ///     VStack {
-    ///         HStack {
-    ///             Image(systemName: "heart.fill")
-    ///                 .imageScale(.small)
-    ///             Text("Small")
-    ///         }
-    ///         HStack {
-    ///             Image(systemName: "heart.fill")
-    ///                 .imageScale(.medium)
-    ///             Text("Medium")
-    ///         }
-    ///
-    ///         HStack {
-    ///             Image(systemName: "heart.fill")
-    ///                 .imageScale(.large)
-    ///             Text("Large")
-    ///         }
-    ///     }
-    ///
-    /// ![A view showing small, medium, and large hearts rendered at a size
-    /// relative to the available space.](SkipUI-View-imageScale.png)
-    ///
-    /// - Parameter scale: One of the relative sizes provided by the image scale
-    ///   enumeration.
-    @available(macOS 11.0, *)
-    public func imageScale(_ scale: Image.Scale) -> some View { return stubView() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// The level of quality for rendering an image that requires interpolation,
-    /// such as a scaled image.
-    ///
-    /// The ``Image/interpolation(_:)`` modifier specifies the interpolation
-    /// behavior when using the ``Image/resizable(capInsets:resizingMode:)``
-    /// modifier on an ``Image``. Use this behavior to prioritize rendering
-    /// performance or image quality.
-    public enum Interpolation : Sendable {
-
-        /// A value that indicates SkipUI doesn't interpolate image data.
-        case none
-
-        /// A value that indicates a low level of interpolation quality, which may
-        /// speed up image rendering.
-        case low
-
-        /// A value that indicates a medium level of interpolation quality,
-        /// between the low- and high-quality values.
-        case medium
-
-        /// A value that indicates a high level of interpolation quality, which
-        /// may slow down image rendering.
-        case high
-
-        
-
-    
-        }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image {
-
-    /// Specifies the current level of quality for rendering an
-    /// image that requires interpolation.
-    ///
-    /// See the article <doc:Fitting-Images-into-Available-Space> for examples
-    /// of using `interpolation(_:)` when scaling an ``Image``.
-    /// - Parameter interpolation: The quality level, expressed as a value of
-    /// the `Interpolation` type, that SkipUI applies when interpolating
-    /// an image.
-    /// - Returns: An image with the given interpolation value set.
-    public func interpolation(_ interpolation: Image.Interpolation) -> Image { fatalError() }
-
-    /// Specifies whether SkipUI applies antialiasing when rendering
-    /// the image.
-    /// - Parameter isAntialiased: A Boolean value that specifies whether to
-    /// allow antialiasing. Pass `true` to allow antialising, `false` otherwise.
-    /// - Returns: An image with the antialiasing behavior set.
-    public func antialiased(_ isAntialiased: Bool) -> Image { fatalError() }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Image {
 
@@ -1171,46 +854,6 @@ extension Image {
     ///   - renderer: A closure to draw the contents of the image. The closure
     ///     receives a ``GraphicsContext`` as its parameter.
     public init(size: CGSize, label: Text? = nil, opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear, renderer: @escaping (inout GraphicsContext) -> Void) { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.Orientation : RawRepresentable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.Orientation : Sendable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.TemplateRenderingMode : Equatable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.TemplateRenderingMode : Hashable {
-}
-
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 11.0, *)
-extension Image.Scale : Equatable {
-}
-
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 11.0, *)
-extension Image.Scale : Hashable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.Interpolation : Equatable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.Interpolation : Hashable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.ResizingMode : Equatable {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Image.ResizingMode : Hashable {
 }
 
 /// A shape style that fills a shape by repeating a region of an image.

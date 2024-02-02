@@ -251,7 +251,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func compositingGroup() -> some View {
         return self
     }
@@ -511,8 +510,7 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func id(_ id: any Hashable) -> some View {
+    public func id(_ id: Any) -> some View {
         return self
     }
 

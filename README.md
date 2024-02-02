@@ -78,7 +78,7 @@ class V: View {
     }
 
     override fun body(): View {
-        return ComposeView { composectx -> 
+        return ComposeBuilder { composectx -> 
             if (isHello) {
                 Text("Hello!").Compose(context = composectx)
             } else {
@@ -92,9 +92,9 @@ class V: View {
 }
 ```
 
-Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeView`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that `body` would have returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
+Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeBuilder`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that `body` would have returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
 
-Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use `ComposeView` yourself to move fluidly between SwiftUI and Compose when writing your Android UI. 
+Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a `ComposeBuilder`: a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use SkipUI's `ComposeView` yourself to move fluidly between SwiftUI and Compose when writing your Android UI. 
 
 ### Implementation Phases
 
@@ -235,17 +235,6 @@ ComposeView { context in
 With `ComposeView` and the `Compose()` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
 
 `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
-
-**Note**: `ComposeView`'s content block must return `ComposeResult.ok`. The reason the examples above do not include a return value is that the Skip transpiler will add one for you. You can, however, also specify it explicitly:
-
-```swift
-#if SKIP
-ComposeView { _ in 
-    androidx.compose.material3.Text("Hello from Compose")
-    return ComposeResult.ok
-}
-#endif
-```
 
 ## Tests
 
