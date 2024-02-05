@@ -311,11 +311,11 @@ final class LayoutTests: XCSnapshotTestCase {
         """, android: """
         FF FF FF FF FF FF
         FF FF FF FF FF FF
-        FF FF FF 6F FF FF
         FF FF FF 55 FF FF
         FF FF FF 55 FF FF
         FF FF FF 55 FF FF
         FF FF FF 55 FF FF
+        FF FF FF 61 FF FF
         FF FF FF FF FF FF
         """, robolectric: """
         FF FF FF FF FF FF FF

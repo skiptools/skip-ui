@@ -178,8 +178,8 @@ final class TextTests: XCSnapshotTestCase {
 
 
 
-
             . . . .
+
 
 
         """, robolectric: """
@@ -199,7 +199,6 @@ final class TextTests: XCSnapshotTestCase {
 
         """))
     }
-
 
     func testDrawMessage() throws {
         XCTAssertEqual(try pixmap(brightness: 0.75, content: ZStack {
@@ -239,15 +238,14 @@ final class TextTests: XCSnapshotTestCase {
 
 
 
-          . .     . . .   . . . . . . .   . . . .         . . . .               . .
-            .       .       .         .       .               .               .     . .
+          . .     . . .   . . . . . . .   . . . .         . . . .             . . . .
             .       .       .         .       .               .             .         .
-            .       .       .     .           .               .
-            . . . . .       . . . .           .               .           .             .
+            .       .       .         .       .               .             .         .
             .       .       .     .           .               .           .
+            . . . . .       . . . .           .               .           .             .
+            .       .       .     .           .       .       .       .               .
             .       .       .         .       .       .       .       .     .         .
-            .       .       .         .       .       .       .       .     . .     . .
-          . .     . . .   . . . . . . .   . . . . . . .   . . . . . . .         . .
+          . .       .       . . . . . .   . . . . . . .     . . . . . .       . . . .
 
 
         """, robolectric: """
