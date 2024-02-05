@@ -3,6 +3,43 @@
 #skip:
 #  package: 'skip.ui'
 
+# the blocks to add to the settings.gradle.kts
+settings:
+  contents:
+    - block: 'dependencyResolutionManagement'
+      contents:
+        - block: 'versionCatalogs'
+          contents:
+            - block: 'create("libs")'
+              contents:
+                - 'version("coil-compose", "2.5.0")'
+                - 'version("androidx-navigation", "2.7.6")'
+                - 'version("androidx-appcompat", "1.6.1")'
+
+                # Used by kotlinCompilerExtensionVersion, must be compatible with the Kotlin (specifed in the version catalog of SkipUnit/Skip/skip.yml) or else errors like:
+                # This version (1.5.3) of the Compose Compiler requires Kotlin version 1.9.10 but you appear to be using Kotlin version 1.9.22 which is not known to be compatible.  Please consult the Compose-Kotlin compatibility map located at https://developer.android.com/jetpack/androidx/releases/compose-kotlin to choose a compatible version pair (or `suppressKotlinVersionCompatibilityCheck` but don't say I didn't warn you!).
+                - 'version("kotlin-compose-compiler-extension", "1.5.8")'
+
+                # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
+                - 'library("androidx-core-ktx", "androidx.core", "core-ktx").withoutVersion()'
+                - 'library("androidx-compose-ui", "androidx.compose.ui", "ui").withoutVersion()'
+                - 'library("androidx-compose-ui-tooling", "androidx.compose.ui", "ui-tooling").withoutVersion()'
+                - 'library("androidx-compose-animation", "androidx.compose.animation", "animation").withoutVersion()'
+                - 'library("androidx-compose-material", "androidx.compose.material", "material").withoutVersion()'
+                - 'library("androidx-compose-material-icons-extended", "androidx.compose.material", "material-icons-extended").withoutVersion()'
+                - 'library("androidx-compose-material3", "androidx.compose.material3", "material3").withoutVersion()'
+                - 'library("androidx-compose-foundation", "androidx.compose.foundation", "foundation").withoutVersion()'
+                - 'library("androidx-appcompat", "androidx.appcompat", "appcompat").versionRef("androidx-appcompat")'
+                - 'library("androidx-appcompat-resources", "androidx.appcompat", "appcompat-resources").versionRef("androidx-appcompat")'
+
+                - 'library("androidx-navigation-compose", "androidx.navigation", "navigation-compose").versionRef("androidx-navigation")'
+
+                - 'library("coil-compose", "io.coil-kt", "coil-compose").versionRef("coil-compose")'
+
+                - 'library("androidx-compose-ui-test", "androidx.compose.ui", "ui-test").withoutVersion()'
+                - 'library("androidx-compose-ui-test-junit4", "androidx.compose.ui", "ui-test-junit4").withoutVersion()'
+                - 'library("androidx-compose-ui-test-manifest", "androidx.compose.ui", "ui-test-manifest").withoutVersion()'
+
 # the blocks to add to the build.gradle.kts
 build:
   contents:
@@ -13,35 +50,28 @@ build:
             - 'compose = true'
         - block: 'composeOptions'
           contents:
-            - 'kotlinCompilerExtensionVersion = "1.5.1"'
+            - 'kotlinCompilerExtensionVersion = libs.versions.kotlin.compose.compiler.extension.get()'
 
     - block: 'dependencies'
       export: false
       contents:
-        - 'api("androidx.core:core-ktx")'
-        - 'api("androidx.compose.ui:ui")'
-        - 'api("androidx.compose.ui:ui-tooling")'
-        - 'api("androidx.compose.animation:animation")'
-        - 'api("androidx.compose.material:material")'
-        - 'api("androidx.compose.material:material-icons-extended")'
-        - 'api("androidx.compose.material3:material3")'
-        - 'api("androidx.compose.foundation:foundation")'
+        - 'api(libs.androidx.core.ktx)'
+        - 'api(libs.androidx.compose.ui)'
+        - 'api(libs.androidx.compose.ui.tooling)'
+        - 'api(libs.androidx.compose.animation)'
+        - 'api(libs.androidx.compose.material)'
+        - 'api(libs.androidx.compose.material.icons.extended)'
+        - 'api(libs.androidx.compose.material3)'
+        - 'api(libs.androidx.compose.foundation)'
+        - 'api(libs.androidx.navigation.compose)'
+        - 'api(libs.androidx.appcompat)'
+        - 'api(libs.androidx.appcompat.resources)'
+        - 'implementation(libs.coil.compose)'
 
-        - 'api("androidx.navigation:navigation-compose:2.7.0")'
-        - 'api("androidx.appcompat:appcompat:1.6.1")'
-        - 'api("androidx.appcompat:appcompat-resources:1.6.1")'
-
-        - 'testImplementation("androidx.compose.ui:ui-test")'
-        - 'androidTestImplementation("androidx.compose.ui:ui-test")'
-
-        - 'testImplementation("androidx.compose.ui:ui-test-junit4")'
-        - 'androidTestImplementation("androidx.compose.ui:ui-test-junit4")'
-
-        - 'testImplementation("androidx.compose.ui:ui-test-manifest")'
-        - 'androidTestImplementation("androidx.compose.ui:ui-test-manifest")'
-
-        - 'implementation("io.coil-kt:coil-compose:2.4.0")'
-        #- 'implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6+")'
-        #- 'implementation("androidx.activity:activity-ktx:1.7+")'
-        #- 'implementation("androidx.activity:activity-compose:1.7+")'
+        - 'testImplementation(libs.androidx.compose.ui.test)'
+        - 'androidTestImplementation(libs.androidx.compose.ui.test)'
+        - 'testImplementation(libs.androidx.compose.ui.test.junit4)'
+        - 'androidTestImplementation(libs.androidx.compose.ui.test.junit4)'
+        - 'testImplementation(libs.androidx.compose.ui.test.manifest)'
+        - 'androidTestImplementation(libs.androidx.compose.ui.test.manifest)'
 
