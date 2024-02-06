@@ -5,10 +5,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import android.graphics.Typeface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 #else
 import struct CoreGraphics.CGFloat
@@ -21,11 +22,7 @@ public struct Font : Hashable, Sendable {
     public init(fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle) {
         self.fontImpl = fontImpl
     }
-    #endif
-}
 
-extension Font {
-    #if SKIP
     // M3: Default Font Size/Line Height
     // displayLarge: Roboto 57/64
     // displayMedium: Roboto 45/52
@@ -144,13 +141,64 @@ extension Font {
         fatalError()
     }
 
-    @available(*, unavailable)
     public static func system(_ style: Font.TextStyle, design: Font.Design? = nil, weight: Font.Weight?) -> Font {
+        let font = system(style)
+        if let weight {
+            return font.weight(weight)
+        } else {
+            return font
+        }
+    }
+
+    @available(*, unavailable)
+    public static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design?) -> Font {
         fatalError()
     }
-}
 
-extension Font {
+    public static func system(size: CGFloat, weight: Font.Weight? = nil) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            androidx.compose.ui.text.TextStyle(fontSize: size.sp, fontWeight: fontWeight(for: weight))
+        })
+        #else
+        fatalError()
+        #endif
+    }
+
+    public static func custom(_ name: String, size: CGFloat) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            // Note that Android can find "courier" but not "Courier"
+            androidx.compose.ui.text.TextStyle(fontFamily: FontFamily(Typeface.create(name, Typeface.NORMAL)), fontSize: size.sp)
+        })
+        #else
+        fatalError()
+        #endif
+    }
+
+    public static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
+        #if SKIP
+        let systemFont = system(textStyle)
+        return Font(fontImpl: {
+            let absoluteSize = systemFont.fontImpl().fontSize.value + size
+            androidx.compose.ui.text.TextStyle(fontFamily: FontFamily(Typeface.create(name, Typeface.NORMAL)), fontSize: absoluteSize.sp)
+        })
+        #else
+        fatalError()
+        #endif
+    }
+
+    public static func custom(_ name: String, fixedSize: CGFloat) -> Font {
+        return Font.custom(name, size: fixedSize)
+    }
+
+    @available(*, unavailable)
+    public init(_ font: Any /* CTFont */) {
+        #if SKIP
+        fontImpl = { MaterialTheme.typography.bodyMedium }
+        #endif
+    }
+
     public func italic() -> Font {
         #if SKIP
         return Font(fontImpl: {
@@ -184,33 +232,41 @@ extension Font {
     public func weight(_ weight: Font.Weight) -> Font {
         #if SKIP
         return Font(fontImpl: {
-            switch weight {
-            case .ultraLight:
-                return fontImpl().copy(fontWeight: FontWeight.Thin)
-            case .thin:
-                return fontImpl().copy(fontWeight: FontWeight.ExtraLight)
-            case .light:
-                return fontImpl().copy(fontWeight: FontWeight.Light)
-            case .regular:
-                return fontImpl().copy(fontWeight: FontWeight.Normal)
-            case .medium:
-                return fontImpl().copy(fontWeight: FontWeight.Medium)
-            case .semibold:
-                return fontImpl().copy(fontWeight: FontWeight.SemiBold)
-            case .bold:
-                return fontImpl().copy(fontWeight: FontWeight.Bold)
-            case .heavy:
-                return fontImpl().copy(fontWeight: FontWeight.ExtraBold)
-            case .black:
-                return fontImpl().copy(fontWeight: FontWeight.Black)
-            default:
-                return fontImpl().copy(fontWeight: FontWeight.Normal)
-            }
+            fontImpl().copy(fontWeight: Self.fontWeight(for: weight))
         })
         #else
         fatalError()
         #endif
     }
+
+    #if SKIP
+    private static func fontWeight(for weight: Font.Weight?) -> FontWeight? {
+        switch weight {
+        case nil:
+            return nil
+        case .ultraLight:
+            return FontWeight.Thin
+        case .thin:
+            return FontWeight.ExtraLight
+        case .light:
+            return FontWeight.Light
+        case .regular:
+            return FontWeight.Normal
+        case .medium:
+            return FontWeight.Medium
+        case .semibold:
+            return FontWeight.SemiBold
+        case .bold:
+            return FontWeight.Bold
+        case .heavy:
+            return FontWeight.ExtraBold
+        case .black:
+            return FontWeight.Black
+        default:
+            return FontWeight.Normal
+        }
+    }
+    #endif
 
     @available(*, unavailable)
     public func width(_ width: Font.Width) -> Font {
@@ -263,49 +319,12 @@ extension Font {
         case tight
         case loose
     }
-}
-
-extension Font {
-    @available(*, unavailable)
-    public static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design? = nil) -> Font {
-        fatalError()
-    }
 
     public enum Design : Hashable, Sendable {
         case `default`
         case serif
         case rounded
         case monospaced
-    }
-}
-
-extension Font {
-    public static func custom(_ name: String, size: CGFloat) -> Font {
-        #if SKIP
-        return Font(fontImpl: {
-            // note that Android can find "courier" but not "Courier"
-            androidx.compose.ui.text.TextStyle(fontFamily: androidx.compose.ui.text.font.FontFamily(android.graphics.Typeface.create(name, android.graphics.Typeface.NORMAL)), fontSize: androidx.compose.ui.unit.TextUnit(Float(size), androidx.compose.ui.unit.TextUnitType.Sp))
-        })
-        #else
-        fatalError()
-        #endif
-    }
-
-    public static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font {
-        // TODO: handle textStyle
-        return Font.custom(name, size: size)
-    }
-
-    public static func custom(_ name: String, fixedSize: CGFloat) -> Font {
-        // TODO: handle fixed size (somehow)
-        return Font.custom(name, size: fixedSize)
-    }
-
-    @available(*, unavailable)
-    public init(_ font: Any /* CTFont */) {
-        #if SKIP
-        fontImpl = { MaterialTheme.typography.bodyMedium }
-        #endif
     }
 }
 
