@@ -201,6 +201,10 @@ final class TextTests: XCSnapshotTestCase {
     }
 
     func testDrawMessage() throws {
+        if isAndroid {
+            throw XCTSkip("Disabled on Android due to inconsistent font rendering on different emulators")
+        }
+
         XCTAssertEqual(try pixmap(brightness: 0.75, content: ZStack {
             Text("HELLO").font(Font.custom("courier", size: CGFloat(14.0))).foregroundColor(Color.black).frame(height: 14.0)
         }.background(Color.white)),
