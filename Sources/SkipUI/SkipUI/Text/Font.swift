@@ -105,60 +105,48 @@ public struct Font : Hashable, Sendable {
         case caption2
     }
 
-    public static func system(_ style: Font.TextStyle) -> Font {
+    public static func system(_ style: Font.TextStyle, design: Font.Design? = nil, weight: Font.Weight? = nil) -> Font {
         #if SKIP
+        let font: Font
         switch style {
         case .largeTitle:
-            return .largeTitle
+            font = .largeTitle
         case .title:
-            return .title
+            font = .title
         case .title2:
-            return .title2
+            font = .title2
         case .title3:
-            return .title3
+            font = .title3
         case .headline:
-            return .headline
+            font = .headline
         case .subheadline:
-            return .subheadline
+            font = .subheadline
         case .body:
-            return .body
+            font = .body
         case .callout:
-            return .callout
+            font = .callout
         case .footnote:
-            return .footnote
+            font = .footnote
         case .caption:
-            return .caption
+            font = .caption
         case .caption2:
-            return .caption2
+            font = .caption2
         }
+        guard weight != nil || design != nil else {
+            return font
+        }
+        return Font(fontImpl: {
+            font.fontImpl().copy(fontWeight: fontWeight(for: weight), fontFamily: fontFamily(for: design))
+        })
         #else
         fatalError()
         #endif
     }
 
-    @available(*, unavailable)
-    public static func system(_ style: Font.TextStyle, design: Font.Design?) -> Font {
-        fatalError()
-    }
-
-    public static func system(_ style: Font.TextStyle, design: Font.Design? = nil, weight: Font.Weight?) -> Font {
-        let font = system(style)
-        if let weight {
-            return font.weight(weight)
-        } else {
-            return font
-        }
-    }
-
-    @available(*, unavailable)
-    public static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design?) -> Font {
-        fatalError()
-    }
-
-    public static func system(size: CGFloat, weight: Font.Weight? = nil) -> Font {
+    public static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design? = nil) -> Font {
         #if SKIP
         return Font(fontImpl: {
-            androidx.compose.ui.text.TextStyle(fontSize: size.sp, fontWeight: fontWeight(for: weight))
+            androidx.compose.ui.text.TextStyle(fontSize: size.sp, fontWeight: fontWeight(for: weight), fontFamily: fontFamily(for: design))
         })
         #else
         fatalError()
@@ -274,12 +262,21 @@ public struct Font : Hashable, Sendable {
     }
 
     public func bold() -> Font {
-        return weight(.bold)
+        return weight(Weight.bold)
     }
 
-    @available(*, unavailable)
     public func monospaced() -> Font {
+        return design(Design.monospaced)
+    }
+
+    func design(_ design: Design?) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            fontImpl().copy(fontFamily: Self.fontFamily(for: Design.monospaced))
+        })
+        #else
         fatalError()
+        #endif
     }
 
     @available(*, unavailable)
@@ -307,7 +304,6 @@ public struct Font : Hashable, Sendable {
             self.value = value
         }
 
-        // TODO: Real values
         public static let compressed = Width(0.8)
         public static let condensed = Width(0.9)
         public static let standard = Width(1.0)
@@ -326,6 +322,23 @@ public struct Font : Hashable, Sendable {
         case rounded
         case monospaced
     }
+
+    #if SKIP
+    private static func fontFamily(for design: Design?) -> FontFamily? {
+        switch design {
+        case nil:
+            return nil
+        case .default:
+            return FontFamily.Default
+        case .serif:
+            return FontFamily.Serif
+        case .rounded:
+            return FontFamily.Cursive
+        case .monospaced:
+            return FontFamily.Monospace
+        }
+    }
+    #endif
 }
 
 public enum LegibilityWeight : Hashable, Sendable {

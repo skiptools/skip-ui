@@ -367,25 +367,6 @@ extension View {
     ///   all transactions used within the view whenever `value` changes.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public func transaction(value: some Equatable, _ transform: @escaping (inout Transaction) -> Void) -> some View { return stubView() }
-
-
-    /// Applies the given animation to all animatable values within this view.
-    ///
-    /// Use this modifier on leaf views rather than container views. The
-    /// animation applies to all child views within this view; calling
-    /// `animation(_:)` on a container view can lead to unbounded scope.
-    ///
-    /// - Parameter animation: The animation to apply to animatable values
-    ///   within this view.
-    ///
-    /// - Returns: A view that wraps this view and applies `animation` to all
-    ///   animatable values used within the view.
-    @available(iOS, introduced: 13.0, deprecated: 15.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @available(macOS, introduced: 10.15, deprecated: 12.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @available(tvOS, introduced: 13.0, deprecated: 15.0, message: "Use withAnimation or animation(_:value:) instead.")
-    @available(watchOS, introduced: 6.0, deprecated: 8.0, message: "Use withAnimation or animation(_:value:) instead.")
-    public func animation(_ animation: Animation?) -> some View { return stubView() }
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

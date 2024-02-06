@@ -79,6 +79,9 @@ public struct Text: View, Equatable {
         if let weight = EnvironmentValues.shared._fontWeight {
             font = font.weight(weight)
         }
+        if let design = EnvironmentValues.shared._fontDesign {
+            font = font.design(design)
+        }
         if EnvironmentValues.shared._isItalic {
             font = font.italic()
         }
@@ -171,7 +174,7 @@ extension View {
     }
 
     public func bold(_ isActive: Bool = true) -> some View {
-        return fontWeight(isActive ? .bold : nil)
+        return fontWeight(isActive ? Font.Weight.bold : nil)
     }
 
     @available(*, unavailable)
@@ -192,9 +195,12 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func fontDesign(_ design: Font.Design?) -> some View {
+        #if SKIP
+        return environment(\._fontDesign, design)
+        #else
         return self
+        #endif
     }
 
     public func fontWeight(_ weight: Font.Weight?) -> some View {
@@ -256,9 +262,8 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func monospaced(_ isActive: Bool = true) -> some View {
-        return self
+        return fontDesign(isActive ? Font.Design.monospaced : nil)
     }
 
     @available(*, unavailable)

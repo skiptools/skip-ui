@@ -4,13 +4,207 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+import Foundation
 
-#if SKIP
-public func withAnimation(_ body: () -> Void) {
-    body()
+let defaultAnimationDuration = 0.35
+
+public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
+    // TODO
+    try body()
 }
-#else
+
+@available(*, unavailable)
+public func withAnimation<Result>(_ animation: Animation? = .default, completionCriteria: AnimationCompletionCriteria = .logicallyComplete, _ body: () throws -> Result, completion: @escaping () -> Void) rethrows -> Result {
+    fatalError()
+}
+
+extension View {
+    public func animation(_ animation: Animation?, value: Any) -> some View {
+        // TODO
+        return self
+    }
+
+    public func animation(_ animation: Animation?) -> some View {
+        // TODO
+        return self
+    }
+
+    @available(*, unavailable)
+    public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some View {
+        return self
+    }
+}
+
+public struct Animation : Hashable, Sendable {
+    public init() {
+    }
+
+    public static func spring(duration: TimeInterval = 0.5, bounce: Double = 0.0, blendDuration: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: TimeInterval = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var spring: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var interactiveSpring: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var smooth: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var snappy: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var bouncy: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func spring(_ spring: Spring, blendDuration: TimeInterval = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func timingCurve(_ curve: UnitCurve, duration: TimeInterval) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var `default`: Animation {
+        return timingCurve(UnitCurve.easeInOut, duration: defaultAnimationDuration)
+    }
+
+    public static func easeInOut(duration: TimeInterval) -> Animation {
+        return timingCurve(UnitCurve.easeInOut, duration: duration)
+    }
+
+    public static var easeInOut: Animation {
+        return easeInOut(duration: defaultAnimationDuration)
+    }
+
+    public static func easeIn(duration: TimeInterval) -> Animation {
+        return timingCurve(UnitCurve.easeIn, duration: duration)
+    }
+
+    public static var easeIn: Animation {
+        return easeIn(duration: defaultAnimationDuration)
+    }
+
+    public static func easeOut(duration: TimeInterval) -> Animation {
+        return timingCurve(UnitCurve.easeOut, duration: duration)
+    }
+
+    public static var easeOut: Animation {
+        return easeOut(duration: defaultAnimationDuration)
+    }
+
+    public static func linear(duration: TimeInterval) -> Animation {
+        return timingCurve(UnitCurve.linear, duration: duration)
+    }
+
+    public static var linear: Animation {
+        return linear(duration: defaultAnimationDuration)
+    }
+
+    public static func timingCurve(_ p1x: Double, _ p1y: Double, _ p2x: Double, _ p2y: Double, duration: TimeInterval = 0.35) -> Animation {
+        let p1 = UnitPoint(x: p1x, y: p1y)
+        let p2 = UnitPoint(x: p2x, y: p2y)
+        return timingCurve(UnitCurve(startControlPoint: p1, endControlPoint: p2), duration: duration)
+    }
+
+    public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public static var interpolatingSpring: Animation {
+        // TODO
+        return Animation()
+    }
+
+    public func logicallyComplete(after duration: TimeInterval) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public func delay(_ delay: TimeInterval) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public func speed(_ speed: Double) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation {
+        // TODO
+        return Animation()
+    }
+
+    public func repeatForever(autoreverses: Bool = true) -> Animation {
+        // TODO
+        return Animation()
+    }
+}
+
+public enum AnimationCompletionCriteria : Hashable, Sendable {
+    case logicallyComplete
+    case removed
+}
+
+#if !SKIP
+
+// TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
@@ -19,36 +213,86 @@ import struct CoreGraphics.CGSize
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Animation {
+    public init(_ base: any CustomAnimation) {
+    }
 
-    /// Applies the given animation to this view when the specified value
-    /// changes.
+    /// Calculates the current value of the animation.
     ///
-    /// - Parameters:
-    ///   - animation: The animation to apply. If `animation` is `nil`, the view
-    ///     doesn't animate.
-    ///   - value: A value to monitor for changes.
-    ///
-    /// - Returns: A view that applies `animation` to this view whenever `value`
-    ///   changes.
-    public func animation<V>(_ animation: Animation?, value: V) -> some View where V : Equatable { return stubView() }
+    /// - Returns: The current value of the animation, or `nil` if the animation has finished.
+    public func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
 
+    /// Calculates the current velocity of the animation.
+    ///
+    /// - Returns: The current velocity of the animation, or `nil` if the the velocity isn't available.
+    public func velocity<V>(value: V, time: TimeInterval, context: AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
+
+    /// Returns a Boolean value that indicates whether the current animation
+    /// should merge with a previous animation.
+    public func shouldMerge<V>(previous: Animation, value: V, time: TimeInterval, context: inout AnimationContext<V>) -> Bool where V : VectorArithmetic { fatalError() }
+
+//    public var base: CustomAnimation { get { fatalError() } }
 }
 
-extension View where Self : Equatable {
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Animation : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
 
-    /// Applies the given animation to this view when this view changes.
+    /// A textual representation of this instance.
     ///
-    /// - Parameters:
-    ///   - animation: The animation to apply. If `animation` is `nil`, the view
-    ///     doesn't animate.
+    /// Calling this property directly is discouraged. Instead, convert an
+    /// instance of any type to a string by using the `String(describing:)`
+    /// initializer. This initializer works with any type, and uses the custom
+    /// `description` property for types that conform to
+    /// `CustomStringConvertible`:
     ///
-    /// - Returns: A view that applies `animation` to this view whenever it
-    ///   changes.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func animation(_ animation: Animation?) -> some View { return stubView() }
+    ///     struct Point: CustomStringConvertible {
+    ///         let x: Int, y: Int
+    ///
+    ///         var description: String {
+    ///             return "(\(x), \(y))"
+    ///         }
+    ///     }
+    ///
+    ///     let p = Point(x: 21, y: 30)
+    ///     let s = String(describing: p)
+    ///     print(s)
+    ///     // Prints "(21, 30)"
+    ///
+    /// The conversion of `p` to a string in the assignment to `s` uses the
+    /// `Point` type's `description` property.
+    public var description: String { get { fatalError() } }
 
+    /// A textual representation of this instance, suitable for debugging.
+    ///
+    /// Calling this property directly is discouraged. Instead, convert an
+    /// instance of any type to a string by using the `String(reflecting:)`
+    /// initializer. This initializer works with any type, and uses the custom
+    /// `debugDescription` property for types that conform to
+    /// `CustomDebugStringConvertible`:
+    ///
+    ///     struct Point: CustomDebugStringConvertible {
+    ///         let x: Int, y: Int
+    ///
+    ///         var debugDescription: String {
+    ///             return "(\(x), \(y))"
+    ///         }
+    ///     }
+    ///
+    ///     let p = Point(x: 21, y: 30)
+    ///     let s = String(reflecting: p)
+    ///     print(s)
+    ///     // Prints "(21, 30)"
+    ///
+    /// The conversion of `p` to a string in the assignment to `s` uses the
+    /// `Point` type's `debugDescription` property.
+    public var debugDescription: String { get { fatalError() } }
+
+    /// The custom mirror for this instance.
+    ///
+    /// If this type has value semantics, the mirror should be unaffected by
+    /// subsequent mutations of the instance.
+    public var customMirror: Mirror { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -110,7 +354,6 @@ extension View {
     ///     to the end value of the previous keyframe animation on subsequent
     ///     calls.
     public func keyframeAnimator<Value>(initialValue: Value, repeating: Bool = true, @ViewBuilder content: @escaping @Sendable (PlaceholderContentView<Self>, Value) -> some View, @KeyframesBuilder<Value> keyframes: @escaping (Value) -> some Keyframes) -> some View { return stubView() }
-
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
@@ -169,27 +412,6 @@ extension View {
     public func phaseAnimator<Phase>(_ phases: some Sequence, @ViewBuilder content: @escaping (PlaceholderContentView<Self>, Phase) -> some View, animation: @escaping (Phase) -> Animation? = { _ in .default }) -> some View where Phase : Equatable { return stubView() }
 
 }
-
-/// Returns the result of recomputing the view's body with the provided
-/// animation, and runs the completion when all animations are complete.
-///
-/// This function sets the given ``Animation`` as the ``Transaction/animation``
-/// property of the thread's current ``Transaction`` as well as calling
-/// ``Transaction/addAnimationCompletion`` with the specified completion.
-///
-/// The completion callback will always be fired exactly one time. If no
-/// animations are created by the changes in `body`, then the callback will be
-/// called immediately after `body`.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public func withAnimation<Result>(_ animation: Animation? = .default, completionCriteria: AnimationCompletionCriteria = .logicallyComplete, _ body: () throws -> Result, completion: @escaping () -> Void) rethrows -> Result { fatalError() }
-
-/// Returns the result of recomputing the view's body with the provided
-/// animation.
-///
-/// This function sets the given ``Animation`` as the ``Transaction/animation``
-/// property of the thread's current ``Transaction``.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result { fatalError() }
 
 /// A type that describes how to animate a property of a view.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -305,1106 +527,6 @@ extension Animatable where Self.AnimatableData == EmptyAnimatableData {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension AnimatablePair : Sendable where First : Sendable, Second : Sendable {
-}
-
-/// The way a view changes over time to create a smooth visual transition from
-/// one state to another.
-///
-/// An `Animation` provides a visual transition of a view when a state value
-/// changes from one value to another. The characteristics of this transition
-/// vary according to the animation type. For instance, a ``linear`` animation
-/// provides a mechanical feel to the animation because its speed is consistent
-/// from start to finish. In contrast, an animation that uses easing, like
-/// ``easeOut``, offers a more natural feel by varying the acceleration
-/// of the animation.
-///
-/// To apply an animation to a view, add the ``View/animation(_:value:)``
-/// modifier, and specify both an animation type and the value to animate. For
-/// instance, the ``Circle`` view in the following code performs an
-/// ``easeIn`` animation each time the state variable `scale` changes:
-///
-///     struct ContentView: View {
-///         @State private var scale = 0.5
-///
-///         var body: some View {
-///             VStack {
-///                 Circle()
-///                     .scaleEffect(scale)
-///                     .animation(.easeIn, value: scale)
-///                 HStack {
-///                     Button("+") { scale += 0.1 }
-///                     Button("-") { scale -= 0.1 }
-///                 }
-///             }
-///             .padding()
-///         }
-///
-/// @Video(source: "animation-01-overview-easein.mp4", poster: "animation-01-overview-easein.png", alt: "A video that shows a circle enlarging then shrinking to its original size using an ease-in animation.")
-///
-/// When the value of `scale` changes, the modifier
-/// ``View/scaleEffect(_:anchor:)-pmi7`` resizes ``Circle`` according to the
-/// new value. SkipUI can animate the transition between sizes because
-/// ``Circle`` conforms to the ``Shape`` protocol. Shapes in SkipUI conform to
-/// the ``Animatable`` protocol, which describes how to animate a property of a
-/// view.
-///
-/// In addition to adding an animation to a view, you can also configure the
-/// animation by applying animation modifiers to the animation type. For
-/// example, you can:
-///
-/// - Delay the start of the animation by using the ``delay(_:)`` modifier.
-/// - Repeat the animation by using the ``repeatCount(_:autoreverses:)`` or
-/// ``repeatForever(autoreverses:)`` modifiers.
-/// - Change the speed of the animation by using the ``speed(_:)`` modifier.
-///
-/// For example, the ``Circle`` view in the following code repeats
-/// the ``easeIn`` animation three times by using the
-/// ``repeatCount(_:autoreverses:)`` modifier:
-///
-///     struct ContentView: View {
-///         @State private var scale = 0.5
-///
-///         var body: some View {
-///             VStack {
-///                 Circle()
-///                     .scaleEffect(scale)
-///                     .animation(.easeIn.repeatCount(3), value: scale)
-///                 HStack {
-///                     Button("+") { scale += 0.1 }
-///                     Button("-") { scale -= 0.1 }
-///                 }
-///             }
-///             .padding()
-///         }
-///     }
-///
-/// @Video(source: "animation-02-overview-easein-repeat.mp4", poster: "animation-02-overview-easein-repeat.png", alt: "A video that shows a circle that repeats the ease-in animation three times: enlarging, then shrinking, then enlarging again. The animation reverses causing the circle to shrink, then enlarge, then shrink to its original size.")
-///
-/// A view can also perform an animation when a binding value changes. To
-/// specify the animation type on a binding, call its ``Binding/animation(_:)``
-/// method. For example, the view in the following code performs a
-/// ``linear`` animation, moving the box truck between the leading and trailing
-/// edges of the view. The truck moves each time a person clicks the ``Toggle``
-/// control, which changes the value of the `$isTrailing` binding.
-///
-///     struct ContentView: View {
-///         @State private var isTrailing = false
-///
-///         var body: some View {
-///            VStack(alignment: isTrailing ? .trailing : .leading) {
-///                 Image(systemName: "box.truck")
-///                     .font(.system(size: 64))
-///
-///                 Toggle("Move to trailing edge",
-///                        isOn: $isTrailing.animation(.linear))
-///             }
-///         }
-///     }
-///
-/// @Video(source: "animation-03-overview-binding.mp4", poster: "animation-03-overview-binding.png", alt: "A video that shows a box truck that moves from the leading edge of a view to the trailing edge. The box truck then returns to the view's leading edge.")
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct Animation : Equatable, Sendable {
-
-    /// Create an `Animation` that contains the specified custom animation.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public init<A>(_ base: A) where A : CustomAnimation { fatalError() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// duration values between springs over a time period.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - bounce: How bouncy the spring should be. A value of 0 indicates
-    ///     no bounces (a critically damped spring), positive values indicate
-    ///     increasing amounts of bounciness up to a maximum of 1.0
-    ///     (corresponding to undamped oscillation), and negative values
-    ///     indicate overdamped springs with a minimum value of -1.0.
-    ///   - blendDuration: The duration in seconds over which to
-    ///     interpolate changes to the duration.
-    /// - Returns: a spring animation.
-    public static func spring(duration: TimeInterval = 0.5, bounce: Double = 0.0, blendDuration: Double = 0) -> Animation { fatalError() }
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// response values between springs over a time period.
-    ///
-    /// - Parameters:
-    ///   - response: The stiffness of the spring, defined as an
-    ///     approximate duration in seconds. A value of zero requests
-    ///     an infinitely-stiff spring, suitable for driving
-    ///     interactive animations.
-    ///   - dampingFraction: The amount of drag applied to the value
-    ///     being animated, as a fraction of an estimate of amount
-    ///     needed to produce critical damping.
-    ///   - blendDuration: The duration in seconds over which to
-    ///     interpolate changes to the response value of the spring.
-    /// - Returns: a spring animation.
-    public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: TimeInterval = 0) -> Animation { fatalError() }
-
-    /// A persistent spring animation. When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// response values between springs over a time period.
-    ///
-    /// This uses the default parameter values.
-    public static var spring: Animation { get { fatalError() } }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `response` value, intended for driving interactive animations.
-    public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation { fatalError() }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `duration` value, intended for driving interactive animations.
-    ///
-    /// This uses the default parameter values.
-    public static var interactiveSpring: Animation { get { fatalError() } }
-
-    /// A convenience for a `spring` animation with a lower
-    /// `response` value, intended for driving interactive animations.
-    public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation { fatalError() }
-
-    /// A smooth spring animation with a predefined duration and no bounce.
-    public static var smooth: Animation { get { fatalError() } }
-
-    /// A smooth spring animation with a predefined duration and no bounce
-    /// that can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-
-    /// A spring animation with a predefined duration and small amount of
-    /// bounce that feels more snappy.
-    public static var snappy: Animation { get { fatalError() } }
-
-    /// A spring animation with a predefined duration and small amount of
-    /// bounce that feels more snappy and can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.15.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-
-    /// A spring animation with a predefined duration and higher amount of
-    /// bounce.
-    public static var bouncy: Animation { get { fatalError() } }
-
-    /// A spring animation with a predefined duration and higher amount of
-    /// bounce that can be tuned.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - extraBounce: How much additional bounce should be added to the base
-    ///     bounce of 0.3.
-    ///   - blendDuration: The duration in seconds over which to interpolate
-    ///     changes to the duration.
-    public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation {
-
-    /// A persistent spring animation.
-    ///
-    /// When mixed with other `spring()`
-    /// or `interactiveSpring()` animations on the same property, each
-    /// animation will be replaced by their successor, preserving
-    /// velocity from one animation to the next. Optionally blends the
-    /// duration values between springs over a time period.
-    public static func spring(_ spring: Spring, blendDuration: TimeInterval = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range of one to zero.
-    ///
-    /// These vales are used to interpolate within the `[from, to]` range
-    /// of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation {
-
-    /// Creates a new animation with speed controlled by the given curve.
-    ///
-    /// - Parameters:
-    ///   - timingCurve: A curve that describes the speed of the
-    ///     animation over its duration.
-    ///   - duration: The duration of the animation, in seconds.
-    public static func timingCurve(_ curve: UnitCurve, duration: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// A default animation instance.
-    ///
-    /// The `default` animation is ``spring(response:dampingFraction:blendDuration:)``
-    /// with:
-    ///
-    /// - `response` equal to `0.55`
-    /// - `dampingFraction` equal to `1.0`
-    /// - `blendDuration` equal to `0.0`
-    ///
-    /// Prior to iOS 17, macOS 14, tvOS 17, and watchOS 10, the `default`
-    /// animation is ``easeInOut``.
-    ///
-    /// The global function
-    /// ``withAnimation(_:_:)`` uses the default animation if you don't
-    /// provide one. For instance, the following code listing shows
-    /// an example of using the `default` animation to flip the text "Hello"
-    /// each time someone clicks the Animate button.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var degrees = Double.zero
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Spacer()
-    ///                 Text("Hello")
-    ///                     .font(.largeTitle)
-    ///                     .rotation3DEffect(.degrees(degrees), axis: (x: 0, y: 1, z: 0))
-    ///
-    ///                 Spacer()
-    ///                 Button("Animate") {
-    ///                     withAnimation {
-    ///                         degrees = (degrees == .zero) ? 180 : .zero
-    ///                     }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-04-default-flip.mp4", poster: "animation-04-default-flip.png", alt: "A video that shows the word Hello flip horizontally so that its letters appear backwards. Then it flips in reverse so that the word Hello appears correctly.")
-    ///
-    /// To use the `default` animation when adding the ``View/animation(_:value:)``
-    /// view modifier, specify it explicitly as the animation type. For
-    /// instance, the following code shows an example of the `default`
-    /// animation to spin the text "Hello" each time someone clicks the Animate
-    /// button.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var degrees = Double.zero
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Spacer()
-    ///                 Text("Hello")
-    ///                     .font(.largeTitle)
-    ///                     .rotationEffect(.degrees(degrees))
-    ///                     .animation(.default, value: degrees)
-    ///
-    ///                 Spacer()
-    ///                 Button("Animate") {
-    ///                     degrees = (degrees == .zero) ? 360 : .zero
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-05-default-spin.mp4", poster: "animation-05-default-spin.png", alt: "A video that shows the word Hello spinning clockwise for one full rotation, that is, 360 degrees. Then Hello spins counterclockwise for one full rotation.")
-    ///
-    /// A `default` animation instance is only equal to other `default`
-    /// animation instances (using `==`), and not equal to other animation
-    /// instances even when the animations are identical. For example, if you
-    /// create an animation using the ``spring(response:dampingFraction:blendDuration:)``
-    /// modifier with the same parameter values that `default` uses, the
-    /// animation isn't equal to `default`. This behavior lets you
-    /// differentiate between animations that you intentionally choose and
-    /// those that use the `default` animation.
-    public static let `default`: Animation = { fatalError() }()
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// An animation with a specified duration that combines the behaviors of
-    /// in and out easing animations.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. An ease in and out animation
-    /// starts slowly, increasing its speed towards the halfway point, and
-    /// finally decreasing the speed towards the end of the animation.
-    ///
-    /// Use `easeInOut(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeInOut`` to perform
-    /// the animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease in and out animation with a duration of
-    /// one second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeInOut(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-13-easeineaseout-duration.mp4", poster: "animation-13-easeineaseout-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in ease-out animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-in ease-out animation with a specified duration.
-    public static func easeInOut(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that combines the behaviors of in and out easing
-    /// animations.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. An ease in and out animation
-    /// starts slowly, increasing its speed towards the halfway point, and
-    /// finally decreasing the speed towards the end of the animation.
-    ///
-    /// The `easeInOut` animation has a default duration of 0.35 seconds. To
-    /// specify the duration, use the ``easeInOut(duration:)`` method.
-    ///
-    /// The following code shows an example of animating the size changes of a
-    /// ``Circle`` using an ease in and out animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeInOut, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-12-easeineaseout.mp4", poster: "animation-12-easeineaseout.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-in ease-out animation.")
-    ///
-    /// - Returns: An ease-in ease-out animation with the default duration.
-    public static var easeInOut: Animation { get { fatalError() } }
-
-    /// An animation with a specified duration that starts slowly and then
-    /// increases speed towards the end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease in animation, the
-    /// motion starts slowly and increases its speed towards the end.
-    ///
-    /// Use `easeIn(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeIn`` to perform the
-    /// animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease in animation with a duration of one
-    /// second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeIn(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-09-easein-duration.mp4", poster: "animation-09-easein-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-in animation with a specified duration.
-    public static func easeIn(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that starts slowly and then increases speed towards the
-    /// end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease in animation, the
-    /// motion starts slowly and increases its speed towards the end.
-    ///
-    /// The `easeIn` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``easeIn(duration:)``.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using the ease in animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeIn, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-08-easein.mp4", poster: "animation-08-easein.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-in animation.")
-    ///
-    /// - Returns: An ease-in animation with the default duration.
-    public static var easeIn: Animation { get { fatalError() } }
-
-    /// An animation with a specified duration that starts quickly and then
-    /// slows towards the end of the movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease out animation, the
-    /// motion starts quickly and decreases its speed towards the end.
-    ///
-    /// Use `easeOut(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``easeOut`` to perform
-    /// the animation for a default length of time.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease out animation with a duration of one
-    /// second.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeOut(duration: 1.0), value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-09-easein-duration.mp4", poster: "animation-09-easein-duration.png", alt: "A video that shows a circle enlarging for one second, then shrinking for another second to its original size using an ease-in animation.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: An ease-out animation with a specified duration.
-    public static func easeOut(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that starts quickly and then slows towards the end of the
-    /// movement.
-    ///
-    /// An easing animation provides motion with a natural feel by varying
-    /// the acceleration and deceleration of the animation, which matches
-    /// how things tend to move in reality. With an ease out animation, the
-    /// motion starts quickly and decreases its speed towards the end.
-    ///
-    /// The `easeOut` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``easeOut(duration:)``.
-    ///
-    /// The following code shows an example of animating the size changes of
-    /// a ``Circle`` using an ease out animation.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 0.5
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scale(scale)
-    ///                     .animation(.easeOut, value: scale)
-    ///                 HStack {
-    ///                     Button("+") { scale += 0.1 }
-    ///                     Button("-") { scale -= 0.1 }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-10-easeout.mp4", poster: "animation-10-easeout.png", alt: "A video that shows a circle enlarging, then shrinking to its original size using an ease-out animation.")
-    ///
-    /// - Returns: An ease-out animation with the default duration.
-    public static var easeOut: Animation { get { fatalError() } }
-
-    /// An animation that moves at a constant speed during a specified
-    /// duration.
-    ///
-    /// A linear animation provides a mechanical feel to the motion because its
-    /// speed is consistent from start to finish of the animation. This
-    /// constant speed makes a linear animation ideal for animating the
-    /// movement of objects where changes in the speed might feel awkward, such
-    /// as with an activity indicator.
-    ///
-    /// Use `linear(duration:)` when you want to specify the time it takes
-    /// for the animation to complete. Otherwise, use ``linear`` to perform the
-    /// animation for a default length of time.
-    ///
-    /// The following code shows an example of using linear animation with a
-    /// duration of two seconds to animate the movement of a circle as it moves
-    /// between the leading and trailing edges of the view. The color of the
-    /// circle also animates from red to blue as it moves across the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var isActive = false
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: isActive ? .trailing : .leading) {
-    ///                 Circle()
-    ///                     .fill(isActive ? Color.red : Color.blue)
-    ///                     .frame(width: 50, height: 50)
-    ///
-    ///                 Button("Animate") {
-    ///                     withAnimation(.linear(duration: 2.0)) {
-    ///                         isActive.toggle()
-    ///                     }
-    ///                 }
-    ///                 .frame(maxWidth: .infinity)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-07-linear-duration.mp4", poster: "animation-07-linear-duration.png", alt: "A video that shows a circle moving from the leading edge of the view to the trailing edge. The color of the circle also changes from red to blue as it moves across the view. Then the circle moves from the trailing edge back to the leading edge while also changing colors from blue to red.")
-    ///
-    /// - Parameter duration: The length of time, expressed in seconds, that
-    /// the animation takes to complete.
-    ///
-    /// - Returns: A linear animation with a specified duration.
-    public static func linear(duration: TimeInterval) -> Animation { fatalError() }
-
-    /// An animation that moves at a constant speed.
-    ///
-    /// A linear animation provides a mechanical feel to the motion because its
-    /// speed is consistent from start to finish of the animation. This
-    /// constant speed makes a linear animation ideal for animating the
-    /// movement of objects where changes in the speed might feel awkward, such
-    /// as with an activity indicator.
-    ///
-    /// The following code shows an example of using linear animation to
-    /// animate the movement of a circle as it moves between the leading and
-    /// trailing edges of the view. The circle also animates its color change
-    /// as it moves across the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var isActive = false
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: isActive ? .trailing : .leading) {
-    ///                 Circle()
-    ///                     .fill(isActive ? Color.red : Color.blue)
-    ///                     .frame(width: 50, height: 50)
-    ///
-    ///                 Button("Animate") {
-    ///                     withAnimation(.linear) {
-    ///                         isActive.toggle()
-    ///                     }
-    ///                 }
-    ///                 .frame(maxWidth: .infinity)
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-06-linear.mp4", poster: "animation-06-linear.png", alt: "A video that shows a circle moving from the leading edge of the view to the trailing edge. The color of the circle also changes from red to blue as it moves across the view. Then the circle moves from the trailing edge back to the leading edge while also changing colors from blue to red.")
-    ///
-    /// The `linear` animation has a default duration of 0.35 seconds. To
-    /// specify a different duration, use ``linear(duration:)``.
-    ///
-    /// - Returns: A linear animation with the default duration.
-    public static var linear: Animation { get { fatalError() } }
-
-    /// An animation created from a cubic Bézier timing curve.
-    ///
-    /// Use this method to create a timing curve based on the control points of
-    /// a cubic Bézier curve. A cubic Bézier timing curve consists of a line
-    /// whose starting point is `(0, 0)` and whose end point is `(1, 1)`. Two
-    /// additional control points, `(p1x, p1y)` and `(p2x, p2y)`, define the
-    /// shape of the curve.
-    ///
-    /// The slope of the line defines the speed of the animation at that point
-    /// in time. A steep slopes causes the animation to appear to run faster,
-    /// while a shallower slope appears to run slower. The following
-    /// illustration shows a timing curve where the animation starts and
-    /// finishes fast, but appears slower through the middle section of the
-    /// animation.
-    ///
-    /// ![An illustration of an XY graph that shows the path of a Bézier timing curve that an animation frame follows over time. The horizontal x-axis has a label with the text Time, and a label with the text Frame appears along the vertical y-axis. The path begins at the graph's origin, labeled as (0.0, 0.0). The path moves upwards, forming a concave down shape. At the point of inflection, the path continues upwards, forming a concave up shape. A label with the text First control point (p1x, p1y) appears above the path. Extending from the label is a dotted line pointing to the position (0.1, 0.75) on the graph. Another label with the text Second control point (p2x, p2y) appears below the path. A dotted line extends from the label to the (0.85, 0.35) position on the graph.](Animation-timingCurve-1)
-    ///
-    /// The following code uses the timing curve from the previous
-    /// illustration to animate a ``Circle`` as its size changes.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var scale = 1.0
-    ///
-    ///         var body: some View {
-    ///             VStack {
-    ///                 Circle()
-    ///                     .scaleEffect(scale)
-    ///                     .animation(
-    ///                         .timingCurve(0.1, 0.75, 0.85, 0.35, duration: 2.0),
-    ///                         value: scale)
-    ///
-    ///                 Button("Animate") {
-    ///                     if scale == 1.0 {
-    ///                         scale = 0.25
-    ///                     } else {
-    ///                         scale = 1.0
-    ///                     }
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-14-timing-curve.mp4", poster: "animation-14-timing-curve.png", alt: "A video that shows a circle shrinking then growing to its original size using a timing curve animation. The first control point of the time curve is (0.1, 0.75) and the second is (0.85, 0.35).")
-    ///
-    /// - Parameters:
-    ///   - p1x: The x-coordinate of the first control point of the cubic
-    ///     Bézier curve.
-    ///   - p1y: The y-coordinate of the first control point of the cubic
-    ///     Bézier curve.
-    ///   - p2x: The x-coordinate of the second control point of the cubic
-    ///     Bézier curve.
-    ///   - p2y: The y-coordinate of the second control point of the cubic
-    ///     Bézier curve.
-    ///   - duration: The length of time, expressed in seconds, the animation
-    ///     takes to complete.
-    /// - Returns: A cubic Bézier timing curve animation.
-    public static func timingCurve(_ p1x: Double, _ p1y: Double, _ p2x: Double, _ p2y: Double, duration: TimeInterval = 0.35) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// - Parameters:
-    ///   - mass: The mass of the object attached to the spring.
-    ///   - stiffness: The stiffness of the spring.
-    ///   - damping: The spring damping value.
-    ///   - initialVelocity: the initial velocity of the spring, as
-    ///     a value in the range [0, 1] representing the magnitude of
-    ///     the value being animated.
-    /// - Returns: a spring animation.
-    public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// - Parameters:
-    ///   - duration: The perceptual duration, which defines the pace of the
-    ///     spring. This is approximately equal to the settling duration, but
-    ///     for very bouncy springs, will be the duration of the period of
-    ///     oscillation for the spring.
-    ///   - bounce: How bouncy the spring should be. A value of 0 indicates
-    ///     no bounces (a critically damped spring), positive values indicate
-    ///     increasing amounts of bounciness up to a maximum of 1.0
-    ///     (corresponding to undamped oscillation), and negative values
-    ///     indicate overdamped springs with a minimum value of -1.0.
-    ///   - initialVelocity: the initial velocity of the spring, as
-    ///     a value in the range [0, 1] representing the magnitude of
-    ///     the value being animated.
-    /// - Returns: a spring animation.
-    public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation { fatalError() }
-
-    /// An interpolating spring animation that uses a damped spring
-    /// model to produce values in the range [0, 1] that are then used
-    /// to interpolate within the [from, to] range of the animated
-    /// property. Preserves velocity across overlapping animations by
-    /// adding the effects of each animation.
-    ///
-    /// This uses the default parameter values.
-    public static var interpolatingSpring: Animation { get { fatalError() } }
-}
-
-extension Animation {
-
-    /// Causes the animation to report logical completion after the specified
-    /// duration, if it has not already logically completed.
-    ///
-    /// Note that the indicated duration will not cause the animation to
-    /// continue running after the base animation has fully completed.
-    ///
-    /// If the animation is removed before the given duration is reached,
-    /// logical completion will be reported immediately.
-    ///
-    /// - Parameters:
-    ///   - duration: The duration after which the animation should  report
-    ///     that it is logically complete.
-    /// - Returns: An animation that reports logical completion after the
-    ///   given duration.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func logicallyComplete(after duration: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Delays the start of the animation by the specified number of seconds.
-    ///
-    /// Use this method to delay the start of an animation. For example, the
-    /// following code animates the height change of two capsules.
-    /// Animation of the first ``Capsule`` begins immediately. However,
-    /// animation of the second one doesn't begin until a half second later.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                         .animation(.easeInOut, value: adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                         .animation(.easeInOut.delay(0.5), value: adjustBy)
-    ///                 }
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-15-delay.mp4", poster: "animation-15-delay.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the capsule on the right is tall. As they animate, the short capsule grows upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. Then the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// - Parameter delay: The number of seconds to delay the start of the
-    /// animation.
-    /// - Returns: An animation with a delayed start.
-    public func delay(_ delay: TimeInterval) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Changes the duration of an animation by adjusting its speed.
-    ///
-    /// Setting the speed of an animation changes the duration of the animation
-    /// by a factor of `speed`. A higher speed value causes a faster animation
-    /// sequence due to a shorter duration. For example, a one-second animation
-    /// with a speed of `2.0` completes in half the time (half a second).
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         private var oneSecondAnimation: Animation {
-    ///            .easeInOut(duration: 1.0)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                 }
-    ///                 .animation(oneSecondAnimation.speed(2.0), value: adjustBy)
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-18-speed.mp4", poster: "animation-18-speed.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the capsule on the right is tall. They animate for half a second with the short capsule growing upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. For another half second, the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// Setting `speed` to a lower number slows the animation, extending its
-    /// duration. For example, a one-second animation with a speed of `0.25`
-    /// takes four seconds to complete.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var adjustBy = 100.0
-    ///
-    ///         private var oneSecondAnimation: Animation {
-    ///            .easeInOut(duration: 1.0)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(spacing: 40) {
-    ///                 HStack(alignment: .bottom) {
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 - adjustBy)
-    ///                     Capsule()
-    ///                         .frame(width: 50, height: 175 + adjustBy)
-    ///                 }
-    ///                 .animation(oneSecondAnimation.speed(0.25), value: adjustBy)
-    ///
-    ///                 Button("Animate") {
-    ///                     adjustBy *= -1
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-19-speed-slow.mp4", poster: "animation-19-speed-slow.png", alt: "A video that shows two capsules side by side that animate using the ease-in ease-out animation. The capsule on the left is short, while the right-side capsule is tall. They animate for four seconds with the short capsule growing upwards to match the height of the tall capsule. Then the tall capsule shrinks to match the original height of the short capsule. For another four seconds, the capsule on the left shrinks to its original height, followed by the capsule on the right growing to its original height.")
-    ///
-    /// - Parameter speed: The speed at which SkipUI performs the animation.
-    /// - Returns: An animation with the adjusted speed.
-    public func speed(_ speed: Double) -> Animation { fatalError() }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation {
-
-    /// Repeats the animation for a specific number of times.
-    ///
-    /// Use this method to repeat the animation a specific number of times. For
-    /// example, in the following code, the animation moves a truck from one
-    /// edge of the view to the other edge. It repeats this animation three
-    /// times.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var driveForward = true
-    ///
-    ///         private var driveAnimation: Animation {
-    ///             .easeInOut
-    ///             .repeatCount(3, autoreverses: true)
-    ///             .speed(0.5)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             VStack(alignment: driveForward ? .leading : .trailing, spacing: 40) {
-    ///                 Image(systemName: "box.truck")
-    ///                     .font(.system(size: 48))
-    ///                     .animation(driveAnimation, value: driveForward)
-    ///
-    ///                 HStack {
-    ///                     Spacer()
-    ///                     Button("Animate") {
-    ///                         driveForward.toggle()
-    ///                     }
-    ///                     Spacer()
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-16-repeat-count.mp4", poster: "animation-16-repeat-count.png", alt: "A video that shows a box truck moving from the leading edge of a view to the trailing edge, and back again before looping in the opposite direction.")
-    ///
-    /// The first time the animation runs, the truck moves from the leading
-    /// edge to the trailing edge of the view. The second time the animation
-    /// runs, the truck moves from the trailing edge to the leading edge
-    /// because `autoreverse` is `true`. If `autoreverse` were `false`, the
-    /// truck would jump back to leading edge before moving to the trailing
-    /// edge. The third time the animation runs, the truck moves from the
-    /// leading to the trailing edge of the view.
-    ///
-    /// - Parameters:
-    ///   - repeatCount: The number of times that the animation repeats. Each
-    ///   repeated sequence starts at the beginning when `autoreverse` is
-    ///  `false`.
-    ///   - autoreverses: A Boolean value that indicates whether the animation
-    ///   sequence plays in reverse after playing forward. Autoreverse counts
-    ///   towards the `repeatCount`. For instance, a `repeatCount` of one plays
-    ///   the animation forward once, but it doesn’t play in reverse even if
-    ///   `autoreverse` is `true`. When `autoreverse` is `true` and
-    ///   `repeatCount` is `2`, the animation moves forward, then reverses, then
-    ///   stops.
-    /// - Returns: An animation that repeats for specific number of times.
-    public func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation { fatalError() }
-
-    /// Repeats the animation for the lifespan of the view containing the
-    /// animation.
-    ///
-    /// Use this method to repeat the animation until the instance of the view
-    /// no longer exists, or the view’s explicit or structural identity
-    /// changes. For example, the following code continuously rotates a
-    /// gear symbol for the lifespan of the view.
-    ///
-    ///     struct ContentView: View {
-    ///         @State private var rotationDegrees = 0.0
-    ///
-    ///         private var animation: Animation {
-    ///             .linear
-    ///             .speed(0.1)
-    ///             .repeatForever(autoreverses: false)
-    ///         }
-    ///
-    ///         var body: some View {
-    ///             Image(systemName: "gear")
-    ///                 .font(.system(size: 86))
-    ///                 .rotationEffect(.degrees(rotationDegrees))
-    ///                 .onAppear {
-    ///                     withAnimation(animation) {
-    ///                         rotationDegrees = 360.0
-    ///                     }
-    ///                 }
-    ///         }
-    ///     }
-    ///
-    /// @Video(source: "animation-17-repeat-forever.mp4", poster: "animation-17-repeat-forever.png", alt: "A video that shows a gear that continuously rotates clockwise.")
-    ///
-    /// - Parameter autoreverses: A Boolean value that indicates whether the
-    /// animation sequence plays in reverse after playing forward.
-    /// - Returns: An animation that continuously repeats.
-    public func repeatForever(autoreverses: Bool = true) -> Animation { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension Animation : Hashable {
-
-    /// Calculates the current value of the animation.
-    ///
-    /// - Returns: The current value of the animation, or `nil` if the animation has finished.
-    public func animate<V>(value: V, time: TimeInterval, context: inout AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
-
-    /// Calculates the current velocity of the animation.
-    ///
-    /// - Returns: The current velocity of the animation, or `nil` if the the velocity isn't available.
-    public func velocity<V>(value: V, time: TimeInterval, context: AnimationContext<V>) -> V? where V : VectorArithmetic { fatalError() }
-
-    /// Returns a Boolean value that indicates whether the current animation
-    /// should merge with a previous animation.
-    public func shouldMerge<V>(previous: Animation, value: V, time: TimeInterval, context: inout AnimationContext<V>) -> Bool where V : VectorArithmetic { fatalError() }
-
-//    public var base: CustomAnimation { get { fatalError() } }
-
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Animation : CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
-
-    /// A textual representation of this instance.
-    ///
-    /// Calling this property directly is discouraged. Instead, convert an
-    /// instance of any type to a string by using the `String(describing:)`
-    /// initializer. This initializer works with any type, and uses the custom
-    /// `description` property for types that conform to
-    /// `CustomStringConvertible`:
-    ///
-    ///     struct Point: CustomStringConvertible {
-    ///         let x: Int, y: Int
-    ///
-    ///         var description: String {
-    ///             return "(\(x), \(y))"
-    ///         }
-    ///     }
-    ///
-    ///     let p = Point(x: 21, y: 30)
-    ///     let s = String(describing: p)
-    ///     print(s)
-    ///     // Prints "(21, 30)"
-    ///
-    /// The conversion of `p` to a string in the assignment to `s` uses the
-    /// `Point` type's `description` property.
-    public var description: String { get { fatalError() } }
-
-    /// A textual representation of this instance, suitable for debugging.
-    ///
-    /// Calling this property directly is discouraged. Instead, convert an
-    /// instance of any type to a string by using the `String(reflecting:)`
-    /// initializer. This initializer works with any type, and uses the custom
-    /// `debugDescription` property for types that conform to
-    /// `CustomDebugStringConvertible`:
-    ///
-    ///     struct Point: CustomDebugStringConvertible {
-    ///         let x: Int, y: Int
-    ///
-    ///         var debugDescription: String {
-    ///             return "(\(x), \(y))"
-    ///         }
-    ///     }
-    ///
-    ///     let p = Point(x: 21, y: 30)
-    ///     let s = String(reflecting: p)
-    ///     print(s)
-    ///     // Prints "(21, 30)"
-    ///
-    /// The conversion of `p` to a string in the assignment to `s` uses the
-    /// `Point` type's `debugDescription` property.
-    public var debugDescription: String { get { fatalError() } }
-
-    /// The custom mirror for this instance.
-    ///
-    /// If this type has value semantics, the mirror should be unaffected by
-    /// subsequent mutations of the instance.
-    public var customMirror: Mirror { get { fatalError() } }
-}
-
-/// The criteria that determines when an animation is considered finished.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public struct AnimationCompletionCriteria : Hashable, Sendable {
-
-    /// The animation has logically completed, but may still be in its long
-    /// tail.
-    ///
-    /// If a subsequent change occurs that creates additional animations on
-    /// properties with `logicallyComplete` completion callbacks registered,
-    /// then those callbacks will fire when the animations from the change that
-    /// they were registered with logically complete, ignoring the new
-    /// animations.
-    public static let logicallyComplete: AnimationCompletionCriteria = { fatalError() }()
-
-    /// The entire animation is finished and will now be removed.
-    ///
-    /// If a subsequent change occurs that creates additional animations on
-    /// properties with `removed` completion callbacks registered, then those
-    /// callbacks will only fire when *all* of the created animations are
-    /// complete.
-    public static let removed: AnimationCompletionCriteria = { fatalError() }()
-
-
-    
-
 }
 
 /// Contextual values that a custom animation can use to manage state and

@@ -382,6 +382,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_fillWidthModifier", value: newValue, defaultValue: { nil }) }
     }
 
+    var _fontDesign: Font.Design? {
+        get { builtinValue(key: "_fontDesign", defaultValue: { nil }) as! Font.Design? }
+        set { setBuiltinValue(key: "_fontDesign", value: newValue, defaultValue: { nil }) }
+    }
+
     var _fontWeight: Font.Weight? {
         get { builtinValue(key: "_fontWeight", defaultValue: { nil }) as! Font.Weight? }
         set { setBuiltinValue(key: "_fontWeight", value: newValue, defaultValue: { nil }) }
