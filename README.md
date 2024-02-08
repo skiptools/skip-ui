@@ -248,6 +248,8 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 
 The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
 
+Support levels:
+
   - ✅ – Full
   - 🟢 – High
   - 🟡 – Medium 
