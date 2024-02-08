@@ -2,6 +2,8 @@
 
 SwiftUI support for [Skip](https://skip.tools) apps.
 
+See what API is currently implemented [here](#supported-swiftui).
+
 ## About 
 
 SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI for Kotlin on Android using Jetpack Compose. Its goal is to mirror as much of SwiftUI as possible, allowing Skip developers to use SwiftUI with confidence.
@@ -22,7 +24,7 @@ The module is transparently adopted through the translation of `import SwiftUI` 
 
 SkipUI - together with the Skip transpiler - has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. SkipUI also implements many of SwiftUI's basic layout and control views, as well as many core modifiers. It is possible to write an Android app entirely in SwiftUI utilizing SkipUI's current component set.
 
-SkipUI is a young library, however, and much of SwiftUI's vast surface area is not yet implemented. You are likely to run into limitations while writing real-world apps. See [Supported SwiftUI](#supported-swiftui) for a full list of supported components and constructs. Anything not listed there is likely not yet ported.
+SkipUI is a young library, however, and much of SwiftUI's vast surface area is not yet implemented. You are likely to run into limitations while writing real-world apps. See [Supported SwiftUI](#supported-swiftui) for a full list of supported components and constructs.
 
 When you want to use a SwiftUI construct that has not been implemented, you have options. You can try to find a workaround using only supported components, [embed Compose code directly](#composeview), or [add support to SkipUI](#implementation-strategy). If you choose to enhance SkipUI itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
 
@@ -244,144 +246,671 @@ Perhaps the most common way to test SkipUI's support for a SwiftUI component, ho
 
 ## Supported SwiftUI
 
-The following table summarizes SkipUI's SwiftUI support on Android. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
+The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
 
   - ✅ – Full
   - 🟢 – High
   - 🟡 – Medium 
   - 🔴 – Low
 
-|Component|Support Level|Notes|
-|---------|-------------|-----|
-|`@AppStorage`|🟢 High|Optional values not supported|
-|`@Bindable`|✅ Full||
-|`@Binding`|✅ Full||
-|`@Environment`|✅ Full|See [Environment Keys](#environment-keys)|
-|`@EnvironmentObject`|✅ Full||
-|`@ObservedObject`|✅ Full||
-|`@State`|✅ Full||
-|`@StateObject`|✅ Full||
-|Custom Views|✅ Full||
-|Custom ViewModifiers|✅ Full||
-|`AsyncImage`|🟢 High||
-|`Button`|🟢 High||
-|`Capsule`|✅ Full||
-|`Circle`|✅ Full||
-|`Color`|🟢 High||
-|`DatePicker`|🟡 Medium|Ranges not supported, only `.automatic` style|
-|`Divider`|✅ Full||
-|`DragGesture`|🟢 High|See [Gestures](#gestures)|
-|`EllipticalGradient`|🟡 Medium|Fills as circular unless used as a `View`|
-|`EmptyView`|✅ Full||
-|`Font`|🟡 Medium||
-|`ForEach`|🟢 High|See [Lists](#lists)|
-|`Form`|✅ Full||
-|`Group`|✅ Full||
-|`HStack`|✅ Full||
-|`Image`|🔴 Low|See [Images](#images)|
-|`Label`|🔴 Low|See [Images](#images)|
-|`LinearGradient`|✅ Full||
-|`Link`|✅ Full||
-|`List`|🟢 High|See [Lists](#lists)|
-|`LongPressGesture`|🟢 High|See [Gestures](#gestures)|
-|`Menu`|🟢 High||
-|`NavigationLink`|🟡 Medium|See [Navigation](#navigation)|
-|`NavigationStack`|🟡 Medium|See [Navigation](#navigation)|
-|`Oval`|✅ Full||
-|`Picker`|🟡 Medium|Only .automatic, .menu, .navigationLink styles|
-|`ProgressView`|🟡 Medium|Labels not supported|
-|`RadialGradient`|✅ Full||
-|`Rectangle`|✅ Full||
-|`RoundedRectangle`|✅ Full||
-|`ScrollView`|✅ Full||
-|`Section`|🟢 High|See [Lists](#lists)|
-|`SecureField`|✅ Full||
-|`ShareLink`|🔴 Low|`String` or `URL` data only|
-|`Slider`|🟡 Medium|Labels, `onEditingChanged` not supported|
-|`Spacer`|🟡 Medium|`minLength` not supported|
-|`TabView`|🟡 Medium|See [Navigation](#navigation)|
-|`TapGesture`|🟢 High|See [Gestures](#gestures)|
-|`Text`|🟢 High|Formatting not supported|
-|`TextField`|🟢 High|Formatting not supported|
-|`Toggle`|🟡 Medium|Styling, `sources` not supported|
-|`ToolbarItem`|✅ Full||
-|`ToolbarItemGroup`|✅ Full||
-|`UnevenRoundedRectangle`|✅ Full||
-|`VStack`|✅ Full||
-|`ZStack`|✅ Full||
-|`.aspectRatio`|🟡 Medium|Supported for images|
-|`.autocorrectionDisabled`|✅ Full||
-|`.background`|🟢 High||
-|`.backgroundStyle`|✅ Full||
-|`.bold`|✅ Full||
-|`.border`|✅ Full||
-|`.buttonStyle`|🟢 High|Custom styles not supported|
-|`.clipped`|🟡 Medium|Most content clips automatically|
-|`.clipShape`|✅ Full||
-|`.confirmationDialog`|✅ Full||
-|`.cornerRadius`|✅ Full||
-|`.deleteDisabled`|✅ Full||
-|`.disabled`|✅ Full||
-|`.environment`|✅ Full||
-|`.environmentObject`|✅ Full||
-|`.fill` (Shape)|✅ Full||
-|`.font`|✅ Full||
-|`.foregroundColor`|✅ Full||
-|`.foregroundStyle`|✅ Full||
-|`.frame`|🟢 High||
-|`.gesture`|🟢 High|See [Gestures](#gestures)|
-|`.gradient` (Color)|✅ Full||
-|`.hidden`|✅ Full||
-|`.inset` (Shape)|🟢 High||
-|`.italic`|✅ Full||
-|`.keyboardType`|✅ Full||
-|`.labelsHidden`|✅ Full||
-|`.lineLimit`|🟡 Medium|Only `Int?` value supported|
-|`.listItemTint`|✅ Full||
-|`.listRowBackground`|✅ Full||
-|`.listRowSeparator`|✅ Full||
-|`.listStyle`|✅ Full||
-|`.modifier`|✅ Full||
-|`.monospaced`|✅ Full||
-|`.moveDisabled`|✅ Full||
-|`.navigationBarBackButtonHidden`|🟡 Medium|Does not disable system back button|
-|`.navigationDestination`|🟢 High|See [Navigation](#navigation)|
-|`.navigationTitle`|🟢 High|Binding value not supported|
-|`.offset`|✅ Full||
-|`.onAppear`|✅ Full||
-|`.onChange`|✅ Full||
-|`.onDelete`|✅ Full||
-|`.onDisappear`|✅ Full||
-|`.onLongPressGesture`|🟢 High|See [Gestures](#gestures)|
-|`.onMove`|✅ Full||
-|`.onSubmit`|✅ Full||
-|`.onTapGesture`|🟢 High|See [Gestures](#gestures)|
-|`.opacity`|✅ Full||
-|`.overlay`|🟢 High||
-|`.padding`|🟢 High|Compose does not support negative padding|
-|`.progressViewStyle`|🟢 High|Custom styles not supported|
-|`.resizable`|🔴 Low|`capInsets` and `resizingMode` not supported|
-|`.rotation` (Shape)|🟢 High|Anchor not supported|
-|`.rotationEffect`|🟡 Medium||
-|`.scale` (Shape)|🟢 High|Anchor not supported|
-|`.scaledToFill`|🟡 Medium|Supported for images|
-|`.scaledToFit`|🟡 Medium|Supported for images|
-|`.scaleEffect`|🟡 Medium||
-|`.scrollContentBackground`|✅ Full||
-|`.searchable`|🔴 Low|Suggestions, scope not implemented|
-|`.shadow`|🟢 High|Place before `.background`, `.overlay`|
-|`.sheet`|🟢 High|See [Navigation](#navigation)|
-|`.stroke` (Shape)|✅ Full||
-|`.strokeBorder` (Shape)|✅ Full||
-|`.submitLabel`|✅ Full||
-|`.tabItem`|✅ Full||
-|`.tag`|✅ Full||
-|`.task`|✅ Full||
-|`.textInputAutocapitalization`|✅ Full||
-|`.textFieldStyle`|🟡 Medium|`.plain` not supported|
-|`.tint`|✅ Full||
-|`.toolbar`|🟢 High||
-|`.zIndex`|✅ Full||
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Component</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>🟢</td>
+      <td><code>@AppStorage</code></td>
+      <td>Optional values not supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@Bindable</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@Binding</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@Environment</code></td>
+      <td>See <a href="#environment-keys">Environment Keys</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@EnvironmentObject</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@ObservedObject</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@State</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>@StateObject</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>Custom Views</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>Custom ViewModifiers</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>AsyncImage</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>Button</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Capsule</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Circle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>Color</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>DatePicker</code></td>
+      <td>Ranges not supported, only <code>.automatic</code> style</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Divider</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>DragGesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>EllipticalGradient</code></td>
+      <td>Fills as circular unless used as a <code>View</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>EmptyView</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>Font</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>ForEach</code></td>
+      <td>See <a href="#lists">Lists</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Form</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Group</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>HStack</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td><code>Image</code></td>
+      <td>See <a href="#images">Images</a></td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td><code>Label</code></td>
+      <td>See <a href="#images">Images</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>LinearGradient</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Link</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>List</code></td>
+      <td>See <a href="#lists">Lists</a></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>LongPressGesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>Menu</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>NavigationLink</code></td>
+      <td>See <a href="#navigation">Navigation</a></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>NavigationStack</code></td>
+      <td>See <a href="#navigation">Navigation</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Oval</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>Picker</code></td>
+      <td>Only <code>.automatic</code>, <code>.menu</code>, <code>.navigationLink</code> styles</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>ProgressView</code></td>
+      <td>Labels not supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>RadialGradient</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>Rectangle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>RoundedRectangle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>ScrollView</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>Section</code></td>
+      <td>See <a href="#lists">Lists</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>SecureField</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td><code>ShareLink</code></td>
+      <td><code>String</code> or <code>URL</code> data only</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>Slider</code></td>
+      <td>Labels, <code>onEditingChanged</code> not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>Spacer</code></td>
+      <td><code>minLength</code> not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>TabView</code></td>
+      <td>See <a href="#navigation">Navigation</a></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>TapGesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>Text</code></td>
+      <td>Formatting not supported</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>TextField</code></td>
+      <td>Formatting not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>Toggle</code></td>
+      <td>Styling, <code>sources</code> not supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>ToolbarItem</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>ToolbarItemGroup</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UnevenRoundedRectangle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>VStack</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>ZStack</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.aspectRatio</code></td>
+      <td>Supported for images</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.autocorrectionDisabled</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.background</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.backgroundStyle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.bold</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.border</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.buttonStyle</code></td>
+      <td>Custom styles not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.clipped</code></td>
+      <td>Most content clips automatically</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.clipShape</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.confirmationDialog</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.cornerRadius</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.deleteDisabled</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.disabled</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.environment</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.environmentObject</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.fill</code> (Shape)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.font</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.foregroundColor</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.foregroundStyle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.frame</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.gesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.gradient</code> (Color)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.hidden</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.inset</code> (Shape)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.italic</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.keyboardType</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.labelsHidden</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.lineLimit</code></td>
+      <td>Only <code>Int?</code> value supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.listItemTint</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.listRowBackground</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.listRowSeparator</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.listStyle</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.modifier</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.monospaced</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.moveDisabled</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.navigationBarBackButtonHidden</code></td>
+      <td>Does not disable system back button</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.navigationDestination</code></td>
+      <td>See <a href="#navigation">Navigation</a></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.navigationTitle</code></td>
+      <td>Binding value not supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.offset</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onAppear</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onChange</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onDelete</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onDisappear</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.onLongPressGesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onMove</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.onSubmit</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.onTapGesture</code></td>
+      <td>See <a href="#gestures">Gestures</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.opacity</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.overlay</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.padding</code></td>
+      <td>Compose does not support negative padding</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.progressViewStyle</code></td>
+      <td>Custom styles not supported</td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td><code>.resizable</code></td>
+      <td><code>capInsets</code> and <code>resizingMode</code> not supported</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.rotation</code> (Shape)</td>
+      <td>Anchor not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.rotationEffect</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.scale</code> (Shape)</td>
+      <td>Anchor not supported</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.scaledToFill</code></td>
+      <td>Supported for images</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.scaledToFit</code></td>
+      <td>Supported for images</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.scaleEffect</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.scrollContentBackground</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td><code>.searchable</code></td>
+      <td>Suggestions, scope not implemented</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.shadow</code></td>
+      <td>Place before <code>.background</code>, <code>.overlay</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.sheet</code></td>
+      <td>See <a href="#navigation">Navigation</a></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.stroke</code> (Shape)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.strokeBorder</code> (Shape)</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.submitLabel</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.tabItem</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.tag</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.task</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.textInputAutocapitalization</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td><code>.textFieldStyle</code></td>
+      <td><code>.plain</code> not supported</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.tint</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.toolbar</code></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.zIndex</code></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+
 
 ### Environment Keys
 
