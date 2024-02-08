@@ -256,658 +256,957 @@ Support levels:
   - 🔴 – Low
 
 <table>
-  <thead>
-    <tr>
-      <th></th>
-      <th>Component</th>
-      <th>Notes</th>
-    </tr>
-  </thead>
+  <thead><th>Support</th><th>API</th></thead>
   <tbody>
     <tr>
       <td>🟢</td>
-      <td><code>@AppStorage</code></td>
-      <td>Optional values not supported</td>
+      <td>
+            <details>
+              <summary><code>@AppStorage</code></summary>
+              <ul>
+                  <li>Optional values are not supported</li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@Bindable</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@Binding</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@Environment</code></td>
-      <td>See <a href="#environment-keys">Environment Keys</a></td>
+      <td>
+         <details>
+              <summary><code>@Environment</code></summary>
+              <ul>
+                  <li>See <a href="#environment-keys">Environment Keys</a></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@EnvironmentObject</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@ObservedObject</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@State</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>@StateObject</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td>Custom Views</td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td>Custom ViewModifiers</td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td><code>AsyncImage</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td><code>Button</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Capsule</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Circle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>Color</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>Color</code></summary>
+              <ul>
+                  <li><code>init(red: Double, green: Double, blue: Double, opacity: Double = 1.0)</code></li>
+                  <li><code>init(white: Double, opacity: Double = 1.0)</code></li>
+                  <li><code>init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0)</code></li>
+                  <li><code>static let accentColor: Color</code></li>
+                  <li><code>static let primary: Color</code></li>
+                  <li><code>static let secondary: Color</code></li>
+                  <li><code>static let clear: Color</code></li>
+                  <li><code>static let white: Color</code></li>
+                  <li><code>static let black: Color</code></li>
+                  <li><code>static let gray: Color</code></li>
+                  <li><code>static let red: Color</code></li>
+                  <li><code>static let orange: Color</code></li>
+                  <li><code>static let yellow: Color</code></li>
+                  <li><code>static let green: Color</code></li>
+                  <li><code>static let mint: Color</code></li>
+                  <li><code>static let teal: Color</code></li>
+                  <li><code>static let cyan: Color</code></li>
+                  <li><code>static let blue: Color</code></li>
+                  <li><code>static let indigo: Color</code></li>
+                  <li><code>static let purple: Color</code></li>
+                  <li><code>static let pink: Color</code></li>
+                  <li><code>static let brown: Color</code></li>
+                  <li><code>func opacity(_ opacity: Double) -> Color</code></li>
+                  <li><code>var gradient: AnyGradient</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>DatePicker</code></td>
-      <td>Ranges not supported, only <code>.automatic</code> style</td>
+      <td>
+          <details>
+              <summary><code>DatePicker</code></summary>
+              <ul>
+                  <li><code>init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Divider</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>DragGesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>DragGesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>EllipticalGradient</code></td>
-      <td>Fills as circular unless used as a <code>View</code></td>
+      <td>
+          <details>
+              <summary><code>EllipticalGradient</code></summary>
+              <ul>
+                  <li>Fills as a circular gradient instead of elliptical unless the gradient is used as its own <code>View</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>EmptyView</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>Font</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>Font</code></summary>
+              <ul>
+                  <li><code>static let largeTitle: Font</code></li>
+                  <li><code>static let title: Font</code></li>
+                  <li><code>static let title2: Font</code></li>
+                  <li><code>static let title3: Font</code></li>
+                  <li><code>static let headline: Font</code></li>
+                  <li><code>static let subheadline: Font</code></li>
+                  <li><code>static let body: Font</code></li>
+                  <li><code>static let callout: Font</code></li>
+                  <li><code>static let footnote: Font</code></li>
+                  <li><code>static let caption: Font</code></li>
+                  <li><code>static let caption2: Font</code></li>
+                  <li><code>static func system(_ style: Font.TextStyle, design: Font.Design? = nil, weight: Font.Weight? = nil) -> Font</code></li>
+                  <li><code>static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design? = nil) -> Font</code></li>
+                  <li><code>static func custom(_ name: String, size: CGFloat) -> Font</code></li>
+                  <li><code>static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font</code></li>
+                  <li><code>static func custom(_ name: String, fixedSize: CGFloat) -> Font</code></li>
+                  <li><code>func italic() -> Font</code></li>
+                  <li><code>func weight(_ weight: Font.Weight) -> Font</code></li>
+                  <li><code>func bold() -> Font</code></li>
+                  <li><code>func monospaced() -> Font</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>ForEach</code></td>
-      <td>See <a href="#lists">Lists</a></td>
+      <td>
+          <details>
+              <summary><code>ForEach</code></summary>
+              <ul>
+                  <li>See <a href="#lists">Lists</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Form</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Group</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>HStack</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🔴</td>
-      <td><code>Image</code></td>
-      <td>See <a href="#images">Images</a></td>
+      <td>
+          <details>
+              <summary><code>Image</code></summary>
+              <ul>
+                  <li><code>init(systemName: String)</code></li>
+                  <li>See <a href="#images">Images</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🔴</td>
-      <td><code>Label</code></td>
-      <td>See <a href="#images">Images</a></td>
+      <td>
+          <details>
+              <summary><code>Label</code></summary>
+              <ul>
+                  <li><code>init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View)</code></li>
+                  <li><code>init(_ title: String, systemImage: String)</code></li>
+                  <li>See <a href="#images">Images</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>LinearGradient</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Link</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>List</code></td>
-      <td>See <a href="#lists">Lists</a></td>
+      <td>
+          <details>
+              <summary><code>List</code></summary>
+              <ul>
+                  <li>See <a href="#lists">Lists</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>LongPressGesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>LongPressGesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td><code>Menu</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>NavigationLink</code></td>
-      <td>See <a href="#navigation">Navigation</a></td>
+      <td>
+          <details>
+              <summary><code>NavigationLink</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>NavigationStack</code></td>
-      <td>See <a href="#navigation">Navigation</a></td>
+      <td>
+          <details>
+              <summary><code>NavigationStack</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+                  <li><code>init(@ViewBuilder root: () -> Root)</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Oval</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>✅</td>
       <td><code>Picker</code></td>
-      <td>Only <code>.automatic</code>, <code>.menu</code>, <code>.navigationLink</code> styles</td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>ProgressView</code></td>
-      <td>Labels not supported</td>
+      <td>
+          <details>
+              <summary><code>ProgressView</code></summary>
+              <ul>
+                  <li><code>init()</code></li>
+                  <li><code>init(value: Double?, total: Double = 1.0)</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>RadialGradient</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>Rectangle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>RoundedRectangle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>ScrollView</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>Section</code></td>
-      <td>See <a href="#lists">Lists</a></td>
+      <td>
+          <details>
+              <summary><code>Section</code></summary>
+              <ul>
+                  <li>See <a href="#lists">Lists</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>SecureField</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🔴</td>
-      <td><code>ShareLink</code></td>
-      <td><code>String</code> or <code>URL</code> data only</td>
+      <td>
+          <details>
+              <summary><code>ShareLink</code></summary>
+              <ul>
+                  <li>Supports sharing <code>String</code> or <code>URL</code> data only</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>Slider</code></td>
-      <td>Labels, <code>onEditingChanged</code> not supported</td>
+      <td>
+          <details>
+              <summary><code>Slider</code></summary>
+              <ul>
+                  <li><code>init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil)</code>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>Spacer</code></td>
-      <td><code>minLength</code> not supported</td>
-    </tr>
-    <tr>
-      <td>🟡</td>
-      <td><code>TabView</code></td>
-      <td>See <a href="#navigation">Navigation</a></td>
+      <td>
+          <details>
+              <summary><code>Spacer</code></summary>
+              <ul>
+                  <li><code>init()</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>TapGesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>TabView</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>Text</code></td>
-      <td>Formatting not supported</td>
+      <td>
+          <details>
+              <summary><code>TapGesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>TextField</code></td>
-      <td>Formatting not supported</td>
+      <td>
+          <details>
+              <summary><code>Text</code></summary>
+              <ul>
+                  <li>Formatting is not supported</li>
+                  <li><code>Text(...) + Text(...)</code> is not supported</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>TextField</code></summary>
+              <ul>
+                  <li><code>init(_ title: String, text: Binding<String>, prompt: Text? = nil)</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>Toggle</code></td>
-      <td>Styling, <code>sources</code> not supported</td>
+      <td>
+          <details>
+              <summary><code>Toggle</code></summary>
+              <ul>
+                  <li><code>init(isOn: Binding<Bool>, @ViewBuilder label: () -> any View)</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>ToolbarItem</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>ToolbarItemGroup</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>UnevenRoundedRectangle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>VStack</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>ZStack</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.aspectRatio</code></td>
-      <td>Supported for images</td>
+      <td>
+          <details>
+              <summary><code>.aspectRatio</code></summary>
+              <ul>
+                  <li>Only supported for images</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.autocorrectionDisabled</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td><code>.background</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.backgroundStyle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.bold</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.border</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.buttonStyle</code></td>
-      <td>Custom styles not supported</td>
+      <td>
+          <details>
+              <summary><code>.buttonStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.plain</code></li>
+                  <li><code>.borderless</code></li>
+                  <li><code>.bordered</code></li>
+                  <li><code>.borderedProminent</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.clipped</code></td>
-      <td>Most content clips automatically</td>
+      <td>
+          <details>
+              <summary><code>.clipped</code></summary>
+              <ul>
+                  <li>Most content in Compose clips automatically</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.clipShape</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.confirmationDialog</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.cornerRadius</code></td>
-      <td></td>
+    </tr>
+    <tr>
+      <td>🔴</td>
+      <td>
+          <details>
+              <summary><code>.datePickerStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.compact</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.deleteDisabled</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.disabled</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.environment</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.environmentObject</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.fill</code> (Shape)</td>
-      <td></td>
+      <td><code>.fill</code></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.font</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.foregroundColor</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.foregroundStyle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.frame</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>.frame</code></summary>
+              <ul>
+                  <li>Some combinations of parameters do not behave exactly the same in SwiftUI and Android</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.gesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>.gesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.gradient</code> (Color)</td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.hidden</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟢</td>
-      <td><code>.inset</code> (Shape)</td>
-      <td></td>
+      <td>✅</td>
+      <td><code>.inset</code></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.italic</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.keyboardType</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.labelsHidden</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.lineLimit</code></td>
-      <td>Only <code>Int?</code> value supported</td>
+      <td>
+          <details>
+              <summary><code>.lineLimit</code></summary>
+              <ul>
+                  <li>func lineLimit(_ number: Int?) -> some View</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.listItemTint</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.listRowBackground</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.listRowSeparator</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.listStyle</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.modifier</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.monospaced</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.moveDisabled</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.navigationBarBackButtonHidden</code></td>
-      <td>Does not disable system back button</td>
+      <td>
+          <details>
+              <summary><code>.navigationBarBackButtonHidden</code></summary>
+              <ul>
+                  <li>Does not disable system back button</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.navigationDestination</code></td>
-      <td>See <a href="#navigation">Navigation</a></td>
+      <td>
+          <details>
+              <summary><code>.navigationDestination</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.navigationTitle</code></td>
-      <td>Binding value not supported</td>
+      <td>
+          <details>
+              <summary><code>.navigationTitle</code></summary>
+              <ul>
+                  <li><code>func navigationTitle(_ title: String) -> some View</code></li>
+                  <li><code>func navigationTitle(_ title: Text) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.offset</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onAppear</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onChange</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onDelete</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onDisappear</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.onLongPressGesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>.onLongPressGesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onMove</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.onSubmit</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.onTapGesture</code></td>
-      <td>See <a href="#gestures">Gestures</a></td>
+      <td>
+          <details>
+              <summary><code>.onTapGesture</code></summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.opacity</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
       <td><code>.overlay</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.padding</code></td>
-      <td>Compose does not support negative padding</td>
+      <td>
+          <details>
+              <summary><code>.padding</code></summary>
+              <ul>
+                  <li>Compose does not support negative padding</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.pickerStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.navigationLink</code></li>
+                  <li><code>.menu</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.progressViewStyle</code></td>
-      <td>Custom styles not supported</td>
+      <td>
+          <details>
+              <summary><code>.progressViewStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.linear</code></li>
+                  <li><code>.circular</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🔴</td>
-      <td><code>.resizable</code></td>
-      <td><code>capInsets</code> and <code>resizingMode</code> not supported</td>
+      <td>
+          <details>
+              <summary><code>.resizable</code></summary>
+              <ul>
+                  <li><code>func resizable() -> Image</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.rotation</code> (Shape)</td>
-      <td>Anchor not supported</td>
-    </tr>
-    <tr>
-      <td>🟡</td>
-      <td><code>.rotationEffect</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>.rotation</code></summary>
+              <ul>
+                  <li><code>func rotation(_ angle: Angle) -> any Shape</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.scale</code> (Shape)</td>
-      <td>Anchor not supported</td>
+       <td>
+          <details>
+              <summary><code>.rotationEffect</code></summary>
+              <ul>
+                  <li><code>func rotationEffect(_ angle: Angle) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.scale</code></summary>
+              <ul>
+                  <li><code>func scale(_ scale: CGFloat) -> any Shape</code></li>
+                  <li><code>func scale(x: CGFloat = 1.0, y: CGFloat = 1.0) -> any Shape</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.scaledToFill</code></td>
-      <td>Supported for images</td>
+      <td>
+          <details>
+              <summary><code>.scaledToFill</code></summary>
+              <ul>
+                  <li>Only supported for images</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.scaledToFit</code></td>
-      <td>Supported for images</td>
+      <td>
+          <details>
+              <summary><code>.scaledToFit</code></summary>
+              <ul>
+                  <li>Only supported for images</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟡</td>
-      <td><code>.scaleEffect</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>.scaleEffect</code></summary>
+              <ul>
+                  <li><code>func scaleEffect(_ scale: CGSize) -> some View</code></li>
+                  <li><code>func scaleEffect(_ s: CGFloat) -> some View</code></li>
+                  <li><code>func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.scrollContentBackground</code></td>
-      <td></td>
     </tr>
     <tr>
-      <td>🔴</td>
-      <td><code>.searchable</code></td>
-      <td>Suggestions, scope not implemented</td>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.searchable</code></summary>
+              <ul>
+                <li><code>func searchable(text: Binding<String>, prompt: Text? = nil) -> some View</code></li>
+                <li><code>func searchable(text: Binding<String>, prompt: String) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.shadow</code></td>
-      <td>Place before <code>.background</code>, <code>.overlay</code></td>
+      <td>
+          <details>
+              <summary><code>.shadow</code></summary>
+              <ul>
+                  <li>Place this modifier before <code>.background</code>, <code>.overlay</code> modifiers</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.sheet</code></td>
-      <td>See <a href="#navigation">Navigation</a></td>
+      <td>
+          <details>
+              <summary><code>.sheet</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.stroke</code> (Shape)</td>
-      <td></td>
+      <td><code>.stroke</code></td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.strokeBorder</code> (Shape)</td>
-      <td></td>
+      <td><code>.strokeBorder</code></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.submitLabel</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.tabItem</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.tag</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.task</code></td>
-      <td></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.textFieldStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.roundedBorder</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.textInputAutocapitalization</code></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td>🟡</td>
-      <td><code>.textFieldStyle</code></td>
-      <td><code>.plain</code> not supported</td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.tint</code></td>
-      <td></td>
     </tr>
     <tr>
       <td>🟢</td>
-      <td><code>.toolbar</code></td>
-      <td></td>
+      <td>
+          <details>
+              <summary><code>.toolbar</code></summary>
+              <ul>
+                  <li><code>func toolbar(@ViewBuilder content: () -> any View) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
       <td><code>.zIndex</code></td>
-      <td></td>
     </tr>
   </tbody>
 </table>
