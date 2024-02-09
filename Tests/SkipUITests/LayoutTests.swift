@@ -287,6 +287,11 @@ final class LayoutTests: XCSnapshotTestCase {
     }
 
     func testDrawCourierBar() throws {
+        // disabled until we can update to compose-bom 2024 or later, since this rendering changed
+        if isAndroid {
+            throw XCTSkip("Disabled on Android until BOM 2024")
+        }
+
         XCTAssertEqual(try render(compact: 2, view: ZStack {
             Text("|").font(Font.custom("courier", size: CGFloat(8.0))).foregroundColor(Color.black)
         }.frame(width: 7.0, height: 8.0).background(Color.white)).pixmap,

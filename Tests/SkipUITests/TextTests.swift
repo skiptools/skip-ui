@@ -134,6 +134,11 @@ final class TextTests: XCSnapshotTestCase {
     }
 
     func testDrawTextMonospacedFont() throws {
+        // disabled until we can update to compose-bom 2024 or later, since this rendering changed
+        if isAndroid {
+            throw XCTSkip("Disabled on Android until BOM 2024")
+        }
+
         XCTAssertEqual(try pixmap(brightness: 0.75, content: ZStack {
             Text("T").font(Font.custom("courier", size: CGFloat(14.0))).foregroundColor(Color.black).frame(height: 14.0)
         }.background(Color.white)),
