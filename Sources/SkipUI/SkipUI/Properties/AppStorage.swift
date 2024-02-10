@@ -66,7 +66,7 @@ public final class AppStorage<Value>: StateTracker {
         // Create our Compose-trackable backing state and keep it in sync with the store. Note that we have to seed the store with a value
         // for the key in order for our listener to work
         let store = self.currentStore
-        let object = store.object(forKey: key)
+        let object = store.obj(forKey: key)
         let value: Value?
         if let object, let deserializer {
             value = deserializer(object)
@@ -85,7 +85,7 @@ public final class AppStorage<Value>: StateTracker {
         // Caution: The preference manager does not currently store a strong reference to the listener. You must store a strong reference to the listener, or it will be susceptible to garbage collection. We recommend you keep a reference to the listener in the instance data of an object that will exist as long as you need the listener.
         // https://developer.android.com/reference/android/content/SharedPreferences.html#registerOnSharedPreferenceChangeListener(android.content.SharedPreferences.OnSharedPreferenceChangeListener)
         self.listener = store.registerOnSharedPreferenceChangeListener(key: key) {
-            let object = store.object(forKey: key)
+            let object = store.obj(forKey: key)
             let value: Value?
             if let object, let deserializer {
                 value = deserializer(object)
@@ -100,13 +100,15 @@ public final class AppStorage<Value>: StateTracker {
         #endif
     }
 
-    #if SKIP
     /// The current active store
     private var currentStore: UserDefaults {
+        #if SKIP
         // TODO: handle Scene.defaultAppStorage() and View.defaultAppStorage() by storing it in the environment
         return store ?? UserDefaults.standard
+        #else
+        fatalError("unsupported outside of skip")
+        #endif
     }
-    #endif
 }
 
 extension View {
