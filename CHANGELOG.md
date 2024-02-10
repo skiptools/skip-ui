@@ -1,3 +1,13 @@
+## 0.5.2
+
+Released 2024-02-10
+
+  - Invoke UserDefaults.obj(forKey:) rather than unescapable object(forKey:)
+  - Disable some Android tests due to regressions with latest Compose BOM
+  - Update README.md
+  - Update README.md
+  - Update README.md
+
 ## 0.5.0
 
 Released 2024-02-05
