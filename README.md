@@ -244,6 +244,245 @@ SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests 
 
 Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
 
+## Topics
+
+### Environment Keys
+
+SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
+
+- `autocorrectionDisabled` (read-only)
+- `backgroundStyle`
+- `dismiss`
+- `font`
+- `isEnabled`
+- `isSearching` (read-only)
+- `layoutDirection`
+- `lineLimit`
+- `locale`
+- `openURL`
+- `timeZone`
+
+### Gestures
+
+SkipUI currently supports tap, long press, and drag gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
+
+- `@GestureState` is not yet supported. Use the `Gesture.onEnded` modifier to reset your state.
+- Tap counts > 2 are not supported.
+- Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
+- Only the `onChanged` and `onEnded` gesture modifiers are supported.
+- Customization of minimum touch duration, distance, etc. is not supported.
+
+### Images
+
+SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
+
+To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported, though you can display any emoji using `Text`. These restrictions also apply to other components that load images, such as `Label`.
+
+Skip cannot yet read iOS asset catalogs, so `Image(name:)` is not yet available on Android. You can, however, use `AsyncImage` to display local image resources. This works on both iOS and through Skip on Android. So if you have an image `Sources/MyModule/Resources/sample.jpg` and your `.target` in `Package.swift` properly marks the `Resources` folder for SPM resource processing:
+
+```swift
+.target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
+```
+
+Then the following SwiftUI will display the image on both platforms:
+
+```swift
+AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
+```
+
+If these image display options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
+
+| iOS | Android |
+|---|-------|
+| arrow.clockwise.circle | Icons.Outlined.Refresh |
+| arrow.forward | Icons.Outlined.ArrowForward |
+| arrow.forward.square | Icons.Outlined.ExitToApp |
+| arrow.left | Icons.Outlined.ArrowBack |
+| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown |
+| bell | Icons.Outlined.Notifications |
+| bell.fill | Icons.Filled.Notifications |
+| calendar | Icons.Outlined.DateRange |
+| cart | Icons.Outlined.ShoppingCart |
+| cart.fill | Icons.Filled.ShoppingCart |
+| checkmark | Icons.Outlined.Check |
+| checkmark.circle | Icons.Outlined.CheckCircle |
+| checkmark.circle.fill | Icons.Filled.CheckCircle |
+| chevron.down | Icons.Outlined.KeyboardArrowDown |
+| chevron.left | Icons.Outlined.KeyboardArrowLeft |
+| chevron.right | Icons.Outlined.KeyboardArrowRight |
+| chevron.up | Icons.Outlined.KeyboardArrowUp |
+| ellipsis | Icons.Outlined.MoreVert |
+| envelope | Icons.Outlined.Email |
+| envelope.fill | Icons.Filled.Email |
+| exclamationmark.triangle | Icons.Outlined.Warning |
+| exclamationmark.triangle.fill | Icons.Filled.Warning |
+| face.smiling | Icons.Outlined.Face |
+| gearshape | Icons.Outlined.Settings |
+| gearshape.fill | Icons.Filled.Settings |
+| hand.thumbsup | Icons.Outlined.ThumbUp |
+| hand.thumbsup.fill | Icons.Filled.ThumbUp |
+| heart | Icons.Outlined.FavoriteBorder |
+| heart.fill | Icons.Outlined.Favorite |
+| house | Icons.Outlined.Home |
+| house.fill | Icons.Filled.Home |
+| info.circle | Icons.Outlined.Info |
+| info.circle.fill | Icons.Filled.Info |
+| line.3.horizontal | Icons.Outlined.Menu |
+| list.bullet | Icons.Outlined.List |
+| location | Icons.Outlined.LocationOn |
+| location.fill | Icons.Filled.LocationOn |
+| lock | Icons.Outlined.Lock |
+| lock.fill | Icons.Filled.Lock |
+| magnifyingglass | Icons.Outlined.Search |
+| mappin.circle | Icons.Outlined.Place |
+| mappin.circle.fill | Icons.Filled.Place |
+| paperplane | Icons.Outlined.Send |
+| paperplane.fill | Icons.Filled.Send |
+| pencil | Icons.Outlined.Create |
+| person | Icons.Outlined.Person |
+| person.crop.circle | Icons.Outlined.AccountCircle |
+| person.crop.circle.fill | Icons.Filled.AccountCircle |
+| person.crop.square | Icons.Outlined.AccountBox |
+| person.crop.square.fill | Icons.Filled.AccountBox |
+| person.fill | Icons.Filled.Person |
+| phone | Icons.Outlined.Call |
+| phone.fill | Icons.Filled.Call |
+| play | Icons.Outlined.PlayArrow |
+| play.fill | Icons.Filled.PlayArrow |
+| plus | Icons.Outlined.Add |
+| plus.circle.fill | Icons.Outlined.AddCircle |
+| square.and.arrow.up | Icons.Outlined.Share |
+| square.and.arrow.up.fill | Icons.Filled.Share |
+| star | Icons.Outlined.Star |
+| star.fill | Icons.Filled.Star |
+| trash | Icons.Outlined.Delete |
+| trash.fill | Icons.Filled.Delete |
+| wrench | Icons.Outlined.Build |
+| wrench.fill | Icons.Filled.Build |
+| xmark | Icons.Outlined.Clear |
+
+In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
+
+```swift
+#if SKIP
+Image(systemName: "Icons.Filled.Settings")
+#endif
+```
+
+### Lists
+
+SwiftUI `Lists` are powerful and flexible components. SkipUI currently supports the following patterns for specifying `List` content.
+
+Static content. Embed a child view for each row directly within the `List`:
+
+```swift
+List {
+    Text("Row 1")
+    Text("Row 2")
+    Text("Row 3")
+}
+```
+
+Indexed content. Specify an `Int` range and a closure to create a row for each index:
+
+```swift
+List(1...100) { index in 
+    Text("Row \(index)")
+}
+```
+
+Collection content. Supply any `RandomAccessCollection` - typically an `Array` - and a closure to create a row for each element. If the elements do not implement the `Identifiable` protocol, specify the key path to a property that can be used to uniquely identify each element:
+
+```swift
+List([person1, person2, person3], id: \.fullName) { person in
+    HStack {
+        Text(person.fullName)
+        Spacer()
+        Text(person.age)
+    } 
+}
+```
+
+`ForEach` content. Use `ForEach` to specify indexed or collection content. This allows you to mix content types.
+
+```swift
+List {
+    Text("People").bold()
+    ForEach([person1, person2, person3], id: \.fullName) { person in
+        HStack {
+            Text(person.fullName)
+            Spacer()
+            Text(person.age)
+        }
+    }
+}
+```
+
+When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions.
+
+```swift
+List($people, id: \.fullName, editActions: .all) { $person in
+    Text(person.fullName)
+        .deleteDisabled(!person.isDeletable)
+    }
+}
+```
+
+You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMove` modifiers. Make sure your `ForEach` also supplies an `id` for each item.
+
+#### List Limitations
+
+- Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
+- Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
+- `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
+- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
+
+### Navigation
+
+SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has implemented all three, albeit with the restrictions explained below.
+
+SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Otherwise, `TabView` acts as you would expect.
+
+In SwiftUI, you push vies onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
+
+```swift
+NavigationStack {
+    ListView()
+        .navigationTitle(Self.title)
+}
+
+struct ListView : View {
+    var body: some View {
+        List(City.allCases) { city in
+            NavigationLink(value: city) {
+                rowView(city: city)
+            }
+        }
+        .navigationDestination(for: City.self) { city in
+            CityView(city: city)
+        }
+    }
+}
+```
+
+SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
+
+Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
+
+Finally, SkipUI does not yet support binding to an array of destination values to specify the navigation stack.
+
+For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
+
+### Restrictions on Identifiers
+
+Compose requires all state values to be serializable. This restriction is typically transparent to your code, because when you use property wrappers like `@State`, SkipUI automatically tracks your state objects and gives Compose serializable identifiers in their place. Some SwiftUI values, however, must be stored directly in Compose, including `navigationDestination` values and `List` item identifiers. When this is the case, SkipUI creates a `String` from the value you supply using the following algorithm:
+
+- If the value is `Identifiable`, use `String(describing: value.id)`
+- If the value is `RawRepresentable`, use `String(describing: value.rawValue)`
+- Else use `String(describing: value)`
+
+Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
+
 ## Supported SwiftUI
 
 The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
@@ -1210,242 +1449,3 @@ Support levels:
     </tr>
   </tbody>
 </table>
-
-## Topics
-
-### Environment Keys
-
-SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
-
-- `autocorrectionDisabled` (read-only)
-- `backgroundStyle`
-- `dismiss`
-- `font`
-- `isEnabled`
-- `isSearching` (read-only)
-- `layoutDirection`
-- `lineLimit`
-- `locale`
-- `openURL`
-- `timeZone`
-
-### Gestures
-
-SkipUI currently supports tap, long press, and drag gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
-
-- `@GestureState` is not yet supported. Use the `Gesture.onEnded` modifier to reset your state.
-- Tap counts > 2 are not supported.
-- Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
-- Only the `onChanged` and `onEnded` gesture modifiers are supported.
-- Customization of minimum touch duration, distance, etc. is not supported.
-
-### Images
-
-SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
-
-To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported, though you can display any emoji using `Text`. These restrictions also apply to other components that load images, such as `Label`.
-
-Skip cannot yet read iOS asset catalogs, so `Image(name:)` is not yet available on Android. You can, however, use `AsyncImage` to display local image resources. This works on both iOS and through Skip on Android. So if you have an image `Sources/MyModule/Resources/sample.jpg` and your `.target` in `Package.swift` properly marks the `Resources` folder for SPM resource processing:
-
-```swift
-.target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
-```
-
-Then the following SwiftUI will display the image on both platforms:
-
-```swift
-AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
-```
-
-If these image display options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
-
-| iOS | Android |
-|---|-------|
-| arrow.clockwise.circle | Icons.Outlined.Refresh |
-| arrow.forward | Icons.Outlined.ArrowForward |
-| arrow.forward.square | Icons.Outlined.ExitToApp |
-| arrow.left | Icons.Outlined.ArrowBack |
-| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown |
-| bell | Icons.Outlined.Notifications |
-| bell.fill | Icons.Filled.Notifications |
-| calendar | Icons.Outlined.DateRange |
-| cart | Icons.Outlined.ShoppingCart |
-| cart.fill | Icons.Filled.ShoppingCart |
-| checkmark | Icons.Outlined.Check |
-| checkmark.circle | Icons.Outlined.CheckCircle |
-| checkmark.circle.fill | Icons.Filled.CheckCircle |
-| chevron.down | Icons.Outlined.KeyboardArrowDown |
-| chevron.left | Icons.Outlined.KeyboardArrowLeft |
-| chevron.right | Icons.Outlined.KeyboardArrowRight |
-| chevron.up | Icons.Outlined.KeyboardArrowUp |
-| ellipsis | Icons.Outlined.MoreVert |
-| envelope | Icons.Outlined.Email |
-| envelope.fill | Icons.Filled.Email |
-| exclamationmark.triangle | Icons.Outlined.Warning |
-| exclamationmark.triangle.fill | Icons.Filled.Warning |
-| face.smiling | Icons.Outlined.Face |
-| gearshape | Icons.Outlined.Settings |
-| gearshape.fill | Icons.Filled.Settings |
-| hand.thumbsup | Icons.Outlined.ThumbUp |
-| hand.thumbsup.fill | Icons.Filled.ThumbUp |
-| heart | Icons.Outlined.FavoriteBorder |
-| heart.fill | Icons.Outlined.Favorite |
-| house | Icons.Outlined.Home |
-| house.fill | Icons.Filled.Home |
-| info.circle | Icons.Outlined.Info |
-| info.circle.fill | Icons.Filled.Info |
-| line.3.horizontal | Icons.Outlined.Menu |
-| list.bullet | Icons.Outlined.List |
-| location | Icons.Outlined.LocationOn |
-| location.fill | Icons.Filled.LocationOn |
-| lock | Icons.Outlined.Lock |
-| lock.fill | Icons.Filled.Lock |
-| magnifyingglass | Icons.Outlined.Search |
-| mappin.circle | Icons.Outlined.Place |
-| mappin.circle.fill | Icons.Filled.Place |
-| paperplane | Icons.Outlined.Send |
-| paperplane.fill | Icons.Filled.Send |
-| pencil | Icons.Outlined.Create |
-| person | Icons.Outlined.Person |
-| person.crop.circle | Icons.Outlined.AccountCircle |
-| person.crop.circle.fill | Icons.Filled.AccountCircle |
-| person.crop.square | Icons.Outlined.AccountBox |
-| person.crop.square.fill | Icons.Filled.AccountBox |
-| person.fill | Icons.Filled.Person |
-| phone | Icons.Outlined.Call |
-| phone.fill | Icons.Filled.Call |
-| play | Icons.Outlined.PlayArrow |
-| play.fill | Icons.Filled.PlayArrow |
-| plus | Icons.Outlined.Add |
-| plus.circle.fill | Icons.Outlined.AddCircle |
-| square.and.arrow.up | Icons.Outlined.Share |
-| square.and.arrow.up.fill | Icons.Filled.Share |
-| star | Icons.Outlined.Star |
-| star.fill | Icons.Filled.Star |
-| trash | Icons.Outlined.Delete |
-| trash.fill | Icons.Filled.Delete |
-| wrench | Icons.Outlined.Build |
-| wrench.fill | Icons.Filled.Build |
-| xmark | Icons.Outlined.Clear |
-
-In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
-
-```swift
-#if SKIP
-Image(systemName: "Icons.Filled.Settings")
-#endif
-```
-
-### Lists
-
-SwiftUI `Lists` are powerful and flexible components. SkipUI currently supports the following patterns for specifying `List` content.
-
-Static content. Embed a child view for each row directly within the `List`:
-
-```swift
-List {
-    Text("Row 1")
-    Text("Row 2")
-    Text("Row 3")
-}
-```
-
-Indexed content. Specify an `Int` range and a closure to create a row for each index:
-
-```swift
-List(1...100) { index in 
-    Text("Row \(index)")
-}
-```
-
-Collection content. Supply any `RandomAccessCollection` - typically an `Array` - and a closure to create a row for each element. If the elements do not implement the `Identifiable` protocol, specify the key path to a property that can be used to uniquely identify each element:
-
-```swift
-List([person1, person2, person3], id: \.fullName) { person in
-    HStack {
-        Text(person.fullName)
-        Spacer()
-        Text(person.age)
-    } 
-}
-```
-
-`ForEach` content. Use `ForEach` to specify indexed or collection content. This allows you to mix content types.
-
-```swift
-List {
-    Text("People").bold()
-    ForEach([person1, person2, person3], id: \.fullName) { person in
-        HStack {
-            Text(person.fullName)
-            Spacer()
-            Text(person.age)
-        }
-    }
-}
-```
-
-When using collection content or a `ForEach` with collection content, you can enable swipe-to-delete and drag-to-reorder by supplying a binding to the collection and the appropriate set of edit actions.
-
-```swift
-List($people, id: \.fullName, editActions: .all) { $person in
-    Text(person.fullName)
-        .deleteDisabled(!person.isDeletable)
-    }
-}
-```
-
-You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMove` modifiers. Make sure your `ForEach` also supplies an `id` for each item.
-
-#### List Limitations
-
-- Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
-- Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
-- `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
-- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
-
-### Navigation
-
-SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has implemented all three, albeit with the restrictions explained below.
-
-SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Otherwise, `TabView` acts as you would expect.
-
-In SwiftUI, you push vies onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
-
-```swift
-NavigationStack {
-    ListView()
-        .navigationTitle(Self.title)
-}
-
-struct ListView : View {
-    var body: some View {
-        List(City.allCases) { city in
-            NavigationLink(value: city) {
-                rowView(city: city)
-            }
-        }
-        .navigationDestination(for: City.self) { city in
-            CityView(city: city)
-        }
-    }
-}
-```
-
-SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
-
-Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
-
-Finally, SkipUI does not yet support binding to an array of destination values to specify the navigation stack.
-
-For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
-
-### Restrictions on Identifiers
-
-Compose requires all state values to be serializable. This restriction is typically transparent to your code, because when you use property wrappers like `@State`, SkipUI automatically tracks your state objects and gives Compose serializable identifiers in their place. Some SwiftUI values, however, must be stored directly in Compose, including `navigationDestination` values and `List` item identifiers. When this is the case, SkipUI creates a `String` from the value you supply using the following algorithm:
-
-- If the value is `Identifiable`, use `String(describing: value.id)`
-- If the value is `RawRepresentable`, use `String(describing: value.rawValue)`
-- Else use `String(describing: value)`
-
-Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
