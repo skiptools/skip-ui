@@ -37,7 +37,7 @@ To help fill in unimplemented API in SkipUI:
 
 1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`. Note that most unimplemented `View` modifiers are in the `View.swift` source file.
 1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
-1. Write tests and/or playground code to exercise your component. See [Tests](#tests).
+1. Write tests and/or showcase code to exercise your component. See [Tests](#tests).
 1. [Submit a PR](https://github.com/skiptools/skip-ui/pulls).
 
 Other forms of contributions such as test cases, comments, and documentation are also welcome!
@@ -242,7 +242,7 @@ With `ComposeView` and the `Compose()` function, you can move fluidly between Sw
 
 SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
 
-Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip playground app](https://github.com/skiptools/skipapp-playground). Whenever you add or update support for a visible element of SwiftUI, make sure there is a playground that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the playground app becomes a showcase of supported SwiftUI components on Android over time.
+Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase). Whenever you add or update support for a visible element of SwiftUI, make sure there is a showcase view that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the showcase app becomes a demonstration of supported SwiftUI components on Android over time.
 
 ## Topics
 
