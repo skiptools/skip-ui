@@ -2,11 +2,14 @@
 
 SwiftUI support for [Skip](https://skip.tools) apps.
 
-See what API is currently implemented [here](#supported-swiftui).
-
-## About 
+## About SkipUI
 
 SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI for Kotlin on Android using Jetpack Compose. Its goal is to mirror as much of SwiftUI as possible, allowing Skip developers to use SwiftUI with confidence.
+
+![SkipUI Diagram](https://assets.skip.tools/diagrams/skip-diagrams-ui.svg)
+{: .diagram-vector }
+
+
 
 ## Dependencies
 
@@ -607,8 +610,8 @@ Support levels:
           <details>
               <summary><code>DatePicker</code></summary>
               <ul>
-                  <li><code>init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
-                  <li><code>init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
+                  <li><code>init(selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ title: String, selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
               </ul>
           </details>      
        </td>
@@ -623,7 +626,7 @@ Support levels:
           <details>
               <summary><code>DragGesture</code></summary>
               <ul>
-                  <li>See <a href="#gestures">Gestures</li>
+                  <li>See <a href="#gestures">Gestures</a></li>
               </ul>
           </details>      
        </td>
@@ -846,7 +849,7 @@ Support levels:
           <details>
               <summary><code>Slider</code></summary>
               <ul>
-                  <li><code>init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil)</code>
+                  <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil)</code></li>
               </ul>
           </details>      
        </td>
@@ -879,7 +882,7 @@ Support levels:
           <details>
               <summary><code>TapGesture</code></summary>
               <ul>
-                  <li>See <a href="#gestures">Gestures</li>
+                  <li>See <a href="#gestures">Gestures</a></li>
               </ul>
           </details>      
        </td>
@@ -902,7 +905,7 @@ Support levels:
           <details>
               <summary><code>TextField</code></summary>
               <ul>
-                  <li><code>init(_ title: String, text: Binding<String>, prompt: Text? = nil)</code></li>
+                  <li><code>init(_ title: String, text: Binding&lt;String>, prompt: Text? = nil)</code></li>
               </ul>
           </details>      
        </td>
@@ -913,7 +916,7 @@ Support levels:
           <details>
               <summary><code>Toggle</code></summary>
               <ul>
-                  <li><code>init(isOn: Binding<Bool>, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(isOn: Binding&lt;Bool>, @ViewBuilder label: () -> any View)</code></li>
               </ul>
           </details>      
        </td>
@@ -1063,7 +1066,6 @@ Support levels:
               </ul>
           </details>      
        </td>
-    </tr>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1360,8 +1362,8 @@ Support levels:
           <details>
               <summary><code>.searchable</code></summary>
               <ul>
-                <li><code>func searchable(text: Binding<String>, prompt: Text? = nil) -> some View</code></li>
-                <li><code>func searchable(text: Binding<String>, prompt: String) -> some View</code></li>
+                <li><code>func searchable(text: Binding&lt;String>, prompt: Text? = nil) -> some View</code></li>
+                <li><code>func searchable(text: Binding&lt;String>, prompt: String) -> some View</code></li>
               </ul>
           </details>      
        </td>
