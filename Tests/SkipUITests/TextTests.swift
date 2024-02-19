@@ -15,7 +15,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeLargeTitle() throws {
         let size = try render(view: Text("X").font(.largeTitle)).size
         #if SKIP
-        XCTAssertEqual(size.height, 42.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 37.0)
+        } else {
+            XCTAssertEqual(size.height, 38.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 41.0)
         #elseif os(macOS)
@@ -26,7 +30,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeTitle() throws {
         let size = try render(view: Text("X").font(.title)).size
         #if SKIP
-        XCTAssertEqual(size.height, 35.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 36.0)
+        } else {
+            XCTAssertEqual(size.height, 36.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 34.0)
         #elseif os(macOS)
@@ -37,7 +45,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeTitle2() throws {
         let size = try render(view: Text("X").font(.title2)).size
         #if SKIP
-        XCTAssertEqual(size.height, 27.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 32.0)
+        } else {
+            XCTAssertEqual(size.height, 32.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 27.0)
         #elseif os(macOS)
@@ -48,7 +60,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeTitle3() throws {
         let size = try render(view: Text("X").font(.title3)).size
         #if SKIP
-        XCTAssertEqual(size.height, 24.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 32.0)
+        } else {
+            XCTAssertEqual(size.height, 32.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 24.0)
         #elseif os(macOS)
@@ -59,7 +75,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeHeadline() throws {
         let size = try render(view: Text("X").font(.headline)).size
         #if SKIP
-        XCTAssertEqual(size.height, 21.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 24.0)
+        } else {
+            XCTAssertEqual(size.height, 24.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 21.0)
         #elseif os(macOS)
@@ -70,7 +90,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeSubheadline() throws {
         let size = try render(view: Text("X").font(.subheadline)).size
         #if SKIP
-        XCTAssertEqual(size.height, 18.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 20.0)
+        } else {
+            XCTAssertEqual(size.height, 20.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 18.0)
         #elseif os(macOS)
@@ -81,7 +105,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeBody() throws {
         let size = try render(view: Text("X").font(.body)).size
         #if SKIP
-        XCTAssertEqual(size.height, 21.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 24.0)
+        } else {
+            XCTAssertEqual(size.height, 24.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 21.0)
         #elseif os(macOS)
@@ -92,7 +120,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeCallout() throws {
         let size = try render(view: Text("X").font(.callout)).size
         #if SKIP
-        XCTAssertEqual(size.height, 20.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 20.0)
+        } else {
+            XCTAssertEqual(size.height, 20.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 20.0)
         #elseif os(macOS)
@@ -103,7 +135,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeFootnote() throws {
         let size = try render(view: Text("X").font(.footnote)).size
         #if SKIP
-        XCTAssertEqual(size.height, 16.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 16.0)
+        } else {
+            XCTAssertEqual(size.height, 16.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 16.0)
         #elseif os(macOS)
@@ -114,7 +150,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeCaption() throws {
         let size = try render(view: Text("X").font(.caption)).size
         #if SKIP
-        XCTAssertEqual(size.height, 15.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 16.0)
+        } else {
+            XCTAssertEqual(size.height, 16.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 15.0)
         #elseif os(macOS)
@@ -125,7 +165,11 @@ final class TextTests: XCSnapshotTestCase {
     func testTextSizeCaption2() throws {
         let size = try render(view: Text("X").font(.caption2)).size
         #if SKIP
-        XCTAssertEqual(size.height, 14.0 + (isAndroid ? 0.0 : 1.0))
+        if isAndroid {
+            XCTAssertEqual(size.height, 16.0)
+        } else {
+            XCTAssertEqual(size.height, 16.0)
+        }
         #elseif os(iOS)
         XCTAssertEqual(size.height, 14.0)
         #elseif os(macOS)

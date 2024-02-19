@@ -1,3 +1,12 @@
+## 0.5.4
+
+Released 2024-02-18
+
+  - docs: move supported table above topics section
+  - Documentation: update support swift table
+  - Reference Showcase app in docs
+  - Move API list to the end of the README
+
 ## 0.5.2
 
 Released 2024-02-10

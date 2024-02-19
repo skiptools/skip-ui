@@ -19,13 +19,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismiss
-import androidx.compose.material3.rememberDismissState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.SwipeToDismissBoxDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -312,17 +314,18 @@ public final class List : View {
                 }
             })
             let coroutineScope = rememberCoroutineScope()
-            let dismissState = rememberDismissState(confirmValueChange: {
-                if $0 == DismissValue.DismissedToStart {
+            let positionalThreshold = with(LocalDensity.current) { 164.dp.toPx() }
+            let dismissState = rememberSwipeToDismissBoxState(confirmValueChange: {
+                if $0 == SwipeToDismissBoxValue.EndToStart {
                     coroutineScope.launch {
                         rememberedOnDelete.value()
                     }
                 }
                 return false
-            }, positionalThreshold = { 164.dp.toPx() })
+            }, positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold)
 
             let content: @Composable (Modifier) -> Void = {
-                SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(DismissDirection.EndToStart), modifier: $0, background: {
+                SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(SwipeToDismissBoxValue.EndToStart), modifier: $0, background: {
                     let trashVector = Image.composeImageVector(named: "trash")!
                     Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                         Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
