@@ -18,15 +18,13 @@ extension View {
         return self
         #endif
     }
-}
 
-extension View {
     public func accessibilityLabel(_ label: Text) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { 
-                // FIXME: @Composable invocations can only happen from the context of a @Composable function
-                contentDescription = "" // label.localizedTextString()
+            let description = label.localizedTextString()
+            $0.modifier = $0.modifier.semantics {
+                contentDescription = description
             }
         }
         #else

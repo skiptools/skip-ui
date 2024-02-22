@@ -19,47 +19,183 @@ import struct Foundation.Locale
 #endif
 
 public struct Text: View, Equatable {
-    private let verbatim: String?
-    private let key: LocalizedStringKey?
-    private let tableName: String?
-    private let bundle: Bundle?
+    private let textView: _Text
+    private let modifiedView: any View
 
     public init(verbatim: String) {
-        self.verbatim = verbatim
-        self.key = nil
-        self.tableName = nil
-        self.bundle = nil
+        textView = _Text(verbatim: verbatim, key: nil, tableName: nil, bundle: nil)
+        modifiedView = textView
     }
 
     public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
-        self.verbatim = nil
-        self.key = key
-        self.tableName = tableName
-        self.bundle = bundle
+        textView = _Text(verbatim: nil, key: key, tableName: tableName, bundle: bundle)
+        modifiedView = textView
     }
 
     public init(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
-        self.verbatim = nil
-        self.key = LocalizedStringKey(stringLiteral: key)
-        self.tableName = tableName
-        self.bundle = bundle
+        textView = _Text(verbatim: nil, key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
+        modifiedView = textView
     }
 
+    init(textView: _Text, modifiedView: any View) {
+        self.textView = textView
+        // Don't copy view
+        // SKIP REPLACE: this.modifiedView = modifiedView
+        self.modifiedView = modifiedView
+    }
 
     #if SKIP
-    /// Interpret the key against the given bundle and the environment's current locale
+    /// Interpret the key against the given bundle and the environment's current locale.
     @Composable public func localizedTextString() -> String {
+        return textView.localizedTextString()
+    }
+
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        modifiedView.Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+
+    public static func ==(lhs: Text, rhs: Text) -> Bool {
+        return lhs.textView == rhs.textView
+    }
+
+    // Text-specific implementations of View modifiers
+
+    public func accessibilityLabel(_ label: Text) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
+    }
+
+    public func accessibilityLabel(_ label: String) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.accessibilityLabel(label))
+    }
+
+    public func foregroundColor(_ color: Color?) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.foregroundColor(color))
+    }
+
+    public func foregroundStyle(_ style: any ShapeStyle) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.foregroundStyle(style))
+    }
+
+    public func font(_ font: Font?) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.font(font))
+    }
+
+    public func fontWeight(_ weight: Font.Weight?) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.fontWeight(weight))
+    }
+
+    @available(*, unavailable)
+    public func fontWidth(_ width: Font.Width?) -> Text {
+        return self
+    }
+
+    public func bold(_ isActive: Bool = true) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.bold(isActive))
+    }
+
+    public func italic(_ isActive: Bool = true) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.italic(isActive))
+    }
+
+    public func monospaced(_ isActive: Bool = true) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.monospaced(isActive))
+    }
+
+    public func fontDesign(_ design: Font.Design?) -> Text {
+        return Text(textView: textView, modifiedView: modifiedView.fontDesign(design))
+    }
+
+    @available(*, unavailable)
+    public func monospacedDigit() -> Text {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func kerning(_ kerning: CGFloat) -> Text {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func tracking(_ tracking: CGFloat) -> Text {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func baselineOffset(_ baselineOffset: CGFloat) -> Text {
+        return self
+    }
+
+    public enum Case : Sendable {
+        case uppercase
+        case lowercase
+    }
+
+    public struct LineStyle : Hashable, Sendable {
+        public let pattern: Text.LineStyle.Pattern
+        public let color: Color?
+
+        public init(pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) {
+            self.pattern = pattern
+            self.color = color
+        }
+
+        public enum Pattern : Sendable {
+            case solid
+            case dot
+            case dash
+            case dashot
+            case dashDotDot
+        }
+
+        public static let single = Text.LineStyle()
+    }
+
+    public enum Scale : Sendable, Hashable {
+        case `default`
+        case secondary
+    }
+
+    public enum TruncationMode : Sendable {
+        case head
+        case tail
+        case middle
+    }
+}
+
+struct _Text: View, Equatable {
+    let verbatim: String?
+    let key: LocalizedStringKey?
+    let tableName: String?
+    let bundle: Bundle?
+
+    #if SKIP
+    @Composable func localizedTextString() -> String {
         if let verbatim = self.verbatim { return verbatim }
         guard let key = self.key else { return "" }
 
         let locfmt = EnvironmentValues.shared.locale.localize(key: key.patternFormat, value: nil, bundle: self.bundle, tableName: self.tableName)
-        
+
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
         let replaced = String(format: locfmt ?? key.patternFormat, key.stringInterpolation.values)
         return replaced
     }
 
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func ComposeContent(context: ComposeContext) {
         var font: Font
         var text = self.localizedTextString()
         if let environmentFont = EnvironmentValues.shared.font {
@@ -114,46 +250,10 @@ public struct Text: View, Equatable {
         }
     }
     #else
-    public var body: some View {
+    var body: some View {
         stubView()
     }
     #endif
-
-    public enum Case : Sendable {
-        case uppercase
-        case lowercase
-    }
-
-    public struct LineStyle : Hashable, Sendable {
-        public let pattern: Text.LineStyle.Pattern
-        public let color: Color?
-
-        public init(pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) {
-            self.pattern = pattern
-            self.color = color
-        }
-
-        public enum Pattern : Sendable {
-            case solid
-            case dot
-            case dash
-            case dashot
-            case dashDotDot
-        }
-
-        public static let single = Text.LineStyle()
-    }
-
-    public enum Scale : Sendable, Hashable {
-        case `default`
-        case secondary
-    }
-
-    public enum TruncationMode : Sendable {
-        case head
-        case tail
-        case middle
-    }
 }
 
 public enum TextAlignment : Hashable, CaseIterable, Sendable {
@@ -187,7 +287,7 @@ extension View {
         return self
     }
 
-    public func font(_ font: Font) -> some View {
+    public func font(_ font: Font?) -> some View {
         #if SKIP
         return environment(\.font, font)
         #else
@@ -690,366 +790,6 @@ extension Text {
     //public init(_ resource: LocalizedStringResource) { fatalError() }
 }
 
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Text {
-
-    /// Sets the color of the text displayed by this view.
-    ///
-    /// Use this method to change the color of the text rendered by a text view.
-    ///
-    /// For example, you can display the names of the colors red, green, and
-    /// blue in their respective colors:
-    ///
-    ///     HStack {
-    ///         Text("Red").foregroundColor(.red)
-    ///         Text("Green").foregroundColor(.green)
-    ///         Text("Blue").foregroundColor(.blue)
-    ///     }
-    ///
-    /// ![Three text views arranged horizontally, each containing
-    ///     the name of a color displayed in that
-    ///     color.](SkipUI-Text-foregroundColor.png)
-    ///
-    /// - Parameter color: The color to use when displaying this text.
-    /// - Returns: A text view that uses the color value you supply.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, renamed: "foregroundStyle(_:)")
-    public func foregroundColor(_ color: Color?) -> Text { fatalError() }
-
-    /// Sets the style of the text displayed by this view.
-    ///
-    /// Use this method to change the rendering style of the text
-    /// rendered by a text view.
-    ///
-    /// For example, you can display the names of the colors red,
-    /// green, and blue in their respective colors:
-    ///
-    ///     HStack {
-    ///         Text("Red").foregroundStyle(.red)
-    ///         Text("Green").foregroundStyle(.green)
-    ///         Text("Blue").foregroundStyle(.blue)
-    ///     }
-    ///
-    /// ![Three text views arranged horizontally, each containing
-    ///     the name of a color displayed in that
-    ///     color.](SkipUI-Text-foregroundColor.png)
-    ///
-    /// - Parameter style: The style to use when displaying this text.
-    /// - Returns: A text view that uses the color value you supply.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public func foregroundStyle<S>(_ style: S) -> Text where S : ShapeStyle { fatalError() }
-
-    /// Sets the default font for text in the view.
-    ///
-    /// Use `font(_:)` to apply a specific font to an individual
-    /// Text View, or all of the text views in a container.
-    ///
-    /// In the example below, the first text field has a font set directly,
-    /// while the font applied to the following container applies to all of the
-    /// text views inside that container:
-    ///
-    ///     VStack {
-    ///         Text("Font applied to a text view.")
-    ///             .font(.largeTitle)
-    ///
-    ///         VStack {
-    ///             Text("These two text views have the same font")
-    ///             Text("applied to their parent view.")
-    ///         }
-    ///         .font(.system(size: 16, weight: .light, design: .default))
-    ///     }
-    ///
-    ///
-    /// ![Applying a font to a single text view or a view container](SkipUI-view-font.png)
-    ///
-    /// - Parameter font: The font to use when displaying this text.
-    /// - Returns: Text that uses the font you specify.
-    public func font(_ font: Font?) -> Text { fatalError() }
-
-    /// Sets the font weight of the text.
-    ///
-    /// - Parameter weight: One of the available font weights.
-    ///
-    /// - Returns: Text that uses the font weight you specify.
-    public func fontWeight(_ weight: Font.Weight?) -> Text { fatalError() }
-
-    /// Sets the font width of the text.
-    ///
-    /// - Parameter width: One of the available font widths.
-    ///
-    /// - Returns: Text that uses the font width you specify, if available.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func fontWidth(_ width: Font.Width?) -> Text { fatalError() }
-
-    /// Applies a bold font weight to the text.
-    ///
-    /// - Returns: Bold text.
-    public func bold() -> Text { fatalError() }
-
-    /// Applies a bold font weight to the text.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether text has bold styling.
-    ///
-    /// - Returns: Bold text.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func bold(_ isActive: Bool) -> Text { fatalError() }
-
-    /// Applies italics to the text.
-    ///
-    /// - Returns: Italic text.
-    public func italic() -> Text { fatalError() }
-
-    /// Applies italics to the text.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether italic styling is added.
-    ///
-    /// - Returns: Italic text.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func italic(_ isActive: Bool) -> Text { fatalError() }
-
-    /// Modifies the font of the text to use the fixed-width variant
-    /// of the current font, if possible.
-    ///
-    /// - Parameter isActive: A Boolean value that indicates
-    ///   whether monospaced styling is added. Default value is `true`.
-    ///
-    /// - Returns: Monospaced text.
-    @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
-    public func monospaced(_ isActive: Bool = true) -> Text { fatalError() }
-
-    /// Sets the font design of the text.
-    ///
-    /// - Parameter design: One of the available font designs.
-    ///
-    /// - Returns: Text that uses the font design you specify.
-    @available(iOS 16.1, macOS 13.0, tvOS 16.1, watchOS 9.1, *)
-    public func fontDesign(_ design: Font.Design?) -> Text { fatalError() }
-
-    /// Modifies the text view's font to use fixed-width digits, while leaving
-    /// other characters proportionally spaced.
-    ///
-    /// This modifier only affects numeric characters, and leaves all other
-    /// characters unchanged.
-    ///
-    /// The following example shows the effect of `monospacedDigit()` on a
-    /// text view. It arranges two text views in a ``VStack``, each displaying
-    /// a formatted date that contains many instances of the character 1.
-    /// The second text view uses the `monospacedDigit()`. Because 1 is
-    /// usually a narrow character in proportional fonts, applying the
-    /// modifier widens all of the 1s, and the text view as a whole.
-    /// The non-digit characters in the text view remain unaffected.
-    ///
-    ///     let myDate = DateComponents(
-    ///         calendar: Calendar(identifier: .gregorian),
-    ///         timeZone: TimeZone(identifier: "EST"),
-    ///         year: 2011,
-    ///         month: 1,
-    ///         day: 11,
-    ///         hour: 11,
-    ///         minute: 11
-    ///     ).date!
-    ///
-    ///     var body: some View {
-    ///         VStack(alignment: .leading) {
-    ///             Text(myDate.formatted(date: .long, time: .complete))
-    ///                 .font(.system(size: 20))
-    ///             Text(myDate.formatted(date: .long, time: .complete))
-    ///                 .font(.system(size: 20))
-    ///                 .monospacedDigit()
-    ///         }
-    ///         .padding()
-    ///         .navigationTitle("monospacedDigit() Modifier")
-    ///     }
-    ///
-    /// ![Two vertically stacked text views, displaying the date January 11,
-    /// 2011, 11:11:00 AM. The second text view uses fixed-width digits, causing
-    /// all of the 1s to be wider than in the first text
-    /// view.](Text-monospacedDigit-1)
-    ///
-    /// If the base font of the text view doesn't support fixed-width digits,
-    /// the font remains unchanged.
-    ///
-    /// - Returns: A text view with a modified font that uses fixed-width
-    /// numeric characters, while leaving other characters proportionally
-    /// spaced.
-    @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-    public func monospacedDigit() -> Text { fatalError() }
-
-    /// Applies a strikethrough to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether the text has a
-    ///     strikethrough applied.
-    ///   - color: The color of the strikethrough. If `color` is `nil`, the
-    ///     strikethrough uses the default foreground color.
-    ///
-    /// - Returns: Text with a line through its center.
-    public func strikethrough(_ isActive: Bool = true, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies a strikethrough to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether strikethrough
-    ///     is added. The default value is `true`.
-    ///   - pattern: The pattern of the line.
-    ///   - color: The color of the strikethrough. If `color` is `nil`, the
-    ///     strikethrough uses the default foreground color.
-    ///
-    /// - Returns: Text with a line through its center.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies an underline to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether the text has an
-    ///     underline.
-    ///   - color: The color of the underline. If `color` is `nil`, the
-    ///     underline uses the default foreground color.
-    ///
-    /// - Returns: Text with a line running along its baseline.
-    public func underline(_ isActive: Bool = true, color: Color? = nil) -> Text { fatalError() }
-
-    /// Applies an underline to the text.
-    ///
-    /// - Parameters:
-    ///   - isActive: A Boolean value that indicates whether underline
-    ///     styling is added. The default value is `true`.
-    ///   - pattern: The pattern of the line.
-    ///   - color: The color of the underline. If `color` is `nil`, the
-    ///     underline uses the default foreground color.
-    ///
-    /// - Returns: Text with a line running along its baseline.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern, color: Color? = nil) -> Text { fatalError() }
-
-    /// Sets the spacing, or kerning, between characters.
-    ///
-    /// Kerning defines the offset, in points, that a text view should shift
-    /// characters from the default spacing. Use positive kerning to widen the
-    /// spacing between characters. Use negative kerning to tighten the spacing
-    /// between characters.
-    ///
-    ///     VStack(alignment: .leading) {
-    ///         Text("ABCDEF").kerning(-3)
-    ///         Text("ABCDEF")
-    ///         Text("ABCDEF").kerning(3)
-    ///     }
-    ///
-    /// The last character in the first case, which uses negative kerning,
-    /// experiences cropping because the kerning affects the trailing edge of
-    /// the text view as well.
-    ///
-    /// ![Three text views showing character groups, with progressively
-    /// increasing spacing between the characters in each
-    /// group.](SkipUI-Text-kerning-1.png)
-    ///
-    /// Kerning attempts to maintain ligatures. For example, the Hoefler Text
-    /// font uses a ligature for the letter combination _ffl_, as in the word
-    /// _raffle_, shown here with a small negative and a small positive kerning:
-    ///
-    /// ![Two text views showing the word raffle in the Hoefler Text font, the
-    /// first with small negative and the second with small positive kerning.
-    /// The letter combination ffl has the same shape in both variants because
-    /// it acts as a ligature.](SkipUI-Text-kerning-2.png)
-    ///
-    /// The *ffl* letter combination keeps a constant shape as the other letters
-    /// move together or apart. Beyond a certain point in either direction,
-    /// however, kerning does disable nonessential ligatures.
-    ///
-    /// ![Two text views showing the word raffle in the Hoefler Text font, the
-    /// first with large negative and the second with large positive kerning.
-    /// The letter combination ffl does not act as a ligature in either
-    /// case.](SkipUI-Text-kerning-3.png)
-    ///
-    /// - Important: If you add both the ``Text/tracking(_:)`` and
-    ///   ``Text/kerning(_:)`` modifiers to a view, the view applies the
-    ///   tracking and ignores the kerning.
-    ///
-    /// - Parameter kerning: The spacing to use between individual characters in
-    ///   this text. Value of `0` sets the kerning to the system default value.
-    ///
-    /// - Returns: Text with the specified amount of kerning.
-    public func kerning(_ kerning: CGFloat) -> Text { fatalError() }
-
-    /// Sets the tracking for the text.
-    ///
-    /// Tracking adds space, measured in points, between the characters in the
-    /// text view. A positive value increases the spacing between characters,
-    /// while a negative value brings the characters closer together.
-    ///
-    ///     VStack(alignment: .leading) {
-    ///         Text("ABCDEF").tracking(-3)
-    ///         Text("ABCDEF")
-    ///         Text("ABCDEF").tracking(3)
-    ///     }
-    ///
-    /// The code above uses an unusually large amount of tracking to make it
-    /// easy to see the effect.
-    ///
-    /// ![Three text views showing character groups with progressively
-    /// increasing spacing between the characters in each
-    /// group.](SkipUI-Text-tracking.png)
-    ///
-    /// The effect of tracking resembles that of the ``Text/kerning(_:)``
-    /// modifier, but adds or removes trailing whitespace, rather than changing
-    /// character offsets. Also, using any nonzero amount of tracking disables
-    /// nonessential ligatures, whereas kerning attempts to maintain ligatures.
-    ///
-    /// - Important: If you add both the ``Text/tracking(_:)`` and
-    ///   ``Text/kerning(_:)`` modifiers to a view, the view applies the
-    ///   tracking and ignores the kerning.
-    ///
-    /// - Parameter tracking: The amount of additional space, in points, that
-    ///   the view should add to each character cluster after layout. Value of `0`
-    ///   sets the tracking to the system default value.
-    ///
-    /// - Returns: Text with the specified amount of tracking.
-    public func tracking(_ tracking: CGFloat) -> Text { fatalError() }
-
-    /// Sets the vertical offset for the text relative to its baseline.
-    ///
-    /// Change the baseline offset to move the text in the view (in points) up
-    /// or down relative to its baseline. The bounds of the view expand to
-    /// contain the moved text.
-    ///
-    ///     HStack(alignment: .top) {
-    ///         Text("Hello")
-    ///             .baselineOffset(-10)
-    ///             .border(Color.red)
-    ///         Text("Hello")
-    ///             .border(Color.green)
-    ///         Text("Hello")
-    ///             .baselineOffset(10)
-    ///             .border(Color.blue)
-    ///     }
-    ///     .background(Color(white: 0.9))
-    ///
-    /// By drawing a border around each text view, you can see how the text
-    /// moves, and how that affects the view.
-    ///
-    /// ![Three text views, each with the word "Hello" outlined by a border and
-    /// aligned along the top edges. The first and last are larger than the
-    /// second, with padding inside the border above the word "Hello" in the
-    /// first case, and padding inside the border below the word in the last
-    /// case.](SkipUI-Text-baselineOffset.png)
-    ///
-    /// The first view, with a negative offset, grows downward to handle the
-    /// lowered text. The last view, with a positive offset, grows upward. The
-    /// enclosing ``HStack`` instance, shown in gray, ensures all the text views
-    /// remain aligned at their top edge, regardless of the offset.
-    ///
-    /// - Parameter baselineOffset: The amount to shift the text vertically (up
-    ///   or down) relative to its baseline.
-    ///
-    /// - Returns: Text that's above or below its baseline.
-    public func baselineOffset(_ baselineOffset: CGFloat) -> Text { fatalError() }
-}
-
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Text {
 
@@ -1081,25 +821,6 @@ extension Text {
     ///   from the available ``AccessibilityHeadingLevel`` levels.
     public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> Text { fatalError() }
 
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an alternative accessibility label
-    /// to the text that is displayed. For example, you can give an alternate label to a navigation title:
-    ///
-    ///     var body: some View {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .navigationTitle(Text("􀈤").accessibilityLabel("Inbox"))
-    ///         }
-    ///     }
-    ///
-    /// You can't style the label that you add
-    ///
-    /// - Parameter label: The text view to add the label to.
-    public func accessibilityLabel(_ label: Text) -> Text { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
     /// Use this method to provide an alternative accessibility label to the text that is displayed.
     /// For example, you can give an alternate label to a navigation title:
     ///
@@ -1113,21 +834,6 @@ extension Text {
     /// - Parameter labelKey: The string key for the alternative
     ///   accessibility label.
     public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> Text { fatalError() }
-
-    /// Adds a label to the view that describes its contents.
-    ///
-    /// Use this method to provide an alternative accessibility label to the text that is displayed.
-    /// For example, you can give an alternate label to a navigation title:
-    ///
-    ///     var body: some View {
-    ///         NavigationView {
-    ///             ContentView()
-    ///                 .navigationTitle(Text("􀈤").accessibilityLabel("Inbox"))
-    ///         }
-    ///     }
-    ///
-    /// - Parameter label: The string for the alternative accessibility label.
-    public func accessibilityLabel<S>(_ label: S) -> Text where S : StringProtocol { fatalError() }
 }
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
