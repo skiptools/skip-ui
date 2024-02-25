@@ -48,17 +48,17 @@ public struct Image : View, Equatable, Sendable {
         #endif
     }
 
-    public init(_ name: String, bundle: Bundle? = nil) {
+    public init(_ name: String, bundle: Bundle? = Bundle.main) {
         self.image = .named(name: name, bundle: bundle, label: nil)
     }
 
     @available(*, unavailable)
-    public init(_ name: String, bundle: Bundle? = nil, label: Text) {
+    public init(_ name: String, bundle: Bundle? = Bundle.main, label: Text) {
         self.image = .named(name: name, bundle: bundle, label: label)
     }
 
     @available(*, unavailable)
-    public init(decorative name: String, bundle: Bundle? = nil) {
+    public init(decorative name: String, bundle: Bundle? = Bundle.main) {
         self.image = .decorative(name: name, bundle: bundle)
     }
 
@@ -718,7 +718,7 @@ extension Image {
     ///     localization content. If `nil`, SkipUI uses the main
     ///     `Bundle`. Defaults to `nil`.
     ///
-    public init(_ name: String, variableValue: Double?, bundle: Bundle? = nil) { fatalError() }
+    public init(_ name: String, variableValue: Double?, bundle: Bundle? = Bundle.main) { fatalError() }
 
     /// Creates a labeled image that you can use as content for controls, with
     /// the specified label and variable value.
@@ -738,7 +738,7 @@ extension Image {
     ///   - label: The label associated with the image. SkipUI uses
     ///     the label for accessibility.
     ///
-    public init(_ name: String, variableValue: Double?, bundle: Bundle? = nil, label: Text) { fatalError() }
+    public init(_ name: String, variableValue: Double?, bundle: Bundle? = Bundle.main, label: Text) { fatalError() }
 
     /// Creates an unlabeled, decorative image, with a variable value.
     ///
@@ -757,7 +757,7 @@ extension Image {
     ///   - bundle: The bundle to search for the image resource. If
     ///     `nil`, SkipUI uses the main `Bundle`. Defaults to `nil`.
     ///
-    public init(decorative name: String, variableValue: Double?, bundle: Bundle? = nil) { fatalError() }
+    public init(decorative name: String, variableValue: Double?, bundle: Bundle? = Bundle.main) { fatalError() }
 }
 
 #if canImport(UIKit)

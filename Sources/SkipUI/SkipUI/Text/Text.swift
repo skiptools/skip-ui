@@ -27,12 +27,12 @@ public struct Text: View, Equatable {
         modifiedView = textView
     }
 
-    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
+    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(verbatim: nil, key: key, tableName: tableName, bundle: bundle)
         modifiedView = textView
     }
 
-    public init(_ key: String, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
+    public init(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(verbatim: nil, key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
         modifiedView = textView
     }
