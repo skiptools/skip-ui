@@ -1,3 +1,9 @@
+## 0.5.6
+
+Released 2024-02-25
+
+  - Default to Bundle.main for Text localization
+
 ## 0.5.4
 
 Released 2024-02-18
