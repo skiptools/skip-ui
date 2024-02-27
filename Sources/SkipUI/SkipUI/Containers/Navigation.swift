@@ -578,6 +578,9 @@ public struct NavigationLink : View, ListItemAdapting {
     let destination: ComposeBuilder?
     let label: ComposeBuilder
 
+    private static let minimumNavigationInterval = 0.35
+    private static var lastNavigationTime = 0.0
+
     public init(value: Any?, @ViewBuilder label: () -> any View) {
         self.value = value
         self.destination = nil
@@ -634,6 +637,13 @@ public struct NavigationLink : View, ListItemAdapting {
     @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {
         let navigator = LocalNavigator.current
         return modifier.clickable(enabled: (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled) {
+            // Hack to prevent multiple quick taps from pushing duplicate entries
+            let now = CFAbsoluteTimeGetCurrent()
+            guard NavigationLink.lastNavigationTime + NavigationLink.minimumNavigationInterval <= now else {
+                return
+            }
+            NavigationLink.lastNavigationTime = now
+
             if let value {
                 navigator?.navigate(to: value)
             } else if let destination {
