@@ -193,7 +193,12 @@ public struct NavigationStack<Root> : View where Root: View {
                                 let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                                     if hasBackButton {
-                                        IconButton(onClick: { navController.popBackStack() }) {
+                                        IconButton(onClick: {
+                                            // Prevent multiple quick taps from popping past the root
+                                            if navController.previousBackStackEntry != nil {
+                                                navController.popBackStack()
+                                            }
+                                        }) {
                                             let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                                             Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
                                         }
