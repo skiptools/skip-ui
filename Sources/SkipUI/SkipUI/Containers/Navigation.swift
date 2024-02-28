@@ -102,6 +102,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     composable(route: Navigator.rootRoute,
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
+                        navigator.value.syncState()
                         if let state = navigator.value.state(for: entry) {
                             let entryContext = context.content(stateSaver: state.stateSaver)
                             ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
@@ -116,6 +117,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                    exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
+                            navigator.value.syncState()
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
                                 EnvironmentValues.shared.setValues {
@@ -360,7 +362,8 @@ final class Navigator {
         return backStackState[entry.id]
     }
 
-    @Composable private func syncState() {
+    /// Sync our back stack state with the nav controller.
+    @Composable func syncState() {
         let entryList = navController.currentBackStack.collectAsState()
 
         // Fill in ID of state we were navigating to if possible

@@ -51,7 +51,6 @@ let overlayPresentationCornerRadius = 16.0
         ModalBottomSheet(
             onDismissRequest: { isPresented.set(false) },
             sheetState: sheetState,
-            containerColor: androidx.compose.ui.graphics.Color.Unspecified,
             shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp),
             dragHandle: nil,
             windowInsets: WindowInsets(0, 0, 0, 0)
