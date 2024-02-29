@@ -521,7 +521,7 @@ Support levels:
       <td><code>Menu</code> (<a href="https://skip.tools/docs/components/menu/">example</a>)</td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>NavigationLink</code> (<a href="https://skip.tools/docs/components/list/">example</a>)</summary>
@@ -532,13 +532,29 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>NavigationPath</code></summary>
+              <ul>
+                  <li><code>init()</code></li>
+                  <li><code>init(_ elements: any Sequence)</code></li>
+                  <li><code>var count: Int</code></li>
+                  <li><code>var isEmpty: Bool</code></li>
+                  <li><code>mutating func append(_ value: Any)</code></li>
+                  <li><code>mutating func removeLast(_ k: Int = 1)</code></li>
+                  <li>Does not support `codable` property</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>NavigationStack</code> (<a href="https://skip.tools/docs/components/navigationstack/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
-                  <li><code>init(@ViewBuilder root: () -> Root)</code></li>
               </ul>
           </details>      
        </td>
@@ -1438,8 +1454,6 @@ struct ListView : View {
 SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
-
-Finally, SkipUI does not yet support binding to an array of destination values to specify the navigation stack.
 
 For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
 

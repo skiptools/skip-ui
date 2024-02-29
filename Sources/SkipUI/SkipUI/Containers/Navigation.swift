@@ -6,6 +6,7 @@
 
 import Foundation
 #if SKIP
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -71,14 +72,25 @@ import kotlinx.coroutines.delay
 
 public struct NavigationStack<Root> : View where Root: View {
     let root: Root
+    let path: Binding<[Any]>?
+    let navigationPath: Binding<NavigationPath>?
 
     public init(@ViewBuilder root: () -> Root) {
         self.root = root()
+        self.path = nil
+        self.navigationPath = nil
     }
 
-    @available(*, unavailable)
+    public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> Root) {
+        self.root = root()
+        self.path = nil
+        self.navigationPath = path
+    }
+
     public init(path: Any, @ViewBuilder root: () -> Root) {
         self.root = root()
+        self.path = path as! Binding<[Any]>?
+        self.navigationPath = nil
     }
 
     #if SKIP
@@ -92,7 +104,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
         let navController = rememberNavController()
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
-        navigator.value.didCompose(navController: navController, destinations: destinations.value, keyboardController: LocalSoftwareKeyboardController.current)
+        navigator.value.didCompose(navController: navController, destinations: destinations.value, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -102,10 +114,9 @@ public struct NavigationStack<Root> : View where Root: View {
                     composable(route: Navigator.rootRoute,
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
-                        navigator.value.syncState()
                         if let state = navigator.value.state(for: entry) {
                             let entryContext = context.content(stateSaver: state.stateSaver)
-                            ComposeEntry(navController: navController, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
+                            ComposeEntry(navigator: navigator, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
                                 root.Compose(context: context)
                             }
                         }
@@ -117,13 +128,12 @@ public struct NavigationStack<Root> : View where Root: View {
                                    exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
-                            navigator.value.syncState()
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 let entryContext = context.content(stateSaver: state.stateSaver)
                                 EnvironmentValues.shared.setValues {
-                                    $0.setdismiss({ navController.popBackStack() })
+                                    $0.setdismiss({ navigator.value.navigateBack() })
                                 } in: {
-                                    ComposeEntry(navController: navController,
+                                    ComposeEntry(navigator: navigator,
                                                  destinations: destinations,
                                                  destinationsDidChange: preferencesDidChange,
                                                  isRoot: false,
@@ -140,7 +150,7 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navController: NavHostController, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
@@ -194,10 +204,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                                     if hasBackButton {
                                         IconButton(onClick: {
-                                            // Prevent multiple quick taps from popping past the root
-                                            if navController.previousBackStackEntry != nil {
-                                                navController.popBackStack()
-                                            }
+                                            navigator.value.navigateBack()
                                         }) {
                                             let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                                             Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
@@ -236,6 +243,11 @@ public struct NavigationStack<Root> : View where Root: View {
                 }
             }
         ) { padding in
+            // Intercept system back button to keep our state in sync
+            BackHandler(enabled: !navigator.value.isRoot) {
+                navigator.value.navigateBack()
+            }
+
             let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
             Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
 
@@ -310,16 +322,18 @@ final class Navigator {
     private let viewDestinationIndex = Self.destinationCount - 1
     private var viewDestinationValue = 0
 
+    private var path: Binding<[Any]>?
+    private var navigationPath: Binding<NavigationPath>?
+
     private var backStackState: [String: BackStackState] = [:]
-    private var navigatingToState: BackStackState? = BackStackState(route: Self.rootRoute)
     struct BackStackState {
-        let id: String?
+        let id: String
         let route: String
         let destination: ((Any) -> any View)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
 
-        init(id: String? = nil, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+        init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
             self.route = route
             self.destination = destination
@@ -335,12 +349,15 @@ final class Navigator {
     }
 
     /// Call with updated state on recompose.
-    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations, keyboardController: SoftwareKeyboardController?) {
+    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations, path: Binding<[Any]>?, navigationPath: Binding<NavigationPath>?, keyboardController: SoftwareKeyboardController?) {
         self.navController = navController
         self.destinations = destinations
+        self.path = path
+        self.navigationPath = navigationPath
         self.keyboardController = keyboardController
         updateDestinationIndexes()
         syncState()
+        navigateToPath()
     }
 
     /// Whether we're at the root of the navigation stack.
@@ -350,7 +367,13 @@ final class Navigator {
 
     /// Navigate to a target value specified in a `NavigationLink`.
     func navigate(to targetValue: Any) {
-        let _ = navigate(to: targetValue, type: type(of: targetValue))
+        if let path {
+            path.wrappedValue.append(targetValue)
+        } else if let navigationPath {
+            navigationPath.wrappedValue.append(targetValue)
+        } else {
+            let _ = navigate(to: targetValue, type: type(of: targetValue))
+        }
     }
 
     /// Navigate to a destination view.
@@ -362,22 +385,35 @@ final class Navigator {
         navigate(route: route, destination: { _ in view }, targetValue: targetValue)
     }
 
+    /// Pop the back stack.
+    func navigateBack() {
+        if let path {
+            path.wrappedValue.popLast()
+        } else if let navigationPath {
+            navigationPath.wrappedValue.removeLast()
+        } else if !isRoot {
+            navController.popBackStack()
+        }
+    }
+
     /// The entry being navigated to.
     func state(for entry: NavBackStackEntry) -> BackStackState? {
-        return backStackState[entry.id]
+        if let state = backStackState[entry.id] {
+            return state
+        }
+        // Need to establish the root state?
+        guard navController.currentBackStack.value.count() > 1 && entry.id == navController.currentBackStack.value[1].id else {
+            return nil
+        }
+        let rootState = BackStackState(id: entry.id, route: Self.rootRoute)
+        backStackState[entry.id] = rootState
+        return rootState
     }
 
     /// Sync our back stack state with the nav controller.
-    @Composable func syncState() {
+    @Composable private func syncState() {
+        // Collect as state to ensure we get re-called on change
         let entryList = navController.currentBackStack.collectAsState()
-
-        // Fill in ID of state we were navigating to if possible
-        if let navigatingToState, let lastEntry = entryList.value.lastOrNull() {
-            let state = BackStackState(id: lastEntry.id, route: navigatingToState.route, destination: navigatingToState.destination, targetValue: navigatingToState.targetValue, stateSaver: navigatingToState.stateSaver)
-            self.navigatingToState = nil
-            backStackState[lastEntry.id] = state
-        }
-
         // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while animating away to find their state
         LaunchedEffect(entryList.value) {
             delay(1000) // 1 second
@@ -388,6 +424,39 @@ final class Navigator {
                 }
             }
             backStackState = syncedBackStackState
+        }
+    }
+
+    private func navigateToPath() {
+        guard let path = (self.path?.wrappedValue ?? navigationPath?.wrappedValue.path) else {
+            return
+        }
+        let backStack = navController.currentBackStack.value
+        guard !backStack.isEmpty() else {
+            return
+        }
+
+        // Figure out where the path and back stack first differ
+        var pathIndex = 0
+        var backStackIndex = 2 // graph, root
+        while pathIndex < path.count {
+            if backStackIndex >= backStack.count() {
+                break
+            }
+            let state = backStackState[backStack[backStackIndex].id]
+            if state?.targetValue != path[pathIndex] {
+                break
+            }
+            pathIndex += 1
+            backStackIndex += 1
+        }
+        // Pop back to last common value
+        for _ in 0..<(backStack.count() - backStackIndex) {
+            navController.popBackStack()
+        }
+        // Navigate to any new path values
+        for i in pathIndex..<path.count {
+            let _ = navigate(to: path[i], type: type(of: path[i]))
         }
     }
 
@@ -412,8 +481,10 @@ final class Navigator {
     private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any) {
         // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
         keyboardController?.hide()
-        navigatingToState = BackStackState(route: route, destination: destination, targetValue: targetValue)
         navController.navigate(route)
+        if let entry = navController.currentBackStackEntry, backStackState[entry.id] == nil {
+            backStackState[entry.id] = BackStackState(id: entry.id, route: route, destination: destination, targetValue: targetValue)
+        }
     }
 
     private func route(for targetType: Any.Type, value: Any) -> String {
@@ -666,6 +737,60 @@ public struct NavigationLink : View, ListItemAdapting {
     #endif
 }
 
+public struct NavigationPath: Equatable {
+    var path: [Any] = []
+
+    public init() {
+    }
+
+    public init(_ elements: any Sequence) {
+        #if SKIP
+        path.append(contentsOf: elements as! Sequence<Any>)
+        #endif
+    }
+
+    @available(*, unavailable)
+    public init(_ codable: NavigationPath.CodableRepresentation) {
+    }
+
+    public var count: Int {
+        return path.count
+    }
+
+    public var isEmpty: Bool {
+        return path.isEmpty
+    }
+
+    @available(*, unavailable)
+    public var codable: NavigationPath.CodableRepresentation? {
+        fatalError()
+    }
+
+    public mutating func append(_ value: Any) {
+        path.append(value)
+    }
+
+    public mutating func removeLast(_ k: Int = 1) {
+        path.removeLast(k)
+    }
+
+    public static func ==(lhs: NavigationPath, rhs: NavigationPath) -> Bool {
+        #if SKIP
+        return lhs.path == rhs.path
+        #else
+        return false
+        #endif
+    }
+
+    public struct CodableRepresentation : Codable {
+        public init(from decoder: Decoder) throws {
+        }
+
+        public func encode(to encoder: Encoder) throws {
+        }
+    }
+}
+
 #if !SKIP
 
 // TODO: Process for use in SkipUI
@@ -708,182 +833,6 @@ extension NavigationLink {
     @available(tvOS, unavailable)
     @available(watchOS, unavailable)
     public func isDetailLink(_ isDetailLink: Bool) -> some View { return stubView() }
-
-}
-
-/// A type-erased list of data representing the content of a navigation stack.
-///
-/// You can manage the state of a ``NavigationStack`` by initializing the stack
-/// with a binding to a collection of data. The stack stores data items in the
-/// collection for each view on the stack. You also can read and write the
-/// collection to observe and alter the stack's state.
-///
-/// When a stack displays views that rely on only one kind of data, you can use
-/// a standard collection, like an array, to hold the data. If you need to
-/// present different kinds of data in a single stack, use a navigation path
-/// instead. The path uses type erasure so you can manage a collection of
-/// heterogeneous elements. The path also provides the usual collection
-/// controls for adding, counting, and removing data elements.
-///
-/// ### Serialize the path
-///
-/// When the values you present on the navigation stack conform to
-/// the  protocol,
-/// you can use the path's ``codable`` property to get a serializable
-/// representation of the path. Use that representation to save and restore
-/// the contents of the stack. For example, you can define an
-/// 
-/// that handles serializing and deserializing the path:
-///
-///     class MyModelObject: ObservableObject {
-///         @Published var path: NavigationPath
-///
-///         static func readSerializedData() -> Data? {
-///             // Read data representing the path from app's persistent storage.
-///         }
-///
-///         static func writeSerializedData(_ data: Data) {
-///             // Write data representing the path to app's persistent storage.
-///         }
-///
-///         init() {
-///             if let data = Self.readSerializedData() {
-///                 do {
-///                     let representation = try JSONDecoder().decode(
-///                         NavigationPath.CodableRepresentation.self,
-///                         from: data)
-///                     self.path = NavigationPath(representation)
-///                 } catch {
-///                     self.path = NavigationPath()
-///                 }
-///             } else {
-///                 self.path = NavigationPath()
-///             }
-///         }
-///
-///         func save() {
-///             guard let representation = path.codable else { return }
-///             do {
-///                 let encoder = JSONEncoder()
-///                 let data = try encoder.encode(representation)
-///                 Self.writeSerializedData(data)
-///             } catch {
-///                 // Handle error.
-///             }
-///         }
-///     }
-///
-/// Then, using that object in your view, you can save the state of
-/// the navigation path when the ``Scene`` enters the ``ScenePhase/background``
-/// state:
-///
-///     @StateObject private var pathState = MyModelObject()
-///     @Environment(\.scenePhase) private var scenePhase
-///
-///     var body: some View {
-///         NavigationStack(path: $pathState.path) {
-///             // Add a root view here.
-///         }
-///         .onChange(of: scenePhase) { phase in
-///             if phase == .background {
-///                 pathState.save()
-///             }
-///         }
-///     }
-///
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-public struct NavigationPath {
-
-    /// The number of elements in this path.
-    public var count: Int { get { fatalError() } }
-
-    /// A Boolean that indicates whether this path is empty.
-    public var isEmpty: Bool { get { fatalError() } }
-
-    /// A value that describes the contents of this path in a serializable
-    /// format.
-    ///
-    /// This value is `nil` if any of the type-erased elements of the path
-    /// don't conform to the
-    ///  protocol.
-    public var codable: NavigationPath.CodableRepresentation? { get { fatalError() } }
-
-    /// Creates a new, empty navigation path.
-    public init() { fatalError() }
-
-    /// Creates a new navigation path from the contents of a sequence.
-    ///
-    /// - Parameters:
-    ///   - elements: A sequence used to create the navigation path.
-    public init<S>(_ elements: S) where S : Sequence, S.Element : Hashable { fatalError() }
-
-    /// Creates a new navigation path from the contents of a sequence that
-    /// contains codable elements.
-    ///
-    /// - Parameters:
-    ///   - elements: A sequence used to create the navigation path.
-    public init<S>(_ elements: S) where S : Sequence, S.Element : Decodable, S.Element : Encodable, S.Element : Hashable { fatalError() }
-
-    /// Creates a new navigation path from a serializable version.
-    ///
-    /// - Parameters:
-    ///   - codable: A value describing the contents of the new path in a
-    ///     serializable format.
-    public init(_ codable: NavigationPath.CodableRepresentation) { fatalError() }
-
-    /// Appends a new value to the end of this path.
-    public mutating func append<V>(_ value: V) where V : Hashable { fatalError() }
-
-    /// Appends a new codable value to the end of this path.
-    public mutating func append<V>(_ value: V) where V : Decodable, V : Encodable, V : Hashable { fatalError() }
-
-    /// Removes values from the end of this path.
-    ///
-    /// - Parameters:
-    ///   - k: The number of values to remove. The default value is `1`.
-    ///
-    /// - Precondition: The input parameter `k` must be greater than or equal
-    ///   to zero, and must be less than or equal to the number of elements in
-    ///   the path.
-    public mutating func removeLast(_ k: Int = 1) { fatalError() }
-
-    /// A serializable representation of a navigation path.
-    ///
-    /// When a navigation path contains elements the conform to the
-    ///  protocol,
-    /// you can use the path's `CodableRepresentation` to convert the path to an
-    /// external representation and to convert an external representation back
-    /// into a navigation path.
-    public struct CodableRepresentation : Codable {
-
-        /// Creates a new instance by decoding from the given decoder.
-        ///
-        /// This initializer throws an error if reading from the decoder fails, or
-        /// if the data read is corrupted or otherwise invalid.
-        ///
-        /// - Parameter decoder: The decoder to read data from.
-        public init(from decoder: Decoder) throws { fatalError() }
-
-        /// Encodes this value into the given encoder.
-        ///
-        /// If the value fails to encode anything, `encoder` will encode an empty
-        /// keyed container in its place.
-        ///
-        /// This function throws an error if any values are invalid for the given
-        /// encoder's format.
-        ///
-        /// - Parameter encoder: The encoder to write data to.
-        public func encode(to encoder: Encoder) throws { fatalError() }
-    }
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationPath : Equatable {
-
-}
-
-@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-extension NavigationPath.CodableRepresentation : Equatable {
 
 }
 
