@@ -736,7 +736,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.background</code></td>
+      <td><code>.background</code> (<a href="https://skip.tools/docs/components/background/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -748,7 +748,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.border</code></td>
+      <td><code>.border</code> (<a href="https://skip.tools/docs/components/border/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -783,7 +783,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.confirmationDialog</code></td>
+      <td><code>.confirmationDialog</code> (<a href="https://skip.tools/docs/components/confirmationdialog/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -824,7 +824,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.font</code></td>
+      <td><code>.font</code> (<a href="https://skip.tools/docs/components/text/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -838,7 +838,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.frame</code></summary>
+              <summary><code>.frame</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</summary>
               <ul>
                   <li>Some combinations of parameters do not behave exactly the same in SwiftUI and Android</li>
               </ul>
@@ -849,7 +849,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.gesture</code></summary>
+              <summary><code>.gesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -858,7 +858,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.gradient</code> (Color)</td>
+      <td><code>.gradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -874,7 +874,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.keyboardType</code></td>
+      <td><code>.keyboardType</code> (<a href="https://skip.tools/docs/components/keyboard/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -909,7 +909,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.modifier</code></td>
+      <td><code>.modifier</code> (<a href="https://skip.tools/docs/components/modifier/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -959,7 +959,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.offset</code></td>
+      <td><code>.offset</code> (<a href="https://skip.tools/docs/components/offset/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -981,7 +981,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.onLongPressGesture</code></summary>
+              <summary><code>.onLongPressGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -1013,7 +1013,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.overlay</code></td>
+      <td><code>.overlay</code> (<a href="https://skip.tools/docs/components/overlay/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1142,7 +1142,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>.searchable</code></summary>
+              <summary><code>.searchable</code> (<a href="https://skip.tools/docs/components/searchable/">example</a>)</summary>
               <ul>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: Text? = nil) -> some View</code></li>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: String) -> some View</code></li>
@@ -1154,7 +1154,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.shadow</code></summary>
+              <summary><code>.shadow</code> (<a href="https://skip.tools/docs/components/shadow/">example</a>)</summary>
               <ul>
                   <li>Place this modifier before <code>.background</code>, <code>.overlay</code> modifiers</li>
               </ul>
@@ -1165,7 +1165,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.sheet</code></summary>
+              <summary><code>.sheet</code> (<a href="https://skip.tools/docs/components/sheet/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
@@ -1229,7 +1229,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.zIndex</code></td>
+      <td><code>.zIndex</code> (<a href="https://skip.tools/docs/components/zindex/">example</a>)</td>
     </tr>
   </tbody>
 </table>
