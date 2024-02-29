@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -115,8 +116,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                         if let state = navigator.value.state(for: entry) {
-                            let entryContext = context.content(stateSaver: state.stateSaver)
-                            ComposeEntry(navigator: navigator, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true, context: entryContext) { context in
+                            ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true) { context in
                                 root.Compose(context: context)
                             }
                         }
@@ -129,15 +129,10 @@ public struct NavigationStack<Root> : View where Root: View {
                                    popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
-                                let entryContext = context.content(stateSaver: state.stateSaver)
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss({ navigator.value.navigateBack() })
                                 } in: {
-                                    ComposeEntry(navigator: navigator,
-                                                 destinations: destinations,
-                                                 destinationsDidChange: preferencesDidChange,
-                                                 isRoot: false,
-                                                 context: entryContext) { context in
+                                    ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false) { context in
                                         state.destination?(targetValue).Compose(context: context)
                                     }
                                 }
@@ -150,12 +145,15 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
+        let context = context.content(stateSaver: state.stateSaver)
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
 
         let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
+        let titleDisplayMode = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationBarItem.TitleDisplayMode?, Any>) { mutableStateOf<NavigationBarItem.TitleDisplayMode?>(nil) }
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: titleDisplayMode.value)
         let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
         let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
         let toolbarItems = ToolbarItems(content: toolbarContent)
@@ -190,35 +188,42 @@ public struct NavigationStack<Root> : View where Root: View {
                     $0.set_tint(tint)
                 } in: {
                     let interactionSource = remember { MutableInteractionSource() }
-                    MediumTopAppBar(
-                        modifier: Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: { scrollToTop.value?() }),
-                        colors: TopAppBarDefaults.topAppBarColors(
-                            containerColor: Color.systemBarBackground.colorImpl(),
-                            titleContentColor: MaterialTheme.colorScheme.onSurface
-                        ), title: {
-                            androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                        }, navigationIcon: {
-                            let hasBackButton = !isRoot && !backButtonHidden.value
-                            if hasBackButton || !topLeadingItems.isEmpty {
-                                let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                                Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                    if hasBackButton {
-                                        IconButton(onClick: {
-                                            navigator.value.navigateBack()
-                                        }) {
-                                            let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                                            Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
-                                        }
-                                    }
-                                    topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
-                                }
-                            }
-                        }, actions: {
-                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                            topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
-                        },
-                        scrollBehavior: scrollBehavior
+                    let topBarModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                        scrollToTop.value?()
+                    })
+                    let topBarColors = TopAppBarDefaults.topAppBarColors(
+                        containerColor: Color.systemBarBackground.colorImpl(),
+                        titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
+                    let topBarTitle: @Composable () -> Void = {
+                        androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                    }
+                    let topBarNavigationIcon: @Composable () -> Void = {
+                        let hasBackButton = !isRoot && !backButtonHidden.value
+                        if hasBackButton || !topLeadingItems.isEmpty {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                if hasBackButton {
+                                    IconButton(onClick: {
+                                        navigator.value.navigateBack()
+                                    }) {
+                                        let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                                        Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
+                                    }
+                                }
+                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                            }
+                        }
+                    }
+                    let topBarActions: @Composable () -> Void = {
+                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                        topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                    }
+                    if effectiveTitleDisplayMode == NavigationBarItem.TitleDisplayMode.inline {
+                        TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    } else {
+                        MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    }
                 }
             }, bottomBar: {
                 let bottomItems = toolbarItems.filterBottomBar()
@@ -250,7 +255,6 @@ public struct NavigationStack<Root> : View where Root: View {
 
             let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
             Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-
                 let contentContext: ComposeContext
                 if isRoot, let searchableState = EnvironmentValues.shared._searchableState {
                     let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
@@ -265,10 +269,11 @@ public struct NavigationStack<Root> : View where Root: View {
                 // will be composed, and we want to retain destinations from previous entries
                 let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
                 let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let titleDisplayModePreference = Preference<NavigationBarItem.TitleDisplayMode?>(key: NavigationBarTitleDisplayModePreferenceKey.self, update: { titleDisplayMode.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, titleDisplayModePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {
@@ -326,12 +331,13 @@ final class Navigator {
     private var navigationPath: Binding<NavigationPath>?
 
     private var backStackState: [String: BackStackState] = [:]
-    struct BackStackState {
+    final class BackStackState {
         let id: String
         let route: String
         let destination: ((Any) -> any View)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
+        var titleDisplayMode: NavigationBarItem.TitleDisplayMode?
 
         init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
@@ -408,6 +414,25 @@ final class Navigator {
         let rootState = BackStackState(id: entry.id, route: Self.rootRoute)
         backStackState[entry.id] = rootState
         return rootState
+    }
+
+    /// The effective title display mode for the given preference value.
+    func titleDisplayMode(for state: BackStackState, preference: NavigationBarItem.TitleDisplayMode?) -> NavigationBarItem.TitleDisplayMode {
+        if let preference {
+            state.titleDisplayMode = preference
+            return preference
+        }
+
+        // Base the display mode on the back stack
+        var titleDisplayMode: NavigationBarItem.TitleDisplayMode? = nil
+        for entry in navController.currentBackStack.value {
+            if entry.id == state.id {
+                break
+            } else if let entryTitleDisplayMode = backStackState[entry.id]?.titleDisplayMode {
+                titleDisplayMode = entryTitleDisplayMode
+            }
+        }
+        return titleDisplayMode ?? NavigationBarItem.TitleDisplayMode.automatic
     }
 
     /// Sync our back stack state with the nav controller.
@@ -522,7 +547,7 @@ public struct NavigationSplitViewStyle: RawRepresentable, Equatable {
 }
 
 public struct NavigationBarItem : Hashable, Sendable {
-    public enum TitleDisplayMode : Sendable {
+    public enum TitleDisplayMode : Equatable, Sendable {
         case automatic
         case inline
         case large
@@ -538,9 +563,12 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View {
+        #if SKIP
+        return preference(key: NavigationBarTitleDisplayModePreferenceKey.self, value: displayMode)
+        #else
         return self
+        #endif
     }
 
     public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D: Any {
@@ -634,6 +662,18 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
     final class Companion: PreferenceKeyCompanion {
         let defaultValue = Text("")
         func reduce(value: inout Text, nextValue: () -> Text) {
+            value = nextValue()
+        }
+    }
+}
+
+struct NavigationBarTitleDisplayModePreferenceKey: PreferenceKey {
+    typealias Value = NavigationBarItem.TitleDisplayMode?
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<NavigationBarItem.TitleDisplayMode?>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue: NavigationBarItem.TitleDisplayMode? = nil
+        func reduce(value: inout NavigationBarItem.TitleDisplayMode?, nextValue: () -> NavigationBarItem.TitleDisplayMode?) {
             value = nextValue()
         }
     }

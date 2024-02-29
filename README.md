@@ -931,6 +931,10 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>.navigationBarTitleDisplayMode</code></td>
+    </tr>
+    <tr>
       <td>🟢</td>
       <td>
           <details>
