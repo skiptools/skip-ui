@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 import protocol CoreTransferable.Transferable
 import struct Foundation.URL
 import class Foundation.NSItemProvider

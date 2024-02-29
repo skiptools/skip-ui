@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A stylized view, with an optional label, that visually collects a logical
 /// grouping of content.

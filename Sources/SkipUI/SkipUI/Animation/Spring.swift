@@ -99,7 +99,7 @@ public enum SpringLoadingBehavior : Hashable, Sendable {
     case disabled
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

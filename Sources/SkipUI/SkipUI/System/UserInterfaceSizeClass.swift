@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A set of values that indicate the visual size available to the view.
 ///

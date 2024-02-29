@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 
 /// Defines the implementation of all `IndexView` instances within a view

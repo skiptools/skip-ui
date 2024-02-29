@@ -540,14 +540,17 @@ extension Shape {
 }
 
 #if !SKIP
-
-// TODO: Process for use in SkipUI
-
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
+#endif
+
+#if false
+
+// TODO: Process for use in SkipUI
+
 
 /// No-op
 func stubShape() -> some Shape {

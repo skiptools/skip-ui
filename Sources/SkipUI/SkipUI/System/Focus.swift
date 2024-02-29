@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 import protocol Combine.ObservableObject
 
 /// Values describe different focus interactions that a view can support.

@@ -189,7 +189,7 @@ final class SearchFieldScrollConnection: NestedScrollConnection {
 }
 #endif
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

@@ -8,7 +8,7 @@
 
 #if canImport(Symbols)
 #if !os(macOS)
-#if !SKIP
+#if false
 
 import protocol Symbols.SymbolEffect
 import struct Symbols.SymbolEffectOptions

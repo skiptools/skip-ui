@@ -126,7 +126,7 @@ public enum RoundedCornerStyle : Hashable, Sendable {
     case continuous
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

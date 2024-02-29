@@ -200,7 +200,7 @@ extension View {
     }
 }
 
-#if !SKIP
+#if false
 
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector

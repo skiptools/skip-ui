@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// The orientation of the interface from the user's perspective.
 ///

@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// An opaque wrapper view that adds editing capabilities to a row in a list.
 ///

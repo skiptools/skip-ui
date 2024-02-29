@@ -34,7 +34,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-public struct Image : View, Equatable, Sendable {
+public struct Image : View, Equatable {
     let image: ImageType
     var capInsets = EdgeInsets()
     var resizingMode: ResizingMode?
@@ -629,7 +629,7 @@ extension View {
     }
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

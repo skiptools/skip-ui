@@ -791,7 +791,7 @@ public struct NavigationPath: Equatable {
     }
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

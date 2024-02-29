@@ -1086,4 +1086,16 @@ extension Optional : View where Wrapped : View {
 
 extension Never : View {
 }
+
+
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+extension Never {
+
+    /// The type for the internal content of this `AccessibilityRotorContent`.
+    public typealias Body = NeverView
+
+    /// The internal content of this `AccessibilityRotorContent`.
+    public var body: Never { get { fatalError() } }
+}
+
 #endif

@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A keyframe that immediately moves to the given value without interpolating.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

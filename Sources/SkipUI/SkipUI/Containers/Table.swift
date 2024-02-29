@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 import struct CoreGraphics.CGFloat
 import class Foundation.NSObject
 import protocol Foundation.SortComparator

@@ -600,8 +600,7 @@ class HostingController<V: View> : UXHostingController<V>, SkipUIEvaluator {
 ///   - children: the child accessor closure or keyPath
 /// - Returns: a sequence of all the elements of the tree
 @inlinable public func traverse<T>(_ node: T, _ children: @escaping (T) -> [T]) -> some Sequence<T> {
-    var stack: [T] = [node]
-    return sequence(state: stack) { stack in
+    sequence(state: [node]) { stack in
         if stack.isEmpty { return nil }
         let current = stack.removeLast()
         stack.append(contentsOf: children(current))

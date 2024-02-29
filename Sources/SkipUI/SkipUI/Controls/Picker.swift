@@ -254,7 +254,7 @@ struct PickerSelectionView<SelectionValue> : View {
 }
 #endif
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

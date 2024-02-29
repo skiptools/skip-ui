@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector

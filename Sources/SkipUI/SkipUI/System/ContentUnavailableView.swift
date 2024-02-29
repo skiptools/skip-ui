@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// An interface, consisting of a label and additional content, that you
 /// display when the content of your app is unavailable to users.

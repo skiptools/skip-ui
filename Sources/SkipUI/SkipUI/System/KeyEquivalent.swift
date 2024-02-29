@@ -57,7 +57,7 @@ public struct KeyEquivalent : Hashable, Sendable {
     public static let `return` = KeyEquivalent("\u{000D}")
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

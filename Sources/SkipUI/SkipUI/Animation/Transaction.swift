@@ -42,6 +42,69 @@
     public subscript<K>(key: K.Type) -> K.Value where K : TransactionKey { get { fatalError() } }
 }
 
+
+/// A key for accessing values in a transaction.
+///
+/// You can create custom transaction values by extending the ``Transaction``
+/// structure with new properties.
+/// First declare a new transaction key type and specify a value for the
+/// required ``defaultValue`` property:
+///
+///     private struct MyTransactionKey: TransactionKey {
+///         static let defaultValue = false = { fatalError() }()
+///     }
+///
+/// The Swift compiler automatically infers the associated ``Value`` type as the
+/// type you specify for the default value. Then use the key to define a new
+/// transaction value property:
+///
+///     extension Transaction {
+///         var myCustomValue: Bool {
+///             get { self[MyTransactionKey.self] }
+///             set { self[MyTransactionKey.self] = newValue }
+///         }
+///     }
+///
+/// Clients of your transaction value never use the key directly.
+/// Instead, they use the key path of your custom transaction value property.
+/// To set the transaction value for a change, wrap that change in a call to
+/// `withTransaction`:
+///
+///     withTransaction(\.myCustomValue, true) {
+///         isActive.toggle()
+///     }
+///
+/// To set it for a view and all its subviews, add the
+/// ``View/transaction(_:_:)`` view modifier to that view:
+///
+///     MyView()
+///         .transaction(\.myCustomValue, true)
+///
+/// To use the value from inside `MyView` or one of its descendants, use the
+/// ``View/transaction(_:)`` view modifier:
+///
+///     MyView()
+///         .transaction { transaction in
+///             if transaction.myCustomValue {
+///                 transaction.animation = .default.repeatCount(3)
+///             }
+///         }
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+public protocol TransactionKey {
+
+    /// The associated type representing the type of the transaction key's
+    /// value.
+    associatedtype Value
+
+    /// The default value for the transaction key.
+    static var defaultValue: Self.Value { get }
+}
+
+
+#endif
+
+#if false
+
 @available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
@@ -148,63 +211,6 @@ extension Transaction {
     /// slider or pressing and holding a stepper, as opposed to tapping a
     /// button.
     public var isContinuous: Bool { get { fatalError() } }
-}
-
-/// A key for accessing values in a transaction.
-///
-/// You can create custom transaction values by extending the ``Transaction``
-/// structure with new properties.
-/// First declare a new transaction key type and specify a value for the
-/// required ``defaultValue`` property:
-///
-///     private struct MyTransactionKey: TransactionKey {
-///         static let defaultValue = false = { fatalError() }()
-///     }
-///
-/// The Swift compiler automatically infers the associated ``Value`` type as the
-/// type you specify for the default value. Then use the key to define a new
-/// transaction value property:
-///
-///     extension Transaction {
-///         var myCustomValue: Bool {
-///             get { self[MyTransactionKey.self] }
-///             set { self[MyTransactionKey.self] = newValue }
-///         }
-///     }
-///
-/// Clients of your transaction value never use the key directly.
-/// Instead, they use the key path of your custom transaction value property.
-/// To set the transaction value for a change, wrap that change in a call to
-/// `withTransaction`:
-///
-///     withTransaction(\.myCustomValue, true) {
-///         isActive.toggle()
-///     }
-///
-/// To set it for a view and all its subviews, add the
-/// ``View/transaction(_:_:)`` view modifier to that view:
-///
-///     MyView()
-///         .transaction(\.myCustomValue, true)
-///
-/// To use the value from inside `MyView` or one of its descendants, use the
-/// ``View/transaction(_:)`` view modifier:
-///
-///     MyView()
-///         .transaction { transaction in
-///             if transaction.myCustomValue {
-///                 transaction.animation = .default.repeatCount(3)
-///             }
-///         }
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public protocol TransactionKey {
-
-    /// The associated type representing the type of the transaction key's
-    /// value.
-    associatedtype Value
-
-    /// The default value for the transaction key.
-    static var defaultValue: Self.Value { get }
 }
 
 /// Executes a closure with the specified transaction and returns the result.

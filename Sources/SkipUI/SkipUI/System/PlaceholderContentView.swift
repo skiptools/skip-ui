@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A placeholder used to construct an inline modifier, transition, or other
 /// helper type.

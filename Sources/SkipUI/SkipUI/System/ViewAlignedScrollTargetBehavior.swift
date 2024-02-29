@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// The scroll behavior that aligns scroll targets to view-based geometry.
 ///

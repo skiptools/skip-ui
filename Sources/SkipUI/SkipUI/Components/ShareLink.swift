@@ -116,7 +116,7 @@ public final class ShareLink : View {
     #endif
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

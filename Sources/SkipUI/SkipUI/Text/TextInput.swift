@@ -30,7 +30,7 @@ public enum TextInputAutocapitalization : Sendable {
     #endif
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

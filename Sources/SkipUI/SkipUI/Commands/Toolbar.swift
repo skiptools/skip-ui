@@ -269,7 +269,7 @@ struct ToolbarItems {
 }
 #endif
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

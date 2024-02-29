@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A dynamic property type that allows access to a namespace defined
 /// by the persistent identity of the object containing the property

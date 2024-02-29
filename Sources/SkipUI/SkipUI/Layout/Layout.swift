@@ -16,7 +16,7 @@ public enum LayoutDirectionBehavior : Hashable, Sendable {
     public static var mirrors = LayoutDirectionBehavior.mirrors(in: .rightToLeft)
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

@@ -204,6 +204,196 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
 
 #if !SKIP
 
+/// An empty type for animatable data.
+///
+/// This type is suitable for use as the `animatableData` property of
+/// types that do not have any animatable properties.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct EmptyAnimatableData : VectorArithmetic {
+
+    @inlinable public init() { fatalError() }
+
+    /// The zero value.
+    ///
+    /// Zero is the identity element for addition. For any value,
+    /// `x + .zero == x` and `.zero + x == x`.
+    @inlinable public static var zero: EmptyAnimatableData { get { fatalError() } }
+
+    /// Adds two values and stores the result in the left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    @inlinable public static func += (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
+
+    /// Subtracts the second value from the first and stores the difference in the
+    /// left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    @inlinable public static func -= (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
+
+    /// Adds two values and produces their sum.
+    ///
+    /// The addition operator (`+`) calculates the sum of its two arguments. For
+    /// example:
+    ///
+    ///     1 + 2                   // 3
+    ///     -10 + 15                // 5
+    ///     -15 + -5                // -20
+    ///     21.5 + 3.25             // 24.75
+    ///
+    /// You cannot use `+` with arguments of different types. To add values of
+    /// different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: Int8 = 21
+    ///     let y: Int = 1000000
+    ///     Int(x) + y              // 1000021
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    @inlinable public static func + (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
+
+    /// Subtracts one value from another and produces their difference.
+    ///
+    /// The subtraction operator (`-`) calculates the difference of its two
+    /// arguments. For example:
+    ///
+    ///     8 - 3                   // 5
+    ///     -10 - 5                 // -15
+    ///     100 - -5                // 105
+    ///     10.5 - 100.0            // -89.5
+    ///
+    /// You cannot use `-` with arguments of different types. To subtract values
+    /// of different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: UInt8 = 21
+    ///     let y: UInt = 1000000
+    ///     y - UInt(x)             // 999979
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    @inlinable public static func - (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
+
+    /// Multiplies each component of this value by the given value.
+    @inlinable public mutating func scale(by rhs: Double) { fatalError() }
+
+    /// The dot-product of this animatable data instance with itself.
+    @inlinable public var magnitudeSquared: Double { get { fatalError() } }
+
+
+}
+
+
+/// A pair of animatable values, which is itself animatable.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+@frozen public struct AnimatablePair<First, Second> : VectorArithmetic where First : VectorArithmetic, Second : VectorArithmetic {
+
+    /// The first value.
+    public var first: First { get { fatalError() } }
+
+    /// The second value.
+    public var second: Second { get { fatalError() } }
+
+    /// Creates an animated pair with the provided values.
+    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
+
+    /// The zero value.
+    ///
+    /// Zero is the identity element for addition. For any value,
+    /// `x + .zero == x` and `.zero + x == x`.
+    public static var zero: AnimatablePair<First, Second> { get { fatalError() } }
+
+    /// Adds two values and stores the result in the left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    public static func += (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
+
+    /// Subtracts the second value from the first and stores the difference in the
+    /// left-hand-side variable.
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    public static func -= (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
+
+    /// Adds two values and produces their sum.
+    ///
+    /// The addition operator (`+`) calculates the sum of its two arguments. For
+    /// example:
+    ///
+    ///     1 + 2                   // 3
+    ///     -10 + 15                // 5
+    ///     -15 + -5                // -20
+    ///     21.5 + 3.25             // 24.75
+    ///
+    /// You cannot use `+` with arguments of different types. To add values of
+    /// different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: Int8 = 21
+    ///     let y: Int = 1000000
+    ///     Int(x) + y              // 1000021
+    ///
+    /// - Parameters:
+    ///   - lhs: The first value to add.
+    ///   - rhs: The second value to add.
+    public static func + (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
+
+    /// Subtracts one value from another and produces their difference.
+    ///
+    /// The subtraction operator (`-`) calculates the difference of its two
+    /// arguments. For example:
+    ///
+    ///     8 - 3                   // 5
+    ///     -10 - 5                 // -15
+    ///     100 - -5                // 105
+    ///     10.5 - 100.0            // -89.5
+    ///
+    /// You cannot use `-` with arguments of different types. To subtract values
+    /// of different types, convert one of the values to the other value's type.
+    ///
+    ///     let x: UInt8 = 21
+    ///     let y: UInt = 1000000
+    ///     y - UInt(x)             // 999979
+    ///
+    /// - Parameters:
+    ///   - lhs: A numeric value.
+    ///   - rhs: The value to subtract from `lhs`.
+    public static func - (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
+
+    /// Multiplies each component of this value by the given value.
+    public mutating func scale(by rhs: Double) { fatalError() }
+
+    /// The dot-product of this animated pair with itself.
+    public var magnitudeSquared: Double { get { fatalError() } }
+
+
+}
+
+#endif
+
+#if !SKIP
+
+/// A type that describes how to animate a property of a view.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public protocol Animatable {
+
+    /// The type defining the data to animate.
+    associatedtype AnimatableData : VectorArithmetic
+
+    /// The data to animate.
+//    var animatableData: Self.AnimatableData { get set }
+}
+
+#endif
+
+#if false
+
 // TODO: Process for use in SkipUI
 
 import struct CoreGraphics.CGFloat
@@ -413,17 +603,6 @@ extension View {
 
 }
 
-/// A type that describes how to animate a property of a view.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol Animatable {
-
-    /// The type defining the data to animate.
-    associatedtype AnimatableData : VectorArithmetic
-
-    /// The data to animate.
-//    var animatableData: Self.AnimatableData { get set }
-}
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension Animatable where Self : VectorArithmetic {
 
@@ -436,93 +615,6 @@ extension Animatable where Self.AnimatableData == EmptyAnimatableData {
 
     /// The data to animate.
     public var animatableData: EmptyAnimatableData { get { fatalError() } }
-}
-
-/// A pair of animatable values, which is itself animatable.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct AnimatablePair<First, Second> : VectorArithmetic where First : VectorArithmetic, Second : VectorArithmetic {
-
-    /// The first value.
-    public var first: First { get { fatalError() } }
-
-    /// The second value.
-    public var second: Second { get { fatalError() } }
-
-    /// Creates an animated pair with the provided values.
-    @inlinable public init(_ first: First, _ second: Second) { fatalError() }
-
-    /// The zero value.
-    ///
-    /// Zero is the identity element for addition. For any value,
-    /// `x + .zero == x` and `.zero + x == x`.
-    public static var zero: AnimatablePair<First, Second> { get { fatalError() } }
-
-    /// Adds two values and stores the result in the left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    public static func += (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
-
-    /// Subtracts the second value from the first and stores the difference in the
-    /// left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    public static func -= (lhs: inout AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) { fatalError() }
-
-    /// Adds two values and produces their sum.
-    ///
-    /// The addition operator (`+`) calculates the sum of its two arguments. For
-    /// example:
-    ///
-    ///     1 + 2                   // 3
-    ///     -10 + 15                // 5
-    ///     -15 + -5                // -20
-    ///     21.5 + 3.25             // 24.75
-    ///
-    /// You cannot use `+` with arguments of different types. To add values of
-    /// different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: Int8 = 21
-    ///     let y: Int = 1000000
-    ///     Int(x) + y              // 1000021
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    public static func + (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
-
-    /// Subtracts one value from another and produces their difference.
-    ///
-    /// The subtraction operator (`-`) calculates the difference of its two
-    /// arguments. For example:
-    ///
-    ///     8 - 3                   // 5
-    ///     -10 - 5                 // -15
-    ///     100 - -5                // 105
-    ///     10.5 - 100.0            // -89.5
-    ///
-    /// You cannot use `-` with arguments of different types. To subtract values
-    /// of different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: UInt8 = 21
-    ///     let y: UInt = 1000000
-    ///     y - UInt(x)             // 999979
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    public static func - (lhs: AnimatablePair<First, Second>, rhs: AnimatablePair<First, Second>) -> AnimatablePair<First, Second> { fatalError() }
-
-    /// Multiplies each component of this value by the given value.
-    public mutating func scale(by rhs: Double) { fatalError() }
-
-    /// The dot-product of this animated pair with itself.
-    public var magnitudeSquared: Double { get { fatalError() } }
-
-    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -1639,89 +1731,6 @@ extension StrokeStyle : Animatable {
 
     /// The data to animate.
     public var animatableData: AnimatableData { get { fatalError() } set { } }
-}
-
-/// An empty type for animatable data.
-///
-/// This type is suitable for use as the `animatableData` property of
-/// types that do not have any animatable properties.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct EmptyAnimatableData : VectorArithmetic {
-
-    @inlinable public init() { fatalError() }
-
-    /// The zero value.
-    ///
-    /// Zero is the identity element for addition. For any value,
-    /// `x + .zero == x` and `.zero + x == x`.
-    @inlinable public static var zero: EmptyAnimatableData { get { fatalError() } }
-
-    /// Adds two values and stores the result in the left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    @inlinable public static func += (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
-
-    /// Subtracts the second value from the first and stores the difference in the
-    /// left-hand-side variable.
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    @inlinable public static func -= (lhs: inout EmptyAnimatableData, rhs: EmptyAnimatableData) { fatalError() }
-
-    /// Adds two values and produces their sum.
-    ///
-    /// The addition operator (`+`) calculates the sum of its two arguments. For
-    /// example:
-    ///
-    ///     1 + 2                   // 3
-    ///     -10 + 15                // 5
-    ///     -15 + -5                // -20
-    ///     21.5 + 3.25             // 24.75
-    ///
-    /// You cannot use `+` with arguments of different types. To add values of
-    /// different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: Int8 = 21
-    ///     let y: Int = 1000000
-    ///     Int(x) + y              // 1000021
-    ///
-    /// - Parameters:
-    ///   - lhs: The first value to add.
-    ///   - rhs: The second value to add.
-    @inlinable public static func + (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
-
-    /// Subtracts one value from another and produces their difference.
-    ///
-    /// The subtraction operator (`-`) calculates the difference of its two
-    /// arguments. For example:
-    ///
-    ///     8 - 3                   // 5
-    ///     -10 - 5                 // -15
-    ///     100 - -5                // 105
-    ///     10.5 - 100.0            // -89.5
-    ///
-    /// You cannot use `-` with arguments of different types. To subtract values
-    /// of different types, convert one of the values to the other value's type.
-    ///
-    ///     let x: UInt8 = 21
-    ///     let y: UInt = 1000000
-    ///     y - UInt(x)             // 999979
-    ///
-    /// - Parameters:
-    ///   - lhs: A numeric value.
-    ///   - rhs: The value to subtract from `lhs`.
-    @inlinable public static func - (lhs: EmptyAnimatableData, rhs: EmptyAnimatableData) -> EmptyAnimatableData { fatalError() }
-
-    /// Multiplies each component of this value by the given value.
-    @inlinable public mutating func scale(by rhs: Double) { fatalError() }
-
-    /// The dot-product of this animatable data instance with itself.
-    @inlinable public var magnitudeSquared: Double { get { fatalError() } }
-
-    
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

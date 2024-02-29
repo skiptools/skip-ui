@@ -43,7 +43,7 @@ extension View {
     }
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 
@@ -3638,16 +3638,6 @@ extension View {
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Never : AccessibilityRotorContent {
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension Never {
-
-    /// The type for the internal content of this `AccessibilityRotorContent`.
-    public typealias Body = NeverView
-
-    /// The internal content of this `AccessibilityRotorContent`.
-    public var body: Never { get { fatalError() } }
 }
 
 #endif

@@ -6,7 +6,7 @@
 
 // TODO: Process for use in SkipUI
 
-#if !SKIP
+#if false
 
 /// A structure that computes views and disclosure groups on demand from an
 /// underlying collection of tree-structured, identified data.

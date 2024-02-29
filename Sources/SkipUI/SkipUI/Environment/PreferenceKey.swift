@@ -134,7 +134,7 @@ extension View {
     #endif
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 

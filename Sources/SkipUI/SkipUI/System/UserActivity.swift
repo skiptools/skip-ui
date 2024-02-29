@@ -27,11 +27,14 @@ extension View {
 }
 
 #if !SKIP
+import struct Foundation.URL
+#endif
+
+#if false
 
 // TODO: Process for use in SkipUI
 
 #if canImport(Foundation)
-import struct Foundation.URL
 import class Foundation.NSUserActivity
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)

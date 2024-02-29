@@ -109,7 +109,7 @@ public struct UITextContentType: RawRepresentable, Equatable {
     public static let creditCardType = UITextContentType(rawValue: 42)
 }
 
-#if !SKIP
+#if false
 
 // TODO: Process for use in SkipUI
 
