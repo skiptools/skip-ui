@@ -106,7 +106,7 @@ public struct AsyncImage : View {
     }
 }
 
-public enum AsyncImagePhase : Sendable {
+public enum AsyncImagePhase {
     case empty
     case success(Image)
     case failure(Error)

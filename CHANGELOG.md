@@ -1,3 +1,12 @@
+## 0.5.9
+
+Released 2024-02-29
+
+  - Elide compilation of stub code when #if !SKIP
+  - Elide compilation of stub code when #if !SKIP
+  - Support NavigationStack path binding to an array or NavigationPath
+  - Prevent quick back taps from popping past root
+
 ## 0.5.6
 
 Released 2024-02-25

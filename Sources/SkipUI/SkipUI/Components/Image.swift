@@ -39,7 +39,7 @@ public struct Image : View, Equatable {
     var capInsets = EdgeInsets()
     var resizingMode: ResizingMode?
 
-    enum ImageType : Equatable, Sendable {
+    enum ImageType : Equatable {
         case named(name: String, bundle: Bundle?, label: Text?)
         case decorative(name: String, bundle: Bundle?)
         case system(systemName: String)
