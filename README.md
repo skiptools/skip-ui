@@ -851,7 +851,7 @@ Support levels:
           <details>
               <summary><code>.fullScreenCover</code></summary>
               <ul>
-                  <li><code>func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
+                  <li><code>func fullScreenCover(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
               </ul>
           </details>      
        </td>
@@ -1171,7 +1171,7 @@ Support levels:
           <details>
               <summary><code>.sheet</code> (<a href="https://skip.tools/docs/components/sheet/">example</a>)</summary>
               <ul>
-                  <li><code>func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
+                  <li><code>func sheet(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
               </ul>
           </details>      
        </td>
