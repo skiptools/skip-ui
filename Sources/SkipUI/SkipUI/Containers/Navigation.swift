@@ -250,7 +250,9 @@ public struct NavigationStack<Root> : View where Root: View {
         ) { padding in
             // Intercept system back button to keep our state in sync
             BackHandler(enabled: !navigator.value.isRoot) {
-                navigator.value.navigateBack()
+                if !backButtonHidden.value {
+                    navigator.value.navigateBack()
+                }
             }
 
             let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding

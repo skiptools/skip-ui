@@ -12,12 +12,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,11 +31,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -43,28 +55,45 @@ import struct CoreGraphics.CGFloat
 let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-@Composable func SheetPresentation(isPresented: Binding<Bool>, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
+@Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
-        let sheetDepth = EnvironmentValues.shared._sheetDepth
-        ModalBottomSheet(
-            onDismissRequest: { isPresented.set(false) },
-            sheetState: sheetState,
-            shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp),
-            dragHandle: nil,
-            windowInsets: WindowInsets(0, 0, 0, 0)
-        ) {
+        let topSystemBarHeight = remember { mutableStateOf(0.dp) }
+        let topCornerSize = isFullScreen ? CornerSize(0.dp) : CornerSize(overlayPresentationCornerRadius.dp)
+        let shape = with(LocalDensity.current) {
+            RoundedCornerShapeWithTopOffset(offset: topSystemBarHeight.value.toPx(), topStart: topCornerSize, topEnd: topCornerSize)
+        }
+        let coroutineScope = rememberCoroutineScope()
+        let onDismissRequest = {
+            if isFullScreen {
+                // Veto attempts to dismiss fullscreen modal via swipe or back button by re-showing
+                if isPresented.get() {
+                    coroutineScope.launch { sheetState.show() }
+                }
+            } else {
+                isPresented.set(false)
+            }
+        }
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor = androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
             let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
-            let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
-            let modifier = Modifier
-                .fillMaxWidth()
-                .height((LocalConfiguration.current.screenHeightDp - 20 * sheetDepth).dp)
-                .padding(bottom: bottomSystemBarPadding)
+            let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
+            topSystemBarHeight.value = systemBarPadding.calculateTopPadding()
+            let bottomSystemBarPadding = systemBarPadding.calculateBottomPadding()
+            var modifier = Modifier.fillMaxWidth()
+            if (isFullScreen) {
+                modifier = modifier.fillMaxHeight()
+            } else {
+                modifier = modifier.height((LocalConfiguration.current.screenHeightDp - 24 * sheetDepth).dp + topSystemBarHeight.value)
+            }
+            modifier = modifier.padding(bottom: bottomSystemBarPadding)
+            modifier = modifier.background(Color.background.colorImpl())
             EnvironmentValues.shared.setValues {
-                $0.set_sheetDepth(sheetDepth + 1)
+                if !isFullScreen {
+                    $0.set_sheetDepth(sheetDepth + 1)
+                }
                 $0.setdismiss({ isPresented.set(false) })
                 $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
             } in: {
@@ -401,9 +430,14 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
+        #if SKIP
+        return PresentationModifierView(view: self) { context in
+            SheetPresentation(isPresented: isPresented, isFullScreen: true, context: context, content: content, onDismiss: onDismiss)
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -464,7 +498,7 @@ extension View {
     public func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
         #if SKIP
         return PresentationModifierView(view: self) { context in
-            SheetPresentation(isPresented: isPresented, context: context, content: content, onDismiss: onDismiss)
+            SheetPresentation(isPresented: isPresented, isFullScreen: false, context: context, content: content, onDismiss: onDismiss)
         }
         #else
         return self
@@ -489,6 +523,29 @@ final class PresentationModifierView: ComposeModifierView {
             presentation(context.content())
         }
         view.Compose(context: context)
+    }
+}
+
+/// Used to chop off the empty area Compose adds above the content of a bottom sheet modal, and to round the rop corners.
+final class RoundedCornerShapeWithTopOffset: CornerBasedShape {
+    private let offset: Float
+
+    init(offset: Float, topStart: CornerSize, topEnd: CornerSize, bottomEnd: CornerSize = CornerSize(0.dp), bottomStart: CornerSize = CornerSize(0.dp)) {
+        self.offset = offset
+        super.init(topStart: topStart, topEnd: topEnd, bottomEnd: bottomEnd, bottomStart: bottomStart)
+    }
+
+    override func copy(topStart: CornerSize, topEnd: CornerSize, bottomEnd: CornerSize, bottomStart: CornerSize) -> RoundedCornerShapeWithTopOffset {
+        return RoundedCornerShapeWithTopOffset(offset: offset, topStart: topStart, topEnd: topEnd, bottomEnd: bottomEnd, bottomStart: bottomStart)
+    }
+
+    override func createOutline(size: Size, topStart: Float, topEnd: Float, bottomEnd: Float, bottomStart: Float, layoutDirection: androidx.compose.ui.unit.LayoutDirection) -> Outline {
+        let rect = Rect(offset: Offset(x: Float(0.0), y: offset), size: size)
+        let topLeft = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? topStart : topEnd)
+        let topRight = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? topStart : topEnd)
+        let bottomRight = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? bottomEnd : bottomStart)
+        let bottomLeft = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? bottomStart : bottomEnd)
+        return Outline.Rounded(RoundRect(rect: rect, topLeft: topLeft, topRight: topRight, bottomRight: bottomRight, bottomLeft: bottomLeft))
     }
 }
 #endif

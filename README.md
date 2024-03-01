@@ -849,6 +849,17 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
+              <summary><code>.fullScreenCover</code></summary>
+              <ul>
+                  <li><code>func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
               <summary><code>.gesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
@@ -920,15 +931,8 @@ Support levels:
       <td><code>.moveDisabled</code></td>
     </tr>
     <tr>
-      <td>🟡</td>
-      <td>
-          <details>
-              <summary><code>.navigationBarBackButtonHidden</code></summary>
-              <ul>
-                  <li>Does not disable system back button</li>
-              </ul>
-          </details>      
-       </td>
+      <td>✅</td>
+      <td><code>.navigationBarBackButtonHidden</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1167,7 +1171,7 @@ Support levels:
           <details>
               <summary><code>.sheet</code> (<a href="https://skip.tools/docs/components/sheet/">example</a>)</summary>
               <ul>
-                  <li>See <a href="#navigation">Navigation</a></li>
+                  <li><code>func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
               </ul>
           </details>      
        </td>
@@ -1433,7 +1437,7 @@ SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and
 
 SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Otherwise, `TabView` acts as you would expect.
 
-In SwiftUI, you push vies onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
+In SwiftUI, you push views onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
 
 ```swift
 NavigationStack {
@@ -1458,8 +1462,6 @@ struct ListView : View {
 SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
-
-For modal presentations, SkipUI supports the `.sheet(isPresented:onDismiss:content:)` modifier **only**. We will add support for other forms of modal presentations in the future. 
 
 ### Restrictions on Identifiers
 
