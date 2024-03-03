@@ -5,6 +5,8 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,11 +19,11 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -714,7 +716,18 @@ extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            $0.modifier = $0.modifier.alpha(Float(opacity))
+            let opacityf = Float(opacity)
+            let animatable = remember { Animatable(opacityf) }
+            let animation = EnvironmentValues.shared._animation
+            LaunchedEffect(opacityf, animation) {
+                // Snap if no animation and not animating to a target already
+                if animation == nil && animatable.value == animatable.targetValue {
+                    animatable.snapTo(opacityf)
+                } else {
+                    animatable.animateTo(opacityf, animationSpec: TweenSpec(durationMillis = 1000))
+                }
+            }
+            $0.modifier = $0.modifier.graphicsLayer { alpha = animatable.value }
         }
         #else
         return self

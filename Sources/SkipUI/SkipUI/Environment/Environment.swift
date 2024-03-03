@@ -347,6 +347,11 @@ extension EnvironmentValues {
 
     // MARK: - Internal values
 
+    var _animation: Animation? {
+        get { builtinValue(key: "_animation", defaultValue: { nil }) as! Animation? }
+        set { setBuiltinValue(key: "_animation", value: newValue, defaultValue: { nil }) }
+    }
+
     var _aspectRatio: (CGFloat?, ContentMode)? {
         get { builtinValue(key: "_aspectRatio", defaultValue: { nil }) as! (CGFloat?, ContentMode)? }
         set { setBuiltinValue(key: "_aspectRatio", value: newValue, defaultValue: { nil }) }

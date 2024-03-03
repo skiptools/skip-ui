@@ -19,14 +19,33 @@ public func withAnimation<Result>(_ animation: Animation? = .default, completion
 }
 
 extension View {
-    public func animation(_ animation: Animation?, value: Any) -> some View {
-        // TODO
+    public func animation(_ animation: Animation?, value: Any?) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Any?, Any>) { mutableStateOf(value) }
+            let isValueChange = rememberedValue.value != value
+            if isValueChange {
+                rememberedValue.value = value
+            }
+            EnvironmentValues.shared.setValues {
+                if isValueChange {
+                    $0.set_animation(animation)
+                }
+            } in: {
+                view.Compose(context: context)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     public func animation(_ animation: Animation?) -> some View {
-        // TODO
+        #if SKIP
+        return environment(\._animation, animation)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
