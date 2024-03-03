@@ -718,7 +718,7 @@ extension View {
         return ComposeModifierView(targetView: self) {
             let opacityf = Float(opacity)
             let animatable = remember { Animatable(opacityf) }
-            let animation = EnvironmentValues.shared._animation
+            let animation = Animation.current()
             LaunchedEffect(opacityf, animation) {
                 // Snap if no animation and not animating to a target already
                 if animation == nil && animatable.value == animatable.targetValue {

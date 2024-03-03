@@ -5,12 +5,22 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+#if SKIP
+import androidx.compose.runtime.Composable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.async
+#endif
 
 let defaultAnimationDuration = 0.35
 
 public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
-    // TODO
-    try body()
+    #if SKIP
+    return Animation.withAnimation(animation, body)
+    #else
+    fatalError()
+    #endif
 }
 
 @available(*, unavailable)
@@ -55,6 +65,43 @@ extension View {
 }
 
 public struct Animation : Hashable, Sendable {
+    #if SKIP
+    /// The current active animation, whether from the environment via `animation` or from `withAnimation`.
+    @Composable static func current() -> Animation? {
+        return EnvironmentValues.shared._animation ?? _withAnimation
+    }
+
+    /// Internal implementation of global `withAnimation` SwiftUI function.
+    static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
+        // SwiftUI's withAnimation works as if by snapshotting the view tree at the beginning of the block,
+        // snapshotting again at the end fo the block, and animating the difference with the given animation.
+        // We don't have the ability to snapshot. Instead, we run the given body, which should trigger a
+        // recompose. We set a global animation instance that animatable properties check via `current()`
+        // so that the recompose will begin animations. We then wait for the next frame and unset the global.
+        // Note that we cannot properly handle `withAnimation` nesting with different animations; instead
+        // the last set animation wins
+        var isNested = false
+        synchronized (withAnimationLock) {
+            isNested = _withAnimation != nil
+            _withAnimation = animation
+        }
+        defer {
+            if !isNested {
+                GlobalScope.async(Dispatchers.Main) {
+                    awaitFrame()
+                    synchronized (withAnimationLock) {
+                        _withAnimation = nil
+                    }
+                }
+            }
+        }
+        return body()
+    }
+
+    private static var _withAnimation: Animation?
+    private static let withAnimationLock: java.lang.Object = java.lang.Object()
+    #endif
+
     public init() {
     }
 
