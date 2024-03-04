@@ -145,6 +145,7 @@ extension View {
             } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.background(brush)
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -210,6 +211,7 @@ extension View {
             } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.border(BorderStroke(width: width.dp, brush: brush))
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -226,6 +228,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
+            return ComposeResult.ok
         }
         #else
         return self
@@ -236,6 +239,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clipToBounds()
+            return ComposeResult.ok
         }
         #else
         return self
@@ -611,6 +615,7 @@ extension View {
                 IntOffset(Int(animatable.value.0.dp.toPx()), Int(animatable.value.1.dp.toPx()))
             }
             $0.modifier = $0.modifier.offset { offsetPx }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -625,6 +630,7 @@ extension View {
                 hasAppeared.value = true
                 SideEffect { action?() }
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -639,6 +645,7 @@ extension View {
                 rememberedValue.value = value
                 SideEffect { action(value) }
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -663,6 +670,7 @@ extension View {
             if (initial && isInitial) || isUpdate {
                 SideEffect { action(oldValue, value) }
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -687,6 +695,7 @@ extension View {
             if (initial && isInitial) || isUpdate {
                 SideEffect { action() }
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -707,6 +716,7 @@ extension View {
                     disposeAction.value?()
                 }
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -723,6 +733,7 @@ extension View {
         return ComposeModifierView(targetView: self) {
             let animatable = Float(opacity).asAnimatable()
             $0.modifier = $0.modifier.graphicsLayer { alpha = animatable.value }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -753,6 +764,7 @@ extension View {
         return ComposeModifierView(targetView: self, role: .spacing) {
             // Compose throws a runtime error for negative padding
             $0.modifier = $0.modifier.padding(start: max(insets.leading, 0.0).dp, top: max(insets.top, 0.0).dp, end: max(insets.trailing, 0.0).dp, bottom: max(insets.bottom, 0.0).dp)
+            return ComposeResult.ok
         }
         #else
         return self
@@ -768,6 +780,7 @@ extension View {
         let bottom = edges.contains(.bottom) ? amount : 0.dp
         return ComposeModifierView(targetView: self, role: .spacing) {
             $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
+            return ComposeResult.ok
         }
         #else
         return self
@@ -835,6 +848,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.rotate(Float(angle.degrees))
+            return ComposeResult.ok
         }
         #else
         return self
@@ -916,6 +930,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
+            return ComposeResult.ok
         }
         #else
         return self
@@ -989,6 +1004,7 @@ extension View {
             LaunchedEffect(value) {
                 handler.value()
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -1071,6 +1087,7 @@ final class ZIndexModifierView : ComposeModifierView {
             if zIndex != 0.0 {
                 $0.modifier = $0.modifier.zIndex(Float(zIndex))
             }
+            return ComposeResult.ok
         }
     }
 

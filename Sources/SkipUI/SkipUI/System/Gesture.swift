@@ -345,7 +345,10 @@ final class GestureModifierView: ComposeModifierView {
             gestures += wrappedGestureView.gestures
             wrappedGestureView.gestures = []
         }
-        self.action = { $0.modifier = addGestures(to: $0.modifier) }
+        self.action = {
+            $0.modifier = addGestures(to: $0.modifier)
+            return ComposeResult.ok
+        }
     }
 
     @Composable private func addGestures(to modifier: Modifier) -> Modifier {

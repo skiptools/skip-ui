@@ -119,6 +119,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
             syncPreference(key: key, value: value)
+            return ComposeResult.ok
         }
         #else
         return self

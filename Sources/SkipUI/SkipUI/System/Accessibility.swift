@@ -13,6 +13,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.testTag(identifier)
+            return ComposeResult.ok
         }
         #else
         return self
@@ -26,6 +27,7 @@ extension View {
             $0.modifier = $0.modifier.semantics {
                 contentDescription = description
             }
+            return ComposeResult.ok
         }
         #else
         return self
@@ -36,6 +38,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { contentDescription = label }
+            return ComposeResult.ok
         }
         #else
         return self
