@@ -5,8 +5,6 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -142,9 +140,9 @@ extension View {
     public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            if let color = style.asColor(opacity: 1.0) {
+            if let color = style.asColor(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.background(color)
-            } else if let brush = style.asBrush(opacity: 1.0) {
+            } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.background(brush)
             }
         }
@@ -207,9 +205,9 @@ extension View {
     public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            if let color = style.asColor(opacity: 1.0) {
+            if let color = style.asColor(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.border(width: width.dp, color: color)
-            } else if let brush = style.asBrush(opacity: 1.0) {
+            } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
                 $0.modifier = $0.modifier.border(BorderStroke(width: width.dp, brush: brush))
             }
         }
@@ -224,6 +222,7 @@ extension View {
     }
 
     public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
+        //~~~ animatable
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
@@ -328,6 +327,7 @@ extension View {
     }
 
     public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View {
+        //~~~ animate
         return clipShape(RoundedRectangle(cornerRadius: radius))
     }
 
@@ -422,6 +422,7 @@ extension View {
     }
 
     public func foregroundStyle(_ style: any ShapeStyle) -> some View {
+        //~~~ animate: need a way to animate any Color use... colorImpl variant?
         #if SKIP
         return environment(\._foregroundStyle, style)
         #else
@@ -440,6 +441,7 @@ extension View {
     }
 
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
+        //~~~ animate, including alignment
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             FrameLayout(view: view, context: context, width: width, height: height, alignment: alignment)
@@ -450,6 +452,7 @@ extension View {
     }
 
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
+        //~~~ animate
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             FrameLayout(view: view, context: context, minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
@@ -509,6 +512,7 @@ extension View {
 
     @available(*, unavailable)
     public func hueRotation(_ angle: Angle) -> some View {
+        // NOTE: animatable property
         return self
     }
 
@@ -602,8 +606,9 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let density = LocalDensity.current
+            let animatable = (Float(x), Float(y)).asAnimatable()
             let offsetPx = with(density) {
-                IntOffset(Int(x.dp.toPx()), Int(y.dp.toPx()))
+                IntOffset(Int(animatable.value.0.dp.toPx()), Int(animatable.value.1.dp.toPx()))
             }
             $0.modifier = $0.modifier.offset { offsetPx }
         }
@@ -716,17 +721,7 @@ extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            let opacityf = Float(opacity)
-            let animatable = remember { Animatable(opacityf) }
-            let animation = Animation.current()
-            LaunchedEffect(opacityf, animation) {
-                // Snap if no animation and not animating to a target already
-                if animation == nil && animatable.value == animatable.targetValue {
-                    animatable.snapTo(opacityf)
-                } else {
-                    animatable.animateTo(opacityf, animationSpec: TweenSpec(durationMillis = 1000))
-                }
-            }
+            let animatable = Float(opacity).asAnimatable()
             $0.modifier = $0.modifier.graphicsLayer { alpha = animatable.value }
         }
         #else
@@ -790,11 +785,13 @@ extension View {
 
     @available(*, unavailable)
     public func position(_ position: CGPoint) -> some View {
+        // NOTE: animatable property
         return self
     }
 
     @available(*, unavailable)
     public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+        // NOTE: animatable
         return self
     }
 
@@ -834,6 +831,7 @@ extension View {
     }
 
     public func rotationEffect(_ angle: Angle) -> some View {
+        //~~~ animate
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.rotate(Float(angle.degrees))
@@ -896,6 +894,7 @@ extension View {
     }
 
     public func scaleEffect(_ scale: CGSize) -> some View {
+        //~~~ animate
         return scaleEffect(x: scale.width, y: scale.height)
     }
 

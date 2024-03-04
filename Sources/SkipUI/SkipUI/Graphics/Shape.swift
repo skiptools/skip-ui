@@ -153,13 +153,13 @@ public struct ModifiedShape : Shape {
 
         let fillBrush: Brush?
         if let fill {
-            fillBrush = fill.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)
+            fillBrush = fill.asBrush(opacity: 1.0, animatable: true) ?? Color.primary.asBrush(opacity: 1.0, animatable: false)
         } else {
             fillBrush = nil
         }
         var strokeBrushes: [(Brush, DrawStyle, Float)] = []
         for stroke in strokes {
-            let brush = stroke.stroke.asBrush(opacity: 1.0) ?? Color.primary.asBrush(opacity: 1.0)!
+            let brush = stroke.stroke.asBrush(opacity: 1.0, animatable: true) ?? Color.primary.asBrush(opacity: 1.0, animatable: false)!
             let drawStyle = stroke.style?.asDrawStyle() ?? Stroke()
             var inset = Float(0.0)
             if stroke.isInset, let style = stroke.style {
@@ -737,6 +737,7 @@ extension Shape {
     ///     where drawing ends.
     /// - Returns: A shape built by capturing a portion of this shape's path.
     public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { stubShape() }
+    // NOTE: animatable property
 
 }
 

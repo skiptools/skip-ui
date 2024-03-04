@@ -106,7 +106,7 @@ public struct Image : View, Equatable {
             return
         }
 
-        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? Color.primary.colorImpl()
+        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animatable: true) ?? Color.primary.colorImpl()
         switch resizingMode {
         case .stretch:
             let painter = rememberVectorPainter(image)

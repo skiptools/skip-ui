@@ -24,14 +24,16 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(colorImpl()).fillSize(expandContainer: false)
+        let animatable = colorImpl().asAnimatable()
+        let modifier = context.modifier.background(animatable.value).fillSize(expandContainer: false)
         Box(modifier: modifier)
     }
 
     // MARK: - ShapeStyle
 
-    @Composable override func asColor(opacity: Double) -> androidx.compose.ui.graphics.Color? {
-        return self.opacity(opacity).colorImpl()
+    @Composable override func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color? {
+        let color = self.opacity(opacity).colorImpl()
+        return animatable ? color.asAnimatable().value : color
     }
     #else
     public var body: some View {

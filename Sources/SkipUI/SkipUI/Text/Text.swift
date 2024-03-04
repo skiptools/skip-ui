@@ -82,6 +82,7 @@ public struct Text: View, Equatable {
     }
 
     public func font(_ font: Font?) -> Text {
+        //~~~ font size should animate
         return Text(textView: textView, modifiedView: modifiedView.font(font))
     }
 
@@ -225,10 +226,10 @@ struct _Text: View, Equatable {
         var textColor: androidx.compose.ui.graphics.Color? = nil
         var textBrush: Brush? = nil
         if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
-            if let color = foregroundStyle.asColor(opacity: 1.0) {
+            if let color = foregroundStyle.asColor(opacity: 1.0, animatable: true) {
                 textColor = color
             } else {
-                textBrush = foregroundStyle.asBrush(opacity: 1.0)
+                textBrush = foregroundStyle.asBrush(opacity: 1.0, animatable: true)
             }
         } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
             textColor = Color.secondary.colorImpl()

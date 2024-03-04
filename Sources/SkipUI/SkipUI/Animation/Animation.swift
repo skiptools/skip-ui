@@ -6,7 +6,16 @@
 
 import Foundation
 #if SKIP
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.AnimationVector2D
+import androidx.compose.animation.core.AnimationVector4D
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.android.awaitFrame
@@ -268,7 +277,74 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
     case removed
 }
 
+#if SKIP
+extension Float {
+    /// Return an animatable version of this value.
+    @Composable func asAnimatable() -> Animatable<Float, AnimationVector1D> {
+        let value = self
+        let animatable = remember { Animatable(value) }
+        let animation = Animation.current()
+        LaunchedEffect(value, animation) {
+            // Snap if no animation and not animating to a target already
+            if animation == nil && animatable.value == animatable.targetValue {
+                animatable.snapTo(value)
+            } else {
+                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+            }
+        }
+        return animatable
+    }
+}
+
+extension Tuple2 where E0 == Float, E1 == Float {
+    /// Return an animatable version of this value.
+    @Composable func asAnimatable() -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
+        let value = self
+        let animatable = remember { Animatable(value, TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) })) }
+        let animation = Animation.current()
+        LaunchedEffect(value, animation) {
+            // Snap if no animation and not animating to a target already
+            if animation == nil && animatable.value == animatable.targetValue {
+                animatable.snapTo(value)
+            } else {
+                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+            }
+        }
+        return animatable
+    }
+}
+
+extension androidx.compose.ui.graphics.Color {
+    /// Return an animatable version of this value.
+    @Composable func asAnimatable() -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
+        let value = self
+        let animatable = remember { Animatable(value) }
+        let animation = Animation.current()
+        LaunchedEffect(value, animation) {
+            // Snap if no animation and not animating to a target already
+            if animation == nil && animatable.value == animatable.targetValue {
+                animatable.snapTo(value)
+            } else {
+                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+            }
+        }
+        return animatable
+    }
+}
+#endif
+
 #if !SKIP
+
+/// A type that describes how to animate a property of a view.
+@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
+public protocol Animatable {
+
+    /// The type defining the data to animate.
+    associatedtype AnimatableData : VectorArithmetic
+
+    /// The data to animate.
+//    var animatableData: Self.AnimatableData { get set }
+}
 
 /// An empty type for animatable data.
 ///
@@ -439,21 +515,6 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
     public var magnitudeSquared: Double { get { fatalError() } }
 
 
-}
-
-#endif
-
-#if !SKIP
-
-/// A type that describes how to animate a property of a view.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public protocol Animatable {
-
-    /// The type defining the data to animate.
-    associatedtype AnimatableData : VectorArithmetic
-
-    /// The data to animate.
-//    var animatableData: Self.AnimatableData { get set }
 }
 
 #endif

@@ -82,7 +82,7 @@ public struct TextField : View {
     }
 
     @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {
-        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0) ?? Color.primary.colorImpl()
+        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animatable: true) ?? Color.primary.colorImpl()
         if enabled {
             return color
         } else {
