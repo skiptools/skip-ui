@@ -82,7 +82,6 @@ public struct Text: View, Equatable {
     }
 
     public func font(_ font: Font?) -> Text {
-        //~~~ font size should animate
         return Text(textView: textView, modifiedView: modifiedView.font(font))
     }
 
@@ -244,10 +243,11 @@ struct _Text: View, Equatable {
         if let textBrush {
             style = style.copy(brush: textBrush)
         }
+        let animatable = style.asAnimatable()
         if let textColor {
-            androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: style)
+            androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: animatable.value)
         } else {
-            androidx.compose.material3.Text(text: text, modifier: modifier, maxLines: maxLines, style: style)
+            androidx.compose.material3.Text(text: text, modifier: modifier, maxLines: maxLines, style: animatable.value)
         }
     }
     #else

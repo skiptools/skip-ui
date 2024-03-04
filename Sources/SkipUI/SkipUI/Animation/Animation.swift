@@ -17,6 +17,8 @@ import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.android.awaitFrame
@@ -352,6 +354,26 @@ extension androidx.compose.ui.graphics.Color {
     @Composable func asAnimatable() -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
         let value = self
         let animatable = remember { Animatable(value) }
+        let isAnimating = animatable.value != animatable.targetValue
+        if animatable.value != value || isAnimating {
+            let animation = Animation.current(isAnimating: isAnimating)
+            LaunchedEffect(value, animation) {
+                if let animation {
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                } else {
+                    animatable.snapTo(value)
+                }
+            }
+        }
+        return animatable
+    }
+}
+
+extension androidx.compose.ui.text.TextStyle {
+    /// Return an animatable version of this value.
+    @Composable func asAnimatable() -> Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D> {
+        let value = self
+        let animatable = remember { Animatable(value, TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) })) }
         let isAnimating = animatable.value != animatable.targetValue
         if animatable.value != value || isAnimating {
             let animation = Animation.current(isAnimating: isAnimating)
