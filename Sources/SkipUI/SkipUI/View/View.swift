@@ -224,7 +224,6 @@ extension View {
     }
 
     public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
-        //~~~ animatable
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
@@ -331,7 +330,6 @@ extension View {
     }
 
     public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View {
-        //~~~ animate
         return clipShape(RoundedRectangle(cornerRadius: radius))
     }
 
@@ -426,7 +424,6 @@ extension View {
     }
 
     public func foregroundStyle(_ style: any ShapeStyle) -> some View {
-        //~~~ animate: need a way to animate any Color use... colorImpl variant?
         #if SKIP
         return environment(\._foregroundStyle, style)
         #else
@@ -445,10 +442,10 @@ extension View {
     }
 
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
-        //~~~ animate, including alignment
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            FrameLayout(view: view, context: context, width: width, height: height, alignment: alignment)
+            let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable()
+            FrameLayout(view: view, context: context, width: width == nil ? nil : Double(animatable.value.0), height: height == nil ? nil : Double(animatable.value.1), alignment: alignment)
         }
         #else
         return self
@@ -456,7 +453,6 @@ extension View {
     }
 
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
-        //~~~ animate
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             FrameLayout(view: view, context: context, minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: alignment)
@@ -844,10 +840,10 @@ extension View {
     }
 
     public func rotationEffect(_ angle: Angle) -> some View {
-        //~~~ animate
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            $0.modifier = $0.modifier.rotate(Float(angle.degrees))
+            let animatable = Float(angle.degrees).asAnimatable()
+            $0.modifier = $0.modifier.rotate(animatable.value)
             return ComposeResult.ok
         }
         #else
@@ -908,7 +904,6 @@ extension View {
     }
 
     public func scaleEffect(_ scale: CGSize) -> some View {
-        //~~~ animate
         return scaleEffect(x: scale.width, y: scale.height)
     }
 
@@ -929,7 +924,8 @@ extension View {
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            $0.modifier = $0.modifier.scale(scaleX: Float(x), scaleY: Float(y))
+            let animatable = (Float(x), Float(y)).asAnimatable()
+            $0.modifier = $0.modifier.scale(scaleX: animatable.value.0, scaleY: animatable.value.1)
             return ComposeResult.ok
         }
         #else

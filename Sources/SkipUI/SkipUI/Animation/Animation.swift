@@ -8,6 +8,7 @@ import Foundation
 #if SKIP
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.AnimationVector4D
@@ -73,11 +74,33 @@ extension View {
     }
 }
 
+#if SKIP
+final class AnimationHolder {
+    var animation: Animation?
+}
+#endif
+
 public struct Animation : Hashable, Sendable {
     #if SKIP
     /// The current active animation, whether from the environment via `animation` or from `withAnimation`.
-    @Composable static func current() -> Animation? {
-        return EnvironmentValues.shared._animation ?? _withAnimation
+    @Composable static func current(isAnimating: Bool) -> Animation? {
+        let environmentAnimation = EnvironmentValues.shared._animation
+        let animation = environmentAnimation ?? _withAnimation
+
+        // Update our remembered animation value if there is a new animation or the animation is complete
+        let rememberedAnimationHolder = remember { AnimationHolder() }
+        let rememberedAnimation = rememberedAnimationHolder.animation
+        if animation != nil {
+            rememberedAnimationHolder.animation = animation
+        } else if !isAnimating {
+            rememberedAnimationHolder.animation = nil
+        }
+
+        guard animation == nil else {
+            return animation
+        }
+        // No current animation, but if we're still animating a previous animation, use it
+        return isAnimating ? rememberedAnimation : nil
     }
 
     /// Internal implementation of global `withAnimation` SwiftUI function.
@@ -109,6 +132,12 @@ public struct Animation : Hashable, Sendable {
 
     private static var _withAnimation: Animation?
     private static let withAnimationLock: java.lang.Object = java.lang.Object()
+
+    /// Convert this animation to a Compose animation spec.
+    func asAnimationSpec<T>(for value: T) -> AnimationSpec<T> {
+        // TODO
+        return TweenSpec(durationMillis: Int(defaultAnimationDuration * 1000.0))
+    }
     #endif
 
     public init() {
@@ -283,13 +312,15 @@ extension Float {
     @Composable func asAnimatable() -> Animatable<Float, AnimationVector1D> {
         let value = self
         let animatable = remember { Animatable(value) }
-        let animation = Animation.current()
-        LaunchedEffect(value, animation) {
-            // Snap if no animation and not animating to a target already
-            if animation == nil && animatable.value == animatable.targetValue {
-                animatable.snapTo(value)
-            } else {
-                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+        let isAnimating = animatable.value != animatable.targetValue
+        if animatable.value != value || isAnimating {
+            let animation = Animation.current(isAnimating: isAnimating)
+            LaunchedEffect(value, animation) {
+                if let animation {
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                } else {
+                    animatable.snapTo(value)
+                }
             }
         }
         return animatable
@@ -301,13 +332,15 @@ extension Tuple2 where E0 == Float, E1 == Float {
     @Composable func asAnimatable() -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         let value = self
         let animatable = remember { Animatable(value, TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) })) }
-        let animation = Animation.current()
-        LaunchedEffect(value, animation) {
-            // Snap if no animation and not animating to a target already
-            if animation == nil && animatable.value == animatable.targetValue {
-                animatable.snapTo(value)
-            } else {
-                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+        let isAnimating = animatable.value != animatable.targetValue
+        if animatable.value != value || isAnimating {
+            let animation = Animation.current(isAnimating: isAnimating)
+            LaunchedEffect(value, animation) {
+                if let animation {
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                } else {
+                    animatable.snapTo(value)
+                }
             }
         }
         return animatable
@@ -319,13 +352,15 @@ extension androidx.compose.ui.graphics.Color {
     @Composable func asAnimatable() -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
         let value = self
         let animatable = remember { Animatable(value) }
-        let animation = Animation.current()
-        LaunchedEffect(value, animation) {
-            // Snap if no animation and not animating to a target already
-            if animation == nil && animatable.value == animatable.targetValue {
-                animatable.snapTo(value)
-            } else {
-                animatable.animateTo(value, animationSpec: TweenSpec(durationMillis = 1000))
+        let isAnimating = animatable.value != animatable.targetValue
+        if animatable.value != value || isAnimating {
+            let animation = Animation.current(isAnimating: isAnimating)
+            LaunchedEffect(value, animation) {
+                if let animation {
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                } else {
+                    animatable.snapTo(value)
+                }
             }
         }
         return animatable
