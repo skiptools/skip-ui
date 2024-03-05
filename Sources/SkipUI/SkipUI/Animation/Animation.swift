@@ -12,6 +12,12 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.AnimationVector4D
+import androidx.compose.animation.core.DurationBasedAnimationSpec
+import androidx.compose.animation.core.InfiniteRepeatableSpec
+import androidx.compose.animation.core.RepeatableSpec
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.StartOffsetType
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.runtime.Composable
@@ -135,92 +141,120 @@ public struct Animation : Hashable, Sendable {
     private static var _withAnimation: Animation?
     private static let withAnimationLock: java.lang.Object = java.lang.Object()
 
+    private let spec: AnimationSpec<Any>
+
     /// Convert this animation to a Compose animation spec.
-    func asAnimationSpec<T>(for value: T) -> AnimationSpec<T> {
-        // TODO
-        return TweenSpec(durationMillis: Int(defaultAnimationDuration * 1000.0))
+    public func asAnimationSpec() -> AnimationSpec<Any> {
+        return spec
+    }
+
+    init(spec: AnimationSpec<Any>, delay: Double = 0.0, speed: Double = 1.0) {
+        self.spec = spec
     }
     #endif
 
-    public init() {
-    }
-
     public static func spring(duration: TimeInterval = 0.5, bounce: Double = 0.0, blendDuration: Double = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: Spring(duration: duration, bounce: bounce).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: TimeInterval = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: Spring(response: response, dampingRatio: dampingFraction).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static var spring: Animation {
-        // TODO
-        return Animation()
+        return spring(response: 0.5, dampingFraction: 0.825)
     }
 
     public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation {
         // TODO
-        return Animation()
+        return spring(response: response, dampingFraction: dampingFraction, blendDuration: blendDuration)
     }
 
     public static var interactiveSpring: Animation {
-        // TODO
-        return Animation()
+        return interactiveSpring(response: 0.15, dampingFraction: 0.86)
     }
 
     public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation {
+        #if SKIP
         // TODO
-        return Animation()
+        return spring(duration: duration, bounce: extraBounce, blendDuration: blendDuration)
+        #else
+        fatalError()
+        #endif
     }
 
     public static var smooth: Animation {
-        // TODO
-        return Animation()
+        return smooth(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: Spring.smooth(duration: duration, extraBounce: extraBounce).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static var snappy: Animation {
-        // TODO
-        return Animation()
+        return snappy(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: Spring.snappy(duration: duration, extraBounce: extraBounce).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static var bouncy: Animation {
-        // TODO
-        return Animation()
+        return bouncy(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: Spring.bouncy(duration: duration, extraBounce: extraBounce).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static func spring(_ spring: Spring, blendDuration: TimeInterval = 0.0) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: spring.asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation {
+        #if SKIP
         // TODO
-        return Animation()
+        return Animation(spec: spring.asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static func timingCurve(_ curve: UnitCurve, duration: TimeInterval) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        return Animation(spec: TweenSpec(durationMillis: Int(duration * 1000.0), easing: curve.asEasing()))
+        #else
+        fatalError()
+        #endif
     }
 
     public static var `default`: Animation {
+        // WARNING: Android can't repeat non-duration-based animations, so changing the default to a spring would
+        // prevent default repeatable animations
         return timingCurve(UnitCurve.easeInOut, duration: defaultAnimationDuration)
     }
 
@@ -263,43 +297,88 @@ public struct Animation : Hashable, Sendable {
     }
 
     public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation {
+        #if SKIP
         // TODO
-        return Animation()
+        return Animation(spec: Spring(mass: mass, stiffness: stiffness, damping: damping).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation {
+        #if SKIP
         // TODO
-        return Animation()
+        return Animation(spec: Spring(duration: duration, bounce: bounce).asAnimationSpec())
+        #else
+        fatalError()
+        #endif
     }
 
     public static var interpolatingSpring: Animation {
-        // TODO
-        return Animation()
+        return interpolatingSpring(duration: 0.5, bounce: 0.0, initialVelocity: 0.0)
     }
 
     public func logicallyComplete(after duration: TimeInterval) -> Animation {
         // TODO
-        return Animation()
+        return self
     }
 
     public func delay(_ delay: TimeInterval) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        if let tweenSpec = spec as? TweenSpec<Any> {
+            return Animation(spec: TweenSpec(tweenSpec.durationMillis, Int(delay * 1000.0), tweenSpec.easing))
+        } else if let repeatableSpec = spec as? RepeatableSpec<Any> {
+            return Animation(spec: RepeatableSpec(repeatableSpec.iterations, repeatableSpec.animation, repeatableSpec.repeatMode, StartOffset(Int(delay * 1000.0), StartOffsetType.Delay)))
+        } else if let repeatableSpec = spec as? InfiniteRepeatableSpec<Any> {
+            return Animation(spec: InfiniteRepeatableSpec(repeatableSpec.animation, repeatableSpec.repeatMode, StartOffset(Int(delay * 1000.0), StartOffsetType.Delay)))
+        } else {
+            return self // Cannot delay
+        }
+        #else
+        fatalError()
+        #endif
     }
 
     public func speed(_ speed: Double) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        if let tweenSpec = spec as? TweenSpec<Any> {
+            return Animation(spec: TweenSpec(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing))
+        } else if let repeatableSpec = spec as? RepeatableSpec<Any>, let tweenSpec = repeatableSpec.animation as? TweenSpec<Any> {
+            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing)
+            return Animation(spec: RepeatableSpec(repeatableSpec.iterations, speedSpec, repeatableSpec.repeatMode, repeatableSpec.initialStartOffset))
+        } else if let repeatableSpec = spec as? InfiniteRepeatableSpec<Any>, let tweenSpec = repeatableSpec.animation as? TweenSpec<Any> {
+            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing)
+            return Animation(spec: InfiniteRepeatableSpec(speedSpec, repeatableSpec.repeatMode, repeatableSpec.initialStartOffset))
+        } else {
+            return self // Cannot delay
+        }
+        #else
+        fatalError()
+        #endif
     }
 
     public func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        if let durationBasedSpec = spec as? DurationBasedAnimationSpec<Any> {
+            return Animation(spec: RepeatableSpec(iterations: repeatCount, animation: durationBasedSpec, repeatMode: autoreverses ? RepeatMode.Reverse : RepeatMode.Restart))
+        } else {
+            return self
+        }
+        #else
+        fatalError()
+        #endif
     }
 
     public func repeatForever(autoreverses: Bool = true) -> Animation {
-        // TODO
-        return Animation()
+        #if SKIP
+        if let durationBasedSpec = spec as? DurationBasedAnimationSpec<Any> {
+            return Animation(spec: InfiniteRepeatableSpec(animation: durationBasedSpec, repeatMode: autoreverses ? RepeatMode.Reverse : RepeatMode.Restart))
+        } else {
+            return self
+        }
+        #else
+        fatalError()
+        #endif
     }
 }
 
@@ -319,7 +398,7 @@ extension Float {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
                 if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Float>)
                 } else {
                     animatable.snapTo(value)
                 }
@@ -339,7 +418,7 @@ extension Tuple2 where E0 == Float, E1 == Float {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
                 if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Tuple2<Float, Float>>)
                 } else {
                     animatable.snapTo(value)
                 }
@@ -359,7 +438,7 @@ extension androidx.compose.ui.graphics.Color {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
                 if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<androidx.compose.ui.graphics.Color>)
                 } else {
                     animatable.snapTo(value)
                 }
@@ -379,7 +458,7 @@ extension androidx.compose.ui.text.TextStyle {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
                 if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec(for: value))
+                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<androidx.compose.ui.text.TextStyle>)
                 } else {
                     animatable.snapTo(value)
                 }

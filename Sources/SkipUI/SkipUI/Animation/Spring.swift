@@ -5,12 +5,27 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+#if SKIP
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.EaseInOutBack
+import androidx.compose.animation.core.SpringSpec
+import androidx.compose.animation.core.TweenSpec
+#endif
 
 public struct Spring : Hashable, Sendable {
-    public init() {
+    #if SKIP
+    private let animationSpec: AnimationSpec<Any>
+
+    /// Convert this spring to a Compose animation spec.
+    public func asAnimationSpec() -> AnimationSpec<Any> {
+        return animationSpec
     }
+    #endif
 
     public init(duration: TimeInterval = 0.5, bounce: Double = 0.0) {
+        #if SKIP
+        animationSpec = TweenSpec(durationMillis: Int(duration * 1000.0), easing: EaseInOutBack)
+        #endif
     }
 
     @available(*, unavailable)
@@ -24,6 +39,10 @@ public struct Spring : Hashable, Sendable {
     }
 
     public init(response: Double, dampingRatio: Double) {
+        #if SKIP
+        let stiffness = response * response
+        animationSpec = SpringSpec(dampingRatio: Float(dampingRatio), stiffness: Float(stiffness))
+        #endif
     }
 
     @available(*, unavailable)
@@ -37,6 +56,10 @@ public struct Spring : Hashable, Sendable {
     }
 
     public init(mass: Double = 1.0, stiffness: Double, damping: Double, allowOverDamping: Bool = false) {
+        #if SKIP
+        let dampingRatio = damping / (2.0 * sqrt(mass * stiffness))
+        animationSpec = SpringSpec(dampingRatio: Float(dampingRatio), stiffness: Float(stiffness))
+        #endif
     }
 
     @available(*, unavailable)
@@ -55,6 +78,10 @@ public struct Spring : Hashable, Sendable {
     }
 
     public init(settlingDuration: TimeInterval, dampingRatio: Double, epsilon: Double = 0.001) {
+        #if SKIP
+        // TODO
+        animationSpec = TweenSpec(durationMillis: Int(settlingDuration * 1000.0), easing: EaseInOutBack)
+        #endif
     }
 
     @available(*, unavailable)
@@ -63,33 +90,30 @@ public struct Spring : Hashable, Sendable {
     }
 
     public static var smooth: Spring {
-        // TODO
-        return Spring()
+        return smooth(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         // TODO
-        return Spring()
+        return Spring(duration: duration, bounce: extraBounce)
     }
 
     public static var snappy: Spring {
-        // TODO
-        return Spring()
+        return snappy(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         // TODO
-        return Spring()
+        return Spring(duration: duration, bounce: extraBounce)
     }
 
     public static var bouncy: Spring {
-        // TODO
-        return Spring()
+        return bouncy(duration: 0.5, extraBounce: 0.0)
     }
 
     public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         // TODO
-        return Spring()
+        return Spring(duration: duration, bounce: extraBounce)
     }
 }
 

@@ -4,6 +4,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
+#endif
+
 public struct UnitPoint : Hashable, Sendable {
     public var x = 0.0
     public var y = 0.0
@@ -70,4 +75,10 @@ public struct UnitCurve: Hashable, Sendable {
     }
 
     public static let linear = UnitCurve(startControlPoint: UnitPoint(x: 0.0, y: 0.0), endControlPoint: UnitPoint(x: 1.0, y: 1.0))
+
+    #if SKIP
+    public func asEasing() -> Easing {
+        return CubicBezierEasing(Float(startControlPoint.x), Float(startControlPoint.y), Float(endControlPoint.x), Float(endControlPoint.y))
+    }
+    #endif
 }
