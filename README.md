@@ -317,6 +317,17 @@ Support levels:
       <td>Custom ViewModifiers</td>
     </tr>
     <tr>
+      <td>🔴</td>
+      <td>
+            <details>
+              <summary><code>Animation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#animation">Animation</a></li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>AsyncImage</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</td>
     </tr>
@@ -718,6 +729,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>ZStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+            <details>
+              <summary><code>.animation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#animation">Animation</a></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>🟡</td>
@@ -1232,6 +1254,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+            <details>
+              <summary><code>withAnimation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#animation">Animation</a></li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.zIndex</code> (<a href="https://skip.tools/docs/components/zindex/">example</a>)</td>
     </tr>
@@ -1239,6 +1272,29 @@ Support levels:
 </table>
 
 ## Topics
+
+### Animation
+
+Skip supports both SwiftUI's `.animation` modifier and its `withAnimation` function on Android. The following properties are currently animatable:
+
+- `.background` color
+- `.border` color
+- `.fill` color
+- `.font` size
+- `.foregroundColor`
+- `.foregroundStyle` color
+- `.frame` width and height
+- `.offset`
+- `.opacity`
+- `.rotationEffect`
+- `.scaleEffect`
+- `.stroke` color
+
+View appearance and disappearance is not yet animated on Android (unless you use `.opacity` or `.hidden`).
+
+Skip currently ignores any `Animation` parameter value on Android and always applies a linear animation with a default duration.
+
+Custom `Animatables` are not supported.
 
 ### Environment Keys
 
