@@ -158,6 +158,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             context.modifier = context.modifier.alpha(Float(opacity))
+            return ComposeResult.ok
         }
         #else
         return self
