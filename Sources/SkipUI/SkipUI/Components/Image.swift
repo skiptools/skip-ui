@@ -80,7 +80,7 @@ public struct Image : View, Equatable {
             case .painter(let painter, let scale):
                 ComposePainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .system(let systemName):
-                ComposeSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1)
+                ComposeSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
             default:
                 Icon(imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
             }
@@ -99,14 +99,14 @@ public struct Image : View, Equatable {
         }
     }
 
-    @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         guard let image = Self.composeImageVector(named: systemName) else {
             print("Unable to find system image named: \(systemName)")
             Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             return
         }
 
-        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animatable: true) ?? Color.primary.colorImpl()
+        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
         switch resizingMode {
         case .stretch:
             let painter = rememberVectorPainter(image)

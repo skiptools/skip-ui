@@ -153,13 +153,13 @@ public struct ModifiedShape : Shape {
 
         let fillBrush: Brush?
         if let fill {
-            fillBrush = fill.asBrush(opacity: 1.0, animatable: true) ?? Color.primary.asBrush(opacity: 1.0, animatable: false)
+            fillBrush = fill.asBrush(opacity: 1.0, animationContext: context) ?? Color.primary.asBrush(opacity: 1.0, animationContext: nil)
         } else {
             fillBrush = nil
         }
         var strokeBrushes: [(Brush, DrawStyle, Float)] = []
         for stroke in strokes {
-            let brush = stroke.stroke.asBrush(opacity: 1.0, animatable: true) ?? Color.primary.asBrush(opacity: 1.0, animatable: false)!
+            let brush = stroke.stroke.asBrush(opacity: 1.0, animationContext: context) ?? Color.primary.asBrush(opacity: 1.0, animationContext: nil)!
             let drawStyle = stroke.style?.asDrawStyle() ?? Stroke()
             var inset = Float(0.0)
             if stroke.isInset, let style = stroke.style {

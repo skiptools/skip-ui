@@ -100,8 +100,8 @@ let searchFieldHeight = 56.0
 /// Renders a search field.
 @ExperimentalMaterial3Api
 @Composable func SearchField(state: SearchableState, context: ComposeContext) {
-    let colors = TextField.colors()
-    let disabledTextColor = TextField.textColor(enabled: false)
+    let colors = TextField.colors(context: context)
+    let disabledTextColor = TextField.textColor(enabled: false, context: context)
     let prompt = state.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
     let focusManager = LocalFocusManager.current
     let focusRequester = remember { FocusRequester() }

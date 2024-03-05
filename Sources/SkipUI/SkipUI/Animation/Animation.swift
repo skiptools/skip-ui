@@ -22,7 +22,10 @@ import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import kotlinx.coroutines.Dispatchers
@@ -51,12 +54,15 @@ extension View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Any?, Any>) { mutableStateOf(value) }
+            let hasChangedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
             let isValueChange = rememberedValue.value != value
             if isValueChange {
                 rememberedValue.value = value
+                hasChangedValue.value = true
             }
             EnvironmentValues.shared.setValues {
-                if isValueChange {
+                // Pass down an infinite repeating animation every time, because it always overrides any withAnimation spec
+                if isValueChange || (animation?.isInfinite == true && hasChangedValue.value) {
                     $0.set_animation(animation)
                 }
             } in: {
@@ -148,6 +154,11 @@ public struct Animation : Hashable, Sendable {
         return spec
     }
 
+    /// Whether this is an infinite animation.
+    public var isInfinite: Bool {
+        return spec is InfiniteRepeatableSpec<Any>
+    }
+
     init(spec: AnimationSpec<Any>, delay: Double = 0.0, speed: Double = 1.0) {
         self.spec = spec
     }
@@ -174,7 +185,6 @@ public struct Animation : Hashable, Sendable {
     }
 
     public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation {
-        // TODO
         return spring(response: response, dampingFraction: dampingFraction, blendDuration: blendDuration)
     }
 
@@ -184,7 +194,6 @@ public struct Animation : Hashable, Sendable {
 
     public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation {
         #if SKIP
-        // TODO
         return spring(duration: duration, bounce: extraBounce, blendDuration: blendDuration)
         #else
         fatalError()
@@ -237,7 +246,6 @@ public struct Animation : Hashable, Sendable {
 
     public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
-        // TODO
         return Animation(spec: spring.asAnimationSpec())
         #else
         fatalError()
@@ -298,7 +306,6 @@ public struct Animation : Hashable, Sendable {
 
     public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
-        // TODO
         return Animation(spec: Spring(mass: mass, stiffness: stiffness, damping: damping).asAnimationSpec())
         #else
         fatalError()
@@ -307,7 +314,6 @@ public struct Animation : Hashable, Sendable {
 
     public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
-        // TODO
         return Animation(spec: Spring(duration: duration, bounce: bounce).asAnimationSpec())
         #else
         fatalError()
@@ -319,7 +325,6 @@ public struct Animation : Hashable, Sendable {
     }
 
     public func logicallyComplete(after duration: TimeInterval) -> Animation {
-        // TODO
         return self
     }
 
@@ -390,10 +395,10 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
 #if SKIP
 extension Float {
     /// Return an animatable version of this value.
-    @Composable func asAnimatable() -> Animatable<Float, AnimationVector1D> {
+    @Composable func asAnimatable(context: ComposeContext) -> Animatable<Float, AnimationVector1D> {
         let value = self
-        let animatable = remember { Animatable(value) }
-        let isAnimating = animatable.value != animatable.targetValue
+        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<Float, AnimationVector1D>, Any>) { mutableStateOf(Animatable(value)) }.value
+        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
         if animatable.value != value || isAnimating {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
@@ -410,10 +415,10 @@ extension Float {
 
 extension Tuple2 where E0 == Float, E1 == Float {
     /// Return an animatable version of this value.
-    @Composable func asAnimatable() -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
+    @Composable func asAnimatable(context: ComposeContext) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         let value = self
-        let animatable = remember { Animatable(value, TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) })) }
-        let isAnimating = animatable.value != animatable.targetValue
+        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<Tuple2<Float, Float>, AnimationVector2D>, Any>) { mutableStateOf(Animatable(value, TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }))) }.value
+        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
         if animatable.value != value || isAnimating {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
@@ -430,10 +435,10 @@ extension Tuple2 where E0 == Float, E1 == Float {
 
 extension androidx.compose.ui.graphics.Color {
     /// Return an animatable version of this value.
-    @Composable func asAnimatable() -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
+    @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
         let value = self
-        let animatable = remember { Animatable(value) }
-        let isAnimating = animatable.value != animatable.targetValue
+        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D>, Any>) { mutableStateOf(Animatable(value)) }.value
+        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
         if animatable.value != value || isAnimating {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {
@@ -450,10 +455,10 @@ extension androidx.compose.ui.graphics.Color {
 
 extension androidx.compose.ui.text.TextStyle {
     /// Return an animatable version of this value.
-    @Composable func asAnimatable() -> Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D> {
+    @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D> {
         let value = self
-        let animatable = remember { Animatable(value, TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) })) }
-        let isAnimating = animatable.value != animatable.targetValue
+        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D>, Any>) { mutableStateOf(Animatable(value, TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) }))) }.value
+        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
         if animatable.value != value || isAnimating {
             let animation = Animation.current(isAnimating: isAnimating)
             LaunchedEffect(value, animation) {

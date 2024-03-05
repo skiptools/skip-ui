@@ -140,9 +140,9 @@ extension View {
     public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            if let color = style.asColor(opacity: 1.0, animatable: true) {
+            if let color = style.asColor(opacity: 1.0, animationContext: $0) {
                 $0.modifier = $0.modifier.background(color)
-            } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
+            } else if let brush = style.asBrush(opacity: 1.0, animationContext: $0) {
                 $0.modifier = $0.modifier.background(brush)
             }
             return ComposeResult.ok
@@ -206,9 +206,9 @@ extension View {
     public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            if let color = style.asColor(opacity: 1.0, animatable: true) {
+            if let color = style.asColor(opacity: 1.0, animationContext: $0) {
                 $0.modifier = $0.modifier.border(width: width.dp, color: color)
-            } else if let brush = style.asBrush(opacity: 1.0, animatable: true) {
+            } else if let brush = style.asBrush(opacity: 1.0, animationContext: $0) {
                 $0.modifier = $0.modifier.border(BorderStroke(width: width.dp, brush: brush))
             }
             return ComposeResult.ok
@@ -444,7 +444,7 @@ extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
-            let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable()
+            let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable(context: context)
             FrameLayout(view: view, context: context, width: width == nil ? nil : Double(animatable.value.0), height: height == nil ? nil : Double(animatable.value.1), alignment: alignment)
         }
         #else
@@ -606,7 +606,7 @@ extension View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let density = LocalDensity.current
-            let animatable = (Float(x), Float(y)).asAnimatable()
+            let animatable = (Float(x), Float(y)).asAnimatable(context: $0)
             let offsetPx = with(density) {
                 IntOffset(Int(animatable.value.0.dp.toPx()), Int(animatable.value.1.dp.toPx()))
             }
@@ -727,7 +727,7 @@ extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            let animatable = Float(opacity).asAnimatable()
+            let animatable = Float(opacity).asAnimatable(context: $0)
             $0.modifier = $0.modifier.graphicsLayer { alpha = animatable.value }
             return ComposeResult.ok
         }
@@ -842,7 +842,7 @@ extension View {
     public func rotationEffect(_ angle: Angle) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            let animatable = Float(angle.degrees).asAnimatable()
+            let animatable = Float(angle.degrees).asAnimatable(context: $0)
             $0.modifier = $0.modifier.rotate(animatable.value)
             return ComposeResult.ok
         }
@@ -924,7 +924,7 @@ extension View {
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
-            let animatable = (Float(x), Float(y)).asAnimatable()
+            let animatable = (Float(x), Float(y)).asAnimatable(context: $0)
             $0.modifier = $0.modifier.scale(scaleX: animatable.value.0, scaleY: animatable.value.1)
             return ComposeResult.ok
         }

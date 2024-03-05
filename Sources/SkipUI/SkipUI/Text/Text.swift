@@ -225,10 +225,10 @@ struct _Text: View, Equatable {
         var textColor: androidx.compose.ui.graphics.Color? = nil
         var textBrush: Brush? = nil
         if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
-            if let color = foregroundStyle.asColor(opacity: 1.0, animatable: true) {
+            if let color = foregroundStyle.asColor(opacity: 1.0, animationContext: context) {
                 textColor = color
             } else {
-                textBrush = foregroundStyle.asBrush(opacity: 1.0, animatable: true)
+                textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
             }
         } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
             textColor = Color.secondary.colorImpl()
@@ -243,7 +243,7 @@ struct _Text: View, Equatable {
         if let textBrush {
             style = style.copy(brush: textBrush)
         }
-        let animatable = style.asAnimatable()
+        let animatable = style.asAnimatable(context: context)
         if let textColor {
             androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: animatable.value)
         } else {

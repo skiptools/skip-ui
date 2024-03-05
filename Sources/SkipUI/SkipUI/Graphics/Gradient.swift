@@ -54,8 +54,8 @@ public struct Gradient : ShapeStyle, Hashable {
     }
 
     #if SKIP
-    @Composable func asBrush(opacity: Double, animatable: Bool) -> Brush? {
-        return AnyGradient(gradient: self).asBrush(opacity: opacity, animatable: animatable)
+    @Composable func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        return AnyGradient(gradient: self).asBrush(opacity: opacity, animationContext: animationContext)
     }
 
     @Composable func colorStops(opacity: Double = 1.0) -> kotlin.collections.List<Pair<Float, androidx.compose.ui.graphics.Color>> {
@@ -91,8 +91,8 @@ public struct AnyGradient : ShapeStyle, View, Sendable {
 
     // MARK: - ShapeStyle
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
-        return gradient.asBrush(opacity: opacity, animatable: animatable)
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        return gradient.asBrush(opacity: opacity, animationContext: animationContext)
     }
     #else
     public var body: some View {
@@ -122,13 +122,13 @@ public struct LinearGradient : ShapeStyle, View, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(asBrush(opacity: 1.0, animatable: false)!).fillSize(expandContainer: false)
+        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize(expandContainer: false)
         Box(modifier: modifier)
     }
 
     // MARK: - ShapeStyle
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
         let brush = remember { LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint) }
         return brush
@@ -178,14 +178,14 @@ public struct EllipticalGradient : ShapeStyle, View, Sendable {
         // Trick to scale our (circular) radial brush into an ellipse when this gradient is used as a view
         BoxWithConstraints(modifier: context.modifier.fillSize(expandContainer = false).clipToBounds()) {
             let aspectRatio = maxWidth / maxHeight
-            let modifier = Modifier.fillMaxSize().scale(max(aspectRatio, Float(1.0)), max(Float(1.0) / aspectRatio, Float(1.0))).background(asBrush(opacity = 1.0, animatable: false)!!)
+            let modifier = Modifier.fillMaxSize().scale(max(aspectRatio, Float(1.0)), max(Float(1.0) / aspectRatio, Float(1.0))).background(asBrush(opacity = 1.0, animationContext: nil)!!)
             Box(modifier: modifier)
         }
     }
 
     // MARK: - ShapeStyle
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
         let brush = remember { RadialGradientShaderBrush(colorStops: stops, center: center, startFraction: startFraction, endFraction: endFraction) }
         return brush
@@ -235,13 +235,13 @@ public struct RadialGradient : ShapeStyle, View, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(asBrush(opacity: 1.0, animatable: false)!).fillSize(expandContainer: false)
+        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize(expandContainer: false)
         Box(modifier: modifier)
     }
 
     // MARK: - ShapeStyle
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let density = LocalDensity.current
         let start = with(density) { startRadius.dp.toPx() }
         let end = with(density) { endRadius.dp.toPx() }

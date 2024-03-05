@@ -40,8 +40,7 @@ public struct Spring : Hashable, Sendable {
 
     public init(response: Double, dampingRatio: Double) {
         #if SKIP
-        let stiffness = response * response
-        animationSpec = SpringSpec(dampingRatio: Float(dampingRatio), stiffness: Float(stiffness))
+        animationSpec = TweenSpec(durationMillis: Int(response * 1000.0), easing: EaseInOutBack)
         #endif
     }
 
@@ -79,7 +78,6 @@ public struct Spring : Hashable, Sendable {
 
     public init(settlingDuration: TimeInterval, dampingRatio: Double, epsilon: Double = 0.001) {
         #if SKIP
-        // TODO
         animationSpec = TweenSpec(durationMillis: Int(settlingDuration * 1000.0), easing: EaseInOutBack)
         #endif
     }
@@ -94,7 +92,6 @@ public struct Spring : Hashable, Sendable {
     }
 
     public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
-        // TODO
         return Spring(duration: duration, bounce: extraBounce)
     }
 
@@ -103,7 +100,6 @@ public struct Spring : Hashable, Sendable {
     }
 
     public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
-        // TODO
         return Spring(duration: duration, bounce: extraBounce)
     }
 
@@ -112,7 +108,6 @@ public struct Spring : Hashable, Sendable {
     }
 
     public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
-        // TODO
         return Spring(duration: duration, bounce: extraBounce)
     }
 }

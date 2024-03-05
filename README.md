@@ -318,10 +318,10 @@ Support levels:
       <td>Custom ViewModifiers</td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟡</td>
       <td>
             <details>
-              <summary><code>Animation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
+              <summary><code>Animation</code></summary>
               <ul>
                   <li>See <a href="#animation">Animation</a></li>
               </ul>
@@ -728,6 +728,17 @@ Support levels:
       <td><code>VStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+            <details>
+              <summary><code>withAnimation</code></summary>
+              <ul>
+                  <li>See <a href="#animation">Animation</a></li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>ZStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
     </tr>
@@ -735,7 +746,7 @@ Support levels:
       <td>🟡</td>
       <td>
             <details>
-              <summary><code>.animation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
+              <summary><code>.animation</code></summary>
               <ul>
                   <li>See <a href="#animation">Animation</a></li>
               </ul>
@@ -1255,17 +1266,6 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
-      <td>
-            <details>
-              <summary><code>withAnimation</code> (<a href="https://skip.tools/docs/components/animation/">example</a>)</summary>
-              <ul>
-                  <li>See <a href="#animation">Animation</a></li>
-              </ul>
-          </details> 
-      </td>
-    </tr>
-    <tr>
       <td>✅</td>
       <td><code>.zIndex</code> (<a href="https://skip.tools/docs/components/zindex/">example</a>)</td>
     </tr>
@@ -1291,11 +1291,13 @@ Skip supports both SwiftUI's `.animation` modifier and its `withAnimation` funct
 - `.scaleEffect`
 - `.stroke` color
 
-View appearance and disappearance is not yet animated on Android (unless you use `.opacity` or `.hidden`).
+Skip converts the various SwiftUI animation types to their Compose equivalents. For many SwiftUI spring animations, however, Skip uses Compose's simple `EaseInOutBack` easing function rather than a true spring. Only constructing a spring `SwiftUI.Spring(mass:stiffness:damping:)` creates a true Compose spring animation. Using an easing function rather than a true spring allows us to overcome Compose's limitations on springs:
 
-Skip currently ignores any `Animation` parameter value on Android and always applies a linear animation with a default duration.
+- True spring animations cannot have a set duration.
+- True spring animations cannot have a delay.
+- True spring animations cannot repeat.
 
-Custom `Animatables` are not supported.
+View appearance and disappearance is not yet animated on Android (unless you use `.opacity` or `.hidden`). Custom `Animatables` are also not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
 
 ### Environment Keys
 

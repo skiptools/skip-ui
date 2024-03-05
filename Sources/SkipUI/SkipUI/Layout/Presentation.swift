@@ -519,6 +519,7 @@ final class PresentationModifierView: ComposeModifierView {
         EnvironmentValues.shared.setValues {
             // Clear environment state that should not transfer to presentations
             $0.set_searchableState(nil)
+            $0.set_animation(nil)
         } in: {
             presentation(context.content())
         }

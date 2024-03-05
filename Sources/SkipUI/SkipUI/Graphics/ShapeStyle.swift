@@ -13,9 +13,9 @@ import androidx.compose.ui.graphics.SolidColor
 public protocol ShapeStyle : Sendable {
     #if SKIP
     /// Not all Composables support Brushes.
-    @Composable func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color?
+    @Composable func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color?
     /// Return this style as a `Brush` for application.
-    @Composable func asBrush(opacity: Double, animatable: Bool) -> Brush?
+    @Composable func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush?
     #else
     // associatedtype Resolved : ShapeStyle = Never
     // func resolve(in environment: EnvironmentValues) -> Self.Resolved
@@ -24,12 +24,12 @@ public protocol ShapeStyle : Sendable {
 
 #if SKIP
 extension ShapeStyle {
-    @Composable public func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color? {
+    @Composable public func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {
         return nil
     }
 
-    @Composable public func asBrush(opacity: Double, animatable: Bool) -> Brush? {
-        guard let color = asColor(opacity: opacity, animatable: animatable) else {
+    @Composable public func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        guard let color = asColor(opacity: opacity, animationContext: animationContext) else {
             return nil
         }
         return SolidColor(color)
@@ -47,12 +47,12 @@ public struct AnyShapeStyle : ShapeStyle {
     }
 
     #if SKIP
-    @Composable override func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color? {
-        return style.asColor(opacity: opacity * self.opacity, animatable: animatable)
+    @Composable override func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {
+        return style.asColor(opacity: opacity * self.opacity, animationContext: animationContext)
     }
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
-        return style.asBrush(opacity: opacity * self.opacity, animatable: animatable)
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        return style.asBrush(opacity: opacity * self.opacity, animationContext: animationContext)
     }
     #endif
 }
@@ -64,12 +64,12 @@ public struct ForegroundStyle : ShapeStyle {
     }
 
     #if SKIP
-    @Composable override func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color? {
-        return EnvironmentValues.shared._foregroundStyle?.asColor(opacity: opacity, animatable: animatable)
+    @Composable override func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {
+        return EnvironmentValues.shared._foregroundStyle?.asColor(opacity: opacity, animationContext: animationContext)
     }
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
-        return EnvironmentValues.shared._foregroundStyle?.asBrush(opacity: opacity, animatable: animatable)
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        return EnvironmentValues.shared._foregroundStyle?.asBrush(opacity: opacity, animationContext: animationContext)
     }
     #endif
 }
@@ -87,19 +87,19 @@ public struct BackgroundStyle : ShapeStyle {
     }
 
     #if SKIP
-    @Composable override func asColor(opacity: Double, animatable: Bool) -> androidx.compose.ui.graphics.Color? {
+    @Composable override func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {
         if let style = EnvironmentValues.shared.backgroundStyle {
-            return style.asColor(opacity: opacity, animatable: true)
+            return style.asColor(opacity: opacity, animationContext: animationContext)
         } else {
-            return Color.background.asColor(opacity: opacity, animatable: false)
+            return Color.background.asColor(opacity: opacity, animationContext: nil)
         }
     }
 
-    @Composable override func asBrush(opacity: Double, animatable: Bool) -> Brush? {
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         if let style = EnvironmentValues.shared.backgroundStyle {
-            return style.asBrush(opacity: opacity, animatable: animatable)
+            return style.asBrush(opacity: opacity, animationContext: animationContext)
         } else {
-            return Color.background.asBrush(opacity: opacity, animatable: false)
+            return Color.background.asBrush(opacity: opacity, animationContext: nil)
         }
     }
     #endif

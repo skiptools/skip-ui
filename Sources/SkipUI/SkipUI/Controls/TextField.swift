@@ -72,7 +72,7 @@ public struct TextField : View {
         let contentContext = context.content()
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
-        let colors = Self.colors()
+        let colors = Self.colors(context: context)
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
         OutlinedTextField(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
@@ -81,8 +81,8 @@ public struct TextField : View {
         }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
     }
 
-    @Composable static func textColor(enabled: Bool) -> androidx.compose.ui.graphics.Color {
-        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animatable: true) ?? Color.primary.colorImpl()
+    @Composable static func textColor(enabled: Bool, context: ComposeContext) -> androidx.compose.ui.graphics.Color {
+        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
         if enabled {
             return color
         } else {
@@ -91,9 +91,9 @@ public struct TextField : View {
     }
 
     @ExperimentalMaterial3Api
-    @Composable static func colors() -> TextFieldColors {
-        let textColor = textColor(enabled: true)
-        let disabledTextColor = textColor(enabled: false)
+    @Composable static func colors(context: ComposeContext) -> TextFieldColors {
+        let textColor = textColor(enabled: true, context: context)
+        let disabledTextColor = textColor(enabled: false, context: context)
         let isPlainStyle = EnvironmentValues.shared._textFieldStyle == TextFieldStyle.plain
         if isPlainStyle {
             let clearColor = androidx.compose.ui.graphics.Color.Transparent
