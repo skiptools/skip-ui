@@ -347,12 +347,12 @@ public struct Animation : Hashable, Sendable {
     public func speed(_ speed: Double) -> Animation {
         #if SKIP
         if let tweenSpec = spec as? TweenSpec<Any> {
-            return Animation(spec: TweenSpec(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing))
+            return Animation(spec: TweenSpec(Int(tweenSpec.durationMillis / speed), tweenSpec.delay, tweenSpec.easing))
         } else if let repeatableSpec = spec as? RepeatableSpec<Any>, let tweenSpec = repeatableSpec.animation as? TweenSpec<Any> {
-            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing)
+            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis / speed), tweenSpec.delay, tweenSpec.easing)
             return Animation(spec: RepeatableSpec(repeatableSpec.iterations, speedSpec, repeatableSpec.repeatMode, repeatableSpec.initialStartOffset))
         } else if let repeatableSpec = spec as? InfiniteRepeatableSpec<Any>, let tweenSpec = repeatableSpec.animation as? TweenSpec<Any> {
-            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis * speed), tweenSpec.delay, tweenSpec.easing)
+            let speedSpec = TweenSpec<Any>(Int(tweenSpec.durationMillis / speed), tweenSpec.delay, tweenSpec.easing)
             return Animation(spec: InfiniteRepeatableSpec(speedSpec, repeatableSpec.repeatMode, repeatableSpec.initialStartOffset))
         } else {
             return self // Cannot delay
