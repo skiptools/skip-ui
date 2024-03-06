@@ -9,6 +9,7 @@ import Foundation
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.AnimationVector
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.AnimationVector4D
@@ -393,63 +394,49 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
 }
 
 #if SKIP
+@Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
+    // In order to reset infinite animations after exiting and coming back to a composition, we have to remember its initial
+    // value, because the powering state value will be at its target when we return to the composition
+    let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
+    let animatable = remember { Animatable(resetValue.value ?? value, converter) }
+    let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    if isAnimating || animatable.value != value {
+        let animation = Animation.current(isAnimating: isAnimating)
+        LaunchedEffect(value, animation) {
+            if let animation {
+                if animation.isInfinite {
+                    resetValue.value = animatable.value // Remember infinite animation start value
+                } else {
+                    resetValue.value = nil
+                }
+                animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<T>)
+            } else {
+                resetValue.value = nil
+                animatable.snapTo(value)
+            }
+        }
+    }
+    return animatable
+}
+
 extension Float {
     /// Return an animatable version of this value.
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<Float, AnimationVector1D> {
-        let value = self
-        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<Float, AnimationVector1D>, Any>) { mutableStateOf(Animatable(value)) }.value
-        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
-        if animatable.value != value || isAnimating {
-            let animation = Animation.current(isAnimating: isAnimating)
-            LaunchedEffect(value, animation) {
-                if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Float>)
-                } else {
-                    animatable.snapTo(value)
-                }
-            }
-        }
-        return animatable
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context)
     }
 }
 
 extension Tuple2 where E0 == Float, E1 == Float {
     /// Return an animatable version of this value.
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
-        let value = self
-        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<Tuple2<Float, Float>, AnimationVector2D>, Any>) { mutableStateOf(Animatable(value, TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }))) }.value
-        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
-        if animatable.value != value || isAnimating {
-            let animation = Animation.current(isAnimating: isAnimating)
-            LaunchedEffect(value, animation) {
-                if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<Tuple2<Float, Float>>)
-                } else {
-                    animatable.snapTo(value)
-                }
-            }
-        }
-        return animatable
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context)
     }
 }
 
 extension androidx.compose.ui.graphics.Color {
     /// Return an animatable version of this value.
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
-        let value = self
-        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D>, Any>) { mutableStateOf(Animatable(value)) }.value
-        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
-        if animatable.value != value || isAnimating {
-            let animation = Animation.current(isAnimating: isAnimating)
-            LaunchedEffect(value, animation) {
-                if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<androidx.compose.ui.graphics.Color>)
-                } else {
-                    animatable.snapTo(value)
-                }
-            }
-        }
-        return animatable
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector4D($0.red, $0.green, $0.blue, $0.alpha) }, { androidx.compose.ui.graphics.Color($0.v1, $0.v2, $0.v3, $0.v4) }), context: context)
     }
 }
 
@@ -457,19 +444,7 @@ extension androidx.compose.ui.text.TextStyle {
     /// Return an animatable version of this value.
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D> {
         let value = self
-        let animatable = rememberSaveable(stateSaver: context.stateSaver as! Saver<Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D>, Any>) { mutableStateOf(Animatable(value, TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) }))) }.value
-        let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
-        if animatable.value != value || isAnimating {
-            let animation = Animation.current(isAnimating: isAnimating)
-            LaunchedEffect(value, animation) {
-                if let animation {
-                    animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<androidx.compose.ui.text.TextStyle>)
-                } else {
-                    animatable.snapTo(value)
-                }
-            }
-        }
-        return animatable
+        return toAnimatable(value: value, converter: TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) }), context: context)
     }
 }
 #endif
