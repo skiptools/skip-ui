@@ -397,6 +397,7 @@ public enum AnimationCompletionCriteria : Hashable, Sendable {
 @Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
     // In order to reset infinite animations after exiting and coming back to a composition, we have to remember its initial
     // value, because the powering state value will be at its target when we return to the composition
+    // SKIP NOWARN
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
@@ -436,7 +437,7 @@ extension Tuple2 where E0 == Float, E1 == Float {
 extension androidx.compose.ui.graphics.Color {
     /// Return an animatable version of this value.
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
-        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector4D($0.red, $0.green, $0.blue, $0.alpha) }, { androidx.compose.ui.graphics.Color($0.v1, $0.v2, $0.v3, $0.v4) }), context: context)
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector4D($0.red, $0.green, $0.blue, $0.alpha) }, { androidx.compose.ui.graphics.Color(max(Float(0), min(Float(1), $0.v1)), max(Float(0), min(Float(1), $0.v2)), max(Float(0), min(Float(1), $0.v3)), max(Float(0), min(Float(1), $0.v4))) }), context: context)
     }
 }
 
