@@ -4,12 +4,41 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+#endif
+
 public struct TextEditor : View {
-    @available(*, unavailable)
+    let text: Binding<String>
+
     public init(text: Binding<String>) {
+        self.text = text
     }
 
-    #if !SKIP
+    #if SKIP
+    @ExperimentalMaterial3Api
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let contentContext = context.content()
+        let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
+        let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
+        let visualTransformation = VisualTransformation.None
+        TextField(value: text.wrappedValue, onValueChange: {
+            text.wrappedValue = $0
+        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: false, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, visualTransformation: visualTransformation)
+    }
+    #else
     public var body: some View {
         stubView()
     }
