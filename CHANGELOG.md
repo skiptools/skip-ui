@@ -1,3 +1,15 @@
+## 0.5.13
+
+Released 2024-03-13
+
+  - Add simple TextEditor component; move TextField and SecureField to Text folder
+
+## 0.5.13
+
+Released 2024-03-13
+
+  - Add simple TextEditor component; move TextField and SecureField to Text folder
+
 ## 0.5.9
 
 Released 2024-02-29
