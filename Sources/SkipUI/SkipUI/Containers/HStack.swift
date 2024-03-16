@@ -5,9 +5,15 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #else
@@ -28,6 +34,7 @@ public struct HStack : View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let rowAlignment: androidx.compose.ui.Alignment.Vertical
         switch alignment {
@@ -38,15 +45,63 @@ public struct HStack : View {
         default:
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
-        let contentContext = context.content()
-        ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-            Row(modifier: modifier, horizontalArrangement: Arrangement.spacedBy((spacing ?? 8.0).dp), verticalAlignment: rowAlignment) {
-                let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
-                EnvironmentValues.shared.setValues {
-                    $0.set_fillWidthModifier(fillWidthModifier)
-                } in: {
-                    content.Compose(context: contentContext)
+        let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+
+        let views = content.collectViews(context: context)
+        let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
+        let ids = views.compactMap(idMap)
+        let rememberedIds = remember { mutableSetOf<Any>() }
+        let newIds = ids.filter { !rememberedIds.contains(it) }
+        let rememberedNewIds = remember { mutableSetOf<Any>() }
+
+        rememberedNewIds.addAll(newIds)
+        rememberedIds.clear()
+        rememberedIds.addAll(ids)
+
+        if ids.count < views.count {
+            rememberedNewIds.clear()
+            let contentContext = context.content()
+            ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
+                Row(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                    let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
+                    EnvironmentValues.shared.setValues {
+                        $0.set_fillWidthModifier(fillWidthModifier)
+                    } in: {
+                        views.forEach { $0.Compose(context: contentContext) }
+                    }
                 }
+            }
+        } else {
+            ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
+                AnimatedContent(modifier: modifier, targetState: views, transitionSpec: {
+                    // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+                }, contentKey: {
+                    $0.map(idMap)
+                }, content: { state in
+                    let animation = Animation.current(isAnimating: transition.isRunning)
+                    if animation == nil {
+                        rememberedNewIds.clear()
+                    }
+                    Row(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                        let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
+                        EnvironmentValues.shared.setValues {
+                            $0.set_fillWidthModifier(fillWidthModifier)
+                        } in: {
+                            for view in state {
+                                let id = idMap(view)
+                                var modifier: Modifier = Modifier
+                                if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
+                                    let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                                    let spec = animation.asAnimationSpec()
+                                    let enter = transition.asEnterTransition(spec: spec)
+                                    let exit = transition.asExitTransition(spec: spec)
+                                    modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                                }
+                                view.Compose(context: context.content(modifier: modifier))
+                            }
+                        }
+                    }
+                }, label: "HStack")
             }
         }
     }

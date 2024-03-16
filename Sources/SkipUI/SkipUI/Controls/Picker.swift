@@ -69,13 +69,12 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
     }
 
     @Composable private func ComposeSelectedValue(views: [TagModifierView], context: ComposeContext, style: PickerStyle, performsAction: Bool = true) {
-        let selectedValueView = views.first { $0.tag == selection.wrappedValue } ?? EmptyView()
+        let selectedValueView = views.first { $0.value == selection.wrappedValue } ?? EmptyView()
         let selectedValueLabel: View
         let isMenu: Bool
-        let contentContext = context.content()
         if style == .automatic || style == .menu {
             selectedValueLabel = HStack(spacing: 2.0) {
-                selectedValueView.Compose(context: contentContext)
+                selectedValueView
                 Image(systemName: "chevron.down")
             }
             isMenu = true
@@ -88,7 +87,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
             Box {
                 ComposeTextButton(label: selectedValueLabel, context: context) { isMenuExpanded.value = !isMenuExpanded.value }
                 if isMenu {
-                    ComposePickerSelectionMenu(views: views, isExpanded: isMenuExpanded, context: contentContext)
+                    ComposePickerSelectionMenu(views: views, isExpanded: isMenuExpanded, context: context.content())
                 }
             }
         } else {
@@ -140,9 +139,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         // Create selectable views from the *content* of each tag view, preserving the enclosing tag
         let menuItems = views.map { tagView in
             let button = Button(action: {
-                selection.wrappedValue = tagView.tag as! SelectionValue
+                selection.wrappedValue = tagView.value as! SelectionValue
             }, label: { tagView.view })
-            return TagModifierView(view: button, tag: tagView.tag) as View
+            return TagModifierView(view: button, value: tagView.value, role: ComposeModifierRole.tag) as View
         }
         DropdownMenu(expanded: isExpanded.value, onDismissRequest: { isExpanded.value = false }) {
             let coroutineScope = rememberCoroutineScope()
@@ -160,7 +159,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         EnvironmentValues.shared.setValues {
             $0.set_placement(ViewPlacement.tagged)
         } in: {
-            views = content.collectViews(context: context).compactMap { TagModifierView.strip(from: $0) }
+            views = content.collectViews(context: context).compactMap { TagModifierView.strip(from: $0, role: ComposeModifierRole.tag) }
         }
         return views
     }
@@ -236,14 +235,14 @@ struct PickerSelectionView<SelectionValue> : View {
 
     @ViewBuilder private func rowView(label: TagModifierView) -> some View {
         Button {
-            selection.wrappedValue = label.tag as! SelectionValue
+            selection.wrappedValue = label.value as! SelectionValue
             selectionValue = selection.wrappedValue // Update the checkmark in the UI while we dismiss
             dismiss()
         } label: {
             HStack {
                 label
                 Spacer()
-                if label.tag == selection.wrappedValue {
+                if label.value == selection.wrappedValue {
                     Image(systemName: "checkmark")
                         .foregroundStyle(EnvironmentValues.shared._tint ?? Color.accentColor)
                 }

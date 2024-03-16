@@ -318,17 +318,6 @@ Support levels:
       <td>Custom ViewModifiers</td>
     </tr>
     <tr>
-      <td>🟡</td>
-      <td>
-            <details>
-              <summary><code>Animation</code></summary>
-              <ul>
-                  <li>See <a href="#animation">Animation</a></li>
-              </ul>
-          </details> 
-      </td>
-    </tr>
-    <tr>
       <td>✅</td>
       <td><code>AsyncImage</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</td>
     </tr>
@@ -1266,6 +1255,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+            <details>
+              <summary><code>.transition</code></summary>
+              <ul>
+                  <li>See <a href="#animation">Animation</a></li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.zIndex</code> (<a href="https://skip.tools/docs/components/zindex/">example</a>)</td>
     </tr>
@@ -1276,7 +1276,9 @@ Support levels:
 
 ### Animation
 
-Skip supports both SwiftUI's `.animation` modifier and its `withAnimation` function on Android. The following properties are currently animatable:
+Skip supports SwiftUI's `.animation` and `.transition` modifiers as well as its `withAnimation` function on Android. 
+
+The following properties are currently animatable:
 
 - `.background` color
 - `.border` color
@@ -1291,13 +1293,28 @@ Skip supports both SwiftUI's `.animation` modifier and its `withAnimation` funct
 - `.scaleEffect`
 - `.stroke` color
 
-Skip converts the various SwiftUI animation types to their Compose equivalents. For many SwiftUI spring animations, however, Skip uses Compose's simple `EaseInOutBack` easing function rather than a true spring. Only constructing a spring `SwiftUI.Spring(mass:stiffness:damping:)` creates a true Compose spring animation. Using an easing function rather than a true spring allows us to overcome Compose's limitations on springs:
+All of SwiftUI's built-in transitions are supported on Android. To use transitions or to animate views being added or removed in general, however, you **must** assign a unique `.id` value to every view in the parent `HStack`, `VStack`, or `ZStack`:
 
-- True spring animations cannot have a set duration.
-- True spring animations cannot have a delay.
-- True spring animations cannot repeat.
+```swift
+VStack {
+    FirstView()
+        .id(100)
+    if condition {
+        SecondView()
+            .transition(.scale)
+            .id(200)
+    }
+}
+.animation(.default)
+``` 
 
-View appearance and disappearance is not yet animated on Android (unless you use `.opacity` or `.hidden`). Custom `Animatables` are also not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
+Skip converts the various SwiftUI animation types to their Compose equivalents. For many SwiftUI spring animations, though, Skip uses Compose's simple `EaseInOutBack` easing function rather than a true spring. Only constructing a spring with `SwiftUI.Spring(mass:stiffness:damping:)` creates a true Compose spring animation. Using an easing function rather than a true spring allows us to overcome Compose's limitations on springs:
+
+- True spring animations cannot set a duration
+- True spring animations cannot have a delay
+- True spring animations cannot repeat
+
+Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
 
 ### Environment Keys
 

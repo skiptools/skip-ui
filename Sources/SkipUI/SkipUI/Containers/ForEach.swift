@@ -91,10 +91,10 @@ public final class ForEach : View, ListItemFactory {
         } else {
             contentView = view
         }
-        if let taggedView = TagModifierView.strip(from: contentView) {
+        if let taggedView = TagModifierView.strip(from: contentView, role: ComposeModifierRole.tag) {
             return taggedView
         } else {
-            return TagModifierView(view: view, tag: defaultTag)
+            return TagModifierView(view: view, value: defaultTag, role: ComposeModifierRole.tag)
         }
     }
 

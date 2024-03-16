@@ -517,7 +517,11 @@ extension View {
     }
 
     public func id(_ id: Any) -> some View {
+        #if SKIP
+        return TagModifierView(view: self, value: id, role: ComposeModifierRole.id)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -983,7 +987,7 @@ extension View {
 
     public func tag(_ tag: Any) -> some View {
         #if SKIP
-        return TagModifierView(view: self, tag: tag)
+        return TagModifierView(view: self, value: tag, role: ComposeModifierRole.tag)
         #else
         return self
         #endif
@@ -1055,21 +1059,23 @@ extension View {
 }
 
 #if SKIP
+/// Used to mark views with a tag or ID.
 struct TagModifierView: ComposeModifierView {
-    let tag: Any
+    let value: Any
 
-    init(view: View, tag: Any) {
-        self.tag = tag
-        super.init(view: view, role: .tag)
+    init(view: View, value: Any, role: ComposeModifierRole) {
+        self.value = value
+        super.init(view: view, role: role)
     }
 
     /// Extract the existing tag modifier view from the given view's modifiers.
-    static func strip(from view: View) -> TagModifierView? {
-        return view.strippingModifiers(until: { $0 == .tag }, perform: { $0 as? TagModifierView })
+    static func strip(from view: View, role: ComposeModifierRole) -> TagModifierView? {
+        return view.strippingModifiers(until: { $0 == role }, perform: { $0 as? TagModifierView })
     }
 }
 
-/// Use a special modifier for `zIndex` so that the artificial parent container created by `.frame` can pull the `zIndex` value into its own modifiers.
+/// Use a special modifier for `zIndex` so that the artificial parent container created by `.frame` can
+/// pull the `zIndex` value into its own modifiers.
 ///
 /// Otherwise the extra frame container hides the `zIndex` value from this view's logical parent container.
 ///

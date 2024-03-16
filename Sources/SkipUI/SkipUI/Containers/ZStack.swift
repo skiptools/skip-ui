@@ -5,8 +5,15 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 #else
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
@@ -22,11 +29,53 @@ public struct ZStack : View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let contentContext = context.content()
-        ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
-            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                content.Compose(context: contentContext)
+        let views = content.collectViews(context: context)
+        let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
+        let ids = views.compactMap(transform = idMap)
+        let rememberedIds = remember { mutableSetOf<Any>() }
+        let newIds = ids.filter { !rememberedIds.contains(it) }
+        let rememberedNewIds = remember { mutableSetOf<Any>() }
+
+        rememberedNewIds.addAll(newIds)
+        rememberedIds.clear()
+        rememberedIds.addAll(ids)
+
+        if ids.count < views.count {
+            rememberedNewIds.clear()
+            let contentContext = context.content()
+            ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
+                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    views.forEach { $0.Compose(context: contentContext) }
+                }
+            }
+        } else {
+            ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
+                AnimatedContent(modifier: modifier, targetState: views, transitionSpec: {
+                    // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+                }, contentKey: {
+                    $0.map(idMap)
+                }, content: { state in
+                    let animation = Animation.current(isAnimating: transition.isRunning)
+                    if animation == nil {
+                        rememberedNewIds.clear()
+                    }
+                    Box(contentAlignment: alignment.asComposeAlignment()) {
+                        for view in state {
+                            let id = idMap(view)
+                            var modifier: Modifier = Modifier
+                            if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
+                                let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                                let spec = animation.asAnimationSpec()
+                                let enter = transition.asEnterTransition(spec: spec)
+                                let exit = transition.asExitTransition(spec: spec)
+                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                            }
+                            view.Compose(context: context.content(modifier: modifier))
+                        }
+                    }
+                }, label: "ZStack")
             }
         }
     }

@@ -126,8 +126,8 @@ public final class Menu : View {
             if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
                 if let button = strippedItemView as? Button {
                     let isSelected: Bool?
-                    if let tagView = itemView as? TagModifierView {
-                        isSelected = tagView.tag == selection
+                    if let tagView = itemView as? TagModifierView, tagView.role == ComposeModifierRole.tag {
+                        isSelected = tagView.value == selection
                     } else {
                         isSelected = nil
                     }
