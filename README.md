@@ -682,6 +682,17 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
+              <summary><code>TextEditor</code></summary>
+              <ul>
+                  <li><code>.font</code>, <code>.lineSpacing</code>, etc modifiers have no effect</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
               <summary><code>TextField</code> (<a href="https://skip.tools/docs/components/textfield/">example</a>)</summary>
               <ul>
                   <li><code>init(_ title: String, text: Binding&lt;String>, prompt: Text? = nil)</code></li>
@@ -1222,6 +1233,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.task</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.textEditorStyle</code></td>
     </tr>
     <tr>
       <td>🟡</td>
