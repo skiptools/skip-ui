@@ -1270,6 +1270,10 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>.toolbarTitleDisplayMode</code></td>
+    </tr>
+    <tr>
       <td>🟢</td>
       <td>
             <details>

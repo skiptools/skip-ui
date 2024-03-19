@@ -167,6 +167,7 @@ extension View {
         return self
     }
 
+    @available(*, unavailable)
     public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, for: bars))
@@ -175,6 +176,7 @@ extension View {
         #endif
     }
 
+    @available(*, unavailable)
     public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(background: style, for: bars))
@@ -183,7 +185,7 @@ extension View {
         #endif
     }
 
-
+    @available(*, unavailable)
     public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(backgroundVisibility: visibility, for: bars))
@@ -205,6 +207,7 @@ extension View {
         #endif
     }
 
+    @available(*, unavailable)
     public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> some View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(titleMenu: content()))
