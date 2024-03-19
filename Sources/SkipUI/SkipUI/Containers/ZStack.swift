@@ -47,7 +47,13 @@ public struct ZStack : View {
             let contentContext = context.content()
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
                 Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    views.forEach { $0.Compose(context: contentContext) }
+                    EnvironmentValues.shared.setValues {
+                        // The ComposeContainer uses the presence of these modifiers to influence container expansion behavior
+                        $0.set_fillWidthModifier(Modifier)
+                        $0.set_fillHeightModifier(Modifier)
+                    } in: {
+                        views.forEach { $0.Compose(context: contentContext) }
+                    }
                 }
             }
         } else {
@@ -62,17 +68,23 @@ public struct ZStack : View {
                         rememberedNewIds.clear()
                     }
                     Box(contentAlignment: alignment.asComposeAlignment()) {
-                        for view in state {
-                            let id = idMap(view)
-                            var modifier: Modifier = Modifier
-                            if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
-                                let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
-                                let spec = animation.asAnimationSpec()
-                                let enter = transition.asEnterTransition(spec: spec)
-                                let exit = transition.asExitTransition(spec: spec)
-                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        EnvironmentValues.shared.setValues {
+                            // The ComposeContainer uses the presence of these modifiers to influence container expansion behavior
+                            $0.set_fillWidthModifier(Modifier)
+                            $0.set_fillHeightModifier(Modifier)
+                        } in: {
+                            for view in state {
+                                let id = idMap(view)
+                                var modifier: Modifier = Modifier
+                                if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
+                                    let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                                    let spec = animation.asAnimationSpec()
+                                    let enter = transition.asEnterTransition(spec: spec)
+                                    let exit = transition.asExitTransition(spec: spec)
+                                    modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                                }
+                                view.Compose(context: context.content(modifier: modifier))
                             }
-                            view.Compose(context: context.content(modifier: modifier))
                         }
                     }
                 }, label: "ZStack")

@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 /// behind our `Modifier.fillWidth` and `Modifier.fillHeight` extension functions.
 ///
 /// Having to explicitly set a certain modifier in order to expand within a parent is problematic for containers that want to
-/// fit content. The container only wants to expand if it has content that wants to expand. It cant't know this until it composes
+/// fit content. The container only wants to expand if it has content that wants to expand. It can't know this until it composes
 /// its content. The code in this function sets triggers on the environment values that we use in 'fillWidth' and 'fillHeight' so
 /// that if the container content uses them, the container itself can recompose with the appropriate expansion to match its
 /// content. Note that this generally only affects final layout when an expanding child is in a container that is itself in a
@@ -100,7 +100,11 @@ import androidx.compose.ui.Modifier
                     isNonExpandingFillWidth.value = true
                 }
             }
-            return fillModifier ?? Modifier.fillMaxWidth()
+            if let fillModifier, fillModifier != Modifier {
+                return fillModifier
+            } else {
+                return Modifier.fillMaxWidth()
+            }
         }
         $0.set_fillHeight { expandContainer in
             let fillModifier = EnvironmentValues.shared._fillHeightModifier
@@ -115,7 +119,11 @@ import androidx.compose.ui.Modifier
                     isNonExpandingFillHeight.value = true
                 }
             }
-            return fillModifier ?? Modifier.fillMaxHeight()
+            if let fillModifier, fillModifier != Modifier {
+                return fillModifier
+            } else {
+                return Modifier.fillMaxHeight()
+            }
         }
     } in: {
         // Render the container content with the above environment setup
