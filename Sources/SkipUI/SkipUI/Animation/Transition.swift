@@ -444,7 +444,7 @@ struct TransitionModifierView: ComposeModifierView {
         super.init(view: view, role: ComposeModifierRole.transition)
     }
 
-    /// Extract the transition from the given view's modifiers, or return the fallback.
+    /// Extract the transition from the given view's modifiers.
     static func transition(for view: View) -> Transition? {
         guard let modifierView = view.strippingModifiers(until: { $0 == ComposeModifierRole.transition }, perform: { $0 as? TransitionModifierView }) else {
             return nil

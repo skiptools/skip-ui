@@ -152,11 +152,9 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
-        let titleDisplayMode = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationBarItem.TitleDisplayMode?, Any>) { mutableStateOf<NavigationBarItem.TitleDisplayMode?>(nil) }
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: titleDisplayMode.value)
-        let backButtonHidden = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-        let toolbarContent = rememberSaveable(stateSaver: context.stateSaver as! Saver<[View], Any>) { mutableStateOf(Array<View>()) }
-        let toolbarItems = ToolbarItems(content: toolbarContent)
+        let toolbarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarPreferences?, Any>) { mutableStateOf<ToolbarPreferences?>(nil) }
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value?.titleDisplayMode)
+        let toolbarItems = ToolbarItems(content: toolbarPreferences.value?.content ?? [])
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
 
         let searchFieldPadding = 16.dp
@@ -199,7 +197,7 @@ public struct NavigationStack<Root> : View where Root: View {
                         androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
                     }
                     let topBarNavigationIcon: @Composable () -> Void = {
-                        let hasBackButton = !isRoot && !backButtonHidden.value
+                        let hasBackButton = !isRoot && toolbarPreferences.value?.backButtonHidden != true
                         if hasBackButton || !topLeadingItems.isEmpty {
                             let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                             Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -219,7 +217,7 @@ public struct NavigationStack<Root> : View where Root: View {
                         let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                         topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
                     }
-                    if effectiveTitleDisplayMode == NavigationBarItem.TitleDisplayMode.inline {
+                    if effectiveTitleDisplayMode == ToolbarTitleDisplayMode.inline {
                         TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
                     } else {
                         MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
@@ -250,7 +248,7 @@ public struct NavigationStack<Root> : View where Root: View {
         ) { padding in
             // Intercept system back button to keep our state in sync
             BackHandler(enabled: !navigator.value.isRoot) {
-                if !backButtonHidden.value {
+                if toolbarPreferences.value?.backButtonHidden != true {
                     navigator.value.navigateBack()
                 }
             }
@@ -271,11 +269,9 @@ public struct NavigationStack<Root> : View where Root: View {
                 // will be composed, and we want to retain destinations from previous entries
                 let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
                 let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let titleDisplayModePreference = Preference<NavigationBarItem.TitleDisplayMode?>(key: NavigationBarTitleDisplayModePreferenceKey.self, update: { titleDisplayMode.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let backButtonHiddenPreference = Preference<Bool>(key: NavigationBarBackButtonHiddenPreferenceKey.self, update: { backButtonHidden.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let toolbarContentPreference = Preference<[View]>(key: ToolbarContentPreferenceKey.self, update: { toolbarContent.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+                let toolbarPreferencesPreference = Preference<ToolbarPreferences?>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, titleDisplayModePreference, backButtonHiddenPreference, toolbarContentPreference, scrollToTopPreference]) {
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {
@@ -339,7 +335,7 @@ final class Navigator {
         let destination: ((Any) -> any View)?
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
-        var titleDisplayMode: NavigationBarItem.TitleDisplayMode?
+        var titleDisplayMode: ToolbarTitleDisplayMode?
 
         init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
@@ -419,14 +415,14 @@ final class Navigator {
     }
 
     /// The effective title display mode for the given preference value.
-    func titleDisplayMode(for state: BackStackState, preference: NavigationBarItem.TitleDisplayMode?) -> NavigationBarItem.TitleDisplayMode {
+    func titleDisplayMode(for state: BackStackState, preference: ToolbarTitleDisplayMode?) -> ToolbarTitleDisplayMode {
         if let preference {
             state.titleDisplayMode = preference
             return preference
         }
 
         // Base the display mode on the back stack
-        var titleDisplayMode: NavigationBarItem.TitleDisplayMode? = nil
+        var titleDisplayMode: ToolbarTitleDisplayMode? = nil
         for entry in navController.currentBackStack.value {
             if entry.id == state.id {
                 break
@@ -434,7 +430,7 @@ final class Navigator {
                 titleDisplayMode = entryTitleDisplayMode
             }
         }
-        return titleDisplayMode ?? NavigationBarItem.TitleDisplayMode.automatic
+        return titleDisplayMode ?? ToolbarTitleDisplayMode.automatic
     }
 
     /// Sync our back stack state with the nav controller.
@@ -559,7 +555,7 @@ public struct NavigationBarItem : Hashable, Sendable {
 extension View {
     public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View {
         #if SKIP
-        return preference(key: NavigationBarBackButtonHiddenPreferenceKey.self, value: hidesBackButton)
+        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(backButtonHidden: hidesBackButton))
         #else
         return self
         #endif
@@ -567,7 +563,16 @@ extension View {
 
     public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View {
         #if SKIP
-        return preference(key: NavigationBarTitleDisplayModePreferenceKey.self, value: displayMode)
+        let toolbarTitleDisplayMode: ToolbarTitleDisplayMode
+        switch displayMode {
+        case .automatic:
+            toolbarTitleDisplayMode = .automatic
+        case .inline:
+            toolbarTitleDisplayMode = .inline
+        case .large:
+            toolbarTitleDisplayMode = .large
+        }
+        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(titleDisplayMode: toolbarTitleDisplayMode))
         #else
         return self
         #endif
@@ -664,30 +669,6 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
     final class Companion: PreferenceKeyCompanion {
         let defaultValue = Text("")
         func reduce(value: inout Text, nextValue: () -> Text) {
-            value = nextValue()
-        }
-    }
-}
-
-struct NavigationBarTitleDisplayModePreferenceKey: PreferenceKey {
-    typealias Value = NavigationBarItem.TitleDisplayMode?
-
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<NavigationBarItem.TitleDisplayMode?>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue: NavigationBarItem.TitleDisplayMode? = nil
-        func reduce(value: inout NavigationBarItem.TitleDisplayMode?, nextValue: () -> NavigationBarItem.TitleDisplayMode?) {
-            value = nextValue()
-        }
-    }
-}
-
-struct NavigationBarBackButtonHiddenPreferenceKey: PreferenceKey {
-    typealias Value = Bool
-
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = false
-        func reduce(value: inout Bool, nextValue: () -> Bool) {
             value = nextValue()
         }
     }
