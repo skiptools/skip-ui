@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -79,8 +82,10 @@ public struct TabView : View {
                     }
                     var tabBarModifier = Modifier.fillMaxWidth()
                     let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    let tabBarItemColors: NavigationBarItemColors
                     if tabBarPreferences.value?.backgroundVisibility == Visibility.hidden {
                         tabBarBackgroundColor = Color.clear.colorImpl()
+                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
                     } else if let background = tabBarPreferences.value?.background {
                         if let color = background.asColor(opacity: 1.0, animationContext: nil) {
                             tabBarBackgroundColor = color
@@ -90,14 +95,17 @@ public struct TabView : View {
                                 tabBarModifier = tabBarModifier.background(brush)
                             }
                         }
+                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
                     } else {
                         tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                        tabBarItemColors = NavigationBarItemDefaults.colors()
                     }
                     NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
                         for tabIndex in 0..<tabViews.count {
                             let route = String(describing: tabIndex)
                             let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
                             NavigationBarItem(
+                                colors: tabBarItemColors,
                                 icon: {
                                     tabItem?.ComposeImage(context: tabItemContext)
                                 },
@@ -117,14 +125,15 @@ public struct TabView : View {
                     }
                 }
             ) { padding in
-                NavHost(navController, 
+                let bottomPadding = tabBarPreferences.value?.ignoresSafeArea == true ? 0.dp : padding.calculateBottomPadding() - EnvironmentValues.shared._bottomSystemBarPadding
+                NavHost(navController,
                         startDestination: "0", 
                         enterTransition: { EnterTransition.None },
                         exitTransition: { ExitTransition.None }) {
                     // Use a constant number of routes. Changing routes causes a NavHost to reset its state
                     for tabIndex in 0..<100 {
                         composable(String(describing: tabIndex)) {
-                            Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                            Box(modifier: Modifier.padding(bottom: bottomPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                                 PreferenceValues.shared.collectPreferences([tabBarPreferencesPreference]) {
                                     // Use a custom composer to only render the tabIndex'th view
                                     content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))

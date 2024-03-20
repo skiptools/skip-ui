@@ -910,6 +910,17 @@ Support levels:
       <td><code>.hidden</code></td>
     </tr>
     <tr>
+      <td>🔴</td>
+      <td>
+          <details>
+              <summary><code>.ignoresSafeArea</code></summary>
+              <ul>
+                  <li>See <a href="#safe-area">Safe Area</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.inset</code></td>
     </tr>
@@ -1573,3 +1584,32 @@ Compose requires all state values to be serializable. This restriction is typica
 
 Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
 
+### Safe Area
+
+SkipUI currently does not render content behind the Android status bar or bottom gesture region, nor does it support custom safe areas. For the most part, therefore, safe area API isn't needed. If you've used `.toolbarBackgackground(...)` to hide or add alpha to the navigation bar, bottom toolbar, or tab bar, however, you may want to use `.ignoresSafeArea` to display content below these bars. 
+
+SkipUI supports `.ignoresSafeArea` for this use case, but be careful: if **any** view within your `TabView` or `NavigationView` declares that it ignores a safe area, then **all** content within that view hierarchy will ignore it. That means the following views are effectively equivalent in SkipUI:
+
+```swift
+NavigationStack {
+    ZStack {
+        Color.red
+            .ignoresSafeArea()
+        ContentView()
+    }
+    .toolbarBackground(.hidden, for: .navigationBar)
+    .navigationTitle("View")    
+}
+
+NavigationStack {
+    ZStack {
+        Color.red
+        ContentView()
+    }
+    .toolbarBackground(.hidden, for: .navigationBar)
+    .navigationTitle("View")  
+    .ignoresSafeArea()  
+}
+```
+
+Remember that you case use `#if SKIP` blocks to enable or disable `.ignoresSafeArea` calls for iOS or Android only.

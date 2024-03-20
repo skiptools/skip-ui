@@ -524,9 +524,28 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View {
+        #if SKIP
+        // NOTE: Our current safe area support is limited to removing scaffold bar padding. If *any* view within the hierarchy a safe
+        // area, we detect it at the TabView/NavigationStack level and do not apply the corresponding bar padding
+        guard edges.contains(.top) || edges.contains(.bottom), regions.contains(.container) else {
+            return self
+        }
+        var bars: [ToolbarPlacement] = []
+        if edges.contains(.top) {
+            bars.append(.navigationBar)
+        }
+        if edges.contains(.bottom) {
+            bars.append(.bottomBar)
+        }
+        var view = preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(ignoresSafeArea: true, for: bars))
+        if edges.contains(.bottom) {
+            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(ignoresSafeArea: true))
+        }
+        return view
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

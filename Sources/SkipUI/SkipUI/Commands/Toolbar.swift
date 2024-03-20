@@ -280,8 +280,8 @@ struct ToolbarPreferences: Equatable {
         self.bottomBar = bottomBar
     }
 
-    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, for bars: [ToolbarPlacement]) {
-        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility)
+    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, ignoresSafeArea: Bool? = nil, for bars: [ToolbarPlacement]) {
+        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, ignoresSafeArea: ignoresSafeArea)
         var navigationBar: ToolbarBarPreferences? = nil
         var bottomBar: ToolbarBarPreferences? = nil
         for bar in bars {
@@ -337,14 +337,15 @@ struct ToolbarBarPreferences: Equatable {
     let visibility: Visibility?
     let background: ShapeStyle?
     let backgroundVisibility: Visibility?
+    let ignoresSafeArea: Bool?
 
     func reduce(_ next: ToolbarBarPreferences) -> ToolbarBarPreferences {
-        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility)
+        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, ignoresSafeArea: next.ignoresSafeArea ?? ignoresSafeArea)
     }
 
     public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
         // Don't compare on background because it will never compare equal
-        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil)
+        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.ignoresSafeArea == rhs.ignoresSafeArea
     }
 }
 

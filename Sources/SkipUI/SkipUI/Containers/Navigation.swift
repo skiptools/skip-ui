@@ -38,6 +38,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -159,6 +160,8 @@ public struct NavigationStack<Root> : View where Root: View {
         let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
         let toolbarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarPreferences?, Any>) { mutableStateOf<ToolbarPreferences?>(nil) }
+        let topBarPreferences = toolbarPreferences?.value?.navigationBar
+        let bottomBarPreferences = toolbarPreferences.value?.bottomBar
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value?.titleDisplayMode)
         let toolbarItems = ToolbarItems(content: toolbarPreferences.value?.content ?? [])
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
@@ -182,7 +185,6 @@ public struct NavigationStack<Root> : View where Root: View {
         Scaffold(
             modifier: modifier,
             topBar: {
-                let topBarPreferences = toolbarPreferences?.value?.navigationBar
                 guard topBarPreferences?.visibility != Visibility.hidden else {
                     return
                 }
@@ -251,7 +253,6 @@ public struct NavigationStack<Root> : View where Root: View {
                     }
                 }
             }, bottomBar: {
-                let bottomBarPreferences = toolbarPreferences.value?.bottomBar
                 guard bottomBarPreferences?.visibility != Visibility.hidden else {
                     return
                 }
@@ -302,8 +303,9 @@ public struct NavigationStack<Root> : View where Root: View {
                 }
             }
 
-            let bottomSystemBarPadding = EnvironmentValues.shared._bottomSystemBarPadding
-            Box(modifier: Modifier.padding(top: padding.calculateTopPadding(), bottom: padding.calculateBottomPadding() - bottomSystemBarPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+            let topPadding = topBarPreferences?.ignoresSafeArea == true ? 0.dp : padding.calculateTopPadding()
+            let bottomPadding = bottomBarPreferences?.ignoresSafeArea == true ? 0.dp : padding.calculateBottomPadding() - EnvironmentValues.shared._bottomSystemBarPadding
+            Box(modifier: Modifier.padding(top: topPadding, bottom: bottomPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 let contentContext: ComposeContext
                 if isRoot, let searchableState = EnvironmentValues.shared._searchableState {
                     let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
@@ -327,8 +329,16 @@ public struct NavigationStack<Root> : View where Root: View {
                 if title.value == uncomposedTitle {
                     title.value = NavigationTitlePreferenceKey.defaultValue
                 }
-                if entryTabBarPreferences.value != tabBarPreferences.value {
-                    tabBarPreferences.value = entryTabBarPreferences.value
+                // Use an Effect to prevent flashing 
+                DisposableEffect(entryTabBarPreferences.value, tabBarPreferences.value) {
+                    if entryTabBarPreferences.value != tabBarPreferences.value {
+                        tabBarPreferences.value = entryTabBarPreferences.value
+                    }
+                    onDispose {
+                        if entryTabBarPreferences.value != tabBarPreferences.value {
+                            tabBarPreferences.value = entryTabBarPreferences.value
+                        }
+                    }
                 }
             }
         }
