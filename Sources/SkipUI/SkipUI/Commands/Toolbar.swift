@@ -122,7 +122,7 @@ public enum ToolbarItemPlacement {
     case bottomBar
 }
 
-public enum ToolbarPlacement {
+public enum ToolbarPlacement: Equatable {
     case automatic
     case bottomBar
     case navigationBar
@@ -167,28 +167,49 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, for: bars))
+        // SKIP REPLACE: var view = this
+        var view = self
+        if bars.contains(ToolbarPlacement.tabBar) {
+            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility))
+        }
+        if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+            view = view.preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, for: bars))
+        }
+        return view
         #else
         return self
         #endif
     }
 
-    @available(*, unavailable)
     public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(background: style, for: bars))
+        // SKIP REPLACE: var view = this
+        var view = self
+        if bars.contains(ToolbarPlacement.tabBar) {
+            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(background: style))
+        }
+        if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+            view = view.preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(background: style, for: bars))
+        }
+        return view
         #else
         return self
         #endif
     }
 
-    @available(*, unavailable)
     public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(backgroundVisibility: visibility, for: bars))
+        // SKIP REPLACE: var view = this
+        var view = self
+        if bars.contains(ToolbarPlacement.tabBar) {
+            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(backgroundVisibility: visibility))
+        }
+        if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+            view = view.preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(backgroundVisibility: visibility, for: bars))
+        }
+        return view
         #else
         return self
         #endif
@@ -249,23 +270,20 @@ struct ToolbarPreferences: Equatable {
     let backButtonHidden: Bool?
     let navigationBar: ToolbarBarPreferences?
     let bottomBar: ToolbarBarPreferences?
-    let tabBar: ToolbarBarPreferences?
 
-    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil, tabBar: ToolbarBarPreferences? = nil) {
+    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
         self.content = content
         self.titleDisplayMode = titleDisplayMode
         self.titleMenu = titleMenu
         self.backButtonHidden = backButtonHidden
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
-        self.tabBar = tabBar
     }
 
     init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, for bars: [ToolbarPlacement]) {
         let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility)
         var navigationBar: ToolbarBarPreferences? = nil
         var bottomBar: ToolbarBarPreferences? = nil
-        var tabBar: ToolbarBarPreferences? = nil
         for bar in bars {
             switch bar {
             case .automatic, .navigationBar:
@@ -273,12 +291,11 @@ struct ToolbarPreferences: Equatable {
             case .bottomBar:
                 bottomBar = barPreferences
             case .tabBar:
-                tabBar = barPreferences
+                break
             }
         }
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
-        self.tabBar = tabBar
         self.content = nil
         self.titleDisplayMode = nil
         self.titleMenu = nil
@@ -292,7 +309,7 @@ struct ToolbarPreferences: Equatable {
         } else {
             rcontent = next.content ?? content
         }
-        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar), tabBar: reduceBar(tabBar, next.tabBar))
+        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
     }
 
     private func reduceBar(_ bar: ToolbarBarPreferences?, _ next: ToolbarBarPreferences?) -> ToolbarBarPreferences? {
@@ -304,10 +321,7 @@ struct ToolbarPreferences: Equatable {
     }
 
     public static func ==(lhs: ToolbarPreferences, rhs: ToolbarPreferences) -> Bool {
-        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden else {
-            return false
-        }
-        guard isBarEqual(lhs.navigationBar, rhs.navigationBar), isBarEqual(lhs.bottomBar, rhs.bottomBar), isBarEqual(lhs.tabBar, rhs.tabBar) else {
+        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
             return false
         }
         guard (lhs.content?.count ?? 0) == (rhs.content?.count ?? 0), (lhs.titleMenu != nil) == (rhs.titleMenu != nil) else {
@@ -317,20 +331,20 @@ struct ToolbarPreferences: Equatable {
         // change to any state it accesses
         return true
     }
-
-    private static func isBarEqual(_ lhs: ToolbarBarPreferences?, _ rhs: ToolbarBarPreferences?) -> Bool {
-        // Don't compare on background because it will never compare equal
-        return lhs?.visibility == rhs?.visibility && lhs?.backgroundVisibility == rhs?.backgroundVisibility && (lhs?.background != nil) == (rhs?.background != nil)
-    }
 }
 
-struct ToolbarBarPreferences {
+struct ToolbarBarPreferences: Equatable {
     let visibility: Visibility?
     let background: ShapeStyle?
     let backgroundVisibility: Visibility?
 
     func reduce(_ next: ToolbarBarPreferences) -> ToolbarBarPreferences {
         return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility)
+    }
+
+    public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
+        // Don't compare on background because it will never compare equal
+        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil)
     }
 }
 

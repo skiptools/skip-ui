@@ -107,6 +107,12 @@ public struct NavigationStack<Root> : View where Root: View {
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
         navigator.value.didCompose(navController: navController, destinations: destinations.value, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
+        // Because the NavHost content is rendered async, we have to manually update any preferences we want to support
+        let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
+        if let tabBarPreferencesValue = tabBarPreferences.value {
+            syncPreference(key: TabBarPreferenceKey.self, value: tabBarPreferencesValue)
+        }
+
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
@@ -116,7 +122,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                         if let state = navigator.value.state(for: entry) {
-                            ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: true) { context in
+                            ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, tabBarPreferences: tabBarPreferences, didChange: preferencesDidChange, isRoot: true) { context in
                                 root.Compose(context: context)
                             }
                         }
@@ -132,7 +138,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss({ navigator.value.navigateBack() })
                                 } in: {
-                                    ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, destinationsDidChange: preferencesDidChange, isRoot: false) { context in
+                                    ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, tabBarPreferences: tabBarPreferences, didChange: preferencesDidChange, isRoot: false) { context in
                                         state.destination?(targetValue).Compose(context: context)
                                     }
                                 }
@@ -145,7 +151,7 @@ public struct NavigationStack<Root> : View where Root: View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinations: MutableState<NavigationDestinations>, destinationsDidChange: () -> Void, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinations: MutableState<NavigationDestinations>, tabBarPreferences: MutableState<ToolbarBarPreferences?>, didChange: () -> Void, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: state.stateSaver)
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
@@ -156,6 +162,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value?.titleDisplayMode)
         let toolbarItems = ToolbarItems(content: toolbarPreferences.value?.content ?? [])
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
+        let entryTabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
 
         let searchFieldPadding = 16.dp
         let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -175,9 +182,13 @@ public struct NavigationStack<Root> : View where Root: View {
         Scaffold(
             modifier: modifier,
             topBar: {
+                let topBarPreferences = toolbarPreferences?.value?.navigationBar
+                guard topBarPreferences?.visibility != Visibility.hidden else {
+                    return
+                }
                 let topLeadingItems = toolbarItems.filterTopBarLeading()
                 let topTrailingItems = toolbarItems.filterTopBarTrailing()
-                guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty else {
+                guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
@@ -186,11 +197,27 @@ public struct NavigationStack<Root> : View where Root: View {
                     $0.set_tint(tint)
                 } in: {
                     let interactionSource = remember { MutableInteractionSource() }
-                    let topBarModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                    var topBarModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
                         scrollToTop.value?()
                     })
+                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                        topBarBackgroundColor = Color.clear.colorImpl()
+                    } else if let background = topBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            topBarBackgroundColor = color
+                        } else {
+                            topBarBackgroundColor = Color.clear.colorImpl()
+                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                                topBarModifier = topBarModifier.background(brush)
+                            }
+                        }
+                    } else {
+                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    }
                     let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: Color.systemBarBackground.colorImpl(),
+                        containerColor: topBarBackgroundColor,
+                        scrolledContainerColor: topBarBackgroundColor,
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
                     let topBarTitle: @Composable () -> Void = {
@@ -224,16 +251,39 @@ public struct NavigationStack<Root> : View where Root: View {
                     }
                 }
             }, bottomBar: {
+                let bottomBarPreferences = toolbarPreferences.value?.bottomBar
+                guard bottomBarPreferences?.visibility != Visibility.hidden else {
+                    return
+                }
                 let bottomItems = toolbarItems.filterBottomBar()
-                if !bottomItems.isEmpty {
-                    let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-                    EnvironmentValues.shared.setValues {
-                        $0.set_tint(tint)
-                        $0.set_placement(ViewPlacement.toolbar)
-                    } in: {
-                        BottomAppBar(
-                            containerColor: Color.systemBarBackground.colorImpl(),
-                            contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp)) {
+                guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
+                    return
+                }
+                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                EnvironmentValues.shared.setValues {
+                    $0.set_tint(tint)
+                    $0.set_placement(ViewPlacement.toolbar)
+                } in: {
+                    var bottomBarModifier: Modifier = Modifier
+                    let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
+                        bottomBarBackgroundColor = Color.clear.colorImpl()
+                    } else if let background = bottomBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            bottomBarBackgroundColor = color
+                        } else {
+                            bottomBarBackgroundColor = Color.clear.colorImpl()
+                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                                bottomBarModifier = bottomBarModifier.background(brush)
+                            }
+                        }
+                    } else {
+                        bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    }
+                    BottomAppBar(
+                        modifier: bottomBarModifier,
+                        containerColor: bottomBarBackgroundColor,
+                        contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp)) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
                                 ComposeBuilder { itemContext in
@@ -242,7 +292,6 @@ public struct NavigationStack<Root> : View where Root: View {
                                 }
                             }.Compose(context.content())
                         }
-                    }
                 }
             }
         ) { padding in
@@ -267,15 +316,19 @@ public struct NavigationStack<Root> : View where Root: View {
 
                 // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
                 // will be composed, and we want to retain destinations from previous entries
-                let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: destinationsDidChange)
+                let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: didChange)
                 let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let toolbarPreferencesPreference = Preference<ToolbarPreferences?>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, didChange: { preferenceUpdates.value += 1 })
                 let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
+                let tabBarPreferencesPreference = Preference<ToolbarBarPreferences?>(key: TabBarPreferenceKey.self, update: { entryTabBarPreferences.value = $0 }, didChange: didChange)
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference, tabBarPreferencesPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {
                     title.value = NavigationTitlePreferenceKey.defaultValue
+                }
+                if entryTabBarPreferences.value != tabBarPreferences.value {
+                    tabBarPreferences.value = entryTabBarPreferences.value
                 }
             }
         }

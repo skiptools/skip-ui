@@ -1265,9 +1265,14 @@ Support levels:
               <summary><code>.toolbar</code></summary>
               <ul>
                   <li><code>func toolbar(@ViewBuilder content: () -> any View) -> some View</code></li>
+                  <li><code>func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View</code></li>
               </ul>
           </details>      
        </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.toolbarBackground</code></td>
     </tr>
     <tr>
       <td>✅</td>

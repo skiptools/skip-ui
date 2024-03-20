@@ -34,13 +34,13 @@ final class PreferenceValues {
 
     // SKIP DECLARE: @Composable internal fun preference(key: KClass<*>): Preference<*>?
     /// Return a preference for the given `PreferenceKey` type.
-    func preference(key: Any.Type) -> any Preference? {
+    @Composable func preference(key: Any.Type) -> any Preference? {
         return EnvironmentValues.shared.compositionLocals[key]?.current as? Preference
     }
 
     // SKIP DECLARE: @Composable internal fun collectPreferences(preferences: Array<Preference<*>>, in_: @Composable () -> Unit)
     /// Collect the values of the given preferences while composing the given content.
-    func collectPreferences(_ preferences: [any Preference], in content: @Composable () -> Void) {
+    @Composable func collectPreferences(_ preferences: [any Preference], in content: @Composable () -> Void) {
         let provided = preferences.map { preference in
             var compositionLocal = EnvironmentValues.shared.compositionLocals[preference.key]
             if compositionLocal == nil {
@@ -66,7 +66,7 @@ final class Preference<Value> {
     private let update: (Value) -> Void
     private let didChange: () -> Void
     private let initialValue: Value
-    private var isCollecting = false
+    private(set) var isCollecting = false
     private var collectedValue: Value?
 
     /// Create a preference for the given `PreferenceKey` type.

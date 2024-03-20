@@ -7,6 +7,7 @@
 #if SKIP
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -60,11 +65,35 @@ public struct TabView : View {
             }
         }
 
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+        let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
+        let tabBarPreferencesPreference = Preference<ToolbarBarPreferences?>(key: TabBarPreferenceKey.self, update: { tabBarPreferences.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             Scaffold(
                 modifier: modifier,
                 bottomBar: {
-                    NavigationBar(modifier: Modifier.fillMaxWidth()) {
+                    guard tabBarPreferences.value?.visibility != Visibility.hidden else {
+                        return
+                    }
+                    var tabBarModifier = Modifier.fillMaxWidth()
+                    let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    if tabBarPreferences.value?.backgroundVisibility == Visibility.hidden {
+                        tabBarBackgroundColor = Color.clear.colorImpl()
+                    } else if let background = tabBarPreferences.value?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            tabBarBackgroundColor = color
+                        } else {
+                            tabBarBackgroundColor = Color.clear.colorImpl()
+                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                                tabBarModifier = tabBarModifier.background(brush)
+                            }
+                        }
+                    } else {
+                        tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    }
+                    NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
                         for tabIndex in 0..<tabViews.count {
                             let route = String(describing: tabIndex)
                             let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
@@ -96,8 +125,10 @@ public struct TabView : View {
                     for tabIndex in 0..<100 {
                         composable(String(describing: tabIndex)) {
                             Box(modifier: Modifier.padding(padding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                // Use a custom composer to only render the tabIndex'th view
-                                content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
+                                PreferenceValues.shared.collectPreferences([tabBarPreferencesPreference]) {
+                                    // Use a custom composer to only render the tabIndex'th view
+                                    content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
+                                }
                             }
                         }
                     }
@@ -147,6 +178,25 @@ public struct TabView : View {
 }
 
 #if SKIP
+struct TabBarPreferenceKey: PreferenceKey {
+    typealias Value = ToolbarBarPreferences?
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ToolbarBarPreferences?>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: ToolbarBarPreferences? = nil
+        func reduce(value: inout ToolbarBarPreferences?, nextValue: () -> ToolbarBarPreferences?) {
+            guard let next = nextValue() else {
+                return
+            }
+            if value == nil {
+                value = next
+            } else {
+                value = value!.reduce(next)
+            }
+        }
+    }
+}
+
 struct TabItemModifierView: ComposeModifierView {
     let label: ComposeBuilder
 
