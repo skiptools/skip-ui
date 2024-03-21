@@ -157,7 +157,7 @@ public struct Font : Hashable, Sendable {
 
     #if SKIP
     private static func findNamedFont(_ fontName: String, ctx: Context) -> FontFamily? {
-        // Android font names are lowercased and separated by "_" characters.
+        // Android font names are lowercased and separated by "_" characters, since Android resource names can take only alphanumeric characters.
         // Font lookups on Android reference the font's filename, whereas SwiftUI references the font's Postscript name
         // So the best way to have the same font lookup code work on both platforms is to name the
         // font with PS name "Some Poscript Font-Bold" as "some_postscript_font_bold.ttf", and then both iOS and Android
@@ -169,23 +169,19 @@ public struct Font : Hashable, Sendable {
         // look up the font in the resource bundle for custom embedded fonts
         let fid = ctx.resources.getIdentifier(name, "font", ctx.packageName)
         if fid == 0 {
+            // try to fall back on system installed fonts like "courier"
+            if let typeface = Typeface.create(name, Typeface.NORMAL) {
+                //android.util.Log.i("SkipUI", "found font: \(typeface)")
+                return FontFamily(typeface)
+            }
+
             android.util.Log.w("SkipUI", "unable to find font named: \(fontName) (\(name))")
             return nil
         }
 
-        let customTypeface = ctx.resources.getFont(fid)
-        if customTypeface != nil {
-            //android.util.Log.i("SkipUI", "found font: \(customTypeface)")
+        if let customTypeface = ctx.resources.getFont(fid) {
             return FontFamily(customTypeface)
         }
-
-        // try to fall back on system installed fonts
-        let typeface = Typeface.create(name, Typeface.NORMAL)
-        if typeface != nil {
-            //android.util.Log.i("SkipUI", "found font: \(typeface)")
-            return FontFamily(typeface)
-        }
-
 
         android.util.Log.w("SkipUI", "unable to find font named: \(name)")
         return nil
