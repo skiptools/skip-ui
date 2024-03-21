@@ -1,3 +1,9 @@
+## 0.5.18
+
+Released 2024-03-21
+
+  - Add custom embedded font support
+
 ## 0.5.13
 
 Released 2024-03-13
