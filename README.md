@@ -1584,6 +1584,24 @@ Compose requires all state values to be serializable. This restriction is typica
 
 Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
 
+### Custom Fonts
+
+Custom fonts can be embedded and referenced using `Font.custom`. Fonts are loaded differently depending on the platform. On iOS the custom font name is the full Postscript name of the font, and on Android the name is the font's file name without the extension.
+
+Android requires that font file names contain only alphanumeric characters and underscores, so you should manually name your embedded font to the lowercased and underscore-separated form of the Postscript name of the font. SkipUI's `Font.custom` call will accommodate this by translating your custom font name like "Protest Guerrilla" into an Android-compatible name like "protest_guerrilla.ttf". 
+
+```swift
+Text("Custom Font")
+    .font(Font.custom("Protest Guerrilla", size: 30.0)) // protest_guerrilla.ttf
+```
+
+Custom fonts are embedded differently for each platform. On Android you should create a folder `Android/app/src/main/res/font/` and add the font file, which will cause Android to automatically embed any fonts in that folder as resources. 
+
+For iOS, you must add the font by adding to the Xcode project's app target and ensure the font file is included in the file list in the app target's "Build Phases" tab's "Copy Bundle Resources" phase. In addition, iOS needs to have the font explicitly listed in the Xcode project target's "Info" tab under "Custom Application Target Properties" by adding a new key for the "Fonts provided by application" (whose raw name is "UIAppFonts") and adding each font's file name to the string array.
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://raw.githubusercontent.com/skiptools/assets.skip.tools/main/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
+
+
 ### Safe Area
 
 SkipUI currently does not render content behind the Android status bar or bottom gesture region, nor does it support custom safe areas. For the most part, therefore, safe area API isn't needed. If you've used `.toolbarBackgackground(...)` to hide or add alpha to the navigation bar, bottom toolbar, or tab bar, however, you may want to use `.ignoresSafeArea` to display content below these bars. 

@@ -5,9 +5,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import android.content.Context
 import android.graphics.Typeface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -153,11 +155,47 @@ public struct Font : Hashable, Sendable {
         #endif
     }
 
+    #if SKIP
+    private static func findNamedFont(_ fontName: String, ctx: Context) -> FontFamily? {
+        // Android font names are lowercased and separated by "_" characters.
+        // Font lookups on Android reference the font's filename, whereas SwiftUI references the font's Postscript name
+        // So the best way to have the same font lookup code work on both platforms is to name the
+        // font with PS name "Some Poscript Font-Bold" as "some_postscript_font_bold.ttf", and then both iOS and Android
+        // can reference it by the postscript name
+        let name = fontName.lowercased().replace(" ", "_").replace("-", "_")
+
+        //android.util.Log.i("SkipUI", "finding font: \(name)")
+
+        // look up the font in the resource bundle for custom embedded fonts
+        let fid = ctx.resources.getIdentifier(name, "font", ctx.packageName)
+        if fid == 0 {
+            android.util.Log.w("SkipUI", "unable to find font named: \(fontName) (\(name))")
+            return nil
+        }
+
+        let customTypeface = ctx.resources.getFont(fid)
+        if customTypeface != nil {
+            //android.util.Log.i("SkipUI", "found font: \(customTypeface)")
+            return FontFamily(customTypeface)
+        }
+
+        // try to fall back on system installed fonts
+        let typeface = Typeface.create(name, Typeface.NORMAL)
+        if typeface != nil {
+            //android.util.Log.i("SkipUI", "found font: \(typeface)")
+            return FontFamily(typeface)
+        }
+
+
+        android.util.Log.w("SkipUI", "unable to find font named: \(name)")
+        return nil
+    }
+    #endif
+
     public static func custom(_ name: String, size: CGFloat) -> Font {
         #if SKIP
         return Font(fontImpl: {
-            // Note that Android can find "courier" but not "Courier"
-            androidx.compose.ui.text.TextStyle(fontFamily: FontFamily(Typeface.create(name, Typeface.NORMAL)), fontSize: size.sp)
+            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: size.sp)
         })
         #else
         fatalError()
@@ -169,7 +207,7 @@ public struct Font : Hashable, Sendable {
         let systemFont = system(textStyle)
         return Font(fontImpl: {
             let absoluteSize = systemFont.fontImpl().fontSize.value + size
-            androidx.compose.ui.text.TextStyle(fontFamily: FontFamily(Typeface.create(name, Typeface.NORMAL)), fontSize: absoluteSize.sp)
+            androidx.compose.ui.text.TextStyle(fontFamily: Self.findNamedFont(name, ctx: LocalContext.current), fontSize: absoluteSize.sp)
         })
         #else
         fatalError()
