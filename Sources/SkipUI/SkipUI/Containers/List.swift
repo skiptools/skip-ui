@@ -162,8 +162,12 @@ public final class List : View {
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
+            var startItemIndex = styling.style != ListStyle.plain ? 1 : 0 // Header inset
+            if isSearchable {
+                startItemIndex += 1 // Search field
+            }
             factoryContext.value.initialize(
-                startItemIndex: isSearchable ? 2 : 1,  // search field, list header
+                startItemIndex: startItemIndex,
                 item: { view in
                     item {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
@@ -235,8 +239,10 @@ public final class List : View {
                     ComposeSearchField(state: searchableState!, context: context, styling: styling)
                 }
             }
-            item {
-                ComposeHeader(styling: styling)
+            if styling.style != ListStyle.plain {
+                item {
+                    ComposeStyledHeader(styling: styling)
+                }
             }
             for view in collectingComposer.views {
                 if let factory = view as? ListItemFactory {
@@ -245,8 +251,10 @@ public final class List : View {
                     factoryContext.value.item(view)
                 }
             }
-            item {
-                ComposeFooter(styling: styling)
+            if styling.style != ListStyle.plain {
+                item {
+                    ComposeStyledFooter(styling: styling)
+                }
             }
         }
     }
@@ -362,11 +370,11 @@ public final class List : View {
     }
 
     @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
-        if !isTop {
-            ComposeFooter(styling: styling)
+        if !isTop && styling.style != ListStyle.plain {
+            ComposeStyledFooter(styling: styling)
         }
         var contentModifier = Modifier.fillWidth()
-            if isTop && styling.style != .plain {
+        if isTop && styling.style != .plain {
             contentModifier = contentModifier.padding(start: Self.horizontalItemInset.dp, top: 0.dp, end: Self.horizontalItemInset.dp, bottom: Self.verticalItemInset.dp)
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
@@ -411,20 +419,18 @@ public final class List : View {
         SearchField(state: state, context: context.content(modifier: modifier))
     }
 
-    @Composable private func ComposeHeader(styling: ListStyling) {
-        guard styling.style != ListStyle.plain else {
-            return
-        }
+    // NOTE: Only call for non-.plain styles. This is distinct from having this function detect .plain and return without rendering.
+    // That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeStyledHeader(styling: ListStyling) {
         let modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
             .fillWidth()
             .height(Self.verticalInset.dp)
         Box(modifier: modifier)
     }
 
-    @Composable private func ComposeFooter(styling: ListStyling) {
-        guard styling.style != ListStyle.plain else {
-            return
-        }
+    // NOTE: Only call for non-.plain styles. This is distinct from having this function detect .plain and return without rendering.
+    // That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeStyledFooter(styling: ListStyling) {
         let modifier = Modifier.fillWidth()
             .height(Self.verticalInset.dp)
             .offset(y: -1.dp) // Cover last row's divider
