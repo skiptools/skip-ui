@@ -65,9 +65,14 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.filledTonalButtonColors()
                 }
+                let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
-                FilledTonalButton(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
-                    label.Compose(context: contentContext)
+                EnvironmentValues.shared.setValues {
+                    $0.set_placement(placement.union(ViewPlacement.systemTextColor))
+                } in: {
+                    FilledTonalButton(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
+                        label.Compose(context: contentContext)
+                    }
                 }
             case .borderedProminent:
                 let tint = role == .destructive ? Color.red : EnvironmentValues.shared._tint
@@ -78,9 +83,14 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
+                let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
-                androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
-                    label.Compose(context: contentContext)
+                EnvironmentValues.shared.setValues {
+                    $0.set_placement(placement.union(ViewPlacement.systemTextColor))
+                } in: {
+                    androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: EnvironmentValues.shared.isEnabled, colors: colors) {
+                        label.Compose(context: contentContext)
+                    }
                 }
             case .plain:
                 ComposeTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, action: action)

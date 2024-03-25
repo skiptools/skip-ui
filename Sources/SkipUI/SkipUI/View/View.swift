@@ -255,6 +255,18 @@ extension View {
         return self
     }
 
+    public func colorScheme(_ colorScheme: ColorScheme) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
+                view.Compose(context: context)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+
     public func compositingGroup() -> some View {
         return self
     }

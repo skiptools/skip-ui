@@ -194,8 +194,9 @@ public struct NavigationStack<Root> : View where Root: View {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
-                    $0.set_placement(ViewPlacement.toolbar)
+                    $0.set_placement(placement.union(ViewPlacement.toolbar))
                     $0.set_tint(tint)
                 } in: {
                     let interactionSource = remember { MutableInteractionSource() }
@@ -261,9 +262,10 @@ public struct NavigationStack<Root> : View where Root: View {
                     return
                 }
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
                     $0.set_tint(tint)
-                    $0.set_placement(ViewPlacement.toolbar)
+                    $0.set_placement(placement.union(ViewPlacement.toolbar))
                 } in: {
                     var bottomBarModifier: Modifier = Modifier
                     let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color

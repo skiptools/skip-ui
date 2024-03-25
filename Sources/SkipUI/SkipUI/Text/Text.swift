@@ -235,7 +235,7 @@ struct _Text: View, Equatable {
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
             textColor = Color.secondary.colorImpl()
         } else {
-            textColor = androidx.compose.ui.graphics.Color.Unspecified
+            textColor = EnvironmentValues.shared._placement.contains(ViewPlacement.systemTextColor) ? androidx.compose.ui.graphics.Color.Unspecified : Color.primary.colorImpl()
         }
         let modifier = context.modifier
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)

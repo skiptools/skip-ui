@@ -12,6 +12,7 @@ import Observation
 #if SKIP
 import android.content.res.Configuration
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -191,6 +192,14 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "backgroundStyle", value: newValue is BackgroundStyle ? nil : newValue, defaultValue: { nil }) }
     }
 
+    public var colorScheme: ColorScheme {
+        get { ColorScheme.fromMaterialTheme() }
+        set {
+            // Implemented as a special case in .colorScheme and .preferredColorScheme, because Compose forces us to go through MaterialTheme
+            // rather than exposing its LocalColorScheme.current provider
+        }
+    }
+
     public var dismiss: () -> Void {
         get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
         set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
@@ -281,7 +290,6 @@ extension EnvironmentValues {
     var menuIndicatorVisibility: Visibility
     var menuOrder: MenuOrder
     var searchSuggestionsPlacement: SearchSuggestionsPlacement
-    var colorScheme: ColorScheme
     var colorSchemeContrast: ColorSchemeContrast
     var displayScale: CGFloat
     var horizontalSizeClass: UserInterfaceSizeClass?
@@ -454,8 +462,8 @@ extension EnvironmentValues {
     }
 
     var _placement: ViewPlacement {
-        get { builtinValue(key: "_placement", defaultValue: { ViewPlacement.content }) as! ViewPlacement }
-        set { setBuiltinValue(key: "_placement", value: newValue, defaultValue: { ViewPlacement.content }) }
+        get { builtinValue(key: "_placement", defaultValue: { ViewPlacement(rawValue: 0) }) as! ViewPlacement }
+        set { setBuiltinValue(key: "_placement", value: newValue, defaultValue: { ViewPlacement(rawValue: 0) }) }
     }
 
     var _progressViewStyle: ProgressViewStyle? {

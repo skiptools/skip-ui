@@ -5,8 +5,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 /// Allow views to specialize based on their placement.
-enum ViewPlacement {
-    case content
-    case tagged
-    case toolbar
+struct ViewPlacement: RawRepresentable, OptionSet {
+    let rawValue: Int
+
+    static let systemTextColor = ViewPlacement(rawValue: 1)
+    static let tagged = ViewPlacement(rawValue: 2)
+    static let toolbar = ViewPlacement(rawValue: 4)
 }

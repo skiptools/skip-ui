@@ -55,7 +55,7 @@ public final class ForEach : View, ListItemFactory {
     }
     
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let isTagging = EnvironmentValues.shared._placement == ViewPlacement.tagged
+        let isTagging = EnvironmentValues.shared._placement.contains(ViewPlacement.tagged)
         if let indexRange {
             for index in indexRange {
                 var view = indexedContent!(index)
