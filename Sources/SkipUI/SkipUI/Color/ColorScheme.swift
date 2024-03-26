@@ -40,3 +40,43 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
     }
     #endif
 }
+
+extension View {
+    public func colorScheme(_ colorScheme: ColorScheme) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
+                view.Compose(context: context)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
+        #if SKIP
+        return preference(key: PreferredColorSchemePreferenceKey.self, value: ColorSchemeHolder(colorScheme: colorScheme))
+        #else
+        return self
+        #endif
+    }
+}
+
+#if SKIP
+struct PreferredColorSchemePreferenceKey: PreferenceKey {
+    typealias Value = ColorSchemeHolder
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ColorSchemeHolder>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue = ColorSchemeHolder(colorScheme: nil)
+        func reduce(value: inout ColorSchemeHolder, nextValue: () -> ColorSchemeHolder) {
+            value = nextValue()
+        }
+    }
+}
+
+struct ColorSchemeHolder: Equatable {
+    let colorScheme: ColorScheme?
+}
+#endif

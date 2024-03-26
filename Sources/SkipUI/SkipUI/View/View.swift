@@ -255,18 +255,6 @@ extension View {
         return self
     }
 
-    public func colorScheme(_ colorScheme: ColorScheme) -> some View {
-        #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
-            MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
-                view.Compose(context: context)
-            }
-        }
-        #else
-        return self
-        #endif
-    }
-
     public func compositingGroup() -> some View {
         return self
     }
@@ -836,11 +824,6 @@ extension View {
     @available(*, unavailable)
     public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         // NOTE: animatable
-        return self
-    }
-
-    @available(*, unavailable)
-    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
         return self
     }
 

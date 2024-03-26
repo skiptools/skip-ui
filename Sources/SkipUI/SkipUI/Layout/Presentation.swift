@@ -75,30 +75,32 @@ let overlayPresentationCornerRadius = 16.0
                 isPresented.set(false)
             }
         }
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor = androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
-            let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
-            let sheetDepth = EnvironmentValues.shared._sheetDepth
-            // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
-            let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
-            topSystemBarHeight.value = systemBarPadding.calculateTopPadding()
-            let bottomSystemBarPadding = systemBarPadding.calculateBottomPadding()
-            var modifier = Modifier.fillMaxWidth()
-            if (isFullScreen) {
-                modifier = modifier.fillMaxHeight()
-            } else {
-                modifier = modifier.height((LocalConfiguration.current.screenHeightDp - 24 * sheetDepth).dp + topSystemBarHeight.value)
-            }
-            modifier = modifier.padding(bottom: bottomSystemBarPadding)
-            modifier = modifier.background(Color.background.colorImpl())
-            EnvironmentValues.shared.setValues {
-                if !isFullScreen {
-                    $0.set_sheetDepth(sheetDepth + 1)
+        PresentationRoot {
+            ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor = androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
+                let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
+                let sheetDepth = EnvironmentValues.shared._sheetDepth
+                // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
+                let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
+                topSystemBarHeight.value = systemBarPadding.calculateTopPadding()
+                let bottomSystemBarPadding = systemBarPadding.calculateBottomPadding()
+                var modifier = Modifier.fillMaxWidth()
+                if (isFullScreen) {
+                    modifier = modifier.fillMaxHeight()
+                } else {
+                    modifier = modifier.height((LocalConfiguration.current.screenHeightDp - 24 * sheetDepth).dp + topSystemBarHeight.value)
                 }
-                $0.setdismiss({ isPresented.set(false) })
-                $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
-            } in: {
-                Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    contentView.Compose(context: context.content(stateSaver: stateSaver.value))
+                modifier = modifier.padding(bottom: bottomSystemBarPadding)
+                modifier = modifier.background(Color.background.colorImpl())
+                EnvironmentValues.shared.setValues {
+                    if !isFullScreen {
+                        $0.set_sheetDepth(sheetDepth + 1)
+                    }
+                    $0.setdismiss({ isPresented.set(false) })
+                    $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
+                } in: {
+                    Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                        contentView.Compose(context: context.content(stateSaver: stateSaver.value))
+                    }
                 }
             }
         }
