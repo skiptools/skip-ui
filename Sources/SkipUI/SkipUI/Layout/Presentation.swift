@@ -75,9 +75,9 @@ let overlayPresentationCornerRadius = 16.0
                 isPresented.set(false)
             }
         }
+        let stateSaver = remember { ComposeStateSaver() } // Place outside of PresentationRoot recomposes
         PresentationRoot {
             ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor = androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
-                let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
                 let sheetDepth = EnvironmentValues.shared._sheetDepth
                 // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
                 let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
@@ -99,7 +99,7 @@ let overlayPresentationCornerRadius = 16.0
                     $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
                 } in: {
                     Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                        contentView.Compose(context: context.content(stateSaver: stateSaver.value))
+                        contentView.Compose(context: context.content(stateSaver: stateSaver))
                     }
                 }
             }
@@ -152,7 +152,7 @@ let overlayPresentationCornerRadius = 16.0
             let interactionSource = remember { MutableInteractionSource() }
             Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: { isPresented.set(false) }))
 
-            let stateSaver = remember { mutableStateOf(ComposeStateSaver()) }
+            let stateSaver = remember { ComposeStateSaver() }
             let scrollState = rememberScrollState()
             let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
             let modifier = Modifier
@@ -161,7 +161,7 @@ let overlayPresentationCornerRadius = 16.0
                 .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
                 .background(Color.overlayBackground.colorImpl())
                 .verticalScroll(scrollState)
-            let contentContext = context.content(stateSaver: stateSaver.value)
+            let contentContext = context.content(stateSaver: stateSaver)
             Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
                 ComposeConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, buttons: buttons, message: messageText)
             }

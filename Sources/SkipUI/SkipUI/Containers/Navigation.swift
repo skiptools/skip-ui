@@ -38,7 +38,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -98,25 +97,19 @@ public struct NavigationStack<Root> : View where Root: View {
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let preferenceUpdates = remember { mutableStateOf(0) }
-        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-        let preferencesDidChange = { preferenceUpdates.value += 1 }
-
         // Have to use rememberSaveable for e.g. a nav stack in each tab
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<NavigationDestinations, Any>) { mutableStateOf(NavigationDestinationsPreferenceKey.defaultValue) }
         let navController = rememberNavController()
         let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: destinations.value)) }
         navigator.value.didCompose(navController: navController, destinations: destinations.value, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
-        // Because the NavHost content is rendered async, we have to manually update any preferences we want to support
-//        let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<ColorSchemeHolder?, Any>) { mutableStateOf<ColorSchemeHolder?>(nil) }
-//        if let preferredColorSchemeValue = preferredColorScheme.value {
-//            syncPreference(key: PreferredColorSchemePreferenceKey.self, value: preferredColorSchemeValue)
-//        }
-        let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
-        if let tabBarPreferencesValue = tabBarPreferences.value {
-            syncPreference(key: TabBarPreferenceKey.self, value: tabBarPreferencesValue)
-        }
+        let preferenceUpdates = remember { mutableStateOf(0) }
+        let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+        var currentPreferences = PreferenceValues.shared.immediateSetPreferences()
+
+        // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
+        // will be composed, and we want to retain destinations from previous entries
+        let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, recompose: { preferenceUpdates.value += 1 })
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -127,7 +120,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                         if let state = navigator.value.state(for: entry) {
-                            ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, /*preferredColorScheme: preferredColorScheme, */tabBarPreferences: tabBarPreferences, didChange: preferencesDidChange, isRoot: true) { context in
+                            ComposeEntry(navigator: navigator, state: state, context: context, destinationsPreference: destinationsPreference, isRoot: true) { context in
                                 root.Compose(context: context)
                             }
                         }
@@ -143,7 +136,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss({ navigator.value.navigateBack() })
                                 } in: {
-                                    ComposeEntry(navigator: navigator, state: state, context: context, destinations: destinations, /*preferredColorScheme: preferredColorScheme, */tabBarPreferences: tabBarPreferences, didChange: preferencesDidChange, isRoot: false) { context in
+                                    ComposeEntry(navigator: navigator, state: state, context: context, destinationsPreference: destinationsPreference, isRoot: false) { context in
                                         state.destination?(targetValue).Compose(context: context)
                                     }
                                 }
@@ -155,8 +148,8 @@ public struct NavigationStack<Root> : View where Root: View {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinations: MutableState<NavigationDestinations>, /*preferredColorScheme: MutableState<ColorSchemeHolder?>, */ tabBarPreferences: MutableState<ToolbarBarPreferences?>, didChange: () -> Void, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
+    // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinationsPreference: Preference<*>, isRoot: Boolean, content: @Composable (ComposeContext) -> Unit)
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinationsPreference: Preference, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: state.stateSaver)
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
@@ -169,8 +162,6 @@ public struct NavigationStack<Root> : View where Root: View {
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value?.titleDisplayMode)
         let toolbarItems = ToolbarItems(content: toolbarPreferences.value?.content ?? [])
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
-//        let entryPreferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<ColorSchemeHolder?, Any>) { mutableStateOf<ColorSchemeHolder?>(nil) }
-        let entryTabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
 
         let searchFieldPadding = 16.dp
         let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -323,34 +314,14 @@ public struct NavigationStack<Root> : View where Root: View {
                     contentContext = context.content()
                 }
 
-                // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
-                // will be composed, and we want to retain destinations from previous entries
-                let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, didChange: didChange)
-                let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let toolbarPreferencesPreference = Preference<ToolbarPreferences?>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-                let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, didChange: { preferenceUpdates.value += 1 })
-//                let preferredColorSchemePreference = Preference<ColorSchemeHolder?>(key: PreferredColorSchemePreferenceKey.self, update: { entryPreferredColorScheme.value = $0 }, didChange: didChange)
-                let tabBarPreferencesPreference = Preference<ToolbarBarPreferences?>(key: TabBarPreferenceKey.self, update: { entryTabBarPreferences.value = $0 }, didChange: didChange)
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference, /*preferredColorSchemePreference,*/ tabBarPreferencesPreference]) {
+                let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, recompose: { preferenceUpdates.value += 1 })
+                let toolbarPreferencesPreference = Preference<ToolbarPreferences?>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, recompose: { preferenceUpdates.value += 1 })
+                let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, recompose: { preferenceUpdates.value += 1 })
+                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {
                     title.value = NavigationTitlePreferenceKey.defaultValue
-                }
-                let syncEntryPreferences = {
-//                    if entryPreferredColorScheme.value != preferredColorScheme.value {
-//                        preferredColorScheme.value = entryPreferredColorScheme.value
-//                    }
-                    if entryTabBarPreferences.value != tabBarPreferences.value {
-                        tabBarPreferences.value = entryTabBarPreferences.value
-                    }
-                }
-                // Use an Effect to prevent flashing
-                DisposableEffect(entryTabBarPreferences.value, tabBarPreferences.value) {
-                    syncEntryPreferences()
-                    onDispose {
-                        syncEntryPreferences()
-                    }
                 }
             }
         }

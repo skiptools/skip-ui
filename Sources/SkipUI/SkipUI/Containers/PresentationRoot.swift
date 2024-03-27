@@ -13,16 +13,16 @@ import androidx.compose.runtime.setValue
 
 /// The root of a presentation, such as the root presntation or a sheet.
 @Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, content: @Composable () -> Void) {
+    let preferenceUpdates = remember { mutableStateOf(0) }
+    let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+
     // We should be able to get by without using a Saver because this is the root of the presentation and won't
     // be removed from composition until the sheet, etc is dismissed
     let preferredColorScheme = remember { mutableStateOf<ColorScheme?>(nil) }
-    let preferredColorSchemePreference = Preference<ColorSchemeHolder>(key: PreferredColorSchemePreferenceKey.self, update: { preferredColorScheme.value = $0.colorScheme })
+    let preferredColorSchemePreference = Preference<ColorSchemeHolder>(key: PreferredColorSchemePreferenceKey.self, update: { preferredColorScheme.value = $0.colorScheme }, recompose: { preferenceUpdates.value += 1 }).asImmediateSet()
     PreferenceValues.shared.collectPreferences([preferredColorSchemePreference]) {
-        if let colorScheme = preferredColorScheme.value ?? defaultColorScheme {
-            MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
-                content()
-            }
-        } else {
+        let materialColorScheme = preferredColorScheme.value?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+        MaterialTheme(colorScheme: materialColorScheme) {
             content()
         }
     }

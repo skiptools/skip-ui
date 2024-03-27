@@ -58,26 +58,38 @@ final class PreferenceValues {
         }
         preferences.forEach { $0.endCollecting() }
     }
+
+    // SKIP DECLARE: @Composable internal fun immediateSetPreferences(): Array<Preference<*>>
+    /// Return currently-collecting preferences that set immediately.
+    ///
+    /// Use to manage immediate-set preferences across async-compose boundaries, such as `NavHosts`.
+    @Composable func immediateSetPreferences() -> [any Preference] {
+        let current = EnvironmentValues.shared.compositionLocals.values.mapNotNull {
+            // SKIP REPLACE: it.current as? Preference<*>
+            $0.current as? Preference
+        }.filter {
+            $0.isCollecting && $0.isImmediateSet
+        }
+        return Array(current)
+    }
 }
 
 /// Used internally by our preferences system to collect preferences and recompose on change.
 final class Preference<Value> {
     let key: Any.Type
-    private let update: (Value) -> Void
-    private let didChange: (() -> Void)?
+    let update: (Value) -> Void
+    let recompose: () -> Void
     private let initialValue: Value
-    private(set) var isCollecting = false
     private var collectedValue: Value?
 
     /// Create a preference for the given `PreferenceKey` type.
     ///
     /// - Parameter update: Block to call to change the value of this preference.
-    /// - Parameter didChange: For preferences that can reduce from multiple values, a block to call when any one value changes.
-    ///     Should force a recompose of the relevant content, collecting the new value via `collectPreferences`
-    init(key: Any.Type, initialValue: Value? = nil, update: (Value) -> Void, didChange: (() -> Void)? = nil) {
+    /// - Parameter recompose: Block to force a recompose of the relevant content, collecting the new value via `collectPreferences`
+    init(key: Any.Type, initialValue: Value? = nil, update: (Value) -> Void, recompose: () -> Void) {
         self.key = key
         self.update = update
-        self.didChange = didChange
+        self.recompose = recompose
         self.initialValue = initialValue ?? (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
     }
 
@@ -88,17 +100,20 @@ final class Preference<Value> {
 
     /// Reduce the current value and the given values.
     func reduce(savedValue: Any?, newValue: Any) {
-        if isCollecting || didChange == nil {
+        if isCollecting || isImmediateSet {
             var value = self.value
             (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { newValue as! Value })
             collectedValue = value
-            if didChange == nil {
+            if isImmediateSet {
                 update(value)
             }
         } else if savedValue != newValue {
-            didChange?()
+            recompose()
         }
     }
+
+    /// Whether we're currently collecting this preference.
+    private(set) var isCollecting = false
 
     /// Begin collecting the current value.
     ///
@@ -113,10 +128,26 @@ final class Preference<Value> {
     /// Call this after composing content.
     func endCollecting() {
         isCollecting = false
-        // If didChange == nil, we would have already called update on change
-        if didChange != nil {
+        // If immediateSet, we would have already called update on change
+        if !isImmediateSet {
             update(value)
         }
+    }
+
+    /// Whether this preference is configured to immediately set its value rather than waiting for collection to end.
+    ///
+    /// We use this for situations when the content will not compose synchronously, as in `NavHosts`. It is not as
+    /// efficient and can also cause recompose issues with preferences that reduce by combining values.
+    private(set) var isImmediateSet = false
+
+    /// Create an immediate-set version of this preference.
+    func asImmediateSet() -> Preference {
+        guard !isImmediateSet else {
+            return self
+        }
+        let preference = Preference(key: key, initialValue: initialValue, update: update, recompose: recompose)
+        preference.isImmediateSet = true
+        return preference
     }
 }
 #endif
@@ -136,8 +167,10 @@ extension View {
     #if SKIP
     @Composable public func syncPreference(key: Any.Type, value: Any) {
         let pvalue = remember { mutableStateOf<Any?>(nil) }
-        PreferenceValues.shared.preference(key: key)?.reduce(savedValue: pvalue.value, newValue: value)
+        let preference = PreferenceValues.shared.preference(key: key)
+        preference?.reduce(savedValue: pvalue.value, newValue: value)
         pvalue.value = value
+
     }
     #endif
 }

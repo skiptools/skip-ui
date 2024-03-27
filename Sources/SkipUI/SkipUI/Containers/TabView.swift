@@ -70,8 +70,10 @@ public struct TabView : View {
 
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+
+//        let currentPreferences = PreferenceValues.shared.immediateSetPreferences()
         let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarBarPreferences?, Any>) { mutableStateOf<ToolbarBarPreferences?>(nil) }
-        let tabBarPreferencesPreference = Preference<ToolbarBarPreferences?>(key: TabBarPreferenceKey.self, update: { tabBarPreferences.value = $0 }, didChange: { preferenceUpdates.value += 1 })
+        let tabBarPreferencesPreference = Preference<ToolbarBarPreferences?>(key: TabBarPreferenceKey.self, update: { tabBarPreferences.value = $0 }, recompose: { preferenceUpdates.value += 1 }).asImmediateSet()
 
         ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             Scaffold(
