@@ -129,7 +129,7 @@ public final class List : View {
 
         // Integrate with our scroll-to-top navigation bar taps
         let coroutineScope = rememberCoroutineScope()
-        syncPreference(key: ScrollToTopPreferenceKey.self, value: {
+        PreferenceValues.shared.reducePreference(key: ScrollToTopPreferenceKey.self, value: {
             coroutineScope.launch {
                 reorderableState.listState.animateScrollToItem(0)
             }

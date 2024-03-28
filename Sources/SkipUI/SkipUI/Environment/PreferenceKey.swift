@@ -7,8 +7,13 @@
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -59,25 +64,62 @@ final class PreferenceValues {
         preferences.forEach { $0.endCollecting() }
     }
 
-    // SKIP DECLARE: @Composable internal fun immediateSetPreferences(): Array<Preference<*>>
-    /// Return currently-collecting preferences that set immediately.
-    ///
-    /// Use to manage immediate-set preferences across async-compose boundaries, such as `NavHosts`.
-    @Composable func immediateSetPreferences() -> [any Preference] {
-        let current = EnvironmentValues.shared.compositionLocals.values.mapNotNull {
-            // SKIP REPLACE: it.current as? Preference<*>
-            $0.current as? Preference
-        }.filter {
-            $0.isCollecting && $0.isImmediateSet
+    /// Update the value of the given preference, as if by calling .preference(key:value:).
+    @Composable func reducePreference(key: Any.Type, value: Any) {
+        let pvalue = remember { mutableStateOf<Any?>(nil) }
+        let preference = PreferenceValues.shared.preference(key: key)
+        preference?.reduce(savedValue: pvalue.value, newValue: value)
+        pvalue.value = value
+    }
+
+    // SKIP DECLARE: @Composable internal fun syncingPreference(key: KClass<*>, recompose: () -> Unit): Preference<*>?
+    /// Return a preference that can be used to sync the given preference across an asynchronously-composed boundary,
+    /// such as a `NavHost`.
+    @Composable func syncingPreference(key: Any.Type, recompose: () -> Void) -> Preference? {
+        guard let preference = PreferenceValues.shared.preference(key: key) else {
+            return nil
         }
-        return Array(current)
+
+        // Remember the last collecting value for the preference. We only sync preferences that were collecting
+        // during this synchronous compose phase. We might have subsequent local recompositions, though
+        let collectingValue = remember { mutableStateOf<Any?>(nil) }
+        // Remember our last local value for the preference, and update the preference to that value during
+        // the synchronous compose phase
+        let localValue = remember { mutableStateOf<Any?>(nil) }
+
+        if preference.isCollecting {
+            collectingValue.value = preference.value
+            if let lvalue = localValue.value {
+                reducePreference(key: key, value: lvalue)
+            }
+        } else if collectingValue.value == nil {
+            return nil
+        }
+
+        // Create a local preference to use in the asynchronously-composed content. When the local preference
+        // updates at the end of the composition, force the preference to recompose if our asynchronous
+        // composition changed it
+        let preferenceRecompose = rememberUpdatedState(preference.recompose)
+        let syncing = Preference(key: key, initialValue: collectingValue.value!, update: { value in
+            LaunchedEffect(value, localValue.value) {
+                let lvalue = localValue.value
+                if value != lvalue {
+                    localValue.value = value
+                    // Force a recompose on the original preference if our computed value has changed
+                    if lvalue != nil || value != collectingValue.value {
+                        preferenceRecompose.value()
+                    }
+                }
+            }
+        }, recompose: recompose)
+        return syncing
     }
 }
 
 /// Used internally by our preferences system to collect preferences and recompose on change.
 final class Preference<Value> {
     let key: Any.Type
-    let update: (Value) -> Void
+    let update: @Composable (Value) -> Void
     let recompose: () -> Void
     private let initialValue: Value
     private var collectedValue: Value?
@@ -86,7 +128,7 @@ final class Preference<Value> {
     ///
     /// - Parameter update: Block to call to change the value of this preference.
     /// - Parameter recompose: Block to force a recompose of the relevant content, collecting the new value via `collectPreferences`
-    init(key: Any.Type, initialValue: Value? = nil, update: (Value) -> Void, recompose: () -> Void) {
+    init(key: Any.Type, initialValue: Value? = nil, update: @Composable (Value) -> Void, recompose: () -> Void) {
         self.key = key
         self.update = update
         self.recompose = recompose
@@ -100,13 +142,10 @@ final class Preference<Value> {
 
     /// Reduce the current value and the given values.
     func reduce(savedValue: Any?, newValue: Any) {
-        if isCollecting || isImmediateSet {
+        if isCollecting {
             var value = self.value
             (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { newValue as! Value })
             collectedValue = value
-            if isImmediateSet {
-                update(value)
-            }
         } else if savedValue != newValue {
             recompose()
         }
@@ -126,28 +165,9 @@ final class Preference<Value> {
     /// End collecting the current value.
     ///
     /// Call this after composing content.
-    func endCollecting() {
+    @Composable func endCollecting() {
         isCollecting = false
-        // If immediateSet, we would have already called update on change
-        if !isImmediateSet {
-            update(value)
-        }
-    }
-
-    /// Whether this preference is configured to immediately set its value rather than waiting for collection to end.
-    ///
-    /// We use this for situations when the content will not compose synchronously, as in `NavHosts`. It is not as
-    /// efficient and can also cause recompose issues with preferences that reduce by combining values.
-    private(set) var isImmediateSet = false
-
-    /// Create an immediate-set version of this preference.
-    func asImmediateSet() -> Preference {
-        guard !isImmediateSet else {
-            return self
-        }
-        let preference = Preference(key: key, initialValue: initialValue, update: update, recompose: recompose)
-        preference.isImmediateSet = true
-        return preference
+        update(value)
     }
 }
 #endif
@@ -156,23 +176,13 @@ extension View {
     public func preference(key: Any.Type, value: Any) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
-            syncPreference(key: key, value: value)
+            PreferenceValues.shared.reducePreference(key: key, value: value)
             return ComposeResult.ok
         }
         #else
         return self
         #endif
     }
-
-    #if SKIP
-    @Composable public func syncPreference(key: Any.Type, value: Any) {
-        let pvalue = remember { mutableStateOf<Any?>(nil) }
-        let preference = PreferenceValues.shared.preference(key: key)
-        preference?.reduce(savedValue: pvalue.value, newValue: value)
-        pvalue.value = value
-
-    }
-    #endif
 }
 
 #if false

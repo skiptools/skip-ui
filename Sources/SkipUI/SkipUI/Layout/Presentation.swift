@@ -75,16 +75,18 @@ let overlayPresentationCornerRadius = 16.0
                 isPresented.set(false)
             }
         }
-        let stateSaver = remember { ComposeStateSaver() } // Place outside of PresentationRoot recomposes
-        PresentationRoot {
-            ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor = androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
+            let stateSaver = remember { ComposeStateSaver() } // Place outside of PresentationRoot recomposes
+            let presentationContext = context.content(stateSaver: stateSaver)
+            // Place inside of ModalBottomSheet, which renders content async
+            PresentationRoot(context: presentationContext) { context in
                 let sheetDepth = EnvironmentValues.shared._sheetDepth
                 // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
                 let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
                 topSystemBarHeight.value = systemBarPadding.calculateTopPadding()
                 let bottomSystemBarPadding = systemBarPadding.calculateBottomPadding()
-                var modifier = Modifier.fillMaxWidth()
-                if (isFullScreen) {
+                var modifier = context.modifier.fillMaxWidth()
+                if isFullScreen {
                     modifier = modifier.fillMaxHeight()
                 } else {
                     modifier = modifier.height((LocalConfiguration.current.screenHeightDp - 24 * sheetDepth).dp + topSystemBarHeight.value)
@@ -98,8 +100,9 @@ let overlayPresentationCornerRadius = 16.0
                     $0.setdismiss({ isPresented.set(false) })
                     $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
                 } in: {
+                    let contentContext = context.content()
                     Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                        contentView.Compose(context: context.content(stateSaver: stateSaver))
+                        contentView.Compose(context: contentContext)
                     }
                 }
             }

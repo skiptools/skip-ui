@@ -817,6 +817,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.colorScheme</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.confirmationDialog</code> (<a href="https://skip.tools/docs/components/confirmationdialog/">example</a>)</td>
     </tr>
     <tr>
@@ -1088,6 +1092,10 @@ Support levels:
               </ul>
           </details>      
        </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.preferredColorScheme</code></td>
     </tr>
     <tr>
       <td>🟢</td>

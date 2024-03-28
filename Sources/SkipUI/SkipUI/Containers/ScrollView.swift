@@ -36,7 +36,7 @@ public struct ScrollView : View {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
-                syncPreference(key: ScrollToTopPreferenceKey.self, value: {
+                PreferenceValues.shared.reducePreference(key: ScrollToTopPreferenceKey.self, value: {
                     coroutineScope.launch {
                         scrollState.animateScrollTo(0)
                     }
@@ -62,12 +62,12 @@ public struct ScrollView : View {
 
 #if SKIP
 struct ScrollToTopPreferenceKey: PreferenceKey {
-    typealias Value = (() -> Void)?
+    typealias Value = () -> Void
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<(() -> Unit)?>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<() -> Unit>
     final class Companion: PreferenceKeyCompanion {
-        let defaultValue: (() -> Void)? = nil
-        func reduce(value: inout (() -> Void)?, nextValue: () -> (() -> Void)?) {
+        let defaultValue: () -> Void = {}
+        func reduce(value: inout () -> Void, nextValue: () -> () -> Void) {
             value = nextValue()
         }
     }

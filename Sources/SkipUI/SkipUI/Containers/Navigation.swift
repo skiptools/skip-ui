@@ -105,11 +105,18 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-        var currentPreferences = PreferenceValues.shared.immediateSetPreferences()
+        let recompose = { preferenceUpdates.value += 1}
 
         // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
         // will be composed, and we want to retain destinations from previous entries
-        let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, recompose: { preferenceUpdates.value += 1 })
+        let destinationsPreference = Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, initialValue: destinations.value, update: { destinations.value = $0 }, recompose: recompose)
+        // SKIP INSERT: val preferences: Array<Preference<*>> = arrayOf(destinationsPreference)
+        if let colorSchemeSyncingPreference = PreferenceValues.shared.syncingPreference(key: PreferredColorSchemePreferenceKey.self, recompose: recompose) {
+            preferences.append(colorSchemeSyncingPreference)
+        }
+        if let tabBarSyncingPreference = PreferenceValues.shared.syncingPreference(key: TabBarPreferenceKey.self, recompose: recompose) {
+            preferences.append(tabBarSyncingPreference)
+        }
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -120,7 +127,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                         if let state = navigator.value.state(for: entry) {
-                            ComposeEntry(navigator: navigator, state: state, context: context, destinationsPreference: destinationsPreference, isRoot: true) { context in
+                            ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: true) { context in
                                 root.Compose(context: context)
                             }
                         }
@@ -136,7 +143,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss({ navigator.value.navigateBack() })
                                 } in: {
-                                    ComposeEntry(navigator: navigator, state: state, context: context, destinationsPreference: destinationsPreference, isRoot: false) { context in
+                                    ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: false) { context in
                                         state.destination?(targetValue).Compose(context: context)
                                     }
                                 }
@@ -148,20 +155,21 @@ public struct NavigationStack<Root> : View where Root: View {
         }
     }
 
-    // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinationsPreference: Preference<*>, isRoot: Boolean, content: @Composable (ComposeContext) -> Unit)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, destinationsPreference: Preference, isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
+    // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: Array<Preference<*>>, isRoot: Boolean, content: @Composable (ComposeContext) -> Unit)
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: [Preference], isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: state.stateSaver)
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+        let recompose = { preferenceUpdates.value += 1 }
 
         let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
         let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
-        let toolbarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarPreferences?, Any>) { mutableStateOf<ToolbarPreferences?>(nil) }
-        let topBarPreferences = toolbarPreferences?.value?.navigationBar
-        let bottomBarPreferences = toolbarPreferences.value?.bottomBar
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value?.titleDisplayMode)
-        let toolbarItems = ToolbarItems(content: toolbarPreferences.value?.content ?? [])
-        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<(() -> Void)?, Any>) { mutableStateOf<(() -> Void)?>(nil) }
+        let toolbarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarPreferences, Any>) { mutableStateOf(ToolbarPreferenceKey.defaultValue) }
+        let topBarPreferences = toolbarPreferences.value.navigationBar
+        let bottomBarPreferences = toolbarPreferences.value.bottomBar
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value.titleDisplayMode)
+        let toolbarItems = ToolbarItems(content: toolbarPreferences.value.content ?? [])
+        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<() -> Void, Any>) { mutableStateOf(ScrollToTopPreferenceKey.defaultValue) }
 
         let searchFieldPadding = 16.dp
         let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -223,7 +231,7 @@ public struct NavigationStack<Root> : View where Root: View {
                         androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
                     }
                     let topBarNavigationIcon: @Composable () -> Void = {
-                        let hasBackButton = !isRoot && toolbarPreferences.value?.backButtonHidden != true
+                        let hasBackButton = !isRoot && toolbarPreferences.value.backButtonHidden != true
                         if hasBackButton || !topLeadingItems.isEmpty {
                             let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                             Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -296,7 +304,7 @@ public struct NavigationStack<Root> : View where Root: View {
         ) { padding in
             // Intercept system back button to keep our state in sync
             BackHandler(enabled: !navigator.value.isRoot) {
-                if toolbarPreferences.value?.backButtonHidden != true {
+                if toolbarPreferences.value.backButtonHidden != true {
                     navigator.value.navigateBack()
                 }
             }
@@ -314,10 +322,10 @@ public struct NavigationStack<Root> : View where Root: View {
                     contentContext = context.content()
                 }
 
-                let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, recompose: { preferenceUpdates.value += 1 })
-                let toolbarPreferencesPreference = Preference<ToolbarPreferences?>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, recompose: { preferenceUpdates.value += 1 })
-                let scrollToTopPreference = Preference<(() -> Void)?>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, recompose: { preferenceUpdates.value += 1 })
-                PreferenceValues.shared.collectPreferences([destinationsPreference, titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
+                let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, recompose: recompose)
+                let toolbarPreferencesPreference = Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, recompose: recompose)
+                let scrollToTopPreference = Preference<() -> Void>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, recompose: recompose)
+                PreferenceValues.shared.collectPreferences(preferences + [titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
                     content(contentContext)
                 }
                 if title.value == uncomposedTitle {

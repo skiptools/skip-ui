@@ -56,7 +56,7 @@ extension View {
 
     public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
         #if SKIP
-        return preference(key: PreferredColorSchemePreferenceKey.self, value: ColorSchemeHolder(colorScheme: colorScheme))
+        return preference(key: PreferredColorSchemePreferenceKey.self, value: PreferredColorScheme(colorScheme: colorScheme))
         #else
         return self
         #endif
@@ -65,18 +65,18 @@ extension View {
 
 #if SKIP
 struct PreferredColorSchemePreferenceKey: PreferenceKey {
-    typealias Value = ColorSchemeHolder
+    typealias Value = PreferredColorScheme
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ColorSchemeHolder>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<PreferredColorScheme>
     final class Companion: PreferenceKeyCompanion {
-        let defaultValue = ColorSchemeHolder(colorScheme: nil)
-        func reduce(value: inout ColorSchemeHolder, nextValue: () -> ColorSchemeHolder) {
+        let defaultValue = PreferredColorScheme(colorScheme: nil)
+        func reduce(value: inout PreferredColorScheme, nextValue: () -> PreferredColorScheme) {
             value = nextValue()
         }
     }
 }
 
-struct ColorSchemeHolder: Equatable {
+struct PreferredColorScheme: Equatable {
     let colorScheme: ColorScheme?
 }
 #endif

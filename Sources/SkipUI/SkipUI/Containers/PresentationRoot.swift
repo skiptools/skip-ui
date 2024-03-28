@@ -10,20 +10,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 
 /// The root of a presentation, such as the root presntation or a sheet.
-@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, content: @Composable () -> Void) {
+@Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     let preferenceUpdates = remember { mutableStateOf(0) }
     let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
+    let recompose = { preferenceUpdates.value += 1 }
 
-    // We should be able to get by without using a Saver because this is the root of the presentation and won't
-    // be removed from composition until the sheet, etc is dismissed
-    let preferredColorScheme = remember { mutableStateOf<ColorScheme?>(nil) }
-    let preferredColorSchemePreference = Preference<ColorSchemeHolder>(key: PreferredColorSchemePreferenceKey.self, update: { preferredColorScheme.value = $0.colorScheme }, recompose: { preferenceUpdates.value += 1 }).asImmediateSet()
+    let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<PreferredColorScheme, Any>) { mutableStateOf(PreferredColorSchemePreferenceKey.defaultValue) }
+    let preferredColorSchemePreference = Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, update: { preferredColorScheme.value = $0 }, recompose: recompose)
     PreferenceValues.shared.collectPreferences([preferredColorSchemePreference]) {
-        let materialColorScheme = preferredColorScheme.value?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+        let materialColorScheme = preferredColorScheme.value.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
         MaterialTheme(colorScheme: materialColorScheme) {
-            content()
+            content(context)
         }
     }
 }
