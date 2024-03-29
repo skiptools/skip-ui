@@ -1608,7 +1608,7 @@ Compose imposes an additional restriction as well: we must be able to stringify 
 
 ### Preferred Color Scheme
 
-SkipUI fully supports the `.preferredColorScheme` modifier. If you created your Skip app prior to the `skip` tool v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
+SkipUI fully supports the `.preferredColorScheme` modifier. If you created your app with the `skip` tool prior to v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
 
 1. Replace the all of the import statements with ones from latest `Main.kt`
 1. Replace the contents of the `setContent { ... }` block with the content from the latest `Main.kt`
