@@ -1093,9 +1093,16 @@ Support levels:
           </details>      
        </td>
     </tr>
-    <tr>
+   <tr>
       <td>✅</td>
-      <td><code>.preferredColorScheme</code></td>
+      <td>
+            <details>
+              <summary><code>.preferredColorScheme</code></summary>
+              <ul>
+                  <li>See <a href="#preferred-color-scheme">Preferred Color Scheme</a></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1359,6 +1366,23 @@ Skip converts the various SwiftUI animation types to their Compose equivalents. 
 
 Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
 
+### Custom Fonts
+
+Custom fonts can be embedded and referenced using `Font.custom`. Fonts are loaded differently depending on the platform. On iOS the custom font name is the full Postscript name of the font, and on Android the name is the font's file name without the extension.
+
+Android requires that font file names contain only alphanumeric characters and underscores, so you should manually name your embedded font to the lowercased and underscore-separated form of the Postscript name of the font. SkipUI's `Font.custom` call will accommodate this by translating your custom font name like "Protest Guerrilla" into an Android-compatible name like "protest_guerrilla.ttf". 
+
+```swift
+Text("Custom Font")
+    .font(Font.custom("Protest Guerrilla", size: 30.0)) // protest_guerrilla.ttf
+```
+
+Custom fonts are embedded differently for each platform. On Android you should create a folder `Android/app/src/main/res/font/` and add the font file, which will cause Android to automatically embed any fonts in that folder as resources. 
+
+For iOS, you must add the font by adding to the Xcode project's app target and ensure the font file is included in the file list in the app target's "Build Phases" tab's "Copy Bundle Resources" phase. In addition, iOS needs to have the font explicitly listed in the Xcode project target's "Info" tab under "Custom Application Target Properties" by adding a new key for the "Fonts provided by application" (whose raw name is "UIAppFonts") and adding each font's file name to the string array.
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://raw.githubusercontent.com/skiptools/assets.skip.tools/main/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
+
 ### Environment Keys
 
 SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
@@ -1582,6 +1606,16 @@ SkipUI supports both of these models. Using `.navigationDestinations`, however, 
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
 
+### Preferred Color Scheme
+
+SkipUI fully supports the `.preferredColorScheme` modifier. If you created your Skip app prior to the `skip` tool v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
+
+1. Replace the all of the import statements with ones from latest `Main.kt`
+1. Replace the contents of the `setContent { ... }` block with the content from the latest `Main.kt`
+1. Replace the `MaterialThemeRootView()` function with the `PresentationRootView(context:)` function from the latest `Main.kt`
+
+With these updates in place, you should be able to use `.preferredColorScheme` successfully.
+
 ### Restrictions on Identifiers
 
 Compose requires all state values to be serializable. This restriction is typically transparent to your code, because when you use property wrappers like `@State`, SkipUI automatically tracks your state objects and gives Compose serializable identifiers in their place. Some SwiftUI values, however, must be stored directly in Compose, including `navigationDestination` values and `List` item identifiers. When this is the case, SkipUI creates a `String` from the value you supply using the following algorithm:
@@ -1591,24 +1625,6 @@ Compose requires all state values to be serializable. This restriction is typica
 - Else use `String(describing: value)`
 
 Please ensure that when using these API, the above algorithm will create unique, stable strings for unique values.
-
-### Custom Fonts
-
-Custom fonts can be embedded and referenced using `Font.custom`. Fonts are loaded differently depending on the platform. On iOS the custom font name is the full Postscript name of the font, and on Android the name is the font's file name without the extension.
-
-Android requires that font file names contain only alphanumeric characters and underscores, so you should manually name your embedded font to the lowercased and underscore-separated form of the Postscript name of the font. SkipUI's `Font.custom` call will accommodate this by translating your custom font name like "Protest Guerrilla" into an Android-compatible name like "protest_guerrilla.ttf". 
-
-```swift
-Text("Custom Font")
-    .font(Font.custom("Protest Guerrilla", size: 30.0)) // protest_guerrilla.ttf
-```
-
-Custom fonts are embedded differently for each platform. On Android you should create a folder `Android/app/src/main/res/font/` and add the font file, which will cause Android to automatically embed any fonts in that folder as resources. 
-
-For iOS, you must add the font by adding to the Xcode project's app target and ensure the font file is included in the file list in the app target's "Build Phases" tab's "Copy Bundle Resources" phase. In addition, iOS needs to have the font explicitly listed in the Xcode project target's "Info" tab under "Custom Application Target Properties" by adding a new key for the "Fonts provided by application" (whose raw name is "UIAppFonts") and adding each font's file name to the string array.
-
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://raw.githubusercontent.com/skiptools/assets.skip.tools/main/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
-
 
 ### Safe Area
 
