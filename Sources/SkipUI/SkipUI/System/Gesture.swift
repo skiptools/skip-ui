@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -362,45 +363,45 @@ final class GestureModifierView: ComposeModifierView {
         let density = LocalDensity.current
         var ret = modifier
 
-        let tapGestures = gestures.filter { $0.isTapGesture }
-        let doubleTapGestures = gestures.filter { $0.isDoubleTapGesture }
-        let longPressGestures = gestures.filter { $0.isLongPressGesture }
-        if !tapGestures.isEmpty || !doubleTapGestures.isEmpty || !longPressGestures.isEmpty {
+        let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
+        let doubleTapGestures = rememberUpdatedState(gestures.filter { $0.isDoubleTapGesture })
+        let longPressGestures = rememberUpdatedState(gestures.filter { $0.isLongPressGesture })
+        if !tapGestures.value.isEmpty || !doubleTapGestures.value.isEmpty || !longPressGestures.value.isEmpty {
             ret = ret.pointerInput(true) {
                 let onDoubleTap: ((Offset) -> Void)?
-                if !doubleTapGestures.isEmpty {
+                if !doubleTapGestures.value.isEmpty {
                     onDoubleTap = { offsetPx in
                         let x = with(density) { offsetPx.x.toDp() }
                         let y = with(density) { offsetPx.y.toDp() }
                         let point = CGPoint(x: CGFloat(x.value), y: CGFloat(y.value))
-                        doubleTapGestures.forEach { $0.onDoubleTap(at: point) }
+                        doubleTapGestures.value.forEach { $0.onDoubleTap(at: point) }
                     }
                 } else {
                     onDoubleTap = nil
                 }
                 let onLongPress: ((Offset) -> Void)?
-                if !longPressGestures.isEmpty {
+                if !longPressGestures.value.isEmpty {
                     onLongPress = { _ in
-                        longPressGestures.forEach { $0.onLongPressEnd() }
+                        longPressGestures.value.forEach { $0.onLongPressEnd() }
                     }
                 } else {
                     onLongPress = nil
                 }
                 detectTapGestures(onDoubleTap: onDoubleTap, onLongPress: onLongPress, onPress: { _ in
-                    longPressGestures.forEach { $0.onLongPressChange() }
+                    longPressGestures.value.forEach { $0.onLongPressChange() }
                 }, onTap: { offsetPx in
-                    if !tapGestures.isEmpty {
+                    if !tapGestures.value.isEmpty {
                         let x = with(density) { offsetPx.x.toDp() }
                         let y = with(density) { offsetPx.y.toDp() }
                         let point = CGPoint(x: CGFloat(x.value), y: CGFloat(y.value))
-                        tapGestures.forEach { $0.onTap(at: point) }
+                        tapGestures.value.forEach { $0.onTap(at: point) }
                     }
                 })
             }
         }
 
-        let dragGestures = gestures.filter { $0.isDragGesture }
-        if !dragGestures.isEmpty {
+        let dragGestures = rememberUpdatedState(gestures.filter { $0.isDragGesture })
+        if !dragGestures.value.isEmpty {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
             let dragPositionX = remember { mutableStateOf(Float(0.0)) }
@@ -417,19 +418,19 @@ final class GestureModifierView: ComposeModifierView {
                     dragPositionY.value = (with(density) { change.position.y.toDp() }).value
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
 
-                    dragGestures.forEach { $0.onDragChange(location: location, translation: translation) }
+                    dragGestures.value.forEach { $0.onDragChange(location: location, translation: translation) }
                 }, onDragEnd: {
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
-                    dragGestures.forEach { $0.onDragEnd(location: location, translation: translation) }
+                    dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
                 }, onDragCancel: {
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
-                    dragGestures.forEach { $0.onDragEnd(location: location, translation: translation) }
+                    dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
                 })
             }
         }
