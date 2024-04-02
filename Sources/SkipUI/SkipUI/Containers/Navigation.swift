@@ -141,7 +141,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                    popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
                             if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
                                 EnvironmentValues.shared.setValues {
-                                    $0.setdismiss({ navigator.value.navigateBack() })
+                                    $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
                                 } in: {
                                     ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: false) { context in
                                         state.destination?(targetValue).Compose(context: context)

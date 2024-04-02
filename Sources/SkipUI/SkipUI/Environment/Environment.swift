@@ -200,9 +200,9 @@ extension EnvironmentValues {
         }
     }
 
-    public var dismiss: () -> Void {
-        get { builtinValue(key: "dismiss", defaultValue: { {} }) as! (() -> Void) }
-        set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { {} }) }
+    public var dismiss: DismissAction {
+        get { builtinValue(key: "dismiss", defaultValue: { DismissAction.default }) as! DismissAction }
+        set { setBuiltinValue(key: "dismiss", value: newValue, defaultValue: { DismissAction.default }) }
     }
 
     public var font: Font? {
@@ -242,9 +242,13 @@ extension EnvironmentValues {
         }
     }
 
-    public var openURL: (URL) -> Void {
-        let uriHandler = LocalUriHandler.current
-        return { uriHandler.openUri($0.absoluteString) }
+    public var openURL: OpenURLAction {
+        get {
+            let uriHandler = LocalUriHandler.current
+            let openURLAction = builtinValue(key: "openURL", defaultValue: { OpenURLAction.default }) as! OpenURLAction
+            return OpenURLAction(handler: openURLAction.handler, systemHandler: { uriHandler.openUri($0.absoluteString) })
+        }
+        set { setBuiltinValue(key: "openURL", value: newValue, defaultValue: { OpenURLAction.default }) }
     }
 
     public var timeZone: TimeZone {
@@ -1743,82 +1747,6 @@ extension EnvironmentValues {
 
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension EnvironmentValues {
-
-    /// An action that dismisses the current presentation.
-    ///
-    /// Use this environment value to get the ``DismissAction`` instance
-    /// for the current ``Environment``. Then call the instance
-    /// to perform the dismissal. You call the instance directly because
-    /// it defines a ``DismissAction/callAsFunction()``
-    /// method that Swift calls when you call the instance.
-    ///
-    /// You can use this action to:
-    ///  * Dismiss a modal presentation, like a sheet or a popover.
-    ///  * Pop the current view from a ``NavigationStack``.
-    ///  * Close a window that you create with ``WindowGroup`` or ``Window``.
-    ///
-    /// The specific behavior of the action depends on where you call it from.
-    /// For example, you can create a button that calls the ``DismissAction``
-    /// inside a view that acts as a sheet:
-    ///
-    ///     private struct SheetContents: View {
-    ///         @Environment(\.dismiss) private var dismiss
-    ///
-    ///         var body: some View {
-    ///             Button("Done") {
-    ///                 dismiss()
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// When you present the `SheetContents` view, someone can dismiss
-    /// the sheet by tapping or clicking the sheet's button:
-    ///
-    ///     private struct DetailView: View {
-    ///         @State private var isSheetPresented = false
-    ///
-    ///         var body: some View {
-    ///             Button("Show Sheet") {
-    ///                 isSheetPresented = true
-    ///             }
-    ///             .sheet(isPresented: $isSheetPresented) {
-    ///                 SheetContents()
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// Be sure that you define the action in the appropriate environment.
-    /// For example, don't reorganize the `DetailView` in the example above
-    /// so that it creates the `dismiss` property and calls it from the
-    /// ``View/sheet(item:onDismiss:content:)`` view modifier's `content`
-    /// closure:
-    ///
-    ///     private struct DetailView: View {
-    ///         @State private var isSheetPresented = false
-    ///         @Environment(\.dismiss) private var dismiss // Applies to DetailView.
-    ///
-    ///         var body: some View {
-    ///             Button("Show Sheet") {
-    ///                 isSheetPresented = true
-    ///             }
-    ///             .sheet(isPresented: $isSheetPresented) {
-    ///                 Button("Done") {
-    ///                     dismiss() // Fails to dismiss the sheet.
-    ///                 }
-    ///             }
-    ///         }
-    ///     }
-    ///
-    /// If you do this, the sheet fails to dismiss because the action applies
-    /// to the environment where you declared it, which is that of the detail
-    /// view, rather than the sheet. In fact, in macOS and iPadOS, if the
-    /// `DetailView` is the root view of a window, the dismiss action closes
-    /// the window instead.
-    ///
-    /// The dismiss action has no effect on a view that isn't currently
-    /// presented. If you need to query whether SkipUI is currently presenting
-    /// a view, read the ``EnvironmentValues/isPresented`` environment value.
-    public var dismiss: DismissAction { get { fatalError() } }
 
     /// A Boolean value that indicates whether the view associated with this
     /// environment is currently presented.

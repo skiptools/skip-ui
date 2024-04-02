@@ -97,7 +97,7 @@ let overlayPresentationCornerRadius = 16.0
                     if !isFullScreen {
                         $0.set_sheetDepth(sheetDepth + 1)
                     }
-                    $0.setdismiss({ isPresented.set(false) })
+                    $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                     $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
                 } in: {
                     let contentContext = context.content()

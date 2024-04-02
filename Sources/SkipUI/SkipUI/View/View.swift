@@ -696,10 +696,10 @@ extension View {
         #endif
     }
 
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some View {
+    public func onChange<V>(of value: V?, initial: Bool = false, _ action: @escaping () -> Void) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
-            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
+            let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V?, Any>) { mutableStateOf(value) }
             let rememberedInitial = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(true) }
 
             let isInitial = rememberedInitial.value
