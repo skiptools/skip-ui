@@ -89,7 +89,6 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
         #endif
     }
 
-    @available(*, unavailable)
     public init(_ colorSpace: Color.RGBColorSpace, red: Double, green: Double, blue: Double, opacity: Double = 1.0) {
         self.init(red: red, green: green, blue: blue, opacity: opacity)
     }
@@ -98,7 +97,6 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
         self.init(red: white, green: white, blue: white, opacity: opacity)
     }
 
-    @available(*, unavailable)
     public init(_ colorSpace: Color.RGBColorSpace, white: Double, opacity: Double = 1.0) {
         self.init(white: white, opacity: opacity)
     }
@@ -124,7 +122,6 @@ public struct Color: View, Hashable, Sendable, ShapeStyle {
             self.opacity = opacity
         }
 
-        @available(*, unavailable)
         public init(colorSpace: Color.RGBColorSpace, red: Float, green: Float, blue: Float, opacity: Float) {
             self.init(red: red, green: green, blue: blue, opacity: opacity)
         }

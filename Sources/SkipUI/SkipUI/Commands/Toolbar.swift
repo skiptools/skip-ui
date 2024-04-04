@@ -8,7 +8,7 @@
 import androidx.compose.runtime.Composable
 #endif
 
-public protocol ToolbarContent {
+public protocol ToolbarContent : View {
 //    associatedtype Body : ToolbarContent
 //    @ToolbarContentBuilder var body: Self.Body { get }
 }
@@ -32,7 +32,7 @@ extension CustomizableToolbarContent {
 // `@ViewBuilder` logic built into the transpiler. The Swift compiler will guarantee that the
 // only allowed toolbar content are types that conform to `ToolbarContent`
 
-public struct ToolbarItem : CustomizableToolbarContent, View {
+public struct ToolbarItem : CustomizableToolbarContent {
     let placement: ToolbarItemPlacement
     let content: ComposeBuilder
 
@@ -120,6 +120,8 @@ public enum ToolbarItemPlacement {
     case topBarLeading
     case topBarTrailing
     case bottomBar
+    case navigationBarLeading
+    case navigationBarTrailing
 }
 
 public enum ToolbarPlacement: Equatable {
@@ -346,13 +348,13 @@ struct ToolbarItems {
     let content: [View]
 
     @Composable func filterTopBarLeading() -> [View] {
-        return filter(expandGroups: false) { $0 == .topBarLeading }
+        return filter(expandGroups: false) { $0 == .topBarLeading || $0 == .navigationBarLeading }
     }
 
     @Composable func filterTopBarTrailing() -> [View] {
         return filter(expandGroups: false) {
             switch $0 {
-            case .automatic, .principal, .primaryAction, .secondaryAction, .topBarTrailing:
+            case .automatic, .principal, .primaryAction, .secondaryAction, .topBarTrailing, .navigationBarTrailing:
                 return true
             default:
                 return false
@@ -370,27 +372,39 @@ struct ToolbarItems {
     }
 
     @Composable private func filter(expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
-        var filtered: [View] = []
+        let filtered = mutableListOf<View>()
         let context = ComposeContext(composer: SideEffectComposer { view, context in
-            if let itemGroup = view as? ToolbarItemGroup {
-                if placement(itemGroup.placement) {
-                    if expandGroups {
-                        filtered.append(contentsOf: itemGroup.content.collectViews(context: context(false)).filter { !$0.isSwiftUIEmptyView })
-                    } else {
-                        filtered.append(itemGroup)
-                    }
-                }
-            } else if let item = view as? ToolbarItem {
-                if placement(item.placement) {
-                    filtered.append(item)
-                }
-            } else if placement(.automatic), !view.isSwiftUIEmptyView {
-                filtered.append(view)
-            }
-            return ComposeResult.ok
+            filter(view: view, expandGroups: expandGroups, placement: placement, filtered: filtered, context: context)
         })
         content.forEach { $0.Compose(context: context) }
-        return filtered
+        return Array(filtered, nocopy: true)
+    }
+
+    @Composable private func filter(view: any View, expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool, filtered: MutableList<View>, context: (Bool) -> ComposeContext) -> ComposeResult {
+        if let itemGroup = view as? ToolbarItemGroup {
+            if placement(itemGroup.placement) {
+                if expandGroups {
+                    itemGroup.content.collectViews(context: context(false))
+                        .filter { !$0.isSwiftUIEmptyView }
+                        .forEach { filtered.add($0) }
+                } else {
+                    filtered.add(itemGroup)
+                }
+            }
+        } else if let item = view as? ToolbarItem {
+            if placement(item.placement) {
+                filtered.add(item)
+            }
+        } else if let toolbarContent = view as? ToolbarContent {
+            // Create a builder that is able to collect the view's internal content by calling ComposeContent
+            let contentBuilder = ComposeBuilder(content: { view.ComposeContent(context: $0); ComposeResult.ok })
+            for view in contentBuilder.collectViews(context: context(false)) {
+                filter(view: view, expandGroups: expandGroups, placement: placement, filtered: filtered, context: context)
+            }
+        } else if placement(.automatic), !view.isSwiftUIEmptyView {
+            filtered.add(view)
+        }
+        return ComposeResult.ok
     }
 }
 #endif
