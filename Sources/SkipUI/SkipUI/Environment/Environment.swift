@@ -251,6 +251,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "openURL", value: newValue, defaultValue: { OpenURLAction.default }) }
     }
 
+    public var redactionReasons: RedactionReasons {
+        get { builtinValue(key: "redactionReasons", defaultValue: { RedactionReasons(rawValue: 0) }) as! RedactionReasons }
+        set { setBuiltinValue(key: "redactionReasons", value: newValue, defaultValue: { RedactionReasons(rawValue: 0) }) }
+    }
+
     public var timeZone: TimeZone {
         get { builtinValue(key: "timeZone", defaultValue: { TimeZone.current }) as! TimeZone }
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
@@ -797,23 +802,6 @@ extension EnvironmentValues {
     /// prominence of foreground views. For custom backgrounds, this environment
     /// property can be explicitly set on views above custom backgrounds.
     public var backgroundProminence: BackgroundProminence { get { fatalError() } }
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension EnvironmentValues {
-
-    /// The layout direction associated with the current environment.
-    ///
-    /// Use this value to determine or set whether the environment uses a
-    /// left-to-right or right-to-left direction.
-    public var layoutDirection: LayoutDirection { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension EnvironmentValues {
-
-    /// The current redaction reasons applied to the view hierarchy.
-    public var redactionReasons: RedactionReasons { get { fatalError() } }
 }
 
 @available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
