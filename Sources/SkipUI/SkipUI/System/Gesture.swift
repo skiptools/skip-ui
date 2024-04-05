@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -362,6 +363,10 @@ final class GestureModifierView: ComposeModifierView {
 
         let density = LocalDensity.current
         var ret = modifier
+        // If the gesture is placed directly on a shape, clip to the shape so that hit testing works as expected
+        if let shape = view.strippingModifiers(until: { $0 != .accessibility }, perform: { $0 as? ModifiedShape }) {
+            ret = ret.clip(shape.asComposeShape(density: density, isForTouch: true))
+        }
 
         let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
         let doubleTapGestures = rememberUpdatedState(gestures.filter { $0.isDoubleTapGesture })

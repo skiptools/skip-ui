@@ -106,15 +106,15 @@ extension Shape {
         return ModifiedShape(shape: self)
     }
 
-    public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+    public func asComposePath(size: Size, density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Path {
         let px = with(density) { 1.dp.toPx() }
         let path = path(in: CGRect(x: 0.0, y: 0.0, width: Double(size.width / px), height: Double(size.height / px)))
         return path.asComposePath(density: density)
     }
 
-    public func asComposeShape(density: Density) -> androidx.compose.ui.graphics.Shape {
+    public func asComposeShape(density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Shape {
         return GenericShape { size, _ in
-            self.addPath(asComposePath(size: size, density: density))
+            self.addPath(asComposePath(size: size, density: density, isForTouch: isForTouch))
         }
     }
     #endif
@@ -176,7 +176,7 @@ public struct ModifiedShape : Shape {
             }
             for strokeBrush in strokeBrushes {
                 let strokeInset = strokeBrush.2
-                if (strokeInset == Float(0.0)) {
+                if strokeInset == Float(0.0) {
                     scope.drawPath(path, brush: strokeBrush.0, style: strokeBrush.1)
                 } else {
                     scope.inset(strokeInset) {
@@ -192,9 +192,26 @@ public struct ModifiedShape : Shape {
         return self
     }
 
-    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+    override func asComposePath(size: Size, density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Path {
         let path = shape.asComposePath(size: size, density: density)
         var scaledSize = size
+        
+        // If we need to take touches into account, add an extra inset at the end
+        var modifications = self.modifications
+        if isForTouch {
+            var strokeOutset = 0.0
+            for stroke in strokes {
+                if !stroke.isInset, let style = stroke.style {
+                    strokeOutset = max(strokeOutset, style.lineWidth / 2.0)
+                }
+            }
+            // Multiply by sqrt(2) to account for stroking an angle
+            let angleSlop = (strokeOutset * sqrt(2.0)) - strokeOutset
+            let touchSlop = max(0.0, 20.0 - angleSlop)
+            let outsetPx = with(density) { (strokeOutset + angleSlop + touchSlop).dp.toPx() }
+            modifications.append(ShapeModification.inset(outsetPx * -1.0))
+        }
+
         // TODO: Support scale and rotation anchors
         for mod in modifications {
             switch mod {
