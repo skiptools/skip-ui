@@ -138,7 +138,7 @@ public struct TabView : View {
                         exitTransition: { ExitTransition.None }) {
                     // Use a constant number of routes. Changing routes causes a NavHost to reset its state
                     for tabIndex in 0..<100 {
-                        composable(String(describing: tabIndex)) {
+                        composable(String(describing: tabIndex)) { _ in
                             Box(modifier: Modifier.padding(bottom: bottomPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
                                 PreferenceValues.shared.collectPreferences(preferences) {
                                     // Use a custom composer to only render the tabIndex'th view

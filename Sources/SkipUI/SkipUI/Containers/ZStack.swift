@@ -35,7 +35,7 @@ public struct ZStack : View {
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(transform = idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
-        let newIds = ids.filter { !rememberedIds.contains(it) }
+        let newIds = ids.filter { !rememberedIds.contains($0) }
         let rememberedNewIds = remember { mutableSetOf<Any>() }
 
         rememberedNewIds.addAll(newIds)

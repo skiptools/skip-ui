@@ -121,7 +121,7 @@ let searchFieldHeight = 56.0
         OutlinedTextField(value: state.text.wrappedValue, onValueChange: {
             state.text.wrappedValue = $0
         }, modifier: Modifier.weight(Float(1.0)).focusRequester(focusRequester).onFocusChanged {
-            if it.isFocused {
+            if $0.isFocused {
                 state.isSearching.value = true
             }
         }, placeholder: {
