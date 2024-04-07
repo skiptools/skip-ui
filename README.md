@@ -1411,7 +1411,7 @@ SkipUI currently supports tap, long press, and drag gestures. You can use either
 
 #### Shapes and Paths
 
-SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed.
+SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed on a custom shape.
 
 ### Images
 
