@@ -33,6 +33,12 @@ public protocol Shape: View, Sendable {
     func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize
     #if SKIP
     var modified: ModifiedShape { get }
+
+    /// Whether we can outset this shape by the stroke width / 2 to create a new shape that accomodates
+    /// the stroke.
+    ///
+    /// This only works for contiguous shapes without "holes", such as the builtin shapes.
+    var canOutsetForStroke: Bool { get }
     #endif
 }
 
@@ -106,15 +112,19 @@ extension Shape {
         return ModifiedShape(shape: self)
     }
 
-    public func asComposePath(size: Size, density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Path {
+    public var canOutsetForStroke: Bool {
+        return false
+    }
+
+    public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
         let px = with(density) { 1.dp.toPx() }
         let path = path(in: CGRect(x: 0.0, y: 0.0, width: Double(size.width / px), height: Double(size.height / px)))
         return path.asComposePath(density: density)
     }
 
-    public func asComposeShape(density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Shape {
+    public func asComposeShape(density: Density) -> androidx.compose.ui.graphics.Shape {
         return GenericShape { size, _ in
-            self.addPath(asComposePath(size: size, density: density, isForTouch: isForTouch))
+            self.addPath(asComposePath(size: size, density: density))
         }
     }
     #endif
@@ -192,26 +202,40 @@ public struct ModifiedShape : Shape {
         return self
     }
 
-    override func asComposePath(size: Size, density: Density, isForTouch: Bool = false) -> androidx.compose.ui.graphics.Path {
+    override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
+        return asComposePath(size: size, density: density, strokeOutset: 0.0)
+    }
+
+    /// If this shape can be expressed as a touchable area, return it.
+    ///
+    /// This only works for shapes that aren't stroked or that can be outset for their stroke.
+    /// - Seealso: `canOutsetForStroke`
+    func asComposeTouchShape(density: Density) -> androidx.compose.ui.graphics.Shape? {
+        var strokeOutset = 0.0
+        for stroke in strokes {
+            if !stroke.isInset, let style = stroke.style {
+                strokeOutset = max(strokeOutset, style.lineWidth / 2.0)
+            }
+        }
+        guard strokeOutset > 0.0 else {
+            return asComposeShape(density: density)
+        }
+        guard shape.canOutsetForStroke else {
+            return nil
+        }
+        return GenericShape { size, _ in
+            self.addPath(asComposePath(size: size, density: density, strokeOutset: strokeOutset))
+        }
+    }
+
+    private func asComposePath(size: Size, density: Density, strokeOutset: Double) -> androidx.compose.ui.graphics.Path {
         let path = shape.asComposePath(size: size, density: density)
         var scaledSize = size
-        
-        // If we need to take touches into account, add an extra inset at the end
+        var totalOffset = Offset(Float(0.0), Float(0.0))
         var modifications = self.modifications
-        if isForTouch {
-            var strokeOutset = 0.0
-            for stroke in strokes {
-                if !stroke.isInset, let style = stroke.style {
-                    strokeOutset = max(strokeOutset, style.lineWidth / 2.0)
-                }
-            }
-            // Multiply by sqrt(2) to account for stroking an angle
-            let angleSlop = (strokeOutset * sqrt(2.0)) - strokeOutset
-            let touchSlop = max(0.0, 20.0 - angleSlop)
-            let outsetPx = with(density) { (strokeOutset + angleSlop + touchSlop).dp.toPx() }
-            modifications.append(ShapeModification.inset(outsetPx * -1.0))
+        if strokeOutset > 0.0 {
+            modifications.append(.inset(-strokeOutset))
         }
-
         // TODO: Support scale and rotation anchors
         for mod in modifications {
             switch mod {
@@ -219,6 +243,7 @@ public struct ModifiedShape : Shape {
                 let offsetX = with(density) { offset.x.dp.toPx() }
                 let offsetY = with(density) { offset.y.dp.toPx() }
                 path.translate(Offset(offsetX, offsetY))
+                totalOffset = Offset(totalOffset.x + offsetX, totalOffset.y + offsetY)
             case .inset(let inset):
                 let px = with(density) { inset.dp.toPx() }
                 let scaleX = Float(1.0) - (px * 2 / scaledSize.width)
@@ -226,18 +251,26 @@ public struct ModifiedShape : Shape {
                 let matrix = Matrix()
                 matrix.scale(scaleX, scaleY, Float(1.0))
                 path.transform(matrix)
-                path.translate(Offset(px, px))
+                // Android scales from the origin, so the transform will move our translation too. Put it back
+                let scaledOffsetX = totalOffset.x * Float(scaleX)
+                let scaledOffsetY = totalOffset.y * Float(scaleY)
+                path.translate(Offset(px - (scaledOffsetX - totalOffset.x), px - (scaledOffsetY - totalOffset.y)))
                 scaledSize = Size(scaledSize.width - px * 2, scaledSize.height - px * 2)
+                totalOffset = Offset(totalOffset.x + px, totalOffset.y + px)
             case .scale(let scale, _):
                 let matrix = Matrix()
                 matrix.scale(Float(scale.x), Float(scale.y), Float(1.0))
                 path.transform(matrix)
-                // Android scales from the origin rather than the center. Calculate the offset that this scale
-                // causes to the center point and apply its inverse to get a scale around the center
+                // Android scales from the origin, so the transform will move our translation too. Put it back
                 let scaledWidth = scaledSize.width * Float(scale.x)
                 let scaledHeight = scaledSize.height * Float(scale.y)
-                path.translate(Offset((scaledSize.width - scaledWidth) / 2, (scaledSize.height - scaledHeight) / 2))
-                scaledSize = Size(scaledSize.width, scaledSize.height)
+                let scaledOffsetX = totalOffset.x * Float(scale.x)
+                let scaledOffsetY = totalOffset.y * Float(scale.y)
+                let additionalOffsetX = (scaledSize.width - scaledWidth) / 2
+                let additionalOffsetY = (scaledSize.height - scaledHeight) / 2
+                path.translate(Offset(additionalOffsetX - (scaledOffsetX - totalOffset.x), additionalOffsetY - (scaledOffsetY - totalOffset.y)))
+                scaledSize = Size(scaledWidth, scaledHeight)
+                totalOffset = Offset(totalOffset.x + additionalOffsetX, totalOffset.y + additionalOffsetY)
             case .rotation(let angle, _):
                 let matrix = Matrix()
                 matrix.rotateZ(Float(angle.degrees))
@@ -246,11 +279,13 @@ public struct ModifiedShape : Shape {
                 // causes to the center point and apply its inverse to get a rotation around the center. Note that we
                 // negate the y axis because mathmatical coordinate systems have the origin in the bottom left, not top
                 let radians = angle.radians
-                let xcenter = scaledSize.width / 2
-                let ycenter = -scaledSize.height / 2
-                let xnew = xcenter * cos(-radians) - ycenter * sin(-radians)
-                let ynew = xcenter * sin(-radians) + ycenter * cos(-radians)
-                path.translate(Offset(Float(xcenter - xnew), Float(-(ycenter - ynew))))
+                let centerX = scaledSize.width / 2 + totalOffset.x
+                let centerY = -scaledSize.height / 2 - totalOffset.y
+                let rotatedCenterX = centerX * cos(-radians) - centerY * sin(-radians)
+                let rotatedCenterY = centerX * sin(-radians) + centerY * cos(-radians)
+                let additionalOffsetX = Float(centerX - rotatedCenterX)
+                let additionalOffsetY = Float(-(centerY - rotatedCenterY))
+                path.translate(Offset(additionalOffsetX, additionalOffsetY))
             }
         }
         return path
@@ -268,8 +303,12 @@ public struct Circle : Shape {
         let y = rect.minY + (rect.height - dim) / 2.0
         return Path(ellipseIn: CGRect(x: x, y: y, width: dim, height: dim))
     }
-
-    #if !SKIP
+    
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -285,7 +324,11 @@ public struct Rectangle : Shape {
         return Path(rect)
     }
 
-    #if !SKIP
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -312,7 +355,11 @@ public struct RoundedRectangle : Shape {
         return Path(roundedRect: rect, cornerSize: cornerSize, style: style)
     }
 
-    #if !SKIP
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -338,7 +385,11 @@ public struct UnevenRoundedRectangle : Shape {
         return Path(roundedRect: rect, cornerRadii: cornerRadii, style: style)
     }
 
-    #if !SKIP
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias AnimatableData = RectangleCornerRadii.AnimatableData
     public typealias Body = NeverView
@@ -370,7 +421,11 @@ public final class Capsule : Shape {
         return path
     }
 
-    #if !SKIP
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -386,7 +441,11 @@ public final class Ellipse : Shape {
         return Path(ellipseIn: rect)
     }
 
-    #if !SKIP
+    #if SKIP
+    override var canOutsetForStroke: Bool {
+        return true
+    }
+    #else
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -412,6 +471,10 @@ public final class AnyShape : Shape, Sendable {
 
     override var modified: ModifiedShape {
         return shape.modified
+    }
+
+    override var canOutsetForStroke: Bool {
+        return shape.canOutsetForStroke
     }
     #else
     public typealias AnimatableData = EmptyAnimatableData

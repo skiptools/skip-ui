@@ -363,9 +363,10 @@ final class GestureModifierView: ComposeModifierView {
 
         let density = LocalDensity.current
         var ret = modifier
-        // If the gesture is placed directly on a shape, clip to the shape so that hit testing works as expected
-        if let shape = view.strippingModifiers(until: { $0 != .accessibility }, perform: { $0 as? ModifiedShape }) {
-            ret = ret.clip(shape.asComposeShape(density: density, isForTouch: true))
+        
+        // If the gesture is placed directly on a shape, we attempt to constrain hits to the shape
+        if let shape = view.strippingModifiers(until: { $0 != .accessibility }, perform: { $0 as? ModifiedShape }), let touchShape = shape.asComposeTouchShape(density: density) {
+            ret = ret.clip(touchShape)
         }
 
         let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
