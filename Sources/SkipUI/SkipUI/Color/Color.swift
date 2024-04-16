@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 #endif
 
-public struct Color: View, Hashable, Sendable, ShapeStyle {
+public struct Color: ShapeStyle, Hashable, Sendable {
     #if SKIP
     public let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 

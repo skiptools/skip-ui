@@ -65,6 +65,10 @@ public struct Gradient : ShapeStyle, Hashable {
         }
         return list
     }
+    #else
+    public var body: some View {
+        stubView()
+    }
     #endif
 
     public struct ColorSpace : Hashable, Sendable {
@@ -77,7 +81,7 @@ public struct Gradient : ShapeStyle, Hashable {
     }
 }
 
-public struct AnyGradient : ShapeStyle, View, Sendable {
+public struct AnyGradient : ShapeStyle, Sendable {
     let gradient: LinearGradient
 
     public init(gradient: Gradient) {
@@ -101,7 +105,7 @@ public struct AnyGradient : ShapeStyle, View, Sendable {
     #endif
 }
 
-public struct LinearGradient : ShapeStyle, View, Sendable {
+public struct LinearGradient : ShapeStyle, Sendable {
     let gradient: Gradient
     let startPoint: UnitPoint
     let endPoint: UnitPoint
@@ -152,7 +156,7 @@ public struct LinearGradient : ShapeStyle, View, Sendable {
     #endif
 }
 
-public struct EllipticalGradient : ShapeStyle, View, Sendable {
+public struct EllipticalGradient : ShapeStyle, Sendable {
     let gradient: Gradient
     let center: UnitPoint
     let startFraction: CGFloat
@@ -212,7 +216,7 @@ public struct EllipticalGradient : ShapeStyle, View, Sendable {
     #endif
 }
 
-public struct RadialGradient : ShapeStyle, View, Sendable {
+public struct RadialGradient : ShapeStyle, Sendable {
     let gradient: Gradient
     let center: UnitPoint
     let startRadius: CGFloat
@@ -269,7 +273,7 @@ public struct RadialGradient : ShapeStyle, View, Sendable {
     #endif
 }
 
-public struct AngularGradient : ShapeStyle, View, Sendable {
+public struct AngularGradient : ShapeStyle, Sendable {
     @available(*, unavailable)
     public init(gradient: Gradient, center: UnitPoint, startAngle: Angle = .zero, endAngle: Angle = .zero) {
     }

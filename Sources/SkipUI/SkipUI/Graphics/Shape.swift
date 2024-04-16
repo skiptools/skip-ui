@@ -339,7 +339,7 @@ public struct Rectangle : Shape {
 public struct RoundedRectangle : Shape {
     public let cornerSize: CGSize
     public let style: RoundedCornerStyle
-    var fillStyle: ShapeStyle?
+    var fillStyle: (any ShapeStyle)?
 
     public init(cornerSize: CGSize, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = cornerSize

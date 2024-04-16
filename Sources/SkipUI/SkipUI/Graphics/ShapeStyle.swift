@@ -10,7 +10,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 #endif
 
-public protocol ShapeStyle : Sendable {
+// Note: ShapeStyle does not extend View in SwiftUI, but most concrete ShapeStyles do and it helps us disambiguate calls
+// to functions that are overloaded on both View and ShapeStyle, like some .background(...) variants
+public protocol ShapeStyle : View, Sendable {
     #if SKIP
     /// Not all Composables support Brushes.
     @Composable func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color?
@@ -54,6 +56,10 @@ public struct AnyShapeStyle : ShapeStyle {
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         return style.asBrush(opacity: opacity * self.opacity, animationContext: animationContext)
     }
+    #else
+    public var body: some View {
+        stubView()
+    }
     #endif
 }
 
@@ -70,6 +76,10 @@ public struct ForegroundStyle : ShapeStyle {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         return EnvironmentValues.shared._foregroundStyle?.asBrush(opacity: opacity, animationContext: animationContext)
+    }
+    #else
+    public var body: some View {
+        stubView()
     }
     #endif
 }
@@ -101,6 +111,10 @@ public struct BackgroundStyle : ShapeStyle {
         } else {
             return Color.background.asBrush(opacity: opacity, animationContext: nil)
         }
+    }
+    #else
+    public var body: some View {
+        stubView()
     }
     #endif
 }

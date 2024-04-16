@@ -122,15 +122,18 @@ extension View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
-    public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+    public func background(_ background: any View, alignment: Alignment = .center) -> some View {
         #if SKIP
-        let background = content()
         return ComposeModifierView(contentView: self) { view, context in
             BackgroundLayout(view: view, context: context, background: background, alignment: alignment)
         }
         #else
         return self
         #endif
+    }
+
+    public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+        return background(content(), alignment: alignment)
     }
 
     public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {

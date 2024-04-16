@@ -47,6 +47,10 @@ extension View {
 #endif
     }
 
+    public func accessibilityLabel(_ key: LocalizedStringKey) -> some View {
+        return accessibilityLabel(Text(key))
+    }
+
     @available(*, unavailable)
     public func accessibilityCustomContent(_ key: AccessibilityCustomContentKey, _ value: Text?, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
         return self
