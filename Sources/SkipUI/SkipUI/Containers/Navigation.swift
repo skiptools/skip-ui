@@ -177,7 +177,12 @@ public struct NavigationStack<Root> : View where Root: View {
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
         let scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-        var modifier = Modifier.nestedScroll(searchFieldScrollConnection).nestedScroll(scrollBehavior.nestedScrollConnection).then(context.modifier)
+        var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
+        if topBarPreferences?.visibility != Visibility.hidden {
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        }
+        modifier = modifier.then(context.modifier)
+
         // Perform an invisible compose pass to gather preference information. Otherwise we may see the content render one way, then
         // immediately re-render with an updated top bar
         if title.value == uncomposedTitle {
