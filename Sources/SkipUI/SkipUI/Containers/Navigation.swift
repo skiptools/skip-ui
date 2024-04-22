@@ -14,13 +14,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -32,7 +36,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -53,14 +56,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -105,7 +111,7 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-        let recompose = { preferenceUpdates.value += 1}
+        let recompose = { preferenceUpdates.value += 1 }
 
         // Provide our current destinations as the initial value so that we don't forget previous destinations. Only one navigation entry
         // will be composed, and we want to retain destinations from previous entries
@@ -120,31 +126,38 @@ public struct NavigationStack<Root> : View where Root: View {
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
-            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-                let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
-                    composable(route: Navigator.rootRoute,
-                               exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                               popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
-                        if let state = navigator.value.state(for: entry) {
-                            ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: true) { context in
-                                root.Compose(context: context)
+            let safeArea = EnvironmentValues.shared._safeArea
+            // We have to ignore the safe area around the entire NavHost to prevent push/pop animation issues with the system bars.
+            // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
+            var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
+            ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+            IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+                ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                    let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                    NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
+                        composable(route: Navigator.rootRoute,
+                                   exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                   popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
+                            if let state = navigator.value.state(for: entry) {
+                                ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: true, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges) { context in
+                                    root.Compose(context: context)
+                                }
                             }
                         }
-                    }
-                    for destinationIndex in 0..<Navigator.destinationCount {
-                        composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"),
-                                   arguments: listOf(navArgument("identifier") { type = NavType.StringType }),
-                                   enterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? -1 : 1) }) },
-                                   exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                   popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                   popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
-                            if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
-                                EnvironmentValues.shared.setValues {
-                                    $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
-                                } in: {
-                                    ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: false) { context in
-                                        state.destination?(targetValue).Compose(context: context)
+                        for destinationIndex in 0..<Navigator.destinationCount {
+                            composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"),
+                                       arguments: listOf(navArgument("identifier") { type = NavType.StringType }),
+                                       enterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? -1 : 1) }) },
+                                       exitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                       popEnterTransition: { slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                       popExitTransition: { slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) }) }) { entry in
+                                if let state = navigator.value.state(for: entry), let targetValue = state.targetValue {
+                                    EnvironmentValues.shared.setValues {
+                                        $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
+                                    } in: {
+                                        ComposeEntry(navigator: navigator, state: state, context: context, preferences: preferences, isRoot: false, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges) { context in
+                                            state.destination?(targetValue).Compose(context: context)
+                                        }
                                     }
                                 }
                             }
@@ -155,8 +168,8 @@ public struct NavigationStack<Root> : View where Root: View {
         }
     }
 
-    // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: Array<Preference<*>>, isRoot: Boolean, content: @Composable (ComposeContext) -> Unit)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: [Preference], isRoot: Bool, content: @Composable (ComposeContext) -> Void) {
+    // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: Array<Preference<*>>, isRoot: Boolean, safeArea: SafeArea?, ignoresSafeAreaEdges: Edge.Set, content: @Composable (ComposeContext) -> Unit)
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: [Preference], isRoot: Bool, safeArea: SafeArea?, ignoresSafeAreaEdges: Edge.Set, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: state.stateSaver)
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
@@ -168,15 +181,17 @@ public struct NavigationStack<Root> : View where Root: View {
         let topBarPreferences = toolbarPreferences.value.navigationBar
         let bottomBarPreferences = toolbarPreferences.value.bottomBar
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, preference: toolbarPreferences.value.titleDisplayMode)
+        let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: safeArea)
         let toolbarItems = ToolbarItems(content: toolbarPreferences.value.content ?? [])
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<() -> Void, Any>) { mutableStateOf(ScrollToTopPreferenceKey.defaultValue) }
 
         let searchFieldPadding = 16.dp
-        let searchFieldHeightPx = with(LocalDensity.current) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
+        let density = LocalDensity.current
+        let searchFieldHeightPx = with(density) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
         let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
-        let scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        let scrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
         if topBarPreferences?.visibility != Visibility.hidden {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -189,134 +204,166 @@ public struct NavigationStack<Root> : View where Root: View {
             modifier = modifier.alpha(Float(0.0))
         }
 
-        // We place the top bar scaffold within each entry rather than at the navigation controller level. There isn't a fluid animation
-        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        Scaffold(
-            modifier: modifier,
-            topBar: {
-                guard topBarPreferences?.visibility != Visibility.hidden else {
-                    return
-                }
-                let topLeadingItems = toolbarItems.filterTopBarLeading()
-                let topTrailingItems = toolbarItems.filterTopBarTrailing()
-                guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
-                    return
-                }
-                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-                let placement = EnvironmentValues.shared._placement
-                EnvironmentValues.shared.setValues {
-                    $0.set_placement(placement.union(ViewPlacement.toolbar))
-                    $0.set_tint(tint)
-                } in: {
-                    let interactionSource = remember { MutableInteractionSource() }
-                    var topBarModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+        // Intercept system back button to keep our state in sync
+        BackHandler(enabled: !navigator.value.isRoot) {
+            if toolbarPreferences.value.backButtonHidden != true {
+                navigator.value.navigateBack()
+            }
+        }
+
+        let topBarBottomPx = remember {
+            if let safeArea {
+                mutableStateOf(safeArea.safeBoundsPx.top + with(density) { 112.dp.toPx() })
+            } else {
+                mutableStateOf(Float(0.0))
+            }
+        }
+        let topBar: @Composable () -> Void = {
+            guard topBarPreferences?.visibility != Visibility.hidden else {
+                topBarBottomPx.value = Float(0.0)
+                return
+            }
+            let topLeadingItems = toolbarItems.filterTopBarLeading()
+            let topTrailingItems = toolbarItems.filterTopBarTrailing()
+            guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
+                topBarBottomPx.value = Float(0.0)
+                return
+            }
+            let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+            let placement = EnvironmentValues.shared._placement
+            EnvironmentValues.shared.setValues {
+                $0.set_placement(placement.union(ViewPlacement.toolbar))
+                $0.set_tint(tint)
+            } in: {
+                let interactionSource = remember { MutableInteractionSource() }
+                var topBarModifier = Modifier.zIndex(Float(1.1))
+                    .clickable(interactionSource: interactionSource, indication: nil, onClick: {
                         scrollToTop.value?()
                     })
-                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    .onGloballyPositioned {
+                        let bottomPx = $0.boundsInWindow().bottom
+                        if bottomPx > Float(0.0) { // Sometimes we see random 0 values
+                            topBarBottomPx.value = bottomPx
+                        }
+                    }
+                let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    topBarBackgroundColor = Color.clear.colorImpl()
+                } else if let background = topBarPreferences?.background {
+                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                        topBarBackgroundColor = color
+                    } else {
                         topBarBackgroundColor = Color.clear.colorImpl()
-                    } else if let background = topBarPreferences?.background {
-                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                            topBarBackgroundColor = color
-                        } else {
-                            topBarBackgroundColor = Color.clear.colorImpl()
-                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                                topBarModifier = topBarModifier.background(brush)
-                            }
-                        }
-                    } else {
-                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                    }
-                    let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: topBarBackgroundColor,
-                        scrolledContainerColor: topBarBackgroundColor,
-                        titleContentColor: MaterialTheme.colorScheme.onSurface
-                    )
-                    let topBarTitle: @Composable () -> Void = {
-                        androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                    }
-                    let topBarNavigationIcon: @Composable () -> Void = {
-                        let hasBackButton = !isRoot && toolbarPreferences.value.backButtonHidden != true
-                        if hasBackButton || !topLeadingItems.isEmpty {
-                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                if hasBackButton {
-                                    IconButton(onClick: {
-                                        navigator.value.navigateBack()
-                                    }) {
-                                        let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                                        Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
-                                    }
-                                }
-                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
-                            }
+                        if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                            topBarModifier = topBarModifier.background(brush)
                         }
                     }
-                    let topBarActions: @Composable () -> Void = {
+                } else {
+                    topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                }
+                let topBarColors = TopAppBarDefaults.topAppBarColors(
+                    containerColor: topBarBackgroundColor,
+                    scrolledContainerColor: topBarBackgroundColor,
+                    titleContentColor: MaterialTheme.colorScheme.onSurface
+                )
+                let topBarTitle: @Composable () -> Void = {
+                    androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                }
+                let topBarNavigationIcon: @Composable () -> Void = {
+                    let hasBackButton = !isRoot && toolbarPreferences.value.backButtonHidden != true
+                    if hasBackButton || !topLeadingItems.isEmpty {
                         let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                        topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
-                    }
-                    if effectiveTitleDisplayMode == ToolbarTitleDisplayMode.inline {
-                        TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
-                    } else {
-                        MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
-                    }
-                }
-            }, bottomBar: {
-                guard bottomBarPreferences?.visibility != Visibility.hidden else {
-                    return
-                }
-                let bottomItems = toolbarItems.filterBottomBar()
-                guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
-                    return
-                }
-                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-                let placement = EnvironmentValues.shared._placement
-                EnvironmentValues.shared.setValues {
-                    $0.set_tint(tint)
-                    $0.set_placement(placement.union(ViewPlacement.toolbar))
-                } in: {
-                    var bottomBarModifier: Modifier = Modifier
-                    let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
-                    if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
-                        bottomBarBackgroundColor = Color.clear.colorImpl()
-                    } else if let background = bottomBarPreferences?.background {
-                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                            bottomBarBackgroundColor = color
-                        } else {
-                            bottomBarBackgroundColor = Color.clear.colorImpl()
-                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                                bottomBarModifier = bottomBarModifier.background(brush)
-                            }
-                        }
-                    } else {
-                        bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                    }
-                    BottomAppBar(
-                        modifier: bottomBarModifier,
-                        containerColor: bottomBarBackgroundColor,
-                        contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp)) {
-                            // Use an HStack so that it sets up the environment for bottom toolbar Spacers
-                            HStack(spacing: 24.0) {
-                                ComposeBuilder { itemContext in
-                                    bottomItems.forEach { $0.Compose(context: itemContext) }
-                                    return ComposeResult.ok
+                        Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                            if hasBackButton {
+                                IconButton(onClick: {
+                                    navigator.value.navigateBack()
+                                }) {
+                                    let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                                    Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
                                 }
-                            }.Compose(context.content())
+                            }
+                            topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
                         }
+                    }
+                }
+                let topBarActions: @Composable () -> Void = {
+                    let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                    topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                }
+                if isInlineTitleDisplayMode {
+                    TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                } else {
+                    MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
                 }
             }
-        ) { padding in
-            // Intercept system back button to keep our state in sync
-            BackHandler(enabled: !navigator.value.isRoot) {
-                if toolbarPreferences.value.backButtonHidden != true {
-                    navigator.value.navigateBack()
-                }
-            }
+        }
 
-            let topPadding = topBarPreferences?.ignoresSafeArea == true ? 0.dp : padding.calculateTopPadding()
-            let bottomPadding = bottomBarPreferences?.ignoresSafeArea == true ? 0.dp : padding.calculateBottomPadding() - EnvironmentValues.shared._bottomSystemBarPadding
-            Box(modifier: Modifier.padding(top: topPadding, bottom: bottomPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+        let bottomBarTopPx = remember { mutableStateOf(Float(0.0)) }
+        let bottomBar: @Composable () -> Void = {
+            guard bottomBarPreferences?.visibility != Visibility.hidden else {
+                bottomBarTopPx.value = Float(0.0)
+                return
+            }
+            let bottomItems = toolbarItems.filterBottomBar()
+            guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
+                bottomBarTopPx.value = Float(0.0)
+                return
+            }
+            let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+            let placement = EnvironmentValues.shared._placement
+            EnvironmentValues.shared.setValues {
+                $0.set_tint(tint)
+                $0.set_placement(placement.union(ViewPlacement.toolbar))
+            } in: {
+                var bottomBarModifier = Modifier.zIndex(Float(1.1))
+                    .onGloballyPositioned {
+                        bottomBarTopPx.value = $0.boundsInWindow().top
+                    }
+                let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
+                if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    bottomBarBackgroundColor = Color.clear.colorImpl()
+                } else if let background = bottomBarPreferences?.background {
+                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                        bottomBarBackgroundColor = color
+                    } else {
+                        bottomBarBackgroundColor = Color.clear.colorImpl()
+                        if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                            bottomBarModifier = bottomBarModifier.background(brush)
+                        }
+                    }
+                } else {
+                    bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                }
+                BottomAppBar(
+                    modifier: bottomBarModifier,
+                    containerColor: bottomBarBackgroundColor,
+                    contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
+                    windowInsets = WindowInsets(bottom: 0.dp)) {
+                    // Use an HStack so that it sets up the environment for bottom toolbar Spacers
+                    HStack(spacing: 24.0) {
+                        ComposeBuilder { itemContext in
+                            bottomItems.forEach { $0.Compose(context: itemContext) }
+                            return ComposeResult.ok
+                        }
+                    }.Compose(context.content())
+                }
+            }
+        }
+
+        // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
+        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
+        Column(modifier: modifier.background(Color.background.colorImpl())) {
+            // Calculate safe area for content
+            let contentSafeArea = safeArea?
+                .insetting(.top, to: topBarBottomPx.value)
+                .insetting(.bottom, to: bottomBarTopPx.value)
+            // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
+            let topPadding = topBarBottomPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.top) ? WindowInsets.systemBars.asPaddingValues().calculateTopPadding() : 0.dp
+            let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
+            let contentModifier = Modifier.fillMaxSize().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+
+            topBar()
+            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 let contentContext: ComposeContext
                 if isRoot, let searchableState = EnvironmentValues.shared._searchableState {
                     let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
@@ -330,14 +377,32 @@ public struct NavigationStack<Root> : View where Root: View {
                 let titlePreference = Preference<Text>(key: NavigationTitlePreferenceKey.self, update: { title.value = $0 }, recompose: recompose)
                 let toolbarPreferencesPreference = Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self, update: { toolbarPreferences.value = $0 }, recompose: recompose)
                 let scrollToTopPreference = Preference<() -> Void>(key: ScrollToTopPreferenceKey.self, update: { scrollToTop.value = $0 }, recompose: recompose)
-                PreferenceValues.shared.collectPreferences(preferences + [titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
-                    content(contentContext)
-                }
-                if title.value == uncomposedTitle {
-                    title.value = NavigationTitlePreferenceKey.defaultValue
+                EnvironmentValues.shared.setValues {
+                    if let contentSafeArea {
+                        $0.set_safeArea(contentSafeArea)
+                    }
+                } in: {
+                    PreferenceValues.shared.collectPreferences(preferences + [titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
+                        content(contentContext)
+                    }
+                    if title.value == uncomposedTitle {
+                        title.value = NavigationTitlePreferenceKey.defaultValue
+                    }
                 }
             }
+            bottomBar()
         }
+    }
+
+    @Composable private func useInlineTitleDisplayMode(for titleDisplayMode: ToolbarTitleDisplayMode, safeArea: SafeArea?) -> Bool {
+        guard titleDisplayMode == .automatic else {
+            return titleDisplayMode == ToolbarTitleDisplayMode.inline
+        }
+        // Default to inline if in landscape or a sheet
+        if let safeArea, safeArea.presentationBoundsPx.width > safeArea.presentationBoundsPx.height {
+            return true
+        }
+        return EnvironmentValues.shared._sheetDepth > 0
     }
     #else
     public var body: some View {

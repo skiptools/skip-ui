@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -89,15 +92,15 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given background.
 @Composable func BackgroundLayout(view: View, context: ComposeContext, background: View, alignment: Alignment) {
-    TargetViewLayout(target: { view.Compose(context: $0) }, context: context, dependent: { background.Compose(context: $0) }, isOverlay: false, alignment: alignment)
+    TargetViewLayout(context: context, isOverlay: false, alignment: alignment, target: { view.Compose(context: $0) }, dependent: { background.Compose(context: $0) })
 }
 
 /// Compose a view with the given overlay.
 @Composable func OverlayLayout(view: View, context: ComposeContext, overlay: View, alignment: Alignment) {
-    TargetViewLayout(target: { view.Compose(context: $0) }, context: context, dependent: { overlay.Compose(context: $0) }, isOverlay: true, alignment: alignment)
+    TargetViewLayout(context: context, isOverlay: true, alignment: alignment, target: { view.Compose(context: $0) }, dependent: { overlay.Compose(context: $0) })
 }
 
-@Composable func TargetViewLayout(target: @Composable (ComposeContext) -> Void, context: ComposeContext, dependent: @Composable (ComposeContext) -> Void, isOverlay: Bool, alignment: Alignment) {
+@Composable func TargetViewLayout(context: ComposeContext, isOverlay: Bool, alignment: Alignment, target: @Composable (ComposeContext) -> Void, dependent: @Composable (ComposeContext) -> Void) {
     let contentContext = context.content()
     Layout(modifier: context.modifier, content: {
         target(contentContext)
@@ -117,6 +120,74 @@ import androidx.compose.ui.unit.dp
             targetPlaceable.placeRelative(x: 0, y: 0)
             if isOverlay {
                 dependentPlaceable.placeRelative(x: x, y: y)
+            }
+        }
+    }
+}
+
+/// Layout the given view to ignore the given safe areas.
+@Composable func IgnoresSafeAreaLayout(view: View, edges: Edge.Set, context: ComposeContext) {
+    IgnoresSafeAreaLayout(edges: edges, context: context) { view.Compose($0) }
+}
+
+@Composable func IgnoresSafeAreaLayout(edges: Edge.Set, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
+    guard !edges.isEmpty, let safeArea = EnvironmentValues.shared._safeArea else {
+        target(context)
+        return
+    }
+
+    var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
+    var topPx = 0
+    if edges.contains(.top) {
+        topPx = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
+        safeTop = safeArea.presentationBoundsPx.top
+    }
+    var bottomPx = 0
+    if edges.contains(.bottom) {
+        bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
+        safeBottom = safeArea.presentationBoundsPx.bottom
+    }
+    var leftPx = 0
+    var rightPx = 0
+    if edges.contains(.leading) {
+        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
+            rightPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            safeRight = safeArea.presentationBoundsPx.right
+        } else {
+            leftPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            safeLeft = safeArea.presentationBoundsPx.left
+        }
+    }
+    if edges.contains(.trailing) {
+        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
+            leftPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            safeLeft = safeArea.presentationBoundsPx.left
+        } else {
+            rightPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            safeRight = safeArea.presentationBoundsPx.right
+        }
+    }
+    if topPx == 0 && bottomPx == 0 && leftPx == 0 && rightPx == 0 {
+        target(context)
+        return
+    }
+
+    let contentContext = context.content()
+    let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
+    let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
+    EnvironmentValues.shared.setValues {
+        $0.set_safeArea(contentSafeArea)
+    } in: {
+        Layout(modifier: context.modifier, content: {
+            target(contentContext)
+        }) { measurables, constraints in
+            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leftPx + rightPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
+            let targetPlaceable = measurables[0].measure(updatedConstraints)
+            layout(width: targetPlaceable.width, height: targetPlaceable.height) {
+                // Layout will center extra space by default
+                let relativeTopPx = topPx - ((topPx + bottomPx) / 2)
+                let relativeLeftPx = leftPx - ((leftPx + rightPx) / 2)
+                targetPlaceable.placeRelative(x = -relativeLeftPx, y = -relativeTopPx)
             }
         }
     }

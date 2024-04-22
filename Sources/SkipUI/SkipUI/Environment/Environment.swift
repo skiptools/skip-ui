@@ -11,6 +11,9 @@ import Observation
 
 #if SKIP
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -374,11 +377,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_aspectRatio", value: newValue, defaultValue: { nil }) }
     }
 
-    var _bottomSystemBarPadding: Dp {
-        get { builtinValue(key: "_bottomSystemBarPadding", defaultValue: { 0.dp }) as! Dp }
-        set { setBuiltinValue(key: "_bottomSystemBarPadding", value: newValue, defaultValue: { 0.dp }) }
-    }
-
     var _buttonStyle: ButtonStyle? {
         get { builtinValue(key: "_buttonStyle", defaultValue: { nil }) as! ButtonStyle? }
         set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
@@ -418,6 +416,11 @@ extension EnvironmentValues {
         get { builtinValue(key: "_foregroundStyle", defaultValue: { nil }) as! ShapeStyle? }
         // Avoid recursive foreground style lookup
         set { setBuiltinValue(key: "_foregroundStyle", value: newValue is ForegroundStyle ? nil : newValue, defaultValue: { nil }) }
+    }
+
+    var _isEdgeToEdge: Bool? {
+        get { builtinValue(key: "_isEdgeToEdge", defaultValue: { nil }) as! Bool? }
+        set { setBuiltinValue(key: "_isEdgeToEdge", value: newValue, defaultValue: { nil }) }
     }
 
     var _isItalic: Bool {
@@ -478,6 +481,11 @@ extension EnvironmentValues {
     var _progressViewStyle: ProgressViewStyle? {
         get { builtinValue(key: "_progressViewStyle", defaultValue: { nil }) as! ProgressViewStyle? }
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _safeArea: SafeArea? {
+        get { builtinValue(key: "_safeArea", defaultValue: { nil }) as! SafeArea? }
+        set { setBuiltinValue(key: "_safeArea", value: newValue, defaultValue: { nil }) }
     }
 
     var _scrollContentBackground: Visibility? {

@@ -1658,4 +1658,4 @@ NavigationStack {
 }
 ```
 
-Remember that you case use `#if SKIP` blocks to enable or disable `.ignoresSafeArea` calls for iOS or Android only.
+Remember that you can use `#if SKIP` blocks to enable or disable `.ignoresSafeArea` calls for iOS or Android only.

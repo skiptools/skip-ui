@@ -37,6 +37,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -84,15 +86,22 @@ public final class List : View {
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
         let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility)
         let itemContext = context.content()
-        ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
-            Box(modifier: modifier) {
-                ComposeList(context: itemContext, styling: styling)
+
+        // When we layout, extend into safe areas that are due to system bars, not into any app chrome
+        let safeArea = EnvironmentValues.shared._safeArea
+        var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
+        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
+                Box(modifier: modifier) {
+                    ComposeList(context: itemContext, styling: styling, safeArea: safeArea)
+                }
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling) {
+    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, safeArea: SafeArea?) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -104,7 +113,7 @@ public final class List : View {
             fixedContent.Compose(context: viewsCollector)
         }
 
-        var modifier: Modifier = Modifier
+        var modifier = context.modifier
         if styling.style != .plain {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
@@ -135,6 +144,11 @@ public final class List : View {
             }
         })
 
+        let density = LocalDensity.current
+        let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
+        let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
+        let hasHeader = styling.style != ListStyle.plain || headerSafeAreaHeight.value > 0
+        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
@@ -162,7 +176,7 @@ public final class List : View {
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
-            var startItemIndex = styling.style != ListStyle.plain ? 1 : 0 // Header inset
+            var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
             }
@@ -239,9 +253,9 @@ public final class List : View {
                     ComposeSearchField(state: searchableState!, context: context, styling: styling)
                 }
             }
-            if styling.style != ListStyle.plain {
+            if hasHeader {
                 item {
-                    ComposeStyledHeader(styling: styling)
+                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight)
                 }
             }
             for view in collectingComposer.views {
@@ -251,12 +265,26 @@ public final class List : View {
                     factoryContext.value.item(view)
                 }
             }
-            if styling.style != ListStyle.plain {
+            if hasFooter {
                 item {
-                    ComposeStyledFooter(styling: styling)
+                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight)
                 }
             }
         }
+    }
+
+    private func headerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
+        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.top) && safeArea.safeBoundsPx.top > safeArea.presentationBoundsPx.top else {
+            return 0.dp
+        }
+        return with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
+    }
+
+    private func footerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
+        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.bottom) && safeArea.presentationBoundsPx.bottom > safeArea.safeBoundsPx.bottom else {
+            return 0.dp
+        }
+        return with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
     }
 
     private static let horizontalInset = 16.0
@@ -290,7 +318,9 @@ public final class List : View {
         }
 
         if let background = itemModifierView?.background {
-            TargetViewLayout(target: composeContainer, context: containerContext, dependent: { background.Compose(context: $0) }, isOverlay: false, alignment: Alignment.center)
+            TargetViewLayout(context: containerContext, isOverlay: false, alignment: Alignment.center, target: composeContainer, dependent: {
+                background.Compose(context: $0)
+            })
         } else {
             composeContainer(containerContext)
         }
@@ -371,7 +401,7 @@ public final class List : View {
 
     @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
         if !isTop && styling.style != ListStyle.plain {
-            ComposeStyledFooter(styling: styling)
+            ComposeFooter(styling: styling, safeAreaHeight: 0.dp)
         }
         var contentModifier = Modifier.fillWidth()
         if isTop && styling.style != .plain {
@@ -419,21 +449,31 @@ public final class List : View {
         SearchField(state: state, context: context.content(modifier: modifier))
     }
 
-    // NOTE: Only call for non-.plain styles. This is distinct from having this function detect .plain and return without rendering.
-    // That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeStyledHeader(styling: ListStyling) {
+    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
+    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeHeader(styling: ListStyling, safeAreaHeight: Dp) {
+        var height = safeAreaHeight
+        if styling.style != .plain {
+            height += Self.verticalInset.dp
+        }
         let modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
             .fillWidth()
-            .height(Self.verticalInset.dp)
+            .height(height)
         Box(modifier: modifier)
     }
 
-    // NOTE: Only call for non-.plain styles. This is distinct from having this function detect .plain and return without rendering.
-    // That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeStyledFooter(styling: ListStyling) {
+    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
+    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeFooter(styling: ListStyling, safeAreaHeight: Dp) {
+        var height = safeAreaHeight
+        var offset = 0.dp
+        if styling.style != .plain {
+            height += Self.verticalInset.dp
+            offset = -1.dp // Cover last row's divider
+        }
         let modifier = Modifier.fillWidth()
-            .height(Self.verticalInset.dp)
-            .offset(y: -1.dp) // Cover last row's divider
+            .height(height)
+            .offset(y: offset) // Cover last row's divider
             .zIndex(Float(0.5))
             .background(BackgroundColor(styling: styling, isItem: false))
         Box(modifier: modifier)
@@ -443,7 +483,7 @@ public final class List : View {
         if !isItem && styling.backgroundVisibility == Visibility.hidden {
             return Color.clear.colorImpl()
         } else if styling.style == ListStyle.plain {
-            return MaterialTheme.colorScheme.surface
+            return Color.background.colorImpl()
         } else {
             return Color.systemBackground.colorImpl()
         }

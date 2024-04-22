@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
@@ -59,10 +59,10 @@ let overlayPresentationCornerRadius = 16.0
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
-        let topSystemBarHeight = remember { mutableStateOf(0.dp) }
+        let topInset = remember { mutableStateOf(0.dp) }
         let topCornerSize = isFullScreen ? CornerSize(0.dp) : CornerSize(overlayPresentationCornerRadius.dp)
         let shape = with(LocalDensity.current) {
-            RoundedCornerShapeWithTopOffset(offset: topSystemBarHeight.value.toPx(), topStart: topCornerSize, topEnd: topCornerSize)
+            RoundedCornerShapeWithTopOffset(offset: topInset.value.toPx(), topStart: topCornerSize, topEnd: topCornerSize)
         }
         let coroutineScope = rememberCoroutineScope()
         let onDismissRequest = {
@@ -75,36 +75,52 @@ let overlayPresentationCornerRadius = 16.0
                 isPresented.set(false)
             }
         }
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0, 0, 0, 0)) {
-            let stateSaver = remember { ComposeStateSaver() } // Place outside of PresentationRoot recomposes
-            let presentationContext = context.content(stateSaver: stateSaver)
-            // Place inside of ModalBottomSheet, which renders content async
-            PresentationRoot(context: presentationContext) { context in
-                let sheetDepth = EnvironmentValues.shared._sheetDepth
-                // We have to delay access to WindowInsets.systemBars until inside the ModalBottomSheet composable to get accurate values
-                let systemBarPadding = WindowInsets.systemBars.asPaddingValues()
-                topSystemBarHeight.value = systemBarPadding.calculateTopPadding()
-                let bottomSystemBarPadding = systemBarPadding.calculateBottomPadding()
-                var modifier = context.modifier.fillMaxWidth()
-                if isFullScreen {
-                    modifier = modifier.fillMaxHeight()
-                } else {
-                    modifier = modifier.height((LocalConfiguration.current.screenHeightDp - 24 * sheetDepth).dp + topSystemBarHeight.value)
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
+            let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
+            let sheetDepth = EnvironmentValues.shared._sheetDepth
+            var systemBarEdges: Edge.Set = .all
+            if !isFullScreen {
+                systemBarEdges.remove(.top)
+                // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
+                let topBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                var inset = topBarHeight + (24 * sheetDepth).dp
+                if !isEdgeToEdge {
+                    inset += 24.dp
+                    systemBarEdges.remove(.bottom)
                 }
-                modifier = modifier.padding(bottom: bottomSystemBarPadding)
-                modifier = modifier.background(Color.background.colorImpl())
-                EnvironmentValues.shared.setValues {
-                    if !isFullScreen {
-                        $0.set_sheetDepth(sheetDepth + 1)
-                    }
-                    $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
-                    $0.set_bottomSystemBarPadding(bottomSystemBarPadding)
-                } in: {
-                    let contentContext = context.content()
-                    Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                        contentView.Compose(context: contentContext)
+                topInset.value = inset
+                // Push the presentation root content area down an equal amount
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+            } else if !isEdgeToEdge {
+                systemBarEdges.remove(.top)
+                systemBarEdges.remove(.bottom)
+                let inset = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                topInset.value = inset
+                // Push the presentation root content area below the top bar
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+            }
+
+            Box(modifier = Modifier.weight(Float(1.0))) {
+                // Place outside of PresentationRoot recomposes
+                let stateSaver = remember { ComposeStateSaver() }
+                let presentationContext = context.content(stateSaver: stateSaver)
+                // Place inside of ModalBottomSheet, which renders content async
+                PresentationRoot(context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
+                    EnvironmentValues.shared.setValues {
+                        if !isFullScreen {
+                            $0.set_sheetDepth(sheetDepth + 1)
+                        }
+                        $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
+                    } in: {
+                        contentView.Compose(context: context)
                     }
                 }
+            }
+
+            if !isEdgeToEdge {
+                // Move the presentation root content area above the bottom bar
+                let inset = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
         }
     }
@@ -144,13 +160,7 @@ let overlayPresentationCornerRadius = 16.0
             $0.strippingModifiers { $0 as? Text }
         }.first
 
-        ModalBottomSheet(
-            onDismissRequest: { isPresented.set(false) },
-            sheetState: sheetState,
-            containerColor: androidx.compose.ui.graphics.Color.Transparent,
-            dragHandle: nil,
-            windowInsets: WindowInsets(0, 0, 0, 0)
-        ) {
+        ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
             // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
             let interactionSource = remember { MutableInteractionSource() }
             Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: { isPresented.set(false) }))
@@ -163,6 +173,7 @@ let overlayPresentationCornerRadius = 16.0
                 .padding(start: 8.dp, end: 8.dp, bottom: bottomSystemBarPadding)
                 .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
                 .background(Color.overlayBackground.colorImpl())
+                .padding(bottom: bottomSystemBarPadding)
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver)
             Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {

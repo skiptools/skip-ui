@@ -11,15 +11,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -79,74 +87,106 @@ public struct TabView : View {
             preferences.append(colorSchemeSyncingPreference)
         }
 
-        ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-            Scaffold(
-                modifier: modifier,
-                bottomBar: {
-                    guard tabBarPreferences.value.visibility != Visibility.hidden else {
-                        return
-                    }
-                    var tabBarModifier = Modifier.fillMaxWidth()
-                    let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
-                    let tabBarItemColors: NavigationBarItemColors
-                    if tabBarPreferences.value.backgroundVisibility == Visibility.hidden {
-                        tabBarBackgroundColor = Color.clear.colorImpl()
-                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
-                    } else if let background = tabBarPreferences.value.background {
-                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                            tabBarBackgroundColor = color
-                        } else {
-                            tabBarBackgroundColor = Color.clear.colorImpl()
-                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                                tabBarModifier = tabBarModifier.background(brush)
-                            }
-                        }
-                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
-                    } else {
-                        tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                        tabBarItemColors = NavigationBarItemDefaults.colors()
-                    }
-                    NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
-                        for tabIndex in 0..<tabViews.count {
-                            let route = String(describing: tabIndex)
-                            let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
-                            NavigationBarItem(
-                                colors: tabBarItemColors,
-                                icon: {
-                                    tabItem?.ComposeImage(context: tabItemContext)
-                                },
-                                label: {
-                                    tabItem?.ComposeTitle(context: tabItemContext)
-                                },
-                                selected: route == currentRoute,
-                                onClick: {
-                                    if let selection, let tagValue = tagValue(route: route, in: tabViews) {
-                                        selection.wrappedValue = tagValue
-                                    } else {
-                                        navigate(controller: navController, route: route)
-                                    }
-                                }
-                            )
-                        }
+        let safeArea = EnvironmentValues.shared._safeArea
+        let density = LocalDensity.current
+        let bottomBarTopPx = remember {
+            if let safeArea {
+                mutableStateOf(safeArea.safeBoundsPx.bottom - with(density) { 80.dp.toPx() })
+            } else {
+                mutableStateOf(Float(0.0))
+            }
+        }
+        let bottomBar: @Composable () -> Void = {
+            guard tabBarPreferences.value.visibility != Visibility.hidden else {
+                bottomBarTopPx.value = Float(0.0)
+                return
+            }
+            var tabBarModifier = Modifier.fillMaxWidth()
+                .onGloballyPositioned {
+                    let topPx = $0.boundsInWindow().top
+                    if topPx > Float(0.0) { // Sometimes we see random 0 values
+                        bottomBarTopPx.value = topPx
                     }
                 }
-            ) { padding in
-                let bottomPadding = tabBarPreferences.value.ignoresSafeArea == true ? 0.dp : padding.calculateBottomPadding() - EnvironmentValues.shared._bottomSystemBarPadding
-                NavHost(navController,
-                        startDestination: "0", 
-                        enterTransition: { EnterTransition.None },
-                        exitTransition: { ExitTransition.None }) {
-                    // Use a constant number of routes. Changing routes causes a NavHost to reset its state
-                    for tabIndex in 0..<100 {
-                        composable(String(describing: tabIndex)) { _ in
-                            Box(modifier: Modifier.padding(bottom: bottomPadding).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                PreferenceValues.shared.collectPreferences(preferences) {
-                                    // Use a custom composer to only render the tabIndex'th view
-                                    content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
+            let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
+            let tabBarItemColors: NavigationBarItemColors
+            if tabBarPreferences.value.backgroundVisibility == Visibility.hidden {
+                tabBarBackgroundColor = Color.clear.colorImpl()
+                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
+            } else if let background = tabBarPreferences.value.background {
+                if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                    tabBarBackgroundColor = color
+                } else {
+                    tabBarBackgroundColor = Color.clear.colorImpl()
+                    if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                        tabBarModifier = tabBarModifier.background(brush)
+                    }
+                }
+                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
+            } else {
+                tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                tabBarItemColors = NavigationBarItemDefaults.colors()
+            }
+            NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
+                for tabIndex in 0..<tabViews.count {
+                    let route = String(describing: tabIndex)
+                    let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+                    NavigationBarItem(
+                        colors: tabBarItemColors,
+                        icon: {
+                            tabItem?.ComposeImage(context: tabItemContext)
+                        },
+                        label: {
+                            tabItem?.ComposeTitle(context: tabItemContext)
+                        },
+                        selected: route == currentRoute,
+                        onClick: {
+                            if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                                selection.wrappedValue = tagValue
+                            } else {
+                                navigate(controller: navController, route: route)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+
+        // When we layout, extend into the safe area if it is due to system bars, not into any app chrome
+        var ignoresSafeAreaEdges: Edge.Set = .bottom
+        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
+                Column(modifier: modifier.background(Color.background.colorImpl())) {
+                    NavHost(navController,
+                            modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
+                            startDestination: "0",
+                            enterTransition: { EnterTransition.None },
+                            exitTransition: { ExitTransition.None }) {
+                        // Use a constant number of routes. Changing routes causes a NavHost to reset its state
+                        for tabIndex in 0..<100 {
+                            composable(String(describing: tabIndex)) { _ in
+                                let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
+                                // Inset manually where our container ignored the safe area, but we aren't showing a bar
+                                let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
+                                let contentModifier = Modifier.fillMaxSize().padding(bottom: bottomPadding)
+                                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                    EnvironmentValues.shared.setValues {
+                                        if let contentSafeArea {
+                                            $0.set_safeArea(contentSafeArea)
+                                        }
+                                    } in: {
+                                        PreferenceValues.shared.collectPreferences(preferences) {
+                                            // Use a custom composer to only render the tabIndex'th view
+                                            content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    bottomBar()
                 }
             }
         }

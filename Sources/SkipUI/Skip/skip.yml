@@ -67,6 +67,7 @@ build:
         - 'api(libs.androidx.appcompat)'
         - 'api(libs.androidx.appcompat.resources)'
         - 'implementation(libs.coil.compose)'
+        - 'implementation("androidx.activity:activity:1.8.1")'
 
         - 'testImplementation(libs.androidx.compose.ui.test)'
         - 'androidTestImplementation(libs.androidx.compose.ui.test)'

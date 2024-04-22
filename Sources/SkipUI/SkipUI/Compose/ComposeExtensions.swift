@@ -5,10 +5,14 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 
 extension Modifier {
     /// Fill available remaining width.
@@ -42,6 +46,31 @@ extension Modifier {
     /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
     @Composable public func fillSize(expandContainer: Bool = true) -> Modifier {
         return fillWidth(expandContainer: expandContainer).fillHeight(expandContainer: expandContainer)
+    }
+
+    /// Add padding equivalent to the given safe area.
+    @Composable func padding(safeArea: SafeArea) -> Modifier {
+        let density = LocalDensity.current
+        let layoutDirection = LocalLayoutDirection.current
+        let top = with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
+        let left = with(density) { (safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left).toDp() }
+        let bottom = with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
+        let right = with(density) { (safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right).toDp() }
+        let start = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? right : left
+        let end = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? left : right
+        return self.padding(top: top, start: start, bottom: bottom, end: end)
+    }
+}
+
+extension PaddingValues {
+    /// Convert padding values to edge insets in `dp` units.
+    @Composable public func asEdgeInsets() -> EdgeInsets {
+        let layoutDirection = EnvironmentValues.shared.layoutDirection == .rightToLeft ?     androidx.compose.ui.unit.LayoutDirection.Rtl : androidx.compose.ui.unit.LayoutDirection.Ltr
+        let top = Double(calculateTopPadding().value)
+        let left = Double(calculateLeftPadding(layoutDirection).value)
+        let bottom = Double(calculateBottomPadding().value)
+        let right = Double(calculateRightPadding(layoutDirection).value)
+        return EdgeInsets(top: top, leading: left, bottom: bottom, trailing: right)
     }
 }
 #endif
