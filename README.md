@@ -914,7 +914,7 @@ Support levels:
       <td><code>.hidden</code></td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>.ignoresSafeArea</code></summary>
@@ -1632,30 +1632,24 @@ Please ensure that when using these API, the above algorithm will create unique,
 
 ### Safe Area
 
-SkipUI currently does not render content behind the Android status bar or bottom gesture region, nor does it support custom safe areas. For the most part, therefore, safe area API isn't needed. If you've used `.toolbarBackgackground(...)` to hide or add alpha to the navigation bar, bottom toolbar, or tab bar, however, you may want to use `.ignoresSafeArea` to display content below these bars. 
+Like the iPhone, Android devices can render content behind system bars like the top status bar and bottom gesture area. SwiftUI code using the `.ignoresSafeArea` modifier to extend content behind system bars will work the same across SwiftUI and SkipUI, with the following exceptions:
 
-SkipUI supports `.ignoresSafeArea` for this use case, but be careful: if **any** view within your `TabView` or `NavigationView` declares that it ignores a safe area, then **all** content within that view hierarchy will ignore it. That means the following views are effectively equivalent in SkipUI:
+- SkipUI does not support `SafeAreaRegions.keyboard` 
+
+Remember that you can use `#if SKIP` blocks to confine your `.ignoresSafeArea` calls for iOS or Android only.
+
+#### Enabling or Disabling Edge-to-Edge
+
+Modern SkipUI versions enable Jetpack Compose's "edgeToEdge" mode by default. If you created your app with the `skip` tool prior to v0.8.32, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file to render content behind system bars. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
+
+1. Add the following import: `import androidx.activity.enableEdgeToEdge`
+1. Add the following line to the `MainActivity.onCreate(savedInstanceState:)` function:
 
 ```swift
-NavigationStack {
-    ZStack {
-        Color.red
-            .ignoresSafeArea()
-        ContentView()
-    }
-    .toolbarBackground(.hidden, for: .navigationBar)
-    .navigationTitle("View")    
-}
-
-NavigationStack {
-    ZStack {
-        Color.red
-        ContentView()
-    }
-    .toolbarBackground(.hidden, for: .navigationBar)
-    .navigationTitle("View")  
-    .ignoresSafeArea()  
-}
+override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge() // <--- Add this line
+    ...
 ```
 
-Remember that you can use `#if SKIP` blocks to enable or disable `.ignoresSafeArea` calls for iOS or Android only.
+With these updates in place, your app should extend below the system bars. If you're running a modern SkipUI version and want to *disable* edge-to-edge mode, simply remove the `enableEdgeToEdge()` call.
