@@ -15,6 +15,7 @@ settings:
                 - 'version("coil-compose", "2.5.0")'
                 - 'version("androidx-navigation", "2.7.6")'
                 - 'version("androidx-appcompat", "1.6.1")'
+                - 'version("androidx-activity", "1.8.2")'
 
                 # Used by kotlinCompilerExtensionVersion, must be compatible with the Kotlin (specifed in the version catalog of SkipUnit/Skip/skip.yml) or else errors like:
                 # This version (1.5.3) of the Compose Compiler requires Kotlin version 1.9.10 but you appear to be using Kotlin version 1.9.22 which is not known to be compatible.  Please consult the Compose-Kotlin compatibility map located at https://developer.android.com/jetpack/androidx/releases/compose-kotlin to choose a compatible version pair (or `suppressKotlinVersionCompatibilityCheck` but don't say I didn't warn you!).
@@ -33,6 +34,7 @@ settings:
                 - 'library("androidx-appcompat-resources", "androidx.appcompat", "appcompat-resources").versionRef("androidx-appcompat")'
 
                 - 'library("androidx-navigation-compose", "androidx.navigation", "navigation-compose").versionRef("androidx-navigation")'
+                - 'library("androidx-activity-compose", "androidx.activity", "activity-compose").versionRef("androidx-activity")'
 
                 - 'library("coil-compose", "io.coil-kt", "coil-compose").versionRef("coil-compose")'
 
@@ -66,8 +68,8 @@ build:
         - 'api(libs.androidx.navigation.compose)'
         - 'api(libs.androidx.appcompat)'
         - 'api(libs.androidx.appcompat.resources)'
+        - 'api(libs.androidx.activity.compose)'
         - 'implementation(libs.coil.compose)'
-        - 'implementation("androidx.activity:activity:1.8.1")'
 
         - 'testImplementation(libs.androidx.compose.ui.test)'
         - 'androidTestImplementation(libs.androidx.compose.ui.test)'
