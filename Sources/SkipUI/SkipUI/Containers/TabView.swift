@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -87,11 +88,21 @@ public struct TabView : View {
             preferences.append(colorSchemeSyncingPreference)
         }
 
+        // Perform an invisible compose pass to gather preference and layout information. Otherwise we may see the content render one
+        // way then immediately re-render with different UI
+        var modifier = context.modifier
+        let hasComposed = remember { mutableStateOf(false) }
+        if !hasComposed.value {
+            modifier = modifier.alpha(Float(0.0))
+        }
+
         let safeArea = EnvironmentValues.shared._safeArea
         let density = LocalDensity.current
         let bottomBarTopPx = remember {
+            // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
+            // recompose with adjusted layouts
             if let safeArea {
-                mutableStateOf(safeArea.safeBoundsPx.bottom - with(density) { 80.dp.toPx() })
+                mutableStateOf(with(density) { safeArea.presentationBoundsPx.bottom - 80.dp.toPx() })
             } else {
                 mutableStateOf(Float(0.0))
             }
@@ -133,12 +144,8 @@ public struct TabView : View {
                     let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
                     NavigationBarItem(
                         colors: tabBarItemColors,
-                        icon: {
-                            tabItem?.ComposeImage(context: tabItemContext)
-                        },
-                        label: {
-                            tabItem?.ComposeTitle(context: tabItemContext)
-                        },
+                        icon: { tabItem?.ComposeImage(context: tabItemContext) },
+                        label: { tabItem?.ComposeTitle(context: tabItemContext) },
                         selected: route == currentRoute,
                         onClick: {
                             if let selection, let tagValue = tagValue(route: route, in: tabViews) {
@@ -152,10 +159,12 @@ public struct TabView : View {
             }
         }
 
-        // When we layout, extend into the safe area if it is due to system bars, not into any app chrome
-        var ignoresSafeAreaEdges: Edge.Set = .bottom
+        // When we layout, extend into the safe area if it is due to system bars, not into any app chrome. We extend
+        // into the top bar too so that tab content can also extend into the top area without getting cut off during
+        // tab switches
+        var ignoresSafeAreaEdges: Edge.Set = [.bottom, .top]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context.content(modifier: modifier)) { context in
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Column(modifier: modifier.background(Color.background.colorImpl())) {
@@ -169,8 +178,9 @@ public struct TabView : View {
                             composable(String(describing: tabIndex)) { _ in
                                 let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
                                 // Inset manually where our container ignored the safe area, but we aren't showing a bar
+                                let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.systemBars.asPaddingValues().calculateTopPadding() : 0.dp
                                 let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
-                                let contentModifier = Modifier.fillMaxSize().padding(bottom: bottomPadding)
+                                let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
                                 Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                                     EnvironmentValues.shared.setValues {
                                         if let contentSafeArea {
@@ -182,6 +192,7 @@ public struct TabView : View {
                                             content.Compose(context: context.content(composer: TabIndexComposer(index: tabIndex)))
                                         }
                                     }
+                                    hasComposed.value = true
                                 }
                             }
                         }

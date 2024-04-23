@@ -38,12 +38,14 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
             let rootModifier = Modifier
-                .background(Color.background.colorImpl())
                 .fillMaxSize()
                 .onGloballyPositioned {
                     presentationBounds.value = $0.boundsInWindow()
                 }
             Box(modifier: rootModifier) {
+                guard presentationBounds.value != Rect.Zero else {
+                    return
+                }
                 // Cannot get accurate WindowInsets until we're in the content box
                 var (safeLeft, safeTop, safeRight, safeBottom) = presentationBounds.value
                 if systemBarEdges.contains(.leading) {

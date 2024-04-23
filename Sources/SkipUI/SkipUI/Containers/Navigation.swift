@@ -171,12 +171,12 @@ public struct NavigationStack<Root> : View where Root: View {
     // SKIP DECLARE: @OptIn(ExperimentalMaterial3Api::class) @Composable private fun ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: Array<Preference<*>>, isRoot: Boolean, safeArea: SafeArea?, ignoresSafeAreaEdges: Edge.Set, content: @Composable (ComposeContext) -> Unit)
     @Composable private func ComposeEntry(navigator: MutableState<Navigator>, state: Navigator.BackStackState, context: ComposeContext, preferences: [Preference], isRoot: Bool, safeArea: SafeArea?, ignoresSafeAreaEdges: Edge.Set, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: state.stateSaver)
+
         let preferenceUpdates = remember { mutableStateOf(0) }
         let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
         let recompose = { preferenceUpdates.value += 1 }
 
-        let uncomposedTitle = Text(verbatim: "__UNCOMPOSED__")
-        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(uncomposedTitle) }
+        let title = rememberSaveable(stateSaver: context.stateSaver as! Saver<Text, Any>) { mutableStateOf(NavigationTitlePreferenceKey.defaultValue) }
         let toolbarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<ToolbarPreferences, Any>) { mutableStateOf(ToolbarPreferenceKey.defaultValue) }
         let topBarPreferences = toolbarPreferences.value.navigationBar
         let bottomBarPreferences = toolbarPreferences.value.bottomBar
@@ -198,9 +198,10 @@ public struct NavigationStack<Root> : View where Root: View {
         }
         modifier = modifier.then(context.modifier)
 
-        // Perform an invisible compose pass to gather preference information. Otherwise we may see the content render one way, then
-        // immediately re-render with an updated top bar
-        if title.value == uncomposedTitle {
+        // Perform an invisible compose pass to gather preference and layout information. Otherwise we may see the content render one
+        // way then immediately re-render with different UI. This is particularly important because nav bars are preference-heavy
+        let hasComposed = remember { mutableStateOf(false) }
+        if !hasComposed.value {
             modifier = modifier.alpha(Float(0.0))
         }
 
@@ -212,11 +213,10 @@ public struct NavigationStack<Root> : View where Root: View {
         }
 
         let topBarBottomPx = remember {
-            if let safeArea {
-                mutableStateOf(safeArea.safeBoundsPx.top + with(density) { 112.dp.toPx() })
-            } else {
-                mutableStateOf(Float(0.0))
-            }
+            // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
+            // recompose with adjusted layouts
+            let safeAreaTopPx = safeArea?.safeBoundsPx.top ?? Float(0.0)
+            mutableStateOf(with(density) { safeAreaTopPx + 112.dp.toPx() })
         }
         let topBar: @Composable () -> Void = {
             guard topBarPreferences?.visibility != Visibility.hidden else {
@@ -225,9 +225,12 @@ public struct NavigationStack<Root> : View where Root: View {
             }
             let topLeadingItems = toolbarItems.filterTopBarLeading()
             let topTrailingItems = toolbarItems.filterTopBarTrailing()
-            guard !isRoot || !(title.value == uncomposedTitle) || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
-                topBarBottomPx.value = Float(0.0)
-                return
+            // Always include the top bar on the first compose pass so that we can measure it for subsequent passes
+            if hasComposed.value {
+                guard !isRoot || title.value != NavigationTitlePreferenceKey.defaultValue || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
+                    topBarBottomPx.value = Float(0.0)
+                    return
+                }
             }
             let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
             let placement = EnvironmentValues.shared._placement
@@ -334,8 +337,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 } else {
                     bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
                 }
-                BottomAppBar(
-                    modifier: bottomBarModifier,
+                BottomAppBar(modifier: bottomBarModifier,
                     containerColor: bottomBarBackgroundColor,
                     contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
                     windowInsets = WindowInsets(bottom: 0.dp)) {
@@ -360,7 +362,7 @@ public struct NavigationStack<Root> : View where Root: View {
             // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
             let topPadding = topBarBottomPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.top) ? WindowInsets.systemBars.asPaddingValues().calculateTopPadding() : 0.dp
             let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
-            let contentModifier = Modifier.fillMaxSize().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+            let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
 
             topBar()
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
@@ -385,9 +387,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     PreferenceValues.shared.collectPreferences(preferences + [titlePreference, toolbarPreferencesPreference, scrollToTopPreference]) {
                         content(contentContext)
                     }
-                    if title.value == uncomposedTitle {
-                        title.value = NavigationTitlePreferenceKey.defaultValue
-                    }
+                    hasComposed.value = true
                 }
             }
             bottomBar()

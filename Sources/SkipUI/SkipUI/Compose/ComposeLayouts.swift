@@ -131,7 +131,7 @@ import androidx.compose.ui.unit.dp
 }
 
 @Composable func IgnoresSafeAreaLayout(edges: Edge.Set, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
-    guard !edges.isEmpty, let safeArea = EnvironmentValues.shared._safeArea else {
+    guard let safeArea = EnvironmentValues.shared._safeArea else {
         target(context)
         return
     }
@@ -167,19 +167,14 @@ import androidx.compose.ui.unit.dp
             safeRight = safeArea.presentationBoundsPx.right
         }
     }
-    if topPx == 0 && bottomPx == 0 && leftPx == 0 && rightPx == 0 {
-        target(context)
-        return
-    }
 
-    let contentContext = context.content()
     let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
     let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
     EnvironmentValues.shared.setValues {
         $0.set_safeArea(contentSafeArea)
     } in: {
-        Layout(modifier: context.modifier, content: {
-            target(contentContext)
+        Layout(content: {
+            target(context)
         }) { measurables, constraints in
             let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leftPx + rightPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
             let targetPlaceable = measurables[0].measure(updatedConstraints)
