@@ -63,6 +63,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -296,7 +297,13 @@ public struct NavigationStack<Root> : View where Root: View {
                 if isInlineTitleDisplayMode {
                     TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
                 } else {
-                    MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
+                    let typography = MaterialTheme.typography
+                    let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
+                    let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
+                    MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
+                        MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    }
                 }
             }
         }
