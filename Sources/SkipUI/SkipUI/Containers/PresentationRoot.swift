@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
             let rootModifier = Modifier
+                .background(Color.background.colorImpl())
                 .fillMaxSize()
                 .onGloballyPositioned {
                     presentationBounds.value = $0.boundsInWindow()
