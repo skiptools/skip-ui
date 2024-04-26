@@ -14,12 +14,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.DismissValue
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,13 +29,18 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Path.Companion.combine
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
@@ -49,6 +55,9 @@ import org.burnoutcrew.reorderable.reorderable
 #else
 import struct CoreGraphics.CGFloat
 #endif
+
+/// Corner radius for list sections.
+let listSectionnCornerRadius = 8.0
 
 public final class List : View {
     let fixedContent: ComposeBuilder?
@@ -229,8 +238,7 @@ public final class List : View {
                     }
                 },
                 sectionHeader: { view in
-                    // Important to check the count immediately, outside the lazy list scope blocks
-                    let context = factoryContext.value.count == 0 ? topSectionHeaderContext : sectionHeaderContext
+                    let context = view === collectingComposer.views.firstOrNull() ? topSectionHeaderContext : sectionHeaderContext
                     if styling.style == .plain {
                         stickyHeader {
                             view.Compose(context: context)
@@ -254,8 +262,9 @@ public final class List : View {
                 }
             }
             if hasHeader {
+                let hasTopSection = collectingComposer.views.firstOrNull() is ListSectionHeader
                 item {
-                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight)
+                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight, hasTopSection: hasTopSection)
                 }
             }
             for view in collectingComposer.views {
@@ -266,8 +275,9 @@ public final class List : View {
                 }
             }
             if hasFooter {
+                let hasBottomSection = collectingComposer.views.lastOrNull() is ListSectionFooter
                 item {
-                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight)
+                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
         }
@@ -401,19 +411,30 @@ public final class List : View {
 
     @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
         if !isTop && styling.style != ListStyle.plain {
-            ComposeFooter(styling: styling, safeAreaHeight: 0.dp)
+            // Vertical padding
+            ComposeFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
         }
+        let backgroundColor = BackgroundColor(styling: styling.withStyle(ListStyle.automatic), isItem: false)
+        let modifier = Modifier
+            .zIndex(Float(0.5))
+            .background(backgroundColor)
+            .then(context.modifier)
         var contentModifier = Modifier.fillWidth()
         if isTop && styling.style != .plain {
             contentModifier = contentModifier.padding(start: Self.horizontalItemInset.dp, top: 0.dp, end: Self.horizontalItemInset.dp, bottom: Self.verticalItemInset.dp)
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
         }
-        Column(modifier: Modifier.background(BackgroundColor(styling.withStyle(ListStyle.automatic), isItem: false)).then(context.modifier)) {
-            EnvironmentValues.shared.setValues {
-                $0.set_listSectionHeaderStyle(styling.style)
-            } in: {
-                view.Compose(context: context.content(modifier: contentModifier))
+        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
+            Column(modifier: Modifier.fillWidth()) {
+                EnvironmentValues.shared.setValues {
+                    $0.set_listSectionHeaderStyle(styling.style)
+                } in: {
+                    view.Compose(context: context.content(modifier: contentModifier))
+                }
+            }
+            if styling.style != ListStyle.plain {
+                ComposeRoundedCorners(isTop: true, fill: backgroundColor)
             }
         }
     }
@@ -422,19 +443,89 @@ public final class List : View {
         if styling.style == .plain {
             ComposeItem(view: view, context: context, styling: styling, isItem: false)
         } else {
+            let backgroundColor = BackgroundColor(styling: styling, isItem: false)
             let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
                 .zIndex(Float(0.5))
-                .background(BackgroundColor(styling: styling, isItem: false))
+                .background(backgroundColor)
                 .then(context.modifier)
             let contentModifier = Modifier.fillWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
-            Column(modifier: modifier) {
-                EnvironmentValues.shared.setValues {
-                    $0.set_listSectionFooterStyle(styling.style)
-                } in: {
-                    view.Compose(context: context.content(modifier: contentModifier))
+            Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+                Column(modifier: Modifier.fillWidth().heightIn(min: 1.dp)) {
+                    EnvironmentValues.shared.setValues {
+                        $0.set_listSectionFooterStyle(styling.style)
+                    } in: {
+                        view.Compose(context: context.content(modifier: contentModifier))
+                    }
                 }
+                ComposeRoundedCorners(isTop: false, fill: backgroundColor)
             }
         }
+    }
+
+    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
+    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeHeader(styling: ListStyling, safeAreaHeight: Dp, hasTopSection: Bool) {
+        var height = safeAreaHeight
+        if styling.style != .plain {
+            height += Self.verticalInset.dp
+        }
+        let backgroundColor = BackgroundColor(styling: styling, isItem: false)
+        let modifier = Modifier.fillWidth()
+            .height(height)
+            .zIndex(Float(0.5))
+            .background(backgroundColor)
+        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
+            if !hasTopSection && styling.style != .plain {
+                ComposeRoundedCorners(isTop: true, fill: backgroundColor)
+            }
+        }
+    }
+
+    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
+    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
+    @Composable private func ComposeFooter(styling: ListStyling, safeAreaHeight: Dp, hasBottomSection: Bool) {
+        var height = safeAreaHeight
+        var offset = 0.dp
+        if styling.style != .plain {
+            height += Self.verticalInset.dp
+            offset = -1.dp // Cover last row's divider
+        }
+        let backgroundColor = BackgroundColor(styling: styling, isItem: false)
+        let modifier = Modifier.fillWidth()
+            .height(height)
+            .offset(y: offset)
+            .zIndex(Float(0.5))
+            .background(backgroundColor)
+        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+            if !hasBottomSection && styling.style != .plain {
+                ComposeRoundedCorners(isTop: false, fill: backgroundColor)
+            }
+        }
+    }
+
+    @Composable private func ComposeRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color) {
+        let shape = GenericShape { size, _ in
+            let rect = Rect(left: Float(0.0), top: Float(0.0), right: size.width, bottom: size.height)
+            let rectPath = androidx.compose.ui.graphics.Path()
+            rectPath.addRect(rect)
+            let roundRect: RoundRect
+            if isTop {
+                roundRect = RoundRect(rect, topLeft: CornerRadius(size.height), topRight: CornerRadius(size.height))
+            } else {
+                roundRect = RoundRect(rect, bottomLeft: CornerRadius(size.height), bottomRight: CornerRadius(size.height))
+            }
+            let roundedRectPath = androidx.compose.ui.graphics.Path()
+            roundedRectPath.addRoundRect(roundRect)
+            addPath(combine(PathOperation.Difference, rectPath, roundedRectPath))
+        }
+        let offset = isTop ? listSectionnCornerRadius.dp : -listSectionnCornerRadius.dp
+        let modifier = Modifier
+            .fillMaxWidth()
+            .height(listSectionnCornerRadius.dp)
+            .offset(y: offset)
+            .clip(shape)
+            .background(fill)
+        Box(modifier: modifier)
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
@@ -447,36 +538,6 @@ public final class List : View {
         }
         modifier = modifier.fillMaxWidth()
         SearchField(state: state, context: context.content(modifier: modifier))
-    }
-
-    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
-    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeHeader(styling: ListStyling, safeAreaHeight: Dp) {
-        var height = safeAreaHeight
-        if styling.style != .plain {
-            height += Self.verticalInset.dp
-        }
-        let modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
-            .fillWidth()
-            .height(height)
-        Box(modifier: modifier)
-    }
-
-    /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
-    /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeFooter(styling: ListStyling, safeAreaHeight: Dp) {
-        var height = safeAreaHeight
-        var offset = 0.dp
-        if styling.style != .plain {
-            height += Self.verticalInset.dp
-            offset = -1.dp // Cover last row's divider
-        }
-        let modifier = Modifier.fillWidth()
-            .height(height)
-            .offset(y: offset) // Cover last row's divider
-            .zIndex(Float(0.5))
-            .background(BackgroundColor(styling: styling, isItem: false))
-        Box(modifier: modifier)
     }
 
     @Composable private func BackgroundColor(styling: ListStyling, isItem: Bool) -> androidx.compose.ui.graphics.Color {
@@ -598,28 +659,48 @@ public final class ListItemFactoryContext {
 
         content.removeAll()
         self.item = { view in
+            // If this is an item after a section, add a header before it
+            if case .sectionFooter = content.last {
+                self.sectionHeader(EmptyView())
+            }
             item(view)
             content.append(.items(1, nil))
         }
         self.indexedItems = { range, identifier, onDelete, onMove, factory in
+            if case .sectionFooter = content.last {
+                self.sectionHeader(EmptyView())
+            }
             indexedItems(range, identifier, count, onDelete, onMove, factory)
             content.append(.items(range.endExclusive - range.start, onMove))
         }
         self.objectItems = { objects, identifier, onDelete, onMove, factory in
+            if case .sectionFooter = content.last {
+                self.sectionHeader(EmptyView())
+            }
             objectItems(objects, identifier, count, onDelete, onMove, factory)
             content.append(.objectItems(objects, onMove))
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, factory in
+            if case .sectionFooter = content.last {
+                self.sectionHeader(EmptyView())
+            }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, factory)
             content.append(.objectBindingItems(binding, onMove))
         }
         self.sectionHeader = { view in
+            // If this is a header after an item, add a section footer before it
+            switch content.last {
+            case .sectionFooter, nil:
+                break
+            default:
+                self.sectionFooter(EmptyView())
+            }
             sectionHeader(view)
-            content.append(.items(1, nil))
+            content.append(.sectionHeader)
         }
         self.sectionFooter = { view in
             sectionFooter(view)
-            content.append(.items(1, nil))
+            content.append(.sectionFooter)
         }
     }
 
@@ -631,6 +712,7 @@ public final class ListItemFactoryContext {
             case .items(let count, _): itemCount += count
             case .objectItems(let objects, _): itemCount += objects.count
             case .objectBindingItems(let binding, _): itemCount += binding.wrappedValue.count
+            case .sectionHeader, .sectionFooter: itemCount += 1
             }
         }
         return itemCount
@@ -708,6 +790,10 @@ public final class ListItemFactoryContext {
                 }) {
                     return
                 }
+            case .sectionHeader, .sectionFooter:
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: 1, onMove: nil) {
+                    return
+                }
             }
         }
     }
@@ -746,6 +832,10 @@ public final class ListItemFactoryContext {
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count) {
                     return ret
                 }
+            case .sectionHeader, .sectionFooter:
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: 1) {
+                    return ret
+                }
             }
         }
         return false
@@ -764,6 +854,8 @@ public final class ListItemFactoryContext {
         case items(Int, ((IndexSet, Int) -> Void)?)
         case objectItems(RandomAccessCollection<Any>, ((IndexSet, Int) -> Void)?)
         case objectBindingItems(Binding<RandomAccessCollection<Any>>, ((IndexSet, Int) -> Void)?)
+        case sectionHeader
+        case sectionFooter
     }
     private var content: [Content] = []
 }
