@@ -8,6 +8,7 @@
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.LineHeightStyle
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -240,6 +241,9 @@ struct _Text: View, Equatable {
         let modifier = context.modifier
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
         var style = font.fontImpl()
+        // Trim the line height padding to mirror SwiftUI.Text layout. For now we only do this here on the Text component
+        // rather than in Font to de-risk this aberration from Compose default text style behavior
+        style = style.copy(lineHeightStyle: LineHeightStyle(alignment: LineHeightStyle.Alignment.Center, trim: LineHeightStyle.Trim.Both))
         if let textBrush {
             style = style.copy(brush: textBrush)
         }

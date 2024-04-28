@@ -299,9 +299,9 @@ public final class List : View {
 
     private static let horizontalInset = 16.0
     private static let verticalInset = 32.0
-    private static let minimumItemHeight = 44.0
+    private static let minimumItemHeight = 32.0
     private static let horizontalItemInset = 16.0
-    private static let verticalItemInset = 4.0
+    private static let verticalItemInset = 8.0
 
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
         guard !view.isSwiftUIEmptyView else {
