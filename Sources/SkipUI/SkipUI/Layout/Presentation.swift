@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -56,6 +58,10 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
+    if HandleOrientationChange(isPresented: isPresented) {
+        return
+    }
+
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
@@ -78,8 +84,9 @@ let overlayPresentationCornerRadius = 16.0
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
+            let orientation = LocalConfiguration.current.orientation
             var systemBarEdges: Edge.Set = .all
-            if !isFullScreen {
+            if !isFullScreen && orientation != ORIENTATION_LANDSCAPE {
                 systemBarEdges.remove(.top)
                 // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
                 let topBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -136,6 +143,10 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
+    if HandleOrientationChange(isPresented: isPresented) {
+        return
+    }
+
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
@@ -167,13 +178,14 @@ let overlayPresentationCornerRadius = 16.0
 
             let stateSaver = remember { ComposeStateSaver() }
             let scrollState = rememberScrollState()
+            let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
             let modifier = Modifier
                 .fillMaxWidth()
-                .padding(start: 8.dp, end: 8.dp, bottom: bottomSystemBarPadding)
+                .padding(start: 8.dp, end: 8.dp, bottom: isEdgeToEdge ? 0.dp : bottomSystemBarPadding)
                 .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
                 .background(Color.overlayBackground.colorImpl())
-                .padding(bottom: bottomSystemBarPadding)
+                .padding(bottom: isEdgeToEdge ? bottomSystemBarPadding : 0.dp)
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver)
             Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
@@ -245,6 +257,25 @@ let overlayPresentationCornerRadius = 16.0
     Box(modifier: Modifier.fillMaxWidth().requiredHeightIn(min: 60.dp).clickable(onClick: action), contentAlignment: androidx.compose.ui.Alignment.Center) {
         content()
     }
+}
+
+/// Handle orientation changes in our various presentations.
+///
+/// Sheets deform on rotation, so we re-present in the new orientation.
+@Composable private func HandleOrientationChange(isPresented: Binding<Bool>) -> Bool {
+    let orientation = rememberUpdatedState(LocalConfiguration.current.orientation)
+    let rememberedOrientation = remember { mutableStateOf(orientation.value) }
+    if orientation.value == rememberedOrientation.value {
+        return false
+    }
+    LaunchedEffect(orientation.value, rememberedOrientation.value) {
+        if isPresented.get() && orientation.value != rememberedOrientation.value {
+            isPresented.set(false)
+            isPresented.set(true)
+        }
+        rememberedOrientation.value = orientation.value
+    }
+    return true
 }
 #endif
 
