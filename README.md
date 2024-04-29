@@ -455,6 +455,30 @@ Support levels:
       <td><code>Form</code> (<a href="https://skip.tools/docs/components/form/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>GeometryReader</code></summary>
+              <ul>
+                  <li>See <code>GeometryProxy</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>GeometryProxy</code></summary>
+              <ul>
+                  <li><code>var size: CGSize</code></li>
+                  <li><code>func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect</code></li>
+                  <li>Only <code>.local</code> and <code>.global</code> coordinate spaces are supported</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>Group</code></td>
     </tr>
