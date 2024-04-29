@@ -4,46 +4,56 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
-#if false
-
+#if SKIP
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.unit.Density
+#else
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
-
-/// A proxy for access to the size and coordinate space (for anchor resolution)
-/// of the container view.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-public struct GeometryProxy {
-
-    /// The size of the container view.
-    public var size: CGSize { get { fatalError() } }
-
-    /// Resolves the value of `anchor` to the container view.
-    public subscript<T>(anchor: Anchor<T>) -> T { get { fatalError() } }
-
-    /// The safe area inset of the container view.
-    public var safeAreaInsets: EdgeInsets { get { fatalError() } }
-
-    /// Returns the container view's bounds rectangle, converted to a defined
-    /// coordinate space.
-    @available(iOS, introduced: 13.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    @available(macOS, introduced: 10.15, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    @available(tvOS, introduced: 13.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    @available(watchOS, introduced: 6.0, deprecated: 100000.0, message: "use overload that accepts a CoordinateSpaceProtocol instead")
-    public func frame(in coordinateSpace: CoordinateSpace) -> CGRect { fatalError() }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension GeometryProxy {
-
-    /// Returns the given coordinate space's bounds rectangle, converted to the
-    /// local coordinate space.
-    public func bounds(of coordinateSpace: NamedCoordinateSpace) -> CGRect? { fatalError() }
-
-    /// Returns the container view's bounds rectangle, converted to a defined
-    /// coordinate space.
-    public func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect { fatalError() }
-}
-
 #endif
+
+public struct GeometryProxy {
+    #if SKIP
+    let globalFramePx: Rect
+    let density: Density
+    #endif
+
+    public var size: CGSize {
+        #if SKIP
+        return with(density) {
+            CGSize(width: Double(globalFramePx.width.toDp().value), height: Double(globalFramePx.height.toDp().value))
+        }
+        #else
+        return .zero
+        #endif
+    }
+
+    @available(*, unavailable)
+    public subscript<T>(anchor: Any /* Anchor<T> */) -> T {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var safeAreaInsets: EdgeInsets {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func bounds(of coordinateSpace: NamedCoordinateSpace) -> CGRect? {
+        fatalError()
+    }
+
+    public func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect {
+        #if SKIP
+        if coordinateSpace.coordinateSpace.isGlobal {
+            return with(density) {
+                CGRect(x: Double(globalFramePx.left.toDp().value), y: Double(globalFramePx.top.toDp().value), width: Double(globalFramePx.width.toDp().value), height: Double(globalFramePx.height.toDp().value))
+            }
+        } else {
+            return CGRect(origin: .zero, size: size)
+        }
+        #else
+        return .zero
+        #endif
+    }
+}

@@ -4,24 +4,41 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
-#if false
-
-
-/// A container view that defines its content as a function of its own size and
-/// coordinate space.
-///
-/// This view returns a flexible preferred size to its parent layout.
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-@frozen public struct GeometryReader<Content> : View where Content : View {
-
-    public var content: (GeometryProxy) -> Content { get { fatalError() } }
-
-    @inlinable public init(@ViewBuilder content: @escaping (GeometryProxy) -> Content) { fatalError() }
-
-    public typealias Body = NeverView
-    public var body: Body { fatalError() }
-}
-
+#if SKIP
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 #endif
+
+public struct GeometryReader : View {
+    public let content: (GeometryProxy) -> any View
+
+    public init(@ViewBuilder content: @escaping (GeometryProxy) -> any View) {
+        self.content = content
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let rememberedGlobalFramePx = remember { mutableStateOf<Rect?>(nil) }
+        Box(modifier: context.modifier.fillSize(expandContainer: false).onGloballyPositioned {
+            rememberedGlobalFramePx.value = $0.boundsInRoot()
+        }) {
+            if let globalFramePx = rememberedGlobalFramePx.value {
+                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current)
+                content(proxy).Compose(context.content())
+            }
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
