@@ -58,7 +58,7 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    if HandleOrientationChange(isPresented: isPresented) {
+    if HandlePresentationOrientationChange(isPresented: isPresented) {
         return
     }
 
@@ -143,7 +143,7 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
-    if HandleOrientationChange(isPresented: isPresented) {
+    if HandlePresentationOrientationChange(isPresented: isPresented) {
         return
     }
 
@@ -262,7 +262,7 @@ let overlayPresentationCornerRadius = 16.0
 /// Handle orientation changes in our various presentations.
 ///
 /// Sheets deform on rotation, so we re-present in the new orientation.
-@Composable private func HandleOrientationChange(isPresented: Binding<Bool>) -> Bool {
+@Composable func HandlePresentationOrientationChange(isPresented: Binding<Bool>) -> Bool {
     let orientation = rememberUpdatedState(LocalConfiguration.current.orientation)
     let rememberedOrientation = remember { mutableStateOf(orientation.value) }
     if orientation.value == rememberedOrientation.value {

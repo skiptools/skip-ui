@@ -147,23 +147,23 @@ import androidx.compose.ui.unit.dp
         bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
         safeBottom = safeArea.presentationBoundsPx.bottom
     }
-    var leftPx = 0
-    var rightPx = 0
+    var leadingPx = 0
     if edges.contains(.leading) {
         if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            rightPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
             safeRight = safeArea.presentationBoundsPx.right
         } else {
-            leftPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
             safeLeft = safeArea.presentationBoundsPx.left
         }
     }
+    var trailingPx = 0
     if edges.contains(.trailing) {
         if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            leftPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            trailingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
             safeLeft = safeArea.presentationBoundsPx.left
         } else {
-            rightPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            trailingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
             safeRight = safeArea.presentationBoundsPx.right
         }
     }
@@ -176,16 +176,45 @@ import androidx.compose.ui.unit.dp
         Layout(content: {
             target(context)
         }) { measurables, constraints in
-            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leftPx + rightPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
+            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leadingPx + trailingPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
             let targetPlaceable = measurables[0].measure(updatedConstraints)
             layout(width: targetPlaceable.width, height: targetPlaceable.height) {
                 // Layout will center extra space by default
                 let relativeTopPx = topPx - ((topPx + bottomPx) / 2)
-                let relativeLeftPx = leftPx - ((leftPx + rightPx) / 2)
-                targetPlaceable.placeRelative(x = -relativeLeftPx, y = -relativeTopPx)
+                let relativeLeadingPx = leadingPx - ((leadingPx + trailingPx) / 2)
+                targetPlaceable.placeRelative(x = -relativeLeadingPx, y = -relativeTopPx)
             }
         }
     }
+}
+
+/// Layout the given view with the given padding.
+@Composable func PaddingLayout(view: View, padding: EdgeInsets, context: ComposeContext) {
+    PaddingLayout(padding: padding, context: context) { view.Compose($0) }
+}
+
+@Composable func PaddingLayout(padding: EdgeInsets, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
+    let density = LocalDensity.current
+    let topPx = with(density) { Int(padding.top.dp.toPx()) }
+    let bottomPx = with(density) { Int(padding.bottom.dp.toPx()) }
+    let leadingPx = with(density) { Int(padding.leading.dp.toPx()) }
+    let trailingPx = with(density) { Int(padding.trailing.dp.toPx()) }
+    Layout(modifier: context.modifier, content = {
+        target(context.content())
+    }) { measurables, constraints in
+        let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
+        let targetPlaceable = measurables[0].measure(updatedConstraints)
+        layout(width: targetPlaceable.width + leadingPx + trailingPx, height: targetPlaceable.height + topPx + bottomPx) {
+            targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+        }
+    }
+}
+
+private func constraint(_ value: Int, subtracting: Int) -> Int {
+    guard value != Int.MAX_VALUE else {
+        return value
+    }
+    return max(0, value - subtracting)
 }
 
 private func placeView(width: Int, height: Int, inWidth: Int, inHeight: Int, alignment: Alignment) -> (Int, Int) {

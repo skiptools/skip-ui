@@ -56,14 +56,18 @@ public struct Toggle : View {
             colors = SwitchDefaults.colors()
         }
         if EnvironmentValues.shared._labelsHidden {
-            Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, modifier: context.modifier)
+            PaddingLayout(padding: EdgeInsets(top: -6.0, leading: 0.0, bottom: -6.0, trailing: 0.0), context: context) { context in
+                Switch(modifier: context.modifier, checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, enabled: EnvironmentValues.shared.isEnabled, colors: colors)
+            }
         } else {
             let contentContext = context.content()
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     label.Compose(context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
-                    Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, enabled: EnvironmentValues.shared.isEnabled, colors: colors)
+                    PaddingLayout(padding: EdgeInsets(top: -6.0, leading: 0.0, bottom: -6.0, trailing: 0.0), context: context) { context in
+                        Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, enabled: EnvironmentValues.shared.isEnabled, colors: colors)
+                    }
                 }
             }
         }

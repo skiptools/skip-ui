@@ -769,10 +769,8 @@ extension View {
 
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .spacing) {
-            // Compose throws a runtime error for negative padding
-            $0.modifier = $0.modifier.padding(start: max(insets.leading, 0.0).dp, top: max(insets.top, 0.0).dp, end: max(insets.trailing, 0.0).dp, bottom: max(insets.bottom, 0.0).dp)
-            return ComposeResult.ok
+        return ComposeModifierView(contentView: self, role: .spacing) { view, context in
+            PaddingLayout(view: view, padding: insets, context: context)
         }
         #else
         return self
@@ -781,15 +779,20 @@ extension View {
 
     public func padding(_ edges: Edge.Set, _ length: CGFloat? = nil) -> some View {
         #if SKIP
-        let amount = max(length ?? CGFloat(16.0), CGFloat(0.0)).dp
-        let start = edges.contains(.leading) ? amount : 0.dp
-        let end = edges.contains(.trailing) ? amount : 0.dp
-        let top = edges.contains(.top) ? amount : 0.dp
-        let bottom = edges.contains(.bottom) ? amount : 0.dp
-        return ComposeModifierView(targetView: self, role: .spacing) {
-            $0.modifier = $0.modifier.padding(start: start, top: top, end: end, bottom: bottom)
-            return ComposeResult.ok
+        var padding = EdgeInsets()
+        if edges.contains(.top) {
+            padding.top = length ?? 16.0
         }
+        if edges.contains(.bottom) {
+            padding.bottom = length ?? 16.0
+        }
+        if edges.contains(.leading) {
+            padding.leading = length ?? 16.0
+        }
+        if edges.contains(.trailing) {
+            padding.trailing = length ?? 16.0
+        }
+        return padding(padding)
         #else
         return self
         #endif

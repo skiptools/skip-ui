@@ -1069,15 +1069,8 @@ Support levels:
       <td><code>.overlay</code> (<a href="https://skip.tools/docs/components/overlay/">example</a>)</td>
     </tr>
     <tr>
-      <td>🟢</td>
-      <td>
-          <details>
-              <summary><code>.padding</code></summary>
-              <ul>
-                  <li>Compose does not support negative padding</li>
-              </ul>
-          </details>      
-       </td>
+      <td>✅</td>
+      <td><code>.padding</code></td>
     </tr>
     <tr>
       <td>🟡</td>
