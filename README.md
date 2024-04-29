@@ -1005,6 +1005,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.multilineTextAlignment</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.navigationBarBackButtonHidden</code></td>
     </tr>
     <tr>

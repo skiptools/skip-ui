@@ -9,6 +9,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -238,7 +239,7 @@ struct _Text: View, Equatable {
         } else {
             textColor = EnvironmentValues.shared._placement.contains(ViewPlacement.systemTextColor) ? androidx.compose.ui.graphics.Color.Unspecified : Color.primary.colorImpl()
         }
-        let modifier = context.modifier
+        let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
         var style = font.fontImpl()
         // Trim the line height padding to mirror SwiftUI.Text layout. For now we only do this here on the Text component
@@ -249,9 +250,9 @@ struct _Text: View, Equatable {
         }
         let animatable = style.asAnimatable(context: context)
         if let textColor {
-            androidx.compose.material3.Text(text: text, modifier: modifier, color: textColor, maxLines: maxLines, style: animatable.value)
+            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
         } else {
-            androidx.compose.material3.Text(text: text, modifier: modifier, maxLines: maxLines, style: animatable.value)
+            androidx.compose.material3.Text(text: text, modifier: context.modifier, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
         }
     }
     #else
@@ -265,6 +266,17 @@ public enum TextAlignment : Hashable, CaseIterable, Sendable {
     case leading
     case center
     case trailing
+
+    #if SKIP
+    /// Convert this enum to a Compose `TextAlign` value.
+    public func asTextAlign() -> TextAlign {
+        return switch self {
+        case .leading: TextAlign.Start
+        case .center: TextAlign.Center
+        case .trailing: TextAlign.End
+        }
+    }
+    #endif
 }
 
 extension View {
@@ -376,9 +388,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func multilineTextAlignment(_ alignment: TextAlignment) -> some View {
+        #if SKIP
+        return environment(\.multilineTextAlignment, alignment)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

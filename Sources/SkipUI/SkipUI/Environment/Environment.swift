@@ -245,6 +245,11 @@ extension EnvironmentValues {
         }
     }
 
+    public var multilineTextAlignment: TextAlignment {
+        get { builtinValue(key: "multilineTextAlignment", defaultValue: { TextAlignment.leading }) as! TextAlignment }
+        set { setBuiltinValue(key: "multilineTextAlignment", value: newValue, defaultValue: { TextAlignment.leading }) }
+    }
+
     public var openURL: OpenURLAction {
         get {
             let uriHandler = LocalUriHandler.current
@@ -339,7 +344,6 @@ extension EnvironmentValues {
     var dynamicTypeSize: DynamicTypeSize
     var lineSpacing: CGFloat
     var minimumScaleFactor: CGFloat
-    var multilineTextAlignment: TextAlignment
     var textCase: Text.Case?
     var truncationMode: Text.TruncationMode
 
@@ -1775,28 +1779,6 @@ extension EnvironmentValues {
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension EnvironmentValues {
-
-    /// An environment value that indicates how a text view aligns its lines
-    /// when the content wraps or contains newlines.
-    ///
-    /// Set this value for a view hierarchy by applying the
-    /// ``View/multilineTextAlignment(_:)`` view modifier. Views in the
-    /// hierarchy that display text, like ``Text`` or ``TextEditor``, read the
-    /// value from the environment and adjust their text alignment accordingly.
-    ///
-    /// This value has no effect on a ``Text`` view that contains only one
-    /// line of text, because a text view has a width that exactly matches the
-    /// width of its widest line. If you want to align an entire text view
-    /// rather than its contents, set the aligment of its container, like a
-    /// ``VStack`` or a frame that you create with the
-    /// ``View/frame(minWidth:idealWidth:maxWidth:minHeight:idealHeight:maxHeight:alignment:)``
-    /// modifier.
-    ///
-    /// > Note: You can use this value to control the alignment of a ``Text``
-    ///   view that you create with the ``Text/init(_:style:)`` initializer
-    ///   to display localized dates and times, including when the view uses
-    ///   only a single line, but only when that view appears in a widget.
-    public var multilineTextAlignment: TextAlignment { get { fatalError() } }
 
     /// A value that indicates how the layout truncates the last line of text to
     /// fit into the available space.
