@@ -1323,6 +1323,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.toolbarColorScheme</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.toolbarTitleDisplayMode</code></td>
     </tr>
     <tr>

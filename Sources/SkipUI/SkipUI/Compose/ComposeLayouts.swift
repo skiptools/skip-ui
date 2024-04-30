@@ -109,17 +109,26 @@ import androidx.compose.ui.unit.dp
             dependent(context.content(modifier: modifier))
         }
     }) { measurables, constraints in
+        guard !measurables.isEmpty() else {
+            return layout(width: 0, height: 0) {}
+        }
         // Base layout entirely on the target view size
         let targetPlaceable = measurables[0].measure(constraints)
-        let dependentPlaceable = measurables[1].measure(Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height))
+        let dependentConstraints = Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height)
+        let dependentPlaceables = measurables.drop(1).map { $0.measure(dependentConstraints) }
         layout(width: targetPlaceable.width, height: targetPlaceable.height) {
-            let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
             if !isOverlay {
-                dependentPlaceable.placeRelative(x: x, y: y)
+                for dependentPlaceable in dependentPlaceables {
+                    let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                    dependentPlaceable.placeRelative(x: x, y: y)
+                }
             }
             targetPlaceable.placeRelative(x: 0, y: 0)
             if isOverlay {
-                dependentPlaceable.placeRelative(x: x, y: y)
+                for dependentPlaceable in dependentPlaceables {
+                    let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                    dependentPlaceable.placeRelative(x: x, y: y)
+                }
             }
         }
     }
@@ -176,13 +185,18 @@ import androidx.compose.ui.unit.dp
         Layout(content: {
             target(context)
         }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
             let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leadingPx + trailingPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
-            let targetPlaceable = measurables[0].measure(updatedConstraints)
-            layout(width: targetPlaceable.width, height: targetPlaceable.height) {
+            let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
+            layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
                 // Layout will center extra space by default
                 let relativeTopPx = topPx - ((topPx + bottomPx) / 2)
                 let relativeLeadingPx = leadingPx - ((leadingPx + trailingPx) / 2)
-                targetPlaceable.placeRelative(x = -relativeLeadingPx, y = -relativeTopPx)
+                for targetPlaceable in targetPlaceables {
+                    targetPlaceable.placeRelative(x = -relativeLeadingPx, y = -relativeTopPx)
+                }
             }
         }
     }
@@ -202,10 +216,15 @@ import androidx.compose.ui.unit.dp
     Layout(modifier: context.modifier, content = {
         target(context.content())
     }) { measurables, constraints in
+        guard !measurables.isEmpty() else {
+            return layout(width: 0, height: 0) {}
+        }
         let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
-        let targetPlaceable = measurables[0].measure(updatedConstraints)
-        layout(width: targetPlaceable.width + leadingPx + trailingPx, height: targetPlaceable.height + topPx + bottomPx) {
-            targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+        let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
+        layout(width: targetPlaceables[0].width + leadingPx + trailingPx, height: targetPlaceables[0].height + topPx + bottomPx) {
+            for targetPlaceable in targetPlaceables {
+                targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+            }
         }
     }
 }

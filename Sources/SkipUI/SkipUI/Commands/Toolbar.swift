@@ -217,9 +217,20 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View {
+        #if SKIP
+        // SKIP REPLACE: var view = this
+        var view = self
+        if bars.contains(ToolbarPlacement.tabBar) {
+            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(colorScheme: colorScheme))
+        }
+        if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+            view = view.preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(colorScheme: colorScheme, for: bars))
+        }
+        return view
+        #else
         return self
+        #endif
     }
 
     public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View {
@@ -275,8 +286,8 @@ struct ToolbarPreferences: Equatable {
         self.bottomBar = bottomBar
     }
 
-    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, for bars: [ToolbarPlacement]) {
-        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility)
+    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, for bars: [ToolbarPlacement]) {
+        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, colorScheme: colorScheme)
         var navigationBar: ToolbarBarPreferences? = nil
         var bottomBar: ToolbarBarPreferences? = nil
         for bar in bars {
@@ -332,14 +343,15 @@ struct ToolbarBarPreferences: Equatable {
     let visibility: Visibility?
     let background: ShapeStyle?
     let backgroundVisibility: Visibility?
+    let colorScheme: ColorScheme?
 
     func reduce(_ next: ToolbarBarPreferences) -> ToolbarBarPreferences {
-        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility)
+        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, colorScheme: next.colorScheme ?? colorScheme)
     }
 
     public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
         // Don't compare on background because it will never compare equal
-        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil)
+        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme
     }
 }
 

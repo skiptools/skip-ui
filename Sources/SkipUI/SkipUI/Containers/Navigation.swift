@@ -233,76 +233,79 @@ public struct NavigationStack<Root> : View where Root: View {
                     return
                 }
             }
-            let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-            let placement = EnvironmentValues.shared._placement
-            EnvironmentValues.shared.setValues {
-                $0.set_placement(placement.union(ViewPlacement.toolbar))
-                $0.set_tint(tint)
-            } in: {
-                let interactionSource = remember { MutableInteractionSource() }
-                var topBarModifier = Modifier.zIndex(Float(1.1))
-                    .clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                        scrollToTop.value?()
-                    })
-                    .onGloballyPositioned {
-                        let bottomPx = $0.boundsInWindow().bottom
-                        if bottomPx > Float(0.0) { // Sometimes we see random 0 values
-                            topBarBottomPx.value = bottomPx
-                        }
-                    }
-                let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-                    topBarBackgroundColor = Color.clear.colorImpl()
-                } else if let background = topBarPreferences?.background {
-                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                        topBarBackgroundColor = color
-                    } else {
-                        topBarBackgroundColor = Color.clear.colorImpl()
-                        if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                            topBarModifier = topBarModifier.background(brush)
-                        }
-                    }
-                } else {
-                    topBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                }
-                let topBarColors = TopAppBarDefaults.topAppBarColors(
-                    containerColor: topBarBackgroundColor,
-                    scrolledContainerColor: topBarBackgroundColor,
-                    titleContentColor: MaterialTheme.colorScheme.onSurface
-                )
-                let topBarTitle: @Composable () -> Void = {
-                    androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                }
-                let topBarNavigationIcon: @Composable () -> Void = {
-                    let hasBackButton = !isRoot && toolbarPreferences.value.backButtonHidden != true
-                    if hasBackButton || !topLeadingItems.isEmpty {
-                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                        Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                            if hasBackButton {
-                                IconButton(onClick: {
-                                    navigator.value.navigateBack()
-                                }) {
-                                    let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                                    Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
-                                }
+            let materialColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+            MaterialTheme(colorScheme: materialColorScheme) {
+                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                let placement = EnvironmentValues.shared._placement
+                EnvironmentValues.shared.setValues {
+                    $0.set_placement(placement.union(ViewPlacement.toolbar))
+                    $0.set_tint(tint)
+                } in: {
+                    let interactionSource = remember { MutableInteractionSource() }
+                    var topBarModifier = Modifier.zIndex(Float(1.1))
+                        .clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                            scrollToTop.value?()
+                        })
+                        .onGloballyPositioned {
+                            let bottomPx = $0.boundsInWindow().bottom
+                            if bottomPx > Float(0.0) { // Sometimes we see random 0 values
+                                topBarBottomPx.value = bottomPx
                             }
-                            topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                        }
+                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                        topBarBackgroundColor = Color.clear.colorImpl()
+                    } else if let background = topBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            topBarBackgroundColor = color
+                        } else {
+                            topBarBackgroundColor = Color.clear.colorImpl()
+                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                                topBarModifier = topBarModifier.background(brush)
+                            }
+                        }
+                    } else {
+                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    }
+                    let topBarColors = TopAppBarDefaults.topAppBarColors(
+                        containerColor: topBarBackgroundColor,
+                        scrolledContainerColor: topBarBackgroundColor,
+                        titleContentColor: MaterialTheme.colorScheme.onSurface
+                    )
+                    let topBarTitle: @Composable () -> Void = {
+                        androidx.compose.material3.Text(title.value.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                    }
+                    let topBarNavigationIcon: @Composable () -> Void = {
+                        let hasBackButton = !isRoot && toolbarPreferences.value.backButtonHidden != true
+                        if hasBackButton || !topLeadingItems.isEmpty {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                if hasBackButton {
+                                    IconButton(onClick: {
+                                        navigator.value.navigateBack()
+                                    }) {
+                                        let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                                        Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
+                                    }
+                                }
+                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                            }
                         }
                     }
-                }
-                let topBarActions: @Composable () -> Void = {
-                    let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                    topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
-                }
-                if isInlineTitleDisplayMode {
-                    TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
-                } else {
-                    // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
-                    let typography = MaterialTheme.typography
-                    let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
-                    let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
-                    MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
-                        MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    let topBarActions: @Composable () -> Void = {
+                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                        topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                    }
+                    if isInlineTitleDisplayMode {
+                        TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                    } else {
+                        // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
+                        let typography = MaterialTheme.typography
+                        let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
+                        let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
+                        MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
+                            MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                        }
                     }
                 }
             }
@@ -319,42 +322,45 @@ public struct NavigationStack<Root> : View where Root: View {
                 bottomBarTopPx.value = Float(0.0)
                 return
             }
-            let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-            let placement = EnvironmentValues.shared._placement
-            EnvironmentValues.shared.setValues {
-                $0.set_tint(tint)
-                $0.set_placement(placement.union(ViewPlacement.toolbar))
-            } in: {
-                var bottomBarModifier = Modifier.zIndex(Float(1.1))
-                    .onGloballyPositioned {
-                        bottomBarTopPx.value = $0.boundsInWindow().top
-                    }
-                let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
-                if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
-                    bottomBarBackgroundColor = Color.clear.colorImpl()
-                } else if let background = bottomBarPreferences?.background {
-                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                        bottomBarBackgroundColor = color
-                    } else {
+            let materialColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+            MaterialTheme(colorScheme: materialColorScheme) {
+                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                let placement = EnvironmentValues.shared._placement
+                EnvironmentValues.shared.setValues {
+                    $0.set_tint(tint)
+                    $0.set_placement(placement.union(ViewPlacement.toolbar))
+                } in: {
+                    var bottomBarModifier = Modifier.zIndex(Float(1.1))
+                        .onGloballyPositioned {
+                            bottomBarTopPx.value = $0.boundsInWindow().top
+                        }
+                    let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
                         bottomBarBackgroundColor = Color.clear.colorImpl()
-                        if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                            bottomBarModifier = bottomBarModifier.background(brush)
+                    } else if let background = bottomBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            bottomBarBackgroundColor = color
+                        } else {
+                            bottomBarBackgroundColor = Color.clear.colorImpl()
+                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
+                                bottomBarModifier = bottomBarModifier.background(brush)
+                            }
                         }
+                    } else {
+                        bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
                     }
-                } else {
-                    bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                }
-                BottomAppBar(modifier: bottomBarModifier,
-                    containerColor: bottomBarBackgroundColor,
-                    contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
-                    windowInsets = WindowInsets(bottom: 0.dp)) {
-                    // Use an HStack so that it sets up the environment for bottom toolbar Spacers
-                    HStack(spacing: 24.0) {
-                        ComposeBuilder { itemContext in
-                            bottomItems.forEach { $0.Compose(context: itemContext) }
-                            return ComposeResult.ok
-                        }
-                    }.Compose(context.content())
+                    BottomAppBar(modifier: bottomBarModifier,
+                                 containerColor: bottomBarBackgroundColor,
+                                 contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
+                                 windowInsets = WindowInsets(bottom: 0.dp)) {
+                        // Use an HStack so that it sets up the environment for bottom toolbar Spacers
+                        HStack(spacing: 24.0) {
+                            ComposeBuilder { itemContext in
+                                bottomItems.forEach { $0.Compose(context: itemContext) }
+                                return ComposeResult.ok
+                            }
+                        }.Compose(context.content())
+                    }
                 }
             }
         }

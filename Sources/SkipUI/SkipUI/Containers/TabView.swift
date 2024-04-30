@@ -119,11 +119,13 @@ public struct TabView : View {
                         bottomBarTopPx.value = topPx
                     }
                 }
+            let colorScheme = tabBarPreferences.value.colorScheme ?? ColorScheme.fromMaterialTheme()
+            let indicatorColor = colorScheme == .dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.2)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2))
             let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
             let tabBarItemColors: NavigationBarItemColors
             if tabBarPreferences.value.backgroundVisibility == Visibility.hidden {
                 tabBarBackgroundColor = Color.clear.colorImpl()
-                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
+                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
             } else if let background = tabBarPreferences.value.background {
                 if let color = background.asColor(opacity: 1.0, animationContext: nil) {
                     tabBarBackgroundColor = color
@@ -133,28 +135,31 @@ public struct TabView : View {
                         tabBarModifier = tabBarModifier.background(brush)
                     }
                 }
-                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2)))
+                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
             } else {
                 tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
                 tabBarItemColors = NavigationBarItemDefaults.colors()
             }
-            NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
-                for tabIndex in 0..<tabViews.count {
-                    let route = String(describing: tabIndex)
-                    let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
-                    NavigationBarItem(
-                        colors: tabBarItemColors,
-                        icon: { tabItem?.ComposeImage(context: tabItemContext) },
-                        label: { tabItem?.ComposeTitle(context: tabItemContext) },
-                        selected: route == currentRoute,
-                        onClick: {
-                            if let selection, let tagValue = tagValue(route: route, in: tabViews) {
-                                selection.wrappedValue = tagValue
-                            } else {
-                                navigate(controller: navController, route: route)
+            let materialColorScheme = tabBarPreferences.value.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+            MaterialTheme(colorScheme: materialColorScheme) {
+                NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
+                    for tabIndex in 0..<tabViews.count {
+                        let route = String(describing: tabIndex)
+                        let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+                        NavigationBarItem(
+                            colors: tabBarItemColors,
+                            icon: { tabItem?.ComposeImage(context: tabItemContext) },
+                            label: { tabItem?.ComposeTitle(context: tabItemContext) },
+                            selected: route == currentRoute,
+                            onClick: {
+                                if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                                    selection.wrappedValue = tagValue
+                                } else {
+                                    navigate(controller: navController, route: route)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
