@@ -9,7 +9,7 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-public final class ForEach : View, ListItemFactory {
+public final class ForEach : View, LazyItemFactory {
     let identifier: ((Any) -> AnyHashable)?
     let indexRange: Range<Int>?
     let indexedContent: ((Int) -> any View)?
@@ -45,8 +45,8 @@ public final class ForEach : View, ListItemFactory {
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
         // We typically want to be transparent and act as though our loop were unrolled. The exception is when we need
-        // to act as a list item factory
-        if context.composer is ListItemCollectingComposer {
+        // to act as a lazy item factory
+        if context.composer is LazyItemCollectingComposer {
             return super.Compose(context: context)
         } else {
             ComposeContent(context: context)
@@ -98,16 +98,16 @@ public final class ForEach : View, ListItemFactory {
         }
     }
 
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        // ForEach views might or might not contain nested list item factories such as Sections or other ForEach instances.
+    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
+        // ForEach views might or might not contain nested lazy item factories such as Sections or other ForEach instances.
         // We execute our content closure for the first item in the ForEach and examine its content to see if it contains
-        // list item factories. If it does, we perform the full ForEach to append all items so that they can be expanded.
+        // lazy item factories. If it does, we perform the full ForEach to append all items so that they can be expanded.
         // If not, we append ourselves instead so that we can take advantage of Compose's ability to specify ranges of items
         var isFirstView = true
         if let indexRange {
             for index in indexRange {
                 let contentView = indexedContent!(index)
-                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
@@ -118,7 +118,7 @@ public final class ForEach : View, ListItemFactory {
         } else if let objects {
             for object in objects {
                 let contentView = objectContent!(object)
-                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
@@ -129,7 +129,7 @@ public final class ForEach : View, ListItemFactory {
         } else if let objectsBinding {
             for i in 0..<objectsBinding.wrappedValue.count {
                 let contentView = objectsBindingContent!(objectsBinding, i)
-                if !appendContentAsListItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
@@ -141,18 +141,18 @@ public final class ForEach : View, ListItemFactory {
         return ComposeResult.ok
     }
 
-    @Composable private func appendContentAsListItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {
+    @Composable private func appendContentAsLazyItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {
         guard isFirstView else {
             return true
         }
         if let composeBuilder = contentView as? ComposeBuilder {
-            return composeBuilder.collectViews(context: context).contains { $0 is ListItemFactory }
+            return composeBuilder.collectViews(context: context).contains { $0 is LazyItemFactory }
         } else {
-            return contentView is ListItemFactory
+            return contentView is LazyItemFactory
         }
     }
 
-    override func composeListItems(context: ListItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext) {
         if let indexRange {
             context.indexedItems(indexRange, identifier, onDeleteAction, onMoveAction, indexedContent!)
         } else if let objects {

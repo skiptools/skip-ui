@@ -512,6 +512,30 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>LazyHStack</code></summary>
+              <ul>
+                  <li><code>init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View)</code></li>
+                  <li>Always assumes it is the only child of a horizontally-scrolling <code>ScrollView</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>LazyVStack</code></summary>
+              <ul>
+                  <li><code>init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View)</code></li>
+                  <li>Always assumes it is the only child of a vertically-scrolling <code>ScrollView</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>LinearGradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</td>
     </tr>

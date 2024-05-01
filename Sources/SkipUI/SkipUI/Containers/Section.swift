@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Erase generics to facilitate specialized constructor support.
-public struct Section : View, ListItemFactory {
+public struct Section : View, LazyItemFactory {
     let header: ComposeBuilder?
     let footer: ComposeBuilder?
     let content: ComposeBuilder
@@ -66,14 +66,14 @@ public struct Section : View, ListItemFactory {
         content.Compose(context: context)
     }
 
-    @Composable func appendListItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        views.add(ListSectionHeader(content: header ?? EmptyView()))
+    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
+        views.add(LazySectionHeader(content: header ?? EmptyView()))
         content.Compose(context: appendingContext)
-        views.add(ListSectionFooter(content: footer ?? EmptyView()))
+        views.add(LazySectionFooter(content: footer ?? EmptyView()))
         return ComposeResult.ok
     }
 
-    override func composeListItems(context: ListItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext) {
         // Not called because the section does not append itself as a list item view
     }
     #else

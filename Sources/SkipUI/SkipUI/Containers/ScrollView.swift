@@ -29,10 +29,14 @@ public struct ScrollView : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
+        // Some components in Compose have their own scrolling built in, so we'll look for them
+        // below before adding our scrolling modifiers
+        let firstView = content.collectViews(context: context).first?.strippingModifiers { $0 }
+
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
         var scrollModifier: Modifier = Modifier
-        if axes.contains(.vertical) {
+        if axes.contains(.vertical) && !(firstView is LazyVStack) {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
@@ -43,7 +47,7 @@ public struct ScrollView : View {
                 })
             }
         }
-        if axes.contains(.horizontal) {
+        if axes.contains(.horizontal) && !(firstView is LazyHStack) {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
         }
         let contentContext = context.content()
