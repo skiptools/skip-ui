@@ -445,7 +445,7 @@ Support levels:
           <details>
               <summary><code>ForEach</code></summary>
               <ul>
-                  <li>See <a href="#lists">Lists</a></li>
+                  <li>See <a href="#foreach">ForEach</a></li>
               </ul>
           </details>      
        </td>
@@ -517,8 +517,19 @@ Support levels:
           <details>
               <summary><code>LazyHStack</code></summary>
               <ul>
-                  <li><code>init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View)</code></li>
-                  <li>Always assumes it is the only child of a horizontally-scrolling <code>ScrollView</code></li>
+                  <li>Does not support pinned headers and footers</li>
+                  <li>When placed in a <code>ScrollView</code>, it must be the only child of that view</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>LazyVGrid</code></summary>
+              <ul>
+                  <li>See <a href="#grids">Grids</a></li>
               </ul>
           </details>      
        </td>
@@ -529,8 +540,8 @@ Support levels:
           <details>
               <summary><code>LazyVStack</code></summary>
               <ul>
-                  <li><code>init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View)</code></li>
-                  <li>Always assumes it is the only child of a vertically-scrolling <code>ScrollView</code></li>
+                  <li>Does not support pinned headers and footers</li>
+                  <li>When placed in a <code>ScrollView</code>, it must be the only child of that view</li>
               </ul>
           </details>      
        </td>
@@ -1448,6 +1459,22 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `openURL`
 - `timeZone`
 
+### ForEach
+
+The SwiftUI `ForEach` view allows you to generate views for a range or collection of content. SkipUI support any `Int` range or any `RandomAccessCollection`. If the collection elements do not implement the `Identifiable` protocol, specify the key path to a property that can be used to uniquely identify each element. These `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
+
+```swift
+ForEach([person1, person2, person3], id: \.fullName) { person in
+    HStack {
+        Text(person.fullName)
+        Spacer()
+        Text(person.age)
+    } 
+}
+```
+
+**Important**: When the body of your `ForEach` contains multiple top-level views (e.g. a full row of a `VGrid`), or any single view that expands to additional views (like a `Section` or a nested `ForEach`), SkipUI must "unroll" the loop in order to supply all its views individually to Compose. This means that the `ForEach` will be entirely iterated up front, though the views it produces won't yet be rendered.
+
 ### Gestures
 
 SkipUI currently supports tap, long press, and drag gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
@@ -1461,6 +1488,16 @@ SkipUI currently supports tap, long press, and drag gestures. You can use either
 #### Shapes and Paths
 
 SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed on a custom shape.
+
+### Grids
+
+SkipUI renders SwiftUI grid views using native Compose grids. This provides maximum performance and a native feel on Android. The different capabilities of SwiftUI and Compose grids, however, imposes restrictions on SwiftUI grid support in Android:
+
+- Pinned headers and footers are not supported.
+- When you place a `LazyHGrid` or `LazyVGrid` in a `ScrollView`, it must be the only child of that view.
+- When you define your grid with an array of `GridItem` specs, your Android grid is **based on the first `GridItem`**. Compose does not support different specs for different rows or columns, so SkipUI applies the first spec to all of them.
+- Maximum `GridItem` sizes are ignored.
+- Also see the `ForEach` [topic](#foreach).
 
 ### Images
 
@@ -1631,7 +1668,9 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
 - Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
 - `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
+- Nesting of `ForEach` and `Section` views is limited.
 - SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
+- See also the `ForEach` view [topic](#foreach).
 
 ### Navigation
 

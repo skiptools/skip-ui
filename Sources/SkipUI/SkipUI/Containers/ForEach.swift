@@ -58,98 +58,94 @@ public final class ForEach : View, LazyItemFactory {
         let isTagging = EnvironmentValues.shared._placement.contains(ViewPlacement.tagged)
         if let indexRange {
             for index in indexRange {
-                var view = indexedContent!(index)
+                var views = collectViews(from: indexedContent!(index), context: context)
                 if isTagging {
-                    view = taggedView(for: view, defaultTag: index, context: context)
+                    views = taggedViews(for: views, defaultTag: index, context: context)
                 }
-                view.Compose(context: context)
+                views.forEach { $0.Compose(context: context) }
             }
         } else if let objects {
             for object in objects {
-                var view = objectContent!(object)
+                var views = collectViews(from: objectContent!(object), context: context)
                 if isTagging, let identifier {
-                    view = taggedView(for: view, defaultTag: identifier(object), context: context)
+                    views = taggedViews(for: views, defaultTag: identifier(object), context: context)
                 }
-                view.Compose(context: context)
+                views.forEach { $0.Compose(context: context) }
             }
         } else if let objectsBinding {
             let objects = objectsBinding.wrappedValue
             for i in 0..<objects.count {
-                var view = objectsBindingContent!(objectsBinding, i)
+                var views = collectViews(from: objectsBindingContent!(objectsBinding, i), context: context)
                 if isTagging, let identifier {
-                    view = taggedView(for: view, defaultTag: identifier(objects[i]), context: context)
+                    views = taggedViews(for: views, defaultTag: identifier(objects[i]), context: context)
                 }
-                view.Compose(context: context)
+                views.forEach { $0.Compose(context: context) }
             }
         }
     }
 
-    @Composable private func taggedView(for view: any View, defaultTag: Any, context: ComposeContext) -> TagModifierView {
-        let contentView: View
-        if let composeBuilder = view as? ComposeBuilder {
-            contentView = composeBuilder.collectViews(context: context).first ?? view
-        } else {
-            contentView = view
-        }
-        if let taggedView = TagModifierView.strip(from: contentView, role: ComposeModifierRole.tag) {
-            return taggedView
-        } else {
-            return TagModifierView(view: view, value: defaultTag, role: ComposeModifierRole.tag)
+    @Composable private func taggedViews(for views: [View], defaultTag: Any, context: ComposeContext) -> [View] {
+        return views.map { view in
+            if let taggedView = TagModifierView.strip(from: view, role: ComposeModifierRole.tag) {
+                return taggedView
+            } else {
+                return TagModifierView(view: view, value: defaultTag, role: ComposeModifierRole.tag)
+            }
         }
     }
 
     @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        // ForEach views might or might not contain nested lazy item factories such as Sections or other ForEach instances.
-        // We execute our content closure for the first item in the ForEach and examine its content to see if it contains
-        // lazy item factories. If it does, we perform the full ForEach to append all items so that they can be expanded.
-        // If not, we append ourselves instead so that we can take advantage of Compose's ability to specify ranges of items
+        // ForEach views might contain nested lazy item factories such as Sections or other ForEach instances. They also
+        // might contain more than one view per iteration, which isn't supported by Compose lazy processing. We execute
+        // our content closure for the first item in the ForEach and examine its content to see if it should be unrolled
+        // If it should, we perform the full ForEach to append all items. If not, we append ourselves instead so that we
+        // can take advantage of Compose's ability to specify ranges of items
         var isFirstView = true
         if let indexRange {
             for index in indexRange {
-                let contentView = indexedContent!(index)
-                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                let contentViews = collectViews(from: indexedContent!(index), context: appendingContext)
+                if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
-                contentView.Compose(appendingContext)
+                contentViews.forEach { $0.Compose(appendingContext) }
             }
         } else if let objects {
             for object in objects {
-                let contentView = objectContent!(object)
-                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                let contentViews = collectViews(from: objectContent!(object), context: appendingContext)
+                if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
-                contentView.Compose(appendingContext)
+                contentViews.forEach { $0.Compose(appendingContext) }
             }
         } else if let objectsBinding {
             for i in 0..<objectsBinding.wrappedValue.count {
-                let contentView = objectsBindingContent!(objectsBinding, i)
-                if !appendContentAsLazyItemViewFactories(contentView: contentView, isFirstView: isFirstView, context: appendingContext) {
+                let contentViews = collectViews(from: objectsBindingContent!(objectsBinding, i), context: appendingContext)
+                if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
-                contentView.Compose(appendingContext)
+                contentViews.forEach { $0.Compose(appendingContext) }
             }
         }
         return ComposeResult.ok
     }
 
-    @Composable private func appendContentAsLazyItemViewFactories(contentView: View, isFirstView: Bool, context: ComposeContext) -> Bool {
+    @Composable private func isUnrollRequired(contentViews: [View], isFirstView: Bool, context: ComposeContext) -> Bool {
+        // If we're past the first view where we make the unroll decision, we must be unrolling
         guard isFirstView else {
             return true
         }
-        if let composeBuilder = contentView as? ComposeBuilder {
-            return composeBuilder.collectViews(context: context).contains { $0 is LazyItemFactory }
-        } else {
-            return contentView is LazyItemFactory
-        }
+        // We have to unroll if the ForEach body contains multiple views. We also unroll if this is
+        // e.g. a ForEach of Sections which each append lazy items
+        return contentViews.count > 1 || contentViews.first is LazyItemFactory
     }
 
     override func composeLazyItems(context: LazyItemFactoryContext) {
@@ -160,6 +156,10 @@ public final class ForEach : View, LazyItemFactory {
         } else if let objectsBinding {
             context.objectBindingItems(objectsBinding, identifier!, editActions, onDeleteAction, onMoveAction, objectsBindingContent!)
         }
+    }
+
+    @Composable private func collectViews(from view: any View, context: ComposeContext) -> [View] {
+        return (view as? ComposeBuilder)?.collectViews(context: context) ?? [view]
     }
     #else
     public var body: some View {

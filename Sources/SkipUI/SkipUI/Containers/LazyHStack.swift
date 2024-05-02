@@ -18,14 +18,7 @@ public struct LazyHStack : View {
     let spacing: CGFloat?
     let content: ComposeBuilder
 
-    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
-        self.alignment = alignment
-        self.spacing = spacing
-        self.content = ComposeBuilder.from(content)
-    }
-
-    @available(*, unavailable)
-    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, pinnedViews: PinnedScrollableViews, @ViewBuilder content: () -> any View) {
+    public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, pinnedViews: PinnedScrollableViews = [], @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
@@ -33,15 +26,7 @@ public struct LazyHStack : View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
-        let rowAlignment: androidx.compose.ui.Alignment.Vertical
-        switch alignment {
-        case .bottom:
-            rowAlignment = androidx.compose.ui.Alignment.Bottom
-        case .top:
-            rowAlignment = androidx.compose.ui.Alignment.Top
-        default:
-            rowAlignment = androidx.compose.ui.Alignment.CenterVertically
-        }
+        let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
         let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.horizontal)
 
@@ -67,21 +52,18 @@ public struct LazyHStack : View {
                         let count = range.endExclusive - range.start
                         let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                         items(count: count, key: key) { index in
-                            let keyValue = key?(index + range.start) // Key closure already remaps index
                             factory(index + range.start).Compose(context: itemContext)
                         }
                     },
                     objectItems: { objects, identifier, _, _, _, factory in
                         let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                         items(count: objects.count, key: key) { index in
-                            let keyValue = key(index) // Key closure already remaps index
                             factory(objects[index]).Compose(context: itemContext)
                         }
                     },
                     objectBindingItems: { objectsBinding, identifier, _, _, _, _, factory in
                         let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                         items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                            let keyValue = key(index) // Key closure already remaps index
                             factory(objectsBinding, index).Compose(context: itemContext)
                         }
                     },

@@ -24,12 +24,24 @@ public struct HorizontalAlignment : Equatable, Sendable {
     public func combineExplicit(_ values: any Sequence<CGFloat?>) -> CGFloat? {
         fatalError()
     }
-}
 
-extension HorizontalAlignment {
     public static let leading: HorizontalAlignment = HorizontalAlignment(key: "leading")
     public static let center: HorizontalAlignment = HorizontalAlignment(key: "center")
     public static let trailing: HorizontalAlignment = HorizontalAlignment(key: "trailing")
     public static let listRowSeparatorLeading = HorizontalAlignment(key: "listRowSeparatorLeading")
     public static let listRowSeparatorTrailing = HorizontalAlignment(key: "listRowSeparatorTrailing")
+
+    #if SKIP
+    /// Return the equivalent Compose alignment.
+    public func asComposeAlignment() -> androidx.compose.ui.Alignment.Horizontal {
+        switch self {
+        case .leading:
+            return androidx.compose.ui.Alignment.Start
+        case .trailing:
+            return androidx.compose.ui.Alignment.End
+        default:
+            return androidx.compose.ui.Alignment.CenterHorizontally
+        }
+    }
+    #endif
 }

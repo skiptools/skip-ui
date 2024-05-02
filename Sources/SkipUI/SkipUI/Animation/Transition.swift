@@ -385,7 +385,7 @@ public struct OffsetTransition : Transition {
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
-        let intOffset = with (LocalDensity.current) { IntOffset(Int(offset.width.dp.toPx()), Int(offset.height.dp.toPx())) }
+        let intOffset = with (LocalDensity.current) { IntOffset(offset.width.dp.roundToPx(), offset.height.dp.roundToPx()) }
         if spec is FiniteAnimationSpec {
             return slideIn(animationSpec: spec as! FiniteAnimationSpec<IntOffset>, initialOffset: { _ in intOffset })
         } else {
@@ -394,7 +394,7 @@ public struct OffsetTransition : Transition {
     }
 
     @Composable public func asExitTransition(spec: AnimationSpec<Any>) -> ExitTransition {
-        let intOffset = with (LocalDensity.current) { IntOffset(Int(offset.width.dp.toPx()), Int(offset.height.dp.toPx())) }
+        let intOffset = with (LocalDensity.current) { IntOffset(offset.width.dp.roundToPx(), offset.height.dp.roundToPx()) }
         if spec is FiniteAnimationSpec {
             return slideOut(animationSpec: spec as! FiniteAnimationSpec<IntOffset>, targetOffset: { _ in intOffset })
         } else {

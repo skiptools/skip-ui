@@ -37,16 +37,17 @@ public struct VStack : View {
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let columnAlignment: androidx.compose.ui.Alignment.Horizontal
-        switch alignment {
-        case .leading:
-            columnAlignment = androidx.compose.ui.Alignment.Start
-        case .trailing:
-            columnAlignment = androidx.compose.ui.Alignment.End
-        default:
-            columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+        let columnAlignment = alignment.asComposeAlignment()
+        let composer: VStackComposer?
+        let columnArrangement: Arrangement.Vertical
+        if let spacing {
+            composer = nil
+            columnArrangement = Arrangement.spacedBy(spacing.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
+        } else {
+            composer = VStackComposer()
+            columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
-
+        
         let views = content.collectViews(context: context)
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
@@ -57,16 +58,6 @@ public struct VStack : View {
         rememberedNewIds.addAll(newIds)
         rememberedIds.clear()
         rememberedIds.addAll(ids)
-
-        let composer: VStackComposer?
-        let columnArrangement: Arrangement.Vertical
-        if let spacing {
-            composer = nil
-            columnArrangement = Arrangement.spacedBy(spacing.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
-        } else {
-            composer = VStackComposer()
-            columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
-        }
 
         if ids.count < views.count {
             rememberedNewIds.clear()

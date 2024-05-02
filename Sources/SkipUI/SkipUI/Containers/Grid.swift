@@ -4,11 +4,53 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.ui.unit.dp
+#else
+import struct CoreGraphics.CGFloat
+#endif
+
+public struct GridItem : Sendable {
+    public enum Size : Sendable {
+        case fixed(CGFloat)
+        case flexible(minimum: CGFloat = 10.0, maximum: CGFloat = .infinity)
+        case adaptive(minimum: CGFloat, maximum: CGFloat = .infinity)
+    }
+
+    public var size: GridItem.Size
+    public var spacing: CGFloat?
+    public var alignment: Alignment?
+
+    public init(_ size: GridItem.Size = .flexible(), spacing: CGFloat? = nil, alignment: Alignment? = nil) {
+        self.size = size
+        self.spacing = spacing
+        self.alignment = alignment
+    }
+
+    #if SKIP
+    static func asGridCells(items: [GridItem]) -> (GridCells, alignment: Alignment?, spacing: Double?) {
+        guard !items.isEmpty else {
+            return (GridCells.Fixed(count: 1), alignment: nil, spacing: nil)
+        }
+        // There is no way to match the flexibility of SwiftUI grid specs, which can mix styles. We use the first style
+        let gridCells = switch items[0].size {
+        case .adaptive(let minimum, let maximum):
+            GridCells.Adaptive(minSize: minimum.dp)
+        case .fixed(let size):
+            GridCells.FixedSize(size: size.dp)
+        case .flexible(let minimum, let maximum):
+            GridCells.Fixed(count: items.count)
+        }
+        return (gridCells, items[0].alignment, items[0].spacing)
+    }
+    #endif
+}
 
 #if false
 
-import struct CoreGraphics.CGFloat
+// TODO: Process for use in SkipUI
+
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 
@@ -257,109 +299,6 @@ import struct CoreGraphics.CGSize
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Grid : View {
     public var body: Body { fatalError() }
-}
-
-/// A description of a row or a column in a lazy grid.
-///
-/// Use an array of `GridItem` instances to configure the layout of items in
-/// a lazy grid. Each grid item in the array specifies layout properties like
-/// size and spacing for the rows of a ``LazyHGrid`` or the columns of
-/// a ``LazyVGrid``. The following example defines four rows for a
-/// horizontal grid, each with different characteristics:
-///
-///     struct GridItemDemo: View {
-///         let rows = [
-///             GridItem(.fixed(30), spacing: 1),
-///             GridItem(.fixed(60), spacing: 10),
-///             GridItem(.fixed(90), spacing: 20),
-///             GridItem(.fixed(10), spacing: 50)
-///         ]
-///
-///         var body: some View {
-///             ScrollView(.horizontal) {
-///                 LazyHGrid(rows: rows, spacing: 5) {
-///                     ForEach(0...300, id: \.self) { _ in
-///                         Color.red.frame(width: 30)
-///                         Color.green.frame(width: 30)
-///                         Color.blue.frame(width: 30)
-///                         Color.yellow.frame(width: 30)
-///                     }
-///                 }
-///             }
-///         }
-///     }
-///
-/// A lazy horizontal grid sets the width of each column based on the widest
-/// cell in the column. It can do this because it has access to all of the views
-/// in a given column at once. In the example above, the ``Color`` views always
-/// have the same fixed width, resulting in a uniform column width across the
-/// whole grid.
-///
-/// However, a lazy horizontal grid doesn't generally have access to all the
-/// views in a row, because it generates new cells as people scroll through
-/// information in your app. Instead, it relies on a grid item for information
-/// about each row. The example above indicates a different fixed height for
-/// each row, and sets a different amount of spacing to appear after each row:
-///
-/// ![A screenshot of a grid of rectangles arranged in four rows and a large
-/// number of colums. All the rectangles are the same width, and have a uniform
-/// horizontal spacing. The rectangles in a given row are the same height as
-/// each other, but different than the rectangles in other rows. The vertical
-/// spacing between rows also varies.](GridItem-1-iOS)
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct GridItem : Sendable {
-
-    /// The size in the minor axis of one or more rows or columns in a grid
-    /// layout.
-    ///
-    /// Use a `Size` instance when you create a ``GridItem``. The value tells a
-    /// ``LazyHGrid`` how to size its rows, or a ``LazyVGrid`` how to size
-    /// its columns.
-    public enum Size : Sendable {
-
-        /// A single item with the specified fixed size.
-        case fixed(CGFloat)
-
-        /// A single flexible item.
-        ///
-        /// The size of this item is the size of the grid with spacing and
-        /// inflexible items removed, divided by the number of flexible items,
-        /// clamped to the provided bounds.
-        case flexible(minimum: CGFloat = 10, maximum: CGFloat = .infinity)
-
-        /// Multiple items in the space of a single flexible item.
-        ///
-        /// This size case places one or more items into the space assigned to
-        /// a single `flexible` item, using the provided bounds and
-        /// spacing to decide exactly how many items fit. This approach prefers
-        /// to insert as many items of the `minimum` size as possible
-        /// but lets them increase to the `maximum` size.
-        case adaptive(minimum: CGFloat, maximum: CGFloat = .infinity)
-    }
-
-    /// The size of the item, which is the width of a column item or the
-    /// height of a row item.
-    public var size: GridItem.Size { get { fatalError() } }
-
-    /// The spacing to the next item.
-    ///
-    /// If this value is `nil`, the item uses a reasonable default for the
-    /// current platform.
-    public var spacing: CGFloat?
-
-    /// The alignment to use when placing each view.
-    ///
-    /// Use this property to anchor the view's relative position to the same
-    /// relative position in the view's assigned grid space.
-    public var alignment: Alignment?
-
-    /// Creates a grid item with the specified size, spacing, and alignment.
-    ///
-    /// - Parameters:
-    ///   - size: The size of the grid item.
-    ///   - spacing: The spacing to use between this and the next item.
-    ///   - alignment: The alignment to use for this grid item.
-    public init(_ size: GridItem.Size = .flexible(), spacing: CGFloat? = nil, alignment: Alignment? = nil) { fatalError() }
 }
 
 /// A grid that you can use in conditional layouts.

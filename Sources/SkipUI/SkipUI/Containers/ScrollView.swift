@@ -36,7 +36,7 @@ public struct ScrollView : View {
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
         var scrollModifier: Modifier = Modifier
-        if axes.contains(.vertical) && !(firstView is LazyVStack) {
+        if axes.contains(.vertical) && !(firstView is LazyVStack) && !(firstView is LazyVGrid) {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
@@ -115,7 +115,9 @@ public struct PinnedScrollableViews : OptionSet, Sendable {
         self.rawValue = rawValue
     }
 
+    @available(*, unavailable)
     public static let sectionHeaders = PinnedScrollableViews(rawValue: 1 << 0)
+    @available(*, unavailable)
     public static let sectionFooters = PinnedScrollableViews(rawValue: 1 << 1)
 }
 

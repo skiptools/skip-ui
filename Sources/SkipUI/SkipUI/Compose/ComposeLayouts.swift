@@ -205,10 +205,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable func PaddingLayout(padding: EdgeInsets, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
     let density = LocalDensity.current
-    let topPx = with(density) { Int(padding.top.dp.toPx()) }
-    let bottomPx = with(density) { Int(padding.bottom.dp.toPx()) }
-    let leadingPx = with(density) { Int(padding.leading.dp.toPx()) }
-    let trailingPx = with(density) { Int(padding.trailing.dp.toPx()) }
+    let topPx = with(density) { padding.top.dp.roundToPx() }
+    let bottomPx = with(density) { padding.bottom.dp.roundToPx() }
+    let leadingPx = with(density) { padding.leading.dp.roundToPx() }
+    let trailingPx = with(density) { padding.trailing.dp.roundToPx() }
     Layout(modifier: context.modifier, content = {
         target(context.content())
     }) { measurables, constraints in

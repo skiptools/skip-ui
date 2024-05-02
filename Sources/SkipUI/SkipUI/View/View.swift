@@ -620,7 +620,7 @@ extension View {
             let density = LocalDensity.current
             let animatable = (Float(x), Float(y)).asAnimatable(context: $0)
             let offsetPx = with(density) {
-                IntOffset(Int(animatable.value.0.dp.toPx()), Int(animatable.value.1.dp.toPx()))
+                IntOffset(animatable.value.0.dp.roundToPx(), animatable.value.1.dp.roundToPx())
             }
             $0.modifier = $0.modifier.offset { offsetPx }
             return ComposeResult.ok

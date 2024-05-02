@@ -19,18 +19,29 @@ public struct VerticalAlignment : Equatable, Sendable {
     public init(_ id: Any /* AlignmentID.Type */) {
         key = ""
     }
-}
 
-extension VerticalAlignment {
+    @available(*, unavailable)
     public func combineExplicit(_ values: any Sequence<CGFloat?>) -> CGFloat? {
         fatalError()
     }
-}
 
-extension VerticalAlignment {
     public static let top = VerticalAlignment(key: "top")
     public static let center = VerticalAlignment(key: "center")
     public static let bottom = VerticalAlignment(key: "bottom")
     public static let firstTextBaseline = VerticalAlignment(key: "firstTextBaseline")
     public static let lastTextBaseline = VerticalAlignment(key: "lastTextBaseline")
+
+    #if SKIP
+    /// Return the equivalent Compose alignment.
+    public func asComposeAlignment() -> androidx.compose.ui.Alignment.Vertical {
+        switch self {
+        case .bottom:
+            return androidx.compose.ui.Alignment.Bottom
+        case .top:
+            return androidx.compose.ui.Alignment.Top
+        default:
+            return androidx.compose.ui.Alignment.CenterVertically
+        }
+    }
+    #endif
 }

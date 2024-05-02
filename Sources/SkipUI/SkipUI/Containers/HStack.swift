@@ -36,15 +36,7 @@ public struct HStack : View {
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let rowAlignment: androidx.compose.ui.Alignment.Vertical
-        switch alignment {
-        case .bottom:
-            rowAlignment = androidx.compose.ui.Alignment.Bottom
-        case .top:
-            rowAlignment = androidx.compose.ui.Alignment.Top
-        default:
-            rowAlignment = androidx.compose.ui.Alignment.CenterVertically
-        }
+        let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
 
         let views = content.collectViews(context: context)
