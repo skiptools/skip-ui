@@ -43,6 +43,7 @@ public struct LazyVStack : View {
         columnAlignment = androidx.compose.ui.Alignment.CenterHorizontally
     }
     let columnArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
+    let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.vertical)
 
     // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
     // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
@@ -54,7 +55,7 @@ public struct LazyVStack : View {
     let itemContext = context.content()
     let factoryContext = LazyItemFactoryContext()
     ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-        LazyColumn(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+        LazyColumn(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, userScrollEnabled: isScrollEnabled) {
             factoryContext.initialize(
                 startItemIndex: 0,
                 item: { view in

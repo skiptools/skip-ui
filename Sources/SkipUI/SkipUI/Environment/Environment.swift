@@ -492,6 +492,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_safeArea", value: newValue, defaultValue: { nil }) }
     }
 
+    var _scrollAxes: Axis.Set {
+        get { builtinValue(key: "_scrollAxes", defaultValue: { Axis.Set(rawValue: 0) }) as! Axis.Set }
+        set { setBuiltinValue(key: "_scrollAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
+    }
+
     var _scrollContentBackground: Visibility? {
         get { builtinValue(key: "_scrollContentBackground", defaultValue: { nil }) as! Visibility? }
         set { setBuiltinValue(key: "_scrollContentBackground", value: newValue, defaultValue: { nil }) }

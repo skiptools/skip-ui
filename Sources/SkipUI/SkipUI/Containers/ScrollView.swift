@@ -51,7 +51,7 @@ public struct ScrollView : View {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
         }
         let contentContext = context.content()
-        ComposeContainer(modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
+        ComposeContainer(scrollAxes: axes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
             Box(modifier: modifier) {
                 content.Compose(context: contentContext)
             }

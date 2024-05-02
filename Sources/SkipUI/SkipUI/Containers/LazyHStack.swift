@@ -43,6 +43,7 @@ public struct LazyHStack : View {
             rowAlignment = androidx.compose.ui.Alignment.CenterVertically
         }
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+        let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.horizontal)
 
         // Collect all top-level views to compose. The LazyRow itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyRow body, then use LazyRow's
@@ -54,7 +55,7 @@ public struct LazyHStack : View {
         let itemContext = context.content()
         let factoryContext = LazyItemFactoryContext()
         ComposeContainer(axis: .horizontal, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
-            LazyRow(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+            LazyRow(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, userScrollEnabled: isScrollEnabled) {
                 factoryContext.initialize(
                     startItemIndex: 0,
                     item: { view in

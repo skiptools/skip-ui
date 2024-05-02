@@ -101,7 +101,7 @@ public final class List : View {
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
-            ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
+            ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
                 Box(modifier: modifier) {
                     ComposeList(context: itemContext, styling: styling, safeArea: safeArea)
                 }

@@ -34,7 +34,7 @@ import androidx.compose.ui.Modifier
 /// that if the container content uses them, the container itself can recompose with the appropriate expansion to match its
 /// content. Note that this generally only affects final layout when an expanding child is in a container that is itself in a
 /// container, and it has to share space with other members of the parent container.
-@Composable public func ComposeContainer(axis: Axis? = nil, eraseAxis: Bool = false, modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
+@Composable public func ComposeContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
     // Use remembered expansion values to recompose on change
     let isFillWidth = remember { mutableStateOf(fillWidth) }
     let isNonExpandingFillWidth = remember { mutableStateOf(false) }
@@ -72,12 +72,16 @@ import androidx.compose.ui.Modifier
     }
     modifier = modifier.then(then)
 
+    let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
     EnvironmentValues.shared.setValues {
         // Setup the initial environment before rendering the container content
         if let axis {
             $0.set_layoutAxis(axis)
         } else if eraseAxis {
             $0.set_layoutAxis(nil)
+        }
+        if !scrollAxes.isEmpty {
+            $0.set_scrollAxes(inheritedScrollAxes.union(scrollAxes))
         }
 
         // Reset the container layout because this is a new container. A directional container like 'HStack' or 'VStack' will set
