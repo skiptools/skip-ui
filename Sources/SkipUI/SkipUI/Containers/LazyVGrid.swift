@@ -31,7 +31,7 @@ public struct LazyVGrid: View {
     @Composable override func ComposeContent(context: ComposeContext) {
         let (gridCells, cellAlignment, horizontalSpacing) = GridItem.asGridCells(items: columns)
         let boxAlignment = cellAlignment?.asComposeAlignment() ?? androidx.compose.ui.Alignment.Center
-        let horizontalArrangement = Arrangement.spacedBy((horizontalSpacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+        let horizontalArrangement = Arrangement.spacedBy((horizontalSpacing ?? 8.0).dp, alignment: alignment.asComposeAlignment())
         let verticalArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp)
         let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.vertical)
 

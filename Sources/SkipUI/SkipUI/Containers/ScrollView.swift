@@ -47,7 +47,7 @@ public struct ScrollView : View {
                 })
             }
         }
-        if axes.contains(.horizontal) && !(firstView is LazyHStack) {
+        if axes.contains(.horizontal) && !(firstView is LazyHStack) && !(firstView is LazyHGrid) {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
         }
         let contentContext = context.content()

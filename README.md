@@ -515,6 +515,17 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
+              <summary><code>LazyHGrid</code></summary>
+              <ul>
+                  <li>See <a href="#grids">Grids</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
               <summary><code>LazyHStack</code></summary>
               <ul>
                   <li>Does not support pinned headers and footers</li>
