@@ -926,7 +926,7 @@ Support levels:
           <details>
               <summary><code>.frame</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</summary>
               <ul>
-                  <li>Some combinations of parameters do not behave exactly the same in SwiftUI and Android</li>
+                  <li>See <a href="#layout">Layout</a></li>
               </ul>
           </details>      
        </td>
@@ -1558,6 +1558,12 @@ In Android-only code, you can also supply any `androidx.compose.material.icons.I
 Image(systemName: "Icons.Filled.Settings")
 #endif
 ```
+
+### Layout
+
+SkipUI fully supports SwiftUI's various layout mechanisms, including `HStack`, `VStack`, `ZStack`, and the `.frame` modifier. If you discover layout edge cases where the result on Android does not match the result on iOS, please file an Issue. The following is a list of known cases where results may not match:
+
+- When multiple elements in an `HStack` use `.frame(maxWidth: .infinity)` or multiple elements in a `VStack` use `.frame(maxHeight: .infinity)`, your Android layout will always divide the available space evenly between them. If any `.infinity` element *also* specifies a `minWidth` or `minHeight` larger than its evenly-divided slice of space, it may overlap neighboring elements rather than force them to use less space.
 
 ### Lists
 

@@ -53,25 +53,20 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given frame.
 @Composable func FrameLayout(view: View, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
-    // We translate 0,.infinity to a fill in either dimension. If the min is not zero, we can't use a fill
-    // because it could set a weight on the view in an HStack or VStack, which will only give the view space
-    // after all other views and potentially give it less than its min. We use a max of Double.MAX_VALUE instead
     let scrollAxes = EnvironmentValues.shared._scrollAxes
     var modifier = context.modifier
     if maxWidth == .infinity {
+        modifier = modifier.fillWidth(expandContainer: !scrollAxes.contains(Axis.Set.horizontal))
         if let minWidth, minWidth > 0.0 {
-            modifier = modifier.requiredWidthIn(min: minWidth.dp, max: Double.MAX_VALUE.dp)
-        } else {
-            modifier = modifier.fillWidth(expandContainer: !scrollAxes.contains(Axis.Set.horizontal))
+            modifier = modifier.requiredWidthIn(min: minWidth.dp)
         }
     } else if minWidth != nil || maxWidth != nil {
         modifier = modifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
     }
     if maxHeight == .infinity {
+        modifier = modifier.fillHeight(expandContainer: !scrollAxes.contains(Axis.Set.vertical))
         if let minHeight, minHeight > 0.0 {
-            modifier = modifier.requiredHeightIn(min: minHeight.dp, max: Double.MAX_VALUE.dp)
-        } else {
-            modifier = modifier.fillHeight(expandContainer: !scrollAxes.contains(Axis.Set.vertical))
+            modifier = modifier.requiredHeightIn(min: minHeight.dp)
         }
     } else if minHeight != nil || maxHeight != nil {
         modifier = modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
