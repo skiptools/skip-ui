@@ -7,6 +7,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -81,15 +82,15 @@ public struct LazyHGrid: View {
                         }
                     },
                     sectionHeader: { view in
-                        item {
-                            Box(contentAlignment: boxAlignment) {
+                        item(span: { GridItemSpan(maxLineSpan) }) {
+                            Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
                                 view.Compose(context: itemContext)
                             }
                         }
                     },
                     sectionFooter: { view in
-                        item {
-                            Box(contentAlignment: boxAlignment) {
+                        item(span: { GridItemSpan(maxLineSpan) }) {
+                            Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
                                 view.Compose(context: itemContext)
                             }
                         }
