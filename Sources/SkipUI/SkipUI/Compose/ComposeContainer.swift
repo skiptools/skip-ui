@@ -48,7 +48,11 @@ import androidx.compose.ui.Modifier
     // a non-expanding fill, we do not set IntrinsicSize.Max and use an expanding fill instead
     // TODO: This special case works in practice thus far, but I do not fully understand it
     var modifier = modifier
-    if !fixedWidth {
+    let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
+    var totalScrollAxes = inheritedScrollAxes
+    if fixedWidth {
+        totalScrollAxes.remove(Axis.Set.horizontal)
+    } else {
         if isFillWidth.value {
             modifier = modifier.fillWidth()
         } else if isNonExpandingFillWidth.value {
@@ -59,7 +63,9 @@ import androidx.compose.ui.Modifier
             }
         }
     }
-    if !fixedHeight {
+    if fixedHeight {
+        totalScrollAxes.remove(Axis.Set.vertical)
+    } else {
         if isFillHeight.value {
             modifier = modifier.fillHeight()
         } else if isNonExpandingFillHeight.value {
@@ -70,9 +76,8 @@ import androidx.compose.ui.Modifier
             }
         }
     }
+    totalScrollAxes.formUnion(scrollAxes)
     modifier = modifier.then(then)
-
-    let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
     EnvironmentValues.shared.setValues {
         // Setup the initial environment before rendering the container content
         if let axis {
@@ -80,8 +85,8 @@ import androidx.compose.ui.Modifier
         } else if eraseAxis {
             $0.set_layoutAxis(nil)
         }
-        if !scrollAxes.isEmpty {
-            $0.set_scrollAxes(inheritedScrollAxes.union(scrollAxes))
+        if totalScrollAxes != inheritedScrollAxes {
+            $0.set_scrollAxes(totalScrollAxes)
         }
 
         // Reset the container layout because this is a new container. A directional container like 'HStack' or 'VStack' will set
