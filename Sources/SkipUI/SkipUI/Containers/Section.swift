@@ -32,6 +32,12 @@ public struct Section : View, LazyItemFactory {
         self.content = ComposeBuilder.from(content)
     }
 
+    public init(header: any View, @ViewBuilder content: () -> any View) {
+        self.header = ComposeBuilder.from({ header })
+        self.footer = nil
+        self.content = ComposeBuilder.from(content)
+    }
+
     public init(@ViewBuilder content: () -> any View) {
         self.header = nil
         self.footer = nil
