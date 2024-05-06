@@ -813,6 +813,37 @@ Support levels:
       <td><code>ZStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.accessibilityAddTraits</code></summary>
+              <ul>
+                  <li>Only traits that map to Compose accessibility roles are used</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+   <tr>
+      <td>✅</td>
+      <td><code>.accessibilityHeading</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.accessibilityHidden</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.accessibilityIdentifier</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.accessibilityLabel</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.accessibilityValue</code></td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
             <details>
