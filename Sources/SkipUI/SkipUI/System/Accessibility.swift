@@ -4,7 +4,17 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.popup
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+#else
 import class Accessibility.AXCustomContent
 import class Accessibility.AXChartDescriptor
 import struct CoreGraphics.CGPoint
@@ -12,39 +22,37 @@ import struct CoreGraphics.CGPoint
 
 extension View {
     public func accessibilityIdentifier(_ identifier: String) -> some View {
-#if SKIP
+        #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.testTag(identifier)
             return ComposeResult.ok
         }
-#else
+        #else
         return self
-#endif
+        #endif
     }
 
     public func accessibilityLabel(_ label: Text) -> some View {
-#if SKIP
+        #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             let description = label.localizedTextString()
-            $0.modifier = $0.modifier.semantics {
-                contentDescription = description
-            }
+            $0.modifier = $0.modifier.semantics { contentDescription = description }
             return ComposeResult.ok
         }
-#else
+        #else
         return self
-#endif
+        #endif
     }
 
     public func accessibilityLabel(_ label: String) -> some View {
-#if SKIP
+        #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { contentDescription = label }
             return ComposeResult.ok
         }
-#else
+        #else
         return self
-#endif
+        #endif
     }
 
     public func accessibilityLabel(_ key: LocalizedStringKey) -> some View {
@@ -87,13 +95,13 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func accessibilityHint(_ hint: Text) -> some View {
+    public func accessibilityInputLabels(_ inputLabels: Any) -> some View {
+        // Accepts [Text], [LocalizedStringKey], or [String]
         return self
     }
 
     @available(*, unavailable)
-    public func accessibilityInputLabels(_ inputLabels: Any) -> some View {
-        // Accepts [Text], [LocalizedStringKey], or [String]
+    public func accessibilityHint(_ hint: Text) -> some View {
         return self
     }
 
@@ -227,9 +235,16 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
+    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityHidden(_ hidden: Bool) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            $0.modifier = $0.modifier.semantics { if hidden { invisibleToUser() } }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -287,9 +302,32 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            if traits.contains(.isButton) {
+                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Button }
+            }
+            if traits.contains(.isHeader) {
+                $0.modifier = $0.modifier.semantics { heading() }
+            }
+            if traits.contains(.isSelected) {
+                $0.modifier = $0.modifier.semantics { selected = true }
+            }
+            if traits.contains(.isImage) {
+                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Image }
+            }
+            if traits.contains(.isModal) {
+                $0.modifier = $0.modifier.semantics { popup() }
+            }
+            if traits.contains(.isToggle) {
+                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Switch }
+            }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -322,24 +360,42 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            $0.modifier = $0.modifier.semantics { heading() }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func accessibilityValue(_ valueDescription: Text) -> some View {
+    public func accessibilityValue(_ value: Text) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            let description = value.localizedTextString()
+            $0.modifier = $0.modifier.semantics { stateDescription = description }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func accessibilityValue(_ valueKey: LocalizedStringKey) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func accessibilityValue(_ value: String) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            $0.modifier = $0.modifier.semantics { stateDescription = value }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
+    }
+
+    public func accessibilityValue(_ key: LocalizedStringKey) -> some View {
+        return accessibilityValue(Text(key))
     }
 
     @available(*, unavailable)

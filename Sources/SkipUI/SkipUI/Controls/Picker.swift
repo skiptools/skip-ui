@@ -75,7 +75,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         if style == .automatic || style == .menu {
             selectedValueLabel = HStack(spacing: 2.0) {
                 selectedValueView
-                Image(systemName: "chevron.down")
+                Image(systemName: "chevron.down").accessibilityHidden(true)
             }
             isMenu = true
         } else {
