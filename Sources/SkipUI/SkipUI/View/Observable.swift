@@ -4,10 +4,34 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Combine
+#if SKIP
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+#endif
+
 extension View {
-    @available(*, unavailable)
-    public func onReceive<P>(_ publisher: P, perform action: @escaping (Any /* P.Output */) -> Void) -> some View /* where P : Publisher, P.Failure == Never */ {
+    // SKIP DECLARE: fun <P, Output> onReceive(publisher: P, perform: (Output) -> Unit): View where P: Publisher<Output, *>
+    public func onReceive<P>(_ publisher: P, perform action: @escaping (P.Output) -> Void) -> some View where P : Publisher {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { _ in
+            let latestAction = rememberUpdatedState(action)
+            let subscription = remember {
+                publisher.sink { output in
+                    latestAction.value(output)
+                }
+            }
+            DisposableEffect(subscription) {
+                onDispose {
+                    subscription.cancel()
+                }
+            }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 }
 

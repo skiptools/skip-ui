@@ -1152,6 +1152,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.onReceive</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.onSubmit</code></td>
     </tr>
     <tr>
