@@ -790,6 +790,25 @@ Support levels:
       <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
+      <td>🔴</td>
+      <td>
+          <details>
+              <summary><code>UIPasteboard</code></summary>
+              <ul>
+                  <li><code>static var general: UIPasteboard</code></li>
+                  <li><code>static var changedNotification: Notification.Name</code></li>
+                  <li><code>var numberOfItems: Int</code></li>
+                  <li><code>var hasStrings: Bool</code></li>
+                  <li><code>var string: String?</code></li>
+                  <li><code>var strings: [String]?</code></li>
+                  <li><code>var hasURLs: Bool</code></li>
+                  <li><code>var url: URL?</code></li>
+                  <li><code>var urls: [URL]?</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
     </tr>

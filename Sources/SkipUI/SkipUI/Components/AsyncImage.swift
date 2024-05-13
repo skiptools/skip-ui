@@ -148,7 +148,7 @@ final class JarURLFetcher : Fetcher {
     override func fetch() async -> FetchResult {
         return SourceResult(
             source: ImageSource(
-                source: data.kotlin().openConnection().getInputStream().source().buffer(),
+                source: data.kotlin().toURL().openConnection().getInputStream().source().buffer(),
                 context: options.context
             ),
             mimeType: MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(data.absoluteString)),
