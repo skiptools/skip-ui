@@ -318,6 +318,9 @@ final class SkipUITests: SkipUITestCase {
         // verify that the resources index contains the localized strings files derived from the `Localizable.xcstrings` file
         let resourcesIndex = try String(contentsOf: XCTUnwrap(Bundle.module.url(forResource: "resources", withExtension: "lst")))
         XCTAssertEqual(resourcesIndex, """
+        Assets.xcassets/Contents.json
+        Assets.xcassets/dumbbell.fill.symbolset/Contents.json
+        Assets.xcassets/dumbbell.fill.symbolset/dumbbell.fill.svg
         ar.lproj/Localizable.strings
         fr.lproj/Localizable.strings
         he.lproj/Localizable.strings
@@ -619,6 +622,7 @@ final class SkipUITests: SkipUITestCase {
 
         #endif
     }
+
 }
 
 

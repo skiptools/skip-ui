@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,18 +25,16 @@ public struct Label : View, ListItemAdapting {
         self.image = ComposeBuilder.from(icon)
     }
 
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, image name: String) {
-        self.init(title: { Text(titleKey) }, icon: { EmptyView() })
+    public init(_ titleKey: LocalizedStringKey, image: String) {
+        self.init(title: { Text(titleKey) }, icon: { Image(image, bundle: .main) })
     }
 
     public init(_ titleKey: LocalizedStringKey, systemImage: String) {
         self.init(title: { Text(titleKey) }, icon: { Image(systemName: systemImage) })
     }
 
-    @available(*, unavailable)
-    public init(_ title: String, image name: String) {
-        self.init(title: { Text(verbatim: title) }, icon: { EmptyView() })
+    public init(_ title: String, image: String) {
+        self.init(title: { Text(verbatim: title) }, icon: { Image(image, bundle: .main) })
     }
 
     public init(_ title: String, systemImage: String) {

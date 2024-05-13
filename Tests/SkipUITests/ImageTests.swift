@@ -8,6 +8,16 @@ import SwiftUI
 import XCTest
 import OSLog
 import Foundation
+#if SKIP
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+#endif
 
 // SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class ImageTests: XCSnapshotTestCase {
@@ -114,6 +124,40 @@ final class ImageTests: XCSnapshotTestCase {
         """))
     }
 
+    // Not yet working
+    func XXXtestCustomSystemSymbol() throws {
+        // the dumbbell.fill.svg symbol template is included in Tests/Resources/Assets.xcassets
+        let imageName = "dumbbell.fill"
+
+        // when running in Skip, Image(systemName:) only loads from the Main bundle, which isn't the case for the test case bundle; so we need to load the image from the local bundle
+        let sysImg = isJava ? Image(imageName, bundle: .module).resizable() : Image(systemName: imageName)
+
+        let systemImage = sysImg
+            .aspectRatio(contentMode: .fit)
+            .background(Color.black)
+            .foregroundStyle(Color.white)
+            .frame(width: 16.0, height: 16.0)
+
+        XCTAssertEqual(try pixmap(content: systemImage), """
+
+
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . .     . . . . . .       . .
+                  . . . . . .
+                  . . . . . .
+                  .         .
+                  .         .
+                  . .       .
+                  . . . . . .
+        . . .     . . . . . .       . .
+        . . .     . . . . . .     . . .
+        . . . . . . . . . . . . . . . .
+
+
+        """)
+    }
+
     func testRenderPNGImageData() throws {
         func save(_ base64EncodedImage: String) throws -> URL {
             let uri = URL(fileURLWithPath: NSTemporaryDirectory() + "/testRenderImageData-\(UUID().uuidString).png")
@@ -148,4 +192,52 @@ final class ImageTests: XCSnapshotTestCase {
         """))
         #endif
     }
+
+
+    func testRenderVectorDrawableResource() {
+        #if SKIP
+        let ctx = ProcessInfo.processInfo.androidContext
+        let resources = ctx.getResources()
+        let pkg = ctx.getPackageName()
+        let stringID = resources.getIdentifier("hello_message", "string", pkg)
+        XCTAssertNotEqual(0, stringID, "bad resources ID for hello_message")
+        let value = resources.getText(stringID)
+        XCTAssertEqual("Hello, World", value, "unexpected resources value")
+
+        let drawableID = resources.getIdentifier("battery_charging", "drawable", pkg)
+        XCTAssertNotEqual(0, drawableID, "bad resources ID for battery_charging")
+
+        XCTAssertEqual(try pixmap(content: ZStack {
+            ComposeView { context in
+                let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
+                let imageVector = ImageVector.vectorResource(id: drawableID)
+                let painter = rememberVectorPainter(imageVector)
+                //Icon(imageVector: imageVector, contentDescription: "demo icon", modifier: Modifier.fillSize(expandContainer: false))
+                androidx.compose.foundation.Image(painter: painter, contentDescription: "demo icon", modifier: Modifier.fillSize(expandContainer: false), contentScale: ContentScale.Fit, colorFilter: ColorFilter.tint(tintColor))
+            }
+            .background(Color.black)
+            .foregroundStyle(Color.white)
+            .frame(width: 16.0, height: 16.0)
+        }), """
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        . . . . .       . . . . . . . .
+        . . . .       .       . . . . .
+        . . . .     . .       . . . . .
+        . . . .     . . .     . . . . .
+        . . . .     . .     . . . . . .
+        . . .       .       . . . . . .
+        . . .               . . . . . .
+        . . .               . . . . . .
+        . . . . .         . . . . . . .
+        . . . . . . . . . . . . . . . .
+        """)
+
+        #endif
+    }
+
 }

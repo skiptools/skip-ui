@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
+import OSLog
 #if SKIP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -18,26 +19,49 @@ import androidx.compose.material.icons.twotone.__
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.graphics.vector.VectorPath
+import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.PathBuilder
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 #else
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+
+fileprivate let logger: Logger = Logger(subsystem: "SkipUI", category: "Image") // adb logcat '*:S' 'SkipUI.Image:V'
+
 public struct Image : View, Equatable {
     let image: ImageType
     var capInsets = EdgeInsets()
     var resizingMode: ResizingMode?
+    let scale = 1.0
 
     enum ImageType : Equatable {
         case named(name: String, bundle: Bundle?, label: Text?)
@@ -52,17 +76,15 @@ public struct Image : View, Equatable {
         self.image = .named(name: name, bundle: bundle, label: nil)
     }
 
-    @available(*, unavailable)
     public init(_ name: String, bundle: Bundle? = Bundle.main, label: Text) {
         self.image = .named(name: name, bundle: bundle, label: label)
     }
 
-    @available(*, unavailable)
     public init(decorative name: String, bundle: Bundle? = Bundle.main) {
         self.image = .decorative(name: name, bundle: bundle)
     }
 
-    public init(systemName: String) {
+    public init(systemName: String, unusedp0: Nothing? = nil, unusedp1: Nothing? = nil) {
         self.image = .system(systemName: systemName)
     }
 
@@ -73,6 +95,7 @@ public struct Image : View, Equatable {
 
     @Composable public override func ComposeContent(context: ComposeContext) {
         let aspect = EnvironmentValues.shared._aspectRatio
+        let colorScheme = EnvironmentValues.shared.colorScheme
 
         // Put given modifiers on the containing Box so that the image can scale itself without affecting them
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
@@ -81,9 +104,188 @@ public struct Image : View, Equatable {
                 ComposePainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .system(let systemName):
                 ComposeSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
-            default:
-                Icon(imageVector: Icons.Default.Warning, contentDescription: "unsupported image type")
+            case .named(let name, let bundle, let label):
+                ComposeNamedImage(name: name, bundle: bundle, label: label, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
+            case .decorative(let name, let bundle):
+                ComposeNamedImage(name: name, bundle: bundle, label: nil, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
             }
+        }
+    }
+
+    @Composable private func ComposeNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
+        if let imageResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, colorScheme)) { _ in imageResourceURL(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
+            ComposeAssetImage(url: imageResourceURL, label: label, context: context)
+        } else if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, nil)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
+            ComposeSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+        }
+    }
+
+    @Composable private func ComposeAssetImage(url: URL, label: Text?, context: ComposeContext) {
+        let model = ImageRequest.Builder(LocalContext.current)
+            .fetcherFactory(JarURLFetcher.Factory())
+            .data(url)
+            .size(coil.size.Size.ORIGINAL)
+            .memoryCacheKey(url.description)
+            .diskCacheKey(url.description)
+            .build()
+        SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
+        }, success: { state in
+            let aspect = EnvironmentValues.shared._aspectRatio
+            ComposePainter(painter: self.painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+        }, error: { state in
+        })
+    }
+
+    @Composable private func ComposeSymbolImage(name: String, url: URL, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+
+        func symbolToImageVector(_ symbol: SymbolInfo, tintColor: androidx.compose.ui.graphics.Color) -> ImageVector {
+            // this is the default size for material icons (24f), defined in the internal MaterialIconDimension variable with the comment "All Material icons (currently) are 24dp by 24dp, with a viewport size of 24 by 24" at:
+            // https://github.com/androidx/androidx/blob/androidx-main/compose/material/material-icons-core/src/commonMain/kotlin/androidx/compose/material/icons/Icons.kt#L257
+            //let size = androidx.compose.ui.geometry.Size(Float(24), Float(24))
+
+            // manually create the bounding rect for all the symbols so we know how to size the viewport and offset the group
+            // note that this does not take into account symbols that are designed to be smaller than their bounds, and ignores any baseline accommodation
+            var symbolBounds = symbol.paths.first?.pathParser.toPath().getBounds() ?? Rect.Zero
+            for symbolPath in symbol.paths.dropFirst() {
+                let bounds = symbolPath.pathParser.toPath().getBounds()
+                symbolBounds = Rect(
+                    minOf(symbolBounds.left, bounds.left),
+                    minOf(symbolBounds.top, bounds.top),
+                    maxOf(symbolBounds.right, bounds.right),
+                    maxOf(symbolBounds.bottom, bounds.bottom)
+                )
+            }
+
+            let symbolWidth = symbolBounds.right - symbolBounds.left
+            let symbolHeight = symbolBounds.bottom - symbolBounds.top
+            let symbolSpan = maxOf(symbolWidth, symbolHeight)
+
+            // the offsets are adjusted to center the symbol in the viewport
+            let symbolOffsetX = -symbolBounds.left + (symbolHeight > symbolWidth ? ((symbolHeight - symbolWidth) / Float(2.0)) : Float(0.0))
+            let symbolOffsetY = -symbolBounds.top + (symbolWidth > symbolHeight ? ((symbolWidth - symbolHeight) / Float(2.0)) : Float(0.0))
+
+            //logger.debug("created union path symbolSpan=\(symbolSpan) bounds=\(symbolBounds)")
+
+            let imageVector = ImageVector.Builder(
+                name = name,
+                defaultWidth: symbolSpan.dp,
+                defaultHeight: symbolSpan.dp,
+                viewportWidth: symbolSpan,
+                viewportHeight: symbolSpan,
+                autoMirror: true).apply {
+                    group(translationX: symbolOffsetX, translationY: symbolOffsetY) {
+                        path(
+                            fill: SolidColor(tintColor),
+                            fillAlpha: Float(1.0),
+                            stroke: SolidColor(tintColor),
+                            strokeAlpha: Float(1.0),
+                            strokeLineWidth: Float(1.0),
+                            strokeLineCap: StrokeCap.Butt,
+                            strokeLineJoin: StrokeJoin.Bevel,
+                            strokeLineMiter: Float(1.0),
+                            pathFillType: PathFillType.NonZero,
+                            pathBuilder: {
+                                for symbolPath in symbol.paths {
+                                    let pathParser = symbolPath.pathParser
+                                    let bounds = pathParser.toPath().getBounds()
+                                    let pathData = pathParser.toNodes()
+                                    //logger.debug("parsed path bounds=\(bounds) nodes=\(pathData)")
+                                    addPath(pathData, fill: SolidColor(tintColor), stroke: SolidColor(tintColor))
+                                }
+                            }
+                        )
+                    }
+                }.build()
+
+            return imageVector
+        }
+
+        // parse the Symbol Export XML and extract the SVG path representation that most closely matches the current font weight (e.g., "Black-S", "Regular-S", "Ultralight-S")
+        func parseSymbolXML(_ url: URL) -> [SymbolSize: SymbolInfo] {
+            logger.debug("parsing symbol SVG at: \(url)")
+            let factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+            let builder = factory.newDocumentBuilder()
+            let document = builder.parse(url.kotlin().toURL().openStream())
+
+            // filter a NodeList into an array of Elements
+            func elements(_ list: org.w3c.dom.NodeList) -> [org.w3c.dom.Element] {
+                Array(0..<list.length).compactMap({ i in list.item(i) as? org.w3c.dom.Element })
+            }
+
+            var symbolInfos: [SymbolSize: SymbolInfo] = [:]
+
+            let gnodes = document.getElementsByTagName("g")
+            for symbolG in elements(gnodes) {
+                if symbolG.getAttribute("id") != "Symbols" {
+                    continue // there are also "Notes" and "Guides"
+                }
+
+                for subG in elements(symbolG.childNodes) {
+                    let subGID = subG.getAttribute("id") // e.g., "Black-S", "Regular-S", "Ultralight-S"
+                    guard let symbolSize = SymbolSize(rawValue: subGID) else {
+                        logger.warning("could not parse symbol size: \(subGID)")
+                        continue
+                    }
+                    var paths: [SymbolPath] = []
+
+                    for pathNode in elements(subG.childNodes).filter { $0.nodeName == "path" } {
+                        // TODO: use the layers line multicolor-0:tintColor hierarchical-0:secondary to translate into compose equivalents
+                        let pathClass = pathNode.getAttribute("class") ?? "" // e.g., monochrome-0 multicolor-0:tintColor hierarchical-0:secondary SFSymbolsPreviewWireframe
+                        let pathD = pathNode.getAttribute("d")
+                        if !pathD.isEmpty {
+                            let pathParser = PathParser().parsePathString(pathD)
+                            paths.append(SymbolPath(pathParser: pathParser, attrs: Array(pathClass.split(" "))))
+                        }
+                    }
+
+                    symbolInfos[symbolSize] = SymbolInfo(size: symbolSize, paths: paths)
+                }
+            }
+
+            return symbolInfos
+        }
+
+        let symbolInfos = rememberCached(symbolXMLCache, url) { url in
+            parseSymbolXML(url)
+        }
+
+        // match the best symbol for the current font weight
+        let fontWeight = EnvironmentValues.shared._fontWeight ?? Font.Weight.regular
+
+        // Exporting as "Static" will contain all 27 variants (9 weights * 3 sizes),
+        // but "Variable" will only have 3: Ultralight-S, Regular-S, and Black-S
+        // in theory, we should interpolate the paths for in-between weights (like "light"),
+        // but in absence of that logic, we just try to pick the closest variant for the current font weight
+
+        let ultraLight: [SymbolSize] = [.UltralightM, .UltralightS, .UltralightL]
+        let thin: [SymbolSize] = [.ThinM, .ThinS, .ThinL]
+        let light: [SymbolSize] = [.LightM, .LightS, .LightL]
+        let regular: [SymbolSize] = [.RegularM, .RegularS, .RegularL]
+        let medium: [SymbolSize] = [.MediumM, .MediumS, .MediumL]
+        let semibold: [SymbolSize] = [.SemiboldM, .SemiboldS, .SemiboldL]
+        let bold: [SymbolSize] = [.BoldM, .BoldS, .BoldL]
+        let heavy: [SymbolSize] = [.HeavyM, .HeavyS, .HeavyL]
+        let black: [SymbolSize] = [.BlackM, .BlackS, .BlackL]
+
+        var weightPriority: [SymbolSize] = []
+
+        switch fontWeight {
+        case Font.Weight.ultraLight: weightPriority = ultraLight + thin + light + regular + medium + semibold + bold + heavy + black
+        case Font.Weight.thin:       weightPriority = thin + ultraLight + light + regular + medium + semibold + bold + heavy + black
+        case Font.Weight.light:      weightPriority = light + thin + ultraLight + regular + medium + semibold + bold + heavy + black
+        case Font.Weight.regular:    weightPriority = regular + medium + light + thin + semibold + bold + ultraLight + heavy + black
+        case Font.Weight.medium:     weightPriority = medium + regular + semibold + light + bold + thin + heavy + black + ultraLight
+        case Font.Weight.semibold:   weightPriority = semibold + medium + regular + bold + light + thin + heavy + ultraLight + black
+        case Font.Weight.bold:       weightPriority = bold + heavy + black + semibold + medium + regular + light + thin + ultraLight
+        case Font.Weight.heavy:      weightPriority = heavy + black + bold + semibold + medium + regular + light + thin + ultraLight
+        case Font.Weight.black:      weightPriority = black + heavy + bold + semibold + medium + regular + light + thin + ultraLight
+        }
+
+        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
+
+        if let symbolInfo = weightPriority.compactMap({ symbolInfos[$0] }).first {
+            let imageVector = symbolToImageVector(symbolInfo, tintColor: tintColor)
+            ComposeScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
@@ -100,11 +302,24 @@ public struct Image : View, Equatable {
     }
 
     @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+        // we first check to see if there is a bundled symbol with the name in any of the asset catalogs, in which case we will use that symbol
+        // note that we can only use the `main` (i.e., top-level) bundle to look up image resources, since Image(systemName:) does not accept a bundle
+        if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(systemName, nil, nil)) { _ in symbolResourceURL(name: systemName, bundle: Bundle.main) } {
+            ComposeSymbolImage(name: systemName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            return
+       }
+
+        // fall back to default symbol names
         guard let image = Self.composeImageVector(named: systemName) else {
-            print("Unable to find system image named: \(systemName)")
+            logger.warning("Unable to find system image named: \(systemName)")
             Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             return
         }
+
+        ComposeScaledImageVector(image: image, name: systemName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+    }
+
+    @Composable private func ComposeScaledImageVector(image: ImageVector, name: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
 
         let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
         switch resizingMode {
@@ -129,7 +344,7 @@ public struct Image : View, Equatable {
             } else {
                 modifier = Modifier
             }
-            Icon(imageVector: image, contentDescription: systemName, modifier: modifier, tint: tintColor ?? androidx.compose.ui.graphics.Color.Unspecified)
+            Icon(imageVector: image, contentDescription: name, modifier: modifier, tint: tintColor ?? androidx.compose.ui.graphics.Color.Unspecified)
         }
     }
 
@@ -186,12 +401,9 @@ public struct Image : View, Equatable {
         case "checkmark.circle": return "Icons.Outlined.CheckCircle" //􀁢
         case "checkmark": return "Icons.Outlined.Check" //􀆅
         case "xmark": return "Icons.Outlined.Clear" //􀆄
-        //case "xmark": return "Icons.Outlined.Close" //􀆄
         case "pencil": return "Icons.Outlined.Create" //􀈊
         case "calendar": return "Icons.Outlined.DateRange" //􀉉
         case "trash": return "Icons.Outlined.Delete" //􀈑
-        //case "checkmark": return "Icons.Outlined.Done" //􀆅
-        //case "pencil": return "Icons.Outlined.Edit" //􀈊
         case "envelope": return "Icons.Outlined.Email" //􀍕
         case "arrow.forward.square": return "Icons.Outlined.ExitToApp" //􀰔
         case "face.smiling": return "Icons.Outlined.Face" //􀎸
@@ -206,12 +418,10 @@ public struct Image : View, Equatable {
         case "list.bullet": return "Icons.Outlined.List" //􀋲
         case "location": return "Icons.Outlined.LocationOn" //􀋑
         case "lock": return "Icons.Outlined.Lock" //􀎠
-        //case "envelope": return "Icons.Outlined.MailOutline" //􀍕
         case "line.3.horizontal": return "Icons.Outlined.Menu" //􀌇
         case "ellipsis": return "Icons.Outlined.MoreVert" //􀍠
         case "bell": return "Icons.Outlined.Notifications" //􀋙
         case "person": return "Icons.Outlined.Person" //􀉩
-        //case "phone": return "Icons.Outlined.Phone" //􀌾
         case "mappin.circle": return "Icons.Outlined.Place" //􀎪
         case "play": return "Icons.Outlined.PlayArrow" //􀊃
         case "arrow.clockwise.circle": return "Icons.Outlined.Refresh" //􀚁
@@ -226,46 +436,19 @@ public struct Image : View, Equatable {
 
         case "person.crop.square.fill": return "Icons.Filled.AccountBox" //􀉺
         case "person.crop.circle.fill": return "Icons.Filled.AccountCircle" //􀉮
-        //case "plus.circle.fill": return "Icons.Filled.AddCircle" //􀁍
-        //case "plus": return "Icons.Filled.Add" //􀅼
-        //case "arrow.left": return "Icons.Filled.ArrowBack" //
-        //case "arrowtriangle.down.fill": return "Icons.Filled.ArrowDropDown" //
-        //case "arrow.forward": return "Icons.Filled.ArrowForward" //
         case "wrench.fill": return "Icons.Filled.Build" //􀎖
         case "phone.fill": return "Icons.Filled.Call" //􀌿
         case "checkmark.circle.fill": return "Icons.Filled.CheckCircle" //􀁣
-        //case "XXX": return "Icons.Filled.Check" //
-        //case "XXX": return "Icons.Filled.Clear" //
-        //case "XXX": return "Icons.Filled.Close" //
-        //case "XXX": return "Icons.Filled.Create" //
-        //case "XXX": return "Icons.Filled.DateRange" //
         case "trash.fill": return "Icons.Filled.Delete" //􀈒
-        //case "XXX": return "Icons.Filled.Done" //
-        //case "XXX": return "Icons.Filled.Edit" //
         case "envelope.fill": return "Icons.Filled.Email" //􀍖
-        //case "XXX": return "Icons.Filled.ExitToApp" //
-        //case "XXX": return "Icons.Filled.Face" //
-        //case "XXX": return "Icons.Filled.FavoriteBorder" //
-        //case "XXX": return "Icons.Filled.Favorite" //
         case "house.fill": return "Icons.Filled.Home" //􀎟
         case "info.circle.fill": return "Icons.Filled.Info" //􀅵
-        //case "XXX": return "Icons.Filled.KeyboardArrowDown" //
-        //case "XXX": return "Icons.Filled.KeyboardArrowLeft" //
-        //case "XXX": return "Icons.Filled.KeyboardArrowRight" //
-        //case "XXX": return "Icons.Filled.KeyboardArrowUp" //
-        //case "XXX": return "Icons.Filled.List" //
         case "location.fill": return "Icons.Filled.LocationOn" //􀋒
         case "lock.fill": return "Icons.Filled.Lock" //􀎡
-        //case "XXX": return "Icons.Filled.MailOutline" //
-        //case "XXX": return "Icons.Filled.Menu" //
-        //case "XXX": return "Icons.Filled.MoreVert" //
         case "bell.fill": return "Icons.Filled.Notifications" //􀋚
         case "person.fill": return "Icons.Filled.Person" //􀉪
-        //case "phone.fill": return "Icons.Filled.Phone" //􀌿
         case "mappin.circle.fill": return "Icons.Filled.Place" //􀜈
         case "play.fill": return "Icons.Filled.PlayArrow" //􀊄
-        //case "XXX": return "Icons.Filled.Refresh" //
-        //case "XXX": return "Icons.Filled.Search" //
         case "paperplane.fill": return "Icons.Filled.Send" //􀈠
         case "gearshape.fill": return "Icons.Filled.Settings" //􀣌
         case "square.and.arrow.up.fill": return "Icons.Filled.Share" //􀈃
@@ -536,11 +719,11 @@ public struct Image : View, Equatable {
         default: return nil
         }
     }
-    #else
+#else
     public var body: some View {
         stubView()
     }
-    #endif
+#endif
 
     public enum ResizingMode : Hashable, Sendable {
         case tile
@@ -615,8 +798,80 @@ public struct Image : View, Equatable {
         case medium
         case large
     }
+
+    /// Find all the `.xcassets` resource for the given bundle
+    private func assetContentsURLs(name: String, bundle: Bundle) -> [URL] {
+        #if SKIP
+        let resourceNames = bundle.resourcesIndex
+        #else
+        let resourceNames: [String] = []
+        #endif
+
+        var resourceURLs: [URL] = []
+        for resourceName in resourceNames {
+            let components = resourceName.split(separator: "/").map({ String($0) })
+            // return every *.xcassets/NAME/Contents.json
+            if components.first?.hasSuffix(".xcassets") == true
+                && components.dropFirst().first == name
+                && components.last == "Contents.json",
+               let contentsURL = bundle.url(forResource: resourceName, withExtension: nil) {
+                resourceURLs.append(contentsURL)
+            }
+        }
+        return resourceURLs
+    }
+
+    private func imageResourceURL(name: String, colorScheme: ColorScheme, bundle: Bundle) -> URL? {
+        for dataURL in assetContentsURLs(name: "\(name).imageset", bundle: bundle) {
+            do {
+                let data = try Data(contentsOf: dataURL)
+                logger.debug("loading imageset asset contents from: \(dataURL)")
+                let imageSet = try JSONDecoder().decode(ImageSet.self, from: data)
+                var images = imageSet.images
+                // check for any images that map to the given color scheme and append them as higher-priority candidates for the image to render
+                images += images.filter {
+                    // e.g.: { "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ], "filename" : "Cat_BW.jpg", "idiom" : "universal" }
+                    $0.appearances?
+                        .filter({ $0.appearance == "luminosity" })
+                        .compactMap(\.value)
+                        .contains(colorScheme == .dark ? "dark" : "light") == true
+                }
+                // fall-back to load the highest-resolution image that is set (e.g., 3x before 2x before 1x)
+                if let fileName = images.compactMap(\.filename).last {
+                    // get the image filename and append it to the end
+                    let resURL = dataURL.deletingLastPathComponent().appendingPathComponent(fileName)
+                    logger.debug("loading imageset data from: \(resURL)")
+                    return resURL
+                }
+            } catch {
+                logger.warning("error loading image data from \(name): \(error)")
+            }
+        }
+
+        return nil
+    }
+
+    private func symbolResourceURL(name: String, bundle: Bundle) -> URL? {
+        for dataURL in assetContentsURLs(name: "\(name).symbolset", bundle: bundle) {
+            do {
+                let data = try Data(contentsOf: dataURL)
+                logger.debug("loading symbolset asset contents from \(dataURL)")
+                let symbolSet = try JSONDecoder().decode(SymbolSet.self, from: data)
+                if let fileName = symbolSet.symbols.compactMap(\.filename).last {
+                    // get the symbol filename and append it to the end
+                    let resURL = dataURL.deletingLastPathComponent().appendingPathComponent(fileName)
+                    return resURL
+                }
+            } catch {
+                logger.warning("error loading symbol data from \(name): \(error)")
+            }
+        }
+
+        return nil
+    }
 }
 
+// SKIP NOWARN
 extension View {
     @available(*, unavailable)
     public func imageScale(_ scale: Image.Scale) -> some View {
@@ -627,6 +882,191 @@ extension View {
     public func allowedDynamicRange(_ range: Image.DynamicRange?) -> some View {
         return self
     }
+}
+
+#if SKIP
+private struct SymbolInfo {
+    let size: SymbolSize
+    let paths: [SymbolPath]
+}
+
+private struct SymbolPath {
+    let pathParser: PathParser
+    let attrs: [String]
+}
+
+/// A cache key for remembering the Content.json URL location in the bundled assets for the given name, bundle, and ColorScheme combination
+private struct NameBundleColorScheme: Hashable {
+    let name: String
+    let bundle: Bundle?
+    let colorScheme: ColorScheme?
+}
+
+fileprivate let symbolXMLCache : [URL: [SymbolSize: SymbolInfo]] = [:]
+fileprivate let contentsCache: [NameBundleColorScheme: URL?] = [:]
+
+/// A simple local cache that returns the cached value if it exists, or else instantiates it using the block and stores the result in the cache
+func rememberCached<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -> U) -> U {
+    synchronized(cache) {
+        if let value = cache[key] { return value }
+        let value = block(key)
+        cache[key] = value
+        return value
+    }
+}
+#endif
+
+
+/// The Symbols layer contains up to 27 sublayers, each representing a symbol image variant. Identifiers of symbol variants have the form <weight>-<{S, M, L}>, where weight corresponds to a weight of the system font and S, M, or L matches the small, medium, or large symbol scale.
+private enum SymbolSize : String {
+    case UltralightS = "Ultralight-S"
+    case ThinS = "Thin-S"
+    case LightS = "Light-S"
+    case RegularS = "Regular-S"
+    case MediumS = "Medium-S"
+    case SemiboldS = "Semibold-S"
+    case BoldS = "Bold-S"
+    case HeavyS = "Heavy-S"
+    case BlackS = "Black-S"
+
+    case UltralightM = "Ultralight-M"
+    case ThinM = "Thin-M"
+    case LightM = "Light-M"
+    case RegularM = "Regular-M"
+    case MediumM = "Medium-M"
+    case SemiboldM = "Semibold-M"
+    case BoldM = "Bold-M"
+    case HeavyM = "Heavy-M"
+    case BlackM = "Black-M"
+
+    case UltralightL = "Ultralight-L"
+    case ThinL = "Thin-L"
+    case LightL = "Light-L"
+    case RegularL = "Regular-L"
+    case MediumL = "Medium-L"
+    case SemiboldL = "Semibold-L"
+    case BoldL = "Bold-L"
+    case HeavyL = "Heavy-L"
+    case BlackL = "Black-L"
+
+    var fontWeight: Font.Weight {
+        switch self {
+        case .UltralightS, .UltralightM, .UltralightL: return Font.Weight.ultraLight
+        case .ThinS, .ThinM, .ThinL: return Font.Weight.thin
+        case .LightS, .LightM, .LightL: return Font.Weight.light
+        case .RegularS, .RegularM, .RegularL: return Font.Weight.regular
+        case .MediumS, .MediumM, .MediumL: return Font.Weight.medium
+        case .SemiboldS, .SemiboldM, .SemiboldL: return Font.Weight.semibold
+        case .BoldS, .BoldM, .BoldL: return Font.Weight.bold
+        case .HeavyS, .HeavyM, .HeavyL: return Font.Weight.heavy
+        case .BlackS, .BlackM, .BlackL: return Font.Weight.black
+        }
+    }
+}
+
+
+/* The `Contents.json` in a `*.imageset` folder for an image
+ https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/ImageSetType.html
+ {
+   "images" : [
+     {
+       "filename" : "Cat.jpg",
+       "idiom" : "universal",
+       "scale" : "1x"
+     },
+     {
+       "idiom" : "universal",
+       "scale" : "2x"
+     },
+     {
+       "idiom" : "universal",
+       "scale" : "3x"
+     }
+   ],
+   "info" : {
+     "author" : "xcode",
+     "version" : 1
+   }
+ }
+ */
+private struct ImageSet : Decodable {
+    let images: [ImageInfo]
+    let info: AssetConentsInfo
+
+    struct ImageInfo : Decodable {
+        let filename : String?
+        let idiom: String? // e.g. "universal"
+        let scale: String? // e.g. "3x"
+        let appearances: [ImageAppearance]?
+    }
+
+    struct ImageAppearance : Decodable {
+        let appearance: String? // e.g., "luminosity"
+        let value: String? // e.g., "light", "dark"
+    }
+}
+
+/* The `Contents.json` in a `*.symbolset` folder for a symbol, which looks like:
+ {
+   "info" : {
+     "author" : "xcode",
+     "version" : 1
+   },
+   "symbols" : [
+     {
+       "filename" : "face.dashed.fill.svg",
+       "idiom" : "universal"
+     }
+   ]
+ }
+ */
+private struct SymbolSet : Decodable {
+    let symbols: [Symbol]
+    let info: AssetConentsInfo
+
+    struct Symbol : Decodable {
+        let filename : String?
+        let idiom: String? // e.g. "universal"
+    }
+}
+
+/* The `Contents.json` in a `*.colorset` folder for a symbol
+ https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/Named_Color.html
+ {
+   "colors" : [
+     {
+       "color" : {
+         "platform" : "universal",
+         "reference" : "systemBlueColor"
+       },
+       "idiom" : "universal"
+     }
+   ],
+   "info" : {
+     "author" : "xcode",
+     "version" : 1
+   }
+ }
+ */
+private struct ColorSet : Decodable {
+    let colors: [ColorSetColor]
+    let info: AssetConentsInfo
+
+    struct ColorSetColor : Decodable {
+        let color : ColorInfo?
+        let idiom: String? // e.g. "universal"
+    }
+
+    struct ColorInfo : Decodable {
+        let platform: String? // e.g. "universal"
+        let reference: String? // e.g. "systemBlueColor"
+    }
+}
+
+
+private struct AssetConentsInfo : Decodable {
+    let author: String? // e.g. "xcode"
+    let version: Int? // e.g. 1
 }
 
 #if false
