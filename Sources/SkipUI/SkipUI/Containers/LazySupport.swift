@@ -28,9 +28,9 @@ protocol LazyItemFactory {
 /// Allows `LazyItemFactory` instances to define the lazy content.
 public final class LazyItemFactoryContext {
     private(set) var item: (View) -> Void = { _ in }
-    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void = { _, _, _, _, _ in  }
-    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void = { _, _, _, _, _ in }
-    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _ in }
+    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void = { _, _, _, _, _ in  }
+    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void = { _, _, _, _, _ in }
+    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _ in }
     private(set) var sectionHeader: (View) -> Void = { _ in }
     private(set) var sectionFooter: (View) -> Void = { _ in }
     private var startItemIndex = 0
@@ -39,9 +39,9 @@ public final class LazyItemFactoryContext {
     func initialize(
         startItemIndex: Int,
         item: (View) -> Void,
-        indexedItems: (Range<Int>, ((Any) -> AnyHashable)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void,
-        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void,
-        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
+        indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void,
+        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void,
+        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
         sectionHeader: (View) -> Void,
         sectionFooter: (View) -> Void
     ) {
