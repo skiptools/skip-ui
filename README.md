@@ -487,19 +487,18 @@ Support levels:
       <td><code>HStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟡</td>
       <td>
           <details>
               <summary><code>Image</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</summary>
               <ul>
-                  <li><code>init(systemName: String)</code></li>
                   <li>See <a href="#images">Images</a></li>
               </ul>
           </details>      
        </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟡</td>
       <td>
           <details>
               <summary><code>Label</code> (<a href="https://skip.tools/docs/components/label/">example</a>)</summary>
