@@ -1,3 +1,10 @@
+## 0.8.11
+
+Released 2024-05-14
+
+  - Allow nil values for List/ForEach id key paths, which in turn allows users to use generic types for their identifier properties without explicitly putting an Any upper bounds on it
+  - Add asset image and symbol loading
+
 ## 0.5.18
 
 Released 2024-03-21
