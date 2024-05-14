@@ -1506,7 +1506,7 @@ Custom fonts are embedded differently for each platform. On Android you should c
 
 For iOS, you must add the font by adding to the Xcode project's app target and ensure the font file is included in the file list in the app target's "Build Phases" tab's "Copy Bundle Resources" phase. In addition, iOS needs to have the font explicitly listed in the Xcode project target's "Info" tab under "Custom Application Target Properties" by adding a new key for the "Fonts provided by application" (whose raw name is "UIAppFonts") and adding each font's file name to the string array.
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://raw.githubusercontent.com/skiptools/assets.skip.tools/main/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
 
 ### Environment Keys
 
@@ -1566,23 +1566,76 @@ SkipUI renders SwiftUI grid views using native Compose grids. This provides maxi
 
 ### Images
 
-SkipUI supports loading images from URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android.
+#### Network Images
 
-To display a standard SwiftUI `Image`, SkipUI currently only supports the `Image(systemName:)` constructor. The table below details the mapping between iOS and Android system images. Other system names are not supported, though you can display any emoji using `Text`. These restrictions also apply to other components that load images, such as `Label`.
+SkipUI supports loading images from network URLs using SwiftUI's `AsyncImage`. Our implementation uses the [Coil](https://coil-kt.github.io/coil/) library to download images on Android. This includes support for a loading indicator, such as:
 
-Skip cannot yet read iOS asset catalogs, so `Image(name:)` is not yet available on Android. You can, however, use `AsyncImage` to display local image resources. This works on both iOS and through Skip on Android. So if you have an image `Sources/MyModule/Resources/sample.jpg` and your `.target` in `Package.swift` properly marks the `Resources` folder for SPM resource processing:
+```swift
+AsyncImage(url: URL(string: "https://picsum.photos/id/237/200/300")) { image in
+    image.resizable()
+} placeholder: {
+    ProgressView()
+}
+```
+
+#### Image Assets
+
+Images can be bundled in asset catalogs provided in the `Resources/` folder of your SwiftPM modules. Your `Package.swift` project should be have the module's `.target` include the `Resources` folder for resource processing (which is the default for projects created with `skip init`):
 
 ```swift
 .target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
 ```
 
-Then the following SwiftUI will display the image on both platforms:
+Once the asset catalog is added to your resources folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
+
+```swift
+Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
+```
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
+
+Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
+{: class="callout info"}
+
+Skip currently supports Light and Dark variants of images in an asset catalog, and will display the appropriate image depending on the active color scheme. Other image asset variants like size classes are currently unsupported.
+{: class="callout warning"}
+
+#### Bundled Images
+
+In addition to using asset catalogs, images may be included in the `Resources` folder and referenced directly using `AsyncImage` to display local image resources. This works on both iOS and through Skip on Android. So if you have an image `Sources/MyModule/Resources/sample.jpg` then the following SwiftUI will display the image on both platforms:
 
 ```swift
 AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
 ```
 
-If these image display options do not meet your needs, consider [embedding Compose code](#composeview) directly until resource loading is implemented.
+#### System Symbols
+
+The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these symbols on Android, but you can add these symbols manually by creating a `Module.xcassets` asset catalog in your app module's `Resources/` folder, and then exporting the named symbol(s) from the [`SF Symbols.app`](https://developer.apple.com/sf-symbols/). These exported symbol SVG files can be dragged into your asset catalog to provide the necessary symbol data for the Android side.
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with a exported symbol images, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
+
+SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to customize the color and weight of the symbol, but other symbol modifiers such as `symbolVariant` and `symbolRenderingMode` are currently unsupported. 
+{: class="callout warning"}
+
+Exported symbols can be used directly, or they can be edited using an SVG editor to provide custom vector symbols for you app, as described at [Creating custom symbol images for your app](https://developer.apple.com/documentation/uikit/uiimage/creating_custom_symbol_images_for_your_app). You use `Image(systemName:)` to load a system symbol image and `Image(_:bundle)` to load your custom symbol, as the following code shows:
+
+
+```swift
+// Create a system symbol image.
+Image(systemName: "multiply.circle.fill")
+
+// Create a custom symbol image that is included in the module's asset catalog
+Image("custom.multiply.circle", bundle: .module)
+```
+
+This is discussed further in the documentation for [Loading a symbol image](https://developer.apple.com/documentation/uikit/uiimage/configuring_and_displaying_symbol_images_in_your_ui#3234560).
+
+
+
+#### Fallback Symbols
+
+If a matching system symbol with the same name is not found in any of the asset catalog files for the top-level app module, SkipUI will fallback to a small subset of pre-defined symbol names that map to the equivalent compose material symbols (as seen at [https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons](https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons)). The fallback symbols will not match the iOS equivalents exactly, but will provide a rough approximation of the symbol's shape and meaning.
+
 
 | iOS | Android |
 |---|-------|
