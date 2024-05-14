@@ -487,24 +487,28 @@ Support levels:
       <td><code>HStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>Image</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</summary>
               <ul>
+                  <li><code>init(_ name: String, bundle: Bundle? = Bundle.main)</code></li>
+                  <li><code>init(_ name: String, bundle: Bundle? = Bundle.main, label: Text)</code></li>
+                  <li><code>init(systemName: String)</code></li>
                   <li>See <a href="#images">Images</a></li>
               </ul>
           </details>      
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>Label</code> (<a href="https://skip.tools/docs/components/label/">example</a>)</summary>
               <ul>
                   <li><code>init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View)</code></li>
                   <li><code>init(_ title: String, systemImage: String)</code></li>
+                  <li><code>init(_ title: String, image: String)</code></li>
                   <li>See <a href="#images">Images</a></li>
               </ul>
           </details>      
@@ -1579,13 +1583,13 @@ AsyncImage(url: URL(string: "https://picsum.photos/id/237/200/300")) { image in
 
 #### Image Assets
 
-Images can be bundled in asset catalogs provided in the `Resources/` folder of your SwiftPM modules. Your `Package.swift` project should be have the module's `.target` include the `Resources` folder for resource processing (which is the default for projects created with `skip init`):
+Images can be bundled in asset catalogs provided in the `Resources` folder of your SwiftPM modules. Your `Package.swift` project should have the module's `.target` include the `Resources` folder for resource processing (which is the default for projects created with `skip init`):
 
 ```swift
 .target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
 ```
 
-Once the asset catalog is added to your resources folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
+Once the asset catalog is added to your `Resources` folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
 
 ```swift
 Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
@@ -1609,7 +1613,7 @@ AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
 
 #### System Symbols
 
-The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these symbols on Android, but you can add these symbols manually by creating a `Module.xcassets` asset catalog in your app module's `Resources/` folder, and then exporting the named symbol(s) from the [`SF Symbols.app`](https://developer.apple.com/sf-symbols/). These exported symbol SVG files can be dragged into your asset catalog to provide the necessary symbol data for the Android side.
+The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these symbols on Android, but you can add these symbols manually by creating a `Module.xcassets` asset catalog in your top-level app module's `Resources` folder, and then exporting the named symbol(s) from the [`SF Symbols.app`](https://developer.apple.com/sf-symbols/). These exported symbol SVG files can be dragged into your asset catalog to provide the necessary symbol data for your Android app.
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with a exported symbol images, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
 
@@ -1618,22 +1622,19 @@ SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to
 
 Exported symbols can be used directly, or they can be edited using an SVG editor to provide custom vector symbols for you app, as described at [Creating custom symbol images for your app](https://developer.apple.com/documentation/uikit/uiimage/creating_custom_symbol_images_for_your_app). You use `Image(systemName:)` to load a system symbol image and `Image(_:bundle)` to load your custom symbol, as the following code shows:
 
-
 ```swift
-// Create a system symbol image.
+// Display a system symbol image
 Image(systemName: "multiply.circle.fill")
 
-// Create a custom symbol image that is included in the module's asset catalog
+// Display a custom symbol image that is included in the module's asset catalog
 Image("custom.multiply.circle", bundle: .module)
 ```
 
 This is discussed further in the documentation for [Loading a symbol image](https://developer.apple.com/documentation/uikit/uiimage/configuring_and_displaying_symbol_images_in_your_ui#3234560).
 
-
-
 #### Fallback Symbols
 
-If a matching system symbol with the same name is not found in any of the asset catalog files for the top-level app module, SkipUI will fallback to a small subset of pre-defined symbol names that map to the equivalent compose material symbols (as seen at [https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons](https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons)). The fallback symbols will not match the iOS equivalents exactly, but will provide a rough approximation of the symbol's shape and meaning.
+If a matching system symbol with the same name is not found in any of the asset catalog files for the top-level app module, SkipUI will fallback to a small subset of pre-defined symbol names that map to the equivalent Compose material symbols (as seen at [https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons](https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons)). The fallback symbols will not match the iOS equivalents exactly, but will provide a rough approximation of the symbol's shape and meaning.
 
 
 | iOS | Android |
