@@ -258,7 +258,7 @@ Support levels:
   - ✅ – Full
   - 🟢 – High
   - 🟡 – Medium 
-  - 🔴 – Low
+  - 🟠 – Low
 
 <table>
   <thead><th>Support</th><th>API</th></thead>
@@ -685,7 +685,7 @@ Support levels:
       <td><code>SecureField</code> (<a href="https://skip.tools/docs/components/securefield/">example</a>)</td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
           <details>
               <summary><code>ShareLink</code> (<a href="https://skip.tools/docs/components/sharelink/">example</a>)</summary>
@@ -793,7 +793,7 @@ Support levels:
       <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
           <details>
               <summary><code>UIPasteboard</code></summary>
@@ -951,7 +951,7 @@ Support levels:
       <td><code>.cornerRadius</code></td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
           <details>
               <summary><code>.datePickerStyle</code></summary>
@@ -1243,7 +1243,7 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🔴</td>
+      <td>🟠</td>
       <td>
           <details>
               <summary><code>.resizable</code></summary>
