@@ -359,13 +359,20 @@ struct ToolbarItems {
     let content: [View]
 
     @Composable func filterTopBarLeading() -> [View] {
-        return filter(expandGroups: false) { $0 == .topBarLeading || $0 == .navigationBarLeading }
+        return filter(expandGroups: false) {
+            switch $0 {
+            case .topBarLeading, .navigationBarLeading, .cancellationAction:
+                return true
+            default:
+                return false
+            }
+        } + filter(expandGroups: false) { $0 == .principal }
     }
 
     @Composable func filterTopBarTrailing() -> [View] {
         return filter(expandGroups: false) {
             switch $0 {
-            case .automatic, .principal, .primaryAction, .secondaryAction, .topBarTrailing, .navigationBarTrailing:
+            case .automatic, .confirmationAction, .primaryAction, .secondaryAction, .topBarTrailing, .navigationBarTrailing:
                 return true
             default:
                 return false
