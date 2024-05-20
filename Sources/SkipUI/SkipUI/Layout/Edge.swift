@@ -10,7 +10,7 @@ public enum Edge : Int, Hashable, CaseIterable, Sendable {
     case bottom = 4
     case trailing = 8
 
-    public struct Set : OptionSet, Sendable {
+    public struct Set : OptionSet, Equatable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

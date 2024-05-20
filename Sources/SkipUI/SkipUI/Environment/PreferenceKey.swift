@@ -7,13 +7,18 @@
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidedValue
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -37,146 +42,127 @@ public protocol PreferenceKeyCompanion {
 final class PreferenceValues {
     static let shared = PreferenceValues()
 
-    // SKIP DECLARE: @Composable internal fun preference(key: KClass<*>): Preference<*>?
-    /// Return a preference for the given `PreferenceKey` type.
-    @Composable func preference(key: Any.Type) -> any Preference? {
-        return EnvironmentValues.shared.compositionLocals[key]?.current as? Preference
+    /// Return a preference collector for the given `PreferenceKey` type.
+    // SKIP DECLARE: @Composable internal fun collector(key: KClass<*>): PreferenceCollector<Any>?
+    @Composable func collector(key: Any.Type) -> PreferenceCollector? {
+        return EnvironmentValues.shared.compositionLocals[key]?.current as? PreferenceCollector<Any>
     }
 
-    // SKIP DECLARE: @Composable internal fun collectPreferences(preferences: Array<Preference<*>>, in_: @Composable () -> Unit)
     /// Collect the values of the given preferences while composing the given content.
-    @Composable func collectPreferences(_ preferences: [any Preference], in content: @Composable () -> Void) {
-        let provided = preferences.map { preference in
-            var compositionLocal = EnvironmentValues.shared.compositionLocals[preference.key]
+    // SKIP DECLARE: @Composable internal fun collectPreferences(collectors: Array<PreferenceCollector<*>>, in_: @Composable () -> Unit)
+    @Composable func collectPreferences(_ collectors: [PreferenceCollector], in content: @Composable () -> Void) {
+        let provided = collectors.map { collector in
+            var compositionLocal = EnvironmentValues.shared.compositionLocals[collector.key]
             if compositionLocal == nil {
                 compositionLocal = compositionLocalOf { Unit }
-                EnvironmentValues.shared.compositionLocals[preference.key] = compositionLocal
+                EnvironmentValues.shared.compositionLocals[collector.key] = compositionLocal
             }
-            // SKIP INSERT: val element = compositionLocal!! provides preference
+            // SKIP INSERT: val element = compositionLocal!! provides collector
             element
         }
         // SKIP INSERT: val kprovided = (provided.kotlin(nocopy = true) as MutableList<ProvidedValue<*>>).toTypedArray()
-
-        preferences.forEach { $0.beginCollecting() }
         CompositionLocalProvider(*kprovided) {
             content()
         }
-        preferences.forEach { $0.endCollecting() }
     }
 
     /// Update the value of the given preference, as if by calling .preference(key:value:).
-    @Composable func reducePreference(key: Any.Type, value: Any) {
-        let pvalue = remember { mutableStateOf<Any?>(nil) }
-        let preference = PreferenceValues.shared.preference(key: key)
-        preference?.reduce(savedValue: pvalue.value, newValue: value)
-        pvalue.value = value
-    }
-
-    // SKIP DECLARE: @Composable internal fun syncingPreference(key: KClass<*>, recompose: () -> Unit): Preference<*>?
-    /// Return a preference that can be used to sync the given preference across an asynchronously-composed boundary,
-    /// such as a `NavHost`.
-    @Composable func syncingPreference(key: Any.Type, recompose: () -> Void) -> Preference? {
-        guard let preference = PreferenceValues.shared.preference(key: key) else {
-            return nil
-        }
-
-        // Remember the last collecting value for the preference. We only sync preferences that were collecting
-        // during this synchronous compose phase. We might have subsequent local recompositions, though
-        let collectingValue = remember { mutableStateOf<Any?>(nil) }
-        // Remember our last local value for the preference, and update the preference to that value during
-        // the synchronous compose phase
-        let localValue = remember { mutableStateOf<Any?>(nil) }
-
-        if preference.isCollecting {
-            collectingValue.value = preference.value
-            if let lvalue = localValue.value {
-                reducePreference(key: key, value: lvalue)
+    @Composable func contribute(context: ComposeContext, key: Any.Type, value: Any) {
+        // Use a saveable value because they preferences themselves and their node IDs are saved
+        let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<Int?, Any>) { mutableStateOf<Int?>(nil) }
+        let collector = rememberUpdatedState(PreferenceValues.shared.collector(key: key))
+        if let collector = collector.value {
+            // A side effect is required to ensure that a state change during composition causes a recomposition
+            SideEffect {
+                id.value = collector.contribute(value, id: id.value)
             }
-        } else if collectingValue.value == nil {
-            return nil
         }
-
-        // Create a local preference to use in the asynchronously-composed content. When the local preference
-        // updates at the end of the composition, force the preference to recompose if our asynchronous
-        // composition changed it
-        let preferenceRecompose = rememberUpdatedState(preference.recompose)
-        let syncing = Preference(key: key, initialValue: collectingValue.value!, update: { value in
-            LaunchedEffect(value, localValue.value) {
-                let lvalue = localValue.value
-                if value != lvalue {
-                    localValue.value = value
-                    // Force a recompose on the original preference if our computed value has changed
-                    if lvalue != nil || value != collectingValue.value {
-                        preferenceRecompose.value()
-                    }
-                }
+        DisposableEffect(true) {
+            onDispose {
+                collector.value?.erase(id: id.value)
             }
-        }, recompose: recompose)
-        return syncing
+        }
     }
 }
 
 /// Used internally by our preferences system to collect preferences and recompose on change.
-final class Preference<Value> {
+struct PreferenceCollector<Value> {
     let key: Any.Type
-    let update: @Composable (Value) -> Void
-    let recompose: () -> Void
-    private let initialValue: Value
-    private var collectedValue: Value?
+    let state: MutableState<Preference<Value>>
+    let isErasable: Bool
 
-    /// Create a preference for the given `PreferenceKey` type.
-    ///
-    /// - Parameter update: Block to call to change the value of this preference.
-    /// - Parameter recompose: Block to force a recompose of the relevant content, collecting the new value via `collectPreferences`
-    init(key: Any.Type, initialValue: Value? = nil, update: @Composable (Value) -> Void, recompose: () -> Void) {
+    init(key: Any.Type, state: MutableState<Preference<Value>>, isErasable: Bool = true) {
         self.key = key
-        self.update = update
-        self.recompose = recompose
+        self.state = state
+        self.isErasable = isErasable
+    }
+
+    /// Contribute a value to the collected preference.
+    ///
+    /// - Parameter id: The id of this value in the value chain, or nil if no id has been assigned.
+    /// - Returns: The id to use for future contributions.
+    func contribute(_ value: Value, id: Int?) -> Int {
+        var preference = state.value
+        guard let id, let index = preference.nodes.firstIndex(where: { $0.id == id }) else {
+            let maxID = preference.nodes.reduce(-1) { result, node in
+                return max(result, node.id)
+            }
+            let nextID = maxID + 1
+            preference.nodes.append(PreferenceNode(id: nextID, value: value))
+            state.value = preference
+            return nextID
+        }
+        preference.nodes[index] = PreferenceNode(id: id, value: value)
+        state.value = preference
+        return id
+    }
+
+    /// Remove the contribution by the given id.
+    func erase(id: Int?) {
+        guard isErasable else {
+            return
+        }
+        var preference = state.value
+        if let id, let index = preference.nodes.firstIndex(where: { $0.id == id }) {
+            preference.nodes.remove(at: index)
+            state.value = preference
+        }
+    }
+}
+
+/// The collected preference values that are reduced to achieve the final value.
+@Stable struct Preference<Value>: Equatable {
+    var nodes: [PreferenceNode<Value>] = []
+
+    init(key: Any.Type, initialValue: Value? = nil) {
+        self.key = key
         self.initialValue = initialValue ?? (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
     }
 
-    /// The current preference value.
-    var value: Value {
-        return collectedValue ?? initialValue
-    }
+    let key: Any.Type
+    let initialValue: Value
 
-    /// Reduce the current value and the given values.
-    func reduce(savedValue: Any?, newValue: Any) {
-        if isCollecting {
-            var value = self.value
-            (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { newValue as! Value })
-            collectedValue = value
-        } else if savedValue != newValue {
-            recompose()
+    /// The reduced preference value.
+    var reduced: Value {
+        var value = initialValue
+        for node in nodes {
+            (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { node.value as! Value })
         }
+        return value
     }
+}
 
-    /// Whether we're currently collecting this preference.
-    private(set) var isCollecting = false
-
-    /// Begin collecting the current value.
-    ///
-    /// Call this before composing content.
-    func beginCollecting() {
-        isCollecting = true
-        collectedValue = nil
-    }
-
-    /// End collecting the current value.
-    ///
-    /// Call this after composing content.
-    @Composable func endCollecting() {
-        isCollecting = false
-        update(value)
-    }
+struct PreferenceNode<Value>: Equatable {
+    let id: Int
+    let value: Value
 }
 #endif
 
 extension View {
     public func preference(key: Any.Type, value: Any) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self) { _ in
-            PreferenceValues.shared.reducePreference(key: key, value: value)
+        return ComposeModifierView(targetView: self) {
+            PreferenceValues.shared.contribute(context: $0, key: key, value: value)
             return ComposeResult.ok
         }
         #else

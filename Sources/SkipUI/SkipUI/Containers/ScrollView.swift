@@ -40,7 +40,7 @@ public struct ScrollView : View {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
-                PreferenceValues.shared.reducePreference(key: ScrollToTopPreferenceKey.self, value: {
+                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
                     coroutineScope.launch {
                         scrollState.animateScrollTo(0)
                     }

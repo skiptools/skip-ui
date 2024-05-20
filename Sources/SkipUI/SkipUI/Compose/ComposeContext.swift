@@ -6,11 +6,15 @@
 
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Modifier
 
-/// Context to provide modifiers, parent, etc to composables.
-public struct ComposeContext {
+/// Context to provide modifiers, etc to composables.
+///
+/// This type is often used as an argument to internal `@Composable` functions and is not mutated by reference, so mark `@Stable`
+/// to avoid excessive recomposition.
+@Stable public struct ComposeContext: Equatable{
     /// Modifiers to apply.
     public var modifier: Modifier = Modifier
 

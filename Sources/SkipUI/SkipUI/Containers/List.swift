@@ -29,6 +29,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,6 +60,7 @@ import struct CoreGraphics.CGFloat
 /// Corner radius for list sections.
 let listSectionnCornerRadius = 8.0
 
+// SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
 public final class List : View {
     let fixedContent: ComposeBuilder?
     let forEach: ForEach?
@@ -103,14 +105,17 @@ public final class List : View {
         IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
             ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
                 Box(modifier: modifier) {
-                    ComposeList(context: itemContext, styling: styling, safeArea: safeArea)
+                    let density = LocalDensity.current
+                    let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
+                    let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
+                    ComposeList(context: itemContext, styling: styling, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
                 }
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, safeArea: SafeArea?) {
+    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -126,7 +131,10 @@ public final class List : View {
         if styling.style != .plain {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
-        modifier = modifier.fillWidth()
+        modifier = modifier.fillMaxWidth()
+
+        let hasHeader = styling.style != ListStyle.plain || headerSafeAreaHeight.value > 0
+        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
 
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack == false
@@ -147,17 +155,11 @@ public final class List : View {
 
         // Integrate with our scroll-to-top navigation bar taps
         let coroutineScope = rememberCoroutineScope()
-        PreferenceValues.shared.reducePreference(key: ScrollToTopPreferenceKey.self, value: {
+        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
             coroutineScope.launch {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
-
-        let density = LocalDensity.current
-        let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
-        let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
-        let hasHeader = styling.style != ListStyle.plain || headerSafeAreaHeight.value > 0
-        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
@@ -316,7 +318,7 @@ public final class List : View {
 
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
-        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
+        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         let composeContainer: @Composable (ComposeContext) -> Void = { context in
             Column(modifier: context.modifier) {
                 // Note that we're calling the same view's Compose function again with a new context
@@ -406,7 +408,7 @@ public final class List : View {
     }
 
     @Composable private func ComposeSeparator() {
-        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
     }
 
     @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
@@ -419,14 +421,14 @@ public final class List : View {
             .zIndex(Float(0.5))
             .background(backgroundColor)
             .then(context.modifier)
-        var contentModifier = Modifier.fillWidth()
+        var contentModifier = Modifier.fillMaxWidth()
         if isTop && styling.style != .plain {
             contentModifier = contentModifier.padding(start: Self.horizontalItemInset.dp, top: 0.dp, end: Self.horizontalItemInset.dp, bottom: Self.verticalItemInset.dp)
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
         }
         Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
-            Column(modifier: Modifier.fillWidth()) {
+            Column(modifier: Modifier.fillMaxWidth()) {
                 EnvironmentValues.shared.setValues {
                     $0.set_listSectionHeaderStyle(styling.style)
                 } in: {
@@ -448,9 +450,9 @@ public final class List : View {
                 .zIndex(Float(0.5))
                 .background(backgroundColor)
                 .then(context.modifier)
-            let contentModifier = Modifier.fillWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
+            let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
             Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
-                Column(modifier: Modifier.fillWidth().heightIn(min: 1.dp)) {
+                Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
                     EnvironmentValues.shared.setValues {
                         $0.set_listSectionFooterStyle(styling.style)
                     } in: {
@@ -470,7 +472,7 @@ public final class List : View {
             height += Self.verticalInset.dp
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier.fillWidth()
+        let modifier = Modifier.fillMaxWidth()
             .height(height)
             .zIndex(Float(0.5))
             .background(backgroundColor)
@@ -491,7 +493,7 @@ public final class List : View {
             offset = -1.dp // Cover last row's divider
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier.fillWidth()
+        let modifier = Modifier.fillMaxWidth()
             .height(height)
             .offset(y: offset)
             .zIndex(Float(0.5))
@@ -597,7 +599,7 @@ public func List<Data, ObjectType>(_ data: Binding<Data>, id: (ObjectType) -> An
 }
 #endif
 
-struct ListStyling {
+struct ListStyling: Equatable {
     let style: ListStyle
     let backgroundVisibility: Visibility
 

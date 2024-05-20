@@ -25,14 +25,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
 @Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
-    let preferenceUpdates = remember { mutableStateOf(0) }
-    let _ = preferenceUpdates.value // Read so that it can trigger recompose on change
-    let recompose = { preferenceUpdates.value += 1 }
-
-    let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<PreferredColorScheme, Any>) { mutableStateOf(PreferredColorSchemePreferenceKey.defaultValue) }
-    let preferredColorSchemePreference = Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, update: { preferredColorScheme.value = $0 }, recompose: recompose)
-    PreferenceValues.shared.collectPreferences([preferredColorSchemePreference]) {
-        let materialColorScheme = preferredColorScheme.value.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+    let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
+    let preferredColorSchemeCollector = PreferenceCollector<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, state: preferredColorScheme)
+    PreferenceValues.shared.collectPreferences([preferredColorSchemeCollector]) {
+        let materialColorScheme = preferredColorScheme.value.reduced.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
         MaterialTheme(colorScheme: materialColorScheme) {
             let presentationBounds = remember { mutableStateOf(Rect.Zero) }
             let density = LocalDensity.current
