@@ -169,6 +169,10 @@ extension View {
         return self
     }
 
+    public func toolbar(_ visibility: Visibility) -> some View {
+        return toolbar(visibility, for: .bottomBar, .navigationBar, .tabBar)
+    }
+
     public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
         // SKIP REPLACE: var view = this
@@ -183,6 +187,10 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    public func toolbarBackground(_ style: any ShapeStyle) -> some View {
+        return toolbarBackground(style, for: .bottomBar, .navigationBar, .tabBar)
     }
 
     public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> some View {
@@ -201,6 +209,10 @@ extension View {
         #endif
     }
 
+    public func toolbarBackground(_ visibility: Visibility) -> some View {
+        return toolbarBackground(visibility, for: .bottomBar, .navigationBar, .tabBar)
+    }
+
     public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
         #if SKIP
         // SKIP REPLACE: var view = this
@@ -215,6 +227,10 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    public func toolbarColorScheme(_ colorScheme: ColorScheme?) -> some View {
+        return toolbarColorScheme(colorScheme, for: .bottomBar, .navigationBar, .tabBar)
     }
 
     public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View {
