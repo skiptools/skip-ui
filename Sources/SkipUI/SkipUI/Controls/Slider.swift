@@ -16,31 +16,46 @@ public struct Slider : View {
     let bounds: ClosedRange<Double>
     let step: Double?
 
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil) {
+    public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil) {
         self.value = value
-        self.bounds = bounds
+        self.bounds = Self.bounds(for: bounds)
         self.step = step
     }
 
     @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, onEditingChanged: @escaping (Bool) -> Void) {
+    public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, onEditingChanged: @escaping (Bool) -> Void) {
         self.value = value
-        self.bounds = bounds
+        self.bounds = Self.bounds(for: bounds)
+        self.step = step
+    }
+
+    public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View) {
+        self.init(value: value, in: bounds, step: step)
+    }
+
+    @available(*, unavailable)
+    public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void) {
+        self.value = value
+        self.bounds = Self.bounds(for: bounds)
         self.step = step
     }
 
     @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View, @ViewBuilder minimumValueLabel: () -> any View, @ViewBuilder maximumValueLabel: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
-        self.bounds = bounds
+        self.bounds = Self.bounds(for: bounds)
         self.step = step
     }
 
-    @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: ClosedRange<Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View, @ViewBuilder minimumValueLabel: () -> any View, @ViewBuilder maximumValueLabel: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-        self.value = value
-        self.bounds = bounds
-        self.step = step
+    private static func bounds(for bounds: Any?) -> ClosedRange<Double> {
+        #if SKIP
+        guard let range = bounds as? ClosedRange else {
+            return 0.0...1.0
+        }
+        return Double(range.start as! kotlin.Number)...Double(range.endInclusive as! kotlin.Number)
+        #else
+        return 0.0...1.0
+        #endif
     }
 
     #if SKIP

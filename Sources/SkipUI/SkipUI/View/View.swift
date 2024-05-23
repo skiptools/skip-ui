@@ -660,7 +660,15 @@ extension View {
         #endif
     }
 
-    public func onChange<V>(of value: V, initial: Bool = false, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
+    // Note: Kotlin's type inference has issues when a no-label closure follows a defaulted argument and the closure is
+    // inline rather than trailing at the call site. So for these onChange variants we've separated the 'initial' argument
+    // out rather than default it
+
+    public func onChange<V>(of value: V, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
+        return onChange(of: value, initial: false, action)
+    }
+
+    public func onChange<V>(of value: V, initial: Bool, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
@@ -685,7 +693,11 @@ extension View {
         #endif
     }
 
-    public func onChange<V>(of value: V?, initial: Bool = false, _ action: @escaping () -> Void) -> some View {
+    public func onChange<V>(of value: V?, _ action: @escaping () -> Void) -> some View {
+        return onChange(of: value, initial: false, action)
+    }
+
+    public func onChange<V>(of value: V?, initial: Bool, _ action: @escaping () -> Void) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V?, Any>) { mutableStateOf(value) }

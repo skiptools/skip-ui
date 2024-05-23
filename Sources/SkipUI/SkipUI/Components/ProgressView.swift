@@ -72,11 +72,12 @@ public struct ProgressView : View {
             style = value == nil ? .circular : .linear
         }
         if style == .linear {
+            let modifier = Modifier.fillWidth().then(context.modifier)
             let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
             if value == nil || total == nil {
-                LinearProgressIndicator(modifier: context.modifier, color: color)
+                LinearProgressIndicator(modifier: modifier, color: color)
             } else {
-                LinearProgressIndicator(progress: Float(value! / total!), modifier: context.modifier, color: color)
+                LinearProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
             }
         } else {
             let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
