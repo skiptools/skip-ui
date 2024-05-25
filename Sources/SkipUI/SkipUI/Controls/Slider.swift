@@ -9,6 +9,7 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 #endif
 
 public struct Slider : View {
@@ -72,7 +73,8 @@ public struct Slider : View {
         } else {
             colors = SliderDefaults.colors()
         }
-        androidx.compose.material3.Slider(value: Float(value.get()), onValueChange: { value.set(Double($0)) }, modifier: context.modifier, enabled: EnvironmentValues.shared.isEnabled, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
+        let modifier = Modifier.fillWidth().then(context.modifier)
+        androidx.compose.material3.Slider(modifier: modifier, value: Float(value.get()), onValueChange: { value.set(Double($0)) }, enabled: EnvironmentValues.shared.isEnabled, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
     }
     #else
     public var body: some View {

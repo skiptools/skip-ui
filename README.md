@@ -707,12 +707,12 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>Spacer</code> (<a href="https://skip.tools/docs/components/border/">example</a>)</summary>
               <ul>
-                  <li><code>init()</code></li>
+                  <li>In Compose, when multiple elements want to expand they will share the available space equally</li>
               </ul>
           </details>      
        </td>
@@ -747,6 +747,7 @@ Support levels:
               <ul>
                   <li>Formatting is not supported</li>
                   <li><code>Text(...) + Text(...)</code> is not supported</li>
+                  <li>Only <code>Text.DateStyle.date</code> and <code>Text.DateStyle.time</code> are supported</li>
               </ul>
           </details>      
        </td>

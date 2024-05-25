@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
@@ -15,9 +16,6 @@ import skip.foundation.Bundle
 import skip.foundation.Locale
 #else
 import struct CoreGraphics.CGFloat
-import struct Foundation.LocalizedStringResource
-import class Foundation.Bundle
-import struct Foundation.Locale
 #endif
 
 public struct Text: View, Equatable {
@@ -37,6 +35,10 @@ public struct Text: View, Equatable {
     public init(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(verbatim: nil, key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
         modifiedView = textView
+    }
+
+    public init(_ date: Date, style: Text.DateStyle) {
+        self.init(verbatim: style.format(date))
     }
 
     init(textView: _Text, modifiedView: any View) {
@@ -176,6 +178,35 @@ public struct Text: View, Equatable {
         case head
         case tail
         case middle
+    }
+
+    public struct DateStyle {
+        public static let time = DateStyle(format: { date in
+            let formatter = DateFormatter()
+            formatter.timeStyle = .medium
+            return formatter.string(from: date)
+        })
+
+        public static let date = DateStyle(format: { date in
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        })
+
+        @available(*, unavailable)
+        public static let relative = DateStyle(format: { _ in fatalError() })
+
+        @available(*, unavailable)
+        public static let offset = DateStyle(format: { _ in fatalError() })
+        
+        @available(*, unavailable)
+        public static let timer = DateStyle(format: { _ in fatalError() })
+
+        let format: (Date) -> String
+
+        private init(format: @escaping (Date) -> String) {
+            self.format = format
+        }
     }
 }
 

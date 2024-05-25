@@ -8,6 +8,7 @@
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
@@ -61,6 +63,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
             ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     ComposeTextButton(label: label, context: contentContext)
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.width(8.dp))
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
                     ComposeSelectedValue(views: views, context: contentContext, style: style, performsAction: false)
                 }
@@ -121,6 +124,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             if !EnvironmentValues.shared._labelsHidden {
                 label.Compose(context: context)
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.width(8.dp))
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
             }
             Box {
@@ -240,12 +244,15 @@ struct PickerSelectionView<SelectionValue> : View {
             dismiss()
         } label: {
             HStack {
-                label
-                Spacer()
-                if label.value == selection.wrappedValue {
-                    Image(systemName: "checkmark")
-                        .foregroundStyle(EnvironmentValues.shared._tint ?? Color.accentColor)
+                // The embedded ZStack allows us to fill the width without a Spacer, which in Compose will share equal space with
+                // the label if it also wants to expand to fill space
+                ZStack(alignment: .leading) {
+                    label
                 }
+                .frame(maxWidth: .infinity)
+                Image(systemName: "checkmark")
+                    .foregroundStyle(EnvironmentValues.shared._tint ?? Color.accentColor)
+                    .opacity(label.value == selection.wrappedValue ? 1.0 : 0.0)
             }
         }
         .buttonStyle(ButtonStyle.plain)
