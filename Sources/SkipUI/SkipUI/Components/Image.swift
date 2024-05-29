@@ -5,7 +5,6 @@
 // as published by the Free Software Foundation https://fsf.org
 
 import Foundation
-import OSLog
 #if SKIP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -53,9 +52,6 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
-
-
-let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb logcat '*:S' 'SkipUI.Image:V'
 
 public struct Image : View, Equatable {
     let image: ImageType

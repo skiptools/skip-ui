@@ -1554,6 +1554,31 @@ SkipUI currently supports tap, long press, and drag gestures. You can use either
 - Only the `onChanged` and `onEnded` gesture modifiers are supported.
 - Customization of minimum touch duration, distance, etc. is not supported.
 
+### Haptics
+
+SkipUI supports UIKit's `UIFeedbackGenerator` API for generating haptic feedback on the device, typically as a result of user interaction. Some examples are as follows:
+
+```swift
+// impact haptic feedback
+UIImpactFeedbackGenerator(style: .light).impactOccurred()
+UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+
+UIImpactFeedbackGenerator().impactOccurred(intensity: 0.5)
+
+// notification haptic feedback
+UINotificationFeedbackGenerator().notificationOccurred(.success)
+UINotificationFeedbackGenerator().notificationOccurred(.warning)
+UINotificationFeedbackGenerator().notificationOccurred(.error)
+
+// selection haptic feedback
+UISelectionFeedbackGenerator().selectionChanged()
+```
+
+Android requires adding a permission in order to be able to utilize the device's haptic feedback service (`android.content.Context.VIBRATOR_MANAGER_SERVICE`) by adding to the `Android/app/src/main/AndroidMetadata.xml` file's manifest section: `<uses-permission android:name="android.permission.VIBRATE"/>`
+{: class="callout warning"}
+
+
 #### Shapes and Paths
 
 SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed on a custom shape.

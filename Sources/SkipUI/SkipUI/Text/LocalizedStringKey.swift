@@ -51,7 +51,8 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         }
 
         public mutating func appendLiteral(_ literal: String) {
-            pattern.append(literal)
+            // need to escape out Java-specific format marker
+            pattern.append(literal.replacingOccurrences(of: "%", with: "%%"))
         }
 
         public mutating func appendInterpolation(_ string: String) {
