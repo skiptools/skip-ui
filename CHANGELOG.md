@@ -1,3 +1,9 @@
+## 0.9.4
+
+Released 2024-05-29
+
+  - Add support for loading PDF vector icons and template images
+
 ## 0.8.11
 
 Released 2024-05-14
