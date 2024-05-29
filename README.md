@@ -1554,6 +1554,21 @@ SkipUI currently supports tap, long press, and drag gestures. You can use either
 - Only the `onChanged` and `onEnded` gesture modifiers are supported.
 - Customization of minimum touch duration, distance, etc. is not supported.
 
+#### Shapes and Paths
+
+SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed on a custom shape.
+
+### Grids
+
+SkipUI renders SwiftUI grid views using native Compose grids. This provides maximum performance and a native feel on Android. The different capabilities of SwiftUI and Compose grids, however, imposes restrictions on SwiftUI grid support in Android:
+
+- Pinned headers and footers are not supported.
+- When you place a `LazyHGrid` or `LazyVGrid` in a `ScrollView`, it must be the only child of that view.
+- When you define your grid with an array of `GridItem` specs, your Android grid is **based on the first `GridItem`**. Compose does not support different specs for different rows or columns, so SkipUI applies the first spec to all of them.
+- Maximum `GridItem` sizes are ignored.
+- Also see the `ForEach` [topic](#foreach).
+
+
 ### Haptics
 
 SkipUI supports UIKit's `UIFeedbackGenerator` API for generating haptic feedback on the device, typically as a result of user interaction. Some examples are as follows:
@@ -1578,20 +1593,6 @@ UISelectionFeedbackGenerator().selectionChanged()
 Android requires adding a permission in order to be able to utilize the device's haptic feedback service (`android.content.Context.VIBRATOR_MANAGER_SERVICE`) by adding to the `Android/app/src/main/AndroidMetadata.xml` file's manifest section: `<uses-permission android:name="android.permission.VIBRATE"/>`
 {: class="callout warning"}
 
-
-#### Shapes and Paths
-
-SwiftUI automatically applies a mask to shapes and paths so that touches outside the shape do not trigger its gestures. SkipUI emulates this feature, but it is **not** supported on custom shapes and paths that have a `.stroke` applied. These shapes will register touches anywhere in their bounds. Consider using `.strokeBorder` instead of `.stroke` when a gesture mask is needed on a custom shape.
-
-### Grids
-
-SkipUI renders SwiftUI grid views using native Compose grids. This provides maximum performance and a native feel on Android. The different capabilities of SwiftUI and Compose grids, however, imposes restrictions on SwiftUI grid support in Android:
-
-- Pinned headers and footers are not supported.
-- When you place a `LazyHGrid` or `LazyVGrid` in a `ScrollView`, it must be the only child of that view.
-- When you define your grid with an array of `GridItem` specs, your Android grid is **based on the first `GridItem`**. Compose does not support different specs for different rows or columns, so SkipUI applies the first spec to all of them.
-- Maximum `GridItem` sizes are ignored.
-- Also see the `ForEach` [topic](#foreach).
 
 ### Images
 

@@ -281,7 +281,7 @@ final class SkipUITests: SkipUITestCase {
         @State var sliderValue = 0.0
         var body: some View {
             VStack {
-                Text("\(Int(sliderValue * 100.0))%%")
+                Text("\(Int(sliderValue * 100.0))%")
                     .accessibilityIdentifier("label")
                 Slider(value: $sliderValue, in: 0.0...1.0)
                     .accessibilityIdentifier("slider")
