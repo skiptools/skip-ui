@@ -1601,6 +1601,16 @@ See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `Imag
 Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 {: class="callout info"}
 
+In addition to raster image formats like .png and .jpg, vector images in the .pdf format are also supported in asset catalogs. This can be useful for providing image that can scale up or down with losing quality, and are commonly used for icons. When using PDF images, they can be tinted using the SwiftUI `.foregroundStyle(color)` modifier, provided they have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)). Otherwise, the colors set in the PDF itself will always be used when displaying the image.
+
+```swift
+Image("baseball-icon", bundle: .module, label: Text("Baseball Icon"))
+    .resizable()
+    .aspectRatio(contentMode: .fit)
+    .foregroundStyle(Color.cyan)
+    .frame(width: 30, height: 30)
+```
+
 Skip currently supports Light and Dark variants of images in an asset catalog, and will display the appropriate image depending on the active color scheme. Other image asset variants like size classes are currently unsupported.
 {: class="callout warning"}
 
