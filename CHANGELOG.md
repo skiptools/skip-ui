@@ -1,3 +1,11 @@
+## 0.9.5
+
+Released 2024-05-29
+
+  - Fix test case for percent literal in string interpolation
+  - Add haptic feedback API; escape percent literals in interpolated strings to prevent them from being interpreted as Java format patterns
+  - Add docs for PDF vector images
+
 ## 0.9.4
 
 Released 2024-05-29
