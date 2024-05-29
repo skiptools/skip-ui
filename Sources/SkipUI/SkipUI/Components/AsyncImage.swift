@@ -77,6 +77,7 @@ public struct AsyncImage : View {
         let requestSource: Any = JarURLFetcher.isJarURL(url) ? url : urlString
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(JarURLFetcher.Factory())
+            .decoderFactory(PdfDecoder.Factory())
             .data(requestSource)
             .size(Size.ORIGINAL)
             .memoryCacheKey(urlString)
@@ -161,6 +162,61 @@ final class JarURLFetcher : Fetcher {
             if (!JarURLFetcher.isJarURL(data)) { return nil }
             return JarURLFetcher(data: data, options: options)
         }
+    }
+}
+
+
+class PdfDecoder : coil.decode.Decoder {
+    let sourceResult: coil.fetch.SourceResult
+    let options: coil.request.Options
+
+    final class Factory : coil.decode.Decoder.Factory {
+        override func create(result: coil.fetch.SourceResult, options: coil.request.Options, imageLoader: coil.ImageLoader) -> coil.decode.Decoder? {
+            logger.log("PdfDecoder.Factory.create result=\(result) options=\(options) imageLoader=\(imageLoader)")
+            return PdfDecoder(sourceResult: result, options: options)
+        }
+    }
+
+    init(sourceResult: coil.fetch.SourceResult, options: coil.request.Options) {
+        self.sourceResult = sourceResult
+        self.options = options
+    }
+
+    override func decode() async -> coil.decode.DecodeResult? {
+        let src: coil.decode.ImageSource = sourceResult.source
+        let source: okio.BufferedSource = src.source()
+
+        // make sure it is a PDF image by scanning for "%PDF-" (25 50 44 46 2D)
+        let peek = source.peek()
+        // logger.log("PdfDecoder.decode peek \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte())")
+
+        if peek.readByte() != Byte(0x25) { return nil } // %
+        if peek.readByte() != Byte(0x50) { return nil } // P
+        if peek.readByte() != Byte(0x44) { return nil } // D
+        if peek.readByte() != Byte(0x46) { return nil } // F
+        if peek.readByte() != Byte(0x2D) { return nil } // -
+
+        // Unfortunately, PdfRenderer requires a ParcelFileDescriptor, which can only be created from an actual file, and not the JarInputStream from which we load assets from the .apk; so we need to write the PDF out to a temporary file in order to be able to render the PDF to a Bitmap that Coil can use
+        // Fortunately, even through we are loading from a buffer, Coil's ImageSource.file() function will: “Return a Path that resolves to a file containing this ImageSource's data. If this image source is backed by a BufferedSource, a temporary file containing this ImageSource's data will be created.”
+        let imageFile = src.file().toFile()
+        logger.log("PdfDecoder.decode result=\(sourceResult) options=\(options) imageFile=\(imageFile)")
+
+        let parcelFileDescriptor = android.os.ParcelFileDescriptor.open(imageFile, android.os.ParcelFileDescriptor.MODE_READ_ONLY)
+        defer { parcelFileDescriptor.close() }
+
+        let pdfRenderer = android.graphics.pdf.PdfRenderer(parcelFileDescriptor)
+        defer { pdfRenderer.close() }
+
+        let page = pdfRenderer.openPage(0)
+        defer { page.close() }
+
+        let width = page.width
+        let height = page.height
+        let bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+        page.render(bitmap, nil, nil, android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+
+        let drawable = android.graphics.drawable.BitmapDrawable(options.context.resources, bitmap)
+        return coil.decode.DecodeResult(drawable: drawable, isSampled: false)
     }
 }
 #endif

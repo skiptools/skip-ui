@@ -124,7 +124,7 @@ final class ImageTests: XCSnapshotTestCase {
         """))
     }
 
-    // Not yet working
+    // Not yet working, probably because Coil's SubcomposeAsyncImage does not have the image loaded by the time the view is rendered
     func XXXtestCustomSystemSymbol() throws {
         // the dumbbell.fill.svg symbol template is included in Tests/Resources/Assets.xcassets
         let imageName = "dumbbell.fill"

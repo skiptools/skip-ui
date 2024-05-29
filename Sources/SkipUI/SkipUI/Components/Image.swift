@@ -55,7 +55,7 @@ import struct CoreGraphics.CGSize
 #endif
 
 
-fileprivate let logger: Logger = Logger(subsystem: "SkipUI", category: "Image") // adb logcat '*:S' 'SkipUI.Image:V'
+let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb logcat '*:S' 'SkipUI.Image:V'
 
 public struct Image : View, Equatable {
     let image: ImageType
@@ -113,25 +113,37 @@ public struct Image : View, Equatable {
     }
 
     @Composable private func ComposeNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
-        if let imageResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, colorScheme)) { _ in imageResourceURL(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
-            ComposeAssetImage(url: imageResourceURL, label: label, context: context)
+        if let assetImageInfo = rememberCached(assetImageCache, NameBundleColorScheme(name, bundle, colorScheme)) { _ in imageResourceURL(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
+            ComposeAssetImage(asset: assetImageInfo, label: label, context: context)
         } else if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, nil)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
             ComposeSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
-    @Composable private func ComposeAssetImage(url: URL, label: Text?, context: ComposeContext) {
+    @Composable private func ComposeAssetImage(asset: AssetImageInfo, label: Text?, context: ComposeContext) {
+        let url = asset.url
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(JarURLFetcher.Factory())
+            .decoderFactory(PdfDecoder.Factory())
             .data(url)
             .size(coil.size.Size.ORIGINAL)
             .memoryCacheKey(url.description)
             .diskCacheKey(url.description)
             .build()
+
+
+        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
+        let colorFilter: ColorFilter?
+        if let tintColor, asset.isTemplateImage == true {
+            colorFilter = ColorFilter.tint(tintColor)
+        } else {
+            colorFilter = nil
+        }
+
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
         }, success: { state in
             let aspect = EnvironmentValues.shared._aspectRatio
-            ComposePainter(painter: self.painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+            ComposePainter(painter: self.painter, colorFilter: colorFilter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
         }, error: { state in
         })
     }
@@ -821,7 +833,7 @@ public struct Image : View, Equatable {
         return resourceURLs
     }
 
-    private func imageResourceURL(name: String, colorScheme: ColorScheme, bundle: Bundle) -> URL? {
+    private func imageResourceURL(name: String, colorScheme: ColorScheme, bundle: Bundle) -> AssetImageInfo? {
         for dataURL in assetContentsURLs(name: "\(name).imageset", bundle: bundle) {
             do {
                 let data = try Data(contentsOf: dataURL)
@@ -841,7 +853,7 @@ public struct Image : View, Equatable {
                     // get the image filename and append it to the end
                     let resURL = dataURL.deletingLastPathComponent().appendingPathComponent(fileName)
                     logger.debug("loading imageset data from: \(resURL)")
-                    return resURL
+                    return AssetImageInfo(url: resURL, imageSet: imageSet)
                 }
             } catch {
                 logger.warning("error loading image data from \(name): \(error)")
@@ -903,6 +915,7 @@ private struct NameBundleColorScheme: Hashable {
 }
 
 fileprivate let symbolXMLCache : [URL: [SymbolSize: SymbolInfo]] = [:]
+fileprivate let assetImageCache: [NameBundleColorScheme: AssetImageInfo?] = [:]
 fileprivate let contentsCache: [NameBundleColorScheme: URL?] = [:]
 
 /// A simple local cache that returns the cached value if it exists, or else instantiates it using the block and stores the result in the cache
@@ -916,6 +929,16 @@ func rememberCached<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -> U) 
 }
 #endif
 
+fileprivate struct AssetImageInfo {
+    /// The URL to the asset image
+    let url: URL
+    /// The ImageSet that was loaded for the given info
+    let imageSet: ImageSet
+
+    var isTemplateImage: Bool {
+        imageSet.properties?.templateRenderingIntent == "template"
+    }
+}
 
 /// The Symbols layer contains up to 27 sublayers, each representing a symbol image variant. Identifiers of symbol variants have the form <weight>-<{S, M, L}>, where weight corresponds to a weight of the system font and S, M, or L matches the small, medium, or large symbol scale.
 private enum SymbolSize : String {
@@ -991,7 +1014,8 @@ private enum SymbolSize : String {
  */
 private struct ImageSet : Decodable {
     let images: [ImageInfo]
-    let info: AssetConentsInfo
+    let info: AssetContentsInfo
+    let properties: ImageAssetProperties?
 
     struct ImageInfo : Decodable {
         let filename : String?
@@ -1003,6 +1027,16 @@ private struct ImageSet : Decodable {
     struct ImageAppearance : Decodable {
         let appearance: String? // e.g., "luminosity"
         let value: String? // e.g., "light", "dark"
+    }
+
+    struct ImageAssetProperties: Decodable {
+        let preservesVectorRepresentation: Bool?
+        let templateRenderingIntent: String?
+
+        enum CodingKeys : String, CodingKey {
+            case preservesVectorRepresentation = "preserves-vector-representation"
+            case templateRenderingIntent = "template-rendering-intent"
+        }
     }
 }
 
@@ -1022,7 +1056,7 @@ private struct ImageSet : Decodable {
  */
 private struct SymbolSet : Decodable {
     let symbols: [Symbol]
-    let info: AssetConentsInfo
+    let info: AssetContentsInfo
 
     struct Symbol : Decodable {
         let filename : String?
@@ -1050,7 +1084,7 @@ private struct SymbolSet : Decodable {
  */
 private struct ColorSet : Decodable {
     let colors: [ColorSetColor]
-    let info: AssetConentsInfo
+    let info: AssetContentsInfo
 
     struct ColorSetColor : Decodable {
         let color : ColorInfo?
@@ -1064,7 +1098,7 @@ private struct ColorSet : Decodable {
 }
 
 
-private struct AssetConentsInfo : Decodable {
+private struct AssetContentsInfo : Decodable {
     let author: String? // e.g. "xcode"
     let version: Int? // e.g. 1
 }
