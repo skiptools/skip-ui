@@ -794,25 +794,6 @@ Support levels:
       <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
-      <td>🟠</td>
-      <td>
-          <details>
-              <summary><code>UIPasteboard</code></summary>
-              <ul>
-                  <li><code>static var general: UIPasteboard</code></li>
-                  <li><code>static var changedNotification: Notification.Name</code></li>
-                  <li><code>var numberOfItems: Int</code></li>
-                  <li><code>var hasStrings: Bool</code></li>
-                  <li><code>var string: String?</code></li>
-                  <li><code>var strings: [String]?</code></li>
-                  <li><code>var hasURLs: Bool</code></li>
-                  <li><code>var url: URL?</code></li>
-                  <li><code>var urls: [URL]?</code></li>
-              </ul>
-          </details>      
-       </td>
-    </tr>
-    <tr>
       <td>✅</td>
       <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
     </tr>
@@ -1450,6 +1431,58 @@ Support levels:
     </tr>
   </tbody>
 </table>
+
+
+## Supported UIKit
+
+SkipUI does not support UIKit views themselves, but it does support a subset of the UIKit framework, such as the pasteboard and haptic feedback classes, that act as interfaces to the underlying services on Android.
+
+The following table summarizes SkipUI's UIKit support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any UIKit you want.
+
+Support levels:
+
+  - ✅ – Full
+  - 🟢 – High
+  - 🟡 – Medium 
+  - 🟠 – Low
+
+<table>
+  <thead><th>Support</th><th>API</th></thead>
+  <tbody>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>UIPasteboard</code></summary>
+              <ul>
+                  <li><code>static var general: UIPasteboard</code></li>
+                  <li><code>static var changedNotification: Notification.Name</code></li>
+                  <li><code>var numberOfItems: Int</code></li>
+                  <li><code>var hasStrings: Bool</code></li>
+                  <li><code>var string: String?</code></li>
+                  <li><code>var strings: [String]?</code></li>
+                  <li><code>var hasURLs: Bool</code></li>
+                  <li><code>var url: URL?</code></li>
+                  <li><code>var urls: [URL]?</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UIImpactFeedbackGenerator</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UINotificationFeedbackGenerator</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UISelectionFeedbackGenerator</code></td>
+    </tr>
+  </tbody>
+</table>
+
 
 ## Topics
 
