@@ -566,6 +566,9 @@ extension View {
     public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         #if SKIP
         // TODO: Add support for multiple detents
+        if detents.count == 0 {
+            return self
+        }
         let selectedDetent = detents.first
         return preference(key: PresentationDetentPreferences.self, value: PresentationDetentPreferences(detent: selectedDetent))
         #else
