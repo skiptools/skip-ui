@@ -34,6 +34,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
@@ -86,15 +88,31 @@ let overlayPresentationCornerRadius = 16.0
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             let orientation = LocalConfiguration.current.orientation
             var systemBarEdges: Edge.Set = .all
+            
+            let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
+            let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
+            let reducedDetentPreferences = detentPreferences.value.reduced
+            
             if !isFullScreen && orientation != ORIENTATION_LANDSCAPE {
                 systemBarEdges.remove(.top)
                 // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
                 let topBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                var detentInset = 0.dp
+                
                 var inset = topBarHeight + (24 * sheetDepth).dp
                 if !isEdgeToEdge {
                     inset += 24.dp
                     systemBarEdges.remove(.bottom)
                 }
+                
+                // TODO: add other cases
+                switch reducedDetentPreferences.detent {
+                case PresentationDetent.medium:
+                    inset += 400.dp    // TODO: replace by half of the container or screen ?
+                default:
+                    break
+                }
+                
                 topInset.value = inset
                 // Push the presentation root content area down an equal amount
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
@@ -119,7 +137,9 @@ let overlayPresentationCornerRadius = 16.0
                         }
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                     } in: {
-                        contentView.Compose(context: context)
+                        PreferenceValues.shared.collectPreferences([detentPreferencesCollector]) {
+                            contentView.Compose(context: context)
+                        }
                     }
                 }
             }
@@ -388,6 +408,36 @@ public protocol CustomPresentationDetent {
 //    public var body: Body { fatalError() }
 //}
 
+#if SKIP
+struct PresentationDetentPreferenceKey: PreferenceKey {
+    typealias Value = PresentationDetentPreferences
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<PresentationDetentPreferences>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue = PresentationDetentPreferences()
+        func reduce(value: inout PresentationDetentPreferences, nextValue: () -> PresentationDetentPreferences) {
+            value = value.reduce(nextValue())
+        }
+    }
+}
+
+struct PresentationDetentPreferences: Equatable {
+    let detent: PresentationDetent
+    
+    init(detent: PresentationDetent? = nil) {
+        self.detent = detent ?? PresentationDetent.large
+    }
+    
+    func reduce(_ next: PresentationDetentPreferences) -> PresentationDetentPreferences {
+        return next
+    }
+    
+    public static func ==(lhs: PresentationDetentPreferences, rhs: PresentationDetentPreferences) -> Bool {
+        return lhs.detent == rhs.detent
+    }
+}
+#endif
+
 extension View {
     public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
@@ -474,7 +524,26 @@ extension View {
 
     @available(*, unavailable)
     public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
+        #if SKIP
+        let isPresented = Binding<Bool>(
+            get: {
+                return item.wrappedValue != nil
+            },
+            set: { newValue in
+                if !newValue {
+                    item.wrappedValue = nil
+                }
+            }
+        )
+        
+        return sheet(isPresented: isPresented, onDismiss: onDismiss) {
+            if let unwrappedItem = item.wrappedValue {
+                content(unwrappedItem)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
@@ -487,9 +556,14 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
+        #if SKIP
+        // TODO: Add support for multiple detents
+        let selectedDetent = detents.first
+        return preference(key: PresentationDetentPreferences.self, value: PresentationDetentPreferences(detent: selectedDetent))
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -537,9 +611,27 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func sheet<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
+        #if SKIP
+        let isPresented = Binding<Bool>(
+            get: {
+                return item.wrappedValue != nil
+            },
+            set: { newValue in
+                if !newValue {
+                    item.wrappedValue = nil
+                }
+            }
+        )
+        
+        return sheet(isPresented: isPresented, onDismiss: onDismiss) {
+            if let unwrappedItem = item.wrappedValue {
+                content(unwrappedItem)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     public func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
