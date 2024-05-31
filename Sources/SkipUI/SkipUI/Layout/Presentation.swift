@@ -529,7 +529,6 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
         #if SKIP
         let isPresented = Binding<Bool>(
