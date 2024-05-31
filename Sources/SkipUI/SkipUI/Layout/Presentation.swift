@@ -105,10 +105,17 @@ let overlayPresentationCornerRadius = 16.0
                     systemBarEdges.remove(.bottom)
                 }
                 
-                // TODO: add other cases
-                switch reducedDetentPreferences.detent {
-                case PresentationDetent.medium:
-                    inset += 400.dp    // TODO: replace by half of the container or screen ?
+                // TODO: add custom cases
+                // Add inset depending on the presentation detent
+                let screenHeight = LocalConfiguration.current.screenHeightDp.dp
+                let detent: PresentationDetent = reducedDetentPreferences.detent
+                switch detent {
+                case .medium:
+                    inset += screenHeight / 2
+                case let .height(h):
+                    inset += screenHeight - h.dp
+                case let .fraction(f):
+                    inset += screenHeight * Float(1 - f)
                 default:
                     break
                 }
