@@ -1,3 +1,11 @@
+## 0.9.6
+
+Released 2024-05-31
+
+  - Add height and fraction detents
+  - Add sheet medium detent & support item argument (thanks, @Louis-PAGNIER)
+  - Add Supported UIKit documentation section
+
 ## 0.9.5
 
 Released 2024-05-29
