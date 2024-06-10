@@ -23,6 +23,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -264,6 +265,33 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "redactionReasons", value: newValue, defaultValue: { RedactionReasons(rawValue: 0) }) }
     }
 
+    //~~~
+    public var scenePhase: Any {
+/*
+        val lifecycle = ProcessLifecycleOwner.get().lifecycle
+        android.util.Log.e("", "LIFECYCLE: $lifecycle")
+        val lifecycleState = remember { mutableStateOf(lifecycle.currentState) }
+        DisposableEffect(lifecycle) {
+            val lifecycle = ProcessLifecycleOwner.get().lifecycle
+            android.util.Log.e("", "IN DISPOSABLE EFFECT!: $lifecycle")
+            val observer = object: LifecycleEventObserver, DefaultLifecycleObserver {
+                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                    lifecycleState.value = event.targetState
+                    android.util.Log.e("", "LIFECYCLE TARGET STATE: ${event.targetState}")
+                }
+            }
+            lifecycle.addObserver(observer)
+            onDispose {
+                val lifecycle = ProcessLifecycleOwner.get().lifecycle
+                android.util.Log.e("", "DISPOSING!!!!!!!!: $lifecycle")
+                lifecycle.removeObserver(observer)
+            }
+        }
+        return lifecycleState.value
+*/
+        return LocalLifecycleOwner.current.lifecycle.currentState
+    }
+
     public var timeZone: TimeZone {
         get { builtinValue(key: "timeZone", defaultValue: { TimeZone.current }) as! TimeZone }
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
@@ -334,7 +362,6 @@ extension EnvironmentValues {
     var isLuminanceReduced: Bool
     var isPresented: Bool
     var isSceneCaptured: Bool
-    var scenePhase: ScenePhase
     var supportsMultipleWindows: Bool
 
     var displayStoreKitMessage: DisplayMessageAction
@@ -819,18 +846,6 @@ extension EnvironmentValues {
     /// prominence of foreground views. For custom backgrounds, this environment
     /// property can be explicitly set on views above custom backgrounds.
     public var backgroundProminence: BackgroundProminence { get { fatalError() } }
-}
-
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-extension EnvironmentValues {
-
-    /// The current phase of the scene.
-    ///
-    /// The system sets this value to provide an indication of the
-    /// operational state of a scene or collection of scenes. The exact
-    /// meaning depends on where you access the value. For more information,
-    /// see ``ScenePhase``.
-    public var scenePhase: ScenePhase { get { fatalError() } }
 }
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
