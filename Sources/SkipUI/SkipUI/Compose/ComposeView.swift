@@ -6,6 +6,7 @@
 
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 #endif
 
 /// Used to directly wrap user Compose content.
@@ -31,3 +32,15 @@ public struct ComposeView: View {
     }
     #endif
 }
+
+#if SKIP
+extension View {
+    /// Add the given modifier to the underlying Compose view.
+    public func composeModifier(_ modifier: (Modifier) -> Modifier) -> View {
+        return ComposeModifierView(targetView: self) {
+            $0.modifier = modifier($0.modifier)
+            return ComposeResult.ok
+        }
+    }
+}
+#endif

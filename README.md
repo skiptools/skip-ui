@@ -242,6 +242,26 @@ With `ComposeView` and the `Compose()` function, you can move fluidly between Sw
 
 `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
 
+## composeModifier
+
+In addition to `ComposeView` above, Skip offers the `composeModifier` SwiftUI modifier. This modifier allows you to apply any Compose modifiers to the underlying Compose view. It takes a block that accepts a single `androidx.compose.ui.Modifier` parameter and returns a `Modifier` as well. For example:
+
+```swift
+#if SKIP
+import androidx.compose.foundation.layout.imePadding
+#endif
+
+...
+
+TextField("Enter username:", text: $username)
+    .textFieldStyle(.plain)
+    #if SKIP
+    .composeModifier { $0.imePadding() }
+    #endif
+```
+
+Like `ComposeView`, the `composeModifier` function is only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
+
 ## Tests
 
 SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
