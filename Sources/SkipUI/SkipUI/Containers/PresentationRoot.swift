@@ -7,8 +7,11 @@
 #if SKIP
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
 /// The root of a presentation, such as the root presentation or a sheet.
+// SKIP INSERT: @OptIn(ExperimentalLayoutApi::class)
 @Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
     let preferredColorSchemeCollector = PreferenceCollector<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, state: preferredColorScheme)
@@ -36,6 +40,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let rootModifier = Modifier
                 .background(Color.background.colorImpl())
                 .fillMaxSize()
+                .imePadding()
                 .onGloballyPositioned {
                     presentationBounds.value = $0.boundsInWindow()
                 }
@@ -54,7 +59,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 if systemBarEdges.contains(.trailing) {
                     safeRight -= WindowInsets.systemBars.getRight(density, layoutDirection)
                 }
-                if systemBarEdges.contains(.bottom) {
+                if systemBarEdges.contains(.bottom) && !WindowInsets.isImeVisible {
                     safeBottom -= WindowInsets.systemBars.getBottom(density)
                 }
                 let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)

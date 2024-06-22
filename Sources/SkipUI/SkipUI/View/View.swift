@@ -529,6 +529,9 @@ extension View {
 
     public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View {
         #if SKIP
+        guard regions.contains(.container) else {
+            return self
+        }
         return ComposeModifierView(contentView: self) { view, context in
             IgnoresSafeAreaLayout(view: view, edges: edges, context: context)
         }
