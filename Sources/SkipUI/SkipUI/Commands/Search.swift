@@ -98,7 +98,7 @@ public struct SearchFieldPlacement : RawRepresentable, Sendable {
 let searchFieldHeight = 56.0
 
 /// Renders a search field.
-@ExperimentalMaterial3Api
+// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SearchField(state: SearchableState, context: ComposeContext) {
     let colors = TextField.colors(context: context)
     let disabledTextColor = TextField.textColor(enabled: false, context: context)

@@ -15,6 +15,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -182,7 +185,7 @@ public struct NavigationStack<Root> : View where Root: View {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable private func ComposeEntry(navigator: MutableState<Navigator>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
         let context = context.content(stateSaver: arguments.state.stateSaver)
 
@@ -311,14 +314,21 @@ public struct NavigationStack<Root> : View where Root: View {
         }
 
         let bottomBarTopPx = remember { mutableStateOf(Float(0.0)) }
+        let bottomBarHeightPx = remember { mutableStateOf(Float(0.0)) }
         let bottomBar: @Composable () -> Void = {
             guard bottomBarPreferences?.visibility != Visibility.hidden else {
-                SideEffect { bottomBarTopPx.value = Float(0.0) }
+                SideEffect {
+                    bottomBarTopPx.value = Float(0.0)
+                    bottomBarHeightPx.value = Float(0.0)
+                }
                 return
             }
             let bottomItems = toolbarItems.filterBottomBar()
             guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
-                SideEffect { bottomBarTopPx.value = Float(0.0) }
+                SideEffect {
+                    bottomBarTopPx.value = Float(0.0)
+                    bottomBarHeightPx.value = Float(0.0)
+                }
                 return
             }
             let materialColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
@@ -331,7 +341,11 @@ public struct NavigationStack<Root> : View where Root: View {
                 } in: {
                     var bottomBarModifier = Modifier.zIndex(Float(1.1))
                         .onGloballyPositioned {
-                            bottomBarTopPx.value = $0.boundsInWindow().top
+                            let bounds = $0.boundsInWindow()
+                            if bounds.top > Float(0.0) { // Sometimes we see random 0 values
+                                bottomBarTopPx.value = bounds.top
+                                bottomBarHeightPx.value = bounds.bottom - bounds.top
+                            }
                         }
                     let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
                     if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
@@ -348,17 +362,21 @@ public struct NavigationStack<Root> : View where Root: View {
                     } else {
                         bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
                     }
-                    BottomAppBar(modifier: bottomBarModifier,
+                    // Pull the bottom bar below the keyboard
+                    let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
+                    PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
+                        BottomAppBar(modifier: context.modifier.then(bottomBarModifier),
                                  containerColor: bottomBarBackgroundColor,
                                  contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
-                                 windowInsets = WindowInsets(bottom: 0.dp)) {
-                        // Use an HStack so that it sets up the environment for bottom toolbar Spacers
-                        HStack(spacing: 24.0) {
-                            ComposeBuilder { itemContext in
-                                bottomItems.forEach { $0.Compose(context: itemContext) }
-                                return ComposeResult.ok
-                            }
-                        }.Compose(context.content())
+                                     windowInsets = WindowInsets(bottom: 0.dp)) {
+                            // Use an HStack so that it sets up the environment for bottom toolbar Spacers
+                            HStack(spacing: 24.0) {
+                                ComposeBuilder { itemContext in
+                                    bottomItems.forEach { $0.Compose(context: itemContext) }
+                                    return ComposeResult.ok
+                                }
+                            }.Compose(context)
+                        }
                     }
                 }
             }
@@ -373,7 +391,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 .insetting(.bottom, to: bottomBarTopPx.value)
             // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
             let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.systemBars.asPaddingValues().calculateTopPadding() : 0.dp
-            let bottomPadding = bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
+            let bottomPadding = bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) && !WindowInsets.isImeVisible ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
             let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
 
             topBar()

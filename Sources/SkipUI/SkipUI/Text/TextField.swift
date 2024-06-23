@@ -67,7 +67,7 @@ public struct TextField : View {
     }
 
     #if SKIP
-    @ExperimentalMaterial3Api
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
@@ -90,7 +90,7 @@ public struct TextField : View {
         }
     }
 
-    @ExperimentalMaterial3Api
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable static func colors(context: ComposeContext) -> TextFieldColors {
         let textColor = textColor(enabled: true, context: context)
         let disabledTextColor = textColor(enabled: false, context: context)

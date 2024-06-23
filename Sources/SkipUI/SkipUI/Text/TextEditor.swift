@@ -28,7 +28,7 @@ public struct TextEditor : View {
     }
 
     #if SKIP
-    @ExperimentalMaterial3Api
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default

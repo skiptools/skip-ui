@@ -12,10 +12,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,7 +65,7 @@ public struct TabView : View {
     }
 
     #if SKIP
-    @ExperimentalMaterial3Api
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         // WARNING: This function is a potential recomposition hotspot. It should not need to be called on every tab
         // change. Test after any modification
@@ -83,28 +87,33 @@ public struct TabView : View {
 
         let safeArea = EnvironmentValues.shared._safeArea
         let density = LocalDensity.current
+        let defaultBottomBarHeight = 80.dp
         let bottomBarTopPx = remember {
             // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
             // recompose with adjusted layouts
             if let safeArea {
-                mutableStateOf(with(density) { safeArea.presentationBoundsPx.bottom - 80.dp.toPx() })
+                mutableStateOf(with(density) { safeArea.presentationBoundsPx.bottom - defaultBottomBarHeight.toPx() })
             } else {
                 mutableStateOf(Float(0.0))
             }
         }
+        let bottomBarHeightPx = remember { mutableStateOf(with(density) { defaultBottomBarHeight.toPx() }) }
+
         let bottomBar: @Composable () -> Void = {
             let reducedTabBarPreferences = tabBarPreferences.value.reduced
             guard reducedTabBarPreferences.visibility != Visibility.hidden else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
+                    bottomBarHeightPx.value = Float(0.0)
                 }
                 return
             }
             var tabBarModifier = Modifier.fillMaxWidth()
                 .onGloballyPositioned {
-                    let topPx = $0.boundsInWindow().top
-                    if topPx > Float(0.0) { // Sometimes we see random 0 values
-                        bottomBarTopPx.value = topPx
+                    let bounds = $0.boundsInWindow()
+                    if bounds.top > Float(0.0) { // Sometimes we see random 0 values
+                        bottomBarTopPx.value = bounds.top
+                        bottomBarHeightPx.value = bounds.bottom - bounds.top
                     }
                 }
             let colorScheme = reducedTabBarPreferences.colorScheme ?? ColorScheme.fromMaterialTheme()
@@ -131,23 +140,27 @@ public struct TabView : View {
             let materialColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
             MaterialTheme(colorScheme: materialColorScheme) {
                 let currentRoute = currentRoute(for: navController) // Note: forces recompose of this context on tab navigation
-                NavigationBar(modifier: tabBarModifier, containerColor: tabBarBackgroundColor) {
-                    for tabIndex in 0..<tabViews.count {
-                        let route = String(describing: tabIndex)
-                        let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
-                        NavigationBarItem(
-                            colors: tabBarItemColors,
-                            icon: { tabItem?.ComposeImage(context: tabItemContext) },
-                            label: { tabItem?.ComposeTitle(context: tabItemContext) },
-                            selected: route == currentRoute,
-                            onClick: {
-                                if let selection, let tagValue = tagValue(route: route, in: tabViews) {
-                                    selection.wrappedValue = tagValue
-                                } else {
-                                    navigate(controller: navController, route: route)
+                // Pull the tab bar below the keyboard
+                let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
+                PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
+                    NavigationBar(modifier: context.modifier.then(tabBarModifier), containerColor: tabBarBackgroundColor) {
+                        for tabIndex in 0..<tabViews.count {
+                            let route = String(describing: tabIndex)
+                            let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+                            NavigationBarItem(
+                                colors: tabBarItemColors,
+                                icon: { tabItem?.ComposeImage(context: tabItemContext) },
+                                label: { tabItem?.ComposeTitle(context: tabItemContext) },
+                                selected: route == currentRoute,
+                                onClick: {
+                                    if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                                        selection.wrappedValue = tagValue
+                                    } else {
+                                        navigate(controller: navController, route: route)
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -172,7 +185,7 @@ public struct TabView : View {
                             composable(String(describing: tabIndex)) { _ in
                                 // Inset manually where our container ignored the safe area, but we aren't showing a bar
                                 let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.systemBars.asPaddingValues().calculateTopPadding() : 0.dp
-                                let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
+                                let bottomPadding = bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) && !WindowInsets.isImeVisible ? WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() : 0.dp
                                 let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
                                 let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
 
