@@ -10,8 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -59,8 +59,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 if systemBarEdges.contains(.trailing) {
                     safeRight -= WindowInsets.systemBars.getRight(density, layoutDirection)
                 }
-                if systemBarEdges.contains(.bottom) && !WindowInsets.isImeVisible {
-                    safeBottom -= WindowInsets.systemBars.getBottom(density)
+                if systemBarEdges.contains(.bottom) {
+                    safeBottom -= max(0, WindowInsets.systemBars.getBottom(density) - WindowInsets.ime.getBottom(density))
                 }
                 let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)
                 let safeArea = SafeArea(presentation: presentationBounds.value, safe: safeBounds, absoluteSystemBars: systemBarEdges)

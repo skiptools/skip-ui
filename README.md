@@ -1934,9 +1934,7 @@ Please ensure that when using these API, the above algorithm will create unique,
 
 ### Safe Area
 
-Like the iPhone, Android devices can render content behind system bars like the top status bar and bottom gesture area. SwiftUI code using the `.ignoresSafeArea` modifier to extend content behind system bars will work the same across SwiftUI and SkipUI, with the following exceptions:
-
-- SkipUI does not support `SafeAreaRegions.keyboard` 
+Like the iPhone, Android devices can render content behind system bars like the top status bar and bottom gesture area. SwiftUI code using the `.ignoresSafeArea` modifier to extend content behind system bars will work the same across SwiftUI and SkipUI, with one exception: SkipUI ignores the `SafeAreaRegions.keyboard` region. SkipUI does not represent the onscreen keyboard as a safe area. Rather, it follows the typical Android practice of shrinking the content area to fit above the keyboard. 
 
 Remember that you can use `#if SKIP` blocks to confine your `.ignoresSafeArea` calls for iOS or Android only.
 
