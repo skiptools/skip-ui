@@ -813,6 +813,17 @@ Support levels:
       <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>UIKit</code></summary>
+              <ul>
+                  <li>See <a href="#supported-uikit">Supported UIKit</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
     </tr>
