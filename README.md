@@ -330,14 +330,6 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td>Custom Views</td>
-    </tr>
-    <tr>
-      <td>✅</td>
-      <td>Custom ViewModifiers</td>
-    </tr>
-    <tr>
-      <td>✅</td>
       <td><code>AsyncImage</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</td>
     </tr>
     <tr>
@@ -826,6 +818,14 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>Custom <code>Views</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>Custom <code>ViewModifiers</code></td>
     </tr>
     <tr>
       <td>✅</td>
