@@ -10,7 +10,6 @@ SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI f
 {: .diagram-vector }
 
 
-
 ## Dependencies
 
 SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
@@ -1473,6 +1472,27 @@ Support levels:
       <td>🟠</td>
       <td>
           <details>
+              <summary><code>UIApplication</code></summary>
+              <ul>
+                  <li><code>static var shared: UIApplication</code></li>
+                  <li><code>var applicationState: UIApplication.State</code></li>
+                  <li><code>func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UIImpactFeedbackGenerator</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UINotificationFeedbackGenerator</code></td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
               <summary><code>UIPasteboard</code></summary>
               <ul>
                   <li><code>static var general: UIPasteboard</code></li>
@@ -1487,14 +1507,6 @@ Support levels:
               </ul>
           </details>      
        </td>
-    </tr>
-    <tr>
-      <td>✅</td>
-      <td><code>UIImpactFeedbackGenerator</code></td>
-    </tr>
-    <tr>
-      <td>✅</td>
-      <td><code>UINotificationFeedbackGenerator</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1579,6 +1591,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `lineLimit`
 - `locale`
 - `openURL`
+- `scenePhase`
 - `timeZone`
 
 ### ForEach
