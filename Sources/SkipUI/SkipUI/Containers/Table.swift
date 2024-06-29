@@ -4,9 +4,192 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if SKIP
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+#endif
+
+// SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
+public final class Table<ObjectType> : View where ObjectType: Identifiable {
+    let data: any RandomAccessCollection<ObjectType>
+    let columnSpecs: ComposeBuilder
+
+    // Note: The SwiftUI.Table content block does *not* accept any arguments. We add the argument to the
+    // Kotlin transpilation so that we can also add it to each nested TableColumn call, which in turn allows
+    // the Kotlin compiler to infer the expected ObjectType for the columns. Otherwise TableColumn calls
+    // don't have enough information for the Kotlin compiler to infer their generic type
+    public init(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder content: (any RandomAccessCollection<ObjectType>) -> any View) {
+        self.data = data
+        let view = content(data)
+        self.columnSpecs = view as? ComposeBuilder ?? ComposeBuilder(view: view)
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        // When we layout, extend into safe areas that are due to system bars, not into any app chrome. We'll add
+        // blank head
+        let safeArea = EnvironmentValues.shared._safeArea
+        var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
+        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        let itemContext = context.content()
+        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+            ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+                Box(modifier: modifier) {
+                    let density = LocalDensity.current
+                    let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
+                    let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
+                    ComposeTable(context: itemContext, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
+                }
+            }
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
+    @Composable private func ComposeTable(context: ComposeContext, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
+        // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to gather
+        // our content before entering the LazyColumn body, then use LazyColumn's LazyListScope functions to compose
+        // individual items
+        let columnSpecs = self.columnSpecs.collectViews(context: context)
+        let modifier = context.modifier.fillMaxWidth()
+
+        let listState = rememberLazyListState()
+        // Integrate with our scroll-to-top navigation bar taps
+        let coroutineScope = rememberCoroutineScope()
+        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+            coroutineScope.launch {
+                listState.animateScrollToItem(0)
+            }
+        })
+
+        let shouldAnimateItems: @Composable () -> Bool = {
+            guard let searchableState = EnvironmentValues.shared._searchableState, searchableState.isSearching.value else {
+                return true
+            }
+            guard searchableState.isOnNavigationStack else {
+                return false
+            }
+            // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
+            return LocalNavigator.current?.isRoot != true
+        }
+
+        let key: (Int) -> String = { composeBundleString(for: data[$0].id) }
+        LazyColumn(state: listState, modifier: modifier) {
+            //~~~
+//            if isSearchable {
+//                item {
+//                    ComposeSearchField(state: searchableState!, context: context, styling: styling)
+//                }
+//            }
+//            if hasHeader {
+//                let hasTopSection = collectingComposer.views.firstOrNull() is LazySectionHeader
+//                item {
+//                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight, hasTopSection: hasTopSection)
+//                }
+//            }
+            items(count: data.count, key: key) { index in
+                var columnModifier = Modifier.fillMaxWidth()
+                if shouldAnimateItems() {
+                    columnModifier = columnModifier.animateItemPlacement()
+                }
+
+                Column(modifier: columnModifier) {
+                    Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                        let itemComposer = ListItemComposer(contentModifier: Modifier.weight(Float(1.0) / Float(columnSpecs.count)))
+                        let itemContext = context.content(composer: itemComposer)
+                        for columnSpec in columnSpecs {
+                            (columnSpec as! TableColumn).ComposeCell(data[index], context: itemContext)
+                        }
+                    }
+                    List.ComposeSeparator()
+                }
+            }
+            //~~~
+//            if hasFooter {
+//                let hasBottomSection = collectingComposer.views.lastOrNull() is LazySectionFooter
+//                item {
+//                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight, hasBottomSection: hasBottomSection)
+//                }
+//            }
+        }
+    }
+
+    private func headerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
+        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.top) && safeArea.safeBoundsPx.top > safeArea.presentationBoundsPx.top else {
+            return 0.dp
+        }
+        return with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
+    }
+
+    private func footerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
+        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.bottom) && safeArea.presentationBoundsPx.bottom > safeArea.safeBoundsPx.bottom else {
+            return 0.dp
+        }
+        return with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct TableColumn : View {
+    let columnTitle: String
+    let cellContent: (Any) -> any View
+
+    init(columnTitle: String, cellContent: @escaping (Any) -> any View) {
+        self.columnTitle = columnTitle
+        self.cellContent = cellContent
+    }
+
+    #if SKIP
+    @Composable func ComposeCell(_ item: Any, context: ComposeContext) {
+        cellContent(item).Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+#if SKIP
+// public init<S>(_ title: S, value: KeyPath<RowValue, String>, comparator: String.StandardComparator = .localizedStandard) where Content == Text, S : StringProtocol { fatalError() }
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
+public func TableColumn<ObjectType>(_ title: String, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
+    return TableColumn(columnTitle: title, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+}
+
+// public init<S, V>(_ title: S, value: KeyPath<RowValue, V>, @ViewBuilder content: @escaping (RowValue) -> Content) where S : StringProtocol, V : Comparable { fatalError() }
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, content: (ObjectType) -> View): TableColumn
+public func TableColumn<ObjectType>(_ title: String, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
+    return TableColumn(columnTitle: title, cellContent: { content($0 as! ObjectType) })
+}
+#endif
 
 #if false
+
+// TODO: Process for use in SkipUI
+
 import struct CoreGraphics.CGFloat
 import class Foundation.NSObject
 import protocol Foundation.SortComparator
@@ -760,19 +943,6 @@ extension TableColumn where Sort == KeyPathComparator<RowValue>, Label == Text {
     ///   - content: The view content to display for each row in a table.
     public init<V>(_ titleKey: LocalizedStringKey, value: KeyPath<RowValue, V>, @ViewBuilder content: @escaping (RowValue) -> Content) where V : Comparable { fatalError() }
 
-    /// Creates a sortable column for comparable values that generates its label
-    /// from a string.
-    ///
-    /// This initializer creates a ``Text`` view for you, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``.
-    /// For more information about localizing strings, see ``Text``.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the column.
-    ///   - value: The path to the property associated with the column,
-    ///     used to update the table's sorting state.
-    ///   - content: The view content to display for each row in a table.
-    public init<S, V>(_ title: S, value: KeyPath<RowValue, V>, @ViewBuilder content: @escaping (RowValue) -> Content) where S : StringProtocol, V : Comparable { fatalError() }
 
     /// Creates a sortable column for comparable values with a text label.
     ///
@@ -853,21 +1023,6 @@ extension TableColumn where Sort == KeyPathComparator<RowValue>, Label == Text {
     ///   - comparator: The `SortComparator` used to order the string values.
     public init(_ titleKey: LocalizedStringKey, value: KeyPath<RowValue, String>, comparator: String.StandardComparator = .localizedStandard) where Content == Text { fatalError() }
 
-    /// Creates a sortable column that displays a string property, and
-    /// generates its label from a string.
-    ///
-    /// This initializer creates a ``Text`` view for you, and treats the
-    /// title similar to ``Text/init(_:)-9d1g4``.
-    /// For more information about localizing strings, see ``Text``.
-    ///
-    /// - Parameters:
-    ///   - title: A string that describes the column.
-    ///   - value: The path to the property associated with the column,
-    ///     to display verbatim as text in each row of a table,
-    ///     and the key path used to create a sort comparator when
-    ///     sorting the column.
-    ///   - comparator: The `SortComparator` used to order the string values.
-    public init<S>(_ title: S, value: KeyPath<RowValue, String>, comparator: String.StandardComparator = .localizedStandard) where Content == Text, S : StringProtocol { fatalError() }
 
     /// Creates a sortable column that displays a string property and
     /// has a text label.

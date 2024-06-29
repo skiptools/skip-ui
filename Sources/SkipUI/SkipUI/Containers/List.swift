@@ -305,6 +305,14 @@ public final class List : View {
     private static let horizontalItemInset = 16.0
     private static let verticalItemInset = 8.0
 
+    static var contentModifier: Modifier {
+        return Modifier.padding(horizontal: horizontalItemInset.dp, vertical: verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: minimumItemHeight.dp)
+    }
+
+    @Composable static func ComposeSeparator() {
+        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+    }
+
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
         guard !view.isSwiftUIEmptyView else {
             return
@@ -318,13 +326,12 @@ public final class List : View {
 
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
-        let contentModifier = Modifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: Self.minimumItemHeight.dp)
         let composeContainer: @Composable (ComposeContext) -> Void = { context in
             Column(modifier: context.modifier) {
                 // Note that we're calling the same view's Compose function again with a new context
-                view.Compose(context: context.content(composer: ListItemComposer(contentModifier: contentModifier)))
+                view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier)))
                 if itemModifierView?.separator != Visibility.hidden {
-                    ComposeSeparator()
+                    Self.ComposeSeparator()
                 }
             }
         }
@@ -405,10 +412,6 @@ public final class List : View {
             }
             content(itemModifier)
         }
-    }
-
-    @Composable private func ComposeSeparator() {
-        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
     }
 
     @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
