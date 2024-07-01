@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -280,6 +282,16 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
     }
 
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+    public var horizontalSizeClass: UserInterfaceSizeClass? {
+        UserInterfaceSizeClass.fromWindowWidthSizeClass(currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass)
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
+    public var verticalSizeClass: UserInterfaceSizeClass? {
+        UserInterfaceSizeClass.fromWindowHeightSizeClass(currentWindowAdaptiveInfo().windowSizeClass.windowHeightSizeClass)
+    }
+
     /* Not yet supported
     var accessibilityDimFlashingLights: Bool
     var accessibilityDifferentiateWithoutColor: Bool
@@ -320,11 +332,9 @@ extension EnvironmentValues {
     var searchSuggestionsPlacement: SearchSuggestionsPlacement
     var colorSchemeContrast: ColorSchemeContrast
     var displayScale: CGFloat
-    var horizontalSizeClass: UserInterfaceSizeClass?
     var imageScale: Image.Scale
     var pixelLength: CGFloat
     var sidebarRowSize: SidebarRowSize
-    var verticalSizeClass: UserInterfaceSizeClass?
     var calendar: Calendar
     var documentConfiguration: DocumentConfiguration?
     var managedObjectContext: NSManagedObjectContext
@@ -1124,72 +1134,6 @@ extension EnvironmentValues {
 
     /// The current time zone that views should use when handling dates.
     public var timeZone: TimeZone { get { fatalError() } }
-}
-
-extension EnvironmentValues {
-
-    /// The horizontal size class of this environment.
-    ///
-    /// You receive a ``UserInterfaceSizeClass`` value when you read this
-    /// environment value. The value tells you about the amount of horizontal
-    /// space available to the view that reads it. You can read this
-    /// size class like any other of the ``EnvironmentValues``, by creating a
-    /// property with the ``Environment`` property wrapper:
-    ///
-    ///     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    ///
-    /// SkipUI sets this size class based on several factors, including:
-    ///
-    /// * The current device type.
-    /// * The orientation of the device.
-    /// * The appearance of Slide Over and Split View on iPad.
-    ///
-    /// Several built-in views change their behavior based on this size class.
-    /// For example, a ``NavigationView`` presents a multicolumn view when
-    /// the horizontal size class is ``UserInterfaceSizeClass/regular``,
-    /// but a single column otherwise. You can also adjust the appearance of
-    /// custom views by reading the size class and conditioning your views.
-    /// If you do, be prepared to handle size class changes while
-    /// your app runs, because factors like device orientation can change at
-    /// runtime.
-    ///
-    /// In watchOS, the horizontal size class is always
-    /// ``UserInterfaceSizeClass/compact``. In macOS, and tvOS, it's always
-    /// ``UserInterfaceSizeClass/regular``.
-    ///
-    /// Writing to the horizontal size class in the environment
-    /// before macOS 14.0, tvOS 17.0, and watchOS 10.0 is not supported.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public var horizontalSizeClass: UserInterfaceSizeClass? { get { fatalError() } }
-
-    /// The vertical size class of this environment.
-    ///
-    /// You receive a ``UserInterfaceSizeClass`` value when you read this
-    /// environment value. The value tells you about the amount of vertical
-    /// space available to the view that reads it. You can read this
-    /// size class like any other of the ``EnvironmentValues``, by creating a
-    /// property with the ``Environment`` property wrapper:
-    ///
-    ///     @Environment(\.verticalSizeClass) private var verticalSizeClass
-    ///
-    /// SkipUI sets this size class based on several factors, including:
-    ///
-    /// * The current device type.
-    /// * The orientation of the device.
-    ///
-    /// You can adjust the appearance of custom views by reading this size
-    /// class and conditioning your views. If you do, be prepared to
-    /// handle size class changes while your app runs, because factors like
-    /// device orientation can change at runtime.
-    ///
-    /// In watchOS, the vertical size class is always
-    /// ``UserInterfaceSizeClass/compact``. In macOS, and tvOS, it's always
-    /// ``UserInterfaceSizeClass/regular``.
-    ///
-    /// Writing to the vertical size class in the environment
-    /// before macOS 14.0, tvOS 17.0, and watchOS 10.0 is not supported.
-    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-    public var verticalSizeClass: UserInterfaceSizeClass? { get { fatalError() } }
 }
 
 extension EnvironmentValues {
