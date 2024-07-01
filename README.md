@@ -1596,6 +1596,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `backgroundStyle`
 - `dismiss`
 - `font`
+- `horizontalSizeClass`
 - `isEnabled`
 - `isSearching` (read-only)
 - `layoutDirection`
@@ -1604,6 +1605,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `openURL`
 - `scenePhase`
 - `timeZone`
+- `verticalSizeClass`
 
 ### ForEach
 

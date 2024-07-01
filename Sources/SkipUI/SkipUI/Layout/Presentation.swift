@@ -5,7 +5,6 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -60,7 +59,7 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    if HandlePresentationOrientationChange(isPresented: isPresented) {
+    if HandlePresentationSizeClassChange(isPresented: isPresented) {
         return
     }
 
@@ -86,14 +85,14 @@ let overlayPresentationCornerRadius = 16.0
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
-            let orientation = LocalConfiguration.current.orientation
+            let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             var systemBarEdges: Edge.Set = .all
             
             let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
             let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
             let reducedDetentPreferences = detentPreferences.value.reduced
             
-            if !isFullScreen && orientation != ORIENTATION_LANDSCAPE {
+            if !isFullScreen && verticalSizeClass != .compact {
                 systemBarEdges.remove(.top)
                 // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
                 let topBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -170,7 +169,7 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
-    if HandlePresentationOrientationChange(isPresented: isPresented) {
+    if HandlePresentationSizeClassChange(isPresented: isPresented) {
         return
     }
 
@@ -286,21 +285,21 @@ let overlayPresentationCornerRadius = 16.0
     }
 }
 
-/// Handle orientation changes in our various presentations.
+/// Handle size class changes (typically due to orientation change) in our various presentations.
 ///
-/// Sheets deform on rotation, so we re-present in the new orientation.
-@Composable func HandlePresentationOrientationChange(isPresented: Binding<Bool>) -> Bool {
-    let orientation = rememberUpdatedState(LocalConfiguration.current.orientation)
-    let rememberedOrientation = remember { mutableStateOf(orientation.value) }
-    if orientation.value == rememberedOrientation.value {
+/// Sheets deform on change, so we re-present.
+@Composable func HandlePresentationSizeClassChange(isPresented: Binding<Bool>) -> Bool {
+    let verticalSizeClass = rememberUpdatedState(EnvironmentValues.shared.verticalSizeClass)
+    let rememberedVerticalSizeClass = remember { mutableStateOf(verticalSizeClass.value) }
+    if verticalSizeClass.value == rememberedVerticalSizeClass.value {
         return false
     }
-    LaunchedEffect(orientation.value, rememberedOrientation.value) {
-        if isPresented.get() && orientation.value != rememberedOrientation.value {
+    LaunchedEffect(verticalSizeClass.value, rememberedVerticalSizeClass.value) {
+        if isPresented.get() && verticalSizeClass.value != rememberedVerticalSizeClass.value {
             isPresented.set(false)
             isPresented.set(true)
         }
-        rememberedOrientation.value = orientation.value
+        rememberedVerticalSizeClass.value = verticalSizeClass.value
     }
     return true
 }
