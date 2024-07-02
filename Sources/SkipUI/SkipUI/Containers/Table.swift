@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -92,19 +93,38 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
         }
 
         let key: (Int) -> String = { composeBundleString(for: data[$0].id) }
+        let isCompact = EnvironmentValues.shared.horizontalSizeClass == .compact
         LazyColumn(state: listState, modifier: modifier) {
-            //~~~
-//            if isSearchable {
-//                item {
-//                    ComposeSearchField(state: searchableState!, context: context, styling: styling)
-//                }
-//            }
-//            if hasHeader {
-//                let hasTopSection = collectingComposer.views.firstOrNull() is LazySectionHeader
-//                item {
-//                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight, hasTopSection: hasTopSection)
-//                }
-//            }
+            if headerSafeAreaHeight.value > 0 {
+                item {
+                    ComposeHeaderFooter(safeAreaHeight: headerSafeAreaHeight)
+                }
+            }
+
+            if !isCompact {
+                item {
+                    var columnModifier = Modifier.fillMaxWidth()
+                    if shouldAnimateItems() {
+                        columnModifier = columnModifier.animateItemPlacement()
+                    }
+                    let foregroundStyle: ShapeStyle? = EnvironmentValues.shared._foregroundStyle ?? Color.accentColor
+                    EnvironmentValues.shared.setValues {
+                        $0.set_foregroundStyle(foregroundStyle)
+                    } in: {
+                        Column(modifier: columnModifier) {
+                            Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                let itemContentModifier = Modifier.weight(Float(1.0) / Float(columnSpecs.count))
+                                let itemContext = context.content(modifier: itemContentModifier)
+                                for columnSpec in columnSpecs {
+                                    (columnSpec as? TableColumn)?.columnHeader.Compose(context: itemContext)
+                                }
+                            }
+                            List.ComposeSeparator()
+                        }
+                    }
+                }
+            }
+
             items(count: data.count, key: key) { index in
                 var columnModifier = Modifier.fillMaxWidth()
                 if shouldAnimateItems() {
@@ -113,22 +133,33 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
 
                 Column(modifier: columnModifier) {
                     Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                        let itemComposer = ListItemComposer(contentModifier: Modifier.weight(Float(1.0) / Float(columnSpecs.count)))
+                        let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : Modifier.weight(Float(1.0) / Float(columnSpecs.count))
+                        let itemComposer = ListItemComposer(contentModifier: itemContentModifier)
                         let itemContext = context.content(composer: itemComposer)
-                        for columnSpec in columnSpecs {
-                            (columnSpec as! TableColumn).ComposeCell(data[index], context: itemContext)
+                        let count = isCompact ? 1 : columnSpecs.count
+                        for i in 0..<min(count, columnSpecs.count) {
+                            (columnSpecs[i] as? TableColumn)?.cellContent(data[index]).Compose(context: itemContext)
                         }
                     }
                     List.ComposeSeparator()
                 }
             }
-            //~~~
-//            if hasFooter {
-//                let hasBottomSection = collectingComposer.views.lastOrNull() is LazySectionFooter
-//                item {
-//                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight, hasBottomSection: hasBottomSection)
-//                }
-//            }
+            if footerSafeAreaHeight.value > 0.0 {
+                item {
+                    ComposeHeaderFooter(safeAreaHeight: footerSafeAreaHeight)
+                }
+            }
+        }
+    }
+
+    /// - Warning: Only call with a positive safe area height. This is distinct from having this function detect
+    /// and return without rendering. That causes a weird rubber banding effect on overscroll.
+    @Composable private func ComposeHeaderFooter(safeAreaHeight: Dp) {
+        let modifier = Modifier.fillMaxWidth()
+            .height(safeAreaHeight)
+            .zIndex(Float(0.5))
+            .background(Color.background.colorImpl())
+        Box(modifier: modifier) {
         }
     }
 
@@ -153,19 +184,15 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
 }
 
 public struct TableColumn : View {
-    let columnTitle: String
+    let columnHeader: Text
     let cellContent: (Any) -> any View
 
-    init(columnTitle: String, cellContent: @escaping (Any) -> any View) {
-        self.columnTitle = columnTitle
+    init(columnHeader: Text, cellContent: @escaping (Any) -> any View) {
+        self.columnHeader = columnHeader
         self.cellContent = cellContent
     }
 
-    #if SKIP
-    @Composable func ComposeCell(_ item: Any, context: ComposeContext) {
-        cellContent(item).Compose(context: context)
-    }
-    #else
+    #if !SKIP
     public var body: some View {
         stubView()
     }
@@ -173,16 +200,34 @@ public struct TableColumn : View {
 }
 
 #if SKIP
-// public init<S>(_ title: S, value: KeyPath<RowValue, String>, comparator: String.StandardComparator = .localizedStandard) where Content == Text, S : StringProtocol { fatalError() }
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
 public func TableColumn<ObjectType>(_ title: String, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
-    return TableColumn(columnTitle: title, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+    return TableColumn(columnHeader: Text(verbatim: title), cellContent: { Text(verbatim: value($0 as! ObjectType)) })
 }
 
-// public init<S, V>(_ title: S, value: KeyPath<RowValue, V>, @ViewBuilder content: @escaping (RowValue) -> Content) where S : StringProtocol, V : Comparable { fatalError() }
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, content: (ObjectType) -> View): TableColumn
 public func TableColumn<ObjectType>(_ title: String, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
-    return TableColumn(columnTitle: title, cellContent: { content($0 as! ObjectType) })
+    return TableColumn(columnHeader: Text(verbatim: title), cellContent: { content($0 as! ObjectType) })
+}
+
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleKey: LocalizedStringKey, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
+public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
+    return TableColumn(columnHeader: Text(titleKey), cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+}
+
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleKey: LocalizedStringKey, content: (ObjectType) -> View): TableColumn
+public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
+    return TableColumn(columnHeader: Text(titleKey), cellContent: { content($0 as! ObjectType) })
+}
+
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: Text, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
+public func TableColumn<ObjectType>(_ title: Text, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
+    return TableColumn(columnHeader: title, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+}
+
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: Text, content: (ObjectType) -> View): TableColumn
+public func TableColumn<ObjectType>(_ title: Text, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
+    return TableColumn(columnHeader: title, cellContent: { content($0 as! ObjectType) })
 }
 #endif
 
