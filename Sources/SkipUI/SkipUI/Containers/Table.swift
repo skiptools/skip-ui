@@ -4,9 +4,12 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +17,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalDensity
@@ -30,16 +37,18 @@ import kotlinx.coroutines.launch
 #endif
 
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
-public final class Table<ObjectType> : View where ObjectType: Identifiable {
+public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<ID> {
     let data: any RandomAccessCollection<ObjectType>
+    var selection: Binding<Any?>?
     let columnSpecs: ComposeBuilder
 
     // Note: The SwiftUI.Table content block does *not* accept any arguments. We add the argument to the
     // Kotlin transpilation so that we can also add it to each nested TableColumn call, which in turn allows
     // the Kotlin compiler to infer the expected ObjectType for the columns. Otherwise TableColumn calls
     // don't have enough information for the Kotlin compiler to infer their generic type
-    public init(_ data: any RandomAccessCollection<ObjectType>, @ViewBuilder content: (any RandomAccessCollection<ObjectType>) -> any View) {
+    public init(_ data: any RandomAccessCollection<ObjectType>, selection: Any? = nil, @ViewBuilder content: (any RandomAccessCollection<ObjectType>) -> any View) {
         self.data = data
+        self.selection = selection as? Binding<Any?>
         let view = content(data)
         self.columnSpecs = view as? ComposeBuilder ?? ComposeBuilder(view: view)
     }
@@ -100,55 +109,89 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
                     ComposeHeaderFooter(safeAreaHeight: headerSafeAreaHeight)
                 }
             }
-
             if !isCompact {
                 item {
-                    var columnModifier = Modifier.fillMaxWidth()
-                    if shouldAnimateItems() {
-                        columnModifier = columnModifier.animateItemPlacement()
-                    }
-                    let foregroundStyle: ShapeStyle? = EnvironmentValues.shared._foregroundStyle ?? Color.accentColor
-                    EnvironmentValues.shared.setValues {
-                        $0.set_foregroundStyle(foregroundStyle)
-                    } in: {
-                        Column(modifier: columnModifier) {
-                            Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                let itemContentModifier = Modifier.weight(Float(1.0) / Float(columnSpecs.count))
-                                let itemContext = context.content(modifier: itemContentModifier)
-                                for columnSpec in columnSpecs {
-                                    (columnSpec as? TableColumn)?.columnHeader.Compose(context: itemContext)
-                                }
-                            }
-                            List.ComposeSeparator()
-                        }
-                    }
+                    let animationModifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                    ComposeHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
                 }
             }
-
             items(count: data.count, key: key) { index in
-                var columnModifier = Modifier.fillMaxWidth()
-                if shouldAnimateItems() {
-                    columnModifier = columnModifier.animateItemPlacement()
-                }
-
-                Column(modifier: columnModifier) {
-                    Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                        let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : Modifier.weight(Float(1.0) / Float(columnSpecs.count))
-                        let itemComposer = ListItemComposer(contentModifier: itemContentModifier)
-                        let itemContext = context.content(composer: itemComposer)
-                        let count = isCompact ? 1 : columnSpecs.count
-                        for i in 0..<min(count, columnSpecs.count) {
-                            (columnSpecs[i] as? TableColumn)?.cellContent(data[index]).Compose(context: itemContext)
-                        }
-                    }
-                    List.ComposeSeparator()
-                }
+                let animationModifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                ComposeRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
             }
             if footerSafeAreaHeight.value > 0.0 {
                 item {
                     ComposeHeaderFooter(safeAreaHeight: footerSafeAreaHeight)
                 }
             }
+        }
+    }
+
+    @Composable private func ComposeHeadersRow(columnSpecs: [View], context: ComposeContext, animationModifier: Modifier) {
+        let modifier = Modifier.fillMaxWidth().then(animationModifier)
+        let foregroundStyle: ShapeStyle = EnvironmentValues.shared._foregroundStyle ?? Color.accentColor
+        EnvironmentValues.shared.setValues {
+            $0.set_foregroundStyle(foregroundStyle)
+        } in: {
+            Column(modifier: modifier) {
+                Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                    for columnSpec in columnSpecs {
+                        guard let tableColumn = columnSpec as? TableColumn else {
+                            continue
+                        }
+                        let itemContentModifier = modifier(for: tableColumn.columnWidth, defaultWeight:  Modifier.weight(Float(1.0)))
+                        let itemContext = context.content(modifier: itemContentModifier)
+                        tableColumn.columnHeader.Compose(context: itemContext)
+                    }
+                }
+                List.ComposeSeparator()
+            }
+        }
+    }
+
+    @Composable private func ComposeRow(columnSpecs: [View], index: Int, context: ComposeContext, isCompact: Bool, animationModifier: Modifier) {
+        var modifier = Modifier.fillMaxWidth()
+        let itemID = rememberUpdatedState(data[index].id)
+        let isSelected = isSelected(id: itemID.value)
+        if isSelected {
+            let selectionColor = EnvironmentValues.shared._tint ?? Color.accentColor
+            modifier = modifier.background(selectionColor.colorImpl())
+        }
+        if selection != nil {
+            let interactionSource = remember { MutableInteractionSource() }
+            modifier = modifier.clickable(interactionSource, nil) {
+                toggleSelection(id: itemID.value)
+            }
+        }
+        modifier = modifier.then(animationModifier)
+        let foregroundStyle = EnvironmentValues.shared._foregroundStyle
+        Column(modifier: modifier) {
+            Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                let count = isCompact ? 1 : columnSpecs.count
+                for i in 0..<min(count, columnSpecs.count) {
+                    guard let tableColumn = columnSpecs[i] as? TableColumn else {
+                        continue
+                    }
+                    let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : modifier(for: tableColumn.columnWidth, defaultWeight: Modifier.weight(Float(1.0)))
+                    let itemComposer = ListItemComposer(contentModifier: itemContentModifier)
+                    let itemContext = context.content(composer: itemComposer)
+
+                    var itemForegroundStyle: ShapeStyle? = foregroundStyle
+                    if itemForegroundStyle == nil {
+                        if isSelected {
+                            itemForegroundStyle = i == 0 ? Color.white : Color.white.opacity(0.8)
+                        } else {
+                            itemForegroundStyle = i == 0 ? nil : Color.secondary
+                        }
+                    }
+                    EnvironmentValues.shared.setValues {
+                        $0.set_foregroundStyle(itemForegroundStyle)
+                    } in: {
+                        tableColumn.cellContent(data[index]).Compose(context: itemContext)
+                    }
+                }
+            }
+            List.ComposeSeparator()
         }
     }
 
@@ -160,6 +203,28 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
             .zIndex(Float(0.5))
             .background(Color.background.colorImpl())
         Box(modifier: modifier) {
+        }
+    }
+
+    @Composable private func modifier(for width: TableColumn.WidthSpec, defaultWeight: Modifier) -> Modifier {
+        switch width {
+        case .fixed(let value):
+            return Modifier.width(value.dp)
+        case .range(let min, let ideal, let max):
+            // Mirror the logic we use in FrameLayout
+            if max == Double.infinity {
+                var modifier = defaultWeight
+                if let min, min > 0.0 {
+                    modifier = modifier.requiredWidthIn(min: min.dp)
+                }
+                return modifier
+            } else if min != nil || max != nil {
+                return Modifier.requiredWidthIn(min: min != nil ? min!.dp : Dp.Unspecified, max: max != nil ? max!.dp : Dp.Unspecified)
+            } else {
+                return defaultWeight
+            }
+        case .default:
+            return defaultWeight
         }
     }
 
@@ -181,14 +246,45 @@ public final class Table<ObjectType> : View where ObjectType: Identifiable {
         stubView()
     }
     #endif
+
+    private func isSelected(id: ID) -> Bool {
+        let wrappedValue = selection?.wrappedValue
+        // SKIP NOWARN
+        if let set = wrappedValue as? Set<ID> {
+            return set.contains(id)
+        } else {
+            return id == (wrappedValue as? ID)
+        }
+    }
+
+    private func toggleSelection(id: ID) {
+        let wrappedValue = selection?.wrappedValue
+        // SKIP NOWARN
+        if let set = wrappedValue as? Set<ID> {
+            if set.contains(id) {
+                selection?.wrappedValue = Set<ID>()
+            } else {
+                let selectedSet: Set<ID> = [id]
+                selection?.wrappedValue = selectedSet
+            }
+        } else {
+            if id == (wrappedValue as? ID) {
+                selection?.wrappedValue = nil
+            } else {
+                selection?.wrappedValue = id
+            }
+        }
+    }
 }
 
 public struct TableColumn : View {
     let columnHeader: Text
+    let columnWidth: WidthSpec
     let cellContent: (Any) -> any View
 
-    init(columnHeader: Text, cellContent: @escaping (Any) -> any View) {
+    init(columnHeader: Text, columnWidth: WidthSpec, cellContent: @escaping (Any) -> any View) {
         self.columnHeader = columnHeader
+        self.columnWidth = columnWidth
         self.cellContent = cellContent
     }
 
@@ -197,37 +293,57 @@ public struct TableColumn : View {
         stubView()
     }
     #endif
+
+    public func width(_ width: CGFloat? = nil) -> TableColumn {
+        guard let width else {
+            return self
+        }
+        return TableColumn(columnHeader: columnHeader, columnWidth: .fixed(width), cellContent: cellContent)
+    }
+
+    public func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil) -> TableColumn {
+        guard min != nil || ideal != nil || max != nil else {
+            return self
+        }
+        return TableColumn(columnHeader: columnHeader, columnWidth: .range(min: min, ideal: ideal, max: max), cellContent: cellContent)
+    }
+
+    enum WidthSpec {
+        case `default`
+        case fixed(CGFloat)
+        case range(min: CGFloat?, ideal: CGFloat?, max: CGFloat?)
+    }
 }
 
 #if SKIP
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
 public func TableColumn<ObjectType>(_ title: String, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
-    return TableColumn(columnHeader: Text(verbatim: title), cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+    return TableColumn(columnHeader: Text(verbatim: title).bold(), columnWidth: .default, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: String, content: (ObjectType) -> View): TableColumn
 public func TableColumn<ObjectType>(_ title: String, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
-    return TableColumn(columnHeader: Text(verbatim: title), cellContent: { content($0 as! ObjectType) })
+    return TableColumn(columnHeader: Text(verbatim: title).bold(), columnWidth: .default, cellContent: { content($0 as! ObjectType) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleKey: LocalizedStringKey, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
 public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
-    return TableColumn(columnHeader: Text(titleKey), cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+    return TableColumn(columnHeader: Text(titleKey).bold(), columnWidth: .default, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleKey: LocalizedStringKey, content: (ObjectType) -> View): TableColumn
 public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
-    return TableColumn(columnHeader: Text(titleKey), cellContent: { content($0 as! ObjectType) })
+    return TableColumn(columnHeader: Text(titleKey).bold(), columnWidth: .default, cellContent: { content($0 as! ObjectType) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: Text, value: (ObjectType) -> String, unusedp: Nothing? = null): TableColumn
 public func TableColumn<ObjectType>(_ title: Text, value: (ObjectType) -> String, unusedp: Void? = nil) -> TableColumn {
-    return TableColumn(columnHeader: title, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+    return TableColumn(columnHeader: title, columnWidth: .default, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: Text, content: (ObjectType) -> View): TableColumn
 public func TableColumn<ObjectType>(_ title: Text, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
-    return TableColumn(columnHeader: title, cellContent: { content($0 as! ObjectType) })
+    return TableColumn(columnHeader: title, columnWidth: .default, cellContent: { content($0 as! ObjectType) })
 }
 #endif
 
@@ -1228,35 +1344,6 @@ extension TableColumn where Sort == Never, Label == Text {
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 extension TableColumn {
-
-    /// Creates a fixed width table column that isn't user resizable.
-    ///
-    /// - Parameter width: A fixed width for the resulting column. If `width`
-    ///   is `nil`, the resulting column has no change in sizing.
-    public func width(_ width: CGFloat? = nil) -> TableColumn<RowValue, Sort, Content, Label> { fatalError() }
-
-    /// Creates a resizable table column with the provided constraints.
-    ///
-    /// Always specify at least one width constraint when calling this method.
-    /// Pass `nil` or leave out a constraint to indicate no change to the
-    /// sizing of a column.
-    ///
-    /// To create a fixed size column use ``SkipUI/TableColumn/width(_:)``
-    /// instead.
-    ///
-    /// - Parameters:
-    ///   - min: The minimum width of a resizable column. If non-`nil`, the
-    ///     value must be greater than or equal to `0`.
-    ///   - ideal: The ideal width of the column, used to determine the initial
-    ///     width of the table column. The column always starts at least as
-    ///     large as the set ideal size, but may be larger if table was sized
-    ///     larger than the ideal of all of its columns.
-    ///   - max: The maximum width of a resizable column. If non-`nil`, the
-    ///     value must be greater than `0`. Pass
-    ///     
-    ///     to indicate unconstrained maximum width.
-    public func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil) -> TableColumn<RowValue, Sort, Content, Label> { fatalError() }
-
     /// Does not change the table column's width.
     ///
     /// Use ``SkipUI/TableColumn/width(_:)`` or
