@@ -729,6 +729,37 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>Table</code></summary>
+              <ul>
+                  <li><code>init(_ data: any RandomAccessCollection&lt;ObjectType&gt;, @ViewBuilder content: () -> some View)</code></li>
+                  <li><code>init(_ data: any RandomAccessCollection&lt;ObjectType&gt;, selection: Binding&lt;ObjectType?&gt;, @ViewBuilder columns: () -> some View)</code></li>
+                  <li><code>init(_ data: any RandomAccessCollection&lt;ObjectType&gt;, selection: Binding&lt;Set&lt;ObjectType&gt;&gt;, @ViewBuilder columns: () -> some View)</code></li>
+                  <li>All <code>TableColumns</code> must be directly nested in the parent <code>Table</code> content block</li>
+		  <li>Multiple selection is not supported</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>TableColumn</code></summary>
+              <ul>
+                  <li><code>init(_ title: String, value: (ObjectType) -> String, comparator: Comparator? = nil)</code></li>
+                  <li><code>init(_ title: String, value: Value? = nil, comparator: Comparator? = nil, @ViewBuilder content: @escaping (ObjectType) -> some View)</code></li>
+                 <li><code>init(_ title: Text, value: (ObjectType) -> String, comparator: Comparator? = nil)</code></li>
+                  <li><code>init(_ title: Text, value: Value? = nil, comparator: Comparator? = nil, @ViewBuilder content: @escaping (ObjectType) -> some View)</code></li>
+                  <li><code>func width(_ value: CGFloat? = nil)</code></li>
+                  <li><code>func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil)</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>🟢</td>
       <td>
           <details>
