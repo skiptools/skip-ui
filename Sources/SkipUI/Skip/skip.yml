@@ -12,16 +12,12 @@ settings:
           contents:
             - block: 'create("libs")'
               contents:
-                - 'version("coil-compose", "2.5.0")'
-                - 'version("androidx-navigation", "2.7.6")'
-                - 'version("androidx-appcompat", "1.6.1")'
-                - 'version("androidx-activity", "1.8.2")'
-                - 'version("androidx-lifecycle-process", "2.8.1")'
+                - 'version("coil-compose", "2.6.0")'
+                - 'version("androidx-navigation", "2.7.7")'
+                - 'version("androidx-appcompat", "1.7.0")'
+                - 'version("androidx-activity", "1.9.0")'
+                - 'version("androidx-lifecycle-process", "2.8.2")'
                 - 'version("androidx-material3-adaptive", "1.0.0-beta04")'
-
-                # Used by kotlinCompilerExtensionVersion, must be compatible with the Kotlin (specifed in the version catalog of SkipUnit/Skip/skip.yml) or else errors like:
-                # This version (1.5.3) of the Compose Compiler requires Kotlin version 1.9.10 but you appear to be using Kotlin version 1.9.22 which is not known to be compatible.  Please consult the Compose-Kotlin compatibility map located at https://developer.android.com/jetpack/androidx/releases/compose-kotlin to choose a compatible version pair (or `suppressKotlinVersionCompatibilityCheck` but don't say I didn't warn you!).
-                - 'version("kotlin-compose-compiler-extension", "1.5.8")'
 
                 # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
                 - 'library("androidx-core-ktx", "androidx.core", "core-ktx").withoutVersion()'
@@ -49,14 +45,15 @@ settings:
 # the blocks to add to the build.gradle.kts
 build:
   contents:
+    - block: 'plugins'
+      contents:
+        - 'alias(libs.plugins.kotlin.compose)'
+
     - block: 'android'
       contents:
         - block: 'buildFeatures'
           contents:
-            - 'compose = true'
-        - block: 'composeOptions'
-          contents:
-            - 'kotlinCompilerExtensionVersion = libs.versions.kotlin.compose.compiler.extension.get()'
+            #- 'compose = true'
 
     - block: 'dependencies'
       export: false

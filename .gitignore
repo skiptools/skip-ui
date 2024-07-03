@@ -19,6 +19,8 @@ java_pid*.hprof
 ## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
 build/
 DerivedData/
+.android/
+.kotlin/
 *.moved-aside
 *.pbxuser
 !default.pbxuser
