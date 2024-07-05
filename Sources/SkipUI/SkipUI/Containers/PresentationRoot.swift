@@ -9,10 +9,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -37,10 +41,19 @@ import androidx.compose.ui.platform.LocalLayoutDirection
             let presentationBounds = remember { mutableStateOf(Rect.Zero) }
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
-            let rootModifier = Modifier
-                .background(Color.background.colorImpl())
+            var rootModifier = Modifier
+                .background(androidx.compose.ui.graphics.Color.Black)
                 .fillMaxSize()
-                .imePadding()
+            if systemBarEdges.contains(.leading) {
+                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
+            }
+            if systemBarEdges.contains(.trailing) {
+                rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End))
+            }
+            if systemBarEdges.contains(.bottom) {
+                rootModifier = rootModifier.imePadding()
+            }
+            rootModifier = rootModifier.background(Color.background.colorImpl())
                 .onGloballyPositioned {
                     presentationBounds.value = $0.boundsInWindow()
                 }
@@ -48,24 +61,21 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 guard presentationBounds.value != Rect.Zero else {
                     return
                 }
-                // Cannot get accurate WindowInsets until we're in the content box
+                // Cannot get accurate WindowInsets until we're in the content box. We only check top and bottom
+                // because we've padded the content to within horizontal safe insets already, mirroring standard
+                // Android app behavior like e.g. Settings
                 var (safeLeft, safeTop, safeRight, safeBottom) = presentationBounds.value
-                if systemBarEdges.contains(.leading) {
-                    safeLeft += WindowInsets.systemBars.getLeft(density, layoutDirection)
-                }
                 if systemBarEdges.contains(.top) {
-                    safeTop += WindowInsets.systemBars.getTop(density)
-                }
-                if systemBarEdges.contains(.trailing) {
-                    safeRight -= WindowInsets.systemBars.getRight(density, layoutDirection)
+                    safeTop += WindowInsets.safeDrawing.getTop(density)
                 }
                 if systemBarEdges.contains(.bottom) {
-                    safeBottom -= max(0, WindowInsets.systemBars.getBottom(density) - WindowInsets.ime.getBottom(density))
+                    safeBottom -= max(0, WindowInsets.safeDrawing.getBottom(density) - WindowInsets.ime.getBottom(density))
                 }
                 let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)
                 let safeArea = SafeArea(presentation: presentationBounds.value, safe: safeBounds, absoluteSystemBars: systemBarEdges)
                 EnvironmentValues.shared.setValues {
-                    // Detect whether the app is edge to edge mode based on whether the bounds extend past the safe areas
+                    // Detect whether the app is edge to edge mode based on whether we're padding horizontally (landscape)
+                    // or we have a top/bttom safe area (portrait)
                     if $0._isEdgeToEdge == nil {
                         $0.set_isEdgeToEdge(safeBounds != presentationBounds.value)
                     }

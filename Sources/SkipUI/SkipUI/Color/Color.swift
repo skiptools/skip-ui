@@ -85,7 +85,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     public init(red: Double, green: Double, blue: Double, opacity: Double = 1.0) {
         #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color(red = Float(red), green = Float(green), blue = Float(blue), alpha = Float(opacity)) }
+        colorImpl = { androidx.compose.ui.graphics.Color(red: Self.clamp(red), green: Self.clamp(green), blue: Self.clamp(blue), alpha = Self.clamp(opacity)) }
         #endif
     }
 
@@ -103,8 +103,12 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0) {
         #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color.hsl(hue: Float(hue), saturation: Float(saturation), lightness: Float(brightness), alpha: Float(opacity)) }
+        colorImpl = { androidx.compose.ui.graphics.Color.hsl(hue: Self.clamp(hue), saturation: Self.clamp(saturation), lightness: Self.clamp(brightness), alpha: Self.clamp(opacity)) }
         #endif
+    }
+
+    private static func clamp(_ value: Double) -> Float {
+        return max(Float(0.0), min(Float(1.0), Float(value)))
     }
 
     // MARK: -

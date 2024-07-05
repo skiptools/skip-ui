@@ -156,7 +156,7 @@ public struct DatePicker : View {
         DatePickerDialog(onDismissRequest: { isPresented.value = false }, confirmButton: {
             Button(stringResource(android.R.string.ok), action: { isPresented.value = false }).padding().Compose(context: context)
         }, content: {
-            DatePicker(state: state, modifier: context.modifier, colors: colors)
+            DatePicker(modifier: context.modifier, state: state, colors: colors)
         })
         if let millis = state.selectedDateMillis {
             dateSelected(Date(timeIntervalSince1970: Double(millis / 1000.0) - timeZoneOffset))
