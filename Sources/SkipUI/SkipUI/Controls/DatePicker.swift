@@ -8,15 +8,17 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
@@ -28,8 +30,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 #endif
 
 public struct DatePicker : View {
@@ -151,13 +153,11 @@ public struct DatePicker : View {
         }
         let timeZoneOffset = Double(TimeZone.current.secondsFromGMT())
         let initialSeconds = selection.wrappedValue.timeIntervalSince1970 + timeZoneOffset
-        let state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0))
+        let state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: EnvironmentValues.shared.verticalSizeClass == .compact ? DisplayMode.Input : DisplayMode.Picker)
         let colors = DatePickerDefaults.colors(selectedDayContainerColor: tintColor, selectedYearContainerColor: tintColor, todayDateBorderColor: tintColor, currentYearContentColor: tintColor)
-        DatePickerDialog(onDismissRequest: { isPresented.value = false }, confirmButton: {
-            Button(stringResource(android.R.string.ok), action: { isPresented.value = false }).padding().Compose(context: context)
-        }, content: {
+        SimpleDatePickerDialog(onDismissRequest: { isPresented.value = false }) {
             DatePicker(modifier: context.modifier, state: state, colors: colors)
-        })
+        }
         if let millis = state.selectedDateMillis {
             dateSelected(Date(timeIntervalSince1970: Double(millis / 1000.0) - timeZoneOffset))
         }
@@ -171,13 +171,9 @@ public struct DatePicker : View {
         let state = rememberTimePickerState(initialHour: hour, initialMinute: minute)
         let containerColor = tintColor.copy(alpha: Float(0.25))
         let colors = TimePickerDefaults.colors(selectorColor: tintColor, periodSelectorSelectedContainerColor: containerColor, timeSelectorSelectedContainerColor: containerColor)
-        DatePickerDialog(onDismissRequest = { isPresented.value = false }, confirmButton = {
-            Button(stringResource(android.R.string.ok), action: { isPresented.value = false }).padding().Compose(context: context)
-        }, content = {
-            Box(modifier: Modifier.fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
-                TimePicker(modifier: Modifier.padding(16.dp), state: state, colors: colors)
-            }
-        })
+        SimpleDatePickerDialog(onDismissRequest: { isPresented.value = false }) {
+            TimePicker(modifier: context.modifier.padding(16.dp), state: state, colors: colors)
+        }
         timeSelected(state.hour, state.minute)
     }
     #else
@@ -205,6 +201,25 @@ public struct DatePicker : View {
         return (timeComponents.hour!, timeComponents.minute!)
     }
 }
+
+#if SKIP
+/// Simplification of the Material 3 `DatePickerDialog` source code.
+///
+/// We can't use the actual `DatePickerDialog` because it has a fixed size that cuts off content in landscape.
+// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+@Composable func SimpleDatePickerDialog(onDismissRequest: () -> Void, content: @Composable () -> Void) {
+    let horizontalPadding = EnvironmentValues.shared.horizontalSizeClass == .compact ? 16.dp : 0.dp
+    BasicAlertDialog(modifier: Modifier.wrapContentHeight(), onDismissRequest: onDismissRequest, properties: DialogProperties(usePlatformDefaultWidth: false)) {
+        Surface(modifier: Modifier.padding(horizontal: horizontalPadding), shape: DatePickerDefaults.shape) {
+            Column(verticalArrangement: Arrangement.SpaceBetween) {
+                Box(Modifier.weight(Float(1.0), fill: false)) {
+                    content()
+                }
+            }
+        }
+    }
+}
+#endif
 
 public struct DatePickerComponents : OptionSet, Sendable {
     public let rawValue: Int
