@@ -506,6 +506,7 @@ Support levels:
                   <li><code>init(_ name: String, bundle: Bundle? = Bundle.main)</code></li>
                   <li><code>init(_ name: String, bundle: Bundle? = Bundle.main, label: Text)</code></li>
                   <li><code>init(systemName: String)</code></li>
+                  <li><code>init(uiImage: UIImage)</code></li>
                   <li>See <a href="#images">Images</a></li>
               </ul>
           </details>      
@@ -1519,6 +1520,19 @@ Support levels:
                   <li><code>static var shared: UIApplication</code></li>
                   <li><code>var applicationState: UIApplication.State</code></li>
                   <li><code>func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>UIImage</code></summary>
+              <ul>
+                  <li><code>init?(contentsOfFile: String)</code></li>
+                  <li><code>init?(data: Data)</code></li>
+                  <li><code>init?(data: Data, scale: CGFloat)</code></li>
               </ul>
           </details>      
        </td>

@@ -6,6 +6,7 @@
 
 import Foundation
 #if SKIP
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -23,23 +24,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.VectorPath
-import androidx.compose.ui.graphics.vector.toPath
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathBuilder
-import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.graphics.vector.VectorPath
 import androidx.compose.ui.graphics.vector.group
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +67,7 @@ public struct Image : View, Equatable {
         case decorative(name: String, bundle: Bundle?)
         case system(systemName: String)
         #if SKIP
+        case bitmap(bitmap: Bitmap, scale: CGFloat)
         case painter(painter: Painter, scale: CGFloat)
         #endif
     }
@@ -85,6 +89,10 @@ public struct Image : View, Equatable {
     }
 
     #if SKIP
+    public init(uiImage: UIImage) {
+        self.image = .bitmap(bitmap: uiImage.bitmap!, scale: uiImage.scale)
+    }
+
     public init(painter: Painter, scale: CGFloat) {
         self.image = .painter(painter: painter, scale: scale)
     }
@@ -96,6 +104,8 @@ public struct Image : View, Equatable {
         // Put given modifiers on the containing Box so that the image can scale itself without affecting them
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
             switch image {
+            case .bitmap(let bitmap, let scale):
+                ComposeBitmap(bitmap: bitmap, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .painter(let painter, let scale):
                 ComposePainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .system(let systemName):
@@ -295,6 +305,12 @@ public struct Image : View, Equatable {
             let imageVector = symbolToImageVector(symbolInfo, tintColor: tintColor)
             ComposeScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
+    }
+
+    @Composable private func ComposeBitmap(bitmap: Bitmap, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
+        let imageBitmap = bitmap.asImageBitmap()
+        let painter = BitmapPainter(imageBitmap)
+        ComposePainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
     }
 
     @Composable private func ComposePainter(painter: Painter, scale: CGFloat = 1.0, colorFilter: ColorFilter? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
@@ -1270,20 +1286,6 @@ extension Image {
     ///     ``Image/Orientation/up``.
     public init(decorative cgImage: CGImage, scale: CGFloat, orientation: Image.Orientation = .up) { fatalError() }
 }
-
-#if canImport(UIKit)
-import class UIKit.UIImage
-
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-@available(macOS, unavailable)
-extension Image {
-
-    /// Creates a SkipUI image from a UIKit image instance.
-    /// - Parameter uiImage: The UIKit image to wrap with a SkipUI ``Image``
-    /// instance.
-    public init(uiImage: UIImage) { fatalError() }
-}
-#endif
 
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension Image {
