@@ -168,6 +168,12 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         MaterialTheme.colorScheme.surface.copy(alpha: Float(0.9))
     })
 
+    /// Use for separators, etc.
+    static var separator: Color = Color(colorImpl: {
+        MaterialTheme.colorScheme.surfaceVariant
+    })
+
+    /// Use for placeholder content.
     static let placeholder = Color(colorImpl: {
         // Close to iOS's AsyncImage placeholder values
         ComposeColor(light: 0xFFDDDDDD, dark: 0xFF777777)

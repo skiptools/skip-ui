@@ -10,8 +10,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
@@ -91,7 +91,7 @@ public struct TextField : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable static func colors(context: ComposeContext) -> TextFieldColors {
+    @Composable static func colors(outline: Color? = nil, context: ComposeContext) -> TextFieldColors {
         let textColor = textColor(enabled: true, context: context)
         let disabledTextColor = textColor(enabled: false, context: context)
         let isPlainStyle = EnvironmentValues.shared._textFieldStyle == TextFieldStyle.plain
@@ -99,16 +99,17 @@ public struct TextField : View {
             let clearColor = androidx.compose.ui.graphics.Color.Transparent
             if let tint = EnvironmentValues.shared._tint {
                 let tintColor = tint.colorImpl()
-                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
             } else {
-                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, focusedBorderColor: clearColor, unfocusedBorderColor: clearColor, disabledBorderColor: clearColor, errorBorderColor: clearColor)
             }
         } else {
+            let borderColor = (outline ?? Color.primary.opacity(0.3)).colorImpl()
             if let tint = EnvironmentValues.shared._tint {
                 let tintColor = tint.colorImpl()
-                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor)
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, cursorColor: tintColor, focusedBorderColor: tintColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
             } else {
-                return TextFieldDefaults.outlinedTextFieldColors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor)
+                return OutlinedTextFieldDefaults.colors(focusedTextColor: textColor, unfocusedTextColor: textColor, disabledTextColor: disabledTextColor, unfocusedBorderColor: borderColor, disabledBorderColor: Color.separator.colorImpl())
             }
         }
     }

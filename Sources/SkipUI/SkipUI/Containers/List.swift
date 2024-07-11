@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
@@ -310,7 +309,7 @@ public final class List : View {
     }
 
     @Composable static func ComposeSeparator() {
-        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(MaterialTheme.colorScheme.surfaceVariant))
+        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(Color.separator.colorImpl()))
     }
 
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
@@ -537,7 +536,7 @@ public final class List : View {
     @Composable private func ComposeSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling) {
         var modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
         if styling.style == ListStyle.plain {
-            modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
+            modifier = modifier.padding(top: Self.verticalInset.dp, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
         } else {
             modifier = modifier.padding(top: Self.verticalInset.dp)
         }

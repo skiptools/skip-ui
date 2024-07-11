@@ -872,6 +872,10 @@ public struct NavigationLink : View, ListItemAdapting {
         self.label = ComposeBuilder.from(label)
     }
 
+    public init(destination: any View, @ViewBuilder label: () -> any View) {
+        self.init(destination: { destination }, label: label)
+    }
+
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> any View) {
         self.init(destination: destination, label: { Text(titleKey) })
     }

@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
@@ -154,7 +153,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         let itemID = rememberUpdatedState(data[index].id)
         let isSelected = isSelected(id: itemID.value)
         if isSelected {
-            let selectionColor = isCompact ? MaterialTheme.colorScheme.surfaceVariant : (EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl())
+            let selectionColor = isCompact ? Color.separator.colorImpl() : (EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl())
             modifier = modifier.background(selectionColor)
         }
         if selection != nil {

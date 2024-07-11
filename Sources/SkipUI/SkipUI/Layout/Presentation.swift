@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
@@ -149,10 +151,9 @@ let overlayPresentationCornerRadius = 16.0
                     }
                 }
             }
-
             if !isEdgeToEdge {
                 // Move the presentation root content area above the bottom bar
-                let inset = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
+                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
         }
@@ -205,7 +206,7 @@ let overlayPresentationCornerRadius = 16.0
             let stateSaver = remember { ComposeStateSaver() }
             let scrollState = rememberScrollState()
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
-            let bottomSystemBarPadding = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
+            let bottomSystemBarPadding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
             let modifier = Modifier
                 .fillMaxWidth()
                 .padding(start: 8.dp, end: 8.dp, bottom: isEdgeToEdge ? 0.dp : bottomSystemBarPadding)

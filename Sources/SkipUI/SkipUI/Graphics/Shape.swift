@@ -118,7 +118,7 @@ extension Shape {
 
     public func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
         let px = with(density) { 1.dp.toPx() }
-        let path = path(in: CGRect(x: 0.0, y: 0.0, width: Double(size.width / px), height: Double(size.height / px)))
+        let path = path(in: CGRect(x: 0.0, y: 0.0, width: max(0.0, Double(size.width / px)), height: max(0.0, Double(size.height / px))))
         return path.asComposePath(density: density)
     }
 
@@ -189,7 +189,8 @@ public struct ModifiedShape : Shape {
                 if strokeInset == Float(0.0) {
                     scope.drawPath(path, brush: strokeBrush.0, style: strokeBrush.1)
                 } else {
-                    scope.inset(strokeInset) {
+                    // Insetting to a negative size causes a crash
+                    scope.inset(min(scope.size.width / 2, min(scope.size.height / 2, strokeInset))) {
                         let strokePath = asComposePath(size: scope.size, density: density)
                         scope.drawPath(strokePath, brush: strokeBrush.0, style: strokeBrush.1)
                     }

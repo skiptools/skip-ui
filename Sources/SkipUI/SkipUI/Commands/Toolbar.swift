@@ -49,7 +49,13 @@ public struct ToolbarItem : CustomizableToolbarContent {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
+        EnvironmentValues.shared.setValues {
+            if placement == .confirmationAction {
+                $0.set_fontWeight(Font.Weight.bold)
+            }
+        } in: {
+            content.Compose(context: context)
+        }
     }
     #else
     public var body: some View {
