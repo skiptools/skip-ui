@@ -327,8 +327,13 @@ public final class List : View {
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
         let composeContainer: @Composable (ComposeContext) -> Void = { context in
             Column(modifier: context.modifier) {
-                // Note that we're calling the same view's Compose function again with a new context
-                view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier)))
+                let placement = EnvironmentValues.shared._placement
+                EnvironmentValues.shared.setValues {
+                    $0.set_placement(placement.union(ViewPlacement.listItem))
+                } in: {
+                    // Note that we're calling the same view's Compose function again with a new context
+                    view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier)))
+                }
                 if itemModifierView?.separator != Visibility.hidden {
                     Self.ComposeSeparator()
                 }

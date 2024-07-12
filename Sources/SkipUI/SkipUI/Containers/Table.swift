@@ -183,8 +183,10 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                             itemForegroundStyle = i == 0 ? nil : Color.secondary
                         }
                     }
+                    let placement = EnvironmentValues.shared._placement
                     EnvironmentValues.shared.setValues {
                         $0.set_foregroundStyle(itemForegroundStyle)
+                        $0.set_placement(placement.union(ViewPlacement.listItem))
                     } in: {
                         tableColumn.cellContent(data[index]).Compose(context: itemContext)
                     }
