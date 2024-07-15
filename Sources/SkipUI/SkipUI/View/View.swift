@@ -822,16 +822,23 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func position(_ position: CGPoint) -> some View {
-        // NOTE: animatable property
-        return self
+        return self.position(x: position.x, y: position.y)
     }
 
-    @available(*, unavailable)
     public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
-        // NOTE: animatable
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let density = LocalDensity.current
+            let animatable = (Float(x), Float(y)).asAnimatable(context: context)
+            let positionPx = with(density) {
+                IntOffset(animatable.value.0.dp.roundToPx(), animatable.value.1.dp.roundToPx())
+            }
+            PositionLayout(view: view, x: Double(animatable.value.0), y: Double(animatable.value.1), context: context)
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

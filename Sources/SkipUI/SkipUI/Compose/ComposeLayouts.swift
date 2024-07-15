@@ -225,6 +225,33 @@ import androidx.compose.ui.unit.dp
     }
 }
 
+/// Layout the given view with the given position.
+@Composable func PositionLayout(view: View, x: CGFloat, y: CGFloat, context: ComposeContext) {
+    PositionLayout(x: x, y: y, context: context) { view.Compose($0) }
+}
+
+@Composable func PositionLayout(x: CGFloat, y: CGFloat, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
+    // SwiftUI expands to fill the available space and places within that
+    Box(modifier: context.modifier.fillSize(expandContainer: false)) {
+        let density = LocalDensity.current
+        let xPx = with(density) { x.dp.roundToPx() }
+        let yPx = with(density) { y.dp.roundToPx() }
+        Layout(content = {
+            target(context.content())
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            let targetPlaceables = measurables.map { $0.measure(constraints) }
+            layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
+                for targetPlaceable in targetPlaceables {
+                    targetPlaceable.placeRelative(x: xPx - targetPlaceable.width / 2, y: yPx - targetPlaceable.height / 2)
+                }
+            }
+        }
+    }
+}
+
 private func constraint(_ value: Int, subtracting: Int) -> Int {
     guard value != Int.MAX_VALUE else {
         return value

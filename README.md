@@ -1261,6 +1261,10 @@ Support levels:
           </details>      
        </td>
     </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.position</code></td>
+    </tr>
    <tr>
       <td>✅</td>
       <td>
