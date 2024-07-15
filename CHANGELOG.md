@@ -1,3 +1,9 @@
+## 0.10.7
+
+Released 2024-07-15
+
+  - Change how UIApplication.open() launches a URL to fix error about missing FLAG_ACTIVITY_NEW_TASK (fixes https://github.com/orgs/skiptools/discussions/173)
+
 ## 0.10.0
 
 Released 2024-07-03
