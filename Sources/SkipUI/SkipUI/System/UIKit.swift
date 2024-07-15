@@ -8,11 +8,11 @@ import Foundation
 import OSLog
 
 #if SKIP
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.AndroidUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -57,11 +57,14 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     public func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool {
         #if SKIP
         let context = ProcessInfo.processInfo.androidContext
-        let uriHandler = AndroidUriHandler(context)
         do {
-            uriHandler.openUri(url.absoluteString)
+            let intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url.absoluteString))
+            // needed or else: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
             return true
         } catch {
+            logger.warning("UIApplication.launch error: \(error)")
             return false
         }
         #else
