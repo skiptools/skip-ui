@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 #else
 import struct CoreGraphics.CGFloat
@@ -89,7 +90,12 @@ public struct Font : Hashable, Sendable {
     })
 
     private static func adjust(_ style: androidx.compose.ui.text.TextStyle, by amount: Float) -> androidx.compose.ui.text.TextStyle {
-        return amount == Float(0.0) ? style : style.copy(fontSize: (style.fontSize.value + amount).sp)
+        guard amount != Float(0.0) else {
+            return style
+        }
+        let fontSize = (style.fontSize.value + amount).sp
+        let lineHeight = style.lineHeight == TextUnit.Unspecified ? style.lineHeight : (style.lineHeight.value + amount).sp
+        return style.copy(fontSize: fontSize, lineHeight: lineHeight)
     }
     #endif
 
