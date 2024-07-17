@@ -118,7 +118,7 @@ public struct DatePicker : View {
         if let dateString = dateFormatter?.string(from: date) {
             let text = Text(verbatim: dateString)
             if isEnabled {
-                ComposeTextButton(label: text, context: context) {
+                Button.ComposeTextButton(label: text, context: context) {
                     isDatePickerPresented.value = true
                 }
             } else {
@@ -129,7 +129,7 @@ public struct DatePicker : View {
         if let timeString = timeFormatter?.string(from: date) {
             let text = Text(verbatim: timeString)
             if isEnabled {
-                ComposeTextButton(label: text, context: context) {
+                Button.ComposeTextButton(label: text, context: context) {
                     isTimePickerPresented.value = true
                 }
             } else {

@@ -62,7 +62,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
             }, enabled: EnvironmentValues.shared.isEnabled)
             ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                    ComposeTextButton(label: label, context: contentContext)
+                    Button.ComposeTextButton(label: label, context: contentContext)
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.width(8.dp))
                     androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
                     ComposeSelectedValue(views: views, context: contentContext, style: style, performsAction: false)
@@ -88,7 +88,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         if performsAction {
             let isMenuExpanded = remember { mutableStateOf(false) }
             Box {
-                ComposeTextButton(label: selectedValueLabel, context: context) { isMenuExpanded.value = !isMenuExpanded.value }
+                Button.ComposeTextButton(label: selectedValueLabel, context: context) { isMenuExpanded.value = !isMenuExpanded.value }
                 if isMenu {
                     ComposePickerSelectionMenu(views: views, isExpanded: isMenuExpanded, context: context.content())
                 }

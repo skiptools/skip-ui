@@ -886,18 +886,20 @@ public struct NavigationLink : View, ListItemAdapting {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let navigationContext = context.content(modifier: NavigationModifier(context.modifier))
-        ComposeTextButton(label: label, context: navigationContext)
+        Button.ComposeButton(label: label, context: context, isEnabled: isNavigationEnabled(), action: navigationAction())
     }
 
     @Composable func shouldComposeListItem() -> Bool {
-        return true
+        let buttonStyle = EnvironmentValues.shared._buttonStyle
+        return buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        Row(modifier: NavigationModifier(modifier: Modifier).then(contentModifier), horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+        let isEnabled = isNavigationEnabled()
+        let modifier = Modifier.clickable(onClick: navigationAction(), enabled: isEnabled).then(contentModifier)
+        Row(modifier: modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             Box(modifier: Modifier.weight(Float(1.0))) {
-                // Continue to specialize for list rendering within the NavigationLink (e.g. Label)
+                // Continue to specialize for list rendering within the content (e.g. Label)
                 label.Compose(context: context.content(composer: ListItemComposer(contentModifier: Modifier)))
             }
             Self.ComposeChevron()
@@ -909,9 +911,13 @@ public struct NavigationLink : View, ListItemAdapting {
         Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, tint: androidx.compose.ui.graphics.Color.Gray)
     }
 
-    @Composable private func NavigationModifier(modifier: Modifier) -> Modifier {
+    @Composable private func isNavigationEnabled() -> Bool {
+        return (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled
+    }
+
+    @Composable private func navigationAction() -> () -> Void {
         let navigator = LocalNavigator.current
-        return modifier.clickable(enabled: (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled) {
+        return {
             // Hack to prevent multiple quick taps from pushing duplicate entries
             let now = CFAbsoluteTimeGetCurrent()
             guard NavigationLink.lastNavigationTime + NavigationLink.minimumNavigationInterval <= now else {

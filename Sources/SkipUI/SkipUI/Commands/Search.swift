@@ -138,7 +138,7 @@ let searchFieldHeight = 56.0
             }
         }, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors, shape: Capsule().asComposeShape(density: LocalDensity.current))
         AnimatedVisibility(visible: state.isSearching.value == true) {
-            ComposeTextButton(label: Text(verbatim: stringResource(android.R.string.cancel)), context: contentContext) {
+            Button.ComposeTextButton(label: Text(verbatim: stringResource(android.R.string.cancel)), context: contentContext) {
                 state.text.wrappedValue = ""
                 focusManager.clearFocus()
                 state.isSearching.value = false
