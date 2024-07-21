@@ -909,6 +909,10 @@ Support levels:
       <td>✅</td>
       <td><code>.accessibilityValue</code></td>
     </tr>
+   <tr>
+      <td>✅</td>
+      <td><code>.alert</code></td>
+    </tr>
     <tr>
       <td>🟡</td>
       <td>
