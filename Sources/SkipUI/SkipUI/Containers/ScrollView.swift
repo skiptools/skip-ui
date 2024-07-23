@@ -9,7 +9,14 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
@@ -28,6 +35,7 @@ public struct ScrollView : View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         // Some components in Compose have their own scrolling built in, so we'll look for them
         // below before adding our scrolling modifiers
@@ -52,8 +60,28 @@ public struct ScrollView : View {
         }
         let contentContext = context.content()
         ComposeContainer(scrollAxes: axes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
-            Box(modifier: modifier) {
+            let containerModifier: Modifier
+            let refreshing = remember { mutableStateOf(false) }
+            let refreshAction = EnvironmentValues.shared.refresh
+            let refreshState: PullRefreshState?
+            if let refreshAction {
+                refreshState = rememberPullRefreshState(refreshing.value, {
+                    coroutineScope.launch {
+                        refreshing.value = true
+                        refreshAction()
+                        refreshing.value = false
+                    }
+                })
+                containerModifier = modifier.pullRefresh(refreshState!)
+            } else {
+                refreshState = nil
+                containerModifier = modifier
+            }
+            Box(modifier: containerModifier) {
                 content.Compose(context: contentContext)
+                if let refreshState {
+                    PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                }
             }
         }
     }

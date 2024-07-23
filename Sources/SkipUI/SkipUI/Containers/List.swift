@@ -21,6 +21,11 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismiss
@@ -91,6 +96,7 @@ public final class List : View {
     }
 
     #if SKIP
+    // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
@@ -103,11 +109,32 @@ public final class List : View {
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
             ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
-                Box(modifier: modifier) {
+                let containerModifier: Modifier
+                let refreshing = remember { mutableStateOf(false) }
+                let refreshAction = EnvironmentValues.shared.refresh
+                let refreshState: PullRefreshState?
+                if let refreshAction {
+                    let refreshScope = rememberCoroutineScope()
+                    refreshState = rememberPullRefreshState(refreshing.value, {
+                        refreshScope.launch {
+                            refreshing.value = true
+                            refreshAction()
+                            refreshing.value = false
+                        }
+                    })
+                    containerModifier = modifier.pullRefresh(refreshState!)
+                } else {
+                    refreshState = nil
+                    containerModifier = modifier
+                }
+                Box(modifier: containerModifier) {
                     let density = LocalDensity.current
                     let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
                     let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
                     ComposeList(context: itemContext, styling: styling, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
+                    if let refreshState {
+                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                    }
                 }
             }
         }

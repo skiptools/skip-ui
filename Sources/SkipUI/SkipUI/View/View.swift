@@ -856,9 +856,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func refreshable(action: @escaping () async -> Void) -> some View {
+        #if SKIP
+        return environment(\.refresh, RefreshAction(action: action))
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

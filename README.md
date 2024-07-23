@@ -1295,6 +1295,10 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>.refreshable</code></td>
+    </tr>
+    <tr>
       <td>🟠</td>
       <td>
           <details>
@@ -1656,6 +1660,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `lineLimit`
 - `locale`
 - `openURL`
+- `refresh`
 - `scenePhase`
 - `timeZone`
 - `verticalSizeClass`
