@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 #else
@@ -65,10 +66,11 @@ public struct ScrollView : View {
             let refreshAction = EnvironmentValues.shared.refresh
             let refreshState: PullRefreshState?
             if let refreshAction {
+                let updatedAction = rememberUpdatedState(refreshAction)
                 refreshState = rememberPullRefreshState(refreshing.value, {
                     coroutineScope.launch {
                         refreshing.value = true
-                        refreshAction()
+                        updatedAction.value()
                         refreshing.value = false
                     }
                 })

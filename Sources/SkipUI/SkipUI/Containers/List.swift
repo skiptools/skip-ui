@@ -115,10 +115,11 @@ public final class List : View {
                 let refreshState: PullRefreshState?
                 if let refreshAction {
                     let refreshScope = rememberCoroutineScope()
+                    let updatedAction = rememberUpdatedState(refreshAction)
                     refreshState = rememberPullRefreshState(refreshing.value, {
                         refreshScope.launch {
                             refreshing.value = true
-                            refreshAction()
+                            updatedAction.value()
                             refreshing.value = false
                         }
                     })
