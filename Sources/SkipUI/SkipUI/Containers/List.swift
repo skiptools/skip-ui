@@ -180,13 +180,25 @@ public final class List : View {
         })
         modifier = modifier.reorderable(reorderableState)
 
-        // Integrate with our scroll-to-top navigation bar taps
+        // Integrate with our scroll-to-top and ScrollViewReader
         let coroutineScope = rememberCoroutineScope()
         PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
             coroutineScope.launch {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
+        let scrollToID: (Any) -> Void = { id in
+            if let itemIndex = factoryContext.value.index(for: id) {
+                coroutineScope.launch {
+                    if Animation.isInWithAnimation {
+                        reorderableState.listState.animateScrollToItem(itemIndex)
+                    } else {
+                        reorderableState.listState.scrollToItem(itemIndex)
+                    }
+                }
+            }
+        }
+        PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
@@ -231,9 +243,9 @@ public final class List : View {
                 },
                 indexedItems: { range, identifier, offset, onDelete, onMove, factory in
                     let count = range.endExclusive - range.start
-                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(factoryContext.value.remapIndex($0, from: offset))) }
+                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + factoryContext.value.remapIndex($0, from: offset))) }
                     items(count: count, key: key) { index in
-                        let keyValue = key?(index + range.start) // Key closure already remaps index
+                        let keyValue = key?(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
                         let editableItemContext = context.content(composer: RenderingComposer { view, context in

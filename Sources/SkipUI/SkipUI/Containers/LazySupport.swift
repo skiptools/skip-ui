@@ -54,28 +54,29 @@ public final class LazyItemFactoryContext {
                 self.sectionHeader(EmptyView())
             }
             item(view)
-            content.append(.items(1, nil))
+            let id = TagModifierView.strip(from: view, role: .id)?.value
+            content.append(.items(0, 1, { _ in id }, nil))
         }
         self.indexedItems = { range, identifier, onDelete, onMove, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
             indexedItems(range, identifier, count, onDelete, onMove, factory)
-            content.append(.items(range.endExclusive - range.start, onMove))
+            content.append(.items(range.start, range.endExclusive - range.start, identifier, onMove))
         }
         self.objectItems = { objects, identifier, onDelete, onMove, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
             objectItems(objects, identifier, count, onDelete, onMove, factory)
-            content.append(.objectItems(objects, onMove))
+            content.append(.objectItems(objects, identifier, onMove))
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, factory)
-            content.append(.objectBindingItems(binding, onMove))
+            content.append(.objectBindingItems(binding, identifier, onMove))
         }
         self.sectionHeader = { view in
             // If this is a header after an item, add a section footer before it
@@ -99,13 +100,53 @@ public final class LazyItemFactoryContext {
         var itemCount = 0
         for content in self.content {
             switch content {
-            case .items(let count, _): itemCount += count
-            case .objectItems(let objects, _): itemCount += objects.count
-            case .objectBindingItems(let binding, _): itemCount += binding.wrappedValue.count
+            case .items(_, let count, _, _): itemCount += count
+            case .objectItems(let objects, _, _): itemCount += objects.count
+            case .objectBindingItems(let binding, _, _): itemCount += binding.wrappedValue.count
             case .sectionHeader, .sectionFooter: itemCount += 1
             }
         }
         return itemCount
+    }
+
+    /// Return the list index for the given item ID, or nil.
+    func index(for id: Any) -> Int? {
+        var index = startItemIndex
+        for content in self.content {
+            switch content {
+            case .items(let start, let count, let idMap, _):
+                for i in start..<(start + count) {
+                    let itemID: Any?
+                    if let idMap {
+                        itemID = idMap(i)
+                    } else {
+                        itemID = i
+                    }
+                    if itemID == id {
+                        return index
+                    }
+                    index += 1
+                }
+            case .objectItems(let objects, let idMap, _):
+                for object in objects {
+                    let itemID = idMap(object)
+                    if itemID == id {
+                        return index
+                    }
+                    index += 1
+                }
+            case .objectBindingItems(let binding, let idMap, _):
+                for object in binding.wrappedValue {
+                    let itemID = idMap(object)
+                    if itemID == id {
+                        return index
+                    }
+                    index += 1
+                }
+            case .sectionHeader, .sectionFooter: index += 1
+            }
+        }
+        return nil
     }
 
     private var moving: (fromIndex: Int, toIndex: Int)?
@@ -164,15 +205,15 @@ public final class LazyItemFactoryContext {
         var itemIndex = startItemIndex
         for content in self.content {
             switch content {
-            case .items(let count, let onMove):
+            case .items(_, let count, _, let onMove):
                 if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: onMove) {
                     return
                 }
-            case .objectItems(let objects, let onMove):
+            case .objectItems(let objects, _, let onMove):
                 if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: objects.count, onMove: onMove) {
                     return
                 }
-            case .objectBindingItems(let binding, let onMove):
+            case .objectBindingItems(let binding, _, let onMove):
                 if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count, onMove: onMove, customMove: {
                     if let element = (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: fromIndex - itemIndex) {
                         (binding.wrappedValue as? RangeReplaceableCollection<Any>)?.insert(element, at: toIndex - itemIndex)
@@ -210,15 +251,15 @@ public final class LazyItemFactoryContext {
         var itemIndex = startItemIndex
         for content in self.content {
             switch content {
-            case .items(let count, _):
+            case .items(_, let count, _, _):
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
                     return ret
                 }
-            case .objectItems(let objects, _):
+            case .objectItems(let objects, _, _):
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: objects.count) {
                     return ret
                 }
-            case .objectBindingItems(let binding, _):
+            case .objectBindingItems(let binding, _, _):
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count) {
                     return ret
                 }
@@ -241,9 +282,9 @@ public final class LazyItemFactoryContext {
     }
 
     private enum Content {
-        case items(Int, ((IndexSet, Int) -> Void)?)
-        case objectItems(RandomAccessCollection<Any>, ((IndexSet, Int) -> Void)?)
-        case objectBindingItems(Binding<RandomAccessCollection<Any>>, ((IndexSet, Int) -> Void)?)
+        case items(Int, Int, ((Int) -> AnyHashable?)?, ((IndexSet, Int) -> Void)?)
+        case objectItems(RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet, Int) -> Void)?)
+        case objectBindingItems(Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, ((IndexSet, Int) -> Void)?)
         case sectionHeader
         case sectionFooter
     }

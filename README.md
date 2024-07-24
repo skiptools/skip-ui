@@ -469,9 +469,11 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>GeometryReader</code></summary>
+              <summary><code>GeometryProxy</code></summary>
               <ul>
-                  <li>See <code>GeometryProxy</code></li>
+                  <li><code>var size: CGSize</code></li>
+                  <li><code>func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect</code></li>
+                  <li>Only <code>.local</code> and <code>.global</code> coordinate spaces are supported</li>
               </ul>
           </details>      
        </td>
@@ -480,11 +482,9 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>GeometryProxy</code></summary>
+              <summary><code>GeometryReader</code></summary>
               <ul>
-                  <li><code>var size: CGSize</code></li>
-                  <li><code>func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect</code></li>
-                  <li>Only <code>.local</code> and <code>.global</code> coordinate spaces are supported</li>
+                  <li>See <code>GeometryProxy</code></li>
               </ul>
           </details>      
        </td>
@@ -680,6 +680,29 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>ScrollView</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>ScrollViewProxy</code></summary>
+              <ul>
+                  <li>Works only for <code>List</code> and lazy containers: <code>LazyVStack</code>, <code>LazyHStack</code>, <code>LazyVGrid</code>, <code>LazyHGrid</code></li>
+                  <li><code>UnitRect</code> parameter is ignored</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>ScrollViewReader</code></summary>
+              <ul>
+                  <li>See <code>ScrollViewProxy</code></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>🟢</td>

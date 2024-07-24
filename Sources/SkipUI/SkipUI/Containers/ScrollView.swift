@@ -19,6 +19,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 #else
@@ -94,6 +96,42 @@ public struct ScrollView : View {
     #endif
 }
 
+public struct ScrollViewProxy {
+    #if SKIP
+    let scrollToID: (Any) -> Void
+    #endif
+
+    public func scrollTo(_ id: Any, anchor: UnitPoint? = nil) {
+        #if SKIP
+        // Warning: anchor is currently ignored
+        scrollToID(id)
+        #endif
+    }
+}
+
+public struct ScrollViewReader<Content> : View where Content : View {
+    public let content: (ScrollViewProxy) -> Content
+
+    public init(@ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
+        self.content = content
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let scrollToID = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<(Any) -> Void>, Any>) { mutableStateOf(Preference<(Any) -> Void>(key: ScrollToIDPreferenceKey.self)) }
+        let scrollToIDCollector = PreferenceCollector<(Any) -> Void>(key: ScrollToIDPreferenceKey.self, state: scrollToID)
+        let scrollProxy = ScrollViewProxy(scrollToID: scrollToID.value.reduced)
+        PreferenceValues.shared.collectPreferences([scrollToIDCollector]) {
+            content(scrollProxy).Compose(context)
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
 #if SKIP
 struct ScrollToTopPreferenceKey: PreferenceKey {
     typealias Value = () -> Void
@@ -102,6 +140,18 @@ struct ScrollToTopPreferenceKey: PreferenceKey {
     final class Companion: PreferenceKeyCompanion {
         let defaultValue: () -> Void = {}
         func reduce(value: inout () -> Void, nextValue: () -> () -> Void) {
+            value = nextValue()
+        }
+    }
+}
+
+struct ScrollToIDPreferenceKey: PreferenceKey {
+    typealias Value = (Any) -> Void
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<(Any) -> Unit>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue: (Any) -> Void = { _ in }
+        func reduce(value: inout (Any) -> Void, nextValue: () -> (Any) -> Void) {
             value = nextValue()
         }
     }
@@ -662,113 +712,6 @@ extension ScrollTransitionPhase : Equatable {
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension ScrollTransitionPhase : Hashable {
-}
-
-/// A proxy value that supports programmatic scrolling of the scrollable
-/// views within a view hierarchy.
-///
-/// You don't create instances of `ScrollViewProxy` directly. Instead, your
-/// ``ScrollViewReader`` receives an instance of `ScrollViewProxy` in its
-/// `content` view builder. You use actions within this view builder, such
-/// as button and gesture handlers or the ``View/onChange(of:perform:)``
-/// method, to call the proxy's ``ScrollViewProxy/scrollTo(_:anchor:)`` method.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-public struct ScrollViewProxy {
-
-    /// Scans all scroll views contained by the proxy for the first
-    /// with a child view with identifier `id`, and then scrolls to
-    /// that view.
-    ///
-    /// If `anchor` is `nil`, this method finds the container of the identified
-    /// view, and scrolls the minimum amount to make the identified view
-    /// wholly visible.
-    ///
-    /// If `anchor` is non-`nil`, it defines the points in the identified
-    /// view and the scroll view to align. For example, setting `anchor` to
-    /// ``UnitPoint/top`` aligns the top of the identified view to the top of
-    /// the scroll view. Similarly, setting `anchor` to ``UnitPoint/bottom``
-    /// aligns the bottom of the identified view to the bottom of the scroll
-    /// view, and so on.
-    ///
-    /// - Parameters:
-    ///   - id: The identifier of a child view to scroll to.
-    ///   - anchor: The alignment behavior of the scroll action.
-    public func scrollTo<ID>(_ id: ID, anchor: UnitPoint? = nil) where ID : Hashable { fatalError() }
-}
-
-/// A view that provides programmatic scrolling, by working with a proxy
-/// to scroll to known child views.
-///
-/// The scroll view reader's content view builder receives a ``ScrollViewProxy``
-/// instance; you use the proxy's ``ScrollViewProxy/scrollTo(_:anchor:)`` to
-/// perform scrolling.
-///
-/// The following example creates a ``ScrollView`` containing 100 views that
-/// together display a color gradient. It also contains two buttons, one each
-/// at the top and bottom. The top button tells the ``ScrollViewProxy`` to
-/// scroll to the bottom button, and vice versa.
-///
-///     @Namespace var topID
-///     @Namespace var bottomID
-///
-///     var body: some View {
-///         ScrollViewReader { proxy in
-///             ScrollView {
-///                 Button("Scroll to Bottom") {
-///                     withAnimation {
-///                         proxy.scrollTo(bottomID)
-///                     }
-///                 }
-///                 .id(topID)
-///
-///                 VStack(spacing: 0) {
-///                     ForEach(0..<100) { i in
-///                         color(fraction: Double(i) / 100)
-///                             .frame(height: 32)
-///                     }
-///                 }
-///
-///                 Button("Top") {
-///                     withAnimation {
-///                         proxy.scrollTo(topID)
-///                     }
-///                 }
-///                 .id(bottomID)
-///             }
-///         }
-///     }
-///
-///     func color(fraction: Double) -> Color {
-///         Color(red: fraction, green: 1 - fraction, blue: 0.5)
-///     }
-///
-/// ![A scroll view, with a button labeled "Scroll to Bottom" at top.
-/// Below this, a series of vertically aligned rows, each filled with a
-/// color, that are progressing from green to
-/// red.](SkipUI-ScrollViewReader-scroll-to-bottom-button.png)
-///
-/// > Important: You may not use the ``ScrollViewProxy``
-/// during execution of the `content` view builder; doing so results in a
-/// runtime error. Instead, only actions created within `content` can call
-/// the proxy, such as gesture handlers or a view's `onChange(of:perform:)`
-/// method.
-@available(iOS 14.0, macOS 11.0, tvOS 14.0, watchOS 7.0, *)
-@frozen public struct ScrollViewReader<Content> : View where Content : View {
-
-    /// The view builder that creates the reader's content.
-    public var content: (ScrollViewProxy) -> Content { get { fatalError() } }
-
-    /// Creates an instance that can perform programmatic scrolling of its
-    /// child scroll views.
-    ///
-    /// - Parameter content: The reader's content, containing one or more
-    /// scroll views. This view builder receives a ``ScrollViewProxy``
-    /// instance that you use to perform scrolling.
-    @inlinable public init(@ViewBuilder content: @escaping (ScrollViewProxy) -> Content) { fatalError() }
-
-    @MainActor public var body: some View { get { return stubView() } }
-
-//    public typealias Body = some View
 }
 
 /// The scroll behavior that aligns scroll targets to container-based geometry.

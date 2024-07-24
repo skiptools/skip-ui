@@ -7,8 +7,13 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -38,10 +43,26 @@ public struct LazyHStack : View {
         content.Compose(context: viewsCollector)
 
         let itemContext = context.content()
-        let factoryContext = LazyItemFactoryContext()
+        let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .horizontal, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
-            LazyRow(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, userScrollEnabled: isScrollEnabled) {
-                factoryContext.initialize(
+            // Integrate with ScrollViewReader
+            let listState = rememberLazyListState()
+            let coroutineScope = rememberCoroutineScope()
+            let scrollToID: (Any) -> Void = { id in
+                if let itemIndex = factoryContext.value.index(for: id) {
+                    coroutineScope.launch {
+                        if Animation.isInWithAnimation {
+                            listState.animateScrollToItem(itemIndex)
+                        } else {
+                            listState.scrollToItem(itemIndex)
+                        }
+                    }
+                }
+            }
+            PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+
+            LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, userScrollEnabled: isScrollEnabled) {
+                factoryContext.value.initialize(
                     startItemIndex: 0,
                     item: { view in
                         item {
@@ -80,9 +101,9 @@ public struct LazyHStack : View {
                 )
                 for view in collectingComposer.views {
                     if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext)
+                        factory.composeLazyItems(context: factoryContext.value)
                     } else {
-                        factoryContext.item(view)
+                        factoryContext.value.item(view)
                     }
                 }
             }

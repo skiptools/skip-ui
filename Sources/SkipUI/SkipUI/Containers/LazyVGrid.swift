@@ -9,8 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -44,10 +49,31 @@ public struct LazyVGrid: View {
         content.Compose(context: viewsCollector)
 
         let itemContext = context.content()
-        let factoryContext = LazyItemFactoryContext()
+        let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-            LazyVerticalGrid(modifier: modifier, columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, userScrollEnabled: isScrollEnabled) {
-                factoryContext.initialize(
+            // Integrate with our scroll-to-top and ScrollViewReader
+            let gridState = rememberLazyGridState()
+            let coroutineScope = rememberCoroutineScope()
+            PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+                coroutineScope.launch {
+                    gridState.animateScrollToItem(0)
+                }
+            })
+            let scrollToID: (Any) -> Void = { id in
+                if let itemIndex = factoryContext.value.index(for: id) {
+                    coroutineScope.launch {
+                        if Animation.isInWithAnimation {
+                            gridState.animateScrollToItem(itemIndex)
+                        } else {
+                            gridState.scrollToItem(itemIndex)
+                        }
+                    }
+                }
+            }
+            PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+
+            LazyVerticalGrid(state: gridState, modifier: modifier, columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, userScrollEnabled: isScrollEnabled) {
+                factoryContext.value.initialize(
                     startItemIndex: 0,
                     item: { view in
                         item {
@@ -98,9 +124,9 @@ public struct LazyVGrid: View {
                 )
                 for view in collectingComposer.views {
                     if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext)
+                        factory.composeLazyItems(context: factoryContext.value)
                     } else {
-                        factoryContext.item(view)
+                        factoryContext.value.item(view)
                     }
                 }
             }

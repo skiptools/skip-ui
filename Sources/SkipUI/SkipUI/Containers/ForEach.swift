@@ -105,34 +105,44 @@ public final class ForEach : View, LazyItemFactory {
         var isFirstView = true
         if let indexRange {
             for index in indexRange {
-                let contentViews = collectViews(from: indexedContent!(index), context: appendingContext)
+                var contentViews = collectViews(from: indexedContent!(index), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
+                }
+                if let identifier {
+                    contentViews = taggedViews(for: contentViews, defaultTag: index, context: appendingContext)
                 }
                 contentViews.forEach { $0.Compose(appendingContext) }
             }
         } else if let objects {
             for object in objects {
-                let contentViews = collectViews(from: objectContent!(object), context: appendingContext)
+                var contentViews = collectViews(from: objectContent!(object), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
                 }
+                if let identifier {
+                    contentViews = taggedViews(for: contentViews, defaultTag: identifier(object), context: appendingContext)
+                }
                 contentViews.forEach { $0.Compose(appendingContext) }
             }
         } else if let objectsBinding {
-            for i in 0..<objectsBinding.wrappedValue.count {
-                let contentViews = collectViews(from: objectsBindingContent!(objectsBinding, i), context: appendingContext)
+            let objects = objectsBinding.wrappedValue
+            for i in 0..<objects.count {
+                var contentViews = collectViews(from: objectsBindingContent!(objectsBinding, i), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
                     views.add(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
+                }
+                if let identifier {
+                    contentViews = taggedViews(for: contentViews, defaultTag: identifier(objects[i]), context: appendingContext)
                 }
                 contentViews.forEach { $0.Compose(appendingContext) }
             }

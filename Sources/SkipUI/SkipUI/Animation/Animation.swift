@@ -118,6 +118,13 @@ public struct Animation : Hashable, Sendable {
         return isAnimating ? rememberedAnimation : nil
     }
 
+    /// Whether we're in a `withAnimation` block.
+    static var isInWithAnimation: Bool {
+        synchronized (withAnimationLock) {
+            return _withAnimation != nil
+        }
+    }
+
     /// Internal implementation of global `withAnimation` SwiftUI function.
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
         // SwiftUI's withAnimation works as if by snapshotting the view tree at the beginning of the block,

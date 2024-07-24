@@ -7,8 +7,13 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
 #endif
@@ -38,10 +43,31 @@ public struct LazyVStack : View {
         content.Compose(context: viewsCollector)
         
         let itemContext = context.content()
-        let factoryContext = LazyItemFactoryContext()
+        let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-            LazyColumn(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, userScrollEnabled: isScrollEnabled) {
-                factoryContext.initialize(
+            // Integrate with our scroll-to-top and ScrollViewReader
+            let listState = rememberLazyListState()
+            let coroutineScope = rememberCoroutineScope()
+            PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+                coroutineScope.launch {
+                    listState.animateScrollToItem(0)
+                }
+            })
+            let scrollToID: (Any) -> Void = { id in
+                if let itemIndex = factoryContext.value.index(for: id) {
+                    coroutineScope.launch {
+                        if Animation.isInWithAnimation {
+                            listState.animateScrollToItem(itemIndex)
+                        } else {
+                            listState.scrollToItem(itemIndex)
+                        }
+                    }
+                }
+            }
+            PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+
+            LazyColumn(state: listState, modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, userScrollEnabled: isScrollEnabled) {
+                factoryContext.value.initialize(
                     startItemIndex: 0,
                     item: { view in
                         item {
@@ -80,9 +106,9 @@ public struct LazyVStack : View {
                 )
                 for view in collectingComposer.views {
                     if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext)
+                        factory.composeLazyItems(context: factoryContext.value)
                     } else {
-                        factoryContext.item(view)
+                        factoryContext.value.item(view)
                     }
                 }
             }
