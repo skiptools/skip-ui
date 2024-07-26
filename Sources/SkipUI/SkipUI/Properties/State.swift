@@ -10,7 +10,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 #endif
 
-// Model State as a class rather than struct to mutate by reference and void copy overhead
+// Model State as a class rather than struct to mutate by reference and avoid copy overhead
 public final class State<Value>: StateTracker {
     public init(initialValue: Value) {
         _wrappedValue = initialValue
