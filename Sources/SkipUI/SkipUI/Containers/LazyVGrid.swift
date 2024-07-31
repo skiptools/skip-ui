@@ -7,6 +7,8 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #else
@@ -48,11 +51,14 @@ public struct LazyVGrid: View {
         let viewsCollector = context.content(composer: collectingComposer)
         content.Compose(context: viewsCollector)
 
+        let searchableState = EnvironmentValues.shared._searchableState
+        let isSearchable = searchableState?.isOnNavigationStack == false
+
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
-            let gridState = rememberLazyGridState()
+            let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
             let coroutineScope = rememberCoroutineScope()
             PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
                 coroutineScope.launch {
@@ -74,7 +80,7 @@ public struct LazyVGrid: View {
 
             LazyVerticalGrid(state: gridState, modifier: modifier, columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, userScrollEnabled: isScrollEnabled) {
                 factoryContext.value.initialize(
-                    startItemIndex: 0,
+                    startItemIndex: isSearchable ? 1 : 0,
                     item: { view in
                         item {
                             Box(contentAlignment: boxAlignment) {
@@ -122,6 +128,12 @@ public struct LazyVGrid: View {
                         }
                     }
                 )
+                if isSearchable {
+                    item(span: { GridItemSpan(maxLineSpan) }) {
+                        let modifier = Modifier.padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp).fillMaxWidth()
+                        SearchField(state: searchableState!, context: context.content(modifier: modifier))
+                    }
+                }
                 for view in collectingComposer.views {
                     if let factory = view as? LazyItemFactory {
                         factory.composeLazyItems(context: factoryContext.value)

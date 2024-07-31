@@ -9,6 +9,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
@@ -22,6 +24,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #else
 import struct CoreGraphics.CGFloat
@@ -46,8 +49,10 @@ public struct ScrollView : View {
 
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
+        let isVerticalScroll = axes.contains(.vertical) && !(firstView is LazyVStack) && !(firstView is LazyVGrid)
+        let isHorizontalScroll = axes.contains(.horizontal) && !(firstView is LazyHStack) && !(firstView is LazyHGrid)
         var scrollModifier: Modifier = Modifier
-        if axes.contains(.vertical) && !(firstView is LazyVStack) && !(firstView is LazyVGrid) {
+        if isVerticalScroll {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
@@ -58,7 +63,7 @@ public struct ScrollView : View {
                 })
             }
         }
-        if axes.contains(.horizontal) && !(firstView is LazyHStack) && !(firstView is LazyHGrid) {
+        if isHorizontalScroll {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
         }
         let contentContext = context.content()
@@ -81,8 +86,18 @@ public struct ScrollView : View {
                 refreshState = nil
                 containerModifier = modifier
             }
+
             Box(modifier: containerModifier) {
-                content.Compose(context: contentContext)
+                Column {
+                    if isVerticalScroll {
+                        let searchableState = EnvironmentValues.shared._searchableState
+                        let isSearchable = searchableState?.isOnNavigationStack == false
+                        if isSearchable {
+                            SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
+                        }
+                    }
+                    content.Compose(context: contentContext)
+                }
                 if let refreshState {
                     PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                 }
