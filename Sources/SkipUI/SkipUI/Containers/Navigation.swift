@@ -200,6 +200,9 @@ public struct NavigationStack<Root> : View where Root: View {
         let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
+        let searchableState = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>) { mutableStateOf(Preference<SearchableState?>(key: SearchableStatePreferenceKey.self)) }
+        let searchableStateCollector = PreferenceCollector<SearchableState?>(key: SearchableStatePreferenceKey.self, state: searchableState)
+
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<() -> Void>, Any>) { mutableStateOf(Preference<() -> Void>(key: ScrollToTopPreferenceKey.self)) }
         let scrollToTopCollector = PreferenceCollector<() -> Void>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
 
@@ -399,7 +402,13 @@ public struct NavigationStack<Root> : View where Root: View {
             topBar()
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 var topPadding = 0.dp
-                if arguments.isRoot, let searchableState = EnvironmentValues.shared._searchableState {
+                let contentSearchableState: SearchableState?
+                if arguments.isRoot {
+                    contentSearchableState = EnvironmentValues.shared._searchableState ?? searchableState.value.reduced
+                } else {
+                    contentSearchableState = searchableState.value.reduced
+                }
+                if let searchableState = contentSearchableState {
                     let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
                     SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
                     let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
@@ -412,7 +421,7 @@ public struct NavigationStack<Root> : View where Root: View {
                 } in: {
                     // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
                     Box(modifier: Modifier.padding(top: topPadding)) {
-                        PreferenceValues.shared.collectPreferences([scrollToTopCollector]) {
+                        PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
                             content(context.content())
                         }
                     }

@@ -93,7 +93,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
             guard let searchableState = EnvironmentValues.shared._searchableState, searchableState.isSearching.value else {
                 return true
             }
-            guard searchableState.isOnNavigationStack else {
+            guard searchableState.isModifierOnNavigationStack else {
                 return false
             }
             // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root

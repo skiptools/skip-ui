@@ -91,7 +91,7 @@ public struct ScrollView : View {
                 Column {
                     if isVerticalScroll {
                         let searchableState = EnvironmentValues.shared._searchableState
-                        let isSearchable = searchableState?.isOnNavigationStack == false
+                        let isSearchable = searchableState?.isModifierOnNavigationStack == false
                         if isSearchable {
                             SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
                         }

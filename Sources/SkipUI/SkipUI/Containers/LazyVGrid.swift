@@ -52,7 +52,7 @@ public struct LazyVGrid: View {
         content.Compose(context: viewsCollector)
 
         let searchableState = EnvironmentValues.shared._searchableState
-        let isSearchable = searchableState?.isOnNavigationStack == false
+        let isSearchable = searchableState?.isOnNavigationStack() == false
 
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
@@ -78,7 +78,7 @@ public struct LazyVGrid: View {
             }
             PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
 
-            LazyVerticalGrid(state: gridState, modifier: modifier, columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, userScrollEnabled: isScrollEnabled) {
+            LazyVerticalGrid(state: gridState, modifier: modifier, columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
                 factoryContext.value.initialize(
                     startItemIndex: isSearchable ? 1 : 0,
                     item: { view in

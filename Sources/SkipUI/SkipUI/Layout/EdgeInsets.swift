@@ -4,7 +4,11 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-#if !SKIP
+#if SKIP
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
+#else
 import struct CoreGraphics.CGFloat
 #endif
 
@@ -20,4 +24,10 @@ public struct EdgeInsets : Equatable, Sendable {
         self.bottom = bottom
         self.trailing = trailing
     }
+
+    #if SKIP
+    @Composable func asPaddingValues() -> PaddingValues {
+        return PaddingValues(start: leading.dp, top: top.dp, end: trailing.dp, bottom: bottom.dp)
+    }
+    #endif
 }

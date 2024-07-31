@@ -41,11 +41,11 @@ import androidx.compose.ui.Modifier
     let isFillHeight = remember { mutableStateOf(fillHeight) }
     let isNonExpandingFillHeight = remember { mutableStateOf(false) }
 
-    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child views who
-    // want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
+    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child
+    // views who want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
     //
-    // We have a special case when our content is framed, meaning at least one dimension is fixed. If a non-fixed dimension wants
-    // a non-expanding fill, we do not set IntrinsicSize.Max and use an expanding fill instead
+    // We have a special case when our content is framed, meaning at least one dimension is fixed. If a non-fixed dimension
+    // wants a non-expanding fill, we do not set IntrinsicSize.Max and use an expanding fill instead
     // TODO: This special case works in practice thus far, but I do not fully understand it
     var modifier = modifier
     let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes

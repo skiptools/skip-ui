@@ -160,16 +160,16 @@ public final class List : View {
         }
         modifier = modifier.fillMaxWidth()
 
-        let hasHeader = styling.style != ListStyle.plain || headerSafeAreaHeight.value > 0
-        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
-
         let searchableState = EnvironmentValues.shared._searchableState
-        let isSearchable = searchableState?.isOnNavigationStack == false
+        let isSearchable = searchableState?.isOnNavigationStack() == false
+
+        let hasHeader = styling.style != ListStyle.plain || (!isSearchable && headerSafeAreaHeight.value > 0)
+        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
 
         // Remember the factory because we use it in the remembered reorderable state
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         let moveTrigger = remember { mutableStateOf(0) }
-        let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+        let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable && headerSafeAreaHeight.value <= 0 ? 1 : 0)
         let reorderableState = rememberReorderableLazyListState(listState: listState, onMove: { from, to in
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             factoryContext.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
@@ -212,17 +212,9 @@ public final class List : View {
 
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
-            // Animate list operations. If we're searching, however, we disable animation to prevent weird
-            // animations during search filtering. This is ugly and not robust, but it works in most cases
+            // Animate list operations. If we're filtering, however, we disable animation to prevent weird animations
             let shouldAnimateItems: @Composable () -> Bool = {
-                guard let searchableState = EnvironmentValues.shared._searchableState, searchableState.isSearching.value else {
-                    return true
-                }
-                guard searchableState.isOnNavigationStack else {
-                    return false
-                }
-                // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
-                return LocalNavigator.current?.isRoot != true
+                EnvironmentValues.shared._searchableState?.isFiltering() != true
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
@@ -299,13 +291,13 @@ public final class List : View {
 
             if isSearchable {
                 item {
-                    ComposeSearchField(state: searchableState!, context: context, styling: styling)
+                    ComposeSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: headerSafeAreaHeight)
                 }
             }
             if hasHeader {
                 let hasTopSection = collectingComposer.views.firstOrNull() is LazySectionHeader
                 item {
-                    ComposeHeader(styling: styling, safeAreaHeight: headerSafeAreaHeight, hasTopSection: hasTopSection)
+                    ComposeHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : headerSafeAreaHeight, hasTopSection: hasTopSection)
                 }
             }
             for view in collectingComposer.views {
@@ -578,12 +570,12 @@ public final class List : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling) {
+    @Composable private func ComposeSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
         var modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
         if styling.style == ListStyle.plain {
-            modifier = modifier.padding(top: Self.verticalInset.dp, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
+            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
         } else {
-            modifier = modifier.padding(top: Self.verticalInset.dp)
+            modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight)
         }
         modifier = modifier.fillMaxWidth()
         SearchField(state: state, context: context.content(modifier: modifier))

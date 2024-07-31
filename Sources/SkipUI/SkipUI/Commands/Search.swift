@@ -44,11 +44,15 @@ extension View {
         return ComposeModifierView(contentView: self) { view, context in
             let submitState = EnvironmentValues.shared._onSubmitState
             let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-            let isOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
-            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
+            let isModifierOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
+            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isModifierOnNavigationStack: isModifierOnNavigationStack)
+            // We set searchable state both in the environment and as a preference for the parent nav stack
             EnvironmentValues.shared.setValues {
                 $0.set_searchableState(state)
             } in: {
+                if !view.strippingModifiers(perform: { $0 is NavigationStack}) {
+                    PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
+                }
                 view.Compose(context: context)
             }
         }
@@ -147,13 +151,44 @@ let searchFieldHeight = 56.0
     }
 }
 
+struct SearchableStatePreferenceKey: PreferenceKey {
+    typealias Value = SearchableState?
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<SearchableState?>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue: SearchableState? = nil
+        func reduce(value: inout SearchableState?, nextValue: () -> SearchableState?) {
+            value = nextValue()
+        }
+    }
+}
+
 /// Searchable state placed in the environment.
-struct SearchableState {
+struct SearchableState: Equatable {
     let text: Binding<String>
     let prompt: Text?
     let submitState: OnSubmitState?
     let isSearching: MutableState<Bool>
-    let isOnNavigationStack: Bool
+    let isModifierOnNavigationStack: Bool
+
+    /// Whether the search bar will be rendered in the navigation stack header.
+    @Composable func isOnNavigationStack() -> Bool {
+        return isModifierOnNavigationStack || LocalNavigator.current != nil
+    }
+
+    /// Whether the calling list, etc is being filtered.
+    @Composable func isFiltering() -> Bool {
+        guard isSearching.value else {
+            return false
+        }
+        // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
+        return !isModifierOnNavigationStack || LocalNavigator.current?.isRoot == true
+    }
+
+    static func ==(lhs: SearchableState, rhs: SearchableState) -> Bool {
+        // Most of this state can't be compared, and search bars handle the mutability internally
+        return lhs.prompt == rhs.prompt && lhs.isModifierOnNavigationStack == rhs.isModifierOnNavigationStack
+    }
 }
 
 /// Used by the `NavigationStack` to scroll the search field with screen content.

@@ -61,7 +61,7 @@ public struct LazyHStack : View {
             }
             PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
 
-            LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, userScrollEnabled: isScrollEnabled) {
+            LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
                 factoryContext.value.initialize(
                     startItemIndex: 0,
                     item: { view in

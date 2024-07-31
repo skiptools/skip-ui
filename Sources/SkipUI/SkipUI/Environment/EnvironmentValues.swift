@@ -409,6 +409,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_buttonStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    var _contentPadding: EdgeInsets {
+        get { builtinValue(key: "_contentPadding", defaultValue: { EdgeInsets() }) as! EdgeInsets }
+        set { setBuiltinValue(key: "_contentPadding", value: newValue, defaultValue: { EdgeInsets() }) }
+    }
+
     var _fillHeight: (@Composable (Bool) -> Modifier)? {
         get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable (Bool) -> Modifier)? }
         set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }

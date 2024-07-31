@@ -784,6 +784,12 @@ extension View {
 
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
+        // Certain views apply their padding themselves
+        guard !strippingModifiers(until: { $0 == .spacing }, perform: {
+            $0 is LazyVGrid || $0 is LazyHGrid || $0 is LazyVStack || $0 is LazyHStack
+        }) else {
+            return environment(\._contentPadding, insets)
+        }
         return ComposeModifierView(contentView: self, role: .spacing) { view, context in
             PaddingLayout(view: view, padding: insets, context: context)
         }

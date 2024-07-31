@@ -47,8 +47,8 @@ public struct ZStack : View {
             let contentContext = context.content()
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
                 Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    let fillModifier = Modifier.matchParentSize()
                     EnvironmentValues.shared.setValues {
-                        // The ComposeContainer uses the presence of these modifiers to influence container expansion behavior
                         $0.set_fillWidthModifier(Modifier)
                         $0.set_fillHeightModifier(Modifier)
                     } in: {

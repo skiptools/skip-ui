@@ -39,6 +39,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -917,12 +918,15 @@ final class PresentationModifierView: ComposeModifierView {
     }
 
     @Composable override func ComposeContent(context: ComposeContext) {
-        EnvironmentValues.shared.setValues {
-            // Clear environment state that should not transfer to presentations
-            $0.set_animation(nil)
-            $0.set_searchableState(nil)
-        } in: {
-            presentation(context.content())
+        // Clear environment state that should not transfer to presentations
+        // SKIP INSERT: val providedNavigator = LocalNavigator provides null
+        CompositionLocalProvider(providedNavigator) {
+            EnvironmentValues.shared.setValues {
+                $0.set_animation(nil)
+                $0.set_searchableState(nil)
+            } in: {
+                presentation(context.content())
+            }
         }
         view.Compose(context: context)
     }
