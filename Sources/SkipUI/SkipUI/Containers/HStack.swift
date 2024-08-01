@@ -34,7 +34,6 @@ public struct HStack : View {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
@@ -65,37 +64,43 @@ public struct HStack : View {
             }
         } else {
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-                AnimatedContent(modifier: modifier, targetState: views, transitionSpec: {
-                    // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
-                }, contentKey: {
-                    $0.map(idMap)
-                }, content: { state in
-                    let animation = Animation.current(isAnimating: transition.isRunning)
-                    if animation == nil {
-                        rememberedNewIds.clear()
-                    }
-                    Row(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
-                        let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
-                        EnvironmentValues.shared.setValues {
-                            $0.set_fillWidthModifier(fillWidthModifier)
-                        } in: {
-                            for view in state {
-                                let id = idMap(view)
-                                var modifier: Modifier = Modifier
-                                if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
-                                    let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
-                                    let spec = animation.asAnimationSpec()
-                                    let enter = transition.asEnterTransition(spec: spec)
-                                    let exit = transition.asExitTransition(spec: spec)
-                                    modifier = modifier.animateEnterExit(enter: enter, exit: exit)
-                                }
-                                view.Compose(context: context.content(modifier: modifier))
-                            }
-                        }
-                    }
-                }, label: "HStack")
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil)
+                ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement)
             }
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
+    @Composable private func ComposeAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, rowAlignment: androidx.compose.ui.Alignment.Vertical, rowArrangement: Arrangement.Horizontal) {
+        AnimatedContent(modifier: modifier, targetState: arguments.views, transitionSpec: {
+            // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+        }, contentKey: {
+            $0.map(arguments.idMap)
+        }, content: { state in
+            let animation = Animation.current(isAnimating: transition.isRunning)
+            if animation == nil {
+                arguments.rememberedNewIds.clear()
+            }
+            Row(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
+                EnvironmentValues.shared.setValues {
+                    $0.set_fillWidthModifier(fillWidthModifier)
+                } in: {
+                    for view in state {
+                        let id = arguments.idMap(view)
+                        var modifier: Modifier = Modifier
+                        if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                            let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                            let spec = animation.asAnimationSpec()
+                            let enter = transition.asEnterTransition(spec: spec)
+                            let exit = transition.asExitTransition(spec: spec)
+                            modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        }
+                        view.Compose(context: context.content(modifier: modifier))
+                    }
+                }
+            }
+        }, label: "HStack")
     }
     #else
     public var body: some View {

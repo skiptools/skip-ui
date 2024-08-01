@@ -29,7 +29,6 @@ public struct ZStack : View {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let views = content.collectViews(context: context)
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
@@ -47,7 +46,6 @@ public struct ZStack : View {
             let contentContext = context.content()
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
                 Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    let fillModifier = Modifier.matchParentSize()
                     EnvironmentValues.shared.setValues {
                         $0.set_fillWidthModifier(Modifier)
                         $0.set_fillHeightModifier(Modifier)
@@ -58,38 +56,44 @@ public struct ZStack : View {
             }
         } else {
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
-                AnimatedContent(modifier: modifier, targetState: views, transitionSpec: {
-                    // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
-                }, contentKey: {
-                    $0.map(idMap)
-                }, content: { state in
-                    let animation = Animation.current(isAnimating: transition.isRunning)
-                    if animation == nil {
-                        rememberedNewIds.clear()
-                    }
-                    Box(contentAlignment: alignment.asComposeAlignment()) {
-                        EnvironmentValues.shared.setValues {
-                            // The ComposeContainer uses the presence of these modifiers to influence container expansion behavior
-                            $0.set_fillWidthModifier(Modifier)
-                            $0.set_fillHeightModifier(Modifier)
-                        } in: {
-                            for view in state {
-                                let id = idMap(view)
-                                var modifier: Modifier = Modifier
-                                if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
-                                    let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
-                                    let spec = animation.asAnimationSpec()
-                                    let enter = transition.asEnterTransition(spec: spec)
-                                    let exit = transition.asExitTransition(spec: spec)
-                                    modifier = modifier.animateEnterExit(enter: enter, exit: exit)
-                                }
-                                view.Compose(context: context.content(modifier: modifier))
-                            }
-                        }
-                    }
-                }, label: "ZStack")
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil)
+                ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments)
             }
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
+    @Composable private func ComposeAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments) {
+        AnimatedContent(modifier: modifier, targetState: arguments.views, transitionSpec: {
+            // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+        }, contentKey: {
+            $0.map(arguments.idMap)
+        }, content: { state in
+            let animation = Animation.current(isAnimating: transition.isRunning)
+            if animation == nil {
+                arguments.rememberedNewIds.clear()
+            }
+            Box(contentAlignment: alignment.asComposeAlignment()) {
+                EnvironmentValues.shared.setValues {
+                    // The ComposeContainer uses the presence of these modifiers to influence container expansion behavior
+                    $0.set_fillWidthModifier(Modifier)
+                    $0.set_fillHeightModifier(Modifier)
+                } in: {
+                    for view in state {
+                        let id = arguments.idMap(view)
+                        var modifier: Modifier = Modifier
+                        if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                            let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                            let spec = animation.asAnimationSpec()
+                            let enter = transition.asEnterTransition(spec: spec)
+                            let exit = transition.asExitTransition(spec: spec)
+                            modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        }
+                        view.Compose(context: context.content(modifier: modifier))
+                    }
+                }
+            }
+        }, label: "ZStack")
     }
     #else
     public var body: some View {

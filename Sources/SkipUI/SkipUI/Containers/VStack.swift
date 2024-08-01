@@ -35,7 +35,6 @@ public struct VStack : View {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let columnAlignment = alignment.asComposeAlignment()
         let composer: VStackComposer?
@@ -75,41 +74,47 @@ public struct VStack : View {
                 }
             }
         } else {
-            ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-                AnimatedContent(modifier: modifier, targetState: views, transitionSpec: {
-                    // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
-                }, contentKey: {
-                    $0.map(idMap)
-                }, content: { state in
-                    let animation = Animation.current(isAnimating: self.transition.isRunning)
-                    if animation == nil {
-                        rememberedNewIds.clear()
-                    }
-                    Column(verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
-                        let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
-                        EnvironmentValues.shared.setValues {
-                            $0.set_fillHeightModifier(fillHeightModifier)
-                        } in: {
-                            composer?.willCompose()
-                            for view in state {
-                                let id = idMap(view)
-                                var modifier: Modifier = Modifier
-                                if let animation, newIds.contains(id) || rememberedNewIds.contains(id) || !ids.contains(id) {
-                                    let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
-                                    let spec = animation.asAnimationSpec()
-                                    let enter = transition.asEnterTransition(spec: spec)
-                                    let exit = transition.asExitTransition(spec: spec)
-                                    modifier = modifier.animateEnterExit(enter: enter, exit: exit)
-                                }
-                                let contentContext = context.content(modifier: modifier, composer: composer)
-                                view.Compose(context: contentContext)
-                            }
-                            composer?.didCompose(result: ComposeResult.ok)
-                        }
-                    }
-                }, label: "VStack")
+            ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: composer)
+                ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement)
             }
         }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
+    @Composable private func ComposeAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, columnAlignment: androidx.compose.ui.Alignment.Horizontal, columnArrangement: Arrangement.Vertical) {
+        AnimatedContent(modifier: modifier, targetState: arguments.views, transitionSpec: {
+            // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+        }, contentKey: {
+            $0.map(arguments.idMap)
+        }, content: { state in
+            let animation = Animation.current(isAnimating: self.transition.isRunning)
+            if animation == nil {
+                arguments.rememberedNewIds.clear()
+            }
+            Column(verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
+                EnvironmentValues.shared.setValues {
+                    $0.set_fillHeightModifier(fillHeightModifier)
+                } in: {
+                    arguments.composer?.willCompose()
+                    for view in state {
+                        let id = arguments.idMap(view)
+                        var modifier: Modifier = Modifier
+                        if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                            let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                            let spec = animation.asAnimationSpec()
+                            let enter = transition.asEnterTransition(spec: spec)
+                            let exit = transition.asExitTransition(spec: spec)
+                            modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        }
+                        let contentContext = context.content(modifier: modifier, composer: arguments.composer)
+                        view.Compose(context: contentContext)
+                    }
+                    arguments.composer?.didCompose(result: ComposeResult.ok)
+                }
+            }
+        }, label: "VStack")
     }
     #else
     public var body: some View {

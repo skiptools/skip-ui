@@ -226,6 +226,23 @@ public struct NavigationStack<Root> : View where Root: View {
             let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
             mutableStateOf(with(density) { safeAreaTopPx + 112.dp.toPx() })
         }
+        let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+        let topBarBackgroundBrush: androidx.compose.ui.graphics.Brush?
+        if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+            topBarBackgroundColor = Color.clear.colorImpl()
+            topBarBackgroundBrush = nil
+        } else if let background = topBarPreferences?.background {
+            if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                topBarBackgroundColor = color
+                topBarBackgroundBrush = nil
+            } else {
+                topBarBackgroundColor = Color.clear.colorImpl()
+                topBarBackgroundBrush = background.asBrush(opacity: 1.0, animationContext: nil)
+            }
+        } else {
+            topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+            topBarBackgroundBrush = nil
+        }
         let topBar: @Composable () -> Void = {
             guard topBarPreferences?.visibility != Visibility.hidden else {
                 SideEffect { topBarBottomPx.value = Float(0.0) }
@@ -256,20 +273,8 @@ public struct NavigationStack<Root> : View where Root: View {
                                 topBarBottomPx.value = bottomPx
                             }
                         }
-                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-                        topBarBackgroundColor = Color.clear.colorImpl()
-                    } else if let background = topBarPreferences?.background {
-                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                            topBarBackgroundColor = color
-                        } else {
-                            topBarBackgroundColor = Color.clear.colorImpl()
-                            if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                                topBarModifier = topBarModifier.background(brush)
-                            }
-                        }
-                    } else {
-                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    if let topBarBackgroundBrush {
+                        topBarModifier = topBarModifier.background(topBarBackgroundBrush)
                     }
                     let topBarColors = TopAppBarDefaults.topAppBarColors(
                         containerColor: topBarBackgroundColor,
@@ -409,7 +414,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     contentSearchableState = searchableState.value.reduced
                 }
                 if let searchableState = contentSearchableState {
-                    let searchFieldModifier = Modifier.background(Color.systemBarBackground.colorImpl()).height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
+                    let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).background(topBarBackgroundColor).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
                     SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
                     let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
                     topPadding = searchFieldPlaceholderPadding
