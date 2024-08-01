@@ -46,13 +46,15 @@ extension View {
             let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
             let isModifierOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
             let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isModifierOnNavigationStack: isModifierOnNavigationStack)
-            // We set searchable state both in the environment and as a preference for the parent nav stack
-            EnvironmentValues.shared.setValues {
-                $0.set_searchableState(state)
-            } in: {
-                if !view.strippingModifiers(perform: { $0 is NavigationStack}) {
-                    PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
+            // Bubble the search state to the navigation stack if root, else down to the component
+            if view.strippingModifiers(perform: { $0 is NavigationStack}) || LocalNavigator.current?.isRoot != true {
+                EnvironmentValues.shared.setValues {
+                    $0.set_searchableState(state)
+                } in: {
+                    view.Compose(context: context)
                 }
+            } else {
+                PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
                 view.Compose(context: context)
             }
         }
@@ -173,7 +175,7 @@ struct SearchableState: Equatable {
 
     /// Whether the search bar will be rendered in the navigation stack header.
     @Composable func isOnNavigationStack() -> Bool {
-        return isModifierOnNavigationStack || LocalNavigator.current != nil
+        return isModifierOnNavigationStack || LocalNavigator.current?.isRoot == true
     }
 
     /// Whether the calling list, etc is being filtered.
@@ -181,8 +183,8 @@ struct SearchableState: Equatable {
         guard isSearching.value else {
             return false
         }
-        // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
-        return !isModifierOnNavigationStack || LocalNavigator.current?.isRoot == true
+        // We must be filtering unless the searchable modifier is on the nav stack but this is not the root view
+        return !(isModifierOnNavigationStack && LocalNavigator.current?.isRoot == false)
     }
 
     static func ==(lhs: SearchableState, rhs: SearchableState) -> Bool {
