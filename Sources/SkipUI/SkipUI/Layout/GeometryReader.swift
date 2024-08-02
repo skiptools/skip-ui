@@ -27,7 +27,7 @@ public struct GeometryReader : View {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let rememberedGlobalFramePx = remember { mutableStateOf<Rect?>(nil) }
-        Box(modifier: context.modifier.fillSize(expandContainer: false).onGloballyPositioned {
+        Box(modifier: context.modifier.fillSize().onGloballyPositioned {
             rememberedGlobalFramePx.value = $0.boundsInRoot()
         }) {
             if let globalFramePx = rememberedGlobalFramePx.value {

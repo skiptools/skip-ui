@@ -317,7 +317,7 @@ public struct Image : View, Equatable {
         switch resizingMode {
         case .stretch:
             let scale = contentScale(aspectRatio: aspectRatio, contentMode: contentMode)
-            let modifier = Modifier.fillSize(expandContainer: false)
+            let modifier = Modifier.fillSize()
             androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier, contentScale: scale, colorFilter: colorFilter)
         default: // TODO: .tile
             let modifier = Modifier.wrapContentSize(unbounded: true).size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)

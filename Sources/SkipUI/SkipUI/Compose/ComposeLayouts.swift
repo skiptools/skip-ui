@@ -54,25 +54,23 @@ import androidx.compose.ui.unit.dp
 /// Compose a view with the given frame.
 @Composable func FrameLayout(view: View, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
     let scrollAxes = EnvironmentValues.shared._scrollAxes
-    var modifier = context.modifier
+    var thenModifier: Modifier = Modifier
     if maxWidth == .infinity {
-        modifier = modifier.fillWidth(expandContainer: !scrollAxes.contains(Axis.Set.horizontal))
         if let minWidth, minWidth > 0.0 {
-            modifier = modifier.requiredWidthIn(min: minWidth.dp)
+            thenModifier = thenModifier.requiredWidthIn(min: minWidth.dp)
         }
     } else if minWidth != nil || maxWidth != nil {
-        modifier = modifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
+        thenModifier = thenModifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
     }
     if maxHeight == .infinity {
-        modifier = modifier.fillHeight(expandContainer: !scrollAxes.contains(Axis.Set.vertical))
         if let minHeight, minHeight > 0.0 {
-            modifier = modifier.requiredHeightIn(min: minHeight.dp)
+            thenModifier = thenModifier.requiredHeightIn(min: minHeight.dp)
         }
     } else if minHeight != nil || maxHeight != nil {
-        modifier = modifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
+        thenModifier = thenModifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
     }
     let isContainerView = view.strippingModifiers(perform: { $0 is HStack || $0 is VStack || $0 is ZStack })
-    ComposeContainer(modifier: modifier, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity) { modifier in
+    ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, then: thenModifier) { modifier in
         // Apply the sizing modifier directly to containers, which would otherwise fit their size to their content instead
         if isContainerView {
             let contentContext = context.content(modifier: modifier)
@@ -232,7 +230,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable func PositionLayout(x: CGFloat, y: CGFloat, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
     // SwiftUI expands to fill the available space and places within that
-    Box(modifier: context.modifier.fillSize(expandContainer: false)) {
+    Box(modifier: context.modifier.fillSize()) {
         let density = LocalDensity.current
         let xPx = with(density) { x.dp.roundToPx() }
         let yPx = with(density) { y.dp.roundToPx() }

@@ -414,13 +414,13 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentPadding", value: newValue, defaultValue: { EdgeInsets() }) }
     }
 
-    var _fillHeight: (@Composable (Bool) -> Modifier)? {
-        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable (Bool) -> Modifier)? }
+    var _fillHeight: (@Composable () -> Modifier)? {
+        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
         set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillWidth: (@Composable (Bool) -> Modifier)? {
-        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! (@Composable (Bool) -> Modifier)? }
+    var _fillWidth: (@Composable () -> Modifier)? {
+        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
         set { setBuiltinValue(key: "_fillWidth", value: newValue, defaultValue: { nil }) }
     }
 

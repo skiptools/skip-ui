@@ -213,7 +213,7 @@ final class ImageTests: XCSnapshotTestCase {
                 let imageVector = ImageVector.vectorResource(id: drawableID)
                 let painter = rememberVectorPainter(imageVector)
                 //Icon(imageVector: imageVector, contentDescription: "demo icon", modifier: Modifier.fillSize(expandContainer: false))
-                androidx.compose.foundation.Image(painter: painter, contentDescription: "demo icon", modifier: Modifier.fillSize(expandContainer: false), contentScale: ContentScale.Fit, colorFilter: ColorFilter.tint(tintColor))
+                androidx.compose.foundation.Image(painter: painter, contentDescription: "demo icon", modifier: Modifier.fillSize(), contentScale: ContentScale.Fit, colorFilter: ColorFilter.tint(tintColor))
             }
             .background(Color.black)
             .foregroundStyle(Color.white)

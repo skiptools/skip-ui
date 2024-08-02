@@ -126,7 +126,7 @@ public struct LinearGradient : ShapeStyle, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize(expandContainer: false)
+        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize()
         Box(modifier: modifier)
     }
 
@@ -180,7 +180,7 @@ public struct EllipticalGradient : ShapeStyle, Sendable {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         // Trick to scale our (circular) radial brush into an ellipse when this gradient is used as a view
-        BoxWithConstraints(modifier: context.modifier.fillSize(expandContainer = false).clipToBounds()) {
+        BoxWithConstraints(modifier: context.modifier.fillSize().clipToBounds()) {
             let aspectRatio = maxWidth / maxHeight
             let modifier = Modifier.fillMaxSize().scale(max(aspectRatio, Float(1.0)), max(Float(1.0) / aspectRatio, Float(1.0))).background(asBrush(opacity = 1.0, animationContext: nil)!!)
             Box(modifier: modifier)
@@ -239,7 +239,7 @@ public struct RadialGradient : ShapeStyle, Sendable {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize(expandContainer: false)
+        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize()
         Box(modifier: modifier)
     }
 

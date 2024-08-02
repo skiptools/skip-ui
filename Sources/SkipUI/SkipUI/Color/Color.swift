@@ -25,7 +25,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     @Composable public override func ComposeContent(context: ComposeContext) {
         let animatable = colorImpl().asAnimatable(context: context)
-        let modifier = context.modifier.background(animatable.value).fillSize(expandContainer: false)
+        let modifier = context.modifier.background(animatable.value).fillSize()
         Box(modifier: modifier)
     }
 

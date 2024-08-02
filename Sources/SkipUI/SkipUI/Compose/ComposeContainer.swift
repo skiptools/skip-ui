@@ -37,43 +37,34 @@ import androidx.compose.ui.Modifier
 @Composable public func ComposeContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
     // Use remembered expansion values to recompose on change
     let isFillWidth = remember { mutableStateOf(fillWidth) }
-    let isNonExpandingFillWidth = remember { mutableStateOf(false) }
     let isFillHeight = remember { mutableStateOf(fillHeight) }
-    let isNonExpandingFillHeight = remember { mutableStateOf(false) }
 
-    // Create the correct modifier for the current values. We use IntrinsicSize.Max for non-expanding fills so that child
-    // views who want to take up available space without expanding this container can do so by calling `fillMaxWidth/Height`
-    //
-    // We have a special case when our content is framed, meaning at least one dimension is fixed. If a non-fixed dimension
-    // wants a non-expanding fill, we do not set IntrinsicSize.Max and use an expanding fill instead
-    // TODO: This special case works in practice thus far, but I do not fully understand it
+    // Create the correct modifier for the current values. We must use IntrinsicSize.Max for fills in a scroll direction
+    // because Compose's fillMax modifiers have no effect in the scroll direction. We can't use IntrinsicSize for scrolling
+    // containers, however
     var modifier = modifier
     let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
     var totalScrollAxes = inheritedScrollAxes
     if fixedWidth {
         totalScrollAxes.remove(Axis.Set.horizontal)
-    } else {
-        if isFillWidth.value {
+    } else if isFillWidth.value {
+        if fillWidth {
             modifier = modifier.fillWidth()
-        } else if isNonExpandingFillWidth.value {
-            if !fixedHeight {
-                modifier = modifier.width(IntrinsicSize.Max)
-            } else {
-                modifier = modifier.fillWidth()
-            }
+        } else if inheritedScrollAxes.contains(Axis.Set.horizontal) {
+            modifier = modifier.width(IntrinsicSize.Max)
+        } else {
+            modifier = modifier.fillWidth()
         }
     }
     if fixedHeight {
         totalScrollAxes.remove(Axis.Set.vertical)
-    } else {
-        if isFillHeight.value {
+    } else if isFillHeight.value {
+        if fillHeight {
             modifier = modifier.fillHeight()
-        } else if isNonExpandingFillHeight.value {
-            if !fixedWidth {
-                modifier = modifier.height(IntrinsicSize.Max)
-            } else {
-                modifier = modifier.fillHeight()
-            }
+        } else if inheritedScrollAxes.contains(Axis.Set.vertical) {
+            modifier = modifier.height(IntrinsicSize.Max)
+        } else {
+            modifier = modifier.fillHeight()
         }
     }
     totalScrollAxes.formUnion(scrollAxes)
@@ -96,43 +87,21 @@ import androidx.compose.ui.Modifier
 
         // Set the 'fillWidth' and 'fillHeight' blocks to trigger a side effect to update our container's expansion state, which can
         // cause it to recompose and recalculate its own modifier. We must use `SideEffect` or the recomposition never happens
-        $0.set_fillWidth { expandContainer in
-            let fillModifier = EnvironmentValues.shared._fillWidthModifier
-            let isExpanding = expandContainer || fillModifier != nil
-            if isExpanding && !isFillWidth.value {
+        $0.set_fillWidth {
+            if !isFillWidth.value {
                 SideEffect {
                     isFillWidth.value = true
                 }
             }
-            if !isExpanding && !isNonExpandingFillWidth.value {
-                SideEffect {
-                    isNonExpandingFillWidth.value = true
-                }
-            }
-            if let fillModifier, fillModifier != Modifier {
-                return fillModifier
-            } else {
-                return Modifier.fillMaxWidth()
-            }
+            return EnvironmentValues.shared._fillWidthModifier ?? Modifier.fillMaxWidth()
         }
-        $0.set_fillHeight { expandContainer in
-            let fillModifier = EnvironmentValues.shared._fillHeightModifier
-            let isExpanding = expandContainer || fillModifier != nil
-            if isExpanding && !isFillHeight.value {
+        $0.set_fillHeight {
+            if !isFillHeight.value {
                 SideEffect {
                     isFillHeight.value = true
                 }
             }
-            if !isExpanding && !isNonExpandingFillHeight.value {
-                SideEffect {
-                    isNonExpandingFillHeight.value = true
-                }
-            }
-            if let fillModifier, fillModifier != Modifier {
-                return fillModifier
-            } else {
-                return Modifier.fillMaxHeight()
-            }
+            return EnvironmentValues.shared._fillHeightModifier ?? Modifier.fillMaxHeight()
         }
     } in: {
         // Render the container content with the above environment setup

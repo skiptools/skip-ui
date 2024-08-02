@@ -43,9 +43,9 @@ public struct Spacer : View {
         let fillModifier: Modifier
         switch axis {
         case .horizontal:
-            fillModifier = EnvironmentValues.shared._fillWidth?(true) ?? Modifier
+            fillModifier = EnvironmentValues.shared._fillWidth?() ?? Modifier
         case .vertical:
-            fillModifier = EnvironmentValues.shared._fillHeight?(true) ?? Modifier
+            fillModifier = EnvironmentValues.shared._fillHeight?() ?? Modifier
         case nil:
             fillModifier = Modifier
         }
