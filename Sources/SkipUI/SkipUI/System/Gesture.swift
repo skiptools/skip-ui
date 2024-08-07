@@ -6,8 +6,11 @@
 
 import Foundation
 #if SKIP
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,7 +19,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 #endif
@@ -315,6 +322,10 @@ public struct ModifiedGesture<V> : Gesture {
         return gesture is DragGesture
     }
 
+    var minimumDistance: CGFloat {
+        return (gesture as? DragGesture)?.minimumDistance ?? 0.0
+    }
+
     func onDragChange(location: CGPoint, translation: CGSize) {
         let value = dragValue(location: location, translation: translation)
         onChanged.forEach { $0(value as! V) }
@@ -412,8 +423,9 @@ final class GestureModifierView: ComposeModifierView {
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
             let dragPositionX = remember { mutableStateOf(Float(0.0)) }
             let dragPositionY = remember { mutableStateOf(Float(0.0)) }
+            let noMinimumDistance = dragGestures.value.contains { $0.minimumDistance <= 0.0 }
             ret = ret.pointerInput(true) {
-                detectDragGestures(onDrag: { change, offsetPx in
+                let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
                     let offsetX = with(density) { offsetPx.x.toDp() }
                     let offsetY = with(density) { offsetPx.y.toDp() }
                     dragOffsetX.value += offsetX.value
@@ -425,22 +437,51 @@ final class GestureModifierView: ComposeModifierView {
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
 
                     dragGestures.value.forEach { $0.onDragChange(location: location, translation: translation) }
-                }, onDragEnd: {
+                }
+                let onDragEnd: () -> Void = {
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
                     dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
-                }, onDragCancel: {
+                }
+                let onDragCancel: () -> Void = {
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
                     let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
                     dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
-                })
+                }
+                if noMinimumDistance {
+                    detectDragGesturesWithoutMinimumDistance(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel)
+                } else {
+                    detectDragGestures(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel)
+                }
             }
         }
         return ret
+    }
+}
+
+// This is an adaptation of the internal Compose function here: https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/gestures/DragGestureDetector.kt;l=168?q=detectdraggestures&sq=
+// SKIP DECLARE: suspend fun PointerInputScope.detectDragGesturesWithoutMinimumDistance(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit)
+func detectDragGesturesWithoutMinimumDistance(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: () -> Void, onDragCancel: () -> Unit) {
+    awaitEachGesture {
+        let initialDown = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
+        initialDown.consume()
+        let _ = awaitFirstDown(requireUnconsumed: false)
+
+        let drag: PointerInputChange = initialDown
+        onDrag(drag, Offset.Zero)
+        let upEvent = drag(pointerId: drag.id, onDrag: {
+            onDrag($0, $0.positionChange())
+            $0.consume()
+        })
+        if upEvent == nil {
+            onDragCancel()
+        } else {
+            onDragEnd()
+        }
     }
 }
 #endif

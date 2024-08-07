@@ -1712,7 +1712,9 @@ SkipUI currently supports tap, long press, and drag gestures. You can use either
 - Tap counts > 2 are not supported.
 - Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
 - Only the `onChanged` and `onEnded` gesture modifiers are supported.
-- Customization of minimum touch duration, distance, etc. is not supported.
+- Customization of minimum touch duration, distance, etc. is generally not supported.
+
+There is one exception to the last limitation: you **can** create a `DragGesture(minimumDistance: 0)` in order to detect touch down events immediately.
 
 #### Shapes and Paths
 
