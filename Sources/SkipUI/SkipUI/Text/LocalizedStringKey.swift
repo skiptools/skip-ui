@@ -32,7 +32,7 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
 
     /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file
     public var patternFormat: String {
-        stringInterpolation.pattern.joined(separator: "")
+        stringInterpolation.pattern
     }
 
     #if SKIP
@@ -45,36 +45,64 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         public typealias StringLiteralType = String
 
         var values: [AnyHashable] = []
-        var pattern: [String] = []
+        var pattern = ""
 
         public init(literalCapacity: Int, interpolationCount: Int) {
         }
 
         public mutating func appendLiteral(_ literal: String) {
             // need to escape out Java-specific format marker
-            pattern.append(literal.replacingOccurrences(of: "%", with: "%%"))
+            pattern += literal.replacingOccurrences(of: "%", with: "%%")
         }
 
         public mutating func appendInterpolation(_ string: String) {
             values.append(string)
-            pattern.append("%@")
+            pattern += "%@"
+        }
+
+        public mutating func appendInterpolation(_ int: Int) {
+            values.append(int)
+            pattern += "%lld"
+        }
+
+        public mutating func appendInterpolation(_ int: Int16) {
+            values.append(int)
+            pattern += "%d"
+        }
+
+        public mutating func appendInterpolation(_ int: Int64) {
+            values.append(int)
+            pattern += "%lld"
+        }
+
+        public mutating func appendInterpolation(_ int: UInt) {
+            values.append(int)
+            pattern += "%llu"
+        }
+
+        public mutating func appendInterpolation(_ int: UInt16) {
+            values.append(int)
+            pattern += "%u"
+        }
+
+        public mutating func appendInterpolation(_ int: UInt64) {
+            values.append(int)
+            pattern += "%llu"
+        }
+
+        public mutating func appendInterpolation(_ double: Double) {
+            values.append(double)
+            pattern += "%lf"
+        }
+
+        public mutating func appendInterpolation(_ float: Float) {
+            values.append(float)
+            pattern += "%f"
         }
 
         public mutating func appendInterpolation<T: Hashable>(_ value: T) {
             values.append(value as AnyHashable)
-            switch value {
-            case _ as Int: pattern.append("%lld")
-            case _ as Int16: pattern.append("%d")
-            //case _ as Int32: pattern.append("%d") // Int32==Int in Kotlin
-            case _ as Int64: pattern.append("%lld")
-            case _ as UInt: pattern.append("%llu")
-            case _ as UInt16: pattern.append("%u")
-            //case _ as UInt32: pattern.append("%u") // UInt32==UInt in Kotlin
-            case _ as UInt64: pattern.append("%llu")
-            case _ as Double: pattern.append("%lf")
-            case _ as Float: pattern.append("%f")
-            default: pattern.append("%@")
-            }
+            pattern += "%@"
         }
 
         //public mutating func appendInterpolation(_ string: String) { fatalError() }
