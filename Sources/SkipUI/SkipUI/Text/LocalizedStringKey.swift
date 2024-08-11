@@ -44,7 +44,9 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         /// The type that should be used for literal segments.
         public typealias StringLiteralType = String
 
-        var values: [AnyHashable] = []
+        #if SKIP
+        let values: MutableList<AnyHashable> = mutableListOf()
+        #endif
         var pattern = ""
 
         public init(literalCapacity: Int, interpolationCount: Int) {
@@ -56,52 +58,72 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         }
 
         public mutating func appendInterpolation(_ string: String) {
-            values.append(string)
+            #if SKIP
+            values.add(string)
+            #endif
             pattern += "%@"
         }
 
         public mutating func appendInterpolation(_ int: Int) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%lld"
         }
 
         public mutating func appendInterpolation(_ int: Int16) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%d"
         }
 
         public mutating func appendInterpolation(_ int: Int64) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%lld"
         }
 
         public mutating func appendInterpolation(_ int: UInt) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%llu"
         }
 
         public mutating func appendInterpolation(_ int: UInt16) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%u"
         }
 
         public mutating func appendInterpolation(_ int: UInt64) {
-            values.append(int)
+            #if SKIP
+            values.add(int)
+            #endif
             pattern += "%llu"
         }
 
         public mutating func appendInterpolation(_ double: Double) {
-            values.append(double)
+            #if SKIP
+            values.add(double)
+            #endif
             pattern += "%lf"
         }
 
         public mutating func appendInterpolation(_ float: Float) {
-            values.append(float)
+            #if SKIP
+            values.add(float)
+            #endif
             pattern += "%f"
         }
 
         public mutating func appendInterpolation<T: Hashable>(_ value: T) {
-            values.append(value as AnyHashable)
+            #if SKIP
+            values.add(value as AnyHashable)
+            #endif
             pattern += "%@"
         }
 

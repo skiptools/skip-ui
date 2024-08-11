@@ -227,7 +227,7 @@ struct _Text: View, Equatable {
         let locfmt = self.bundle?.localizedBundle(locale: locale).localizedKotlinFormatString(forKey: key.patternFormat, value: nil, table: self.tableName) ?? key.patternFormat.kotlinFormatString
 
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-        let replaced = locfmt.format(*key.stringInterpolation.values.kotlin(nocopy: true).toTypedArray())
+        let replaced = locfmt.format(*key.stringInterpolation.values.toTypedArray())
         return replaced
     }
 
