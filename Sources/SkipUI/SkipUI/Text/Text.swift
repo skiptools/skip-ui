@@ -221,10 +221,13 @@ struct _Text: View, Equatable {
         if let verbatim = self.verbatim { return verbatim }
         guard let key = self.key else { return "" }
 
-        let locfmt = EnvironmentValues.shared.locale.localize(key: key.patternFormat, value: nil, bundle: self.bundle, tableName: self.tableName)
+        // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
+        // cache the Kotlin-ized version too so that we don't have to convert it on every compose
+        let locale = EnvironmentValues.shared.locale
+        let locfmt = self.bundle?.localizedBundle(locale: locale).localizedKotlinFormatString(forKey: key.patternFormat, value: nil, table: self.tableName) ?? key.patternFormat.kotlinFormatString
 
         // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-        let replaced = String(format: locfmt ?? key.patternFormat, key.stringInterpolation.values)
+        let replaced = locfmt.format(*key.stringInterpolation.values.kotlin(nocopy: true).toTypedArray())
         return replaced
     }
 
