@@ -4,6 +4,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
+#if SKIP
+import android.app.Activity
+import android.content.Intent
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalContext
+#endif
+
 extension View {
     @available(*, unavailable)
     public func userActivity(_ activityType: String, isActive: Bool = true, _ update: @escaping (Any /* NSUserActivity */) -> ()) -> some View {
@@ -20,9 +28,27 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func onOpenURL(perform action: @escaping (URL) -> ()) -> some View {
+    public func onOpenURL(perform action: @escaping (URL) -> Void) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            guard let activity = LocalContext.current as? Activity, let intent = activity.intent, intent.action == Intent.ACTION_VIEW else {
+                return ComposeResult.ok
+            }
+            guard let dataString = intent.dataString, let url = URL(string: dataString) else {
+                return ComposeResult.ok
+            }
+            SideEffect {
+                action(url)
+                // Clear the intent so that we don't process it on recompose. We also considered remembering the last
+                // processed intent in each `onOpenURL`, but then navigation to a new `onOpenURL` modifier would process
+                // any existing intent as new because it wouldn't be remembered for that modifier
+                activity.intent = nil
+            }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 }
 

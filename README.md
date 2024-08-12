@@ -1245,6 +1245,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.onOpenURL</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.onReceive</code></td>
     </tr>
     <tr>
