@@ -341,7 +341,7 @@ public final class List : View {
     }
 
     @Composable static func ComposeSeparator() {
-        Box(modifier: Modifier.padding(start: Self.horizontalItemInset.dp).fillMaxWidth().height(1.dp).background(Color.separator.colorImpl()))
+        androidx.compose.material3.Divider(modifier: Modifier.padding(start: horizontalItemInset.dp).fillMaxWidth(), color: Color.separator.colorImpl())
     }
 
     @Composable private func ComposeItem(view: View, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
