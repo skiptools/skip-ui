@@ -6,11 +6,26 @@
 
 import Foundation
 #if SKIP
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.UrlAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -23,17 +38,22 @@ public struct Text: View, Equatable {
     private let modifiedView: any View
 
     public init(verbatim: String) {
-        textView = _Text(verbatim: verbatim, key: nil, tableName: nil, bundle: nil)
+        textView = _Text(verbatim: verbatim)
+        modifiedView = textView
+    }
+
+    public init(_ attributedContent: AttributedString) {
+        textView = _Text(attributedString: attributedContent)
         modifiedView = textView
     }
 
     public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
-        textView = _Text(verbatim: nil, key: key, tableName: tableName, bundle: bundle)
+        textView = _Text(key: key, tableName: tableName, bundle: bundle)
         modifiedView = textView
     }
 
     public init(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
-        textView = _Text(verbatim: nil, key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
+        textView = _Text(key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
         modifiedView = textView
     }
 
@@ -212,28 +232,50 @@ public struct Text: View, Equatable {
 
 struct _Text: View, Equatable {
     let verbatim: String?
+    let attributedString: AttributedString?
     let key: LocalizedStringKey?
     let tableName: String?
     let bundle: Bundle?
 
+    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, bundle: Bundle? = nil) {
+        self.verbatim = verbatim
+        self.attributedString = attributedString
+        self.key = key
+        self.tableName = tableName
+        self.bundle = bundle
+    }
+
     #if SKIP
     @Composable func localizedTextString() -> String {
-        if let verbatim = self.verbatim { return verbatim }
-        guard let key = self.key else { return "" }
+        let (locfmt, _, interpolations) = localizedTextInfo()
+        if let interpolations, !interpolations.isEmpty() {
+            return locfmt.format(*interpolations.toTypedArray())
+        } else {
+            return locfmt
+        }
+    }
+
+    @Composable private func localizedTextInfo() -> (String, MarkdownNode?, kotlin.collections.List<AnyHashable>?) {
+        if let verbatim { return (verbatim, nil, nil) }
+        if let attributedString { return (attributedString.string, attributedString.markdownNode, nil) }
+        guard let key else { return ("", nil, nil) }
 
         // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
         // cache the Kotlin-ized version too so that we don't have to convert it on every compose
         let locale = EnvironmentValues.shared.locale
-        let locfmt = self.bundle?.localizedBundle(locale: locale).localizedKotlinFormatString(forKey: key.patternFormat, value: nil, table: self.tableName) ?? key.patternFormat.kotlinFormatString
-
-        // re-interpret the placeholder strings in the resulting localized string with the string interpolation's values
-        let replaced = locfmt.format(*key.stringInterpolation.values.toTypedArray())
-        return replaced
+        if let bundle = self.bundle?.localizedBundle(locale: locale) {
+            let (_, locfmt, locnode) = bundle.localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName)
+            return (locfmt, locnode, key.stringInterpolation.values)
+        } else {
+            return (key.patternFormat.kotlinFormatString, MarkdownNode.from(string: key.patternFormat), key.stringInterpolation.values)
+        }
     }
 
+    // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
     @Composable override func ComposeContent(context: ComposeContext) {
+        let (locfmt, locnode, interpolations) = localizedTextInfo()
+        var isUppercased = false
         var font: Font
-        var text = self.localizedTextString()
         if let environmentFont = EnvironmentValues.shared.font {
             font = environmentFont
         } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
@@ -241,7 +283,7 @@ struct _Text: View, Equatable {
             if sectionHeaderStyle == .plain {
                 font = font.bold()
             } else {
-                text = text.uppercased()
+                isUppercased = true
             }
         } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
             font = Font.footnote
@@ -283,10 +325,89 @@ struct _Text: View, Equatable {
             style = style.copy(brush: textBrush)
         }
         let animatable = style.asAnimatable(context: context)
-        if let textColor {
-            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
+        if let locnode {
+            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
+            let linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
+            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor)
+            let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
+            var modifier = context.modifier
+            if !links.isEmpty() {
+                let currentText = rememberUpdatedState(annotatedText)
+                let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
+                let currentIsEnabled = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
+                modifier = modifier.pointerInput(true) {
+                    detectTapGestures { pos in
+                        if currentIsEnabled.value, let offset = layoutResult.value?.getOffsetForPosition(pos), let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url, let url = URL(string: urlString) {
+                            currentHandler.value.invoke(url)
+                        }
+                    }
+                }
+            }
+            androidx.compose.material3.Text(text: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
         } else {
-            androidx.compose.material3.Text(text: text, modifier: context.modifier, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
+            var text: String
+            if let interpolations {
+                text = locfmt.format(*interpolations.toTypedArray())
+            } else {
+                text = locfmt
+            }
+            if isUppercased {
+                text = text.uppercased()
+            }
+            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
+        }
+    }
+
+    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color) -> AnnotatedString {
+        return buildAnnotatedString {
+            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor)
+        }
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
+    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color) {
+        func appendChildren() {
+            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor) }
+        }
+
+        switch markdown.type {
+        case MarkdownNode.NodeType.bold:
+            builder.pushStyle(SpanStyle(fontWeight: FontWeight.Bold))
+            appendChildren()
+            builder.pop()
+        case MarkdownNode.NodeType.code:
+            if let text = markdown.formattedString(interpolations) {
+                builder.pushStyle(SpanStyle(fontFamily: FontFamily.Monospace))
+                builder.append(text)
+                builder.pop()
+            }
+        case MarkdownNode.NodeType.italic:
+            builder.pushStyle(SpanStyle(fontStyle: FontStyle.Italic))
+            appendChildren()
+            builder.pop()
+        case MarkdownNode.NodeType.link:
+            builder.pushStyle(SpanStyle(color: linkColor))
+            builder.pushUrlAnnotation(UrlAnnotation(markdown.formattedString(interpolations) ?? ""))
+            appendChildren()
+            builder.pop()
+            builder.pop()
+        case MarkdownNode.NodeType.paragraph:
+            if !isFirstChild {
+                builder.append("\n\n")
+            }
+            appendChildren()
+        case MarkdownNode.NodeType.root:
+            appendChildren()
+        case MarkdownNode.NodeType.strikethrough:
+            builder.pushStyle(SpanStyle(textDecoration: TextDecoration.LineThrough))
+            appendChildren()
+            builder.pop()
+        case MarkdownNode.NodeType.text:
+            if let text = markdown.formattedString(interpolations) {
+                builder.append(text)
+            }
+        case MarkdownNode.NodeType.unknown:
+            appendChildren()
         }
     }
     #else
@@ -888,121 +1009,6 @@ extension Text {
     /// - Parameter labelKey: The string key for the alternative
     ///   accessibility label.
     public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> Text { fatalError() }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension Text {
-
-    /// Creates a text view that displays styled attributed content.
-    ///
-    /// Use this initializer to style text according to attributes found in the specified
-    /// .
-    /// Attributes in the attributed string take precedence over styles added by
-    /// view modifiers. For example, the attributed text in the following
-    /// example appears in blue, despite the use of the ``View/foregroundColor(_:)``
-    /// modifier to use red throughout the enclosing ``VStack``:
-    ///
-    ///     var content: AttributedString {
-    ///         var attributedString = AttributedString("Blue text")
-    ///         attributedString.foregroundColor = .blue
-    ///         return attributedString
-    ///     }
-    ///
-    ///     var body: some View {
-    ///         VStack {
-    ///             Text(content)
-    ///             Text("Red text")
-    ///         }
-    ///         .foregroundColor(.red)
-    ///     }
-    ///
-    /// ![A vertical stack of two text views, the top labeled Blue Text with a
-    /// blue font color, and the bottom labeled Red Text with a red font
-    /// color.](SkipUI-Text-init-attributed.png)
-    ///
-    /// SkipUI combines text attributes with SkipUI modifiers whenever
-    /// possible. For example, the following listing creates text that is
-    /// both bold and red:
-    ///
-    ///     var content: AttributedString {
-    ///         var content = AttributedString("Some text")
-    ///         content.inlinePresentationIntent = .stronglyEmphasized
-    ///         return content
-    ///     }
-    ///
-    ///     var body: some View {
-    ///         Text(content).foregroundColor(Color.red)
-    ///     }
-    ///
-    /// A SkipUI ``Text`` view renders most of the styles defined by the
-    /// Foundation attribute
-    /// , like the
-    /// value, which SkipUI presents as bold text.
-    ///
-    /// > Important: ``Text`` uses only a subset of the attributes defined in
-    /// .
-    /// `Text` renders all
-    /// attributes except for
-    ///  and
-    /// .
-    /// It also renders the
-    /// attribute as a clickable link. `Text` ignores any other
-    /// Foundation-defined attributes in an attributed string.
-    ///
-    /// SkipUI also defines additional attributes in the attribute scope
-    /// which you can access from an attributed string's
-    /// property. SkipUI attributes take precedence over equivalent attributes
-    /// from other frameworks, such as
-    ///  and
-    /// .
-    ///
-    ///
-    /// You can create an `AttributedString` with Markdown syntax, which allows
-    /// you to style distinct runs within a `Text` view:
-    ///
-    ///     let content = try! AttributedString(
-    ///         markdown: "**Thank You!** Please visit our [website](http://example.com).")
-    ///
-    ///     var body: some View {
-    ///         Text(content)
-    ///     }
-    ///
-    /// The `**` syntax around "Thank You!" applies an
-    /// attribute with the value
-    /// .
-    /// SkipUI renders this as
-    /// bold text, as described earlier. The link syntax around "website"
-    /// creates a
-    /// attribute, which `Text` styles to indicate it's a link; by default,
-    /// clicking or tapping the link opens the linked URL in the user's default
-    /// browser. Alternatively, you can perform custom link handling by putting
-    /// an ``OpenURLAction`` in the text view's environment.
-    ///
-    /// ![A text view that says Thank you. Please visit our website. The text
-    /// The view displays the words Thank you in a bold font, and the word
-    /// website styled to indicate it is a
-    /// link.](SkipUI-Text-init-markdown.png)
-    ///
-    /// You can also use Markdown syntax in localized string keys, which means
-    /// you can write the above example without needing to explicitly create
-    /// an `AttributedString`:
-    ///
-    ///     var body: some View {
-    ///         Text("**Thank You!** Please visit our [website](https://example.com).")
-    ///     }
-    ///
-    /// In your app's strings files, use Markdown syntax to apply styling
-    /// to the app's localized strings. You also use this approach when you want
-    /// to perform automatic grammar agreement on localized strings, with
-    /// the `^[text](inflect:true)` syntax.
-    ///
-    /// For details about Markdown syntax support in SkipUI, see
-    /// ``Text/init(_:tableName:bundle:comment:)``.
-    ///
-    /// - Parameters:
-    ///   - attributedContent: An attributed string to style and display,
-    ///   in accordance with its attributes.
-    public init(_ attributedContent: AttributedString) { fatalError() }
 }
 
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)

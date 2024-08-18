@@ -811,9 +811,8 @@ Support levels:
           <details>
               <summary><code>Text</code> (<a href="https://skip.tools/docs/components/text/">example</a>)</summary>
               <ul>
-                  <li>Formatting is not supported</li>
                   <li><code>Text(...) + Text(...)</code> is not supported</li>
-                  <li>Only <code>Text.DateStyle.date</code> and <code>Text.DateStyle.time</code> are supported</li>
+                  <li>For formatters, only <code>Text.DateStyle.date</code> and <code>Text.DateStyle.time</code> are supported</li>
               </ul>
           </details>      
        </td>
