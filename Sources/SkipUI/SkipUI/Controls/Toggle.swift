@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.Switch
@@ -63,8 +64,9 @@ public struct Toggle : View {
             let contentContext = context.content()
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                    label.Compose(context: contentContext)
-                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                    Box(modifier: Modifier.weight(Float(1.0))) {
+                        label.Compose(context: contentContext)
+                    }
                     PaddingLayout(padding: EdgeInsets(top: -6.0, leading: 0.0, bottom: -6.0, trailing: 0.0), context: context) { context in
                         Switch(checked: isOn.wrappedValue, onCheckedChange: { isOn.wrappedValue = $0 }, enabled: EnvironmentValues.shared.isEnabled, colors: colors)
                     }

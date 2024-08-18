@@ -98,8 +98,9 @@ public struct DatePicker : View {
         } else {
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                    label.Compose(context: contentContext)
-                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                    Box(modifier: Modifier.weight(Float(1.0))) {
+                        label.Compose(context: contentContext)
+                    }
                     ComposePickerContent(context: contentContext)
                 }
             }

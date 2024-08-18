@@ -8,6 +8,7 @@
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.DropdownMenu
@@ -62,9 +63,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
             }, enabled: EnvironmentValues.shared.isEnabled)
             ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
                 Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                    Button.ComposeTextButton(label: label, context: contentContext)
-                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.width(8.dp))
-                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                    Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
+                        Button.ComposeTextButton(label: label, context: contentContext)
+                    }
                     ComposeSelectedValue(views: views, context: contentContext, style: style, performsAction: false)
                 }
             }
@@ -123,9 +124,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         let modifier = Modifier.clickable(onClick: onClick, enabled: EnvironmentValues.shared.isEnabled).then(contentModifier)
         Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             if !EnvironmentValues.shared._labelsHidden {
-                label.Compose(context: context)
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.width(8.dp))
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.weight(Float(1.0)))
+                Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
+                    label.Compose(context: context)
+                }
             }
             Box {
                 ComposeSelectedValue(views: views, context: context, style: style, performsAction: false)
