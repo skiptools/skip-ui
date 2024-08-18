@@ -12,6 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonColors
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -50,7 +55,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
     @Composable override func ComposeContent(context: ComposeContext) {
         let views = taggedViews(context: context)
         let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
-        if EnvironmentValues.shared._labelsHidden || style != .navigationLink {
+        if style == PickerStyle.segmented {
+            ComposeSegmentedValue(views: views, context: context)
+        } else if EnvironmentValues.shared._labelsHidden || style != .navigationLink {
             // Most picker styles do not display their label outside of a Form (see ComposeListItem)
             ComposeSelectedValue(views: views, context: context, style: style)
         } else {
@@ -103,8 +110,35 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         }
     }
 
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private func ComposeSegmentedValue(views: [TagModifierView], context: ComposeContext) {
+        let selectedIndex = views.firstIndex { $0.value == selection.wrappedValue }
+        let isEnabled = EnvironmentValues.shared.isEnabled
+        let colors: SegmentedButtonColors
+        let disabledBorderColor = Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled)
+        if let tint = EnvironmentValues.shared._tint {
+            colors = SegmentedButtonDefaults.colors(activeContainerColor: tint.colorImpl().copy(alpha: Float(0.15)), disabledActiveBorderColor: disabledBorderColor, disabledInactiveBorderColor: disabledBorderColor)
+        } else {
+            colors = SegmentedButtonDefaults.colors(disabledActiveBorderColor: disabledBorderColor, disabledInactiveBorderColor: disabledBorderColor)
+        }
+        let contentContext = context.content()
+        SingleChoiceSegmentedButtonRow(modifier: Modifier.fillWidth().then(context.modifier)) {
+            for (index, tagView) in views.enumerated() {
+                SegmentedButton(shape: SegmentedButtonDefaults.itemShape(index: index, count: views.count), colors: colors, selected: index == selectedIndex, enabled: isEnabled, onClick: {
+                    selection.wrappedValue = tagView.value as! SelectionValue
+                }) {
+                    if let label = tagView.view as? Label {
+                        let _ = label.ComposeTitle(context: contentContext)
+                    } else {
+                        let _ = tagView.view.Compose(context: contentContext)
+                    }
+                }
+            }
+        }
+    }
+
     @Composable func shouldComposeListItem() -> Bool {
-        return true
+        return EnvironmentValues.shared._pickerStyle != PickerStyle.segmented
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
@@ -188,8 +222,6 @@ public struct PickerStyle: RawRepresentable, Equatable {
 
     public static let automatic = PickerStyle(rawValue: 1)
     public static let navigationLink = PickerStyle(rawValue: 2)
-
-    @available(*, unavailable)
     public static let segmented = PickerStyle(rawValue: 3)
 
     @available(*, unavailable)

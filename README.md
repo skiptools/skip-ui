@@ -1287,6 +1287,7 @@ Support levels:
                   <li><code>.automatic</code></li>
                   <li><code>.navigationLink</code></li>
                   <li><code>.menu</code></li>
+                  <li><code>.segmented</code></li>
                   <li>Custom styles are not supported</li>
               </ul>
           </details>      
