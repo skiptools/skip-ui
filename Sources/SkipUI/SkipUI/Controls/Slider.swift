@@ -63,7 +63,7 @@ public struct Slider : View {
     @Composable public override func ComposeContent(context: ComposeContext) {
         var steps = 0
         if let step, step > 0.0 {
-            steps = Int(ceil(bounds.endInclusive - bounds.start) / step)
+            steps = max(0, Int(ceil(bounds.endInclusive - bounds.start) / step) - 1)
         }
         let colors: SliderColors
         if let tint = EnvironmentValues.shared._tint {
