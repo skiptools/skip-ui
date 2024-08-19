@@ -8,9 +8,11 @@ import Foundation
 import OSLog
 
 #if SKIP
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +35,27 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         #endif
     }
 
+    #if SKIP
+    private var _androidActivity: Activity?
+
+    /// The Android main activity.
+    ///
+    /// This API mirrors `ProcessInfo.androidContext` for the application context.
+    public var androidActivity: Activity {
+        return _androidActivity!
+    }
+
+    /// Setup the Android main activity.
+    ///
+    /// This API mirrors `ProcessInfo.launch` for the application context.
+    public func launch(_ activity: Activity) {
+        _androidActivity = activity
+        if isIdleTimerDisabled {
+            setWindowFlagsForIsIdleTimerDisabled()
+        }
+    }
+    #endif
+
     @available(*, unavailable)
     public var delegate: Any? {
         get {
@@ -41,14 +64,24 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         set {
         }
     }
-    @available(*, unavailable)
-    public var isIdleTimerDisabled: Bool {
-        get {
-            fatalError()
-        }
-        set {
+
+    public var isIdleTimerDisabled = false {
+        didSet {
+            setWindowFlagsForIsIdleTimerDisabled()
         }
     }
+
+    private func setWindowFlagsForIsIdleTimerDisabled() {
+        #if SKIP
+        let flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        if isIdleTimerDisabled {
+            _androidActivity?.window?.addFlags(flags)
+        } else {
+            _androidActivity?.window?.clearFlags(flags)
+        }
+        #endif
+    }
+
     @available(*, unavailable)
     public func canOpenURL(_ url: URL) -> Bool {
         fatalError()

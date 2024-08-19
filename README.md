@@ -1559,6 +1559,7 @@ Support levels:
               <ul>
                   <li><code>static var shared: UIApplication</code></li>
                   <li><code>var applicationState: UIApplication.State</code></li>
+                  <li><code>var isIdleTimerDisabled: Bool</code></li>
                   <li><code>func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool</code></li>
               </ul>
           </details>      
