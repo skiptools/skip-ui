@@ -1444,6 +1444,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.strikethrough</code></summary>
+              <ul>
+                  <li><code>pattern</code> and <code>color</code> are ignored</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.stroke</code></td>
     </tr>
@@ -1466,6 +1477,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.task</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.textCase</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1525,6 +1540,17 @@ Support levels:
               </ul>
           </details> 
       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.underline</code></summary>
+              <ul>
+                  <li><code>pattern</code> and <code>color</code> are ignored</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>

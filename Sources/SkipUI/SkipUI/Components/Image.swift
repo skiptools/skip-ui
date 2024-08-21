@@ -268,7 +268,7 @@ public struct Image : View, Equatable {
         }
 
         // match the best symbol for the current font weight
-        let fontWeight = EnvironmentValues.shared._fontWeight ?? Font.Weight.regular
+        let fontWeight = EnvironmentValues.shared._textEnvironment.fontWeight ?? Font.Weight.regular
 
         // Exporting as "Static" will contain all 27 variants (9 weights * 3 sizes),
         // but "Variable" will only have 3: Ultralight-S, Regular-S, and Black-S

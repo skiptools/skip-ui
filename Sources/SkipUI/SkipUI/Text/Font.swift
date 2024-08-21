@@ -312,7 +312,7 @@ public struct Font : Hashable, Sendable {
     func design(_ design: Design?) -> Font {
         #if SKIP
         return Font(fontImpl: {
-            fontImpl().copy(fontFamily: Self.fontFamily(for: Design.monospaced))
+            fontImpl().copy(fontFamily: Self.fontFamily(for: design))
         })
         #else
         fatalError()

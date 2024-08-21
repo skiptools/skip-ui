@@ -434,16 +434,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_fillWidthModifier", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fontDesign: Font.Design? {
-        get { builtinValue(key: "_fontDesign", defaultValue: { nil }) as! Font.Design? }
-        set { setBuiltinValue(key: "_fontDesign", value: newValue, defaultValue: { nil }) }
-    }
-
-    var _fontWeight: Font.Weight? {
-        get { builtinValue(key: "_fontWeight", defaultValue: { nil }) as! Font.Weight? }
-        set { setBuiltinValue(key: "_fontWeight", value: newValue, defaultValue: { nil }) }
-    }
-
     var _foregroundStyle: ShapeStyle? {
         get { builtinValue(key: "_foregroundStyle", defaultValue: { nil }) as! ShapeStyle? }
         // Avoid recursive foreground style lookup
@@ -453,11 +443,6 @@ extension EnvironmentValues {
     var _isEdgeToEdge: Bool? {
         get { builtinValue(key: "_isEdgeToEdge", defaultValue: { nil }) as! Bool? }
         set { setBuiltinValue(key: "_isEdgeToEdge", value: newValue, defaultValue: { nil }) }
-    }
-
-    var _isItalic: Bool {
-        get { builtinValue(key: "_isItalic", defaultValue: { false }) as! Bool }
-        set { setBuiltinValue(key: "_isItalic", value: newValue, defaultValue: { false }) }
     }
 
     var _keyboardOptions: KeyboardOptions? {
@@ -538,6 +523,11 @@ extension EnvironmentValues {
     var _sheetDepth: Int {
         get { builtinValue(key: "_sheetDepth", defaultValue: { 0 }) as! Int }
         set { setBuiltinValue(key: "_sheetDepth", value: newValue, defaultValue: { 0 }) }
+    }
+
+    var _textEnvironment: TextEnvironment {
+        get { builtinValue(key: "_textEnvironment", defaultValue: { TextEnvironment() }) as! TextEnvironment }
+        set { setBuiltinValue(key: "_textEnvironment", value: newValue, defaultValue: { TextEnvironment() }) }
     }
 
     var _textFieldStyle: TextFieldStyle? {

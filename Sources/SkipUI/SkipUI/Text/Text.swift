@@ -139,14 +139,12 @@ public struct Text: View, Equatable {
         return self
     }
 
-    @available(*, unavailable)
     public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
-        return self
+        return Text(textView: textView, modifiedView: modifiedView.strikethrough(isActive, pattern: pattern, color: color))
     }
 
-    @available(*, unavailable)
     public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> Text {
-        return self
+        return Text(textView: textView, modifiedView: modifiedView.underline(isActive, pattern: pattern, color: color))
     }
 
     @available(*, unavailable)
@@ -164,7 +162,7 @@ public struct Text: View, Equatable {
         return self
     }
 
-    public enum Case : Sendable {
+    public enum Case : Equatable, Sendable {
         case uppercase
         case lowercase
     }
@@ -274,7 +272,9 @@ struct _Text: View, Equatable {
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
     @Composable override func ComposeContent(context: ComposeContext) {
         let (locfmt, locnode, interpolations) = localizedTextInfo()
-        var isUppercased = false
+        let textEnvironment = EnvironmentValues.shared._textEnvironment
+        var isUppercased = textEnvironment.textCase == Text.Case.uppercase
+        let isLowercased = textEnvironment.textCase == Text.Case.lowercase
         var font: Font
         if let environmentFont = EnvironmentValues.shared.font {
             font = environmentFont
@@ -290,15 +290,16 @@ struct _Text: View, Equatable {
         } else {
             font = Font(fontImpl: { LocalTextStyle.current })
         }
-        if let weight = EnvironmentValues.shared._fontWeight {
+        if let weight = textEnvironment.fontWeight {
             font = font.weight(weight)
         }
-        if let design = EnvironmentValues.shared._fontDesign {
+        if let design = textEnvironment.fontDesign {
             font = font.design(design)
         }
-        if EnvironmentValues.shared._isItalic {
+        if textEnvironment.isItalic == true {
             font = font.italic()
         }
+        let textDecoration = textEnvironment.textDecoration
 
         var textColor: androidx.compose.ui.graphics.Color? = nil
         var textBrush: Brush? = nil
@@ -328,7 +329,7 @@ struct _Text: View, Equatable {
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
-            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor)
+            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased)
             let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
             var modifier = context.modifier
             if !links.isEmpty() {
@@ -343,7 +344,7 @@ struct _Text: View, Equatable {
                     }
                 }
             }
-            androidx.compose.material3.Text(text: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+            androidx.compose.material3.Text(text: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
         } else {
             var text: String
             if let interpolations {
@@ -353,21 +354,23 @@ struct _Text: View, Equatable {
             }
             if isUppercased {
                 text = text.uppercased()
+            } else if isLowercased {
+                text = text.lowercased()
             }
-            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textAlign: textAlign)
+            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         }
     }
 
-    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color) -> AnnotatedString {
+    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool) -> AnnotatedString {
         return buildAnnotatedString {
-            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor)
+            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased)
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
-    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color) {
+    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool) {
         func appendChildren() {
-            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor) }
+            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased) }
         }
 
         switch markdown.type {
@@ -378,7 +381,13 @@ struct _Text: View, Equatable {
         case MarkdownNode.NodeType.code:
             if let text = markdown.formattedString(interpolations) {
                 builder.pushStyle(SpanStyle(fontFamily: FontFamily.Monospace))
-                builder.append(text)
+                if isUppercased {
+                    builder.append(text.uppercased())
+                } else if isLowercased {
+                    builder.append(text.lowercased())
+                } else {
+                    builder.append(text)
+                }
                 builder.pop()
             }
         case MarkdownNode.NodeType.italic:
@@ -404,7 +413,13 @@ struct _Text: View, Equatable {
             builder.pop()
         case MarkdownNode.NodeType.text:
             if let text = markdown.formattedString(interpolations) {
-                builder.append(text)
+                if isUppercased {
+                    builder.append(text.uppercased())
+                } else if isLowercased {
+                    builder.append(text.lowercased())
+                } else {
+                    builder.append(text)
+                }
             }
         case MarkdownNode.NodeType.unknown:
             appendChildren()
@@ -433,6 +448,41 @@ public enum TextAlignment : Hashable, CaseIterable, Sendable {
     }
     #endif
 }
+
+#if SKIP
+struct TextEnvironment: Equatable {
+    var fontWeight: Font.Weight?
+    var fontDesign: Font.Design?
+    var isItalic: Bool?
+    var isUnderline: Bool?
+    var isStrikethrough: Bool?
+    var textCase: Text.Case?
+
+    var textDecoration: TextDecoration? {
+        if isUnderline == true, isStrikethrough == true {
+            return TextDecoration.Underline + TextDecoration.LineThrough
+        } else if isUnderline == true {
+            return TextDecoration.Underline
+        } else if isStrikethrough == true {
+            return TextDecoration.LineThrough
+        } else {
+            return nil
+        }
+    }
+}
+
+func textEnvironment(for view: View, update: (inout TextEnvironment) -> Void) -> some View {
+    return ComposeModifierView(contentView: view) { view, context in
+        EnvironmentValues.shared.setValues {
+            var textEnvironment = $0._textEnvironment
+            update(&textEnvironment)
+            $0.set_textEnvironment(textEnvironment)
+        } in: {
+            view.Compose(context: context)
+        }
+    }
+}
+#endif
 
 extension View {
     @available(*, unavailable)
@@ -469,7 +519,7 @@ extension View {
 
     public func fontDesign(_ design: Font.Design?) -> some View {
         #if SKIP
-        return environment(\._fontDesign, design)
+        return textEnvironment(for: self) { $0.fontDesign = design }
         #else
         return self
         #endif
@@ -477,7 +527,7 @@ extension View {
 
     public func fontWeight(_ weight: Font.Weight?) -> some View {
         #if SKIP
-        return environment(\._fontWeight, weight)
+        return textEnvironment(for: self) { $0.fontWeight = weight }
         #else
         return self
         #endif
@@ -495,7 +545,7 @@ extension View {
 
     public func italic(_ isActive: Bool = true) -> some View {
         #if SKIP
-        return environment(\._isItalic, isActive)
+        return textEnvironment(for: self) { $0.isItalic = isActive }
         #else
         return self
         #endif
@@ -581,14 +631,20 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func strikethrough(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.isStrikethrough = isActive }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func textCase(_ textCase: Text.Case?) -> some View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.textCase = textCase }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -611,9 +667,12 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.isUnderline = isActive }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
