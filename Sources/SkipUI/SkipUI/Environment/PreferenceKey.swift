@@ -68,7 +68,7 @@ final class PreferenceValues {
 
     /// Update the value of the given preference, as if by calling .preference(key:value:).
     @Composable func contribute(context: ComposeContext, key: Any.Type, value: Any) {
-        // Use a saveable value because they preferences themselves and their node IDs are saved
+        // Use a saveable value because the preferences themselves and their node IDs are saved
         let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<Int?, Any>) { mutableStateOf<Int?>(nil) }
         let collector = rememberUpdatedState(PreferenceValues.shared.collector(key: key))
         if let collector = collector.value {

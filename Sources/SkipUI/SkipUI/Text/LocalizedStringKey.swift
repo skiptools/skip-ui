@@ -14,7 +14,11 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
 
     internal var stringInterpolation: LocalizedStringKey.StringInterpolation
 
-    #if !SKIP
+    #if SKIP
+    public init(_ string: String) {
+        self.init(stringLiteral: string)
+    }
+    #else
     public init(_ interpolation: LocalizedStringKey.StringInterpolation) {
         self.stringInterpolation = interpolation
     }

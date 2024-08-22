@@ -43,14 +43,14 @@ public struct ScrollView : View {
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
-        // Some components in Compose have their own scrolling built in, so we'll look for them
-        // below before adding our scrolling modifiers
-        let firstView = content.collectViews(context: context).first?.strippingModifiers { $0 }
+        // Some components in Compose have their own scrolling built in
+        let builtinScrollAxisSet = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Axis.Set>, Any>) { mutableStateOf(Preference<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self)) }
+        let builtinScrollAxisSetCollector = PreferenceCollector<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self, state: builtinScrollAxisSet)
 
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
-        let isVerticalScroll = axes.contains(.vertical) && !(firstView is LazyVStack) && !(firstView is LazyVGrid)
-        let isHorizontalScroll = axes.contains(.horizontal) && !(firstView is LazyHStack) && !(firstView is LazyHGrid)
+        let isVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
+        let isHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
         var scrollModifier: Modifier = Modifier
         if isVerticalScroll {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
@@ -96,7 +96,9 @@ public struct ScrollView : View {
                             SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
                         }
                     }
-                    content.Compose(context: contentContext)
+                    PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
+                        content.Compose(context: contentContext)
+                    }
                 }
                 if let refreshState {
                     PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
@@ -168,6 +170,18 @@ struct ScrollToIDPreferenceKey: PreferenceKey {
         let defaultValue: (Any) -> Void = { _ in }
         func reduce(value: inout (Any) -> Void, nextValue: () -> (Any) -> Void) {
             value = nextValue()
+        }
+    }
+}
+
+struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
+    typealias Value = Axis.Set
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Axis.Set>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue: Axis.Set = []
+        func reduce(value: inout Axis.Set, nextValue: () -> Axis.Set) {
+            value.formUnion(nextValue())
         }
     }
 }

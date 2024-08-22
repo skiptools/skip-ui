@@ -35,6 +35,14 @@ public struct LazyHGrid: View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
+        // Let any parent scroll view know about our builtin scrolling. If there is a parent scroll
+        // view that didn't already know, abort and wait for recompose to avoid fatal nested scroll error
+        let builtinScrollAxisSet = PreferenceValues.shared.collector(key: BuiltinScrollAxisSetPreferenceKey.self)?.state.value.reduced as? Axis.Set
+        PreferenceValues.shared.contribute(context: context, key: BuiltinScrollAxisSetPreferenceKey.self, value: Axis.Set.horizontal)
+        guard builtinScrollAxisSet?.contains(Axis.Set.horizontal) != false else {
+            return
+        }
+
         let (gridCells, cellAlignment, verticalSpacing) = GridItem.asGridCells(items: rows)
         let boxAlignment = cellAlignment?.asComposeAlignment() ?? androidx.compose.ui.Alignment.Center
         let verticalArrangement = Arrangement.spacedBy((verticalSpacing ?? 8.0).dp, alignment: alignment.asComposeAlignment())
