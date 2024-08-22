@@ -40,9 +40,8 @@ public struct LazyVGrid: View {
     @Composable override func ComposeContent(context: ComposeContext) {
         // Let any parent scroll view know about our builtin scrolling. If there is a parent scroll
         // view that didn't already know, abort and wait for recompose to avoid fatal nested scroll error
-        let builtinScrollAxisSet = PreferenceValues.shared.collector(key: BuiltinScrollAxisSetPreferenceKey.self)?.state.value.reduced as? Axis.Set
         PreferenceValues.shared.contribute(context: context, key: BuiltinScrollAxisSetPreferenceKey.self, value: Axis.Set.vertical)
-        guard builtinScrollAxisSet?.contains(Axis.Set.vertical) != false else {
+        guard !EnvironmentValues.shared._scrollAxes.contains(Axis.Set.vertical) else {
             return
         }
 
@@ -50,7 +49,8 @@ public struct LazyVGrid: View {
         let boxAlignment = cellAlignment?.asComposeAlignment() ?? androidx.compose.ui.Alignment.Center
         let horizontalArrangement = Arrangement.spacedBy((horizontalSpacing ?? 8.0).dp, alignment: alignment.asComposeAlignment())
         let verticalArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp)
-        let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.vertical)
+        let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.vertical)
+        let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.vertical : []
 
         // Collect all top-level views to compose. The LazyVerticalGrid itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyVerticalGrid body, then use LazyVerticalGrid's
@@ -64,7 +64,7 @@ public struct LazyVGrid: View {
 
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
-        ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
             let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
             let coroutineScope = rememberCoroutineScope()

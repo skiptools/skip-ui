@@ -52,8 +52,10 @@ public struct ScrollView : View {
         let isVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
         let isHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
         var scrollModifier: Modifier = Modifier
+        var effectiveScrollAxes: Axis.Set = []
         if isVerticalScroll {
             scrollModifier = scrollModifier.verticalScroll(scrollState)
+            effectiveScrollAxes.insert(Axis.Set.vertical)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
@@ -65,9 +67,10 @@ public struct ScrollView : View {
         }
         if isHorizontalScroll {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
+            effectiveScrollAxes.insert(Axis.Set.horizontal)
         }
         let contentContext = context.content()
-        ComposeContainer(scrollAxes: axes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
+        ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
             let containerModifier: Modifier
             let refreshing = remember { mutableStateOf(false) }
             let refreshAction = EnvironmentValues.shared.refresh
@@ -96,8 +99,12 @@ public struct ScrollView : View {
                             SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
                         }
                     }
-                    PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
-                        content.Compose(context: contentContext)
+                    EnvironmentValues.shared.setValues {
+                        $0.set_scrollViewAxes(axes)
+                    } in: {
+                        PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
+                            content.Compose(context: contentContext)
+                        }
                     }
                 }
                 if let refreshState {

@@ -37,15 +37,15 @@ public struct LazyVStack : View {
     @Composable override func ComposeContent(context: ComposeContext) {
         // Let any parent scroll view know about our builtin scrolling. If there is a parent scroll
         // view that didn't already know, abort and wait for recompose to avoid fatal nested scroll error
-        let builtinScrollAxisSet = PreferenceValues.shared.collector(key: BuiltinScrollAxisSetPreferenceKey.self)?.state.value.reduced as? Axis.Set
         PreferenceValues.shared.contribute(context: context, key: BuiltinScrollAxisSetPreferenceKey.self, value: Axis.Set.vertical)
-        guard builtinScrollAxisSet?.contains(Axis.Set.vertical) != false else {
+        guard !EnvironmentValues.shared._scrollAxes.contains(Axis.Set.vertical) else {
             return
         }
 
         let columnAlignment = alignment.asComposeAlignment()
         let columnArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
-        let isScrollEnabled = EnvironmentValues.shared._scrollAxes.contains(.vertical)
+        let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.vertical)
+        let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.vertical : []
 
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
@@ -59,7 +59,7 @@ public struct LazyVStack : View {
 
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
-        ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
             let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
             let coroutineScope = rememberCoroutineScope()
