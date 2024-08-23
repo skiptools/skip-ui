@@ -36,23 +36,26 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     }
 
     #if SKIP
-    private var _androidActivity: Activity?
+    var launchActivity: Activity? {
+        didSet {
+            if isIdleTimerDisabled {
+                setWindowFlagsForIsIdleTimerDisabled()
+            }
+        }
+    }
 
     /// The Android main activity.
     ///
     /// This API mirrors `ProcessInfo.androidContext` for the application context.
     public var androidActivity: Activity {
-        return _androidActivity!
+        return launchActivity!
     }
 
     /// Setup the Android main activity.
     ///
     /// This API mirrors `ProcessInfo.launch` for the application context.
-    public func launch(_ activity: Activity) {
-        _androidActivity = activity
-        if isIdleTimerDisabled {
-            setWindowFlagsForIsIdleTimerDisabled()
-        }
+    public static func launch(_ activity: Activity) {
+        UIApplication.shared.launchActivity = activity
     }
     #endif
 
@@ -75,9 +78,9 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         #if SKIP
         let flags = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         if isIdleTimerDisabled {
-            _androidActivity?.window?.addFlags(flags)
+            launchActivity?.window?.addFlags(flags)
         } else {
-            _androidActivity?.window?.clearFlags(flags)
+            launchActivity?.window?.clearFlags(flags)
         }
         #endif
     }

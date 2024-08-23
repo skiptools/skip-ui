@@ -95,9 +95,11 @@ import androidx.compose.ui.platform.LocalLayoutDirection
     }
 }
 
-// This would better be done in Main.kt, but we have no way of retroactively changing
-// existing users' Main.kt file to add it.
 @Composable func launchUIApplicationActivity() {
+    // Modern Skip projects will set the launch activity in Main.kt. This function exists for older projects
+    guard UIApplication.shared.launchActivity == nil else {
+        return
+    }
     var context: Context? = LocalContext.current
     var activity: Activity? = nil
     while context != nil {
@@ -111,7 +113,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
         }
     }
     if let activity {
-        UIApplication.shared.launch(activity)
+        UIApplication.launch(activity)
     }
 }
 
