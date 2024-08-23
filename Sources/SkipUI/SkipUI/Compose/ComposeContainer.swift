@@ -45,9 +45,10 @@ import androidx.compose.ui.Modifier
     var modifier = modifier
     let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
     var totalScrollAxes = inheritedScrollAxes
-    if fixedWidth {
+    if fixedWidth || axis == .vertical {
         totalScrollAxes.remove(Axis.Set.horizontal)
-    } else if isFillWidth.value {
+    }
+    if !fixedWidth && isFillWidth.value {
         if fillWidth {
             modifier = modifier.fillWidth()
         } else if inheritedScrollAxes.contains(Axis.Set.horizontal) {
@@ -56,9 +57,10 @@ import androidx.compose.ui.Modifier
             modifier = modifier.fillWidth()
         }
     }
-    if fixedHeight {
+    if fixedHeight || axis == .horizontal {
         totalScrollAxes.remove(Axis.Set.vertical)
-    } else if isFillHeight.value {
+    }
+    if !fixedHeight && isFillHeight.value {
         if fillHeight {
             modifier = modifier.fillHeight()
         } else if inheritedScrollAxes.contains(Axis.Set.vertical) {
