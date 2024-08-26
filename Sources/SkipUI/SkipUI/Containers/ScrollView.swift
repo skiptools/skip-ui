@@ -70,7 +70,7 @@ public struct ScrollView : View {
             effectiveScrollAxes.insert(Axis.Set.horizontal)
         }
         let contentContext = context.content()
-        ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical), then: scrollModifier) { modifier in
+        ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical)) { modifier in
             let containerModifier: Modifier
             let refreshing = remember { mutableStateOf(false) }
             let refreshAction = EnvironmentValues.shared.refresh
@@ -91,7 +91,7 @@ public struct ScrollView : View {
             }
 
             Box(modifier: containerModifier) {
-                Column {
+                Column(modifier: scrollModifier) {
                     if isVerticalScroll {
                         let searchableState = EnvironmentValues.shared._searchableState
                         let isSearchable = searchableState?.isModifierOnNavigationStack == false
