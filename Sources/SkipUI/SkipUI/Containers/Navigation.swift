@@ -78,6 +78,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlin.reflect.full.superclasses
 import kotlinx.coroutines.delay
 #endif
 
@@ -669,7 +670,7 @@ struct NavigationDestination {
             return false
         }
         guard let destination = destinations[type] else {
-            for supertype in type.supertypes {
+            for supertype in type.superclasses {
                 if navigate(to: targetValue, type: supertype as? Any.Type) {
                     return true
                 }
