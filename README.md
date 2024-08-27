@@ -418,6 +418,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>EmptyModifier</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>EmptyView</code></td>
     </tr>
     <tr>
