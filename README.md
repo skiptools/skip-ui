@@ -1827,7 +1827,7 @@ Note that you **must** specify the `bundle` parameter for images explicitly, sin
 When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
 {: class="callout warning"}
 
-In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
+In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
 ```swift
 Image("baseball-icon", bundle: .module, label: Text("Baseball Icon"))
@@ -1849,7 +1849,7 @@ In addition to using asset catalogs, images may be included in the `Resources` f
 AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
 ```
 
-#### System Symbols {#system-symbols}
+#### System Symbols
 
 The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these symbols on Android, but you can add same-named vector symbols manually, so that code like `Image(systemName: "folder.fill")` will use the built-in "folder.fill" symbol on iOS, but will use your included `folder.fill.svg` vector asset on Android. 
 
