@@ -1108,6 +1108,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.grayscale</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.hidden</code></td>
     </tr>
     <tr>
