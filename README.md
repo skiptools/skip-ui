@@ -1827,7 +1827,7 @@ Note that you **must** specify the `bundle` parameter for images explicitly, sin
 When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
 {: class="callout warning"}
 
-In addition to raster image formats like .png and .jpg, vector images in the .pdf format are also supported in asset catalogs. This can be useful for providing image that can scale up or down with losing quality, and are commonly used for icons. When using PDF images, they can be tinted using the SwiftUI `.foregroundStyle(color)` modifier, provided they have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)). Otherwise, the colors set in the PDF itself will always be used when displaying the image.
+In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
 ```swift
 Image("baseball-icon", bundle: .module, label: Text("Baseball Icon"))
@@ -1849,16 +1849,21 @@ In addition to using asset catalogs, images may be included in the `Resources` f
 AsyncImage(url: Bundle.module.url(forResource: "sample", withExtension: "jpg"))
 ```
 
-#### System Symbols
+#### System Symbols {#system-symbols}
 
-The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these built-in symbols on Android, but you can add vector symbols manually by creating a `Module.xcassets` asset catalog in your top-level app module's `Resources` folder, and then downloading symbols from the [Google Material Icons catalog](https://fonts.google.com/icons) in the iOS SVG format (see the [documentation](https://developers.google.com/fonts/docs/material_icons#icons_for_ios)). You can also exporting the named customized symbols from the [`SF Symbols.app`](https://developer.apple.com/sf-symbols/) for import as well. These exported symbol SVG files can be dragged into your asset catalog to provide the named symbols for both the iOS and Android sides of your app.
+The `Image(systemName:)` constructor is used to display a standard system symbol name that is provided on Darwin platforms. There is no built-in equivalent to these symbols on Android, but you can add same-named vector symbols manually, so that code like `Image(systemName: "folder.fill")` will use the built-in "folder.fill" symbol on iOS, but will use your included `folder.fill.svg` vector asset on Android. 
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with a exported symbol images, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
+1. If it doesn't already exist, create a `Module.xcassets` asset catalog in your top-level app module's `Resources` folder.
+1. Download the desired symbol from the [Google Material Icons](https://fonts.google.com/icons) catalog. Make sure to download in the iOS SVG format (see the [documentation](https://developers.google.com/fonts/docs/material_icons#icons_for_ios)). You can also export symbols from the [SF Symbols app](https://developer.apple.com/sf-symbols/). 
+1. Give the downloaded symbol file the same name as the iOS symbol you want it to represent on Android. Keep the `.svg` file extension.
+1. Drag the file to your `Module.xcassets` asset catalog.
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with an exported symbol image, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
 
 SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to customize the color and weight of the symbol, but other symbol modifiers such as `symbolVariant` and `symbolRenderingMode` are currently unsupported. 
 {: class="callout warning"}
 
-Exported symbols can be used directly, or they can be edited using an SVG editor to provide custom vector symbols for you app, as described at [Creating custom symbol images for your app](https://developer.apple.com/documentation/uikit/uiimage/creating_custom_symbol_images_for_your_app). You use `Image(systemName:)` to load a system symbol image and `Image(_:bundle)` to load your custom symbol, as the following code shows:
+Downloaded symbols can be used directly, or they can be edited using an SVG editor to provide custom vector symbols for you app, as described at [Creating custom symbol images for your app](https://developer.apple.com/documentation/uikit/uiimage/creating_custom_symbol_images_for_your_app). You use `Image(systemName:)` to load a system symbol image and `Image(_:bundle)` to load your custom symbol, as the following code shows:
 
 ```swift
 // Display a system symbol image
