@@ -103,7 +103,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
                 }
             }
         } else {
-            var foregroundStyle = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.outlineVariant })
+            var foregroundStyle = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.outline })
             if !EnvironmentValues.shared.isEnabled {
                 foregroundStyle = foregroundStyle.opacity(Double(ContentAlpha.disabled))
             }

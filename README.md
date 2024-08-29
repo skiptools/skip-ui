@@ -1732,6 +1732,24 @@ MyView()
     #endif
 ```
 
+Skips built-in components use the following Material colors, if you'd like to customize them:
+
+- `surface`
+- `primary`
+- `onBackground`
+- `outline`
+- `outlineVariant`
+
+#### Preferred Color Scheme
+
+SkipUI fully supports the `.preferredColorScheme` modifier. If you created your app with the `skip` tool prior to v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
+
+1. Replace the all of the import statements with ones from latest `Main.kt`
+1. Replace the contents of the `setContent { ... }` block with the content from the latest `Main.kt`
+1. Replace the `MaterialThemeRootView()` function with the `PresentationRootView(context:)` function from the latest `Main.kt`
+
+With these updates in place, you should be able to use `.preferredColorScheme` successfully.
+
 ### Custom Fonts
 
 Custom fonts can be embedded and referenced using `Font.custom`. Fonts are loaded differently depending on the platform. On iOS the custom font name is the full Postscript name of the font, and on Android the name is the font's file name without the extension.
@@ -2110,16 +2128,6 @@ struct ListView : View {
 SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
-
-### Preferred Color Scheme
-
-SkipUI fully supports the `.preferredColorScheme` modifier. If you created your app with the `skip` tool prior to v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
-
-1. Replace the all of the import statements with ones from latest `Main.kt`
-1. Replace the contents of the `setContent { ... }` block with the content from the latest `Main.kt`
-1. Replace the `MaterialThemeRootView()` function with the `PresentationRootView(context:)` function from the latest `Main.kt`
-
-With these updates in place, you should be able to use `.preferredColorScheme` successfully.
 
 ### Restrictions on Identifiers
 
