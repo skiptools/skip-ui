@@ -32,11 +32,16 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
         let isDarkMode = self == ColorScheme.dark
         // Dynamic color is available on Android 12+
         let isDynamicColor = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-        if isDynamicColor {
-            return self == ColorScheme.dark ? dynamicDarkColorScheme(context) : dynamicLightColorScheme(context)
+        let colorScheme: androidx.compose.material3.ColorScheme
+        if isDarkMode {
+            colorScheme = isDynamicColor ? dynamicDarkColorScheme(context) : darkColorScheme()
         } else {
-            return self == ColorScheme.dark ? darkColorScheme() : lightColorScheme()
+            colorScheme = isDynamicColor ? dynamicLightColorScheme(context) : lightColorScheme()
         }
+        guard let customization = EnvironmentValues.shared._materialColorScheme else {
+            return colorScheme
+        }
+        return customization(colorScheme, isDarkMode)
     }
     #endif
 }
@@ -61,9 +66,23 @@ extension View {
         return self
         #endif
     }
+
+    #if SKIP
+    public func materialColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
+        return environment(\._materialColorScheme, scheme)
+    }
+    #endif
 }
 
 #if SKIP
+@Composable public func MaterialColorScheme(_ scheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?, content: @Composable () -> Void) {
+    EnvironmentValues.shared.setValues {
+        $0.set_materialColorScheme(scheme)
+    } in: {
+        content()
+    }
+}
+
 struct PreferredColorSchemePreferenceKey: PreferenceKey {
     typealias Value = PreferredColorScheme
 

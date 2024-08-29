@@ -170,7 +170,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     /// Use for separators, etc.
     static var separator: Color = Color(colorImpl: {
-        MaterialTheme.colorScheme.surfaceVariant
+        MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
     })
 
     /// Use for placeholder content.

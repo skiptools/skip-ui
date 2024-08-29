@@ -480,6 +480,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    public var _materialColorScheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? {
+        get { builtinValue(key: "_materialColorScheme", defaultValue: { nil }) as! (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? }
+        set { setBuiltinValue(key: "_materialColorScheme", value: newValue, defaultValue: { nil }) }
+    }
+
     var _onSubmitState: OnSubmitState? {
         get { builtinValue(key: "_onSubmitState", defaultValue: { nil }) as! OnSubmitState? }
         set { setBuiltinValue(key: "_onSubmitState", value: newValue, defaultValue: { nil }) }

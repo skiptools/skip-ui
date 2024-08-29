@@ -921,7 +921,7 @@ public struct NavigationLink : View, ListItemAdapting {
 
     @Composable static func ComposeChevron() {
         let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
-        Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, tint: androidx.compose.ui.graphics.Color.Gray)
+        Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, tint: MaterialTheme.colorScheme.outlineVariant)
     }
 
     @Composable private func isNavigationEnabled() -> Bool {

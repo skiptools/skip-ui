@@ -18,7 +18,7 @@ public struct Divider : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let dividerColor = androidx.compose.ui.graphics.Color.LightGray
+        let dividerColor = Color.separator.colorImpl()
         let modifier: Modifier
         switch EnvironmentValues.shared._layoutAxis {
         case .horizontal:

@@ -374,6 +374,7 @@ Support levels:
                   <li><code>static let brown: Color</code></li>
                   <li><code>func opacity(_ opacity: Double) -> Color</code></li>
                   <li><code>var gradient: AnyGradient</code></li>
+                  <li>See also <a href="#colors">Colors</a></li>
               </ul>
           </details>      
        </td>
@@ -1014,7 +1015,14 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.colorScheme</code></td>
+      <td>
+            <details>
+              <summary><code>.colorScheme </code></summary>
+              <ul>
+                  <li>See also <a href="#colors">Colors</a></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1689,6 +1697,40 @@ Skip converts the various SwiftUI animation types to their Compose equivalents. 
 - True spring animations cannot repeat
 
 Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
+
+### Colors
+
+Skip adds additional Android-only API that allows you to customize the Material colors used for your app's light and dark colors schemes. By default, Skip uses Material's dynamic colors on devices that support them, and falls back to Material's standard colors otherwise. You can customize these colors in Compose code using the following function: 
+
+```kotlin
+MaterialColorScheme(scheme: (@Composable (ColorScheme, Boolean) -> ColorScheme)?, content: @Composable () -> Unit)
+```
+
+The `scheme` argument takes a closure with two arguments: the default `androidx.compose.material3.ColorScheme`, and whether dark mode is being requested. Your closure returns the `androidx.compose.material3.ColorScheme` to use for the supplied content.
+
+For example, to customize the surface colors for your app, you could edit `Main.kt` as follows:
+
+```kotlin
+@Composable
+internal fun PresentationRootView(context: ComposeContext) {
+    MaterialColorScheme({ colors, isDark ->
+        colors.copy(surface = if (isDark) Color.purple.colorImpl() else Color.yellow.colorImpl())
+    }, content = {
+        // ... Original content of this function ...
+    })
+}
+```
+
+Skip also provides the SwiftUI `.materialColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `MaterialColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
+
+```swift
+MyView()
+    #if SKIP
+    .materialColorScheme { colors, isDark in
+        colors.copy(surface: isDark ? Color.purple.colorImpl() : Color.yellow.colorImpl())
+    }
+    #endif
+```
 
 ### Custom Fonts
 

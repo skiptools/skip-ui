@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonColors
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -102,7 +103,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
                 }
             }
         } else {
-            var foregroundStyle = EnvironmentValues.shared._tint ?? Color(colorImpl: { androidx.compose.ui.graphics.Color.Gray })
+            var foregroundStyle = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.outlineVariant })
             if !EnvironmentValues.shared.isEnabled {
                 foregroundStyle = foregroundStyle.opacity(Double(ContentAlpha.disabled))
             }
