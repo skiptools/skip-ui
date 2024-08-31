@@ -7,16 +7,10 @@
 #if SKIP
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
@@ -33,10 +27,11 @@ public struct TextEditor : View {
         let contentContext = context.content()
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
+        let colors = TextField.colors(outline: Color.clear, context: context)
         let visualTransformation = VisualTransformation.None
-        TextField(value: text.wrappedValue, onValueChange: {
+        OutlinedTextField(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
-        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: false, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, visualTransformation: visualTransformation)
+        }, modifier: context.modifier.fillSize(), enabled: EnvironmentValues.shared.isEnabled, singleLine: false, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
     }
     #else
     public var body: some View {
