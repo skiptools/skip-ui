@@ -5,9 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
-import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -97,13 +97,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 
 @Composable func launchUIApplicationActivity() {
     // Modern Skip projects will set the launch activity in Main.kt. This function exists for older projects
-    guard UIApplication.shared.launchActivity == nil else {
+    guard UIApplication.shared.androidActivity == nil else {
         return
     }
     var context: Context? = LocalContext.current
-    var activity: Activity? = nil
+    var activity: AppCompatActivity? = nil
     while context != nil {
-        if let a = context as? Activity {
+        if let a = context as? AppCompatActivity {
             activity = a
             break
         } else if let w = context as? ContextWrapper {

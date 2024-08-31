@@ -6,10 +6,15 @@
 
 import Foundation
 #if SKIP
-import android.app.Activity
+import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.util.Consumer
 #endif
 
 extension View {
@@ -31,10 +36,26 @@ extension View {
     public func onOpenURL(perform action: @escaping (URL) -> Void) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
-            guard let activity = LocalContext.current as? Activity, let intent = activity.intent, intent.action == Intent.ACTION_VIEW else {
+            guard let activity = LocalContext.current as? AppCompatActivity else {
                 return ComposeResult.ok
             }
-            guard let dataString = intent.dataString, let url = URL(string: dataString) else {
+            let newIntent = remember { mutableStateOf<Intent?>(nil) }
+            let listener = remember {
+                let listener = OnNewIntentListener(newIntent)
+                activity.addOnNewIntentListener(listener)
+                return listener
+            }
+            DisposableEffect(true) {
+                onDispose {
+                    activity.removeOnNewIntentListener(listener)
+                }
+            }
+
+            guard let intent = newIntent.value ?? activity.intent else {
+                return ComposeResult.ok
+            }
+            newIntent.value = nil
+            guard intent.action == Intent.ACTION_VIEW, let dataString = intent.dataString, let url = URL(string: dataString) else {
                 return ComposeResult.ok
             }
             SideEffect {
@@ -52,8 +73,14 @@ extension View {
     }
 }
 
-#if !SKIP
-import struct Foundation.URL
+#if SKIP
+struct OnNewIntentListener : Consumer<Intent> {
+    let newIntent: MutableState<Intent?>
+
+    override func accept(value: Intent) {
+        newIntent.value = value
+    }
+}
 #endif
 
 #if false
