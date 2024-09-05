@@ -1653,6 +1653,121 @@ Support levels:
   </tbody>
 </table>
 
+## Supported UserNotifications
+
+Skip integrates its support for the UserNotifications framework into SkipUI.
+
+The following table summarizes SkipUI's UserNotifications support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any UserNotifications API you want.
+
+Support levels:
+
+  - ✅ – Full
+  - 🟢 – High
+  - 🟡 – Medium 
+  - 🟠 – Low
+
+<table>
+  <thead><th>Support</th><th>API</th></thead>
+  <tbody>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNAuthorizationOptions</code></summary>
+              <ul>
+                  <li>Ignored on Android</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNMutableNotificationContent</code></summary>
+              <ul>
+                  <li>See `UNNotificationContent`</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UNNotification</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNNotificationContent</code></summary>
+              <ul>
+                  <li>Only `title`, `body`, `userInfo`, and `public.image`-type attachments are used</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNNotificationPresentationOptions</code></summary>
+              <ul>
+                  <li>Only `.banner` and `.alert` are used</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UNNotificationRequest</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UNNotificationResponse</code></td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNNotificationSound</code></summary>
+              <ul>
+                  <li>Ignored on Android</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>UNNotificationTrigger</code></summary>
+              <ul>
+                  <li>Ignored on Android</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+   <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>UNUserNotificationCenter</code></summary>
+              <ul>
+                  <li><code>static func current() -> UNUserNotificationCenter</code></li>
+                  <li><code>func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool</code></li>
+                  <li><code>var delegate: (any UNUserNotificationCenterDelegate)?</code></li>
+                  <li><code>func add(_ request: UNNotificationRequest) async throws</code></li>
+                  <li>The `add` function ignores all scheduling and repeat options and simply delivers the notification immediately.</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>UNUserNotificationCenterDelegate</code></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Topics
 
