@@ -8,7 +8,7 @@ public enum Axis : Int, Hashable, CaseIterable, Sendable {
     case horizontal = 1
     case vertical = 2
 
-    public struct Set : OptionSet, Sendable {
+    public struct Set : OptionSet, Hashable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
