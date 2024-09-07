@@ -248,7 +248,10 @@ public struct TabView : View {
 
     private func navigate(controller navController: NavHostController, route: String) {
         navController.navigate(route) {
-            popUpTo(navController.graph.startDestinationId) {
+            // Clear back stack so that tabs don't participate in Android system back button
+            let destinationID = navController.currentBackStackEntry?.destination?.id ?? navController.graph.startDestinationId
+            popUpTo(destinationID) {
+                inclusive = true
                 saveState = true
             }
             // Avoid multiple copies of the same destination when reselecting the same item
