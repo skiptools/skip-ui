@@ -9,6 +9,7 @@ import Foundation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -26,8 +27,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerBasedShape
-import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialogDefaults
@@ -43,7 +43,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,10 +54,15 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #else
@@ -80,20 +84,17 @@ let overlayPresentationCornerRadius = 16.0
     if isPresented.get() || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
         let topInset = remember { mutableStateOf(0.dp) }
-        let topCornerSize = isFullScreen ? CornerSize(0.dp) : CornerSize(overlayPresentationCornerRadius.dp)
-        let shape = with(LocalDensity.current) {
-            RoundedCornerShapeWithTopOffset(offset: topInset.value.toPx(), topStart: topCornerSize, topEnd: topCornerSize)
+        let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
+        let handleHeight = isFullScreen ? 0.dp : 8.dp
+        let handleHeightPx = with(LocalDensity.current) { handleHeight.toPx() }
+        let handlePadding = isFullScreen ? 0.dp : 10.dp
+        let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
+        let shape = GenericShape { size, _ in
+            let y = topInsetPx - handleHeightPx - handlePaddingPx
+            addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
-        let coroutineScope = rememberCoroutineScope()
         let onDismissRequest = {
-            if isFullScreen {
-                // Veto attempts to dismiss fullscreen modal via swipe or back button by re-showing
-                if isPresented.get() {
-                    coroutineScope.launch { sheetState.show() }
-                }
-            } else {
-                isPresented.set(false)
-            }
+            isPresented.set(false)
         }
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
@@ -107,34 +108,36 @@ let overlayPresentationCornerRadius = 16.0
             
             if !isFullScreen && verticalSizeClass != .compact {
                 systemBarEdges.remove(.top)
-                // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
-                let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                var detentInset = 0.dp
-                
-                var inset = topBarHeight + (24 * sheetDepth).dp
                 if !isEdgeToEdge {
-                    inset += 24.dp
                     systemBarEdges.remove(.bottom)
                 }
-                
+
                 // TODO: add custom cases
                 // Add inset depending on the presentation detent
+                let inset: Dp
                 let screenHeight = LocalConfiguration.current.screenHeightDp.dp
                 let detent: PresentationDetent = reducedDetentPreferences.detent
                 switch detent {
                 case .medium:
-                    inset += screenHeight / 2
+                    inset = screenHeight / 2
                 case let .height(h):
-                    inset += screenHeight - h.dp
+                    inset = screenHeight - h.dp
                 case let .fraction(f):
-                    inset += screenHeight * Float(1 - f)
+                    inset = screenHeight * Float(1 - f)
                 default:
-                    break
+                    // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
+                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    // Add 44 for draggable area in case content is not draggable
+                    inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
                 }
-                
+
                 topInset.value = inset
-                // Push the presentation root content area down an equal amount
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+                // Draw the drag handle and the presentation root content area below it
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
+                Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
+                    Capsule().fill(Color.primary.opacity(0.2)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
+                }
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handlePadding))
             } else if !isEdgeToEdge {
                 systemBarEdges.remove(.top)
                 systemBarEdges.remove(.bottom)
@@ -144,7 +147,8 @@ let overlayPresentationCornerRadius = 16.0
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
 
-            Box(modifier: Modifier.weight(Float(1.0))) {
+            let clipShape = RoundedCornerShape(topStart: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp, topEnd: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp)
+            Box(modifier: Modifier.weight(Float(1.0)).clip(clipShape).nestedScroll(DisableScrollToDismissConnection())) {
                 // Place outside of PresentationRoot recomposes
                 let stateSaver = remember { ComposeStateSaver() }
                 let presentationContext = context.content(stateSaver: stateSaver)
@@ -176,6 +180,16 @@ let overlayPresentationCornerRadius = 16.0
                 onDismiss?()
             }
         }
+    }
+}
+
+final class DisableScrollToDismissConnection : NestedScrollConnection {
+    override func onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource) -> Offset {
+        return available.copy(x: Float(0.0))
+    }
+
+    override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
+        return available.copy(x: Float(0.0))
     }
 }
 
@@ -221,7 +235,7 @@ let overlayPresentationCornerRadius = 16.0
             let modifier = Modifier
                 .fillMaxWidth()
                 .padding(start: 8.dp, end: 8.dp, bottom: isEdgeToEdge ? 0.dp : bottomSystemBarPadding)
-                .clip(shape = RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
+                .clip(shape: RoundedCornerShape(topStart: overlayPresentationCornerRadius.dp, topEnd: overlayPresentationCornerRadius.dp))
                 .background(Color.overlayBackground.colorImpl())
                 .padding(bottom: isEdgeToEdge ? bottomSystemBarPadding : 0.dp)
                 .verticalScroll(scrollState)
@@ -929,29 +943,6 @@ final class PresentationModifierView: ComposeModifierView {
             }
         }
         view.Compose(context: context)
-    }
-}
-
-/// Used to chop off the empty area Compose adds above the content of a bottom sheet modal, and to round the rop corners.
-final class RoundedCornerShapeWithTopOffset: CornerBasedShape {
-    private let offset: Float
-
-    init(offset: Float, topStart: CornerSize, topEnd: CornerSize, bottomEnd: CornerSize = CornerSize(0.dp), bottomStart: CornerSize = CornerSize(0.dp)) {
-        self.offset = offset
-        super.init(topStart: topStart, topEnd: topEnd, bottomEnd: bottomEnd, bottomStart: bottomStart)
-    }
-
-    override func copy(topStart: CornerSize, topEnd: CornerSize, bottomEnd: CornerSize, bottomStart: CornerSize) -> RoundedCornerShapeWithTopOffset {
-        return RoundedCornerShapeWithTopOffset(offset: offset, topStart: topStart, topEnd: topEnd, bottomEnd: bottomEnd, bottomStart: bottomStart)
-    }
-
-    override func createOutline(size: Size, topStart: Float, topEnd: Float, bottomEnd: Float, bottomStart: Float, layoutDirection: androidx.compose.ui.unit.LayoutDirection) -> Outline {
-        let rect = Rect(offset: Offset(x: Float(0.0), y: offset), size: size)
-        let topLeft = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? topStart : topEnd)
-        let topRight = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? topStart : topEnd)
-        let bottomRight = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? bottomEnd : bottomStart)
-        let bottomLeft = CornerRadius(layoutDirection == androidx.compose.ui.unit.LayoutDirection.Ltr ? bottomStart : bottomEnd)
-        return Outline.Rounded(RoundRect(rect: rect, topLeft: topLeft, topRight: topRight, bottomRight: bottomRight, bottomLeft: bottomLeft))
     }
 }
 #endif
