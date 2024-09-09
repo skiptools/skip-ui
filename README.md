@@ -1095,6 +1095,7 @@ Support levels:
               <summary><code>.fullScreenCover</code></summary>
               <ul>
                   <li><code>func fullScreenCover(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
+                  <li>Note that covers are dismissible via swipe and the back button on Android.</li>
               </ul>
           </details>      
        </td>
