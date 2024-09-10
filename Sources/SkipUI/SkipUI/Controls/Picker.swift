@@ -54,34 +54,39 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
-        let views = taggedViews(context: context)
         let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
         if style == PickerStyle.segmented {
-            ComposeSegmentedValue(views: views, context: context)
+            ComposeSegmentedValue(context: context)
         } else if EnvironmentValues.shared._labelsHidden || style != .navigationLink {
             // Most picker styles do not display their label outside of a Form (see ComposeListItem)
-            ComposeSelectedValue(views: views, context: context, style: style)
+            let (selectedView, tagViews) = processPickerContent(content: content, selection: selection, context: context)
+            ComposeSelectedValue(selectedView: selectedView, tagViews: tagViews, context: context, style: style)
         } else {
             // Navigation link style outside of a List. This style does display its label
-            let contentContext = context.content()
-            let navigator = LocalNavigator.current
-            let title = titleFromLabel(context: contentContext)
-            let modifier = context.modifier.clickable(onClick: {
-                navigator?.navigateToView(PickerSelectionView(views: views, selection: selection, title: title))
-            }, enabled: EnvironmentValues.shared.isEnabled)
-            ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
-                Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                    Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
-                        Button.ComposeTextButton(label: label, context: contentContext)
-                    }
-                    ComposeSelectedValue(views: views, context: contentContext, style: style, performsAction: false)
+            ComposeLabeledValue(context: context, style: style)
+        }
+    }
+
+    @Composable private func ComposeLabeledValue(context: ComposeContext, style: PickerStyle) {
+        let (selectedView, tagViews) = processPickerContent(content: content, selection: selection, context: context)
+        let contentContext = context.content()
+        let navigator = LocalNavigator.current
+        let title = titleFromLabel(context: contentContext)
+        let modifier = context.modifier.clickable(onClick: {
+            navigator?.navigateToView(PickerSelectionView(title: title, content: content, selection: selection))
+        }, enabled: EnvironmentValues.shared.isEnabled)
+        ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
+            Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
+                    Button.ComposeTextButton(label: label, context: contentContext)
                 }
+                ComposeSelectedValue(selectedView: selectedView, tagViews: tagViews, context: contentContext, style: style, performsAction: false)
             }
         }
     }
 
-    @Composable private func ComposeSelectedValue(views: [TagModifierView], context: ComposeContext, style: PickerStyle, performsAction: Bool = true) {
-        let selectedValueView = views.first { $0.value == selection.wrappedValue } ?? EmptyView()
+    @Composable private func ComposeSelectedValue(selectedView: View, tagViews: [TagModifierView]?, context: ComposeContext, style: PickerStyle, performsAction: Bool = true) {
+        let selectedValueView = selectedView ?? processPickerContent(content: content, selection: selection, context: context).0
         let selectedValueLabel: View
         let isMenu: Bool
         if style == .automatic || style == .menu {
@@ -99,7 +104,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
             Box {
                 Button.ComposeTextButton(label: selectedValueLabel, context: context) { isMenuExpanded.value = !isMenuExpanded.value }
                 if isMenu {
-                    ComposePickerSelectionMenu(views: views, isExpanded: isMenuExpanded, context: context.content())
+                    ComposePickerSelectionMenu(tagViews: tagViews, isExpanded: isMenuExpanded, context: context.content())
                 }
             }
         } else {
@@ -112,8 +117,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeSegmentedValue(views: [TagModifierView], context: ComposeContext) {
-        let selectedIndex = views.firstIndex { $0.value == selection.wrappedValue }
+    @Composable private func ComposeSegmentedValue(context: ComposeContext) {
+        let (_, tagViews) = processPickerContent(content: content, selection: selection, context: context, requireTagViews: true)
+        let selectedIndex = tagViews?.firstIndex { $0.value == selection.wrappedValue }
         let isEnabled = EnvironmentValues.shared.isEnabled
         let colors: SegmentedButtonColors
         let disabledBorderColor = Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled)
@@ -124,14 +130,16 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         }
         let contentContext = context.content()
         SingleChoiceSegmentedButtonRow(modifier: Modifier.fillWidth().then(context.modifier)) {
-            for (index, tagView) in views.enumerated() {
-                SegmentedButton(shape: SegmentedButtonDefaults.itemShape(index: index, count: views.count), colors: colors, selected: index == selectedIndex, enabled: isEnabled, onClick: {
-                    selection.wrappedValue = tagView.value as! SelectionValue
-                }) {
-                    if let label = tagView.view as? Label {
-                        let _ = label.ComposeTitle(context: contentContext)
-                    } else {
-                        let _ = tagView.view.Compose(context: contentContext)
+            if let tagViews {
+                for (index, tagView) in tagViews.enumerated() {
+                    SegmentedButton(shape: SegmentedButtonDefaults.itemShape(index: index, count: tagViews.count), colors: colors, selected: index == selectedIndex, enabled: isEnabled, onClick: {
+                        selection.wrappedValue = tagView.value as! SelectionValue
+                    }) {
+                        if let label = tagView.view as? Label {
+                            let _ = label.ComposeTitle(context: contentContext)
+                        } else {
+                            let _ = tagView.view.Compose(context: contentContext)
+                        }
                     }
                 }
             }
@@ -143,7 +151,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
     }
 
     @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        let views = taggedViews(context: context)
+        let (selectedView, tagViews) = processPickerContent(content: content, selection: selection, context: context)
         let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
         var isMenu = false
         let isMenuExpanded = remember { mutableStateOf(false) }
@@ -151,7 +159,7 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         if style == .navigationLink {
             let navigator = LocalNavigator.current
             let title = titleFromLabel(context: context)
-            onClick = { navigator?.navigateToView(PickerSelectionView(views: views, selection: selection, title: title)) }
+            onClick = { navigator?.navigateToView(PickerSelectionView(title: title, content: content, selection: selection)) }
         } else {
             isMenu = true
             onClick = { isMenuExpanded.value = !isMenuExpanded.value }
@@ -164,9 +172,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
                 }
             }
             Box {
-                ComposeSelectedValue(views: views, context: context, style: style, performsAction: false)
+                ComposeSelectedValue(selectedView: selectedView, tagViews: tagViews, context: context, style: style, performsAction: false)
                 if isMenu {
-                    ComposePickerSelectionMenu(views: views, isExpanded: isMenuExpanded, context: context)
+                    ComposePickerSelectionMenu(tagViews: tagViews, isExpanded: isMenuExpanded, context: context)
                 }
             }
             if style == .navigationLink {
@@ -175,8 +183,9 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         }
     }
 
-    @Composable private func ComposePickerSelectionMenu(views: [TagModifierView], isExpanded: MutableState<Bool>, context: ComposeContext) {
+    @Composable private func ComposePickerSelectionMenu(tagViews: [TagModifierView]?, isExpanded: MutableState<Bool>, context: ComposeContext) {
         // Create selectable views from the *content* of each tag view, preserving the enclosing tag
+        let views = tagViews ?? processPickerContent(content: content, selection: selection, context: context, requireTagViews: true).1 ?? []
         let menuItems = views.map { tagView in
             let button = Button(action: {
                 selection.wrappedValue = tagView.value as! SelectionValue
@@ -192,16 +201,6 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
                 }
             })
         }
-    }
-
-    @Composable private func taggedViews(context: ComposeContext) -> [TagModifierView] {
-        var views: [TagModifierView] = []
-        EnvironmentValues.shared.setValues {
-            $0.set_placement(ViewPlacement.tagged)
-        } in: {
-            views = content.collectViews(context: context).compactMap { TagModifierView.strip(from: $0, role: ComposeModifierRole.tag) }
-        }
-        return views
     }
 
     @Composable private func titleFromLabel(context: ComposeContext) -> Text {
@@ -248,33 +247,90 @@ extension View {
 }
 
 #if SKIP
+@Composable private func processPickerContent<SelectionValue>(content: ComposeBuilder, selection: Binding<SelectionValue>, context: ComposeContext, requireTagViews: Bool = false) -> (View, [TagModifierView]?) {
+    let selectedTag = selection.wrappedValue
+    let viewCollectingComposer = PickerViewCollectingComposer(selectedTag: selectedTag, requireTagViews: requireTagViews)
+    let viewCollector = context.content(composer: viewCollectingComposer)
+
+    EnvironmentValues.shared.setValues {
+        $0.set_placement(ViewPlacement.tagged)
+    } in: {
+        content.Compose(viewCollector)
+    }
+    var selectedView = viewCollectingComposer.selectedView
+
+    let tagViews: [TagModifierView]?
+    if let views = viewCollectingComposer.tagViews {
+        tagViews = Array(views, nocopy: true)
+    } else {
+        tagViews = nil
+    }
+    if selectedView == nil, let tagViews {
+        selectedView = tagViews.first { $0.value == selectedTag }
+    }
+    return (selectedView ?? EmptyView(), tagViews)
+}
+
+final class PickerViewCollectingComposer<SelectionValue> : SideEffectComposer, ForEachComposer {
+    let selectedTag: SelectionValue
+    let requireTagViews: Bool
+    var selectedView: View?
+    var tagViews: MutableList<TagModifierView>?
+    private var isFirstView = true
+
+    init(selectedTag: SelectionValue, requireTagViews: Bool) {
+        self.selectedTag = selectedTag
+        self.requireTagViews = requireTagViews
+    }
+
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
+        let isFirstView = self.isFirstView
+        self.isFirstView = false
+        if let forEach = view as? ForEach {
+            if isFirstView, !requireTagViews, let selectedView =
+                forEach.untaggedView(forTag: selectedTag, context: context(false)) {
+                self.selectedView = selectedView
+            } else if selectedView == nil {
+                forEach.ComposeContent(context: context(true))
+            }
+        } else if selectedView == nil, let taggedView = TagModifierView.strip(from: view, role: ComposeModifierRole.tag) {
+            if tagViews == nil {
+                tagViews = mutableListOf()
+            }
+            tagViews!.add(taggedView)
+        }
+        return ComposeResult.ok
+    }
+}
+
 struct PickerSelectionView<SelectionValue> : View {
-    let views: [TagModifierView]
-    let selection: Binding<SelectionValue>
     let title: Text
+    let content: View
+    let selection: Binding<SelectionValue>
+
     @State private var selectionValue: SelectionValue
     @Environment(\.dismiss) private var dismiss
 
-    init(views: [TagModifierView], selection: Binding<SelectionValue>, title: Text) {
-        self.views = views
-        self.selection = selection
+    init(title: Text, content: View, selection: Binding<SelectionValue>) {
         self.title = title
+        self.content = content
+        self.selection = selection
         self._selectionValue = State(initialValue: selection.wrappedValue)
     }
 
     var body: some View {
-        List {
-            ForEach(0..<views.count) { index in
-                rowView(label: views[index])
-            }
-        }
-        .navigationTitle(title)
+        List(fixedContent: content, itemTransformer: { rowView(label: $0) })
+            .environment(\._placement, ViewPlacement.tagged) // Make sure ForEach tags
+            .navigationTitle(title)
     }
 
-    @ViewBuilder private func rowView(label: TagModifierView) -> some View {
-        Button {
-            selection.wrappedValue = label.value as! SelectionValue
-            selectionValue = selection.wrappedValue // Update the checkmark in the UI while we dismiss
+    @ViewBuilder private func rowView(label: View) -> some View {
+        let labelValue = TagModifierView.strip(from: label, role: .tag)?.value as? SelectionValue
+        return Button {
+            if let labelValue {
+                selection.wrappedValue = labelValue
+                self.selectionValue = labelValue // Update the checkmark in the UI while we dismiss
+            }
             dismiss()
         } label: {
             HStack {
@@ -286,7 +342,7 @@ struct PickerSelectionView<SelectionValue> : View {
                 .frame(maxWidth: .infinity)
                 Image(systemName: "checkmark")
                     .foregroundStyle(EnvironmentValues.shared._tint ?? Color.accentColor)
-                    .opacity(label.value == selection.wrappedValue ? 1.0 : 0.0)
+                    .opacity(labelValue == selectionValue ? 1.0 : 0.0)
             }
         }
         .buttonStyle(ButtonStyle.plain)
