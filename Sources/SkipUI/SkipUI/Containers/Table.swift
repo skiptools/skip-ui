@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -32,6 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
 
@@ -89,15 +92,21 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
             }
         })
 
+        // See explanation in List.swift
+        let forceUnanimatedItems = remember { mutableStateOf(false) }
+        if Animation.current(isAnimating: false) == nil {
+            forceUnanimatedItems.value = true
+            LaunchedEffect(System.currentTimeMillis()) {
+                delay(300)
+                forceUnanimatedItems.value = false
+            }
+        } else {
+            forceUnanimatedItems.value = false
+        }
+
         let shouldAnimateItems: @Composable () -> Bool = {
-            guard let searchableState = EnvironmentValues.shared._searchableState, searchableState.isSearching.value else {
-                return true
-            }
-            guard searchableState.isModifierOnNavigationStack else {
-                return false
-            }
-            // When the .searchable modifier is on the NavigationStack, assume we're the target if we're the root
-            return LocalNavigator.current?.isRoot != true
+            // We disable animation to prevent filtered items from animating when they return
+            !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isFiltering() != true
         }
 
         let key: (Int) -> String = { composeBundleString(for: data[$0].id) }

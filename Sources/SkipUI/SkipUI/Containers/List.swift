@@ -33,6 +33,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -199,6 +201,23 @@ public final class List : View {
             }
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+
+        // List item animations in Compose work by setting the `animateItemPlacement` modifier on the items. Critically,
+        // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
+        // with `animateItemPlacement`. If the entire List is recomposed without an animation in progress (e.g. an unanimated
+        // data change), we recompose without animation, then after some time to complete the recompose we flip back to the
+        // animated state in anticipation of the next, potentially animated, update
+        let forceUnanimatedItems = remember { mutableStateOf(false) }
+        if Animation.current(isAnimating: false) == nil {
+            forceUnanimatedItems.value = true
+            LaunchedEffect(System.currentTimeMillis()) {
+                delay(300)
+                forceUnanimatedItems.value = false
+            }
+        } else {
+            forceUnanimatedItems.value = false
+        }
+
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
@@ -212,9 +231,9 @@ public final class List : View {
 
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
-            // Animate list operations. If we're filtering, however, we disable animation to prevent weird animations
             let shouldAnimateItems: @Composable () -> Bool = {
-                EnvironmentValues.shared._searchableState?.isFiltering() != true
+                // We disable animation to prevent filtered items from animating when they return
+                !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isFiltering() != true
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
@@ -401,9 +420,9 @@ public final class List : View {
         if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
                 if let onDelete {
-                    onDelete(IndexSet(integer: index))
+                    withAnimation { onDelete(IndexSet(integer: index)) }
                 } else if let objectsBinding, objectsBinding.wrappedValue.count > index {
-                    (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index)
+                    withAnimation { (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index) }
                 }
             })
             let coroutineScope = rememberCoroutineScope()
