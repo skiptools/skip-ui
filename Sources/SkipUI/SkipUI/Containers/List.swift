@@ -70,8 +70,9 @@ let listSectionnCornerRadius = 8.0
 public final class List : View {
     let fixedContent: ComposeBuilder?
     let forEach: ForEach?
+    let itemTransformer: ((any View) -> any View)?
 
-    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
+    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, itemTransformer: ((any View) -> any View)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
         if let fixedContent {
             self.fixedContent = fixedContent as? ComposeBuilder ?? ComposeBuilder(view: fixedContent)
         } else {
@@ -86,6 +87,7 @@ public final class List : View {
         } else {
             self.forEach = nil
         }
+        self.itemTransformer = itemTransformer
     }
 
     public convenience init(@ViewBuilder content: () -> any View) {
@@ -218,6 +220,7 @@ public final class List : View {
             forceUnanimatedItems.value = false
         }
 
+        let isTagging = EnvironmentValues.shared._placement.contains(ViewPlacement.tagged)
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
             let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
                 ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
@@ -242,6 +245,7 @@ public final class List : View {
                 startItemIndex += 1 // Search field
             }
             factoryContext.value.initialize(
+                isTagging: isTagging,
                 startItemIndex: startItemIndex,
                 item: { view in
                     item {
@@ -383,7 +387,7 @@ public final class List : View {
                     $0.set_placement(placement.union(ViewPlacement.listItem))
                 } in: {
                     // Note that we're calling the same view's Compose function again with a new context
-                    view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier)))
+                    view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier, itemTransformer: itemTransformer)))
                 }
                 if itemModifierView?.separator != Visibility.hidden {
                     Self.ComposeSeparator()
@@ -680,17 +684,23 @@ protocol ListItemAdapting {
 #if SKIP
 final class ListItemComposer: RenderingComposer {
     let contentModifier: Modifier
+    let itemTransformer: ((View) -> View)?
 
-    init(contentModifier: Modifier) {
+    init(contentModifier: Modifier, itemTransformer: ((View) -> View)? = nil) {
         self.contentModifier = contentModifier
+        self.itemTransformer = itemTransformer
     }
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
+        let view = itemTransformer?(view) ?? view
         if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
             listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
-        } else if view is ComposeModifierView || !view.isSwiftUIModuleView {
+        } else if view is ComposeModifierView || view is ComposeBuilder || !view.isSwiftUIModuleView {
             // Allow content of modifier views and custom views to adapt to list item rendering
-            view.ComposeContent(context: context(true))
+            var contentContext = context(true)
+            // Erase item transformer, as we've already applied it
+            contentContext.composer = ListItemComposer(contentModifier: contentModifier)
+            view.ComposeContent(context: contentContext)
         } else {
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
                 view.ComposeContent(context: context(false))

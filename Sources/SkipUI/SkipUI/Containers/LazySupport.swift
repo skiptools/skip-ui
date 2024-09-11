@@ -37,6 +37,7 @@ public final class LazyItemFactoryContext {
 
     /// Initialize the content factories.
     func initialize(
+        isTagging: Bool = false,
         startItemIndex: Int,
         item: (View) -> Void,
         indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void,
@@ -45,6 +46,7 @@ public final class LazyItemFactoryContext {
         sectionHeader: (View) -> Void,
         sectionFooter: (View) -> Void
     ) {
+        self.isTagging = isTagging
         self.startItemIndex = startItemIndex
 
         content.removeAll()
@@ -94,6 +96,9 @@ public final class LazyItemFactoryContext {
             content.append(.sectionFooter)
         }
     }
+
+    /// Whether we're in a tagging view placement.
+    private(set) var isTagging = false
 
     /// The current number of content items.
     var count: Int {
@@ -291,7 +296,7 @@ public final class LazyItemFactoryContext {
     private var content: [Content] = []
 }
 
-final class LazyItemCollectingComposer: SideEffectComposer {
+final class LazyItemCollectingComposer: SideEffectComposer, ForEachComposer {
     let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
