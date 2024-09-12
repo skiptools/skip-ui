@@ -12,25 +12,25 @@ import androidx.compose.runtime.Composable
 /// Adopted by views that generate lazy items.
 protocol LazyItemFactory {
     #if SKIP
-    /// Append views and view factories representing lazy items to the given mutable list.
+    /// Append views and view factories representing lazy items to the given composer.
     ///
     /// - Parameter appendingContext: Pass this context to the `Compose` function of a `ComposableView` to append all its child views.
     /// - Returns A `ComposeResult` to force the calling container to be fully re-evaluated on state change. Otherwise if only this
     ///   function were called again, it could continue appending to the given mutable list.
-    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult
+    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult
 
     /// Use the given context to compose individual lazy items and ranges of items.
-    func composeLazyItems(context: LazyItemFactoryContext)
+    func composeLazyItems(context: LazyItemFactoryContext, level: Int)
     #endif
 }
 
 #if SKIP
 /// Allows `LazyItemFactory` instances to define the lazy content.
 public final class LazyItemFactoryContext {
-    private(set) var item: (View) -> Void = { _ in }
-    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void = { _, _, _, _, _ in  }
-    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void = { _, _, _, _, _ in }
-    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _ in }
+    private(set) var item: (View, Int) -> Void = { _, _ in }
+    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Int) -> View) -> Void = { _, _, _, _, _, _ in  }
+    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Any) -> View) -> Void = { _, _, _, _, _, _ in }
+    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _, _ in }
     private(set) var sectionHeader: (View) -> Void = { _ in }
     private(set) var sectionFooter: (View) -> Void = { _ in }
     private var startItemIndex = 0
@@ -39,10 +39,10 @@ public final class LazyItemFactoryContext {
     func initialize(
         isTagging: Bool = false,
         startItemIndex: Int,
-        item: (View) -> Void,
-        indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Int) -> View) -> Void,
-        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Any) -> View) -> Void,
-        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
+        item: (View, Int) -> Void,
+        indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Int) -> View) -> Void,
+        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Any) -> View) -> Void,
+        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
         sectionHeader: (View) -> Void,
         sectionFooter: (View) -> Void
     ) {
@@ -50,34 +50,34 @@ public final class LazyItemFactoryContext {
         self.startItemIndex = startItemIndex
 
         content.removeAll()
-        self.item = { view in
+        self.item = { view, level in
             // If this is an item after a section, add a header before it
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
-            item(view)
+            item(view, level)
             let id = TagModifierView.strip(from: view, role: .id)?.value
             content.append(.items(0, 1, { _ in id }, nil))
         }
-        self.indexedItems = { range, identifier, onDelete, onMove, factory in
+        self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
-            indexedItems(range, identifier, count, onDelete, onMove, factory)
+            indexedItems(range, identifier, count, onDelete, onMove, level, factory)
             content.append(.items(range.start, range.endExclusive - range.start, identifier, onMove))
         }
-        self.objectItems = { objects, identifier, onDelete, onMove, factory in
+        self.objectItems = { objects, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
-            objectItems(objects, identifier, count, onDelete, onMove, factory)
+            objectItems(objects, identifier, count, onDelete, onMove, level, factory)
             content.append(.objectItems(objects, identifier, onMove))
         }
-        self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, factory in
+        self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
-            objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, factory)
+            objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
             content.append(.objectBindingItems(binding, identifier, onMove))
         }
         self.sectionHeader = { view in
@@ -296,16 +296,33 @@ public final class LazyItemFactoryContext {
     private var content: [Content] = []
 }
 
-final class LazyItemCollectingComposer: SideEffectComposer, ForEachComposer {
-    let views: MutableList<View> = mutableListOf() // Use MutableList to avoid copies
+/// Used to collect lazy items.
+public final class LazyItemCollectingComposer: SideEffectComposer, ForEachComposer {
+    let views: MutableList<Tuple2<View, Int>> = mutableListOf() // Use MutableList to avoid copies
+    var level = 0
 
     @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
         if let factory = view as? LazyItemFactory {
-            factory.appendLazyItemViews(to: views, appendingContext: context(true))
+            factory.appendLazyItemViews(to: self, appendingContext: context(true))
         } else {
-            views.add(view)
+            views.add(Tuple2(view, level))
         }
         return ComposeResult.ok
+    }
+
+    /// Add a lazy item.
+    func append(_ view: View) {
+        let _ = views.add(Tuple2(view, level))
+    }
+
+    /// Increase the nesting level, which creates indentation in the presented views.
+    func pushLevel() {
+        level += 1
+    }
+
+    /// Decrease the nesting level, which removes indentation in the presented views.
+    func popLevel() {
+        level -= 1
     }
 }
 
@@ -317,12 +334,12 @@ struct LazySectionHeader: View, LazyItemFactory {
         content.Compose(context: context)
     }
 
-    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        views.add(self)
+    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
+        composer.append(self)
         return ComposeResult.ok
     }
 
-    override func composeLazyItems(context: LazyItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
         context.sectionHeader(content)
     }
 }
@@ -335,12 +352,12 @@ struct LazySectionFooter: View, LazyItemFactory {
         content.Compose(context: context)
     }
 
-    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        views.add(self)
+    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
+        composer.append(self)
         return ComposeResult.ok
     }
 
-    override func composeLazyItems(context: LazyItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
         context.sectionFooter(content)
     }
 }

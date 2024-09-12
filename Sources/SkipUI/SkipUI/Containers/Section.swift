@@ -72,14 +72,14 @@ public struct Section : View, LazyItemFactory {
         content.Compose(context: context)
     }
 
-    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
-        views.add(LazySectionHeader(content: header ?? EmptyView()))
+    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
+        composer.append(LazySectionHeader(content: header ?? EmptyView()))
         content.Compose(context: appendingContext)
-        views.add(LazySectionFooter(content: footer ?? EmptyView()))
+        composer.append(LazySectionFooter(content: footer ?? EmptyView()))
         return ComposeResult.ok
     }
 
-    override func composeLazyItems(context: LazyItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
         // Not called because the section does not append itself as a list item view
     }
     #else

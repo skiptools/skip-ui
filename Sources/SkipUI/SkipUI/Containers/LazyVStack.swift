@@ -85,25 +85,25 @@ public struct LazyVStack : View {
                 LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
                     factoryContext.value.initialize(
                         startItemIndex: isSearchable ? 1 : 0,
-                        item: { view in
+                        item: { view, _ in
                             item {
                                 view.Compose(context: itemContext)
                             }
                         },
-                        indexedItems: { range, identifier, _, _, _, factory in
+                        indexedItems: { range, identifier, _, _, _, _, factory in
                             let count = range.endExclusive - range.start
                             let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                             items(count: count, key: key) { index in
                                 factory(index + range.start).Compose(context: itemContext)
                             }
                         },
-                        objectItems: { objects, identifier, _, _, _, factory in
+                        objectItems: { objects, identifier, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                             items(count: objects.count, key: key) { index in
                                 factory(objects[index]).Compose(context: itemContext)
                             }
                         },
-                        objectBindingItems: { objectsBinding, identifier, _, _, _, _, factory in
+                        objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                             items(count: objectsBinding.wrappedValue.count, key: key) { index in
                                 factory(objectsBinding, index).Compose(context: itemContext)
@@ -126,11 +126,11 @@ public struct LazyVStack : View {
                             SearchField(state: searchableState!, context: context.content(modifier: modifier))
                         }
                     }
-                    for view in collectingComposer.views {
+                    for (view, level) in collectingComposer.views {
                         if let factory = view as? LazyItemFactory {
-                            factory.composeLazyItems(context: factoryContext.value)
+                            factory.composeLazyItems(context: factoryContext.value, level: level)
                         } else {
-                            factoryContext.value.item(view)
+                            factoryContext.value.item(view, level)
                         }
                     }
                 }
