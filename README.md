@@ -1354,6 +1354,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.redacted</code></summary>
+              <ul>
+                  <li>Only <code>RedactionReasons.placeholder</code> is supported</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.refreshable</code></td>
     </tr>

@@ -21,10 +21,12 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathBuilder
@@ -137,19 +140,11 @@ public struct Image : View, Equatable {
             .diskCacheKey(url.description)
             .build()
 
-
-        let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
-        let colorFilter: ColorFilter?
-        if let tintColor, asset.isTemplateImage == true {
-            colorFilter = ColorFilter.tint(tintColor)
-        } else {
-            colorFilter = nil
-        }
-
+        let tintColor = asset.isTemplateImage ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
         }, success: { state in
             let aspect = EnvironmentValues.shared._aspectRatio
-            ComposePainter(painter: self.painter, colorFilter: colorFilter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+            ComposePainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
         }, error: { state in
         })
     }
@@ -313,7 +308,16 @@ public struct Image : View, Equatable {
         ComposePainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
     }
 
-    @Composable private func ComposePainter(painter: Painter, scale: CGFloat = 1.0, colorFilter: ColorFilter? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func ComposePainter(painter: Painter, scale: CGFloat = 1.0, tintColor: androidx.compose.ui.graphics.Color? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
+        let isPlaceholder = EnvironmentValues.shared.redactionReasons.contains(.placeholder)
+        let colorFilter: ColorFilter?
+        if let tintColor {
+            colorFilter = isPlaceholder ? placeholderColorFilter(color: tintColor.copy(alpha: Float(Color.placeholderOpacity))) : ColorFilter.tint(tintColor)
+        } else if isPlaceholder {
+            colorFilter = placeholderColorFilter(color: Color.placeholder.colorImpl())
+        } else {
+            colorFilter = nil
+        }
         switch resizingMode {
         case .stretch:
             let scale = contentScale(aspectRatio: aspectRatio, contentMode: contentMode)
@@ -349,16 +353,10 @@ public struct Image : View, Equatable {
         switch resizingMode {
         case .stretch:
             let painter = rememberVectorPainter(image)
-            let colorFilter: ColorFilter?
-            if let tintColor {
-                colorFilter = ColorFilter.tint(tintColor)
-            } else {
-                colorFilter = nil
-            }
-            ComposePainter(painter: painter, colorFilter: colorFilter, aspectRatio: aspectRatio, contentMode: contentMode)
+            ComposePainter(painter: painter, tintColor: tintColor, aspectRatio: aspectRatio, contentMode: contentMode)
         default: // TODO: .tile
             let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
-            let modifier: Modifier
+            var modifier: Modifier
             if textStyle.fontSize.isSp {
                 let textSizeDp = with(LocalDensity.current) {
                     textStyle.fontSize.toDp()
@@ -368,8 +366,27 @@ public struct Image : View, Equatable {
             } else {
                 modifier = Modifier
             }
-            Icon(imageVector: image, contentDescription: name, modifier: modifier, tint: tintColor ?? androidx.compose.ui.graphics.Color.Unspecified)
+            let isPlaceholder = EnvironmentValues.shared.redactionReasons.contains(RedactionReasons.placeholder)
+            if isPlaceholder {
+                modifier = modifier.paint(ColorPainter(tintColor.copy(alpha: Float(Color.placeholderOpacity))))
+            }
+            Icon(imageVector: image, contentDescription: name, modifier: modifier, tint: isPlaceholder ? androidx.compose.ui.graphics.Color.Transparent : tintColor)
         }
+    }
+
+    private func placeholderColorFilter(color: androidx.compose.ui.graphics.Color) -> ColorFilter {
+        let matrix = ColorMatrix().apply {
+            set(0, 0, Float(0)) // Do not preserve original R
+            set(1, 1, Float(0)) // Do not preserve original G
+            set(2, 2, Float(0)) // Do not preserve original B
+            set(3, 3, Float(0)) // Do not preserve original A
+
+            set(0, 4, color.red * 255) // Use given color's R
+            set(1, 4, color.green * 255) // Use given color's G
+            set(2, 4, color.blue * 255) // Use given color's B
+            set(3, 4, color.alpha * 255) // Use given color's A
+        }
+        return ColorFilter.colorMatrix(matrix)
     }
 
     private func contentScale(aspectRatio: Double?, contentMode: ContentMode?) -> ContentScale {

@@ -307,12 +307,15 @@ struct _Text: View, Equatable {
             font = font.italic()
         }
         let textDecoration = textEnvironment.textDecoration
+        let redaction = EnvironmentValues.shared.redactionReasons
 
         var textColor: androidx.compose.ui.graphics.Color? = nil
         var textBrush: Brush? = nil
         if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
             if let color = foregroundStyle.asColor(opacity: 1.0, animationContext: context) {
                 textColor = color
+            } else if !redaction.isEmpty {
+                textColor = Color.primary.colorImpl()
             } else {
                 textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
             }
@@ -323,6 +326,7 @@ struct _Text: View, Equatable {
         } else {
             textColor = EnvironmentValues.shared._placement.contains(ViewPlacement.systemTextColor) ? androidx.compose.ui.graphics.Color.Unspecified : Color.primary.colorImpl()
         }
+
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
         var style = font.fontImpl()
@@ -332,11 +336,22 @@ struct _Text: View, Equatable {
         if let textBrush {
             style = style.copy(brush: textBrush)
         }
+        if redaction.contains(RedactionReasons.placeholder) {
+            if let textColor {
+                style = style.copy(background: textColor.copy(alpha: textColor.alpha * Float(Color.placeholderOpacity)))
+            }
+            textColor = androidx.compose.ui.graphics.Color.Transparent
+        }
+
         let animatable = style.asAnimatable(context: context)
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
-            let linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
-            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased)
+            let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
+            var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
+            if isPlaceholder {
+                linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
+            }
+            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isPlaceholder)
             let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
             var modifier = context.modifier
             if !links.isEmpty() {
@@ -368,16 +383,16 @@ struct _Text: View, Equatable {
         }
     }
 
-    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool) -> AnnotatedString {
+    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
         return buildAnnotatedString {
-            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased)
+            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted)
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
-    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool) {
+    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) {
         func appendChildren() {
-            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased) }
+            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted) }
         }
 
         switch markdown.type {
@@ -402,7 +417,11 @@ struct _Text: View, Equatable {
             appendChildren()
             builder.pop()
         case MarkdownNode.NodeType.link:
-            builder.pushStyle(SpanStyle(color: linkColor))
+            if isRedacted {
+                builder.pushStyle(SpanStyle(background: linkColor))
+            } else {
+                builder.pushStyle(SpanStyle(color: linkColor))
+            }
             builder.pushUrlAnnotation(UrlAnnotation(markdown.formattedString(interpolations) ?? ""))
             appendChildren()
             builder.pop()
@@ -615,12 +634,7 @@ extension View {
 
     public func redacted(reason: RedactionReasons) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
-            // See Redacted.kt
-            Redacted(context: context, color: Color.placeholder.colorImpl()) { context in
-                view.Compose(context: context)
-            }
-        }
+        return environment(\.redactionReasons, reason)
         #else
         return self
         #endif
@@ -694,6 +708,22 @@ extension View {
     public func unredacted() -> some View {
         return self
     }
+}
+
+public struct RedactionReasons : OptionSet, Sendable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let placeholder = RedactionReasons(rawValue: 1 << 0)
+
+    @available(*, unavailable)
+    public static let privacy = RedactionReasons(rawValue: 1 << 1)
+
+    @available(*, unavailable)
+    public static let invalidated = RedactionReasons(rawValue: 1 << 2)
 }
 
 #if false
