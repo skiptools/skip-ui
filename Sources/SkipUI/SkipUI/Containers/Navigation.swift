@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -381,10 +382,8 @@ public struct NavigationStack<Root> : View where Root: View {
                     // Pull the bottom bar below the keyboard
                     let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
-                        BottomAppBar(modifier: context.modifier.then(bottomBarModifier),
-                                 containerColor: bottomBarBackgroundColor,
-                                 contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp),
-                                     windowInsets = WindowInsets(bottom: 0.dp)) {
+                        let windowInsets = EnvironmentValues.shared._isEdgeToEdge == true ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
+                        BottomAppBar(modifier: context.modifier.then(bottomBarModifier), containerColor: bottomBarBackgroundColor, contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp), windowInsets: windowInsets) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
                                 ComposeBuilder { itemContext in
