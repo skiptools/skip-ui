@@ -174,10 +174,12 @@ public struct Color: ShapeStyle, Hashable, Sendable {
     })
 
     /// Use for placeholder content.
-    static let placeholder = Color(colorImpl: {
-        // Close to iOS's AsyncImage placeholder values
-        ComposeColor(light: 0xFFDDDDDD, dark: 0xFF777777)
-    })
+    static let placeholderOpacity = 0.2
+
+    /// Use for placeholder content.
+    static var placeholder: Color {
+        _primary.opacity(placeholderOpacity)
+    }
 
     fileprivate static let _primary = Color(colorImpl: {
         MaterialTheme.colorScheme.onBackground
