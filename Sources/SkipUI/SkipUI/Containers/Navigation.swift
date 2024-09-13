@@ -190,6 +190,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let context = context.content(stateSaver: arguments.state.stateSaver)
 
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
+        let topBarHidden = remember { mutableStateOf(false) }
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: arguments.state, preference: arguments.toolbarPreferences.titleDisplayMode)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
@@ -209,7 +210,7 @@ public struct NavigationStack<Root> : View where Root: View {
 
         let scrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
-        if topBarPreferences?.visibility != Visibility.hidden {
+        if !topBarHidden.value {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         }
         modifier = modifier.then(context.modifier)
@@ -246,15 +247,22 @@ public struct NavigationStack<Root> : View where Root: View {
         }
         let topBar: @Composable () -> Void = {
             guard topBarPreferences?.visibility != Visibility.hidden else {
-                SideEffect { topBarBottomPx.value = Float(0.0) }
+                SideEffect {
+                    topBarHidden.value = true
+                    topBarBottomPx.value = Float(0.0)
+                }
                 return
             }
             let topLeadingItems = toolbarItems.filterTopBarLeading()
             let topTrailingItems = toolbarItems.filterTopBarTrailing()
             guard !arguments.isRoot || arguments.title != NavigationTitlePreferenceKey.defaultValue || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
-                SideEffect { topBarBottomPx.value = Float(0.0) }
+                SideEffect {
+                    topBarHidden.value = true
+                    topBarBottomPx.value = Float(0.0)
+                }
                 return
             }
+            topBarHidden.value = false
             let materialColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
             MaterialTheme(colorScheme: materialColorScheme) {
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
