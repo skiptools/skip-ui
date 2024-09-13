@@ -392,6 +392,21 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>DisclosureGroup</code> (<a href="https://skip.tools/docs/components/disclosuregroup/">example</a>)</summary>
+              <ul>
+                  <li><code>init(isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View)</code></li>
+                  <li><code>init(_ label: String, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View)</code></li>
+                  <li>Does not animate when used as a <code>List</code> or <code>Form</code> item</li>
+                  <li>Always animates when **not** used as a <code>List</code> or <code>Form</code> item</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>Divider</code> (<a href="https://skip.tools/docs/components/divider/">example</a>)</td>
     </tr>

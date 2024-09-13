@@ -78,14 +78,14 @@ public struct LazyHGrid: View {
             LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
                 factoryContext.value.initialize(
                     startItemIndex: 0,
-                    item: { view in
+                    item: { view, _ in
                         item {
                             Box(contentAlignment: boxAlignment) {
                                 view.Compose(context: itemContext)
                             }
                         }
                     },
-                    indexedItems: { range, identifier, _, _, _, factory in
+                    indexedItems: { range, identifier, _, _, _, _, factory in
                         let count = range.endExclusive - range.start
                         let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                         items(count: count, key: key) { index in
@@ -94,7 +94,7 @@ public struct LazyHGrid: View {
                             }
                         }
                     },
-                    objectItems: { objects, identifier, _, _, _, factory in
+                    objectItems: { objects, identifier, _, _, _, _, factory in
                         let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                         items(count: objects.count, key: key) { index in
                             Box(contentAlignment: boxAlignment) {
@@ -102,7 +102,7 @@ public struct LazyHGrid: View {
                             }
                         }
                     },
-                    objectBindingItems: { objectsBinding, identifier, _, _, _, _, factory in
+                    objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                         let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                         items(count: objectsBinding.wrappedValue.count, key: key) { index in
                             Box(contentAlignment: boxAlignment) {
@@ -125,11 +125,11 @@ public struct LazyHGrid: View {
                         }
                     }
                 )
-                for view in collectingComposer.views {
+                for (view, level) in collectingComposer.views {
                     if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext.value)
+                        factory.composeLazyItems(context: factoryContext.value, level: level)
                     } else {
-                        factoryContext.value.item(view)
+                        factoryContext.value.item(view, level)
                     }
                 }
             }

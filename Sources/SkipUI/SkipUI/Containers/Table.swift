@@ -142,7 +142,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
             $0.set_foregroundStyle(foregroundStyle)
         } in: {
             Column(modifier: modifier) {
-                Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                Row(modifier: List.contentModifier(level: 0), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                     for columnSpec in columnSpecs {
                         guard let tableColumn = columnSpec as? TableColumn else {
                             continue
@@ -152,7 +152,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                         tableColumn.columnHeader.Compose(context: itemContext)
                     }
                 }
-                List.ComposeSeparator()
+                List.ComposeSeparator(level: 0)
             }
         }
     }
@@ -174,7 +174,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         modifier = modifier.then(animationModifier)
         let foregroundStyle = EnvironmentValues.shared._foregroundStyle
         Column(modifier: modifier) {
-            Row(modifier: List.contentModifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            Row(modifier: List.contentModifier(level: 0), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                 let count = isCompact ? 1 : columnSpecs.count
                 for i in 0..<min(count, columnSpecs.count) {
                     guard let tableColumn = columnSpecs[i] as? TableColumn else {
@@ -201,7 +201,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                     }
                 }
             }
-            List.ComposeSeparator()
+            List.ComposeSeparator(level: 0)
         }
     }
 

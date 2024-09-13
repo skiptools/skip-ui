@@ -84,7 +84,7 @@ public final class ForEach : View, LazyItemFactory {
         }
     }
 
-    @Composable func appendLazyItemViews(to views: MutableList<View>, appendingContext: ComposeContext) -> ComposeResult {
+    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
         // ForEach views might contain nested lazy item factories such as Sections or other ForEach instances. They also
         // might contain more than one view per iteration, which isn't supported by Compose lazy processing. We execute
         // our content closure for the first item in the ForEach and examine its content to see if it should be unrolled
@@ -96,7 +96,7 @@ public final class ForEach : View, LazyItemFactory {
             for index in indexRange {
                 var contentViews = collectViews(from: indexedContent!(index), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
-                    views.add(self)
+                    composer.append(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
@@ -110,7 +110,7 @@ public final class ForEach : View, LazyItemFactory {
             for object in objects {
                 var contentViews = collectViews(from: objectContent!(object), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
-                    views.add(self)
+                    composer.append(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
@@ -125,7 +125,7 @@ public final class ForEach : View, LazyItemFactory {
             for i in 0..<objects.count {
                 var contentViews = collectViews(from: objectsBindingContent!(objectsBinding, i), context: appendingContext)
                 if !isUnrollRequired(contentViews: contentViews, isFirstView: isFirstView, context: appendingContext) {
-                    views.add(self)
+                    composer.append(self)
                     return ComposeResult.ok
                 } else {
                     isFirstView = false
@@ -196,12 +196,12 @@ public final class ForEach : View, LazyItemFactory {
         return contentViews.count > 1 || contentViews.first is LazyItemFactory
     }
 
-    override func composeLazyItems(context: LazyItemFactoryContext) {
+    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
         if let indexRange {
             let factory: (Int) -> View = context.isTagging ? { index in
                 return TagModifierView(view: indexedContent!(index), value: index, role: ComposeModifierRole.tag)
             } : indexedContent!
-            context.indexedItems(indexRange, identifier, onDeleteAction, onMoveAction, factory)
+            context.indexedItems(indexRange, identifier, onDeleteAction, onMoveAction, level, factory)
         } else if let objects {
             let factory: (Any) -> View = context.isTagging ? { object in
                 let view = objectContent!(object)
@@ -210,7 +210,7 @@ public final class ForEach : View, LazyItemFactory {
                 }
                 return TagModifierView(view: view, value: tag, role: ComposeModifierRole.tag)
             } : objectContent!
-            context.objectItems(objects, identifier!, onDeleteAction, onMoveAction, factory)
+            context.objectItems(objects, identifier!, onDeleteAction, onMoveAction, level, factory)
         } else if let objectsBinding {
             let factory: (Binding<any RandomAccessCollection<Any>>, Int) -> View = context.isTagging ? { objects, index in
                 let view = objectsBindingContent!(objects, index)
@@ -219,7 +219,7 @@ public final class ForEach : View, LazyItemFactory {
                 }
                 return TagModifierView(view: view, value: tag, role: ComposeModifierRole.tag)
             } : objectsBindingContent!
-            context.objectBindingItems(objectsBinding, identifier!, editActions, onDeleteAction, onMoveAction, factory)
+            context.objectBindingItems(objectsBinding, identifier!, editActions, onDeleteAction, onMoveAction, level, factory)
         }
     }
 
@@ -247,7 +247,7 @@ public final class ForEach : View, LazyItemFactory {
 
 #if SKIP
 /// Mark composers that should not unroll `ForEach` views.
-protocol ForEachComposer {
+public protocol ForEachComposer {
 }
 
 // Kotlin does not support generic constructor parameters, so we have to model many ForEach constructors as functions
