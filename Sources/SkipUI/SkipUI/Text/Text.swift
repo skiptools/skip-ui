@@ -8,10 +8,17 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.DrawModifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
@@ -606,9 +613,17 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func redacted(reason: RedactionReasons) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            // See Redacted.kt
+            Redacted(context: context, color: Color.placeholder.colorImpl()) { context in
+                view.Compose(context: context)
+            }
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
