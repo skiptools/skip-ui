@@ -28,7 +28,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -443,12 +443,12 @@ public final class List : View {
             }, positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold)
 
             let content: @Composable (Modifier) -> Void = {
-                SwipeToDismiss(state: dismissState, directions: kotlin.collections.setOf(SwipeToDismissBoxValue.EndToStart), modifier: $0, background: {
+                SwipeToDismissBox(state: dismissState, enableDismissFromEndToStart: true, enableDismissFromStartToEnd: false, modifier: $0, backgroundContent: {
                     let trashVector = Image.composeImageVector(named: "trash")!
                     Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                         Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
                     }
-                }, dismissContent: {
+                }, content: {
                     ComposeItem(view: view, level: level, context: context, styling: styling)
                 })
             }

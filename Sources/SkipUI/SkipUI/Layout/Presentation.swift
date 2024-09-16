@@ -96,7 +96,7 @@ let overlayPresentationCornerRadius = 16.0
         let onDismissRequest = {
             isPresented.set(false)
         }
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
@@ -223,7 +223,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             $0.strippingModifiers { $0 as? Text }
         }.first
 
-        ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, windowInsets: WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)) {
+        ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
             // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
             let interactionSource = remember { MutableInteractionSource() }
             Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: { isPresented.set(false) }))

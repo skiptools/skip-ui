@@ -147,7 +147,7 @@ extension View {
     public func autocorrectionDisabled(_ disable: Bool = true) -> some View {
         #if SKIP
         return keyboardOptionsModifierView { options in
-            return options == nil ? KeyboardOptions(autoCorrect: !disable) : options.copy(autoCorrect: !disable)
+            return options == nil ? KeyboardOptions(autoCorrectEnabled: !disable) : options.copy(autoCorrectEnabled: !disable)
         }
         #else
         return self
