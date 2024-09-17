@@ -268,8 +268,8 @@ final class SkipUITests: SkipUITestCase {
             rule.onNodeWithTag("label").assertIsDisplayed()
             rule.onNodeWithTag("label").assert(hasTextExactly("0%"))
             rule.onNodeWithTag("slider").performGesture {
-                down(Offset(Float(0.0), Float(0.0)))
-                moveTo(Offset(Float(1000.0), Float(0.0)))
+                down(Offset(Float(10.0), Float(20.0)))
+                moveTo(Offset(Float(1000.0), Float(20.0)))
                 up()
             }
             //rule.onNodeWithTag("label").assert(hasTextExactly("100%"))

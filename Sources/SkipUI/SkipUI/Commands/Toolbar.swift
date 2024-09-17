@@ -298,14 +298,16 @@ struct ToolbarPreferences: Equatable {
     let titleDisplayMode: ToolbarTitleDisplayMode?
     let titleMenu: View?
     let backButtonHidden: Bool?
+    let isSystemBackground: Bool?
     let navigationBar: ToolbarBarPreferences?
     let bottomBar: ToolbarBarPreferences?
 
-    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
+    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, isSystemBackground: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
         self.content = content
         self.titleDisplayMode = titleDisplayMode
         self.titleMenu = titleMenu
         self.backButtonHidden = backButtonHidden
+        self.isSystemBackground = isSystemBackground
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
     }
@@ -330,6 +332,7 @@ struct ToolbarPreferences: Equatable {
         self.titleDisplayMode = nil
         self.titleMenu = nil
         self.backButtonHidden = nil
+        self.isSystemBackground = nil
     }
 
     func reduce(_ next: ToolbarPreferences) -> ToolbarPreferences {
@@ -339,7 +342,7 @@ struct ToolbarPreferences: Equatable {
         } else {
             rcontent = next.content ?? content
         }
-        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
+        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, isSystemBackground: next.isSystemBackground ?? isSystemBackground, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
     }
 
     private func reduceBar(_ bar: ToolbarBarPreferences?, _ next: ToolbarBarPreferences?) -> ToolbarBarPreferences? {
@@ -351,7 +354,7 @@ struct ToolbarPreferences: Equatable {
     }
 
     public static func ==(lhs: ToolbarPreferences, rhs: ToolbarPreferences) -> Bool {
-        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
+        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.isSystemBackground == rhs.isSystemBackground, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
             return false
         }
         guard (lhs.content?.count ?? 0) == (rhs.content?.count ?? 0), (lhs.titleMenu != nil) == (rhs.titleMenu != nil) else {
