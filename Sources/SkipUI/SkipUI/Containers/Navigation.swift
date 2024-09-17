@@ -61,6 +61,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -69,6 +70,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -196,6 +198,7 @@ public struct NavigationStack<Root> : View where Root: View {
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: arguments.state, preference: arguments.toolbarPreferences.titleDisplayMode)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
         let toolbarItems = ToolbarItems(content: arguments.toolbarPreferences.content ?? [])
+        let isSystemBackground = arguments.toolbarPreferences.isSystemBackground == true
 
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -230,20 +233,25 @@ public struct NavigationStack<Root> : View where Root: View {
             mutableStateOf(with(density) { safeAreaTopPx + 112.dp.toPx() })
         }
         let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+        let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
         let topBarBackgroundBrush: androidx.compose.ui.graphics.Brush?
         if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-            topBarBackgroundColor = Color.clear.colorImpl()
+            topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+            unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
             topBarBackgroundBrush = nil
         } else if let background = topBarPreferences?.background {
             if let color = background.asColor(opacity: 1.0, animationContext: nil) {
                 topBarBackgroundColor = color
+                unscrolledTopBarBackgroundColor = color
                 topBarBackgroundBrush = nil
             } else {
-                topBarBackgroundColor = Color.clear.colorImpl()
+                topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
                 topBarBackgroundBrush = background.asBrush(opacity: 1.0, animationContext: nil)
             }
         } else {
             topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+            unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
             topBarBackgroundBrush = nil
         }
         let topBar: @Composable () -> Void = {
@@ -287,7 +295,7 @@ public struct NavigationStack<Root> : View where Root: View {
                         topBarModifier = topBarModifier.background(topBarBackgroundBrush)
                     }
                     let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: topBarBackgroundColor,
+                        containerColor: unscrolledTopBarBackgroundColor,
                         scrolledContainerColor: topBarBackgroundColor,
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
@@ -417,7 +425,15 @@ public struct NavigationStack<Root> : View where Root: View {
                 var topPadding = 0.dp
                 let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
                 if let searchableState {
-                    let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding).align(androidx.compose.ui.Alignment.TopCenter).offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) }).background(topBarBackgroundColor).padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding).fillMaxWidth()
+                    let searchFieldFadeOffset = searchFieldHeightPx / 3
+                    let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
+                        .align(androidx.compose.ui.Alignment.TopCenter)
+                        .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
+                        .background(unscrolledTopBarBackgroundColor)
+                        .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
+                        // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
+                        .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
+                        .fillMaxWidth()
                     SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
                     let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
                     topPadding = searchFieldPlaceholderPadding

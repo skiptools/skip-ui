@@ -116,7 +116,7 @@ public struct TabView : View {
                     }
                 }
             let colorScheme = reducedTabBarPreferences.colorScheme ?? ColorScheme.fromMaterialTheme()
-            let indicatorColor = colorScheme == .dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.2)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.2))
+            let indicatorColor = colorScheme == .dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
             let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
             let tabBarItemColors: NavigationBarItemColors
             if reducedTabBarPreferences.backgroundVisibility == Visibility.hidden {

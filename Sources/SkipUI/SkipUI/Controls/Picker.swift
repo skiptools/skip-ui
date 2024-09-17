@@ -247,7 +247,7 @@ extension View {
 }
 
 #if SKIP
-@Composable private func processPickerContent<SelectionValue>(content: ComposeBuilder, selection: Binding<SelectionValue>, context: ComposeContext, requireTagViews: Bool = false) -> (View, [TagModifierView]?) {
+@Composable func processPickerContent<SelectionValue>(content: ComposeBuilder, selection: Binding<SelectionValue>, context: ComposeContext, requireTagViews: Bool = false) -> (View, [TagModifierView]?) {
     let selectedTag = selection.wrappedValue
     let viewCollectingComposer = PickerViewCollectingComposer(selectedTag: selectedTag, requireTagViews: requireTagViews)
     let viewCollector = context.content(composer: viewCollectingComposer)

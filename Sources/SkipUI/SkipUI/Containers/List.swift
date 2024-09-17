@@ -184,6 +184,7 @@ public final class List : View {
         })
         modifier = modifier.reorderable(reorderableState)
 
+        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden))
         // Integrate with our scroll-to-top and ScrollViewReader
         let coroutineScope = rememberCoroutineScope()
         PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
@@ -480,7 +481,7 @@ public final class List : View {
             // Vertical padding
             ComposeFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
         }
-        let backgroundColor = BackgroundColor(styling: styling.withStyle(ListStyle.automatic), isItem: false)
+        let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let modifier = Modifier
             .zIndex(Float(0.5))
             .background(backgroundColor)
