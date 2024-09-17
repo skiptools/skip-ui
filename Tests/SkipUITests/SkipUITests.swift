@@ -272,7 +272,7 @@ final class SkipUITests: SkipUITestCase {
                 moveTo(Offset(Float(1000.0), Float(20.0)))
                 up()
             }
-            rule.onNodeWithTag("label").assert(hasTextExactly("100%"))
+            //DISABLE rule.onNodeWithTag("label").assert(hasTextExactly("100%"))
             #endif
             try check(rule, id: "label", hasText: "100%")
         })
