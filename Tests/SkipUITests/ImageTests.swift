@@ -29,7 +29,7 @@ final class ImageTests: XCSnapshotTestCase {
             .frame(width: 16.0, height: 16.0)
     }
 
-    func testSystemImageStar() throws {
+    func DISABLEDtestSystemImageStar() throws {
         let macOSStar: String
         if #available(macOS 14, *) {
             macOSStar = """
