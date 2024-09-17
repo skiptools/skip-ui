@@ -596,7 +596,12 @@ struct NavigationDestination {
 
     /// Pop the back stack.
     func navigateBack() {
-        if let path {
+        // Check for a view destination before we pop our path bindings, because the user could push arbitrary views
+        // that are not represented in the bound path
+        let viewDestinationPrefix = Self.route(for: viewDestinationIndex, valueString: "")
+        if navController.currentBackStackEntry?.destination.route?.hasPrefix(viewDestinationPrefix) == true {
+            navController.popBackStack()
+        } else if let path {
             path.wrappedValue.popLast()
         } else if let navigationPath {
             navigationPath.wrappedValue.removeLast()
@@ -678,6 +683,24 @@ struct NavigationDestination {
             pathIndex += 1
             backStackIndex += 1
         }
+        
+        // If we exhausted the path and the back stack contains only post-path views, keep them in place. This allows
+        // users to have a path binding but then append arbitrary views as leaves
+        var hasOnlyTrailingViews = false
+        if pathIndex == path.count {
+            hasOnlyTrailingViews = true
+            let viewDestinationPrefix = Self.route(for: viewDestinationIndex, valueString: "")
+            for i in 0..<(backStack.count() - backStackIndex) {
+                if backStack[backStackIndex + i].destination.route?.hasPrefix(viewDestinationPrefix) != true {
+                    hasOnlyTrailingViews = false
+                    break
+                }
+            }
+        }
+        guard !hasOnlyTrailingViews else {
+            return
+        }
+
         // Pop back to last common value
         for _ in 0..<(backStack.count() - backStackIndex) {
             navController.popBackStack()
