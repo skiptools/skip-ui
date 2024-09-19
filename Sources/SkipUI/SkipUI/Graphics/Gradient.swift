@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -134,8 +135,13 @@ public struct LinearGradient : ShapeStyle, Sendable {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
-        let brush = remember { LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint) }
-        return brush
+        let rememberedOpacity = remember { mutableStateOf(opacity) }
+        let rememberedBrush = remember { mutableStateOf(LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)) }
+        if opacity != rememberedOpacity.value {
+            rememberedOpacity.value = opacity
+            rememberedBrush.value = LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)
+        }
+        return rememberedBrush.value
     }
 
     private struct LinearGradientShaderBrush: ShaderBrush {

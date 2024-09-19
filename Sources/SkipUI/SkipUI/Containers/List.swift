@@ -184,7 +184,6 @@ public final class List : View {
         })
         modifier = modifier.reorderable(reorderableState)
 
-        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden))
         // Integrate with our scroll-to-top and ScrollViewReader
         let coroutineScope = rememberCoroutineScope()
         PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
@@ -204,6 +203,9 @@ public final class List : View {
             }
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+        let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
+        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.navigationBar, ToolbarPlacement.bottomBar]))
+        PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState))
 
         // List item animations in Compose work by setting the `animateItemPlacement` modifier on the items. Critically,
         // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
