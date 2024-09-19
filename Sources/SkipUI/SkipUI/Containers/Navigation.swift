@@ -230,33 +230,7 @@ public struct NavigationStack<Root> : View where Root: View {
             mutableStateOf(with(density) { safeAreaTopPx + 112.dp.toPx() })
         }
 
-        let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-        let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
-        let topBarBackgroundForBrush: ShapeStyle?
-        // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
-        // properly interpolate between the title text colors
-        let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
-        if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-            topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-            unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-            topBarBackgroundForBrush = nil
-        } else if let background = topBarPreferences?.background {
-            if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                topBarBackgroundColor = color
-                unscrolledTopBarBackgroundColor = topBarHasColorScheme ? color : isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
-                topBarBackgroundForBrush = nil
-            } else {
-                unscrolledTopBarBackgroundColor = !topBarHasColorScheme && isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                topBarBackgroundColor = unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0))
-                topBarBackgroundForBrush = background
-            }
-        } else {
-            topBarBackgroundColor = Color.systemBarBackground.colorImpl()
-            unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
-            topBarBackgroundForBrush = nil
-        }
-        
         let topBar: @Composable () -> Void = {
             guard topBarPreferences?.visibility != Visibility.hidden else {
                 SideEffect {
@@ -276,8 +250,41 @@ public struct NavigationStack<Root> : View where Root: View {
             }
             topBarHidden.value = false
 
-            let materialColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
+            let isOverlapped = scrollBehavior.state.overlappedFraction > 0
+            let materialColorScheme: androidx.compose.material3.ColorScheme
+            if isOverlapped, let customColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() {
+                materialColorScheme = customColorScheme
+            } else {
+                materialColorScheme = MaterialTheme.colorScheme
+            }
             MaterialTheme(colorScheme: materialColorScheme) {
+                let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let topBarBackgroundForBrush: ShapeStyle?
+                // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
+                // properly interpolate between the title text colors
+                let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
+                let isSystemBackground = topBarPreferences?.isSystemBackground == true
+                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    topBarBackgroundForBrush = nil
+                } else if let background = topBarPreferences?.background {
+                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                        topBarBackgroundColor = color
+                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
+                        topBarBackgroundForBrush = nil
+                    } else {
+                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                        topBarBackgroundColor = !topBarHasColorScheme || isOverlapped ? unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0)) : unscrolledTopBarBackgroundColor
+                        topBarBackgroundForBrush = background
+                    }
+                } else {
+                    topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
+                    topBarBackgroundForBrush = nil
+                }
+
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
@@ -295,7 +302,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 topBarBottomPx.value = bottomPx
                             }
                         }
-                    if let topBarBackgroundForBrush {
+                    if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
                         let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
                         if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
                             topBarModifier = topBarModifier.background(topBarBackgroundBrush)
@@ -364,32 +371,38 @@ public struct NavigationStack<Root> : View where Root: View {
                 return
             }
 
-            let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
-            let unscrolledBottomBarBackgroundColor: androidx.compose.ui.graphics.Color
-            let bottomBarBackgroundForBrush: ShapeStyle?
-            let bottomBarHasColorScheme = bottomBarPreferences?.colorScheme != nil
-            if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
-                bottomBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                unscrolledBottomBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                bottomBarBackgroundForBrush = nil
-            } else if let background = bottomBarPreferences?.background {
-                if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                    bottomBarBackgroundColor = color
-                    unscrolledBottomBarBackgroundColor = bottomBarHasColorScheme ? color : isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
-                    bottomBarBackgroundForBrush = nil
-                } else {
-                    unscrolledBottomBarBackgroundColor = !bottomBarHasColorScheme && isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                    bottomBarBackgroundColor = unscrolledBottomBarBackgroundColor.copy(alpha: Float(0.0))
-                    bottomBarBackgroundForBrush = background
-                }
+            let canScrollForward = bottomBarPreferences?.scrollableState.canScrollForward == true
+            let materialColorScheme: androidx.compose.material3.ColorScheme
+            if canScrollForward, let customColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() {
+                materialColorScheme = customColorScheme
             } else {
-                bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                unscrolledBottomBarBackgroundColor = isSystemBackground ? bottomBarBackgroundColor : bottomBarBackgroundColor.copy(alpha: Float(0.0))
-                bottomBarBackgroundForBrush = nil
+                materialColorScheme = MaterialTheme.colorScheme
             }
-
-            let materialColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
             MaterialTheme(colorScheme: materialColorScheme) {
+                let bottomBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let unscrolledBottomBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let bottomBarBackgroundForBrush: ShapeStyle?
+                let bottomBarHasColorScheme = bottomBarPreferences?.colorScheme != nil
+                if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    bottomBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    unscrolledBottomBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    bottomBarBackgroundForBrush = nil
+                } else if let background = bottomBarPreferences?.background {
+                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                        bottomBarBackgroundColor = color
+                        unscrolledBottomBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
+                        bottomBarBackgroundForBrush = nil
+                    } else {
+                        unscrolledBottomBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                        bottomBarBackgroundColor = unscrolledBottomBarBackgroundColor.copy(alpha: Float(0.0))
+                        bottomBarBackgroundForBrush = background
+                    }
+                } else {
+                    bottomBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    unscrolledBottomBarBackgroundColor = isSystemBackground ? bottomBarBackgroundColor : bottomBarBackgroundColor.copy(alpha: Float(0.0))
+                    bottomBarBackgroundForBrush = nil
+                }
+
                 let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
@@ -404,8 +417,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 bottomBarHeightPx.value = bounds.bottom - bounds.top
                             }
                         }
-                    let canScrollForward = bottomBarPreferences?.scrollableState.canScrollForward == true
-                    if let bottomBarBackgroundForBrush, bottomBarHasColorScheme || canScrollForward {
+                    if canScrollForward, let bottomBarBackgroundForBrush {
                         if let bottomBarBackgroundBrush = bottomBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
                             bottomBarModifier = bottomBarModifier.background(bottomBarBackgroundBrush)
                         }
@@ -449,11 +461,12 @@ public struct NavigationStack<Root> : View where Root: View {
                 var topPadding = 0.dp
                 let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
                 if let searchableState {
+                    let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
                     let searchFieldFadeOffset = searchFieldHeightPx / 3
                     let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
                         .align(androidx.compose.ui.Alignment.TopCenter)
                         .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
-                        .background(unscrolledTopBarBackgroundColor)
+                        .background(searchFieldBackground)
                         .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
                         // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
                         .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
