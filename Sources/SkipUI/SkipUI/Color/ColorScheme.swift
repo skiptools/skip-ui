@@ -21,9 +21,9 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
 
     #if SKIP
     /// Return the color scheme for the current material color scheme.
-    @Composable public static func fromMaterialTheme() -> ColorScheme {
+    @Composable public static func fromMaterialTheme(colorScheme: androidx.compose.material3.ColorScheme = MaterialTheme.colorScheme) -> ColorScheme {
         // Material3 doesn't have a built-in light vs dark property, so use the luminance of the background
-        return MaterialTheme.colorScheme.background.luminance() > Float(0.5) ? ColorScheme.light : ColorScheme.dark
+        return colorScheme.background.luminance() > Float(0.5) ? ColorScheme.light : ColorScheme.dark
     }
 
     /// Return the material color scheme for this scheme.

@@ -30,6 +30,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -115,34 +116,55 @@ public struct TabView : View {
                         bottomBarHeightPx.value = bounds.bottom - bounds.top
                     }
                 }
-            let colorScheme = reducedTabBarPreferences.colorScheme ?? ColorScheme.fromMaterialTheme()
-            let indicatorColor = colorScheme == .dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
-            let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
-            let tabBarItemColors: NavigationBarItemColors
-            if reducedTabBarPreferences.backgroundVisibility == Visibility.hidden {
-                tabBarBackgroundColor = Color.clear.colorImpl()
-                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
-            } else if let background = reducedTabBarPreferences.background {
-                if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                    tabBarBackgroundColor = color
+            let hasColorScheme = reducedTabBarPreferences.colorScheme != nil
+            let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
+            let canScrollForward = reducedTabBarPreferences.scrollableState?.canScrollForward == true
+            let materialColorScheme: androidx.compose.material3.ColorScheme
+            if canScrollForward, let customColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() {
+                materialColorScheme = customColorScheme
+            } else {
+                materialColorScheme = MaterialTheme.colorScheme
+            }
+            MaterialTheme(colorScheme: materialColorScheme) {
+                let indicatorColor = ColorScheme.fromMaterialTheme(colorScheme: materialColorScheme) == ColorScheme.dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
+                let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let unscrolledTabBarBackgroundColor: androidx.compose.ui.graphics.Color
+                let tabBarBackgroundForBrush: ShapeStyle?
+                let tabBarItemColors: NavigationBarItemColors
+                if reducedTabBarPreferences.backgroundVisibility == Visibility.hidden {
+                    tabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    unscrolledTabBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                    tabBarBackgroundForBrush = nil
+                    tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
+                } else if let background = reducedTabBarPreferences.background {
+                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                        tabBarBackgroundColor = color
+                        unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
+                        tabBarBackgroundForBrush = nil
+                    } else {
+                        unscrolledTabBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                        tabBarBackgroundColor = unscrolledTabBarBackgroundColor.copy(alpha: Float(0.0))
+                        tabBarBackgroundForBrush = background
+                    }
+                    tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
                 } else {
-                    tabBarBackgroundColor = Color.clear.colorImpl()
-                    if let brush = background.asBrush(opacity: 1.0, animationContext: nil) {
-                        tabBarModifier = tabBarModifier.background(brush)
+                    tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                    unscrolledTabBarBackgroundColor = isSystemBackground ? tabBarBackgroundColor : tabBarBackgroundColor.copy(alpha: Float(0.0))
+                    tabBarBackgroundForBrush = nil
+                    tabBarItemColors = NavigationBarItemDefaults.colors()
+                }
+                if canScrollForward, let tabBarBackgroundForBrush {
+                    if let tabBarBackgroundBrush = tabBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
+                        tabBarModifier = tabBarModifier.background(tabBarBackgroundBrush)
                     }
                 }
-                tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
-            } else {
-                tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                tabBarItemColors = NavigationBarItemDefaults.colors()
-            }
-            let materialColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
-            MaterialTheme(colorScheme: materialColorScheme) {
+
                 let currentRoute = currentRoute(for: navController) // Note: forces recompose of this context on tab navigation
                 // Pull the tab bar below the keyboard
                 let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                 PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
-                    NavigationBar(modifier: context.modifier.then(tabBarModifier), containerColor: tabBarBackgroundColor) {
+                    let containerColor = canScrollForward ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
+                    NavigationBar(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor) {
                         for tabIndex in 0..<tabViews.count {
                             let route = String(describing: tabIndex)
                             let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })

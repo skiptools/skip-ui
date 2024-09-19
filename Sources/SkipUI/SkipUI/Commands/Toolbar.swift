@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
 #endif
 
@@ -298,22 +299,20 @@ struct ToolbarPreferences: Equatable {
     let titleDisplayMode: ToolbarTitleDisplayMode?
     let titleMenu: View?
     let backButtonHidden: Bool?
-    let isSystemBackground: Bool?
     let navigationBar: ToolbarBarPreferences?
     let bottomBar: ToolbarBarPreferences?
 
-    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, isSystemBackground: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
+    init(content: [View]? = nil, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
         self.content = content
         self.titleDisplayMode = titleDisplayMode
         self.titleMenu = titleMenu
         self.backButtonHidden = backButtonHidden
-        self.isSystemBackground = isSystemBackground
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
     }
 
-    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, for bars: [ToolbarPlacement]) {
-        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, colorScheme: colorScheme)
+    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, isSystemBackground: Bool? = nil, scrollableState: ScrollableState? = nil, for bars: [ToolbarPlacement]) {
+        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, colorScheme: colorScheme, isSystemBackground: isSystemBackground, scrollableState: scrollableState)
         var navigationBar: ToolbarBarPreferences? = nil
         var bottomBar: ToolbarBarPreferences? = nil
         for bar in bars {
@@ -332,7 +331,6 @@ struct ToolbarPreferences: Equatable {
         self.titleDisplayMode = nil
         self.titleMenu = nil
         self.backButtonHidden = nil
-        self.isSystemBackground = nil
     }
 
     func reduce(_ next: ToolbarPreferences) -> ToolbarPreferences {
@@ -342,7 +340,7 @@ struct ToolbarPreferences: Equatable {
         } else {
             rcontent = next.content ?? content
         }
-        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, isSystemBackground: next.isSystemBackground ?? isSystemBackground, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
+        return ToolbarPreferences(content: rcontent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
     }
 
     private func reduceBar(_ bar: ToolbarBarPreferences?, _ next: ToolbarBarPreferences?) -> ToolbarBarPreferences? {
@@ -354,7 +352,7 @@ struct ToolbarPreferences: Equatable {
     }
 
     public static func ==(lhs: ToolbarPreferences, rhs: ToolbarPreferences) -> Bool {
-        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.isSystemBackground == rhs.isSystemBackground, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
+        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
             return false
         }
         guard (lhs.content?.count ?? 0) == (rhs.content?.count ?? 0), (lhs.titleMenu != nil) == (rhs.titleMenu != nil) else {
@@ -371,14 +369,16 @@ struct ToolbarBarPreferences: Equatable {
     let background: ShapeStyle?
     let backgroundVisibility: Visibility?
     let colorScheme: ColorScheme?
+    let isSystemBackground: Bool?
+    let scrollableState: ScrollableState?
 
     func reduce(_ next: ToolbarBarPreferences) -> ToolbarBarPreferences {
-        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, colorScheme: next.colorScheme ?? colorScheme)
+        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, colorScheme: next.colorScheme ?? colorScheme, isSystemBackground: next.isSystemBackground ?? isSystemBackground, scrollableState: next.scrollableState ?? scrollableState)
     }
 
     public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
         // Don't compare on background because it will never compare equal
-        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme
+        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme && lhs.isSystemBackground == rhs.isSystemBackground && lhs.scrollableState == rhs.scrollableState
     }
 }
 
