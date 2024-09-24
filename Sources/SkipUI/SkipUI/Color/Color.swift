@@ -103,7 +103,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0) {
         #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color.hsl(hue: Self.clamp(hue), saturation: Self.clamp(saturation), lightness: Self.clamp(brightness), alpha: Self.clamp(opacity)) }
+        colorImpl = { androidx.compose.ui.graphics.Color.hsv(hue: Self.clamp(hue) * 360, saturation: Self.clamp(saturation), value: Self.clamp(brightness), alpha: Self.clamp(opacity)) }
         #endif
     }
 
