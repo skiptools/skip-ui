@@ -81,7 +81,8 @@ let overlayPresentationCornerRadius = 16.0
     }
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
-    if isPresented.get() || sheetState.isVisible {
+    let isCurrentlyPresented = isPresented.get()
+    if isCurrentlyPresented || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
@@ -173,11 +174,20 @@ let overlayPresentationCornerRadius = 16.0
             }
         }
     }
-    if !isPresented.get() {
+
+    // When our isPresented binding flips from true to false, hide the sheet if needed and invoke onDismiss
+    let wasPresented = remember { mutableStateOf(isCurrentlyPresented) }
+    let onDismissState = rememberUpdatedState(onDismiss)
+    if isCurrentlyPresented {
+        wasPresented.value = true
+    } else {
         LaunchedEffect(true) {
             if sheetState.targetValue != SheetValue.Hidden {
                 sheetState.hide()
-                onDismiss?()
+            }
+            if wasPresented.value {
+                wasPresented.value = false
+                onDismissState.value?()
             }
         }
     }
