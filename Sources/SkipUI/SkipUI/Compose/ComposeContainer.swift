@@ -43,33 +43,37 @@ import androidx.compose.ui.Modifier
     // because Compose's fillMax modifiers have no effect in the scroll direction. We can't use IntrinsicSize for scrolling
     // containers, however
     var modifier = modifier
-    let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
-    var totalScrollAxes = inheritedScrollAxes
+    let inheritedLayoutScrollAxes = EnvironmentValues.shared._layoutScrollAxes
+    var totalLayoutScrollAxes = inheritedLayoutScrollAxes
     if fixedWidth || axis == .vertical {
-        totalScrollAxes.remove(Axis.Set.horizontal)
+        totalLayoutScrollAxes.remove(Axis.Set.horizontal)
     }
     if !fixedWidth && isFillWidth.value {
         if fillWidth {
             modifier = modifier.fillWidth()
-        } else if inheritedScrollAxes.contains(Axis.Set.horizontal) {
+        } else if inheritedLayoutScrollAxes.contains(Axis.Set.horizontal) {
             modifier = modifier.width(IntrinsicSize.Max)
         } else {
             modifier = modifier.fillWidth()
         }
     }
     if fixedHeight || axis == .horizontal {
-        totalScrollAxes.remove(Axis.Set.vertical)
+        totalLayoutScrollAxes.remove(Axis.Set.vertical)
     }
     if !fixedHeight && isFillHeight.value {
         if fillHeight {
             modifier = modifier.fillHeight()
-        } else if inheritedScrollAxes.contains(Axis.Set.vertical) {
+        } else if inheritedLayoutScrollAxes.contains(Axis.Set.vertical) {
             modifier = modifier.height(IntrinsicSize.Max)
         } else {
             modifier = modifier.fillHeight()
         }
     }
-    totalScrollAxes.formUnion(scrollAxes)
+    
+    totalLayoutScrollAxes.formUnion(scrollAxes)
+    let inheritedScrollAxes = EnvironmentValues.shared._scrollAxes
+    let totalScrollAxes = inheritedScrollAxes.union(scrollAxes)
+
     modifier = modifier.then(then)
     EnvironmentValues.shared.setValues {
         // Setup the initial environment before rendering the container content
@@ -77,6 +81,9 @@ import androidx.compose.ui.Modifier
             $0.set_layoutAxis(axis)
         } else if eraseAxis {
             $0.set_layoutAxis(nil)
+        }
+        if totalLayoutScrollAxes != inheritedLayoutScrollAxes {
+            $0.set_layoutScrollAxes(totalLayoutScrollAxes)
         }
         if totalScrollAxes != inheritedScrollAxes {
             $0.set_scrollAxes(totalScrollAxes)

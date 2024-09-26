@@ -460,6 +460,15 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_layoutAxis", value: newValue, defaultValue: { nil }) }
     }
 
+    /// The axes that are unbound due to scrolling.
+    ///
+    /// This is different than `_scrollAxes`, because using a fixed size container or applying a different layout axis
+    /// can bound a scrollable layout axis and remove it from this set.
+    var _layoutScrollAxes: Axis.Set {
+        get { builtinValue(key: "_layoutScrollAxes", defaultValue: { Axis.Set(rawValue: 0) }) as! Axis.Set }
+        set { setBuiltinValue(key: "_layoutScrollAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
+    }
+
     var _listItemTint: Color? {
         get { builtinValue(key: "_listItemTint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
@@ -520,7 +529,8 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_scrollContentBackground", value: newValue, defaultValue: { nil }) }
     }
 
-    /// While `_scrollAxes` contains the effective scroll directions, this property contains the nominal directions of any ancestor scroll view.
+    /// While `_scrollAxes` contains the effective scroll directions, this property contains the nominal directions
+    /// of any ancestor scroll view.
     var _scrollViewAxes: Axis.Set {
         get { builtinValue(key: "_scrollViewAxes", defaultValue: { Axis.Set(rawValue: 0) }) as! Axis.Set }
         set { setBuiltinValue(key: "_scrollViewAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }

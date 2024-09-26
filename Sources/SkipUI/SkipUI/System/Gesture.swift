@@ -8,11 +8,9 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -25,7 +23,8 @@ import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
+import org.burnoutcrew.reorderable.awaitPointerSlopOrCancellation
+import kotlin.math.abs
 #endif
 
 public protocol Gesture<V> {
@@ -424,7 +423,8 @@ final class GestureModifierView: ComposeModifierView {
             let dragPositionX = remember { mutableStateOf(Float(0.0)) }
             let dragPositionY = remember { mutableStateOf(Float(0.0)) }
             let noMinimumDistance = dragGestures.value.contains { $0.minimumDistance <= 0.0 }
-            ret = ret.pointerInput(true) {
+            let scrollAxes = EnvironmentValues.shared._scrollAxes
+            ret = ret.pointerInput(scrollAxes) {
                 let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
                     let offsetX = with(density) { offsetPx.x.toDp() }
                     let offsetY = with(density) { offsetPx.y.toDp() }
@@ -452,35 +452,58 @@ final class GestureModifierView: ComposeModifierView {
                     dragOffsetY.value = Float(0.0)
                     dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
                 }
-                if noMinimumDistance {
-                    detectDragGesturesWithoutMinimumDistance(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel)
-                } else {
-                    detectDragGestures(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel)
-                }
+                detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
             }
         }
         return ret
     }
 }
 
-// This is an adaptation of the internal Compose function here: https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/gestures/DragGestureDetector.kt;l=168?q=detectdraggestures&sq=
-// SKIP DECLARE: suspend fun PointerInputScope.detectDragGesturesWithoutMinimumDistance(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit)
-func detectDragGesturesWithoutMinimumDistance(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: () -> Void, onDragCancel: () -> Unit) {
+// This is an adaptation of the internal Compose function here: https://cs.android.com/androidx/platform/frameworks/support/+/androidx-main:compose/foundation/foundation/src/commonMain/kotlin/androidx/compose/foundation/gestures/DragGestureDetector.kt
+// SKIP DECLARE: suspend fun PointerInputScope.detectDragGesturesWithScrollAxes(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean, scrollAxes: Axis.Set)
+func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () -> Void, onDrag: (PointerInputChange, Offset) -> Void, shouldAwaitTouchSlop: () -> Bool, scrollAxes: Axis.Set) {
+    var overSlop: Offset
     awaitEachGesture {
         let initialDown = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
-        initialDown.consume()
-        let _ = awaitFirstDown(requireUnconsumed: false)
-
-        let drag: PointerInputChange = initialDown
-        onDrag(drag, Offset.Zero)
-        let upEvent = drag(pointerId: drag.id, onDrag: {
-            onDrag($0, $0.positionChange())
-            $0.consume()
-        })
-        if upEvent == nil {
-            onDragCancel()
+        let awaitTouchSlop = shouldAwaitTouchSlop()
+        if (!awaitTouchSlop) {
+            initialDown.consume()
+        }
+        let down = awaitFirstDown(requireUnconsumed: false)
+        var drag: PointerInputChange?
+        overSlop = Offset.Zero
+        if (awaitTouchSlop) {
+            repeat {
+                drag = awaitPointerSlopOrCancellation(down.id, down.type) { change, over in
+                    if scrollAxes == Axis.Set.vertical {
+                        if abs(over.x) > abs(over.y) {
+                            change.consume()
+                        }
+                    } else if scrollAxes == Axis.Set.horizontal {
+                        if abs(over.y) > abs(over.x) {
+                            change.consume()
+                        }
+                    } else {
+                        change.consume()
+                    }
+                    overSlop = over
+                }
+            } while drag != nil && drag?.isConsumed != true
         } else {
-            onDragEnd()
+            drag = initialDown
+        }
+
+        if let drag {
+            onDrag(drag, overSlop)
+            let didCompleteDrag = drag(pointerId: drag.id, onDrag: {
+                onDrag($0, $0.positionChange())
+                $0.consume()
+            })
+            if didCompleteDrag {
+                onDragEnd()
+            } else {
+                onDragCancel()
+            }
         }
     }
 }
