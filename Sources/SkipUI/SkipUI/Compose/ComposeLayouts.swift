@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given frame.
 @Composable func FrameLayout(view: View, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
-    let scrollAxes = EnvironmentValues.shared._scrollAxes
     var thenModifier: Modifier = Modifier
     if maxWidth == .infinity {
         if let minWidth, minWidth > 0.0 {
