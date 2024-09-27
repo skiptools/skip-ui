@@ -77,6 +77,9 @@ public struct TabView : View {
         } in: {
             tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
         }
+        let tabItems = tabViews.map { view in
+            view.strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+        }
 
         let navController = rememberNavController()
         // Isolate access to current route within child Composable so route nav does not force us to recompose
@@ -101,7 +104,7 @@ public struct TabView : View {
 
         let bottomBar: @Composable () -> Void = {
             let reducedTabBarPreferences = tabBarPreferences.value.reduced
-            guard reducedTabBarPreferences.visibility != Visibility.hidden else {
+            guard tabItems.contains(where: { $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
@@ -167,7 +170,7 @@ public struct TabView : View {
                     NavigationBar(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor) {
                         for tabIndex in 0..<tabViews.count {
                             let route = String(describing: tabIndex)
-                            let tabItem = tabViews[tabIndex].strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+                            let tabItem = tabItems[tabIndex]
                             NavigationBarItem(
                                 colors: tabBarItemColors,
                                 icon: { tabItem?.ComposeImage(context: tabItemContext) },
