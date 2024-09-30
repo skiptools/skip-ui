@@ -53,17 +53,10 @@ struct ComposeStateSaver: Saver<Any?, Any> {
     }
 
     /// Key under which to save values that cannot be stored directly in the Bundle.
-    private struct Key: Parcelable {
-        private static var keyValue = 0
-
-        static func next() -> Key {
-            keyValue += 1
-            return Key(value: keyValue)
-        }
-
+    struct Key: Parcelable {
         private let value: Int
 
-        private init(value: Int) {
+        init(value: Int) {
             self.value = value
         }
 
@@ -79,9 +72,34 @@ struct ComposeStateSaver: Saver<Any?, Any> {
             return 0
         }
 
-        static let CREATOR: Parcelable.Creator<Key> = Creator()
+        // We must use a companion CREATOR to meet the Java Parcelable contract. Note that if this code breaks, it may have no
+        // immediate noticable effect. However, we've had dev reports that it can cause crashes on a high percentage of user
+        // devices, even though we don't know how to exercise it. We can manually test for contract compatibility with:
+        /*
+        val key = ComposeStateSaver.Key(99999)
+        val bundle = android.os.Bundle()
+        bundle.putParcelable(key::class.java.name, key)
+        val parcel = Parcel.obtain()
+        parcel.writeBundle(bundle)
+        val bytes = parcel.marshall()
+        val rparcel = Parcel.obtain()
+        rparcel.unmarshall(bytes, 0, bytes.size)
+        rparcel.setDataPosition(0)
+        val rbundle = rparcel.readBundle()
+        rbundle?.classLoader = key::class.java.classLoader
+        val rkey: ComposeStateSaver.Key? = rbundle?.getParcelable(key::class.java.name)
+        android.util.Log.e("", "Roundtripped: $rkey")
+         */
 
-        private final class Creator: Parcelable.Creator<Key> {
+        // SKIP DECLARE: companion object CREATOR: Parcelable.Creator<Key>
+        private final class CREATOR: Parcelable.Creator<Key> {
+            private var keyValue = 0
+
+            func next() -> Key {
+                keyValue += 1
+                return Key(value: keyValue)
+            }
+            
             override func createFromParcel(parcel: Parcel) -> Key {
                 return Key(parcel)
             }
