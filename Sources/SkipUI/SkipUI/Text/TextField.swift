@@ -67,18 +67,23 @@ public struct TextField : View {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    // Provide a custom VisualTransformation. If not set a PasswordVisualTransformation is used for secure fields and VisualTransformation.None for everything else
+    public var visualTransformation: VisualTransformation?
+    // Provide a custom onValueChange. If not set, what was entered in the text field is used as-is
+    public var onValueChange: ((String) -> Void) = { newValue in
+      text.wrappedValue = newValue
+    }
+
+  // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = Self.colors(context: context)
-        let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
-        OutlinedTextField(value: text.wrappedValue, onValueChange: {
-            text.wrappedValue = $0
-        }, placeholder: {
+        let transformation = visualTransformation ?? (isSecure ? PasswordVisualTransformation() : VisualTransformation.None)
+        OutlinedTextField(value: text.wrappedValue, onValueChange: onValueChange, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
+        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: transformation)
     }
 
     @Composable static func textColor(enabled: Bool, context: ComposeContext) -> androidx.compose.ui.graphics.Color {
