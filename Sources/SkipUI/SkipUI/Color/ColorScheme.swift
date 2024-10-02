@@ -68,7 +68,12 @@ extension View {
     }
 
     #if SKIP
+    @available(*, deprecated, message: "Use .material3ColorScheme instead")
     public func materialColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
+        return material3ColorScheme(scheme)
+    }
+
+    public func material3ColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
         return environment(\._materialColorScheme, scheme)
     }
     #endif
@@ -76,6 +81,10 @@ extension View {
 
 #if SKIP
 @Composable public func MaterialColorScheme(_ scheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?, content: @Composable () -> Void) {
+    return Material3ColorScheme(scheme, content: content)
+}
+
+@Composable public func Material3ColorScheme(_ scheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?, content: @Composable () -> Void) {
     EnvironmentValues.shared.setValues {
         $0.set_materialColorScheme(scheme)
     } in: {

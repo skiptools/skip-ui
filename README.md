@@ -241,6 +241,21 @@ With `ComposeView` and the `Compose()` function, you can move fluidly between Sw
 
 `ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
 
+### Additional Considerations
+
+There are additional considerations when integrating SwiftUI into a Compose application that is **not** managed by Skip. SwiftUI relies on its own mechanisms to save and restore `Activity` UI state, such as `@AppStorage` and navigation path bindings. It is not compatible with Android's `Activity` UI state restoration. Use a pattern like the following to exclude SwiftUI from `Activity` state restoration when integrating SwiftUI views:
+
+```kotlin
+val stateHolder = rememberSaveableStateHolder()
+val key = "myUniqueKey"
+stateHolder.SaveableStateProvider(key) {
+    MySwiftUIRootView().Compose()
+    SideEffect { stateHolder.removeState(key) }
+}
+```
+
+This pattern allows SwiftUI to take advantage of Compose's UI state mechanisms internally while excluding it from `Activity` state restoration.
+
 ## composeModifier
 
 In addition to `ComposeView` above, Skip offers the `composeModifier` SwiftUI modifier. This modifier allows you to apply any Compose modifiers to the underlying Compose view. It takes a block that accepts a single `androidx.compose.ui.Modifier` parameter and returns a `Modifier` as well. For example:
@@ -1842,10 +1857,10 @@ Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `
 
 ### Colors
 
-Skip adds additional Android-only API that allows you to customize the Material colors used for your app's light and dark colors schemes. By default, Skip uses Material's dynamic colors on devices that support them, and falls back to Material's standard colors otherwise. You can customize these colors in Compose code using the following function: 
+Skip adds additional Android-only API that allows you to customize the Material colors used for your app's light and dark colors schemes. By default, Skip uses Material 3's dynamic colors on devices that support them, and falls back to Material 3's standard colors otherwise. You can customize these colors in Compose code using the following function: 
 
 ```kotlin
-MaterialColorScheme(scheme: (@Composable (ColorScheme, Boolean) -> ColorScheme)?, content: @Composable () -> Unit)
+Material3ColorScheme(scheme: (@Composable (ColorScheme, Boolean) -> ColorScheme)?, content: @Composable () -> Unit)
 ```
 
 The `scheme` argument takes a closure with two arguments: the default `androidx.compose.material3.ColorScheme`, and whether dark mode is being requested. Your closure returns the `androidx.compose.material3.ColorScheme` to use for the supplied content.
@@ -1855,7 +1870,7 @@ For example, to customize the surface colors for your app, you could edit `Main.
 ```kotlin
 @Composable
 internal fun PresentationRootView(context: ComposeContext) {
-    MaterialColorScheme({ colors, isDark ->
+    Material3ColorScheme({ colors, isDark ->
         colors.copy(surface = if (isDark) Color.purple.colorImpl() else Color.yellow.colorImpl())
     }, content = {
         // ... Original content of this function ...
@@ -1863,18 +1878,18 @@ internal fun PresentationRootView(context: ComposeContext) {
 }
 ```
 
-Skip also provides the SwiftUI `.materialColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `MaterialColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
+Skip also provides the SwiftUI `.material3ColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `Material3ColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
 
 ```swift
 MyView()
     #if SKIP
-    .materialColorScheme { colors, isDark in
+    .material3ColorScheme { colors, isDark in
         colors.copy(surface: isDark ? Color.purple.colorImpl() : Color.yellow.colorImpl())
     }
     #endif
 ```
 
-Skips built-in components use the following Material colors, if you'd like to customize them:
+Skips built-in components use the following Material 3 colors, if you'd like to customize them:
 
 - `surface`
 - `primary`
