@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 // SKIP INSERT: @OptIn(ExperimentalLayoutApi::class)
 @Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
+
     let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
     let preferredColorSchemeCollector = PreferenceCollector<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, state: preferredColorScheme)
     PreferenceValues.shared.collectPreferences([preferredColorSchemeCollector]) {
@@ -97,9 +98,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 
 @Composable func launchUIApplicationActivity() {
     // Modern Skip projects will set the launch activity in Main.kt. This function exists for older projects
-    guard UIApplication.shared.androidActivity == nil else {
-        return
-    }
     var context: Context? = LocalContext.current
     var activity: AppCompatActivity? = nil
     while context != nil {
@@ -116,6 +114,5 @@ import androidx.compose.ui.platform.LocalLayoutDirection
         UIApplication.launch(activity)
     }
 }
-
 
 #endif

@@ -58,8 +58,10 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     ///
     /// This API mirrors `ProcessInfo.launch` for the application context.
     public static func launch(_ activity: AppCompatActivity) {
-        UIApplication.shared.androidActivity = activity
-        UNUserNotificationCenter.launch(activity)
+        if activity !== shared.androidActivity {
+            shared.androidActivity = activity
+            UNUserNotificationCenter.launch(activity)
+        }
     }
     #endif
 
