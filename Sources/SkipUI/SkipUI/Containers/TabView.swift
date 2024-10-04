@@ -102,8 +102,10 @@ public struct TabView : View {
         }
         let bottomBarHeightPx = remember { mutableStateOf(with(density) { defaultBottomBarHeight.toPx() }) }
 
+        // Reduce the tab bar preferences outside the bar composable. Otherwise the reduced value may change
+        // when the bottom bar recomposes
+        let reducedTabBarPreferences = tabBarPreferences.value.reduced
         let bottomBar: @Composable () -> Void = {
-            let reducedTabBarPreferences = tabBarPreferences.value.reduced
             guard tabItems.contains(where: { $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)

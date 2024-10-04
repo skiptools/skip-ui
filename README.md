@@ -247,10 +247,9 @@ There are additional considerations when integrating SwiftUI into a Compose appl
 
 ```kotlin
 val stateHolder = rememberSaveableStateHolder()
-val key = "myUniqueKey"
-stateHolder.SaveableStateProvider(key) {
+stateHolder.SaveableStateProvider("myKey") {
     MySwiftUIRootView().Compose()
-    SideEffect { stateHolder.removeState(key) }
+    SideEffect { stateHolder.removeState("myKey") }
 }
 ```
 

@@ -68,7 +68,6 @@ extension View {
     }
 
     #if SKIP
-    @available(*, deprecated, message: "Use .material3ColorScheme instead")
     public func materialColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
         return material3ColorScheme(scheme)
     }
