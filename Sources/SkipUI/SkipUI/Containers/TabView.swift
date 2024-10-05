@@ -9,6 +9,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,15 +25,18 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -42,6 +46,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -168,23 +173,46 @@ public struct TabView : View {
                 // Pull the tab bar below the keyboard
                 let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                 PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
+                    let tabItemsState = rememberUpdatedState(tabItems)
                     let containerColor = canScrollForward ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
-                    NavigationBar(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor) {
+                    let onItemClick: (Int) -> Void = { tabIndex in
+                        let route = String(describing: tabIndex)
+                        if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                            selection.wrappedValue = tagValue
+                        } else {
+                            navigate(controller: navController, route: route)
+                        }
+                    }
+                    let itemIcon: @Composable (Int) -> Void = { tabIndex in
+                        let tabItem = tabItemsState.value[tabIndex]
+                        tabItem?.ComposeImage(context: tabItemContext)
+                    }
+                    let itemLabel: @Composable (Int) -> Void = { tabIndex in
+                        let tabItem = tabItemsState.value[tabIndex]
+                        tabItem?.ComposeTitle(context: tabItemContext)
+                    }
+                    var options = Material3NavigationBarOptions(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), onItemClick: onItemClick, itemIcon: itemIcon, itemLabel: itemLabel, itemColors: tabBarItemColors)
+                    if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
+                        options = updateOptions(options)
+                    }
+                    NavigationBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
                         for tabIndex in 0..<tabViews.count {
                             let route = String(describing: tabIndex)
-                            let tabItem = tabItems[tabIndex]
-                            NavigationBarItem(
-                                colors: tabBarItemColors,
-                                icon: { tabItem?.ComposeImage(context: tabItemContext) },
-                                label: { tabItem?.ComposeTitle(context: tabItemContext) },
-                                selected: route == currentRoute,
-                                onClick: {
-                                    if let selection, let tagValue = tagValue(route: route, in: tabViews) {
-                                        selection.wrappedValue = tagValue
-                                    } else {
-                                        navigate(controller: navController, route: route)
-                                    }
-                                }
+                            let label: (@Composable () -> Void)?
+                            if let itemLabel = options.itemLabel {
+                                label = { itemLabel(tabIndex)  }
+                            } else {
+                                label = nil
+                            }
+                            NavigationBarItem(selected: route == currentRoute,
+                                onClick: { options.onItemClick(tabIndex) },
+                                icon: { options.itemIcon(tabIndex) },
+                                modifier: options.itemModifier(tabIndex),
+                                enabled: options.itemEnabled(tabIndex),
+                                label: label,
+                                alwaysShowLabel: options.alwaysShowItemLabels,
+                                colors: options.itemColors,
+                                interactionSource: options.itemInteractionSource
                             )
                         }
                     }
@@ -414,7 +442,47 @@ extension View {
         // We only support .automatic
         return self
     }
+
+    #if SKIP
+    public func material3NavigationBar(_ options: @Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions) -> View {
+        return environment(\._material3NavigationBar, options)
+    }
+    #endif
 }
+
+#if SKIP
+public struct Material3NavigationBarOptions {
+    public var modifier: Modifier = Modifier
+    public var containerColor: androidx.compose.ui.graphics.Color
+    public var contentColor: androidx.compose.ui.graphics.Color
+    public var tonalElevation: Dp = NavigationBarDefaults.Elevation
+    public var onItemClick: (Int) -> Void
+    public var itemIcon: @Composable (Int) -> Void
+    public var itemModifier: @Composable (Int) -> Modifier = { _ in Modifier }
+    public var itemEnabled: (Int) -> Boolean = { _ in true }
+    public var itemLabel: (@Composable (Int) -> Void)? = nil
+    public var alwaysShowItemLabels = true
+    public var itemColors: NavigationBarItemColors
+    public var itemInteractionSource: MutableInteractionSource? = nil
+
+    public func copy(
+        modifier: Modifier = self.modifier,
+        containerColor: androidx.compose.ui.graphics.Color = self.containerColor,
+        contentColor: androidx.compose.ui.graphics.Color = self.contentColor,
+        tonalElevation: Dp = self.tonalElevation,
+        onItemClick: (Int) -> Void = self.onItemClick,
+        itemIcon: @Composable (Int) -> Void = self.itemIcon,
+        itemModifier: @Composable (Int) -> Modifier = self.itemModifier,
+        itemEnabled: (Int) -> Boolean = self.itemEnabled,
+        itemLabel: (@Composable (Int) -> Void)? = self.itemLabel,
+        alwaysShowItemLabels: Bool = self.alwaysShowItemLabels,
+        itemColors: NavigationBarItemColors = self.itemColors,
+        itemInteractionSource: MutableInteractionSource? = self.itemInteractionSource
+    ) -> Material3NavigationBarOptions {
+        return Material3NavigationBarOptions(modifier: modifier, containerColor: containerColor, contentColor: contentColor, tonalElevation: tonalElevation, onItemClick: onItemClick, itemIcon: itemIcon, itemModifier: itemModifier, itemEnabled: itemEnabled, itemLabel: itemLabel, alwaysShowItemLabels: alwaysShowItemLabels, itemColors: itemColors, itemInteractionSource: itemInteractionSource)
+    }
+}
+#endif
 
 #if false
 

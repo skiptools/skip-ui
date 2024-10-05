@@ -29,6 +29,11 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         Box(modifier: modifier)
     }
 
+    /// Return the equivalent Compose color.
+    @Composable public func asComposeColor() -> androidx.compose.ui.graphics.Color {
+        return colorImpl()
+    }
+
     // MARK: - ShapeStyle
 
     @Composable override func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {

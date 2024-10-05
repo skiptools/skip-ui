@@ -9,7 +9,6 @@ SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI f
 ![SkipUI Diagram](https://assets.skip.tools/diagrams/skip-diagrams-ui.svg)
 {: .diagram-vector }
 
-
 ## Dependencies
 
 SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
@@ -24,177 +23,11 @@ The module is transparently adopted through the translation of `import SwiftUI` 
 
 ## Status
 
-SkipUI - together with the Skip transpiler - has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. SkipUI also implements many of SwiftUI's basic layout and control views, as well as many core modifiers. It is possible to write an Android app entirely in SwiftUI utilizing SkipUI's current component set.
+SkipUI - together with the Skip transpiler - has robust support for the building blocks of SwiftUI, including its state flow and declarative syntax. SkipUI also implements a large percentage of SwiftUI's components and modifiers. It is possible to write an Android app entirely in SwiftUI utilizing SkipUI's current component set.
 
-SkipUI is a young library, however, and much of SwiftUI's vast surface area is not yet implemented. You are likely to run into limitations while writing real-world apps. See [Supported SwiftUI](#supported-swiftui) for a full list of supported components and constructs.
+SkipUI is a young library, however, and some of SwiftUI's vast surface area is not yet implemented. See [Supported SwiftUI](#supported-swiftui) for a full list of supported API.
 
 When you want to use a SwiftUI construct that has not been implemented, you have options. You can try to find a workaround using only supported components, [embed Compose code directly](#composeview), or [add support to SkipUI](#implementation-strategy). If you choose to enhance SkipUI itself, please consider [contributing](#contributing) your code back for inclusion in the official release.
-
-## Contributing
-
-We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
-
-The most pressing need is to implement more core components and view modifiers. View modifiers in particular are a ripe source of low-hanging fruit. The Compose `Modifier` type often has built-in functions that replicate SwiftUI modifiers, making these SwiftUI modifiers easy to implement.
-To help fill in unimplemented API in SkipUI:
-
-1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`. Note that most unimplemented `View` modifiers are in the `View.swift` source file.
-1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
-1. Write tests and/or showcase code to exercise your component. See [Tests](#tests).
-1. [Submit a PR](https://github.com/skiptools/skip-ui/pulls).
-
-Other forms of contributions such as test cases, comments, and documentation are also welcome!
-
-## Implementation Strategy
-
-### Code Transformations
-
-SkipUI does not work in isolation. It depends on transformations the [skip](https://source.skip.tools/skip) transpiler plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
-
-Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
-
-1. The transpiler inserts code to sync `View` members that have special meanings in SwiftUI - `@State`, `@EnvironmentObject`, etc - with the corresponding Compose state mechanisms, which are not member-based. The syncing goes two ways, so that your `View` members are populated from Compose's state values, and changing your `View` members updates Compose's state values. 
-1. The transpiler turns `@ViewBuilders` - including `View.body` - into `@Composable` function calls.
-
-The second transformation in particular deserves some explanation, because it may help you to understand SkipUI's internal API. Consider the following simple example:
-
-```swift
-struct V: View {
-    let isHello: Bool
-
-    var body: some View {
-        if isHello {
-            Text("Hello!")
-        } else {
-            Text("Goodbye!")
-        }
-    }
-}
-```
-
-The transpilation would look something like the following:
-
-```swift
-class V: View {
-    val isHello: Bool
-
-    constructor(isHello: Bool) {
-        this.isHello = isHello
-    }
-
-    override fun body(): View {
-        return ComposeBuilder { composectx -> 
-            if (isHello) {
-                Text("Hello!").Compose(context = composectx)
-            } else {
-                Text("Goodbye!").Compose(context = composectx)
-            }
-            ComposeResult.ok
-        }
-    }
-
-    ...
-}
-```
-
-Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeBuilder`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that `body` would have returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
-
-Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a `ComposeBuilder`: a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use SkipUI's `ComposeView` yourself to move fluidly between SwiftUI and Compose when writing your Android UI. 
-
-### Implementation Phases
-
-SkipUI contains stubs for the entire SwiftUI framework. API generally goes through three phases:
-
-1. Code that no one has begun to port to Skip starts in `#if !SKIP` blocks. This hides it from the Skip transpiler.
-1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(*, unavailable)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
-    - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
-    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully. Typing will still be enforced in user code by the Swift compiler.
-    - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient. You should, however, leave `View` modifiers that are specific to a given component - e.g. `.navigationTitle` is specific to `NavigationStack` - within the component's source file.
-1. Finally, we add a Compose implementation and remove any `unavailable` attribute.
-
-Note that SkipUI should remain buildable throughout this process. Being able to successfully compile SkipUI in Xcode helps us validate that our ported components still mesh with the rest of the framework.
-
-### Components
-
-Before implementing a component, familiarize yourself with SkipUI's `View` protocol in `Sources/View/View.swift` as well as the files in the `Sources/Compose` directory. It is also helpful to browse the source code for components and modifiers that have already been ported. See the table of [Supported SwiftUI](#supported-swiftui).
-
-The `Text` view exemplifies a typical SwiftUI component implementation. Here is an abbreviated code sample:
-
-```swift
-public struct Text: View, Equatable, Sendable {
-    let text: String
-
-    public init(_ text: String) {
-        self.text = text
-    }
-
-    ...
-
-    #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let modifier = context.modifier
-        let font = EnvironmentValues.shared.font ?? Font(fontImpl: { LocalTextStyle.current })
-        ...
-        androidx.compose.material3.Text(text: text, modifier: modifier, style: font.fontImpl(), ...)
-    }
-    #else
-    public var body: some View {
-        stubView()
-    }
-    #endif
-}
-
-```
-
-As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `View.ComposeContent` function for Android, while we stub the `body` var to satisfy the Swift compiler. `ComposeContent` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `ComposeContent` would call `child.Compose(context: context.content())` to compose its child content. (Note that `View.Compose(context:)` delegates to `View.ComposeContent(context:)` after performing other bookkeeping operations, which is why we override `ComposeContent` rather than `Compose`.)
-
-### Modifiers
-
-Modifiers, on the other hand, use the `ComposeModifierView` to perform actions, including changing the `context` passed to the modified view. Here is the `.opacity` modifier:
-
-```swift
-extension View {
-    public func opacity(_ opacity: Double) -> some View {
-        #if SKIP
-        return ComposeModifierView(targetView: self) { context in
-            context.modifier = context.modifier.alpha(Float(opacity))
-            return ComposeResult.ok
-        }
-        #else
-        return self
-        #endif
-    }
-}
-```
-
-Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
-
-```swift
-extension View {
-    public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
-        #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
-            var modifier = context.modifier
-            if let width {
-                modifier = modifier.width(width.dp)
-            }
-            if let height {
-                modifier = modifier.height(height.dp)
-            }
-            let contentContext = context.content()
-            ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
-                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    view.Compose(context: contentContext)
-                }
-            }
-        }
-        #else
-        return self
-        #endif
-    }
-}
-```
-
-Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 
 ## ComposeView
 
@@ -275,12 +108,197 @@ TextField("Enter username:", text: $username)
 
 Like `ComposeView`, the `composeModifier` function is only available in Android, so you must guard all uses with the `#if SKIP` or `#if os(Android)` compiler directives. 
 
-## Tests
+## Material
 
-SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
+Under the hood, SkipUI uses Android's Material 3 colors and components. While we expect you to use SwiftUI's built-in color schemes (`.preferredColorScheme`) and modifiers (`.background`, `.foregroundStyle`, `.tint`, and so on) for most UI styling, there are some Android customizations that have no SwiftUI equivalent. Skip therefore adds additional, Android-only API for manipulating Material colors and components.
 
-Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase). Whenever you add or update support for a visible element of SwiftUI, make sure there is a showcase view that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the showcase app becomes a demonstration of supported SwiftUI components on Android over time.
+### Material Colors
 
+By default, Skip uses Material 3's dynamic colors on devices that support them, and falls back to Material 3's standard colors otherwise. You can customize these colors in Compose code using the following function: 
+
+```kotlin
+Material3ColorScheme(scheme: (@Composable (ColorScheme, Boolean) -> ColorScheme)?, content: @Composable () -> Unit)
+```
+
+The `scheme` argument takes a closure with two arguments: Skip's default `androidx.compose.material3.ColorScheme`, and whether dark mode is being requested. Your closure returns the `androidx.compose.material3.ColorScheme` to use for the supplied content.
+
+For example, to customize the surface colors for your entire app, you could edit `Main.kt` as follows:
+
+```kotlin
+@Composable
+internal fun PresentationRootView(context: ComposeContext) {
+    Material3ColorScheme({ colors, isDark ->
+        colors.copy(surface = if (isDark) Color.purple.asComposeColor() else Color.yellow.asComposeColor())
+    }, content = {
+        // ... Original content of this function ...
+    })
+}
+```
+
+Skip also provides the SwiftUI `.material3ColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `Material3ColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
+
+```swift
+MyView()
+    #if SKIP
+    .material3ColorScheme { colors, isDark in
+        colors.copy(surface: isDark ? Color.purple.asComposeColor() : Color.yellow.asComposeColor())
+    }
+    #endif
+```
+
+Skip/'s built-in components use the following Material 3 colors, if you'd like to customize them:
+
+- `surface`
+- `primary`
+- `onBackground`
+- `outline`
+- `outlineVariant`
+
+### Material Components
+
+In addition to the `.material3ColorScheme` modifier detailed above, Skip includes many other `.material3` modifiers for its underlying Material 3 components. This family of modifiers share a common API pattern:
+
+- The modifiers take a closure argument. This closure receives a `Material3<Component>Options` struct configured with Skip's defaults, and it returns a struct with any desired modifications.
+- Every `Material3<Component>Options` struct implements a conventional Kotlin `copy` method. This allows you to copy and modify the struct in a single call.
+- The modifiers place your closure into the SwiftUI `Environment`. This means that you can apply the modifier on a root view, and it will affect all subviews. While you may be used to placing navigation and tab bar modifiers on the views *within* the `NavigationStack` or `TabView`, the `.material3` family of modifiers always go *on or outside* the views you want to affect.
+- Because they are designed to reach beneath Skip's SwiftUI covers, the modifiers use Compose terminology and types. In fact the properties of the supplied `Material3<Component>Options` structs typically exactly match the corresponding Material component function parameters.
+
+You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary).
+{: class="callout info"}
+
+Here is an example of changing the selected indicator color on your Android tab bar, which is implemented by the Material 3 `NavigationBar` component:
+
+```swift
+TabView {
+    ...
+}
+#if SKIP
+.material3NavigationBar { options in 
+    let updatedColors = options.itemColors.copy(selectedIndicatorColor: Color.green.asComposeColor())
+    return options.copy(itemColors: updatedColors) 
+}
+#endif
+```
+
+SkipUI currently includes the following Material modifiers:
+
+```swift
+extension View {
+    public func material3BottomAppBar(_ options: @Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions) -> some View
+}
+
+public struct Material3BottomAppBarOptions {
+}
+
+extension View {
+    public func material3Button(_ options: @Composable (Material3ButtonOptions) -> Material3ButtonOptions) -> some View
+}
+
+public struct Material3ButtonOptions {
+    public var modifier: Modifier
+    public var containerColor: Color
+    public var contentColor: Color
+    public var tonalElevation: Dp
+    public var contentPadding: PaddingValues
+}
+
+extension View {
+    public func material3NavigationBar(_ options: @Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions) -> some View
+}
+
+public struct Material3NavigationBarOptions {
+    public var modifier: Modifier
+    public var containerColor: Color
+    public var contentColor: Color
+    public var tonalElevation: Dp
+    public var onItemClick: (Int) -> Void
+    public var itemIcon: @Composable (Int) -> Void
+    public var itemModifier: @Composable (Int) -> Modifier
+    public var itemEnabled: (Int) -> Boolean
+    public var itemLabel: (@Composable (Int) -> Void)?
+    public var alwaysShowItemLabels: Bool
+    public var itemColors: NavigationBarItemColors
+    public var itemInteractionSource: MutableInteractionSource?
+}
+
+extension View {
+    public func material3Text(_ options: @Composable (Material3TextOptions) -> Material3TextOptions) -> some View
+}
+
+public struct Material3TextOptions {
+    public var text: String?
+    public var annotatedText: AnnotatedString?
+    public var modifier: Modifier
+    public var color: Color
+    public var fontSize: TextUnit
+    public var fontStyle: FontStyle?
+    public var fontWeight: FontWeight?
+    public var fontFamily: FontFamily?
+    public var letterSpacing: TextUnit
+    public var textDecoration: TextDecoration?
+    public var textAlign: TextAlign?
+    public var lineHeight: TextUnit
+    public var overflow: TextOverflow
+    public var softWrap: Bool
+    public var maxLines: Int
+    public var minLines: Int
+    public var onTextLayout: ((TextLayoutResult) -> Void)?
+    public var style: TextStyle
+}
+
+extension View {
+    public func material3TextField(_ options: @Composable (Material3TextFieldOptions) -> Material3TextFieldOptions) -> some View
+}
+
+public struct Material3TextFieldOptions {
+    public var value: String
+    public var onValueChange: (String) -> Void
+    public var modifier: Modifier
+    public var enabled: Bool
+    public var readOnly: Bool
+    public var textStyle: TextStyle
+    public var label: (@Composable () -> Void)?
+    public var placeholder: (@Composable () -> Void)?
+    public var leadingIcon: (@Composable () -> Void)?
+    public var trailingIcon: (@Composable () -> Void)?
+    public var prefix: (@Composable () -> Void)?
+    public var suffix: (@Composable () -> Void)? 
+    public var supportingText: (@Composable () -> Void)?
+    public var isError: Bool
+    public var visualTransformation: VisualTransformation
+    public var keyboardOptions: KeyboardOptions
+    public var keyboardActions: KeyboardActions
+    public var singleLine: Bool
+    public var maxLines: Int
+    public var minLines: Int
+    public var interactionSource: MutableInteractionSource?
+    public var shape: Shape
+    public var colors: TextFieldColors
+}
+
+extension View {
+    public func material3TopAppBar(_ options: @Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions) -> some View
+}
+
+public struct Material3TopAppBarOptions {
+    public var title: @Composable () -> Void
+    public var modifier: Modifier
+    public var navigationIcon: @Composable () -> Void
+    public var colors: TopAppBarColors
+    public var scrollBehavior: TopAppBarScrollBehavior?
+    public var preferCenterAlignedStyle: Bool
+    public var preferLargeStyle: Bool
+}
+```
+
+Note that `.material3TopAppBar` involves API that Compose deems experimental, so to do so you have to add the following to your `View` declaration:
+
+```swift
+// SKIP INSERT: @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+struct MyView: View {
+    ...
+}
+```
 
 ## Supported SwiftUI
 
@@ -388,7 +406,6 @@ Support levels:
                   <li><code>static let brown: Color</code></li>
                   <li><code>func opacity(_ opacity: Double) -> Color</code></li>
                   <li><code>var gradient: AnyGradient</code></li>
-                  <li>See also <a href="#colors">Colors</a></li>
               </ul>
           </details>      
        </td>
@@ -1048,7 +1065,7 @@ Support levels:
             <details>
               <summary><code>.colorScheme </code></summary>
               <ul>
-                  <li>See also <a href="#colors">Colors</a></li>
+                  <li>See also <a href="#colorscheme">ColorScheme</a></li>
               </ul>
           </details> 
       </td>
@@ -1348,7 +1365,7 @@ Support levels:
             <details>
               <summary><code>.preferredColorScheme</code></summary>
               <ul>
-                  <li>See <a href="#preferred-color-scheme">Preferred Color Scheme</a></li>
+                  <li>See also <a href="#colorscheme">ColorScheme</a></li>
               </ul>
           </details> 
       </td>
@@ -1854,49 +1871,7 @@ Skip converts the various SwiftUI animation types to their Compose equivalents. 
 
 Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
 
-### Colors
-
-Skip adds additional Android-only API that allows you to customize the Material colors used for your app's light and dark colors schemes. By default, Skip uses Material 3's dynamic colors on devices that support them, and falls back to Material 3's standard colors otherwise. You can customize these colors in Compose code using the following function: 
-
-```kotlin
-Material3ColorScheme(scheme: (@Composable (ColorScheme, Boolean) -> ColorScheme)?, content: @Composable () -> Unit)
-```
-
-The `scheme` argument takes a closure with two arguments: the default `androidx.compose.material3.ColorScheme`, and whether dark mode is being requested. Your closure returns the `androidx.compose.material3.ColorScheme` to use for the supplied content.
-
-For example, to customize the surface colors for your app, you could edit `Main.kt` as follows:
-
-```kotlin
-@Composable
-internal fun PresentationRootView(context: ComposeContext) {
-    Material3ColorScheme({ colors, isDark ->
-        colors.copy(surface = if (isDark) Color.purple.colorImpl() else Color.yellow.colorImpl())
-    }, content = {
-        // ... Original content of this function ...
-    })
-}
-```
-
-Skip also provides the SwiftUI `.material3ColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `Material3ColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
-
-```swift
-MyView()
-    #if SKIP
-    .material3ColorScheme { colors, isDark in
-        colors.copy(surface: isDark ? Color.purple.colorImpl() : Color.yellow.colorImpl())
-    }
-    #endif
-```
-
-Skips built-in components use the following Material 3 colors, if you'd like to customize them:
-
-- `surface`
-- `primary`
-- `onBackground`
-- `outline`
-- `outlineVariant`
-
-#### Preferred Color Scheme
+### ColorScheme
 
 SkipUI fully supports the `.preferredColorScheme` modifier. If you created your app with the `skip` tool prior to v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
 
@@ -2316,3 +2291,175 @@ override fun onCreate(savedInstanceState: android.os.Bundle?) {
 ```
 
 With these updates in place, your app should extend below the system bars. If you're running a modern SkipUI version and want to *disable* edge-to-edge mode, simply remove the `enableEdgeToEdge()` call.
+
+## Contributing
+
+We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
+
+The most pressing need is to implement more core components and view modifiers. View modifiers in particular are a ripe source of low-hanging fruit. The Compose `Modifier` type often has built-in functions that replicate SwiftUI modifiers, making these SwiftUI modifiers easy to implement.
+To help fill in unimplemented API in SkipUI:
+
+1. Find unimplemented API. Unimplemented API will either be within `#if !SKIP` blocks, or will be marked with `@available(*, unavailable)`. Note that most unimplemented `View` modifiers are in the `View.swift` source file.
+1. Write an appropriate Compose implementation. See [Implementation Strategy](#implementation-strategy) below.
+1. Write tests and/or showcase code to exercise your component. See [Tests](#tests).
+1. [Submit a PR](https://github.com/skiptools/skip-ui/pulls).
+
+Other forms of contributions such as test cases, comments, and documentation are also welcome!
+
+## Tests
+
+SkipUI utilizes a combination of unit tests, UI tests, and basic snapshot tests in which the snapshots are converted into ASCII art for easy processing. 
+
+Perhaps the most common way to test SkipUI's support for a SwiftUI component, however, is through the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase). Whenever you add or update support for a visible element of SwiftUI, make sure there is a showcase view that exercises the element. This not only gives us a mechanism to test appearance and behavior, but the showcase app becomes a demonstration of supported SwiftUI components on Android over time.
+
+## Implementation Strategy
+
+### Code Transformations
+
+SkipUI does not work in isolation. It depends on transformations the [skip](https://source.skip.tools/skip) transpiler plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+
+Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
+
+1. The transpiler inserts code to sync `View` members that have special meanings in SwiftUI - `@State`, `@EnvironmentObject`, etc - with the corresponding Compose state mechanisms, which are not member-based. The syncing goes two ways, so that your `View` members are populated from Compose's state values, and changing your `View` members updates Compose's state values. 
+1. The transpiler turns `@ViewBuilders` - including `View.body` - into `@Composable` function calls.
+
+The second transformation in particular deserves some explanation, because it may help you to understand SkipUI's internal API. Consider the following simple example:
+
+```swift
+struct V: View {
+    let isHello: Bool
+
+    var body: some View {
+        if isHello {
+            Text("Hello!")
+        } else {
+            Text("Goodbye!")
+        }
+    }
+}
+```
+
+The transpilation would look something like the following:
+
+```swift
+class V: View {
+    val isHello: Bool
+
+    constructor(isHello: Bool) {
+        this.isHello = isHello
+    }
+
+    override fun body(): View {
+        return ComposeBuilder { composectx -> 
+            if (isHello) {
+                Text("Hello!").Compose(context = composectx)
+            } else {
+                Text("Goodbye!").Compose(context = composectx)
+            }
+            ComposeResult.ok
+        }
+    }
+
+    ...
+}
+```
+
+Notice the changes to the `body` content. Rather than returning an arbitrary view tree, the transpiled `body` always returns a single `ComposeBuilder`, a special SkipUI view type that invokes a `@Composable` block. The logic of the original `body` is now within that block, and any `View` that `body` would have returned instead invokes its own `Compose(context:)` function to render the corresponding Compose component. The `Compose(context:)` function is part of SkipUI's `View` API.
+
+Thus the transpiler is able to turn any `View.body` - actually any `@ViewBuilder` - into a `ComposeBuilder`: a block of Compose code that it can invoke to render the desired content. A [later section](#composeview) details how you can use SkipUI's `ComposeView` yourself to move fluidly between SwiftUI and Compose when writing your Android UI. 
+
+### Implementation Phases
+
+SkipUI contains stubs for the entire SwiftUI framework. API generally goes through three phases:
+
+1. Code that no one has begun to port to Skip starts in `#if !SKIP` blocks. This hides it from the Skip transpiler.
+1. The first implementation step is to move code out of `#if !SKIP` blocks so that it will be transpiled. This is helpful on its own, even if you just mark the API `@available(*, unavailable)` because you are not ready to implement it for Compose. An `unavailable` attribute will provide Skip users with a clear error message, rather than relying on the Kotlin compiler to complain about unfound API.
+    - When moving code out of a `#if !SKIP` block, please strip Apple's extensive API comments. There is no reason for Skip to duplicate the official SwiftUI documentation, and it obscures any Skip-specific implementation comments we may add.
+    - SwiftUI uses complex generics extensively, and the generics systems of Swift and Kotlin have significant differences. You may have to replace some generics or generic constraints with looser typing in order to transpile successfully. Typing will still be enforced in user code by the Swift compiler.
+    - Reducing the number of Swift extensions and instead folding API into the primary declaration of a type can make Skip's internal symbol storage more efficient. You should, however, leave `View` modifiers that are specific to a given component - e.g. `.navigationTitle` is specific to `NavigationStack` - within the component's source file.
+1. Finally, we add a Compose implementation and remove any `unavailable` attribute.
+
+Note that SkipUI should remain buildable throughout this process. Being able to successfully compile SkipUI in Xcode helps us validate that our ported components still mesh with the rest of the framework.
+
+### Components
+
+Before implementing a component, familiarize yourself with SkipUI's `View` protocol in `Sources/View/View.swift` as well as the files in the `Sources/Compose` directory. It is also helpful to browse the source code for components and modifiers that have already been ported. See the table of [Supported SwiftUI](#supported-swiftui).
+
+The `Text` view exemplifies a typical SwiftUI component implementation. Here is an abbreviated code sample:
+
+```swift
+public struct Text: View, Equatable, Sendable {
+    let text: String
+
+    public init(_ text: String) {
+        self.text = text
+    }
+
+    ...
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let modifier = context.modifier
+        let font = EnvironmentValues.shared.font ?? Font(fontImpl: { LocalTextStyle.current })
+        ...
+        androidx.compose.material3.Text(text: text, modifier: modifier, style: font.fontImpl(), ...)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+```
+
+As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `View.ComposeContent` function for Android, while we stub the `body` var to satisfy the Swift compiler. `ComposeContent` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `ComposeContent` would call `child.Compose(context: context.content())` to compose its child content. (Note that `View.Compose(context:)` delegates to `View.ComposeContent(context:)` after performing other bookkeeping operations, which is why we override `ComposeContent` rather than `Compose`.)
+
+### Modifiers
+
+Modifiers, on the other hand, use the `ComposeModifierView` to perform actions, including changing the `context` passed to the modified view. Here is the `.opacity` modifier:
+
+```swift
+extension View {
+    public func opacity(_ opacity: Double) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            context.modifier = context.modifier.alpha(Float(opacity))
+            return ComposeResult.ok
+        }
+        #else
+        return self
+        #endif
+    }
+}
+```
+
+Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
+
+```swift
+extension View {
+    public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            var modifier = context.modifier
+            if let width {
+                modifier = modifier.width(width.dp)
+            }
+            if let height {
+                modifier = modifier.height(height.dp)
+            }
+            let contentContext = context.content()
+            ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
+                Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
+                    view.Compose(context: contentContext)
+                }
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+}
+```
+
+Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
