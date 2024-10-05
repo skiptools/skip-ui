@@ -161,7 +161,7 @@ In addition to the `.material3ColorScheme` modifier detailed above, Skip include
 - The modifiers take a closure argument. This closure receives a `Material3<Component>Options` struct configured with Skip's defaults, and it returns a struct with any desired modifications.
 - Every `Material3<Component>Options` struct implements a conventional Kotlin `copy` method. This allows you to copy and modify the struct in a single call.
 - The modifiers place your closure into the SwiftUI `Environment`. This means that you can apply the modifier on a root view, and it will affect all subviews. While you may be used to placing navigation and tab bar modifiers on the views *within* the `NavigationStack` or `TabView`, the `.material3` family of modifiers always go *on or outside* the views you want to affect.
-- Because they are designed to reach beneath Skip's SwiftUI covers, the modifiers use Compose terminology and types. In fact the properties of the supplied `Material3<Component>Options` structs typically exactly match the corresponding Material component function parameters.
+- Because they are designed to reach beneath Skip's SwiftUI covers, the modifiers use Compose terminology and types. In fact the properties of the supplied `Material3<Component>Options` structs typically exactly match the corresponding `androidx.compose.material3` component function parameters.
 
 You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary).
 {: class="callout info"}
@@ -188,11 +188,11 @@ extension View {
 }
 
 public struct Material3BottomAppBarOptions {
-    public var modifier: Modifier
-    public var containerColor: Color
-    public var contentColor: Color
-    public var tonalElevation: Dp
-    public var contentPadding: PaddingValues
+    public var modifier: androidx.compose.ui.Modifier
+    public var containerColor: androidx.compose.ui.graphics.Color
+    public var contentColor: androidx.compose.ui.graphics.Color
+    public var tonalElevation: androidx.compose.ui.unit.Dp
+    public var contentPadding: androidx.compose.foundation.layout.PaddingValues
 }
 
 extension View {
@@ -201,14 +201,14 @@ extension View {
 
 public struct Material3ButtonOptions {
     public var onClick: () -> Void
-    public var modifier: Modifier
+    public var modifier: androidx.compose.ui.Modifier
     public var enabled: Bool
-    public var shape: Shape
-    public var colors: ButtonColors
-    public var elevation: ButtonElevation?
-    public var border: BorderStroke?
-    public var contentPadding: PaddingValues
-    public var interactionSource: MutableInteractionSource?
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: androidx.compose.material3.ButtonColors
+    public var elevation: androidx.compose.material3.ButtonElevation?
+    public var border: androidx.compose.foundation.BorderStroke?
+    public var contentPadding: androidx.compose.foundation.layout.PaddingValues
+    public var interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?
 }
 
 extension View {
@@ -216,18 +216,18 @@ extension View {
 }
 
 public struct Material3NavigationBarOptions {
-    public var modifier: Modifier
-    public var containerColor: Color
-    public var contentColor: Color
-    public var tonalElevation: Dp
+    public var modifier: androidx.compose.ui.Modifier
+    public var containerColor: androidx.compose.ui.graphics.Color
+    public var contentColor: androidx.compose.ui.graphics.Color
+    public var tonalElevation: androidx.compose.ui.unit.Dp
     public var onItemClick: (Int) -> Void
     public var itemIcon: @Composable (Int) -> Void
-    public var itemModifier: @Composable (Int) -> Modifier
+    public var itemModifier: @Composable (Int) -> androidx.compose.ui.Modifier
     public var itemEnabled: (Int) -> Boolean
     public var itemLabel: (@Composable (Int) -> Void)?
     public var alwaysShowItemLabels: Bool
-    public var itemColors: NavigationBarItemColors
-    public var itemInteractionSource: MutableInteractionSource?
+    public var itemColors: androidx.compose.material3.NavigationBarItemColors
+    public var itemInteractionSource: androidx.compose.foundation.interaction.MutableInteractionSource?
 }
 
 extension View {
@@ -237,22 +237,22 @@ extension View {
 public struct Material3TextOptions {
     public var text: String?
     public var annotatedText: AnnotatedString?
-    public var modifier: Modifier
-    public var color: Color
-    public var fontSize: TextUnit
-    public var fontStyle: FontStyle?
-    public var fontWeight: FontWeight?
-    public var fontFamily: FontFamily?
-    public var letterSpacing: TextUnit
-    public var textDecoration: TextDecoration?
-    public var textAlign: TextAlign?
-    public var lineHeight: TextUnit
-    public var overflow: TextOverflow
+    public var modifier: androidx.compose.ui.Modifier
+    public var color: androidx.compose.ui.graphics.Color
+    public var fontSize: androidx.compose.ui.unit.TextUnit
+    public var fontStyle: androidx.compose.ui.text.font.FontStyle?
+    public var fontWeight: androidx.compose.ui.text.font.FontWeight?
+    public var fontFamily: androidx.compose.ui.text.font.FontFamily?
+    public var letterSpacing: androidx.compose.ui.unit.TextUnit
+    public var textDecoration: androidx.compose.ui.text.style.TextDecoration?
+    public var textAlign: androidx.compose.ui.text.style.TextAlign?
+    public var lineHeight: androidx.compose.ui.unit.TextUnit
+    public var overflow: androidx.compose.ui.text.style.TextOverflow
     public var softWrap: Bool
     public var maxLines: Int
     public var minLines: Int
-    public var onTextLayout: ((TextLayoutResult) -> Void)?
-    public var style: TextStyle
+    public var onTextLayout: ((androidx.compose.ui.text.TextLayoutResult) -> Void)?
+    public var style: androidx.compose.ui.text.style.TextStyle
 }
 
 extension View {
@@ -262,10 +262,10 @@ extension View {
 public struct Material3TextFieldOptions {
     public var value: String
     public var onValueChange: (String) -> Void
-    public var modifier: Modifier
+    public var modifier: androidx.compose.ui.Modifier
     public var enabled: Bool
     public var readOnly: Bool
-    public var textStyle: TextStyle
+    public var textStyle: androidx.compose.ui.text.TextStyle
     public var label: (@Composable () -> Void)?
     public var placeholder: (@Composable () -> Void)?
     public var leadingIcon: (@Composable () -> Void)?
@@ -274,15 +274,15 @@ public struct Material3TextFieldOptions {
     public var suffix: (@Composable () -> Void)? 
     public var supportingText: (@Composable () -> Void)?
     public var isError: Bool
-    public var visualTransformation: VisualTransformation
-    public var keyboardOptions: KeyboardOptions
-    public var keyboardActions: KeyboardActions
+    public var visualTransformation: androidx.compose.ui.text.input.VisualTransformation
+    public var keyboardOptions: androidx.compose.foundation.text.KeyboardOptions
+    public var keyboardActions: androidx.compose.foundation.text.KeyboardActions
     public var singleLine: Bool
     public var maxLines: Int
     public var minLines: Int
-    public var interactionSource: MutableInteractionSource?
-    public var shape: Shape
-    public var colors: TextFieldColors
+    public var interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: androidx.compose.material3.TextFieldColors
 }
 
 extension View {
@@ -291,10 +291,10 @@ extension View {
 
 public struct Material3TopAppBarOptions {
     public var title: @Composable () -> Void
-    public var modifier: Modifier
+    public var modifier: androidx.compose.ui.Modifier
     public var navigationIcon: @Composable () -> Void
-    public var colors: TopAppBarColors
-    public var scrollBehavior: TopAppBarScrollBehavior?
+    public var colors: androidx.compose.material3.TopAppBarColors
+    public var scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior?
     public var preferCenterAlignedStyle: Bool
     public var preferLargeStyle: Bool
 }
