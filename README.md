@@ -146,7 +146,7 @@ MyView()
     #endif
 ```
 
-Skip/'s built-in components use the following Material 3 colors, if you'd like to customize them:
+Skip's built-in components use the following Material 3 colors, if you'd like to customize them:
 
 - `surface`
 - `primary`
@@ -188,6 +188,11 @@ extension View {
 }
 
 public struct Material3BottomAppBarOptions {
+    public var modifier: Modifier
+    public var containerColor: Color
+    public var contentColor: Color
+    public var tonalElevation: Dp
+    public var contentPadding: PaddingValues
 }
 
 extension View {
@@ -195,11 +200,15 @@ extension View {
 }
 
 public struct Material3ButtonOptions {
+    public var onClick: () -> Void
     public var modifier: Modifier
-    public var containerColor: Color
-    public var contentColor: Color
-    public var tonalElevation: Dp
+    public var enabled: Bool
+    public var shape: Shape
+    public var colors: ButtonColors
+    public var elevation: ButtonElevation?
+    public var border: BorderStroke?
     public var contentPadding: PaddingValues
+    public var interactionSource: MutableInteractionSource?
 }
 
 extension View {
@@ -291,7 +300,7 @@ public struct Material3TopAppBarOptions {
 }
 ```
 
-Note that `.material3TopAppBar` involves API that Compose deems experimental, so to do so you have to add the following to your `View` declaration:
+Note that `.material3TopAppBar` involves API that Compose deems experimental, so you must add the following to any `View` where you use it:
 
 ```swift
 // SKIP INSERT: @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
