@@ -5,12 +5,16 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -83,12 +87,16 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.filledTonalButtonColors()
                 }
+                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled, shape: ButtonDefaults.filledTonalShape, colors: colors, elevation: ButtonDefaults.filledTonalButtonElevation())
+                if let updateOptions = EnvironmentValues.shared._material3Button {
+                    options = updateOptions(options)
+                }
                 let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.systemTextColor))
                 } in: {
-                    FilledTonalButton(onClick: action, modifier: modifier, enabled: isEnabled, colors: colors) {
+                    FilledTonalButton(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
                     }
                 }
@@ -101,12 +109,16 @@ public struct Button : View, ListItemAdapting {
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
+                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled, shape: ButtonDefaults.shape, colors: colors, elevation: ButtonDefaults.buttonElevation())
+                if let updateOptions = EnvironmentValues.shared._material3Button {
+                    options = updateOptions(options)
+                }
                 let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.systemTextColor))
                 } in: {
-                    androidx.compose.material3.Button(onClick: action, modifier: modifier, enabled: isEnabled, colors: colors) {
+                    androidx.compose.material3.Button(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
                     }
                 }
@@ -196,7 +208,42 @@ extension View {
     public func buttonBorderShape(_ shape: Any) -> some View {
         return self
     }
+
+    #if SKIP
+    /// Compose button customization.
+    public func material3Button(_ options: @Composable (Material3ButtonOptions) -> Material3ButtonOptions) -> View {
+        return environment(\._material3Button, options)
+    }
+    #endif
 }
+
+#if SKIP
+public struct Material3ButtonOptions {
+    public var onClick: () -> Void
+    public var modifier: Modifier = Modifier
+    public var enabled = true
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: ButtonColors
+    public var elevation: ButtonElevation? = nil
+    public var border: BorderStroke? = nil
+    public var contentPadding: PaddingValues = ButtonDefaults.ContentPadding
+    public var interactionSource: MutableInteractionSource? = nil
+
+    public func copy(
+        onClick: () -> Void = self.onClick,
+        modifier: Modifier = self.modifier,
+        enabled: Bool = self.enabled,
+        shape: androidx.compose.ui.graphics.Shape = self.shape,
+        colors: ButtonColors = self.colors,
+        elevation: ButtonElevation? = self.elevation,
+        border: BorderStroke? = self.border,
+        contentPadding: PaddingValues = self.contentPadding,
+        interactionSource: MutableInteractionSource? = self.interactionSource
+    ) -> Material3ButtonOptions {
+        return Material3ButtonOptions(onClick: onClick, modifier: modifier, enabled: enabled, shape: shape, colors: colors, elevation: elevation, border: border, contentPadding: contentPadding, interactionSource: interactionSource)
+    }
+}
+#endif
 
 #if false
 

@@ -5,16 +5,20 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -74,11 +78,15 @@ public struct TextField : View {
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = Self.colors(context: context)
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
-        OutlinedTextField(value: text.wrappedValue, onValueChange: {
+        var options = Material3TextFieldOptions(value: text.wrappedValue, onValueChange: {
             text.wrappedValue = $0
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), enabled: EnvironmentValues.shared.isEnabled, singleLine: true, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, colors: colors, visualTransformation: visualTransformation)
+        }, modifier: context.modifier.fillWidth(), textStyle: LocalTextStyle.current, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
+        if let updateOptions = EnvironmentValues.shared._material3TextField {
+            options = updateOptions(options)
+        }
+        OutlinedTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, label: options.label, placeholder: options.placeholder, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, isError: options.isError, visualTransformation: options.visualTransformation, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, interactionSource: options.interactionSource, shape: options.shape, colors: options.colors)
     }
 
     @Composable static func textColor(enabled: Bool, context: ComposeContext) -> androidx.compose.ui.graphics.Color {
@@ -234,8 +242,69 @@ extension View {
             }
         }
     }
+
+    /// Compose text field customization.
+    public func material3TextField(_ options: @Composable (Material3TextFieldOptions) -> Material3TextFieldOptions) -> View {
+        return environment(\._material3TextField, options)
+    }
     #endif
 }
+
+#if SKIP
+public struct Material3TextFieldOptions {
+    public var value: String
+    public var onValueChange: (String) -> Void
+    public var modifier: Modifier = Modifier
+    public var enabled = true
+    public var readOnly = false
+    public var textStyle: TextStyle
+    public var label: (@Composable () -> Void)? = nil
+    public var placeholder: (@Composable () -> Void)? = nil
+    public var leadingIcon: (@Composable () -> Void)? = nil
+    public var trailingIcon: (@Composable () -> Void)? = nil
+    public var prefix: (@Composable () -> Void)? = nil
+    public var suffix: (@Composable () -> Void)? = nil
+    public var supportingText: (@Composable () -> Void)? = nil
+    public var isError = false
+    public var visualTransformation: VisualTransformation = VisualTransformation.None
+    public var keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+    public var keyboardActions: KeyboardActions = KeyboardActions.Default
+    public var singleLine = false
+    public var maxLines = Int.max
+    public var minLines = 1
+    public var interactionSource: MutableInteractionSource? = nil
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: TextFieldColors
+
+    public func copy(
+        value: String = self.value,
+        onValueChange: (String) -> Void = self.onValueChange,
+        modifier: Modifier = self.modifier,
+        enabled: Bool = self.enabled,
+        readOnly: Bool = self.readOnly,
+        textStyle: TextStyle = self.textStyle,
+        label: (@Composable () -> Void)? = self.label,
+        placeholder: (@Composable () -> Void)? = self.placeholder,
+        leadingIcon: (@Composable () -> Void)? = self.leadingIcon,
+        trailingIcon: (@Composable () -> Void)? = self.trailingIcon,
+        prefix: (@Composable () -> Void)? = self.prefix,
+        suffix: (@Composable () -> Void)? = self.suffix,
+        supportingText: (@Composable () -> Void)? = self.supportingText,
+        isError: Bool = self.isError,
+        visualTransformation: VisualTransformation = self.visualTransformation,
+        keyboardOptions: KeyboardOptions = self.keyboardOptions,
+        keyboardActions: KeyboardActions = self.keyboardActions,
+        singleLine: Bool = self.singleLine,
+        maxLines: Int = Int.MAX_VALUE,
+        minLines: Int = self.minLines,
+        interactionSource: MutableInteractionSource? = self.interactionSource,
+        shape: androidx.compose.ui.graphics.Shape = self.shape,
+        colors: TextFieldColors = self.colors
+    ) -> Material3TextFieldOptions {
+        return Material3TextFieldOptions(value: value, onValueChange: onValueChange, modifier: modifier, enabled: enabled, readOnly: readOnly, textStyle: textStyle, label: label, placeholder: placeholder, leadingIcon: leadingIcon, trailingIcon: trailingIcon, prefix: prefix, suffix: suffix, supportingText: supportingText, isError: isError, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: singleLine, maxLines: maxLines, minLines: minLines, interactionSource: interactionSource, shape: shape, colors: colors)
+    }
+}
+#endif
 
 /// State for `onSubmit` actions.
 struct OnSubmitState {

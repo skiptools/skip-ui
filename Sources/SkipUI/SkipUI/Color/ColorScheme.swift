@@ -38,7 +38,7 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
         } else {
             colorScheme = isDynamicColor ? dynamicLightColorScheme(context) : lightColorScheme()
         }
-        guard let customization = EnvironmentValues.shared._materialColorScheme else {
+        guard let customization = EnvironmentValues.shared._material3ColorScheme else {
             return colorScheme
         }
         return customization(colorScheme, isDarkMode)
@@ -73,7 +73,7 @@ extension View {
     }
 
     public func material3ColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
-        return environment(\._materialColorScheme, scheme)
+        return environment(\._material3ColorScheme, scheme)
     }
     #endif
 }
@@ -85,7 +85,7 @@ extension View {
 
 @Composable public func Material3ColorScheme(_ scheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?, content: @Composable () -> Void) {
     EnvironmentValues.shared.setValues {
-        $0.set_materialColorScheme(scheme)
+        $0.set_material3ColorScheme(scheme)
     } in: {
         content()
     }

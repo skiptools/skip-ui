@@ -39,8 +39,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -337,15 +342,27 @@ public struct NavigationStack<Root> : View where Root: View {
                         let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                         topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
                     }
+                    var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
+                    if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
+                        options = updateOptions(options)
+                    }
                     if isInlineTitleDisplayMode {
-                        TopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                        if options.preferCenterAlignedStyle {
+                            CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                        } else {
+                            TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                        }
                     } else {
                         // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
                         let typography = MaterialTheme.typography
                         let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
                         let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
                         MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
-                            MediumTopAppBar(modifier: topBarModifier, colors: topBarColors, title: topBarTitle, navigationIcon: topBarNavigationIcon, actions: { topBarActions() }, scrollBehavior: scrollBehavior)
+                            if options.preferLargeStyle {
+                                LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            } else {
+                                MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            }
                         }
                     }
                 }
@@ -427,7 +444,11 @@ public struct NavigationStack<Root> : View where Root: View {
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
                         let containerColor = canScrollForward ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
                         let windowInsets = EnvironmentValues.shared._isEdgeToEdge == true ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
-                        BottomAppBar(modifier: context.modifier.then(bottomBarModifier), containerColor: containerColor, contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp), windowInsets: windowInsets) {
+                        var options = Material3BottomAppBarOptions(modifier: context.modifier.then(bottomBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp))
+                        if let updateOptions = EnvironmentValues.shared._material3BottomAppBar {
+                            options = updateOptions(options)
+                        }
+                        BottomAppBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation, contentPadding: options.contentPadding, windowInsets: windowInsets) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
                                 ComposeBuilder { itemContext in
@@ -910,9 +931,60 @@ extension View {
     public func navigationTitle(_ title: Binding<String>) -> some View {
         return self
     }
+
+    #if SKIP
+    public func material3TopAppBar(_ options: @Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions) -> View {
+        return environment(\._material3TopAppBar, options)
+    }
+
+    public func material3BottomAppBar(_ options: @Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions) -> View {
+        return environment(\._material3BottomAppBar, options)
+    }
+    #endif
 }
 
 #if SKIP
+// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+public struct Material3TopAppBarOptions {
+    public var title: @Composable () -> Void
+    public var modifier: Modifier = Modifier
+    public var navigationIcon: @Composable () -> Void = {}
+    public var colors: TopAppBarColors
+    public var scrollBehavior: TopAppBarScrollBehavior? = nil
+    public var preferCenterAlignedStyle = false
+    public var preferLargeStyle = false
+
+    public func copy(
+        title: @Composable () -> Void = self.title,
+        modifier: Modifier = self.modifier,
+        navigationIcon: @Composable () -> Void = self.navigationIcon,
+        colors: TopAppBarColors = self.colors,
+        scrollBehavior: TopAppBarScrollBehavior? = self.scrollBehavior,
+        preferCenterAlignedStyle: Bool = self.preferCenterAlignedStyle,
+        preferLargeStyle: Bool = self.preferLargeStyle
+    ) -> Material3TopAppBarOptions {
+        return Material3TopAppBarOptions(title: title, modifier: modifier, navigationIcon: navigationIcon, colors: colors, scrollBehavior: scrollBehavior, preferCenterAlignedStyle: preferCenterAlignedStyle, preferLargeStyle: preferLargeStyle)
+    }
+}
+
+public struct Material3BottomAppBarOptions {
+    public var modifier: Modifier = Modifier
+    public var containerColor: androidx.compose.ui.graphics.Color
+    public var contentColor: androidx.compose.ui.graphics.Color
+    public var tonalElevation: Dp = BottomAppBarDefaults.ContainerElevation
+    public var contentPadding: PaddingValues = BottomAppBarDefaults.ContentPadding
+
+    public func copy(
+        modifier: Modifier = self.modifier,
+        containerColor: androidx.compose.ui.graphics.Color = self.containerColor,
+        contentColor: androidx.compose.ui.graphics.Color = self.contentColor,
+        tonalElevation: Dp = self.tonalElevation,
+        contentPadding: PaddingValues = self.contentPadding
+    ) -> Material3BottomAppBarOptions {
+        return Material3BottomAppBarOptions(modifier: modifier, containerColor: containerColor, contentColor: contentColor, tonalElevation: tonalElevation, contentPadding: contentPadding)
+    }
+}
+
 struct NavigationDestinationsPreferenceKey: PreferenceKey {
     typealias Value = NavigationDestinations
 

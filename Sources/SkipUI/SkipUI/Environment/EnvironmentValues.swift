@@ -489,9 +489,39 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
 
-    public var _materialColorScheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? {
-        get { builtinValue(key: "_materialColorScheme", defaultValue: { nil }) as! (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? }
-        set { setBuiltinValue(key: "_materialColorScheme", value: newValue, defaultValue: { nil }) }
+    var _material3BottomAppBar: (@Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions)? {
+        get { builtinValue(key: "_material3BottomAppBar", defaultValue: { nil }) as! (@Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions)? }
+        set { setBuiltinValue(key: "_material3BottomAppBar", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3Button: (@Composable (Material3ButtonOptions) -> Material3ButtonOptions)? {
+        get { builtinValue(key: "_material3Button", defaultValue: { nil }) as! (@Composable (Material3ButtonOptions) -> Material3ButtonOptions)? }
+        set { setBuiltinValue(key: "_material3Button", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3ColorScheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? {
+        get { builtinValue(key: "_material3ColorScheme", defaultValue: { nil }) as! (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)? }
+        set { setBuiltinValue(key: "_material3ColorScheme", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3NavigationBar: (@Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions)? {
+        get { builtinValue(key: "_material3NavigationBar", defaultValue: { nil }) as! (@Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions)? }
+        set { setBuiltinValue(key: "_material3NavigationBar", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3Text: (@Composable (Material3TextOptions) -> Material3TextOptions)? {
+        get { builtinValue(key: "_material3Text", defaultValue: { nil }) as! (@Composable (Material3TextOptions) -> Material3TextOptions)? }
+        set { setBuiltinValue(key: "_material3Text", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3TextField: (@Composable (Material3TextFieldOptions) -> Material3TextFieldOptions)? {
+        get { builtinValue(key: "_material3TextField", defaultValue: { nil }) as! (@Composable (Material3TextFieldOptions) -> Material3TextFieldOptions)? }
+        set { setBuiltinValue(key: "_material3TextField", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _material3TopAppBar: (@Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions)? {
+        get { builtinValue(key: "_material3TopAppBar", defaultValue: { nil }) as! (@Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions)? }
+        set { setBuiltinValue(key: "_material3TopAppBar", value: newValue, defaultValue: { nil }) }
     }
 
     var _onSubmitState: OnSubmitState? {

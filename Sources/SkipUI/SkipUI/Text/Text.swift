@@ -25,6 +25,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.UrlAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -33,6 +34,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -344,6 +347,7 @@ struct _Text: View, Equatable {
         }
 
         let animatable = style.asAnimatable(context: context)
+        var options: Material3TextOptions
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
@@ -366,7 +370,7 @@ struct _Text: View, Equatable {
                     }
                 }
             }
-            androidx.compose.material3.Text(text: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
         } else {
             var text: String
             if let interpolations {
@@ -379,7 +383,15 @@ struct _Text: View, Equatable {
             } else if isLowercased {
                 text = text.lowercased()
             }
-            androidx.compose.material3.Text(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+            options = Material3TextOptions(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+        }
+        if let updateOptions = EnvironmentValues.shared._material3Text {
+            options = updateOptions(options)
+        }
+        if let annotatedText = options.annotatedText, let onTextLayout = options.onTextLayout {
+            androidx.compose.material3.Text(text: annotatedText, modifier: options.modifier, color: options.color, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: onTextLayout, style: options.style)
+        } else {
+            androidx.compose.material3.Text(text: options.text ?? "", modifier: options.modifier, color: options.color, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: options.onTextLayout, style: options.style)
         }
     }
 
@@ -708,7 +720,60 @@ extension View {
     public func unredacted() -> some View {
         return self
     }
+
+    #if SKIP
+    /// Compose text field customization.
+    public func material3Text(_ options: @Composable (Material3TextOptions) -> Material3TextOptions) -> View {
+        return environment(\._material3Text, options)
+    }
+    #endif
 }
+
+#if SKIP
+public struct Material3TextOptions {
+    public var text: String? = nil
+    public var annotatedText: AnnotatedString? = nil
+    public var modifier: Modifier = Modifier
+    public var color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    public var fontSize: TextUnit = TextUnit.Unspecified
+    public var fontStyle: FontStyle? = nil
+    public var fontWeight: FontWeight? = nil
+    public var fontFamily: FontFamily? = nil
+    public var letterSpacing: TextUnit = TextUnit.Unspecified
+    public var textDecoration: TextDecoration? = nil
+    public var textAlign: TextAlign? = nil
+    public var lineHeight: TextUnit = TextUnit.Unspecified
+    public var overflow: TextOverflow = TextOverflow.Clip
+    public var softWrap = true
+    public var maxLines = Int.max
+    public var minLines = 1
+    public var onTextLayout: ((TextLayoutResult) -> Void)? = nil
+    public var style: TextStyle
+
+    public func copy(
+        text: String? = self.text,
+        annotatedText: AnnotatedString? = self.annotatedText,
+        modifier: Modifier = self.modifier,
+        color: androidx.compose.ui.graphics.Color = self.color,
+        fontSize: TextUnit = self.fontSize,
+        fontStyle: FontStyle? = self.fontStyle,
+        fontWeight: FontWeight? = self.fontWeight,
+        fontFamily: FontFamily? = self.fontFamily,
+        letterSpacing: TextUnit = self.letterSpacing,
+        textDecoration: TextDecoration? = self.textDecoration,
+        textAlign: TextAlign? = self.textAlign,
+        lineHeight: TextUnit = self.lineHeight,
+        overflow: TextOverflow = self.overflow,
+        softWrap: Bool = self.softWrap,
+        maxLines: Int = self.maxLines,
+        minLines: Int = self.minLines,
+        onTextLayout: ((TextLayoutResult) -> Void)? = self.onTextLayout,
+        style: TextStyle = self.style
+    ) -> Material3TextOptions {
+        return Material3TextOptions(text: text, annotatedText: annotatedText, modifier: modifier, color: color, fontSize: fontSize, fontStyle: fontStyle, fontWeight: fontWeight, fontFamily: fontFamily, letterSpacing: letterSpacing, textDecoration: textDecoration, textAlign: textAlign, lineHeight: lineHeight, overflow: overflow, softWrap: softWrap, maxLines: maxLines, minLines: minLines, onTextLayout: onTextLayout, style: style)
+    }
+}
+#endif
 
 public struct RedactionReasons : OptionSet, Sendable {
     public let rawValue: Int
