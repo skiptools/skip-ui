@@ -41,6 +41,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -76,13 +77,15 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    if HandlePresentationSizeClassChange(isPresented: isPresented) {
+    let isDismissingForSizeClassChange = remember { mutableStateOf(false) }
+    if HandlePresentationSizeClassChange(isPresented: isPresented, isDismissingForSizeClassChange: isDismissingForSizeClassChange) {
         return
     }
-
+    
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
-    let isCurrentlyPresented = isPresented.get()
-    if isCurrentlyPresented || sheetState.isVisible {
+    let isPresentedValue = isPresented.get()
+    let shouldBePresented = !isDismissingForSizeClassChange.value && isPresentedValue
+    if shouldBePresented || sheetState.isVisible {
         let contentView = ComposeBuilder.from(content)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
@@ -176,9 +179,9 @@ let overlayPresentationCornerRadius = 16.0
     }
 
     // When our isPresented binding flips from true to false, hide the sheet if needed and invoke onDismiss
-    let wasPresented = remember { mutableStateOf(isCurrentlyPresented) }
+    let wasPresented = remember { mutableStateOf(isPresentedValue) }
     let onDismissState = rememberUpdatedState(onDismiss)
-    if isCurrentlyPresented {
+    if isPresentedValue {
         wasPresented.value = true
     } else {
         LaunchedEffect(true) {
@@ -205,12 +208,14 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
-    if HandlePresentationSizeClassChange(isPresented: isPresented) {
+    let isDismissingForSizeClassChange = remember { mutableStateOf(false) }
+    if HandlePresentationSizeClassChange(isPresented: isPresented, isDismissingForSizeClassChange: isDismissingForSizeClassChange) {
         return
     }
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
-    if isPresented.get() || sheetState.isVisible {
+    let shouldBePresented = !isDismissingForSizeClassChange.value && isPresented.get()
+    if shouldBePresented || sheetState.isVisible {
         // Collect buttons and message text
         let actionViews: [View]
         if let composeBuilder = actions as? ComposeBuilder {
@@ -324,7 +329,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 /// Handle size class changes (typically due to orientation change) in our various presentations.
 ///
 /// Sheets deform on change, so we re-present.
-@Composable func HandlePresentationSizeClassChange(isPresented: Binding<Bool>) -> Bool {
+@Composable func HandlePresentationSizeClassChange(isPresented: Binding<Bool>, isDismissingForSizeClassChange: MutableState<Bool>) -> Bool {
     let verticalSizeClass = rememberUpdatedState(EnvironmentValues.shared.verticalSizeClass)
     let rememberedVerticalSizeClass = remember { mutableStateOf(verticalSizeClass.value) }
     if verticalSizeClass.value == rememberedVerticalSizeClass.value {
@@ -332,8 +337,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
     LaunchedEffect(verticalSizeClass.value, rememberedVerticalSizeClass.value) {
         if isPresented.get() && verticalSizeClass.value != rememberedVerticalSizeClass.value {
-            isPresented.set(false)
-            isPresented.set(true)
+            isDismissingForSizeClassChange.value = true
+            isDismissingForSizeClassChange.value = false
         }
         rememberedVerticalSizeClass.value = verticalSizeClass.value
     }
