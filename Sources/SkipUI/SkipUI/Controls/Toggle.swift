@@ -31,12 +31,12 @@ public struct Toggle : View {
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, sources: Any, isOn: (Any) -> Binding<Bool>) {
-        self.init(isOn: isOn(0), label: { Text(titleKey) })
+        self.init(isOn: isOn(0), label: { EmptyView() })
     }
 
     @available(*, unavailable)
     public init(_ title: String, sources: Any, isOn: (Any) -> Binding<Bool>) {
-        self.init(isOn: isOn(0), label: { Text(verbatim: title) })
+        self.init(isOn: isOn(0), label: { EmptyView() })
     }
 
     #if SKIP

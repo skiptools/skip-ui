@@ -420,6 +420,7 @@ public struct AccessibilityActionKind : Equatable, Sendable {
     public static let escape = AccessibilityActionKind()
     public static let magicTap = AccessibilityActionKind()
 
+    @available(iOS 16.0, macOS 14.0, *)
     public init(named name: Text) {
     }
 
@@ -437,6 +438,7 @@ public enum AccessibilityChildBehavior : Hashable {
 }
 
 public struct AccessibilityCustomContentKey : Equatable {
+    @available(iOS 16.0, macOS 14.0, *)
     public init(_ label: Text, id: String) {
     }
 
@@ -484,12 +486,15 @@ public protocol AccessibilityRotorContent {
 }
 
 public struct AccessibilityRotorEntry<ID>: AccessibilityRotorContent where ID : Hashable {
+    @available(iOS 16.0, macOS 14.0, *)
     public init(_ label: Text, id: ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
     }
 
+    @available(iOS 16.0, macOS 14.0, *)
     public init(_ label: Text, id: ID, in namespace: Namespace.ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
     }
 
+    @available(iOS 16.0, macOS 14.0, *)
     public init(_ label: Text? = nil, textRange: Range<Int>, prepare: @escaping (() -> Void) = {}) {
     }
 

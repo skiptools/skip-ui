@@ -311,6 +311,7 @@ public func Table<ObjectType, ID>(_ data: any RandomAccessCollection<ObjectType>
 }
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct TableColumn : View {
     let columnHeader: Text
     let columnWidth: WidthSpec
