@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
     let label: ComposeBuilder
     let content: ComposeBuilder

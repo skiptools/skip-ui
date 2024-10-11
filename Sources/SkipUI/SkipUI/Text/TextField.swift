@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct TextField : View {
     let text: Binding<String>
     let label: ComposeBuilder

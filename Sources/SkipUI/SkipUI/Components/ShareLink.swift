@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat.startActivity
 #endif
 
 // Use a class to be able to update our openURL action on compose by reference.
+@available(iOS 16.0, macOS 14.0, *)
 public final class ShareLink : View {
     private static let defaultSystemImageName = "square.and.arrow.up"
 

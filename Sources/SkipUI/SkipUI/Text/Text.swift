@@ -524,6 +524,7 @@ func textEnvironment(for view: View, update: (inout TextEnvironment) -> Void) ->
 }
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 extension View {
     @available(*, unavailable)
     public func allowsTightening(_ flag: Bool) -> some View {

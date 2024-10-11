@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct Label : View {
     let title: ComposeBuilder
     let image: ComposeBuilder
