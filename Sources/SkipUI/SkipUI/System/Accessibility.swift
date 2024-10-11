@@ -20,6 +20,7 @@ import class Accessibility.AXChartDescriptor
 import struct CoreGraphics.CGPoint
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 extension View {
     public func accessibilityIdentifier(_ identifier: String) -> some View {
         #if SKIP

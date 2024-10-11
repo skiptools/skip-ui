@@ -598,6 +598,7 @@ struct PresentationDetentPreferences: Equatable {
 }
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 extension View {
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> some View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions)

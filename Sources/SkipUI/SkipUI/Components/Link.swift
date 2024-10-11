@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Use a class to be able to update our openURL action on compose by reference.
+@available(iOS 16.0, macOS 14.0, *)
 public final class Link : View {
     let content: Button
     var openURL = OpenURLAction.default
