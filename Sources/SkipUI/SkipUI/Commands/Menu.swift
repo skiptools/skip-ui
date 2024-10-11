@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 #endif
 
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
-@available(iOS 16.0, macOS 14.0, *)
 public final class Menu : View {
     let content: ComposeBuilder
     let label: ComposeBuilder

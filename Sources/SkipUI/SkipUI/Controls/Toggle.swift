@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
 
-@available(iOS 16.0, macOS 14.0, *)
 public struct Toggle : View {
     let isOn: Binding<Bool>
     let label: any View

@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #endif
 
-@available(iOS 16.0, macOS 14.0, *)
 extension View {
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View {
         #if SKIP

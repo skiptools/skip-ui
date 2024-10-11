@@ -43,7 +43,6 @@ import skip.foundation.Locale
 import struct CoreGraphics.CGFloat
 #endif
 
-@available(iOS 16.0, macOS 14.0, *)
 public struct Text: View, Equatable {
     private let textView: _Text
     private let modifiedView: any View
@@ -53,6 +52,7 @@ public struct Text: View, Equatable {
         modifiedView = textView
     }
 
+    @available(iOS 16.0, macOS 14.0, *)
     public init(_ attributedContent: AttributedString) {
         textView = _Text(attributedString: attributedContent)
         modifiedView = textView
