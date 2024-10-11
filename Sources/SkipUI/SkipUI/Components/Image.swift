@@ -59,7 +59,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-@available(iOS 16.0, macOS 11.0, *)
+@available(iOS 16.0, macOS 14.0, *)
 public struct Image : View, Equatable {
     let image: ImageType
     var capInsets = EdgeInsets()
