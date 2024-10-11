@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 

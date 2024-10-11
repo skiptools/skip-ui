@@ -24,6 +24,7 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct Button : View, ListItemAdapting {
     let action: () -> Void
     let label: ComposeBuilder

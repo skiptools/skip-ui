@@ -33,6 +33,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct Picker<SelectionValue> : View, ListItemAdapting {
     let selection: Binding<SelectionValue>
     let label: ComposeBuilder

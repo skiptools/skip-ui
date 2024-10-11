@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
 public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<ID> {
     let data: any RandomAccessCollection<ObjectType>

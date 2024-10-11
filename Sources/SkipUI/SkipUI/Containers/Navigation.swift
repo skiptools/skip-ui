@@ -903,6 +903,7 @@ extension View {
         return self
     }
 
+    @available(iOS 16.0, macOS 14.0, *)
     public func navigationTitle(_ title: Text) -> some View {
         #if SKIP
         return preference(key: NavigationTitlePreferenceKey.self, value: title)
@@ -1012,6 +1013,7 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
 }
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct NavigationLink : View, ListItemAdapting {
     let value: Any?
     let destination: ComposeBuilder?

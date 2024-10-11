@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Erase generics to facilitate specialized constructor support.
+@available(iOS 16.0, macOS 14.0, *)
 public struct Section : View, LazyItemFactory {
     let header: ComposeBuilder?
     let footer: ComposeBuilder?
