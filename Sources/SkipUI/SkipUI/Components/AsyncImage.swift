@@ -108,6 +108,7 @@ public struct AsyncImage : View {
     }
 }
 
+@available(iOS 16.0, macOS 14.0, *)
 public enum AsyncImagePhase {
     case empty
     case success(Image)
