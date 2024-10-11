@@ -9,7 +9,7 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-@available(iOS 14.0, macOS 11.0, *)
+@available(iOS 16.0, macOS 14.0, *) // otherwise "runtime support for parameterized protocol types is only available in iOS 16.0.0 or newer"
 public final class ForEach : View, LazyItemFactory {
     let identifier: ((Any) -> AnyHashable?)?
     let indexRange: Range<Int>?

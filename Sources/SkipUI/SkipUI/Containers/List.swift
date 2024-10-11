@@ -66,6 +66,7 @@ import struct CoreGraphics.CGFloat
 /// Corner radius for list sections.
 let listSectionnCornerRadius = 8.0
 
+@available(iOS 16.0, macOS 14.0, *)
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
 public final class List : View {
     let fixedContent: ComposeBuilder?

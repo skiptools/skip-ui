@@ -20,8 +20,10 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import java.lang.ref.WeakReference
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb logcat '*:S' 'skip.ui.SkipUI:V'
 
+@available(iOS 16.0, macOS 14.0, *)
 @MainActor public class UIApplication /* : UIResponder */ {
     public static let shared = UIApplication()
 
