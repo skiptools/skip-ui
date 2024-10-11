@@ -23,6 +23,7 @@ import okio.buffer
 import okio.source
 #endif
 
+@available(iOS 16.0, macOS 14.0, *)
 public struct AsyncImage : View {
     let url: URL?
     let scale: CGFloat

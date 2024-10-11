@@ -26,6 +26,7 @@ extension View {
     }
 }
 
+@available(iOS 16.0, macOS 14.0, *)
 extension Image {
     @available(*, unavailable)
     public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> Image {
