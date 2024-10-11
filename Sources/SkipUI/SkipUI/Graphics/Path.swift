@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect

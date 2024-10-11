@@ -53,12 +53,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+@available(iOS 14.0, macOS 11.0, *)
 public struct Image : View, Equatable {
     let image: ImageType
     var capInsets = EdgeInsets()

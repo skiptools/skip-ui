@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

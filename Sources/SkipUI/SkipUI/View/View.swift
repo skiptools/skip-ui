@@ -28,7 +28,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint

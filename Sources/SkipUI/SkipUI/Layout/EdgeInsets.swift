@@ -8,7 +8,7 @@
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

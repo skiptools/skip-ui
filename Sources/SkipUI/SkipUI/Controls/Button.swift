@@ -19,7 +19,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif

@@ -59,7 +59,7 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

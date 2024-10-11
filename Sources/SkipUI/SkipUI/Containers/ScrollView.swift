@@ -26,7 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif

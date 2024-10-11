@@ -21,7 +21,7 @@ public enum CGLineCap : Int, Sendable {
 public enum CGLineJoin : Int, Sendable {
     case miter, round, bevel
 }
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import enum CoreGraphics.CGLineCap
 import enum CoreGraphics.CGLineJoin
