@@ -36,17 +36,10 @@ import androidx.compose.ui.unit.dp
         modifier = zIndex.consume(with: modifier)
     }
 
-    let isContainerView = view.strippingModifiers(perform: { $0 is HStack || $0 is VStack || $0 is ZStack })
     ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
-        // Apply the sizing modifier directly to containers, which would otherwise fit their size to their content instead
-        if isContainerView {
-            let contentContext = context.content(modifier: modifier)
+        let contentContext = context.content()
+        Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
             view.Compose(context: contentContext)
-        } else {
-            let contentContext = context.content()
-            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                view.Compose(context: contentContext)
-            }
         }
     }
 }
@@ -68,17 +61,10 @@ import androidx.compose.ui.unit.dp
     } else if minHeight != nil || maxHeight != nil {
         thenModifier = thenModifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
     }
-    let isContainerView = view.strippingModifiers(perform: { $0 is HStack || $0 is VStack || $0 is ZStack })
     ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, then: thenModifier) { modifier in
-        // Apply the sizing modifier directly to containers, which would otherwise fit their size to their content instead
-        if isContainerView {
-            let contentContext = context.content(modifier: modifier)
+        let contentContext = context.content()
+        Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
             view.Compose(context: contentContext)
-        } else {
-            let contentContext = context.content()
-            Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                view.Compose(context: contentContext)
-            }
         }
     }
 }
@@ -94,9 +80,11 @@ import androidx.compose.ui.unit.dp
 }
 
 @Composable func TargetViewLayout(context: ComposeContext, isOverlay: Bool, alignment: Alignment, target: @Composable (ComposeContext) -> Void, dependent: @Composable (ComposeContext) -> Void) {
-    let contentContext = context.content()
     Layout(modifier: context.modifier, content: {
-        target(contentContext)
+        // ComposeContainer is needed to properly handle content that fills width/height
+        ComposeContainer { modifier in
+            target(context.content(modifier: modifier))
+        }
         // Dependent view lays out with fixed bounds dictated by the target view size
         ComposeContainer(fixedWidth: true, fixedHeight: true) { modifier in
             dependent(context.content(modifier: modifier))
