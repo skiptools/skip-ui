@@ -136,19 +136,29 @@ extension View {
         return background(content(), alignment: alignment)
     }
 
-    public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+    /// - Warning: The second argument here should default to `.all`. Our implementation is not yet sophisticated enough to auto-detect when it is
+    ///     against a safe area boundary, so this would cause problems. Therefore we default to `[]` and rely on ther user to specify the edges.
+    public func background(ignoresSafeAreaEdges edges: Edge.Set = []) -> some View {
         return self.background(BackgroundStyle.shared, ignoresSafeAreaEdges: edges)
     }
 
-    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+    /// - Warning: The second argument here should default to `.all`. Our implementation is not yet sophisticated enough to auto-detect when it is
+    ///     against a safe area boundary, so this would cause problems. Therefore we default to `[]` and rely on ther user to specify the edges.
+    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = []) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self) {
-            if let color = style.asColor(opacity: 1.0, animationContext: $0) {
-                $0.modifier = $0.modifier.background(color)
-            } else if let brush = style.asBrush(opacity: 1.0, animationContext: $0) {
-                $0.modifier = $0.modifier.background(brush)
+        if edges.isEmpty {
+            return ComposeModifierView(targetView: self) {
+                if let color = style.asColor(opacity: 1.0, animationContext: $0) {
+                    $0.modifier = $0.modifier.background(color)
+                } else if let brush = style.asBrush(opacity: 1.0, animationContext: $0) {
+                    $0.modifier = $0.modifier.background(brush)
+                }
+                return ComposeResult.ok
             }
-            return ComposeResult.ok
+        } else {
+            return background {
+                style.ignoresSafeArea(edges: edges)
+            }
         }
         #else
         return self

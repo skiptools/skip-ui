@@ -1022,7 +1022,15 @@ Support levels:
       <td><code>.autocorrectionDisabled</code></td>
     </tr>
     <tr>
-      <td>✅</td>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.background</code> (<a href="https://skip.tools/docs/components/background/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#safe-area">Safe Area</a></li>
+              </ul>
+          </details>      
+       </td>
       <td><code>.background</code> (<a href="https://skip.tools/docs/components/background/">example</a>)</td>
     </tr>
     <tr>
@@ -2281,7 +2289,15 @@ Please ensure that when using these API, the above algorithm will create unique,
 
 ### Safe Area
 
-Like the iPhone, Android devices can render content behind system bars like the top status bar and bottom gesture area. SwiftUI code using the `.ignoresSafeArea` modifier to extend content behind system bars will work the same across SwiftUI and SkipUI, with one exception: SkipUI ignores the `SafeAreaRegions.keyboard` region. SkipUI does not represent the onscreen keyboard as a safe area. Rather, it follows the typical Android practice of shrinking the content area to fit above the keyboard. 
+Like the iPhone, Android devices can render content behind system bars like the top status bar and bottom gesture area. SwiftUI code using the `.ignoresSafeArea` modifier to extend content behind system bars will work the same across SwiftUI and SkipUI, with two exceptions: 
+
+- SkipUI ignores the `SafeAreaRegions.keyboard` region. SkipUI does not represent the onscreen keyboard as a safe area. Rather, it follows the typical Android practice of shrinking the content area to fit above the keyboard.
+- The `.background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all)` modifier currently defaults the second argument to `[]` rather than `.all`. Specify the desired edges explicitly if you want to ignore the safe area, as in:
+
+```swift
+MyView()
+    .background(.yellow, ignoresSafeAreaEdges: .all)
+``` 
 
 Remember that you can use `#if SKIP` blocks to confine your `.ignoresSafeArea` calls for iOS or Android only.
 
