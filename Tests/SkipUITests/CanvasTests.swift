@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 #endif
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class CanvasTests: XCSnapshotTestCase {
     func testZStackOpacityOverlay() throws {
         XCTAssertEqual(try render(compact: 1, view: ZStack {

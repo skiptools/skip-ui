@@ -9,7 +9,6 @@ import XCTest
 import OSLog
 import Foundation
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class TextTests: XCSnapshotTestCase {
 
     func testTextSizeLargeTitle() throws {

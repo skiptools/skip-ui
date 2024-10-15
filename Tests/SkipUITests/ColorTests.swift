@@ -9,7 +9,6 @@ import XCTest
 import OSLog
 import Foundation
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class ColorTests: XCSnapshotTestCase {
     func testColorBlackCompact() throws {
         XCTAssertEqual("0", try render(compact: 1, view: Color.black.frame(width: 1.0, height: 1.0)).pixmap)

@@ -177,7 +177,6 @@ import skip.ui.Text
 
 fileprivate let logger: Logger = Logger(subsystem: "test", category: "SkipUITests")
 
-// SKIP INSERT: @org.junit.runner.RunWith(androidx.test.ext.junit.runners.AndroidJUnit4::class)
 final class SkipUITests: SkipUITestCase {
     // SKIP INSERT: @get:Rule val composeRule = createComposeRule()
 
