@@ -309,6 +309,21 @@ struct MyView: View {
 }
 ```
 
+### Material Effects
+
+Compose applies an automatic "ripple" effect to components on tap. You can customize the color and alpha of this effect with the `material3Ripple` modifier. To disable the effect altogether, return `nil` from your modifier closure.
+
+```swift
+extension View {
+    public func material3Ripple(_ options: @Composable (Material3RippleOptions?) -> Material3RippleOptions?) -> some View
+}
+
+public struct Material3RippleOptions {
+    public var color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified
+    public var rippleAlpha: androidx.compose.material.ripple.RippleAlpha? = nil
+}
+```
+
 ## Supported SwiftUI
 
 The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any SwiftUI you want.
