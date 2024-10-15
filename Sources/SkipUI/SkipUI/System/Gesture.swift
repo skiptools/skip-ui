@@ -22,6 +22,8 @@ import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import org.burnoutcrew.reorderable.awaitPointerSlopOrCancellation
 import kotlin.math.abs
@@ -125,9 +127,11 @@ public struct TapGesture : Gesture {
     public typealias V = Void
 
     public var count: Int
+    public var coordinateSpace: CoordinateSpaceProtocol
 
-    public init(count: Int = 1) {
+    public init(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local) {
         self.count = count
+        self.coordinateSpace = coordinateSpace
     }
 }
 
@@ -253,20 +257,15 @@ extension View {
         return gesture(longPressGesture.onChanged(onPressingChanged).onEnded({ _ in action() }))
     }
 
-    public func onTapGesture(count: Int = 1, perform action: @escaping (CGPoint) -> Void) -> some View {
+    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> some View {
         #if SKIP
-        let tapGesture = TapGesture(count: count)
+        let tapGesture = TapGesture(count: count, coordinateSpace: coordinateSpace)
         var modified = tapGesture.modified
         modified.onEndedWithLocation = action
         return gesture(modified)
         #else
         return self
         #endif
-    }
-
-    @available(*, unavailable)
-    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol, perform action: @escaping (CGPoint) -> Void) -> some View {
-        return self
     }
 
     @available(*, unavailable)
@@ -279,12 +278,14 @@ extension View {
 /// A gesture that has been modified with callbacks, etc.
 public struct ModifiedGesture<V> : Gesture {
     let gesture: any Gesture<V>
+    let coordinateSpace: CoordinateSpace
     var onChanged: [(V) -> Void] = []
     var onEnded: [(V) -> Void] = []
     var onEndedWithLocation: ((CGPoint) -> Void)?
 
     init(gesture: any Gesture<V>) {
         self.gesture = gesture
+        self.coordinateSpace = (gesture as? TapGesture)?.coordinateSpace.coordinateSpace ?? (gesture as? DragGesture)?.coordinateSpace.coordinateSpace ?? CoordinateSpace.local
     }
 
     var isTapGesture: Bool {
@@ -379,6 +380,9 @@ final class GestureModifierView: ComposeModifierView {
             ret = ret.clip(touchShape)
         }
 
+        let layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(nil) }
+        ret = ret.onGloballyPositioned { layoutCoordinates.value = $0 }
+
         let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
         let doubleTapGestures = rememberUpdatedState(gestures.filter { $0.isDoubleTapGesture })
         let longPressGestures = rememberUpdatedState(gestures.filter { $0.isLongPressGesture })
@@ -405,12 +409,16 @@ final class GestureModifierView: ComposeModifierView {
                 }
                 detectTapGestures(onDoubleTap: onDoubleTap, onLongPress: onLongPress, onPress: { _ in
                     longPressGestures.value.forEach { $0.onLongPressChange() }
-                }, onTap: { offsetPx in
-                    if !tapGestures.value.isEmpty {
+                }, onTap: { localOffsetPx in
+                    for tapGesture in tapGestures.value {
+                        var offsetPx = localOffsetPx
+                        if tapGesture.coordinateSpace.isGlobal, let layoutCoordinates = layoutCoordinates.value {
+                            offsetPx = layoutCoordinates.localToRoot(offsetPx)
+                        }
                         let x = with(density) { offsetPx.x.toDp() }
                         let y = with(density) { offsetPx.y.toDp() }
                         let point = CGPoint(x: CGFloat(x.value), y: CGFloat(y.value))
-                        tapGestures.value.forEach { $0.onTap(at: point) }
+                        tapGesture.onTap(at: point)
                     }
                 })
             }
@@ -420,8 +428,7 @@ final class GestureModifierView: ComposeModifierView {
         if !dragGestures.value.isEmpty {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
-            let dragPositionX = remember { mutableStateOf(Float(0.0)) }
-            let dragPositionY = remember { mutableStateOf(Float(0.0)) }
+            let dragPositionPx = remember { mutableStateOf(Offset(x: Float(0.0), y: Float(0.0))) }
             let noMinimumDistance = dragGestures.value.contains { $0.minimumDistance <= 0.0 }
             let scrollAxes = EnvironmentValues.shared._scrollAxes
             ret = ret.pointerInput(scrollAxes) {
@@ -432,27 +439,34 @@ final class GestureModifierView: ComposeModifierView {
                     dragOffsetY.value += offsetY.value
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
 
-                    dragPositionX.value = (with(density) { change.position.x.toDp() }).value
-                    dragPositionY.value = (with(density) { change.position.y.toDp() }).value
-                    let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
-
-                    dragGestures.value.forEach { $0.onDragChange(location: location, translation: translation) }
+                    dragPositionPx.value = change.position
+                    for dragGesture in dragGestures.value {
+                        var positionPx = change.position
+                        if dragGesture.coordinateSpace.isGlobal, let layoutCoordinates = layoutCoordinates.value {
+                            positionPx = layoutCoordinates.localToRoot(positionPx)
+                        }
+                        let positionX = (with(density) { positionPx.x.toDp() }).value
+                        let positionY = (with(density) { positionPx.y.toDp() }).value
+                        let location = CGPoint(x: CGFloat(positionX), y: CGFloat(positionY))
+                        dragGesture.onDragChange(location: location, translation: translation)
+                    }
                 }
                 let onDragEnd: () -> Void = {
                     let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
-                    let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
                     dragOffsetX.value = Float(0.0)
                     dragOffsetY.value = Float(0.0)
-                    dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
+                    for dragGesture in dragGestures.value {
+                        var positionPx = dragPositionPx.value
+                        if dragGesture.coordinateSpace.isGlobal, let layoutCoordinates = layoutCoordinates.value {
+                            positionPx = layoutCoordinates.localToRoot(positionPx)
+                        }
+                        let positionX = (with(density) { positionPx.x.toDp() }).value
+                        let positionY = (with(density) { positionPx.y.toDp() }).value
+                        let location = CGPoint(x: CGFloat(positionX), y: CGFloat(positionY))
+                        dragGesture.onDragEnd(location: location, translation: translation)
+                    }
                 }
-                let onDragCancel: () -> Void = {
-                    let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
-                    let location = CGPoint(x: CGFloat(dragPositionX.value), y: CGFloat(dragPositionY.value))
-                    dragOffsetX.value = Float(0.0)
-                    dragOffsetY.value = Float(0.0)
-                    dragGestures.value.forEach { $0.onDragEnd(location: location, translation: translation) }
-                }
-                detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragCancel, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
+                detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragEnd, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
             }
         }
         return ret
