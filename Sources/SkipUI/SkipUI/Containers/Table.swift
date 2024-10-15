@@ -167,7 +167,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         }
         if selection != nil {
             let interactionSource = remember { MutableInteractionSource() }
-            modifier = modifier.clickable(interactionSource, nil) {
+            modifier = modifier.clickable(interactionSource: interactionSource, indication: nil) {
                 select(id: itemID.value)
             }
         }

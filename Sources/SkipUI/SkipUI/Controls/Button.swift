@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.ContentAlpha
+import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -214,6 +218,21 @@ extension View {
     public func material3Button(_ options: @Composable (Material3ButtonOptions) -> Material3ButtonOptions) -> View {
         return environment(\._material3Button, options)
     }
+
+    public func material3Ripple(_ options: @Composable (Material3RippleOptions?) -> Material3RippleOptions?) -> View {
+        // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+        return ComposeModifierView(contentView: self) { view, context in
+            let rippleConfiguration = LocalRippleConfiguration.current
+            let rippleOptions: Material3RippleOptions?
+            if let rippleConfiguration {
+                rippleOptions = options(Material3RippleOptions(rippleConfiguration))
+            } else {
+                rippleOptions = options(nil)
+            }
+            // SKIP INSERT: val provided = LocalRippleConfiguration provides rippleOptions?.asConfiguration()
+            CompositionLocalProvider(provided) { view.Compose(context: context) }
+        }
+    }
     #endif
 }
 
@@ -241,6 +260,34 @@ public struct Material3ButtonOptions {
         interactionSource: MutableInteractionSource? = self.interactionSource
     ) -> Material3ButtonOptions {
         return Material3ButtonOptions(onClick: onClick, modifier: modifier, enabled: enabled, shape: shape, colors: colors, elevation: elevation, border: border, contentPadding: contentPadding, interactionSource: interactionSource)
+    }
+}
+
+public struct Material3RippleOptions {
+    public var color: androidx.compose.ui.graphics.Color
+    public var rippleAlpha: RippleAlpha?
+
+    public init(color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified, rippleAlpha: RippleAlpha? = nil) {
+        self.color = color
+        self.rippleAlpha = rippleAlpha
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    init(configuration: RippleConfiguration) {
+        self.color = configuration.color
+        self.rippleAlpha = configuration.rippleAlpha
+    }
+
+    public func copy(
+        color: androidx.compose.ui.graphics.Color = self.color,
+        rippleAlpha: RippleAlpha? = self.rippleAlpha
+    ) -> Material3RippleOptions {
+        return Material3RippleOptions(color: color, rippleAlpha: rippleAlpha)
+    }
+
+    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
+    func asConfiguration() -> RippleConfiguration {
+        return RippleConfiguration(color: color, rippleAlpha: rippleAlpha)
     }
 }
 #endif
