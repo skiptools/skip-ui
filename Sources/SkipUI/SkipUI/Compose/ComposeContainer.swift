@@ -34,7 +34,7 @@ import androidx.compose.ui.Modifier
 /// that if the container content uses them, the container itself can recompose with the appropriate expansion to match its
 /// content. Note that this generally only affects final layout when an expanding child is in a container that is itself in a
 /// container, and it has to share space with other members of the parent container.
-@Composable public func ComposeContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
+@Composable public func ComposeContainer(axis: Axis? = nil, eraseAxis: Bool = false, scrollAxes: Axis.Set = [], modifier: Modifier = Modifier, fillWidth: Bool = false, fixedWidth: Bool = false, minWidth: Bool = false, fillHeight: Bool = false, fixedHeight: Bool = false, minHeight: Bool = false, then: Modifier = Modifier, content: @Composable (Modifier) -> Void) {
     // Use remembered expansion values to recompose on change
     let isFillWidth = remember { mutableStateOf(fillWidth) }
     let isFillHeight = remember { mutableStateOf(fillHeight) }
@@ -45,7 +45,7 @@ import androidx.compose.ui.Modifier
     var modifier = modifier
     let inheritedLayoutScrollAxes = EnvironmentValues.shared._layoutScrollAxes
     var totalLayoutScrollAxes = inheritedLayoutScrollAxes
-    if fixedWidth || axis == .vertical {
+    if fixedWidth || minWidth || axis == .vertical {
         totalLayoutScrollAxes.remove(Axis.Set.horizontal)
     }
     if !fixedWidth && isFillWidth.value {
@@ -57,7 +57,7 @@ import androidx.compose.ui.Modifier
             modifier = modifier.fillWidth()
         }
     }
-    if fixedHeight || axis == .horizontal {
+    if fixedHeight || minHeight || axis == .horizontal {
         totalLayoutScrollAxes.remove(Axis.Set.vertical)
     }
     if !fixedHeight && isFillHeight.value {

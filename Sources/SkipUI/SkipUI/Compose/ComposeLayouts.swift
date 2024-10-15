@@ -61,7 +61,7 @@ import androidx.compose.ui.unit.dp
     } else if minHeight != nil || maxHeight != nil {
         thenModifier = thenModifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
     }
-    ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, then: thenModifier) { modifier in
+    ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, minWidth: minWidth != nil && minWidth != Double.infinity && minWidth! > 0.0, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, minHeight: minHeight != nil && minHeight != Double.infinity && minHeight! > 0.0, then: thenModifier) { modifier in
         let contentContext = context.content()
         Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
             view.Compose(context: contentContext)
@@ -80,35 +80,35 @@ import androidx.compose.ui.unit.dp
 }
 
 @Composable func TargetViewLayout(context: ComposeContext, isOverlay: Bool, alignment: Alignment, target: @Composable (ComposeContext) -> Void, dependent: @Composable (ComposeContext) -> Void) {
-    Layout(modifier: context.modifier, content: {
-        // ComposeContainer is needed to properly handle content that fills width/height
-        ComposeContainer { modifier in
-            target(context.content(modifier: modifier))
-        }
-        // Dependent view lays out with fixed bounds dictated by the target view size
-        ComposeContainer(fixedWidth: true, fixedHeight: true) { modifier in
-            dependent(context.content(modifier: modifier))
-        }
-    }) { measurables, constraints in
-        guard !measurables.isEmpty() else {
-            return layout(width: 0, height: 0) {}
-        }
-        // Base layout entirely on the target view size
-        let targetPlaceable = measurables[0].measure(constraints)
-        let dependentConstraints = Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height)
-        let dependentPlaceables = measurables.drop(1).map { $0.measure(dependentConstraints) }
-        layout(width: targetPlaceable.width, height: targetPlaceable.height) {
-            if !isOverlay {
-                for dependentPlaceable in dependentPlaceables {
-                    let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
-                    dependentPlaceable.placeRelative(x: x, y: y)
-                }
+    // ComposeContainer is needed to properly handle content that fills width/height
+    ComposeContainer(modifier: context.modifier) { modifier in
+        Layout(modifier: modifier, content: {
+            target(context.content())
+            // Dependent view lays out with fixed bounds dictated by the target view size
+            ComposeContainer(fixedWidth: true, fixedHeight: true) { modifier in
+                dependent(context.content(modifier: modifier))
             }
-            targetPlaceable.placeRelative(x: 0, y: 0)
-            if isOverlay {
-                for dependentPlaceable in dependentPlaceables {
-                    let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
-                    dependentPlaceable.placeRelative(x: x, y: y)
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            // Base layout entirely on the target view size
+            let targetPlaceable = measurables[0].measure(constraints)
+            let dependentConstraints = Constraints(maxWidth: targetPlaceable.width, maxHeight: targetPlaceable.height)
+            let dependentPlaceables = measurables.drop(1).map { $0.measure(dependentConstraints) }
+            layout(width: targetPlaceable.width, height: targetPlaceable.height) {
+                if !isOverlay {
+                    for dependentPlaceable in dependentPlaceables {
+                        let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                        dependentPlaceable.placeRelative(x: x, y: y)
+                    }
+                }
+                targetPlaceable.placeRelative(x: 0, y: 0)
+                if isOverlay {
+                    for dependentPlaceable in dependentPlaceables {
+                        let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                        dependentPlaceable.placeRelative(x: x, y: y)
+                    }
                 }
             }
         }
