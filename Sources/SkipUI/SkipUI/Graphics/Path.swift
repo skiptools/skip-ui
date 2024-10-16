@@ -326,8 +326,8 @@ extension CGAffineTransform {
         return Matrix(floatArrayOf(
             Float(a), Float(b), Float(0.0), Float(0.0),
             Float(c), Float(d), Float(0.0), Float(0.0),
-            Float(tx), Float(ty), Float(1.0), Float(0.0),
-            Float(0.0), Float(0.0), Float(0.0), Float(1.0)
+            Float(0.0), Float(0.0), Float(1.0), Float(0.0),
+            Float(tx), Float(ty), Float(0.0), Float(1.0)
         ))
     }
 }
