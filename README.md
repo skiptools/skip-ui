@@ -260,8 +260,8 @@ extension View {
 }
 
 public struct Material3TextFieldOptions {
-    public var value: String
-    public var onValueChange: (String) -> Void
+    public var value: androidx.compose.ui.text.input.TextFieldValue
+    public var onValueChange: (androidx.compose.ui.text.input.TextFieldValue) -> Void
     public var modifier: androidx.compose.ui.Modifier
     public var enabled: Bool
     public var readOnly: Bool

@@ -15,12 +15,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
@@ -78,8 +82,19 @@ public struct TextField : View {
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
         let colors = Self.colors(context: context)
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
-        var options = Material3TextFieldOptions(value: text.wrappedValue, onValueChange: {
-            text.wrappedValue = $0
+        let currentText = text.wrappedValue
+        let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
+        let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
+        var currentTextFieldValue = textFieldValue.value
+        // If the text has been updated externally, use the default value for the current text,
+        // which also places the cursor at the end. This mimics SwiftUI behavior for external modifications,
+        // such as when applying formatting to the user input
+        if currentTextFieldValue.text != currentText {
+            currentTextFieldValue = defaultTextFieldValue
+        }
+        var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: {
+            textFieldValue.value = $0
+            text.wrappedValue = $0.text
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
         }, modifier: context.modifier.fillWidth(), textStyle: LocalTextStyle.current, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
@@ -252,8 +267,8 @@ extension View {
 
 #if SKIP
 public struct Material3TextFieldOptions {
-    public var value: String
-    public var onValueChange: (String) -> Void
+    public var value: TextFieldValue
+    public var onValueChange: (TextFieldValue) -> Void
     public var modifier: Modifier = Modifier
     public var enabled = true
     public var readOnly = false
@@ -277,8 +292,8 @@ public struct Material3TextFieldOptions {
     public var colors: TextFieldColors
 
     public func copy(
-        value: String = self.value,
-        onValueChange: (String) -> Void = self.onValueChange,
+        value: TextFieldValue = self.value,
+        onValueChange: (TextFieldValue) -> Void = self.onValueChange,
         modifier: Modifier = self.modifier,
         enabled: Bool = self.enabled,
         readOnly: Bool = self.readOnly,
