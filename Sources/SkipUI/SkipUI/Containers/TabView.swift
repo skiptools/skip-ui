@@ -126,6 +126,7 @@ public struct TabView : View {
                         bottomBarHeightPx.value = bounds.bottom - bounds.top
                     }
                 }
+            let tint = EnvironmentValues.shared._tint
             let hasColorScheme = reducedTabBarPreferences.colorScheme != nil
             let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
             let canScrollForward = reducedTabBarPreferences.scrollableState?.canScrollForward == true
@@ -136,7 +137,12 @@ public struct TabView : View {
                 materialColorScheme = MaterialTheme.colorScheme
             }
             MaterialTheme(colorScheme: materialColorScheme) {
-                let indicatorColor = ColorScheme.fromMaterialTheme(colorScheme: materialColorScheme) == ColorScheme.dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
+                let indicatorColor: androidx.compose.ui.graphics.Color
+                if let tint {
+                    indicatorColor = tint.asComposeColor().copy(alpha: Float(0.35))
+                } else {
+                    indicatorColor = ColorScheme.fromMaterialTheme(colorScheme: materialColorScheme) == ColorScheme.dark ? androidx.compose.ui.graphics.Color.White.copy(alpha: Float(0.1)) : androidx.compose.ui.graphics.Color.Black.copy(alpha: Float(0.1))
+                }
                 let tabBarBackgroundColor: androidx.compose.ui.graphics.Color
                 let unscrolledTabBarBackgroundColor: androidx.compose.ui.graphics.Color
                 let tabBarBackgroundForBrush: ShapeStyle?
@@ -161,7 +167,11 @@ public struct TabView : View {
                     tabBarBackgroundColor = Color.systemBarBackground.colorImpl()
                     unscrolledTabBarBackgroundColor = isSystemBackground ? tabBarBackgroundColor : tabBarBackgroundColor.copy(alpha: Float(0.0))
                     tabBarBackgroundForBrush = nil
-                    tabBarItemColors = NavigationBarItemDefaults.colors()
+                    if tint == nil {
+                        tabBarItemColors = NavigationBarItemDefaults.colors()
+                    } else {
+                        tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
+                    }
                 }
                 if canScrollForward, let tabBarBackgroundForBrush {
                     if let tabBarBackgroundBrush = tabBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
