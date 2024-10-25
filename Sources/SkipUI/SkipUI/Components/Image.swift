@@ -8,6 +8,7 @@ import Foundation
 #if SKIP
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.__
@@ -19,34 +20,29 @@ import androidx.compose.material.icons.twotone.__
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.isUnspecified
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.asAndroidPath
-import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.PathBuilder
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.VectorPath
 import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -123,13 +119,13 @@ public struct Image : View, Equatable {
 
     @Composable private func ComposeNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
         if let assetImageInfo = rememberCached(assetImageCache, NameBundleColorScheme(name, bundle, colorScheme)) { _ in imageResourceURL(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
-            ComposeAssetImage(asset: assetImageInfo, label: label, context: context)
+            ComposeAssetImage(asset: assetImageInfo, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         } else if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, nil)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
             ComposeSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
-    @Composable private func ComposeAssetImage(asset: AssetImageInfo, label: Text?, context: ComposeContext) {
+    @Composable private func ComposeAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let url = asset.url
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(JarURLFetcher.Factory())
@@ -143,8 +139,7 @@ public struct Image : View, Equatable {
         let tintColor = asset.isTemplateImage ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
         }, success: { state in
-            let aspect = EnvironmentValues.shared._aspectRatio
-            ComposePainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+            ComposePainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
         }, error: { state in
         })
     }
@@ -320,9 +315,17 @@ public struct Image : View, Equatable {
         }
         switch resizingMode {
         case .stretch:
-            let scale = contentScale(aspectRatio: aspectRatio, contentMode: contentMode)
-            let modifier = Modifier.fillSize()
-            androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier, contentScale: scale, colorFilter: colorFilter)
+            if painter.intrinsicSize.isUnspecified || painter.intrinsicSize.width.isNaN() || painter.intrinsicSize.width <= 0 || painter.intrinsicSize.height.isNaN() || painter.intrinsicSize.height <= 0 {
+                var modifier = Modifier.fillSize()
+                if let aspectRatio {
+                    modifier = modifier.aspectRatio(Float(aspectRatio))
+                }
+                androidx.compose.foundation.Image(painter: painter, modifier: modifier, contentDescription: nil, contentScale: ContentScale.FillBounds, colorFilter: colorFilter)
+            } else {
+                ImageLayout(intrinsicWidth: painter.intrinsicSize.width, intrinsicHeight: painter.intrinsicSize.height, aspectRatio: aspectRatio, contentMode: contentMode) {
+                    androidx.compose.foundation.Image(painter: painter, contentDescription: nil, contentScale: ContentScale.FillBounds, colorFilter: colorFilter)
+                }
+            }
         default: // TODO: .tile
             let modifier = Modifier.wrapContentSize(unbounded: true).size((painter.intrinsicSize.width / scale).dp, (painter.intrinsicSize.height / scale).dp)
             androidx.compose.foundation.Image(painter: painter, contentDescription: nil, modifier: modifier, colorFilter: colorFilter)
@@ -387,45 +390,6 @@ public struct Image : View, Equatable {
             set(3, 4, color.alpha * 255) // Use given color's A
         }
         return ColorFilter.colorMatrix(matrix)
-    }
-
-    private func contentScale(aspectRatio: Double?, contentMode: ContentMode?) -> ContentScale {
-        guard let contentMode else {
-            return ContentScale.FillBounds
-        }
-        guard let aspectRatio else {
-            switch contentMode {
-            case .fit:
-                return ContentScale.Fit
-            case .fill:
-                return ContentScale.Crop
-            }
-        }
-        return AspectRatioContentScale(aspectRatio: aspectRatio, contentMode: contentMode)
-    }
-
-    /// Custom scale to handle fitting or filling a user-specified aspect ratio.
-    private struct AspectRatioContentScale: ContentScale {
-        let aspectRatio: Double
-        let contentMode: ContentMode
-
-        override func computeScaleFactor(srcSize: Size, dstSize: Size) -> ScaleFactor {
-            let dstAspectRatio = dstSize.width / dstSize.height
-            switch contentMode {
-            case .fit:
-                return aspectRatio > dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
-            case .fill:
-                return aspectRatio < dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
-            }
-        }
-
-        private func fitToWidth(srcSize: Size, dstSize: Size) -> ScaleFactor {
-            return ScaleFactor(scaleX: dstSize.width / srcSize.width, scaleY: dstSize.width / Float(aspectRatio) / srcSize.height)
-        }
-
-        private func fitToHeight(srcSize: Size, dstSize: Size) -> ScaleFactor {
-            return ScaleFactor(scaleX: dstSize.height * Float(aspectRatio) / srcSize.width, scaleY: dstSize.height / srcSize.height)
-        }
     }
 
     private static func composeSymbolName(for symbolName: String) -> String? {
@@ -943,17 +907,92 @@ private struct NameBundleColorScheme: Hashable {
     let colorScheme: ColorScheme?
 }
 
-fileprivate let symbolXMLCache : [URL: [SymbolSize: SymbolInfo]] = [:]
-fileprivate let assetImageCache: [NameBundleColorScheme: AssetImageInfo?] = [:]
-fileprivate let contentsCache: [NameBundleColorScheme: URL?] = [:]
+private let symbolXMLCache : [URL: [SymbolSize: SymbolInfo]] = [:]
+private let assetImageCache: [NameBundleColorScheme: AssetImageInfo?] = [:]
+private let contentsCache: [NameBundleColorScheme: URL?] = [:]
 
 /// A simple local cache that returns the cached value if it exists, or else instantiates it using the block and stores the result in the cache
-func rememberCached<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -> U) -> U {
+private func rememberCached<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -> U) -> U {
     synchronized(cache) {
         if let value = cache[key] { return value }
         let value = block(key)
         cache[key] = value
         return value
+    }
+}
+
+@Composable private func ImageLayout(intrinsicWidth: Float, intrinsicHeight: Float, aspectRatio: Double?, contentMode: ContentMode?, image: @Composable () -> Void) {
+    Layout(content = {
+        image()
+    }) { measurables, constraints in
+        guard !measurables.isEmpty() else {
+            return layout(width: 0, height: 0) {}
+        }
+
+        let ratio = aspectRatio ?? Double(intrinsicWidth / intrinsicHeight)
+        let placeable: Placeable
+        let width: Int
+        let height: Int
+        if constraints.hasBoundedWidth && constraints.maxWidth > 0 && constraints.hasBoundedHeight && constraints.maxHeight > 0 {
+            if contentMode == nil {
+                height = constraints.maxHeight
+                width = constraints.maxWidth
+            } else {
+                let constraintsRatio =
+                     Double(constraints.maxWidth) / Double(constraints.maxHeight)
+                let fitToWidth =
+                contentMode == .fill ? ratio < constraintsRatio : ratio > constraintsRatio
+                if fitToWidth {
+                    width = constraints.maxWidth
+                    height = Int(width / ratio)
+                } else {
+                    height = constraints.maxHeight
+                    width = Int(height * ratio)
+                }
+            }
+            placeable = measurables[0].measure(constraints.copy(minWidth: width, maxWidth: width, minHeight: height, maxHeight: height))
+        } else if constraints.hasBoundedWidth && constraints.maxWidth > 0 {
+            width = constraints.maxWidth
+            height = Int(width / ratio)
+            placeable = measurables[0].measure(constraints.copy(minWidth: width, maxWidth: width, minHeight: height, maxHeight: height))
+        } else if (constraints.hasBoundedHeight && constraints.maxHeight > 0) {
+            height = constraints.maxHeight
+            width = Int(height * ratio)
+            placeable = measurables[0].measure(constraints.copy(minWidth: width, maxWidth: width, minHeight: height, maxHeight: height))
+        } else {
+            placeable = measurables[0].measure(constraints)
+            width = placeable.width
+            height = placeable.height
+        }
+        let layoutWidth = min(constraints.maxWidth, width)
+        let layoutHeight = min(constraints.maxHeight, height)
+        layout(width: layoutWidth, height: layoutHeight) {
+            placeable.placeRelative(x: (layoutWidth - placeable.width) / 2, y: (layoutHeight - placeable.height) / 2)
+        }
+    }
+}
+
+/// Custom scale to handle fitting or filling a user-specified aspect ratio.
+private struct AspectRatioContentScale: ContentScale {
+    let aspectRatio: Double
+    let contentMode: ContentMode
+
+    override func computeScaleFactor(srcSize: Size, dstSize: Size) -> ScaleFactor {
+        let dstAspectRatio = dstSize.width / dstSize.height
+        switch contentMode {
+        case .fit:
+            return aspectRatio > dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
+        case .fill:
+            return aspectRatio < dstAspectRatio ? fitToWidth(srcSize, dstSize) : fitToHeight(srcSize, dstSize)
+        }
+    }
+
+    private func fitToWidth(srcSize: Size, dstSize: Size) -> ScaleFactor {
+        return ScaleFactor(scaleX: dstSize.width / srcSize.width, scaleY: dstSize.width / Float(aspectRatio) / srcSize.height)
+    }
+
+    private func fitToHeight(srcSize: Size, dstSize: Size) -> ScaleFactor {
+        return ScaleFactor(scaleX: dstSize.height * Float(aspectRatio) / srcSize.width, scaleY: dstSize.height / srcSize.height)
     }
 }
 #endif
