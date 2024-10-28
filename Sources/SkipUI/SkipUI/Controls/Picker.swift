@@ -336,10 +336,10 @@ struct PickerSelectionView<SelectionValue> : View {
             HStack {
                 // The embedded ZStack allows us to fill the width without a Spacer, which in Compose will share equal space with
                 // the label if it also wants to expand to fill space
-                ZStack(alignment: .leading) {
+                ZStack {
                     label
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "checkmark")
                     .foregroundStyle(EnvironmentValues.shared._tint ?? Color.accentColor)
                     .opacity(labelValue == selectionValue ? 1.0 : 0.0)

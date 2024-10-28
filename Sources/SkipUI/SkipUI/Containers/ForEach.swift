@@ -49,12 +49,18 @@ public final class ForEach : View, LazyItemFactory {
         if context.composer is ForEachComposer {
             return super.Compose(context: context)
         } else {
-            ComposeContent(context: context)
-            return ComposeResult.ok
+            return ComposeUnrolled(context: context)
         }
     }
-    
+
     @Composable public override func ComposeContent(context: ComposeContext) {
+        ComposeUnrolled(context: context)
+    }
+
+    @Composable private func ComposeUnrolled(context: ComposeContext) -> ComposeResult {
+        // This function returns a value, so we can ensure that when the ForEach body reads state and
+        // is recomposed, it escapes and is reflected in the broader composition. Otherwise state reads
+        // with an unrolled ForEach do not cause the composition to update
         let isTagging = EnvironmentValues.shared._placement.contains(ViewPlacement.tagged)
         if let indexRange {
             for index in indexRange {
@@ -82,6 +88,7 @@ public final class ForEach : View, LazyItemFactory {
                 views.forEach { $0.Compose(context: context) }
             }
         }
+        return ComposeResult.ok
     }
 
     @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
