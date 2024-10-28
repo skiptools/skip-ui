@@ -9,7 +9,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -60,7 +63,18 @@ public struct ZStack : View {
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable private func ComposeAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments) {
         AnimatedContent(modifier: modifier, targetState: arguments.views, transitionSpec: {
-            // SKIP INSERT: EnterTransition.None togetherWith ExitTransition.None
+            EnterTransition.None.togetherWith(ExitTransition.None).using(SizeTransform(clip: false) { initialSize, targetSize in
+                 if initialSize.width <= 0 || initialSize.height <= 0 {
+                     // When starting at zero size, immediately go to target size so views animate into proper place
+                     snap()
+                 } else if targetSize.width > initialSize.width || targetSize.height > initialSize.height {
+                     // Animate expansion so views slide into place
+                     tween()
+                 } else {
+                     // Delay contraction to give old view time to leave
+                     snap(delayMillis: Int(defaultAnimationDuration * 1000))
+                 }
+             })
         }, contentKey: {
             $0.map(arguments.idMap)
         }, content: { state in
