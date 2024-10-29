@@ -260,13 +260,27 @@ public class UIImage {
     @available(*, unavailable)
     public func drawAsPattern(in rect: CGRect) {
     }
-    @available(*, unavailable)
     public func jpegData(compressionQuality: CGFloat) -> Data? {
-        fatalError()
+        #if !SKIP
+        return nil
+        #else
+        guard let bitmap else { return nil }
+        let outputStream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, Int(compressionQuality * 100.0), outputStream)
+        let bytes = outputStream.toByteArray()
+        return Data(platformValue: bytes)
+        #endif
     }
-    @available(*, unavailable)
     public func pngData() -> Data? {
-        fatalError()
+        #if !SKIP
+        return nil
+        #else
+        guard let bitmap else { return nil }
+        let outputStream = java.io.ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        let bytes = outputStream.toByteArray()
+        return Data(platformValue: bytes)
+        #endif
     }
 
     public struct Configuration {
