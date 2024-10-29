@@ -1,3 +1,10 @@
+## 1.13.7
+
+Released 2024-10-29
+
+  - Merge pull request #82 from skiptools/uiimage-png-jpeg
+  - Add support for UIImage pngData() and jpegData(compressionQuality:)
+
 ## 1.13.2
 
 Released 2024-10-15
