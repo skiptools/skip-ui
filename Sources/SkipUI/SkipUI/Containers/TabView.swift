@@ -129,9 +129,9 @@ public struct TabView : View {
             let tint = EnvironmentValues.shared._tint
             let hasColorScheme = reducedTabBarPreferences.colorScheme != nil
             let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
-            let canScrollForward = reducedTabBarPreferences.scrollableState?.canScrollForward == true
+            let showScrolledBackground = reducedTabBarPreferences.backgroundVisibility == Visibility.visible || reducedTabBarPreferences.scrollableState?.canScrollForward == true
             let materialColorScheme: androidx.compose.material3.ColorScheme
-            if canScrollForward, let customColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() {
+            if showScrolledBackground, let customColorScheme = reducedTabBarPreferences.colorScheme?.asMaterialTheme() {
                 materialColorScheme = customColorScheme
             } else {
                 materialColorScheme = MaterialTheme.colorScheme
@@ -173,7 +173,7 @@ public struct TabView : View {
                         tabBarItemColors = NavigationBarItemDefaults.colors(indicatorColor: indicatorColor)
                     }
                 }
-                if canScrollForward, let tabBarBackgroundForBrush {
+                if showScrolledBackground, let tabBarBackgroundForBrush {
                     if let tabBarBackgroundBrush = tabBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
                         tabBarModifier = tabBarModifier.background(tabBarBackgroundBrush)
                     }
@@ -184,7 +184,7 @@ public struct TabView : View {
                 let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                 PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
                     let tabItemsState = rememberUpdatedState(tabItems)
-                    let containerColor = canScrollForward ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
+                    let containerColor = showScrolledBackground ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
                     let onItemClick: (Int) -> Void = { tabIndex in
                         let route = String(describing: tabIndex)
                         if let selection, let tagValue = tagValue(route: route, in: tabViews) {
