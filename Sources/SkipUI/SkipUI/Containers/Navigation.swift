@@ -313,8 +313,9 @@ public struct NavigationStack<Root> : View where Root: View {
                             topBarModifier = topBarModifier.background(topBarBackgroundBrush)
                         }
                     }
+                    let alwaysShowScrolledBackground = topBarPreferences?.backgroundVisibility == Visibility.visible
                     let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: unscrolledTopBarBackgroundColor,
+                        containerColor: alwaysShowScrolledBackground ? topBarBackgroundColor : unscrolledTopBarBackgroundColor,
                         scrolledContainerColor: topBarBackgroundColor,
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
@@ -388,9 +389,9 @@ public struct NavigationStack<Root> : View where Root: View {
                 return
             }
 
-            let canScrollForward = bottomBarPreferences?.scrollableState.canScrollForward == true
+            let showScrolledBackground = bottomBarPreferences?.backgroundVisibility == Visibility.visible || bottomBarPreferences?.scrollableState.canScrollForward == true
             let materialColorScheme: androidx.compose.material3.ColorScheme
-            if canScrollForward, let customColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() {
+            if showScrolledBackground, let customColorScheme = bottomBarPreferences?.colorScheme?.asMaterialTheme() {
                 materialColorScheme = customColorScheme
             } else {
                 materialColorScheme = MaterialTheme.colorScheme
@@ -434,7 +435,7 @@ public struct NavigationStack<Root> : View where Root: View {
                                 bottomBarHeightPx.value = bounds.bottom - bounds.top
                             }
                         }
-                    if canScrollForward, let bottomBarBackgroundForBrush {
+                    if showScrolledBackground, let bottomBarBackgroundForBrush {
                         if let bottomBarBackgroundBrush = bottomBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {
                             bottomBarModifier = bottomBarModifier.background(bottomBarBackgroundBrush)
                         }
@@ -442,7 +443,7 @@ public struct NavigationStack<Root> : View where Root: View {
                     // Pull the bottom bar below the keyboard
                     let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
-                        let containerColor = canScrollForward ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
+                        let containerColor = showScrolledBackground ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
                         let windowInsets = EnvironmentValues.shared._isEdgeToEdge == true ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
                         var options = Material3BottomAppBarOptions(modifier: context.modifier.then(bottomBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp))
                         if let updateOptions = EnvironmentValues.shared._material3BottomAppBar {
