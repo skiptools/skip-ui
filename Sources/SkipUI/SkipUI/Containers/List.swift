@@ -64,7 +64,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 /// Corner radius for list sections.
-let listSectionnCornerRadius = 8.0
+let listSectionCornerRadius = 8.0
 
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
 public final class List : View {
@@ -111,8 +111,8 @@ public final class List : View {
         let safeArea = EnvironmentValues.shared._safeArea
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
-            ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
+        ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.top, .bottom], modifier: modifier) { safeAreaExpansion, safeAreaEdges in
                 let containerModifier: Modifier
                 let refreshing = remember { mutableStateOf(false) }
                 let refreshAction = EnvironmentValues.shared.refresh
@@ -134,9 +134,9 @@ public final class List : View {
                 }
                 Box(modifier: containerModifier) {
                     let density = LocalDensity.current
-                    let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
-                    let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
-                    ComposeList(context: itemContext, styling: styling, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
+                    let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
+                    let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
+                    ComposeList(context: itemContext, styling: styling, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges)
                     if let refreshState {
                         PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                     }
@@ -146,7 +146,7 @@ public final class List : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
+    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp, safeAreaEdges: Edge.Set) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -162,7 +162,7 @@ public final class List : View {
         if styling.style != .plain {
             modifier = modifier.padding(start: Self.horizontalInset.dp, end: Self.horizontalInset.dp)
         }
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxSize()
 
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack() == false
@@ -204,8 +204,14 @@ public final class List : View {
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
         let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
-        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.navigationBar, ToolbarPlacement.bottomBar]))
-        PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState))
+        // When there is a nav search bar we won't be up against the safe area, but assume we're against the search bar
+        if safeAreaEdges.contains(Edge.Set.top) || (searchableState?.isOnNavigationStack() == true && LocalNavigator.current?.isRoot == true) {
+            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.navigationBar]))
+        }
+        if safeAreaEdges.contains(Edge.Set.bottom) {
+            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
+            PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState))
+        }
 
         // List item animations in Compose work by setting the `animateItemPlacement` modifier on the items. Critically,
         // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
@@ -342,21 +348,7 @@ public final class List : View {
             }
         }
     }
-
-    private func headerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
-        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.top) && safeArea.safeBoundsPx.top > safeArea.presentationBoundsPx.top else {
-            return 0.dp
-        }
-        return with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
-    }
-
-    private func footerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
-        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.bottom) && safeArea.presentationBoundsPx.bottom > safeArea.safeBoundsPx.bottom else {
-            return 0.dp
-        }
-        return with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
-    }
-
+    
     private static let horizontalInset = 16.0
     private static let verticalInset = 16.0
     private static let minimumItemHeight = 32.0
@@ -587,10 +579,10 @@ public final class List : View {
             roundedRectPath.addRoundRect(roundRect)
             addPath(combine(PathOperation.Difference, rectPath, roundedRectPath))
         }
-        let offset = isTop ? listSectionnCornerRadius.dp : -listSectionnCornerRadius.dp
+        let offset = isTop ? listSectionCornerRadius.dp : -listSectionCornerRadius.dp
         let modifier = Modifier
             .fillMaxWidth()
-            .height(listSectionnCornerRadius.dp)
+            .height(listSectionCornerRadius.dp)
             .offset(y: offset)
             .clip(shape)
             .background(fill)

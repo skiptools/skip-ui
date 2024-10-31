@@ -10,6 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -64,9 +66,6 @@ public struct ScrollView : View {
                     }
                 })
             }
-            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
-            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
-            PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: scrollState))
         }
         if isHorizontalScroll {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
@@ -74,44 +73,56 @@ public struct ScrollView : View {
         }
         let contentContext = context.content()
         ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical)) { modifier in
-            let containerModifier: Modifier
-            let refreshing = remember { mutableStateOf(false) }
-            let refreshAction = EnvironmentValues.shared.refresh
-            let refreshState: PullRefreshState?
-            if let refreshAction {
-                let updatedAction = rememberUpdatedState(refreshAction)
-                refreshState = rememberPullRefreshState(refreshing.value, {
-                    coroutineScope.launch {
-                        refreshing.value = true
-                        updatedAction.value()
-                        refreshing.value = false
-                    }
-                })
-                containerModifier = modifier.pullRefresh(refreshState!)
-            } else {
-                refreshState = nil
-                containerModifier = modifier
-            }
-
-            Box(modifier: containerModifier) {
-                Column(modifier: scrollModifier) {
-                    if isVerticalScroll {
-                        let searchableState = EnvironmentValues.shared._searchableState
-                        let isSearchable = searchableState?.isModifierOnNavigationStack == false
-                        if isSearchable {
-                            SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
-                        }
-                    }
-                    EnvironmentValues.shared.setValues {
-                        $0.set_scrollViewAxes(axes)
-                    } in: {
-                        PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
-                            content.Compose(context: contentContext)
-                        }
+            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
+                var containerModifier: Modifier = Modifier
+                if isVerticalScroll {
+                    containerModifier = containerModifier.fillMaxHeight()
+                    if safeAreaEdges.contains(Edge.Set.bottom) {
+                        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
+                        PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: scrollState))
                     }
                 }
-                if let refreshState {
-                    PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                if isHorizontalScroll {
+                    containerModifier = containerModifier.fillMaxWidth()
+                }
+
+                let refreshing = remember { mutableStateOf(false) }
+                let refreshAction = EnvironmentValues.shared.refresh
+                let refreshState: PullRefreshState?
+                if let refreshAction {
+                    let updatedAction = rememberUpdatedState(refreshAction)
+                    refreshState = rememberPullRefreshState(refreshing.value, {
+                        coroutineScope.launch {
+                            refreshing.value = true
+                            updatedAction.value()
+                            refreshing.value = false
+                        }
+                    })
+                    containerModifier = containerModifier.pullRefresh(refreshState!)
+                } else {
+                    refreshState = nil
+                }
+
+                Box(modifier: containerModifier) {
+                    Column(modifier: scrollModifier) {
+                        if isVerticalScroll {
+                            let searchableState = EnvironmentValues.shared._searchableState
+                            let isSearchable = searchableState?.isModifierOnNavigationStack == false
+                            if isSearchable {
+                                SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
+                            }
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_scrollViewAxes(axes)
+                        } in: {
+                            PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
+                                content.Compose(context: contentContext)
+                            }
+                        }
+                    }
+                    if let refreshState {
+                        PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
+                    }
                 }
             }
         }

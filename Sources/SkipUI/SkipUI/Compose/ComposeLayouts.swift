@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -116,55 +120,120 @@ import androidx.compose.ui.unit.dp
 }
 
 /// Layout the given view to ignore the given safe areas.
-@Composable func IgnoresSafeAreaLayout(view: View, edges: Edge.Set, context: ComposeContext) {
-    IgnoresSafeAreaLayout(edges: edges, context: context) { view.Compose($0) }
+@Composable func IgnoresSafeAreaLayout(view: View, context: ComposeContext, expandInto: Edge.Set) {
+    ComposeContainer(modifier: context.modifier) { modifier in
+        IgnoresSafeAreaLayout(expandInto: expandInto, modifier: modifier) { _, _ in
+            view.Compose(context.content())
+        }
+    }
 }
 
-@Composable func IgnoresSafeAreaLayout(edges: Edge.Set, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
+/// Layout the given content ignoring the given safe areas.
+///
+/// - Parameter expandInto: Which safe area edges to expand into, if adjacent. Any expansion will be passed to
+///     the given closure as a pixel rect.
+/// - Parameter checkEdges: Which edges to check to see if we're against a safe area. Any matching edges will be
+///     passed to the given closure.
+@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, target: @Composable (IntRect, Edge.Set) -> Void) {
     guard let safeArea = EnvironmentValues.shared._safeArea else {
-        target(context)
+        target(IntRect.Zero, [])
         return
     }
 
+    // Note: We only allow edges we're interested in to affect our internal state and output. This is
+    // critical for reducing recompositions, especially during e.g. navigation animations
+    let expandOrCheckEdges = expandInto.union(checkEdges)
+    let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+
+    let boundsPx = remember { mutableStateOf(Rect.Zero) }
+    let (boundsLeft, boundsTop, boundsRight, boundsBottom) = boundsPx.value
     var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
     var topPx = 0
-    if edges.contains(.top) {
-        topPx = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
-        safeTop = safeArea.presentationBoundsPx.top
-    }
     var bottomPx = 0
-    if edges.contains(.bottom) {
-        bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
-        safeBottom = safeArea.presentationBoundsPx.bottom
-    }
     var leadingPx = 0
-    if edges.contains(.leading) {
-        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-            safeRight = safeArea.presentationBoundsPx.right
-        } else {
-            leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-            safeLeft = safeArea.presentationBoundsPx.left
-        }
-    }
     var trailingPx = 0
-    if edges.contains(.trailing) {
-        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            trailingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-            safeLeft = safeArea.presentationBoundsPx.left
+    var edges: Edge.Set = []
+    if boundsPx.value != Rect.Zero {
+        if expandOrCheckEdges.contains(Edge.Set.top), boundsTop <= safeTop + 0.1 {
+            if checkEdges.contains(Edge.Set.top) {
+                edges.insert(Edge.Set.top)
+            }
+            if expandInto.contains(Edge.Set.top) {
+                topPx = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
+                safeTop = safeArea.presentationBoundsPx.top
+            }
+        }
+        if expandOrCheckEdges.contains(Edge.Set.bottom), boundsBottom >= safeBottom - 0.1 {
+            if checkEdges.contains(Edge.Set.bottom) {
+                edges.insert(Edge.Set.bottom)
+            }
+            if expandInto.contains(Edge.Set.bottom) {
+                bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
+                safeBottom = safeArea.presentationBoundsPx.bottom
+            }
+        }
+        if isRTL {
+            if expandOrCheckEdges.contains(Edge.Set.leading), boundsRight >= safeRight - 0.1 {
+                if checkEdges.contains(Edge.Set.leading) {
+                    edges.insert(Edge.Set.leading)
+                }
+                if expandInto.contains(Edge.Set.leading) {
+                    leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+                    safeRight = safeArea.presentationBoundsPx.right
+                }
+            }
+            if expandOrCheckEdges.contains(Edge.Set.trailing), boundsLeft <= safeLeft + 0.1 {
+                if checkEdges.contains(Edge.Set.trailing) {
+                    edges.insert(Edge.Set.trailing)
+                }
+                if expandInto.contains(Edge.Set.trailing) {
+                    leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+                    safeLeft = safeArea.presentationBoundsPx.left
+                }
+            }
         } else {
-            trailingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-            safeRight = safeArea.presentationBoundsPx.right
+            if expandOrCheckEdges.contains(Edge.Set.leading), boundsLeft <= safeLeft + 0.1 {
+                if checkEdges.contains(Edge.Set.leading) {
+                    edges.insert(Edge.Set.leading)
+                }
+                if expandInto.contains(Edge.Set.leading) {
+                    leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+                    safeLeft = safeArea.presentationBoundsPx.left
+                }
+            }
+            if expandOrCheckEdges.contains(Edge.Set.trailing), boundsRight >= safeRight - 0.1 {
+                if checkEdges.contains(Edge.Set.trailing) {
+                    edges.insert(Edge.Set.trailing)
+                }
+                if expandInto.contains(Edge.Set.trailing) {
+                    leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+                    safeRight = safeArea.presentationBoundsPx.right
+                }
+            }
         }
     }
 
     let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
     let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
+    let expansion = IntRect(top: topPx, left: isRTL ? trailingPx : leadingPx, bottom: bottomPx, right: isRTL ? leadingPx : trailingPx)
     EnvironmentValues.shared.setValues {
         $0.set_safeArea(contentSafeArea)
     } in: {
-        Layout(content: {
-            target(context)
+        Layout(modifier: modifier.onGloballyPositionedInWindow { bounds in
+            let top = expandOrCheckEdges.contains(Edge.Set.top) ? bounds.top : Float(0.0)
+            let bottom = expandOrCheckEdges.contains(Edge.Set.bottom) ? bounds.bottom : Float(0.0)
+            let left: Float
+            let right: Float
+            if isRTL {
+                left = expandOrCheckEdges.contains(Edge.Set.trailing) ? bounds.left : Float(0.0)
+                right = expandOrCheckEdges.contains(Edge.Set.leading) ? bounds.right : Float(0.0)
+            } else {
+                left = expandOrCheckEdges.contains(Edge.Set.leading) ? bounds.left : Float(0.0)
+                right = expandOrCheckEdges.contains(Edge.Set.trailing) ? bounds.right : Float(0.0)
+            }
+            boundsPx.value = Rect(top: top, left: left, bottom: bottom, right: right)
+        }, content: {
+            target(expansion, edges)
         }) { measurables, constraints in
             guard !measurables.isEmpty() else {
                 return layout(width: 0, height: 0) {}

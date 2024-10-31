@@ -549,7 +549,7 @@ extension View {
             return self
         }
         return ComposeModifierView(contentView: self) { view, context in
-            IgnoresSafeAreaLayout(view: view, edges: edges, context: context)
+            IgnoresSafeAreaLayout(view: view, context: context, expandInto: edges)
         }
         #else
         return self
