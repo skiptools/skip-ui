@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.Layout
@@ -140,116 +142,98 @@ import androidx.compose.ui.unit.dp
         return
     }
 
-    // Note: We only allow edges we're interested in to affect our internal state and output. This is
-    // critical for reducing recompositions, especially during e.g. navigation animations
-    let expandOrCheckEdges = expandInto.union(checkEdges)
+    // Note: We only allow edges we're interested in to affect our internal state and output. This is critical
+    // for reducing recompositions, especially during e.g. navigation animations. We also match our internal
+    // state to our output to ensure we aren't re-calling the target block when output hasn't changed
+    let edgesState = remember { mutableStateOf(checkEdges) }
+    let edges = edgesState.value
+    var expansionTop = 0
+    if expandInto.contains(Edge.Set.top) && edges.contains(Edge.Set.top) {
+        expansionTop = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
+    }
+    var expansionBottom = 0
+    if expandInto.contains(Edge.Set.bottom) && edges.contains(Edge.Set.bottom) {
+        expansionBottom = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
+    }
+    var expansionLeft = 0
+    var expansionRight = 0
     let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
-
-    let boundsPx = remember { mutableStateOf(Rect.Zero) }
-    let (boundsLeft, boundsTop, boundsRight, boundsBottom) = boundsPx.value
-    var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
-    var topPx = 0
-    var bottomPx = 0
-    var leadingPx = 0
-    var trailingPx = 0
-    var edges: Edge.Set = []
-    if boundsPx.value != Rect.Zero {
-        if expandOrCheckEdges.contains(Edge.Set.top), boundsTop <= safeTop + 0.1 {
-            if checkEdges.contains(Edge.Set.top) {
-                edges.insert(Edge.Set.top)
-            }
-            if expandInto.contains(Edge.Set.top) {
-                topPx = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
-                safeTop = safeArea.presentationBoundsPx.top
-            }
+    if isRTL {
+        if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
+            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
         }
-        if expandOrCheckEdges.contains(Edge.Set.bottom), boundsBottom >= safeBottom - 0.1 {
-            if checkEdges.contains(Edge.Set.bottom) {
-                edges.insert(Edge.Set.bottom)
-            }
-            if expandInto.contains(Edge.Set.bottom) {
-                bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
-                safeBottom = safeArea.presentationBoundsPx.bottom
-            }
+        if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
+            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
         }
-        if isRTL {
-            if expandOrCheckEdges.contains(Edge.Set.leading), boundsRight >= safeRight - 0.1 {
-                if checkEdges.contains(Edge.Set.leading) {
-                    edges.insert(Edge.Set.leading)
-                }
-                if expandInto.contains(Edge.Set.leading) {
-                    leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-                    safeRight = safeArea.presentationBoundsPx.right
-                }
-            }
-            if expandOrCheckEdges.contains(Edge.Set.trailing), boundsLeft <= safeLeft + 0.1 {
-                if checkEdges.contains(Edge.Set.trailing) {
-                    edges.insert(Edge.Set.trailing)
-                }
-                if expandInto.contains(Edge.Set.trailing) {
-                    leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-                    safeLeft = safeArea.presentationBoundsPx.left
-                }
-            }
-        } else {
-            if expandOrCheckEdges.contains(Edge.Set.leading), boundsLeft <= safeLeft + 0.1 {
-                if checkEdges.contains(Edge.Set.leading) {
-                    edges.insert(Edge.Set.leading)
-                }
-                if expandInto.contains(Edge.Set.leading) {
-                    leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-                    safeLeft = safeArea.presentationBoundsPx.left
-                }
-            }
-            if expandOrCheckEdges.contains(Edge.Set.trailing), boundsRight >= safeRight - 0.1 {
-                if checkEdges.contains(Edge.Set.trailing) {
-                    edges.insert(Edge.Set.trailing)
-                }
-                if expandInto.contains(Edge.Set.trailing) {
-                    leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-                    safeRight = safeArea.presentationBoundsPx.right
-                }
-            }
+    } else {
+        if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
+            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+        }
+        if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
+            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
         }
     }
 
+    var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
+    safeLeft -= expansionLeft
+    safeTop -= expansionTop
+    safeRight += expansionRight
+    safeBottom += expansionBottom
+
     let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
     let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
-    let expansion = IntRect(top: topPx, left: isRTL ? trailingPx : leadingPx, bottom: bottomPx, right: isRTL ? leadingPx : trailingPx)
     EnvironmentValues.shared.setValues {
         $0.set_safeArea(contentSafeArea)
     } in: {
-        Layout(modifier: modifier.onGloballyPositionedInWindow { bounds in
-            let top = expandOrCheckEdges.contains(Edge.Set.top) ? bounds.top : Float(0.0)
-            let bottom = expandOrCheckEdges.contains(Edge.Set.bottom) ? bounds.bottom : Float(0.0)
-            let left: Float
-            let right: Float
-            if isRTL {
-                left = expandOrCheckEdges.contains(Edge.Set.trailing) ? bounds.left : Float(0.0)
-                right = expandOrCheckEdges.contains(Edge.Set.leading) ? bounds.right : Float(0.0)
-            } else {
-                left = expandOrCheckEdges.contains(Edge.Set.leading) ? bounds.left : Float(0.0)
-                right = expandOrCheckEdges.contains(Edge.Set.trailing) ? bounds.right : Float(0.0)
-            }
-            boundsPx.value = Rect(top: top, left: left, bottom: bottom, right: right)
+        Layout(modifier: modifier.onGloballyPositionedInWindow {
+            let edges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: expandInto.union(checkEdges))
+            edgesState.value = edges
         }, content: {
-            target(expansion, edges)
+            let expansion = IntRect(top: expansionTop, left: expansionLeft, bottom: expansionBottom, right: expansionRight)
+            target(expansion, edges.intersection(checkEdges))
         }) { measurables, constraints in
             guard !measurables.isEmpty() else {
                 return layout(width: 0, height: 0) {}
             }
-            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leadingPx + trailingPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
+            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + expansionLeft + expansionRight, maxHeight: constraints.maxHeight + expansionTop + expansionBottom)
             let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
             layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
                 // Layout will center extra space by default
-                let relativeTopPx = topPx - ((topPx + bottomPx) / 2)
-                let relativeLeadingPx = leadingPx - ((leadingPx + trailingPx) / 2)
+                let relativeTop = expansionTop - ((expansionTop + expansionBottom) / 2)
+                let expansionLeading = isRTL ? expansionRight : expansionLeft
+                let relativeLeading = expansionLeading - ((expansionLeft + expansionRight) / 2)
                 for targetPlaceable in targetPlaceables {
-                    targetPlaceable.placeRelative(x = -relativeLeadingPx, y = -relativeTopPx)
+                    targetPlaceable.placeRelative(x = -relativeLeading, y = -relativeTop)
                 }
             }
         }
     }
+}
+
+private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool, checkEdges: Edge.Set) -> Edge.Set {
+    var edges: Edge.Set = []
+    if checkEdges.contains(Edge.Set.top), bounds.top <= safeArea.safeBoundsPx.top + 0.1 {
+        edges.insert(Edge.Set.top)
+    }
+    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= safeArea.safeBoundsPx.bottom - 0.1 {
+        edges.insert(Edge.Set.bottom)
+    }
+    if isRTL {
+        if checkEdges.contains(Edge.Set.leading), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+            edges.insert(Edge.Set.leading)
+        }
+        if checkEdges.contains(Edge.Set.trailing), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+            edges.insert(Edge.Set.trailing)
+        }
+    } else {
+        if checkEdges.contains(Edge.Set.leading), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+            edges.insert(Edge.Set.leading)
+        }
+        if checkEdges.contains(Edge.Set.trailing), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+            edges.insert(Edge.Set.trailing)
+        }
+    }
+    return edges
 }
 
 /// Layout the given view with the given padding.

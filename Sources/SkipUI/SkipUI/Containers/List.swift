@@ -112,7 +112,7 @@ public final class List : View {
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.top, .bottom], modifier: modifier) { safeAreaExpansion, safeAreaEdges in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.bottom], modifier: modifier) { safeAreaExpansion, safeAreaEdges in
                 let containerModifier: Modifier
                 let refreshing = remember { mutableStateOf(false) }
                 let refreshAction = EnvironmentValues.shared.refresh
@@ -136,7 +136,7 @@ public final class List : View {
                     let density = LocalDensity.current
                     let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
                     let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
-                    ComposeList(context: itemContext, styling: styling, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges)
+                    ComposeList(context: itemContext, styling: styling, arguments: ListArguments(headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges))
                     if let refreshState {
                         PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                     }
@@ -146,7 +146,7 @@ public final class List : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp, safeAreaEdges: Edge.Set) {
+    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
         // LazyListScope functions to compose individual items
@@ -167,13 +167,13 @@ public final class List : View {
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack() == false
 
-        let hasHeader = styling.style != ListStyle.plain || (!isSearchable && headerSafeAreaHeight.value > 0)
-        let hasFooter = styling.style != ListStyle.plain || footerSafeAreaHeight.value > 0
+        let hasHeader = styling.style != ListStyle.plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
+        let hasFooter = styling.style != ListStyle.plain || arguments.footerSafeAreaHeight.value > 0
 
         // Remember the factory because we use it in the remembered reorderable state
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         let moveTrigger = remember { mutableStateOf(0) }
-        let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable && headerSafeAreaHeight.value <= 0 ? 1 : 0)
+        let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable && arguments.headerSafeAreaHeight.value <= 0 ? 1 : 0)
         let reorderableState = rememberReorderableLazyListState(listState: listState, onMove: { from, to in
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             factoryContext.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
@@ -204,11 +204,13 @@ public final class List : View {
         }
         PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
         let isSystemBackground = styling.style != ListStyle.plain && styling.backgroundVisibility != Visibility.hidden
-        // When there is a nav search bar we won't be up against the safe area, but assume we're against the search bar
-        if safeAreaEdges.contains(Edge.Set.top) || (searchableState?.isOnNavigationStack() == true && LocalNavigator.current?.isRoot == true) {
-            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.navigationBar]))
-        }
-        if safeAreaEdges.contains(Edge.Set.bottom) {
+        // We contribute top bar preferences even without knowing we're safe area-adjacent for multiple reasons:
+        // - When there is a search bar we may not be adjacent to the top safe area, but we should act like it
+        // - An expanding nav bar can causes issues detecting safe area adjacency
+        // - It is unlikely that anyone will use a grouped-style list that is not top-bar adjacent, so the top
+        //   bar should always have the grouped-style system color
+        PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.navigationBar]))
+        if arguments.safeAreaEdges.contains(Edge.Set.bottom) {
             PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
             PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(isSystemBackground: isSystemBackground, scrollableState: listState))
         }
@@ -324,13 +326,13 @@ public final class List : View {
 
             if isSearchable {
                 item {
-                    ComposeSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: headerSafeAreaHeight)
+                    ComposeSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
                 }
             }
             if hasHeader {
                 let hasTopSection = collectingComposer.views.firstOrNull() is LazySectionHeader
                 item {
-                    ComposeHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : headerSafeAreaHeight, hasTopSection: hasTopSection)
+                    ComposeHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
                 }
             }
             for (view, level) in collectingComposer.views {
@@ -343,7 +345,7 @@ public final class List : View {
             if hasFooter {
                 let hasBottomSection = collectingComposer.views.lastOrNull() is LazySectionFooter
                 item {
-                    ComposeFooter(styling: styling, safeAreaHeight: footerSafeAreaHeight, hasBottomSection: hasBottomSection)
+                    ComposeFooter(styling: styling, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
         }
@@ -704,6 +706,12 @@ final class ListItemComposer: RenderingComposer {
             }
         }
     }
+}
+
+@Stable struct ListArguments: Equatable {
+    let headerSafeAreaHeight: Dp
+    let footerSafeAreaHeight: Dp
+    let safeAreaEdges: Edge.Set
 }
 #endif
 
