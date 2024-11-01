@@ -11,12 +11,18 @@ import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -116,71 +122,118 @@ import androidx.compose.ui.unit.dp
 }
 
 /// Layout the given view to ignore the given safe areas.
-@Composable func IgnoresSafeAreaLayout(view: View, edges: Edge.Set, context: ComposeContext) {
-    IgnoresSafeAreaLayout(edges: edges, context: context) { view.Compose($0) }
+@Composable func IgnoresSafeAreaLayout(view: View, context: ComposeContext, expandInto: Edge.Set) {
+    ComposeContainer(modifier: context.modifier) { modifier in
+        IgnoresSafeAreaLayout(expandInto: expandInto, modifier: modifier) { _, _ in
+            view.Compose(context.content())
+        }
+    }
 }
 
-@Composable func IgnoresSafeAreaLayout(edges: Edge.Set, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
+/// Layout the given content ignoring the given safe areas.
+///
+/// - Parameter expandInto: Which safe area edges to expand into, if adjacent. Any expansion will be passed to
+///     the given closure as a pixel rect.
+/// - Parameter checkEdges: Which edges to check to see if we're against a safe area. Any matching edges will be
+///     passed to the given closure.
+@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, target: @Composable (IntRect, Edge.Set) -> Void) {
     guard let safeArea = EnvironmentValues.shared._safeArea else {
-        target(context)
+        target(IntRect.Zero, [])
         return
     }
 
+    // Note: We only allow edges we're interested in to affect our internal state and output. This is critical
+    // for reducing recompositions, especially during e.g. navigation animations. We also match our internal
+    // state to our output to ensure we aren't re-calling the target block when output hasn't changed
+    let edgesState = remember { mutableStateOf(checkEdges) }
+    let edges = edgesState.value
+    var expansionTop = 0
+    if expandInto.contains(Edge.Set.top) && edges.contains(Edge.Set.top) {
+        expansionTop = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
+    }
+    var expansionBottom = 0
+    if expandInto.contains(Edge.Set.bottom) && edges.contains(Edge.Set.bottom) {
+        expansionBottom = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
+    }
+    var expansionLeft = 0
+    var expansionRight = 0
+    let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+    if isRTL {
+        if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
+            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+        }
+        if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
+            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+        }
+    } else {
+        if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
+            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+        }
+        if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
+            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+        }
+    }
+
     var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
-    var topPx = 0
-    if edges.contains(.top) {
-        topPx = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
-        safeTop = safeArea.presentationBoundsPx.top
-    }
-    var bottomPx = 0
-    if edges.contains(.bottom) {
-        bottomPx = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
-        safeBottom = safeArea.presentationBoundsPx.bottom
-    }
-    var leadingPx = 0
-    if edges.contains(.leading) {
-        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            leadingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-            safeRight = safeArea.presentationBoundsPx.right
-        } else {
-            leadingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-            safeLeft = safeArea.presentationBoundsPx.left
-        }
-    }
-    var trailingPx = 0
-    if edges.contains(.trailing) {
-        if LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl {
-            trailingPx = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
-            safeLeft = safeArea.presentationBoundsPx.left
-        } else {
-            trailingPx = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
-            safeRight = safeArea.presentationBoundsPx.right
-        }
-    }
+    safeLeft -= expansionLeft
+    safeTop -= expansionTop
+    safeRight += expansionRight
+    safeBottom += expansionBottom
 
     let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
     let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
     EnvironmentValues.shared.setValues {
         $0.set_safeArea(contentSafeArea)
     } in: {
-        Layout(content: {
-            target(context)
+        Layout(modifier: modifier.onGloballyPositionedInWindow {
+            let edges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: expandInto.union(checkEdges))
+            edgesState.value = edges
+        }, content: {
+            let expansion = IntRect(top: expansionTop, left: expansionLeft, bottom: expansionBottom, right: expansionRight)
+            target(expansion, edges.intersection(checkEdges))
         }) { measurables, constraints in
             guard !measurables.isEmpty() else {
                 return layout(width: 0, height: 0) {}
             }
-            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + leadingPx + trailingPx, maxHeight: constraints.maxHeight + topPx + bottomPx)
+            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + expansionLeft + expansionRight, maxHeight: constraints.maxHeight + expansionTop + expansionBottom)
             let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
             layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
                 // Layout will center extra space by default
-                let relativeTopPx = topPx - ((topPx + bottomPx) / 2)
-                let relativeLeadingPx = leadingPx - ((leadingPx + trailingPx) / 2)
+                let relativeTop = expansionTop - ((expansionTop + expansionBottom) / 2)
+                let expansionLeading = isRTL ? expansionRight : expansionLeft
+                let relativeLeading = expansionLeading - ((expansionLeft + expansionRight) / 2)
                 for targetPlaceable in targetPlaceables {
-                    targetPlaceable.placeRelative(x = -relativeLeadingPx, y = -relativeTopPx)
+                    targetPlaceable.placeRelative(x = -relativeLeading, y = -relativeTop)
                 }
             }
         }
     }
+}
+
+private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool, checkEdges: Edge.Set) -> Edge.Set {
+    var edges: Edge.Set = []
+    if checkEdges.contains(Edge.Set.top), bounds.top <= safeArea.safeBoundsPx.top + 0.1 {
+        edges.insert(Edge.Set.top)
+    }
+    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= safeArea.safeBoundsPx.bottom - 0.1 {
+        edges.insert(Edge.Set.bottom)
+    }
+    if isRTL {
+        if checkEdges.contains(Edge.Set.leading), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+            edges.insert(Edge.Set.leading)
+        }
+        if checkEdges.contains(Edge.Set.trailing), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+            edges.insert(Edge.Set.trailing)
+        }
+    } else {
+        if checkEdges.contains(Edge.Set.leading), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+            edges.insert(Edge.Set.leading)
+        }
+        if checkEdges.contains(Edge.Set.trailing), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+            edges.insert(Edge.Set.trailing)
+        }
+    }
+    return edges
 }
 
 /// Layout the given view with the given padding.
@@ -189,22 +242,24 @@ import androidx.compose.ui.unit.dp
 }
 
 @Composable func PaddingLayout(padding: EdgeInsets, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
-    let density = LocalDensity.current
-    let topPx = with(density) { padding.top.dp.roundToPx() }
-    let bottomPx = with(density) { padding.bottom.dp.roundToPx() }
-    let leadingPx = with(density) { padding.leading.dp.roundToPx() }
-    let trailingPx = with(density) { padding.trailing.dp.roundToPx() }
-    Layout(modifier: context.modifier, content = {
-        target(context.content())
-    }) { measurables, constraints in
-        guard !measurables.isEmpty() else {
-            return layout(width: 0, height: 0) {}
-        }
-        let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
-        let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
-        layout(width: targetPlaceables[0].width + leadingPx + trailingPx, height: targetPlaceables[0].height + topPx + bottomPx) {
-            for targetPlaceable in targetPlaceables {
-                targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+    ComposeContainer(modifier: context.modifier) { modifier in
+        let density = LocalDensity.current
+        let topPx = with(density) { padding.top.dp.roundToPx() }
+        let bottomPx = with(density) { padding.bottom.dp.roundToPx() }
+        let leadingPx = with(density) { padding.leading.dp.roundToPx() }
+        let trailingPx = with(density) { padding.trailing.dp.roundToPx() }
+        Layout(modifier: modifier, content = {
+            target(context.content())
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
+            let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
+            layout(width: targetPlaceables[0].width + leadingPx + trailingPx, height: targetPlaceables[0].height + topPx + bottomPx) {
+                for targetPlaceable in targetPlaceables {
+                    targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+                }
             }
         }
     }

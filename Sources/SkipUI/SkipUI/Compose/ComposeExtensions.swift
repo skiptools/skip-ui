@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 
@@ -59,6 +63,26 @@ extension Modifier {
         let start = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? right : left
         let end = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? left : right
         return self.padding(top: top, start: start, bottom: bottom, end: end)
+    }
+
+    /// Invoke the given closure with the modified view's root bounds.
+    @Composable func onGloballyPositionedInRoot(perform: (Rect) -> Void) -> Modifier {
+        return self.onGloballyPositioned {
+            let bounds = $0.boundsInRoot()
+            if bounds != Rect.Zero {
+                perform(bounds)
+            }
+        }
+    }
+
+    /// Invoke the given closure with the modified view's window bounds.
+    @Composable func onGloballyPositionedInWindow(perform: (Rect) -> Void) -> Modifier {
+        return self.onGloballyPositioned {
+            let bounds = $0.boundsInWindow()
+            if bounds != Rect.Zero {
+                perform(bounds)
+            }
+        }
     }
 }
 

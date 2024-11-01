@@ -7,6 +7,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,31 +61,33 @@ public struct LazyVStack : View {
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-            // Integrate with our scroll-to-top and ScrollViewReader
-            let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
-            let coroutineScope = rememberCoroutineScope()
-            PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
-                coroutineScope.launch {
-                    listState.animateScrollToItem(0)
-                }
-            })
-            let scrollToID: (Any) -> Void = { id in
-                if let itemIndex = factoryContext.value.index(for: id) {
+            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
+                // Integrate with our scroll-to-top and ScrollViewReader
+                let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+                let coroutineScope = rememberCoroutineScope()
+                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
                     coroutineScope.launch {
-                        if Animation.isInWithAnimation {
-                            listState.animateScrollToItem(itemIndex)
-                        } else {
-                            listState.scrollToItem(itemIndex)
+                        listState.animateScrollToItem(0)
+                    }
+                })
+                let scrollToID: (Any) -> Void = { id in
+                    if let itemIndex = factoryContext.value.index(for: id) {
+                        coroutineScope.launch {
+                            if Animation.isInWithAnimation {
+                                listState.animateScrollToItem(itemIndex)
+                            } else {
+                                listState.scrollToItem(itemIndex)
+                            }
                         }
                     }
                 }
-            }
-            PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-            PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
-            PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: listState))
+                PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
+                if safeAreaEdges.contains(Edge.Set.bottom) {
+                    PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
+                    PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: listState))
+                }
 
-            Box(modifier: modifier) {
-                LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
+                LazyColumn(state: listState, modifier: Modifier.fillMaxSize(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
                     factoryContext.value.initialize(
                         startItemIndex: isSearchable ? 1 : 0,
                         item: { view, _ in

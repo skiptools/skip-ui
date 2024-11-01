@@ -69,7 +69,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -133,7 +132,7 @@ public struct NavigationStack<Root> : View where Root: View {
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
             ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-            IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges) { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                     let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                     NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
@@ -301,11 +300,8 @@ public struct NavigationStack<Root> : View where Root: View {
                         .clickable(interactionSource: interactionSource, indication: nil, onClick: {
                             scrollToTop.value.reduced()
                         })
-                        .onGloballyPositioned {
-                            let bottomPx = $0.boundsInWindow().bottom
-                            if bottomPx > Float(0.0) { // Sometimes we see random 0 values
-                                topBarBottomPx.value = bottomPx
-                            }
+                        .onGloballyPositionedInWindow {
+                            topBarBottomPx.value = $0.bottom
                         }
                     if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
                         let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
@@ -428,12 +424,9 @@ public struct NavigationStack<Root> : View where Root: View {
                     $0.set_placement(placement.union(ViewPlacement.toolbar))
                 } in: {
                     var bottomBarModifier = Modifier.zIndex(Float(1.1))
-                        .onGloballyPositioned {
-                            let bounds = $0.boundsInWindow()
-                            if bounds.top > Float(0.0) { // Sometimes we see random 0 values
-                                bottomBarTopPx.value = bounds.top
-                                bottomBarHeightPx.value = bounds.bottom - bounds.top
-                            }
+                        .onGloballyPositionedInWindow { bounds in
+                            bottomBarTopPx.value = bounds.top
+                            bottomBarHeightPx.value = bounds.bottom - bounds.top
                         }
                     if showScrolledBackground, let bottomBarBackgroundForBrush {
                         if let bottomBarBackgroundBrush = bottomBarBackgroundForBrush.asBrush(opacity: 1.0, animationContext: nil) {

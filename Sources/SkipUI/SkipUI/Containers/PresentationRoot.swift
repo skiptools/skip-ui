@@ -29,7 +29,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -60,8 +59,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 rootModifier = rootModifier.imePadding()
             }
             rootModifier = rootModifier.background(Color.background.colorImpl())
-                .onGloballyPositioned {
-                    presentationBounds.value = $0.boundsInWindow()
+                .onGloballyPositionedInWindow {
+                    presentationBounds.value = $0
                 }
             Box(modifier: rootModifier) {
                 guard presentationBounds.value != Rect.Zero else {

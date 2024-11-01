@@ -44,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -119,12 +118,9 @@ public struct TabView : View {
                 return
             }
             var tabBarModifier = Modifier.fillMaxWidth()
-                .onGloballyPositioned {
-                    let bounds = $0.boundsInWindow()
-                    if bounds.top > Float(0.0) { // Sometimes we see random 0 values
-                        bottomBarTopPx.value = bounds.top
-                        bottomBarHeightPx.value = bounds.bottom - bounds.top
-                    }
+                .onGloballyPositionedInWindow { bounds in
+                    bottomBarTopPx.value = bounds.top
+                    bottomBarHeightPx.value = bounds.bottom - bounds.top
                 }
             let tint = EnvironmentValues.shared._tint
             let hasColorScheme = reducedTabBarPreferences.colorScheme != nil
@@ -235,7 +231,7 @@ public struct TabView : View {
         // tab switches
         var ignoresSafeAreaEdges: Edge.Set = [.bottom, .top]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
+        IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges) { _, _ in
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Column(modifier: modifier.background(Color.background.colorImpl())) {

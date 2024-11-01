@@ -63,14 +63,12 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         let itemContext = context.content()
-        IgnoresSafeAreaLayout(edges: ignoresSafeAreaEdges, context: context) { context in
-            ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-                Box(modifier: modifier) {
-                    let density = LocalDensity.current
-                    let headerSafeAreaHeight = headerSafeAreaHeight(safeArea, density: density)
-                    let footerSafeAreaHeight = footerSafeAreaHeight(safeArea, density: density)
-                    ComposeTable(context: itemContext, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
-                }
+        ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, modifier: modifier) { safeAreaExpansion, _ in
+                let density = LocalDensity.current
+                let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
+                let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
+                ComposeTable(context: itemContext, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
             }
         }
     }
@@ -238,19 +236,6 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         }
     }
 
-    private func headerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
-        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.top) && safeArea.safeBoundsPx.top > safeArea.presentationBoundsPx.top else {
-            return 0.dp
-        }
-        return with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
-    }
-
-    private func footerSafeAreaHeight(_ safeArea: SafeArea?, density: Density) -> Dp {
-        guard let safeArea, safeArea.absoluteSystemBarEdges.contains(.bottom) && safeArea.presentationBoundsPx.bottom > safeArea.safeBoundsPx.bottom else {
-            return 0.dp
-        }
-        return with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
-    }
     #else
     public var body: some View {
         stubView()
