@@ -242,22 +242,24 @@ private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool
 }
 
 @Composable func PaddingLayout(padding: EdgeInsets, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
-    let density = LocalDensity.current
-    let topPx = with(density) { padding.top.dp.roundToPx() }
-    let bottomPx = with(density) { padding.bottom.dp.roundToPx() }
-    let leadingPx = with(density) { padding.leading.dp.roundToPx() }
-    let trailingPx = with(density) { padding.trailing.dp.roundToPx() }
-    Layout(modifier: context.modifier, content = {
-        target(context.content())
-    }) { measurables, constraints in
-        guard !measurables.isEmpty() else {
-            return layout(width: 0, height: 0) {}
-        }
-        let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
-        let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
-        layout(width: targetPlaceables[0].width + leadingPx + trailingPx, height: targetPlaceables[0].height + topPx + bottomPx) {
-            for targetPlaceable in targetPlaceables {
-                targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+    ComposeContainer(modifier: context.modifier) { modifier in
+        let density = LocalDensity.current
+        let topPx = with(density) { padding.top.dp.roundToPx() }
+        let bottomPx = with(density) { padding.bottom.dp.roundToPx() }
+        let leadingPx = with(density) { padding.leading.dp.roundToPx() }
+        let trailingPx = with(density) { padding.trailing.dp.roundToPx() }
+        Layout(modifier: modifier, content = {
+            target(context.content())
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            let updatedConstraints = constraints.copy(minWidth: constraint(constraints.minWidth, subtracting: leadingPx + trailingPx), minHeight: constraint(constraints.minHeight, subtracting: topPx + bottomPx), maxWidth: constraint(constraints.maxWidth, subtracting: leadingPx + trailingPx), maxHeight: constraint(constraints.maxHeight, subtracting: topPx + bottomPx))
+            let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
+            layout(width: targetPlaceables[0].width + leadingPx + trailingPx, height: targetPlaceables[0].height + topPx + bottomPx) {
+                for targetPlaceable in targetPlaceables {
+                    targetPlaceable.placeRelative(x: leadingPx, y: topPx)
+                }
             }
         }
     }
