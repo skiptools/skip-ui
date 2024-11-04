@@ -78,9 +78,14 @@ public struct TextField : View {
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         let contentContext = context.content()
+        let textEnvironment = EnvironmentValues.shared._textEnvironment
+        let redaction = EnvironmentValues.shared.redactionReasons
+        let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
+        let animatable = styleInfo.style.asAnimatable(context: context)
+        let colors = Self.colors(styleInfo: styleInfo)
         let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
-        let colors = Self.colors(context: context)
+
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
         let currentText = text.wrappedValue
         let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
@@ -97,26 +102,24 @@ public struct TextField : View {
             text.wrappedValue = $0.text
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), textStyle: LocalTextStyle.current, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
+        }, modifier: context.modifier.fillWidth(), textStyle: animatable.value, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
         OutlinedTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, label: options.label, placeholder: options.placeholder, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, isError: options.isError, visualTransformation: options.visualTransformation, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, interactionSource: options.interactionSource, shape: options.shape, colors: options.colors)
     }
 
-    @Composable static func textColor(enabled: Bool, context: ComposeContext) -> androidx.compose.ui.graphics.Color {
-        let color = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
-        if enabled {
-            return color
-        } else {
-            return color.copy(alpha: ContentAlpha.disabled)
+    @Composable static func textColor(styleInfo: TextStyleInfo, enabled: Bool) -> androidx.compose.ui.graphics.Color {
+        guard let color = styleInfo.color else {
+            return androidx.compose.ui.graphics.Color.Unspecified
         }
+        return enabled ? color : color.copy(alpha: ContentAlpha.disabled)
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable static func colors(outline: Color? = nil, context: ComposeContext) -> TextFieldColors {
-        let textColor = textColor(enabled: true, context: context)
-        let disabledTextColor = textColor(enabled: false, context: context)
+    @Composable static func colors(styleInfo: TextStyleInfo, outline: Color? = nil) -> TextFieldColors {
+        let textColor = textColor(styleInfo: styleInfo, enabled: true)
+        let disabledTextColor = textColor(styleInfo: styleInfo, enabled: false)
         let isPlainStyle = EnvironmentValues.shared._textFieldStyle == TextFieldStyle.plain
         if isPlainStyle {
             let clearColor = androidx.compose.ui.graphics.Color.Transparent

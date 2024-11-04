@@ -107,8 +107,12 @@ let searchFieldHeight = 56.0
 /// Renders a search field.
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SearchField(state: SearchableState, context: ComposeContext) {
-    let colors = TextField.colors(outline: Color.primary.opacity(0.5), context: context)
-    let disabledTextColor = TextField.textColor(enabled: false, context: context)
+    let textEnvironment = EnvironmentValues.shared._textEnvironment
+    let redaction = EnvironmentValues.shared.redactionReasons
+    let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
+    let animatable = styleInfo.style.asAnimatable(context: context)
+    let colors = TextField.colors(styleInfo: styleInfo, outline: Color.primary.opacity(0.5))
+    let disabledTextColor = TextField.textColor(styleInfo: styleInfo, enabled: false)
     let prompt = state.prompt ?? Text(verbatim: stringResource(android.R.string.search_go))
     let focusManager = LocalFocusManager.current
     let focusRequester = remember { FocusRequester() }
@@ -142,7 +146,7 @@ let searchFieldHeight = 56.0
                     focusRequester.requestFocus()
                 })
             }
-        }, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors, shape: Capsule().asComposeShape(density: LocalDensity.current))
+        }, textStyle: animatable.value, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors, shape: Capsule().asComposeShape(density: LocalDensity.current))
         AnimatedVisibility(visible: state.isSearching.value == true) {
             Button.ComposeTextButton(label: Text(verbatim: stringResource(android.R.string.cancel)), context: contentContext) {
                 state.text.wrappedValue = ""
