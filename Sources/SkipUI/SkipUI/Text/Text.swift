@@ -87,6 +87,69 @@ public struct Text: View, Equatable {
     @Composable public override func ComposeContent(context: ComposeContext) {
         modifiedView.Compose(context: context)
     }
+
+    /// Gather text style information for the current environment.
+    @Composable static func styleInfo(textEnvironment: TextEnvironment, redaction: RedactionReasons, context: ComposeContext) -> TextStyleInfo {
+        var isUppercased = textEnvironment.textCase == Text.Case.uppercase
+        let isLowercased = textEnvironment.textCase == Text.Case.lowercase
+        var font: Font
+        if let environmentFont = EnvironmentValues.shared.font {
+            font = environmentFont
+        } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
+            font = Font.callout
+            if sectionHeaderStyle == .plain {
+                font = font.bold()
+            } else {
+                isUppercased = true
+            }
+        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
+            font = Font.footnote
+        } else {
+            font = Font(fontImpl: { LocalTextStyle.current })
+        }
+        if let weight = textEnvironment.fontWeight {
+            font = font.weight(weight)
+        }
+        if let design = textEnvironment.fontDesign {
+            font = font.design(design)
+        }
+        if textEnvironment.isItalic == true {
+            font = font.italic()
+        }
+
+        var textColor: androidx.compose.ui.graphics.Color? = nil
+        var textBrush: Brush? = nil
+        if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
+            if let color = foregroundStyle.asColor(opacity: 1.0, animationContext: context) {
+                textColor = color
+            } else if !redaction.isEmpty {
+                textColor = Color.primary.colorImpl()
+            } else {
+                textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
+            }
+        } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
+            textColor = Color.secondary.colorImpl()
+        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
+            textColor = Color.secondary.colorImpl()
+        } else {
+            textColor = EnvironmentValues.shared._placement.contains(ViewPlacement.systemTextColor) ? androidx.compose.ui.graphics.Color.Unspecified : Color.primary.colorImpl()
+        }
+
+        var style = font.fontImpl()
+        // Trim the line height padding to mirror SwiftUI.Text layout. For now we only do this here on the Text component
+        // rather than in Font to de-risk this aberration from Compose default text style behavior
+        style = style.copy(lineHeightStyle: LineHeightStyle(alignment: LineHeightStyle.Alignment.Center, trim: LineHeightStyle.Trim.Both))
+        if let textBrush {
+            style = style.copy(brush: textBrush)
+        }
+        if redaction.contains(RedactionReasons.placeholder) {
+            if let textColor {
+                style = style.copy(background: textColor.copy(alpha: textColor.alpha * Float(Color.placeholderOpacity)))
+            }
+            textColor = androidx.compose.ui.graphics.Color.Transparent
+        }
+        return TextStyleInfo(style: style, color: textColor, isUppercased: isUppercased, isLowercased: isLowercased)
+    }
     #else
     public var body: some View {
         stubView()
@@ -283,70 +346,12 @@ struct _Text: View, Equatable {
     @Composable override func ComposeContent(context: ComposeContext) {
         let (locfmt, locnode, interpolations) = localizedTextInfo()
         let textEnvironment = EnvironmentValues.shared._textEnvironment
-        var isUppercased = textEnvironment.textCase == Text.Case.uppercase
-        let isLowercased = textEnvironment.textCase == Text.Case.lowercase
-        var font: Font
-        if let environmentFont = EnvironmentValues.shared.font {
-            font = environmentFont
-        } else if let sectionHeaderStyle = EnvironmentValues.shared._listSectionHeaderStyle {
-            font = Font.callout
-            if sectionHeaderStyle == .plain {
-                font = font.bold()
-            } else {
-                isUppercased = true
-            }
-        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
-            font = Font.footnote
-        } else {
-            font = Font(fontImpl: { LocalTextStyle.current })
-        }
-        if let weight = textEnvironment.fontWeight {
-            font = font.weight(weight)
-        }
-        if let design = textEnvironment.fontDesign {
-            font = font.design(design)
-        }
-        if textEnvironment.isItalic == true {
-            font = font.italic()
-        }
         let textDecoration = textEnvironment.textDecoration
-        let redaction = EnvironmentValues.shared.redactionReasons
-
-        var textColor: androidx.compose.ui.graphics.Color? = nil
-        var textBrush: Brush? = nil
-        if let foregroundStyle = EnvironmentValues.shared._foregroundStyle {
-            if let color = foregroundStyle.asColor(opacity: 1.0, animationContext: context) {
-                textColor = color
-            } else if !redaction.isEmpty {
-                textColor = Color.primary.colorImpl()
-            } else {
-                textBrush = foregroundStyle.asBrush(opacity: 1.0, animationContext: context)
-            }
-        } else if EnvironmentValues.shared._listSectionHeaderStyle != nil {
-            textColor = Color.secondary.colorImpl()
-        } else if let sectionFooterStyle = EnvironmentValues.shared._listSectionFooterStyle, sectionFooterStyle != .plain {
-            textColor = Color.secondary.colorImpl()
-        } else {
-            textColor = EnvironmentValues.shared._placement.contains(ViewPlacement.systemTextColor) ? androidx.compose.ui.graphics.Color.Unspecified : Color.primary.colorImpl()
-        }
-
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
-        var style = font.fontImpl()
-        // Trim the line height padding to mirror SwiftUI.Text layout. For now we only do this here on the Text component
-        // rather than in Font to de-risk this aberration from Compose default text style behavior
-        style = style.copy(lineHeightStyle: LineHeightStyle(alignment: LineHeightStyle.Alignment.Center, trim: LineHeightStyle.Trim.Both))
-        if let textBrush {
-            style = style.copy(brush: textBrush)
-        }
-        if redaction.contains(RedactionReasons.placeholder) {
-            if let textColor {
-                style = style.copy(background: textColor.copy(alpha: textColor.alpha * Float(Color.placeholderOpacity)))
-            }
-            textColor = androidx.compose.ui.graphics.Color.Transparent
-        }
-
-        let animatable = style.asAnimatable(context: context)
+        let redaction = EnvironmentValues.shared.redactionReasons
+        let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
+        let animatable = styleInfo.style.asAnimatable(context: context)
         var options: Material3TextOptions
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
@@ -355,7 +360,7 @@ struct _Text: View, Equatable {
             if isPlaceholder {
                 linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
             }
-            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isPlaceholder)
+            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
             let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
             var modifier = context.modifier
             if !links.isEmpty() {
@@ -370,7 +375,7 @@ struct _Text: View, Equatable {
                     }
                 }
             }
-            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
         } else {
             var text: String
             if let interpolations {
@@ -378,12 +383,12 @@ struct _Text: View, Equatable {
             } else {
                 text = locfmt
             }
-            if isUppercased {
+            if styleInfo.isUppercased {
                 text = text.uppercased()
-            } else if isLowercased {
+            } else if styleInfo.isLowercased {
                 text = text.lowercased()
             }
-            options = Material3TextOptions(text: text, modifier: context.modifier, color: textColor ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+            options = Material3TextOptions(text: text, modifier: context.modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
@@ -519,6 +524,13 @@ func textEnvironment(for view: View, update: (inout TextEnvironment) -> Void) ->
             view.Compose(context: context)
         }
     }
+}
+
+struct TextStyleInfo {
+    let style: TextStyle
+    let color: androidx.compose.ui.graphics.Color?
+    let isUppercased: Bool
+    let isLowercased: Bool
 }
 #endif
 
