@@ -2092,7 +2092,7 @@ The `Image(systemName:)` constructor is used to display a standard system symbol
 1. Give the downloaded symbol file the same name as the iOS symbol you want it to represent on Android. Keep the `.svg` file extension.
 1. Drag the file to your `Module.xcassets` asset catalog.
 
-When exporting from the SF Symbols app, selecting "Export for: Xcode 12" may result in sharpter rendering on Android.  
+When exporting from the SF Symbols app, selecting "Export for: Xcode 12" may result in sharper rendering on Android.  
 {: class="callout info"}
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with an exported symbol image, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
