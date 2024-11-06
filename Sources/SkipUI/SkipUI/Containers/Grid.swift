@@ -7,7 +7,7 @@
 #if SKIP
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.ui.unit.dp
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

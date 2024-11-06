@@ -5,7 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if !SKIP
+#if canImport(CoreGraphics)
 import struct CoreGraphics.CGPoint
+#endif
 #endif
 
 public enum HoverPhase : Equatable, Sendable {

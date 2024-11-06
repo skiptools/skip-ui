@@ -47,9 +47,9 @@ import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
-#else
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
@@ -129,9 +129,11 @@ public struct Image : View, Equatable {
         let url = asset.url
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(JarURLFetcher.Factory())
+            .decoderFactory(coil3.svg.SvgDecoder.Factory())
+            //.decoderFactory(coil3.gif.GifDecoder.Factory())
             .decoderFactory(PdfDecoder.Factory())
             .data(url)
-            .size(coil.size.Size.ORIGINAL)
+            .size(coil3.size.Size.ORIGINAL)
             .memoryCacheKey(url.description)
             .diskCacheKey(url.description)
             .build()

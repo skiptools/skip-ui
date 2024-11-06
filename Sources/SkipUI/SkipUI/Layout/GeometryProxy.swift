@@ -7,7 +7,7 @@
 #if SKIP
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Density
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
