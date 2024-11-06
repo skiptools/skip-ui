@@ -1,3 +1,10 @@
+## 1.13.11
+
+Released 2024-11-05
+
+  - Merge pull request #87 from skiptools/svg-images
+  - Upgrade to coil3 and add SVG image support
+
 ## 1.13.7
 
 Released 2024-10-29
