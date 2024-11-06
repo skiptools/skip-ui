@@ -66,7 +66,7 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

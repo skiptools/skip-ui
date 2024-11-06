@@ -16,7 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-#else
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

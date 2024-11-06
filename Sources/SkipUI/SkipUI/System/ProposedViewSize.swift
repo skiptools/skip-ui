@@ -5,8 +5,10 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if !SKIP
+#if canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGSize
+#endif
 #endif
 
 public struct ProposedViewSize : Equatable, Sendable {

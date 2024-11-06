@@ -8,17 +8,18 @@ import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
-import coil.size.Size
 import android.webkit.MimeTypeMap
-import coil.fetch.Fetcher
-import coil.fetch.FetchResult
-import coil.fetch.SourceResult
-import coil.ImageLoader
-import coil.decode.DataSource
-import coil.decode.ImageSource
-import coil.request.Options
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.size.Size
+import coil3.fetch.Fetcher
+import coil3.fetch.FetchResult
+import coil3.ImageLoader
+import coil3.decode.DataSource
+import coil3.decode.ImageSource
+import coil3.PlatformContext
+import coil3.asImage
+import kotlin.math.roundToInt
 import okio.buffer
 import okio.source
 #endif
@@ -77,6 +78,8 @@ public struct AsyncImage : View {
         let requestSource: Any = JarURLFetcher.isJarURL(url) ? url : urlString
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(JarURLFetcher.Factory())
+            .decoderFactory(coil3.svg.SvgDecoder.Factory())
+            //.decoderFactory(coil3.gif.GifDecoder.Factory())
             .decoderFactory(PdfDecoder.Factory())
             .data(requestSource)
             .size(Size.ORIGINAL)
@@ -134,61 +137,59 @@ public enum AsyncImagePhase {
 #if SKIP
 /// A Coil fetcher that handles `skip.foundation.URL` instances for the `jar:` scheme.
 final class JarURLFetcher : Fetcher {
-    private let data: URL
-    private let options: Options
+    private let url: URL
+    private let options: coil3.request.Options
 
     static func isJarURL(_ url: URL) -> Bool {
         return url.absoluteString.hasPrefix("jar")
     }
 
-    init(data: URL, options: Options) {
-        self.data = data
+    init(url: URL, options: coil3.request.Options) {
+        self.url = url
         self.options = options
     }
 
     override func fetch() async -> FetchResult {
-        return SourceResult(
-            source: ImageSource(
-                source: data.kotlin().toURL().openConnection().getInputStream().source().buffer(),
-                context: options.context
-            ),
-            mimeType: MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(data.absoluteString)),
-            dataSource: DataSource.DISK
-        )
+        let ctx = options.context
+        let stream = url.kotlin().toURL().openConnection().getInputStream().source().buffer()
+        let source = coil3.decode.ImageSource(source: stream, fileSystem: okio.FileSystem.SYSTEM)
+        let mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(url.absoluteString))
+        let dataSource: coil3.decode.DataSource = coil3.decode.DataSource.DISK
+        return coil3.fetch.SourceFetchResult(source: source, mimeType: mimeType, dataSource: dataSource)
     }
 
     final class Factory : Fetcher.Factory<URL> {
-        override func create(data: URL, options: Options, imageLoader: ImageLoader) -> Fetcher? {
+        override func create(data: URL, options: coil3.request.Options, imageLoader: ImageLoader) -> Fetcher? {
             if (!JarURLFetcher.isJarURL(data)) { return nil }
-            return JarURLFetcher(data: data, options: options)
+            return JarURLFetcher(url: data, options: options)
         }
     }
 }
 
 
-class PdfDecoder : coil.decode.Decoder {
-    let sourceResult: coil.fetch.SourceResult
-    let options: coil.request.Options
+class PdfDecoder : coil3.decode.Decoder {
+    let sourceResult: coil3.fetch.SourceFetchResult
+    let options: coil3.request.Options
 
-    final class Factory : coil.decode.Decoder.Factory {
-        override func create(result: coil.fetch.SourceResult, options: coil.request.Options, imageLoader: coil.ImageLoader) -> coil.decode.Decoder? {
-            logger.log("PdfDecoder.Factory.create result=\(result) options=\(options) imageLoader=\(imageLoader)")
+    final class Factory : coil3.decode.Decoder.Factory {
+        override func create(result: coil3.fetch.SourceFetchResult, options: coil3.request.Options, imageLoader: coil3.ImageLoader) -> coil3.decode.Decoder? {
+            //logger.debug("PdfDecoder.Factory.create result=\(result) options=\(options) imageLoader=\(imageLoader)")
             return PdfDecoder(sourceResult: result, options: options)
         }
     }
 
-    init(sourceResult: coil.fetch.SourceResult, options: coil.request.Options) {
+    init(sourceResult: coil3.fetch.SourceFetchResult, options: coil3.request.Options) {
         self.sourceResult = sourceResult
         self.options = options
     }
 
-    override func decode() async -> coil.decode.DecodeResult? {
-        let src: coil.decode.ImageSource = sourceResult.source
+    override func decode() async -> coil3.decode.DecodeResult? {
+        let src: coil3.decode.ImageSource = sourceResult.source
         let source: okio.BufferedSource = src.source()
 
         // make sure it is a PDF image by scanning for "%PDF-" (25 50 44 46 2D)
         let peek = source.peek()
-        // logger.log("PdfDecoder.decode peek \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte())")
+        // logger.debug("PdfDecoder.decode peek \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte()) \(peek.readByte())")
 
         if peek.readByte() != Byte(0x25) { return nil } // %
         if peek.readByte() != Byte(0x50) { return nil } // P
@@ -199,7 +200,6 @@ class PdfDecoder : coil.decode.Decoder {
         // Unfortunately, PdfRenderer requires a ParcelFileDescriptor, which can only be created from an actual file, and not the JarInputStream from which we load assets from the .apk; so we need to write the PDF out to a temporary file in order to be able to render the PDF to a Bitmap that Coil can use
         // Fortunately, even through we are loading from a buffer, Coil's ImageSource.file() function will: “Return a Path that resolves to a file containing this ImageSource's data. If this image source is backed by a BufferedSource, a temporary file containing this ImageSource's data will be created.”
         let imageFile = src.file().toFile()
-        logger.log("PdfDecoder.decode result=\(sourceResult) options=\(options) imageFile=\(imageFile)")
 
         let parcelFileDescriptor = android.os.ParcelFileDescriptor.open(imageFile, android.os.ParcelFileDescriptor.MODE_READ_ONLY)
         defer { parcelFileDescriptor.close() }
@@ -210,13 +210,28 @@ class PdfDecoder : coil.decode.Decoder {
         let page = pdfRenderer.openPage(0)
         defer { page.close() }
 
-        let width = page.width
-        let height = page.height
+        let density = options.context.resources.displayMetrics.density
+
+        let srcWidth = Double(page.width * density)
+        let srcHeight = Double(page.height * density)
+
+        let optionsWidth = (options.size.width as? coil3.size.Dimension.Pixels)?.px.toDouble()
+        let optionsHeight = (options.size.height as? coil3.size.Dimension.Pixels)?.px.toDouble()
+
+        let dstWidth: Double = optionsWidth ?? srcWidth
+        let dstHeight: Double = optionsHeight ?? srcHeight
+
+        let scale = coil3.decode.DecodeUtils.computeSizeMultiplier(srcWidth: srcWidth, srcHeight: srcHeight, dstWidth: dstWidth, dstHeight: dstHeight, scale: options.scale)
+
+        let width = (scale * srcWidth).roundToInt()
+        let height = (scale * srcHeight).roundToInt()
+
+        logger.debug("PdfDecoder.decode result=\(sourceResult) options=\(options) imageFile=\(imageFile) width=\(width) height=\(height)")
         let bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
         page.render(bitmap, nil, nil, android.graphics.pdf.PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
 
         let drawable = android.graphics.drawable.BitmapDrawable(options.context.resources, bitmap)
-        return coil.decode.DecodeResult(drawable: drawable, isSampled: false)
+        return coil3.decode.DecodeResult(image: drawable.asImage(), isSampled: true)
     }
 }
 #endif

@@ -14,7 +14,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-#else
+#elseif canImport(CoreGraphics)
 import class Accessibility.AXCustomContent
 import class Accessibility.AXChartDescriptor
 import struct CoreGraphics.CGPoint
