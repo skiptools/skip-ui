@@ -139,7 +139,7 @@ let overlayPresentationCornerRadius = 16.0
                 // Draw the drag handle and the presentation root content area below it
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
                 Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
-                    Capsule().fill(Color.primary.opacity(0.2)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
+                    Capsule().fill(Color.primary.opacity(0.4)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
                 }
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handlePadding))
             } else if !isEdgeToEdge {
