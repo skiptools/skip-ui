@@ -1473,6 +1473,17 @@ Support levels:
     </tr>
     <tr>
       <td>🟢</td>
+       <td>
+          <details>
+              <summary><code>.rotation3DEffect</code></summary>
+              <ul>
+                  <li><code>func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), perspective: CGFloat = 1.0) -> some View</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>.scale</code></summary>

@@ -21,11 +21,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 #elseif canImport(CoreGraphics)
@@ -917,9 +919,32 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            let animatable = Float(angle.degrees).asAnimatable(context: context)
+            // Try to approximate SwiftUI's perspective adaptation to view size
+            let size = remember { mutableStateOf(IntSize.Zero) }
+            let dimension = max(size.value.width * axis.y, size.value.height * axis.x)
+            let distance = max(Float(0.1), Float(dimension / 65)) / Float(perspective)
+            context.modifier = context.modifier
+                .onGloballyPositioned { size.value = $0.size }
+                .graphicsLayer(
+                    transformOrigin: TransformOrigin(pivotFractionX: Float(anchor.x), pivotFractionY: Float(anchor.y)),
+                    rotationX: Float(axis.x) * animatable.value,
+                    rotationY: Float(axis.y) * animatable.value,
+                    rotationZ: Float(axis.z) * animatable.value,
+                    cameraDistance: distance
+                )
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
+    }
+
+    public func rotation3DEffect(_ angle: Angle, axis: (x: Int, y: Int, z: Int), perspective: CGFloat = 1.0) -> some View {
+        return rotation3DEffect(angle, axis: (CGFloat(axis.x), CGFloat(axis.y), CGFloat(axis.z)), perspective: perspective)
     }
 
     @available(*, unavailable)
