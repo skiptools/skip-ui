@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -46,6 +48,14 @@ public struct Label : View {
         let placement = EnvironmentValues.shared._placement
         if placement.contains(ViewPlacement.toolbar) {
             ComposeImage(context: context)
+        } else if placement.contains(ViewPlacement.systemTextColor) && !EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._foregroundStyle == nil {
+            ComposeLabel(context: context, imageColor: Color.primary.opacity(Double(ContentAlpha.disabled)))
+        } else if placement.contains(ViewPlacement.onPrimaryColor) && EnvironmentValues.shared._foregroundStyle == nil {
+            var imageColor = Color(colorImpl: { MaterialTheme.colorScheme.onPrimary })
+            if !EnvironmentValues.shared.isEnabled {
+                imageColor = imageColor.opacity(Double(ContentAlpha.disabled))
+            }
+            ComposeLabel(context: context, imageColor: imageColor)
         } else if placement.contains(ViewPlacement.listItem) {
             ComposeLabel(context: context, imageColor: EnvironmentValues.shared._foregroundStyle as? Color ?? EnvironmentValues.shared._listItemTint ?? Color.accentColor, titlePadding: 6.0)
         } else {

@@ -98,7 +98,12 @@ public struct Button : View, ListItemAdapting {
                 let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
                 EnvironmentValues.shared.setValues {
-                    $0.set_placement(placement.union(ViewPlacement.systemTextColor))
+                    if let tint {
+                        let foregroundStyle = isEnabled ? tint : tint.opacity(Double(ContentAlpha.disabled))
+                        $0.set_foregroundStyle(foregroundStyle)
+                    } else {
+                        $0.set_placement(placement.union(ViewPlacement.systemTextColor))
+                    }
                 } in: {
                     FilledTonalButton(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
@@ -120,7 +125,7 @@ public struct Button : View, ListItemAdapting {
                 let placement = EnvironmentValues.shared._placement
                 let contentContext = context.content()
                 EnvironmentValues.shared.setValues {
-                    $0.set_placement(placement.union(ViewPlacement.systemTextColor))
+                    $0.set_placement(placement.union(ViewPlacement.systemTextColor).union(ViewPlacement.onPrimaryColor))
                 } in: {
                     androidx.compose.material3.Button(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
