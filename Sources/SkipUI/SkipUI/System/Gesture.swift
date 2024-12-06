@@ -350,11 +350,11 @@ final class GestureModifierView: ComposeModifierView {
     var gestures: [ModifiedGesture<Any>]
 
     init(view: View, gesture: Gesture<Any>) {
-        super.init(view: view, role: ComposeModifierRole.gesture)
+        super.init(view: view)
         gestures = [gesture.modified]
 
         // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
-        if let wrappedGestureView = view.strippingModifiers(until: { $0 == .gesture }, perform: { $0 as? GestureModifierView }) {
+        if let wrappedGestureView = view.strippingModifiers(until: { $0 is GestureModifierView }, perform: { $0 as? GestureModifierView }) {
             gestures += wrappedGestureView.gestures
             wrappedGestureView.gestures = []
         }
@@ -376,7 +376,7 @@ final class GestureModifierView: ComposeModifierView {
         var ret = modifier
         
         // If the gesture is placed directly on a shape, we attempt to constrain hits to the shape
-        if let shape = view.strippingModifiers(until: { $0 != .accessibility }, perform: { $0 as? ModifiedShape }), let touchShape = shape.asComposeTouchShape(density: density) {
+        if let shape = view.strippingModifiers(until: { $0.role != .accessibility }, perform: { $0 as? ModifiedShape }), let touchShape = shape.asComposeTouchShape(density: density) {
             ret = ret.clip(touchShape)
         }
 

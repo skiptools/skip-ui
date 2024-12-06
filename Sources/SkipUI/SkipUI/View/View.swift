@@ -99,8 +99,8 @@ extension View {
 
     /// Strip modifier views.
     ///
-    /// - Parameter until: Return `true` to stop stripping at a modifier with a given role.
-    public func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+    /// - Parameter until: Return `true` to stop stripping at a modifier with a given modifier.
+    public func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
         return perform(self)
     }
 }
@@ -579,11 +579,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func keyboardShortcut(_ key: KeyEquivalent, modifiers: EventModifiers = .command) -> some View {
         return self
     }
@@ -803,7 +798,7 @@ extension View {
     public func padding(_ insets: EdgeInsets) -> some View {
         #if SKIP
         // Certain views apply their padding themselves
-        guard !strippingModifiers(until: { $0 == .spacing }, perform: {
+        guard !strippingModifiers(until: { $0.role == .spacing }, perform: {
             $0 is LazyVGrid || $0 is LazyHGrid || $0 is LazyVStack || $0 is LazyHStack
         }) else {
             return environment(\._contentPadding, insets)
@@ -1148,7 +1143,7 @@ struct TagModifierView: ComposeModifierView {
 
     /// Extract the existing tag modifier view from the given view's modifiers.
     static func strip(from view: View, role: ComposeModifierRole) -> TagModifierView? {
-        return view.strippingModifiers(until: { $0 == role }, perform: { $0 as? TagModifierView })
+        return view.strippingModifiers(until: { $0.role == role }, perform: { $0 as? TagModifierView })
     }
 }
 
@@ -1163,7 +1158,7 @@ final class ZIndexModifierView : ComposeModifierView {
 
     init(targetView: View, zIndex: Double) {
         self.zIndex = zIndex
-        super.init(targetView: targetView, role: .zIndex) {
+        super.init(targetView: targetView) {
             if zIndex != 0.0 {
                 $0.modifier = $0.modifier.zIndex(Float(zIndex))
             }

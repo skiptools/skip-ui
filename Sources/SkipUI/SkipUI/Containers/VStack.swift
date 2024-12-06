@@ -154,7 +154,7 @@ final class VStackComposer: RenderingComposer {
             return
         }
         // If the Text has spacing modifiers, no longer special case its spacing
-        let isText = view.strippingModifiers(until: { $0 == .spacing }) { $0 is Text }
+        let isText = view.strippingModifiers(until: { $0.role == .spacing }) { $0 is Text }
         var contentContext = context(false)
         if let lastViewWasText {
             let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing

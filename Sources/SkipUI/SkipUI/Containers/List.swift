@@ -371,7 +371,7 @@ public final class List : View {
             return
         }
 
-        let itemModifierView = view.strippingModifiers(until: { $0 == .listItem }, perform: { $0 as? ListItemModifierView })
+        let itemModifierView = view.strippingModifiers(until: { $0 is ListItemModifierView }, perform: { $0 as? ListItemModifierView })
         var itemModifier: Modifier = Modifier
         if itemModifierView?.background == nil {
             itemModifier = itemModifier.background(BackgroundColor(styling: styling.withStyle(ListStyle.plain), isItem: isItem))
@@ -836,10 +836,10 @@ final class ListItemModifierView: ComposeModifierView, ListItemAdapting {
     var separator: Visibility?
 
     init(view: View, background: View? = nil, separator: Visibility? = nil) {
-        let modifierView = view.strippingModifiers(until: { $0 == .listItem }, perform: { $0 as? ListItemModifierView })
+        let modifierView = view.strippingModifiers(until: { $0 is ListItemModifierView }, perform: { $0 as? ListItemModifierView })
         self.background = background ?? modifierView?.background
         self.separator = separator ?? modifierView?.separator
-        super.init(view: view, role: ComposeModifierRole.listItem)
+        super.init(view: view)
     }
 
     @Composable func shouldComposeListItem() -> Bool {
