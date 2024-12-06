@@ -159,7 +159,7 @@ public final class Menu : View {
     }
 
     @Composable private static func ComposeDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
-        let label = view.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Label })
+        let label = view.collectViews(context: context).first?.strippingModifiers { $0 as? Label }
         if let isSelected {
             let selectedIcon: @Composable () -> Void
             if isSelected {

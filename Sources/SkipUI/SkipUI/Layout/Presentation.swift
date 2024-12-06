@@ -6,6 +6,7 @@
 
 import Foundation
 #if SKIP
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,6 +36,7 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -81,12 +83,15 @@ let overlayPresentationCornerRadius = 16.0
     if HandlePresentationSizeClassChange(isPresented: isPresented, isDismissingForSizeClassChange: isDismissingForSizeClassChange) {
         return
     }
-    
+
+    let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
+    let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
+
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
     let shouldBePresented = !isDismissingForSizeClassChange.value && isPresentedValue
     if shouldBePresented || sheetState.isVisible {
-        let contentView = ComposeBuilder.from(content)
+        let contentViews = ComposeBuilder.from(content).collectViews(context: context)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
         let handleHeight = isFullScreen ? 0.dp : 8.dp
@@ -97,10 +102,13 @@ let overlayPresentationCornerRadius = 16.0
             let y = topInsetPx - handleHeightPx - handlePaddingPx
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
+        let interactiveDismissDisabled = isFullScreen || interactiveDismissDisabledPreference.value.reduced
+        let backDismissDisabled = contentViews.first?.strippingModifiers(until: { $0 is BackDismissDisabledModifierView }) { ($0 as? BackDismissDisabledModifierView)?.isDisabled == true } ?? false
         let onDismissRequest = {
             isPresented.set(false)
         }
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
+        let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
@@ -109,7 +117,7 @@ let overlayPresentationCornerRadius = 16.0
             let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
             let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
             let reducedDetentPreferences = detentPreferences.value.reduced
-            
+
             if !isFullScreen && verticalSizeClass != .compact {
                 systemBarEdges.remove(.top)
                 if !isEdgeToEdge {
@@ -164,8 +172,8 @@ let overlayPresentationCornerRadius = 16.0
                         }
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                     } in: {
-                        PreferenceValues.shared.collectPreferences([detentPreferencesCollector]) {
-                            contentView.Compose(context: context)
+                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
+                            contentViews.forEach { $0.Compose(context: context) }
                         }
                     }
                 }
@@ -825,7 +833,7 @@ extension View {
             }
         )
         
-        return sheet(isPresented: isPresented, onDismiss: onDismiss) {
+        return fullScreenCover(isPresented: isPresented, onDismiss: onDismiss) {
             if let unwrappedItem = item.wrappedValue {
                 content(unwrappedItem)
             }
@@ -844,6 +852,20 @@ extension View {
         return self
         #endif
     }
+
+    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
+        #if SKIP
+        return preference(key: InteractiveDismissDisabledPreferenceKey.self, value: isDisabled)
+        #else
+        return self
+        #endif
+    }
+
+    #if SKIP
+    public func backDismissDisabled(_ isDisabled: Bool = true) -> some View {
+        return BackDismissDisabledModifierView(view: self, isDisabled: isDisabled)
+    }
+    #endif
 
     public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
         #if SKIP
@@ -958,6 +980,28 @@ final class PresentationModifierView: ComposeModifierView {
             }
         }
         view.Compose(context: context)
+    }
+}
+
+/// Used disable the back button from dismissing a presentation.
+struct BackDismissDisabledModifierView: ComposeModifierView {
+    let isDisabled: Bool
+
+    init(view: View, isDisabled: Bool) {
+        self.isDisabled = isDisabled
+        super.init(view: view)
+    }
+}
+
+struct InteractiveDismissDisabledPreferenceKey: PreferenceKey {
+    typealias Value = Bool
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue = false
+        func reduce(value: inout Bool, nextValue: () -> Bool) {
+            value = nextValue()
+        }
     }
 }
 #endif

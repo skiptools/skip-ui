@@ -1180,7 +1180,7 @@ Support levels:
               <summary><code>.fullScreenCover</code></summary>
               <ul>
                   <li><code>func fullScreenCover(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
-                  <li>Note that covers are dismissible via swipe and the back button on Android.</li>
+                  <li>See <a href="#modals">Modals</a></li>
               </ul>
           </details>      
        </td>
@@ -1222,6 +1222,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.inset</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>
+          <details>
+              <summary><code>.interactiveDismissDisabled</code></summary>
+              <ul>
+                  <li>See <a href="#modals">Modals</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1563,6 +1574,7 @@ Support levels:
               <summary><code>.sheet</code> (<a href="https://skip.tools/docs/components/sheet/">example</a>)</summary>
               <ul>
                   <li><code>func sheet(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
+                  <li>See <a href="#modals">Modals</a></li>
               </ul>
           </details>      
        </td>
@@ -2314,6 +2326,25 @@ struct ListView : View {
 SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
+
+#### Modals
+
+Skip supports standard modal presentations. Android apps typically allow users to dismiss modals with the Android back button. Skip allows you to selectively disable this behavior with the Android-only `backDismissDisabled(_ isDisabled: Bool = true)` SwiftUI modifier. If you use this modifier, you **must** put it on the top-level view embedded in your `.sheet` or `.fullScreenCover`, as in the following example:
+
+```swift
+SomeContentView()
+    .sheet(isPresented: $isSheetPresented) {
+        SheetContentView()
+            #if os(Android)
+            .backDismissDisabled()
+            #endif
+    }
+```
+
+Due to Compose limitations, changing the value passed to `.backDismissDisabled(_: Bool = true)` while the modal is presented has no effect. Only the value at the time of presentation is considered.
+{: class="callout warning"}
+
+Note that you might want to pair `backDismissDisabled` with SwiftUI's `.interactiveDismissDisabled` modifier to also disable dismissing via dragging the sheet down.
 
 ### Restrictions on Identifiers
 

@@ -82,7 +82,7 @@ public struct TabView : View {
             tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
         }
         let tabItems = tabViews.map { view in
-            view.strippingModifiers(until: { $0 == .tabItem }, perform: { $0 as? TabItemModifierView })
+            view.strippingModifiers(until: { $0 is TabItemModifierView }, perform: { $0 as? TabItemModifierView })
         }
 
         let navController = rememberNavController()
@@ -366,7 +366,7 @@ struct TabItemModifierView: ComposeModifierView {
 
     init(view: View, @ViewBuilder label: () -> any View) {
         self.label = ComposeBuilder.from(label)
-        super.init(view: view, role: .tabItem)
+        super.init(view: view)
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {

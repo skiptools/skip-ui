@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 
     // If our content has a zIndex, we need to pull it into our modifiers so that it applies within the original
     // parent container. Otherwise the Box we use below would hide it
-    if let zIndex = view.strippingModifiers(until: { $0 == .zIndex }, perform: { $0 as? ZIndexModifierView }) {
+    if let zIndex = view.strippingModifiers(until: { $0 is ZIndexModifierView }, perform: { $0 as? ZIndexModifierView }) {
         modifier = zIndex.consume(with: modifier)
     }
 

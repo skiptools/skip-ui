@@ -10,27 +10,21 @@ import androidx.compose.runtime.Composable
 /// Recognized modifier roles.
 public enum ComposeModifierRole {
     case accessibility
-    case editActions
-    case gesture
     case id
-    case listItem
     case spacing
-    case tabItem
     case tag
-    case transition
     case unspecified
-    case zIndex
 }
 
 /// Used internally by modifiers to apply changes to the context supplied to modified views.
-class ComposeModifierView: View {
+public class ComposeModifierView: View {
     let view: View
     let role: ComposeModifierRole
     var action: (@Composable (inout ComposeContext) -> ComposeResult)?
     var composeContent: (@Composable (any View, ComposeContext) -> Void)?
 
     /// Constructor for subclasses.
-    init(view: any View, role: ComposeModifierRole = .unspecified) {
+    public init(view: any View, role: ComposeModifierRole = .unspecified) {
         // Don't copy view
         // SKIP REPLACE: this.view = view
         self.view = view
@@ -38,13 +32,13 @@ class ComposeModifierView: View {
     }
 
     /// A modfiier that performs an action, optionally modifying the `ComposeContext` passed to the modified view.
-    init(targetView: any View, role: ComposeModifierRole = .unspecified, action: @Composable (inout ComposeContext) -> ComposeResult) {
+    public init(targetView: any View, role: ComposeModifierRole = .unspecified, action: @Composable (inout ComposeContext) -> ComposeResult) {
         self.init(view: targetView, role: role)
         self.action = action
     }
 
     /// A modifier that takes over the composition of the modified view.
-    init(contentView: any View, role: ComposeModifierRole = .unspecified, composeContent: @Composable (any View, ComposeContext) -> Void) {
+    public init(contentView: any View, role: ComposeModifierRole = .unspecified, composeContent: @Composable (any View, ComposeContext) -> Void) {
         self.init(view: contentView, role: role)
         self.composeContent = composeContent
     }
@@ -61,8 +55,8 @@ class ComposeModifierView: View {
         }
     }
 
-    func strippingModifiers<R>(until: (ComposeModifierRole) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
-        if until(role) {
+    func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+        if until(self) {
             return perform(self)
         } else {
             return view.strippingModifiers(until: until, perform: perform)

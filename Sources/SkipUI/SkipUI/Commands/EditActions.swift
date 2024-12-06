@@ -42,7 +42,7 @@ final class EditActionsModifierView: ComposeModifierView {
     var isMoveDisabled: Bool?
 
     init(view: View, isDeleteDisabled: Bool? = nil, isMoveDisabled: Bool? = nil) {
-        super.init(view: view, role: ComposeModifierRole.editActions)
+        super.init(view: view)
         let wrappedEditActionsView = Self.unwrap(view: view)
         self.isDeleteDisabled = isDeleteDisabled ?? wrappedEditActionsView?.isDeleteDisabled
         self.isMoveDisabled = isMoveDisabled ?? wrappedEditActionsView?.isMoveDisabled
@@ -50,7 +50,7 @@ final class EditActionsModifierView: ComposeModifierView {
 
     /// Return the edit actions modifier information for the given view.
     static func unwrap(view: View) -> EditActionsModifierView? {
-        return view.strippingModifiers(until: { $0 == .editActions }, perform: { $0 as? EditActionsModifierView })
+        return view.strippingModifiers(until: { $0 is EditActionsModifierView }, perform: { $0 as? EditActionsModifierView })
     }
 }
 
