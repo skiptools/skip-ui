@@ -365,6 +365,9 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     } else {
         actionViews = [actions]
     }
+    let textFields = actionViews.compactMap {
+        $0.strippingModifiers { ($0 as? TextField) ?? ($0 as? SecureField)?.textField }
+    }
     let buttons = actionViews.compactMap {
         $0.strippingModifiers { $0 as? Button }
     }
@@ -385,13 +388,13 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
             let contentContext = context.content()
             Column(modifier: Modifier.padding(top: 16.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                ComposeAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, buttons: buttons, message: messageText)
+                ComposeAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, buttons: buttons, message: messageText)
             }
         }
     }
 }
 
-@Composable func ComposeAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, buttons: [Button], message: Text?) {
+@Composable func ComposeAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: [TextField], buttons: [Button], message: Text?) {
     let padding = 16.dp
     if let title {
         androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.primary.colorImpl(), text: title.localizedTextString(), style: Font.title3.bold().fontImpl(), textAlign: TextAlign.Center)
@@ -401,6 +404,13 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     if let message {
         androidx.compose.material3.Text(modifier: Modifier.padding(start: padding, end: padding), color: Color.primary.colorImpl(), text: message.localizedTextString(), style: Font.callout.fontImpl(), textAlign: TextAlign.Center)
     }
+
+    for textField in textFields {
+        let topPadding = textField == textFields.first ? 16.dp : 8.dp
+        let textFieldContext = context.content(modifier: Modifier.padding(top: topPadding, start: padding, end: padding))
+        textField.Compose(context: textFieldContext)
+    }
+
     androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
 
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
