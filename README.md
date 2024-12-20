@@ -231,6 +231,25 @@ public struct Material3NavigationBarOptions {
 }
 
 extension View {
+    public func material3SegmentedButton(_ options: @Composable (Material3SegmentedButtonOptions) -> Material3SegmentedButtonOptions) -> some View
+}
+
+public struct Material3SegmentedButtonOptions {
+    public let index: Int
+    public let count: Int
+    public var selected: Boolean
+    public var onClick: () -> Void
+    public var modifier: androidx.compose.ui.Modifier
+    public var enabled: Bool
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: androidx.compose.material3.SegmentedButtonColors
+    public var border: androidx.compose.foundation.BorderStroke?
+    public var contentPadding: androidx.compose.foundation.layout.PaddingValues
+    public var interactionSource: androidx.compose.foundation.interaction.MutableInteractionSource?
+    public var icon: @Composable () -> Void
+}
+
+extension View {
     public func material3Text(_ options: @Composable (Material3TextOptions) -> Material3TextOptions) -> some View
 }
 
