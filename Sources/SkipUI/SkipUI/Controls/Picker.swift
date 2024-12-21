@@ -5,8 +5,11 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -128,13 +131,25 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
         } else {
             colors = SegmentedButtonDefaults.colors(disabledActiveBorderColor: disabledBorderColor, disabledInactiveBorderColor: disabledBorderColor)
         }
+
         let contentContext = context.content()
+        let updateOptions = EnvironmentValues.shared._material3SegmentedButton
         SingleChoiceSegmentedButtonRow(modifier: Modifier.fillWidth().then(context.modifier)) {
             if let tagViews {
                 for (index, tagView) in tagViews.enumerated() {
-                    SegmentedButton(shape: SegmentedButtonDefaults.itemShape(index: index, count: tagViews.count), colors: colors, selected: index == selectedIndex, enabled: isEnabled, onClick: {
+                    let isSelected = index == selectedIndex
+                    let onClick: () -> Void = {
                         selection.wrappedValue = tagView.value as! SelectionValue
-                    }) {
+                    }
+                    let shape = SegmentedButtonDefaults.itemShape(index: index, count: tagViews.count)
+                    let borderColor = isSelected ? (isEnabled ? colors.activeBorderColor : colors.disabledActiveBorderColor) : (isEnabled ? colors.inactiveBorderColor : colors.disabledInactiveBorderColor)
+                    let border = SegmentedButtonDefaults.borderStroke(borderColor)
+                    let icon: @Composable () -> Void = { SegmentedButtonDefaults.Icon(isSelected) }
+                    var options = Material3SegmentedButtonOptions(index: index, count: tagViews.count, selected: isSelected, onClick: onClick, modifier: Modifier, enabled: isEnabled, shape: shape, colors: colors, border: border, icon: icon)
+                    if let updateOptions {
+                        options = updateOptions(options)
+                    }
+                    SegmentedButton(selected: options.selected, onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, border: options.border, icon: options.icon) {
                         if let label = tagView.view as? Label {
                             let _ = label.ComposeTitle(context: contentContext)
                         } else {
@@ -244,6 +259,13 @@ extension View {
         return self
         #endif
     }
+
+    #if SKIP
+    /// Compose segmented button customization for `Picker`.
+    public func material3SegmentedButton(_ options: @Composable (Material3SegmentedButtonOptions) -> Material3SegmentedButtonOptions) -> View {
+        return environment(\._material3SegmentedButton, options)
+    }
+    #endif
 }
 
 #if SKIP
@@ -346,6 +368,36 @@ struct PickerSelectionView<SelectionValue> : View {
             }
         }
         .buttonStyle(ButtonStyle.plain)
+    }
+}
+
+public struct Material3SegmentedButtonOptions {
+    public let index: Int
+    public let count: Int
+    public var selected: Boolean
+    public var onClick: () -> Void
+    public var modifier: Modifier
+    public var enabled: Boolean
+    public var shape: androidx.compose.ui.graphics.Shape
+    public var colors: SegmentedButtonColors
+    public var border: BorderStroke
+    public var contentPadding: PaddingValues = SegmentedButtonDefaults.ContentPadding
+    public var interactionSource: MutableInteractionSource? = nil
+    public var icon: @Composable () -> Void
+
+    public func copy(
+        selected: Bool = self.selected,
+        onClick: () -> Void = self.onClick,
+        modifier: Modifier = self.modifier,
+        enabled: Bool = self.enabled,
+        shape: androidx.compose.ui.graphics.Shape = self.shape,
+        colors: SegmentedButtonColors = self.colors,
+        border: BorderStroke = self.border,
+        contentPadding: PaddingValues = self.contentPadding,
+        interactionSource: MutableInteractionSource? = self.interactionSource,
+        icon: @Composable () -> Void = self.icon
+    ) -> Material3SegmentedButtonOptions {
+        return Material3SegmentedButtonOptions(index: index, count: count, selected: selected, onClick: onClick, modifier: modifier, enabled: enabled, shape: shape, colors: colors, border: border, contentPadding: contentPadding, interactionSource: interactionSource, icon: icon)
     }
 }
 #endif

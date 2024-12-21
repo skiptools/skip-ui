@@ -509,6 +509,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_material3NavigationBar", value: newValue, defaultValue: { nil }) }
     }
 
+    var _material3SegmentedButton: (@Composable (Material3SegmentedButtonOptions) -> Material3SegmentedButtonOptions)? {
+        get { builtinValue(key: "_material3SegmentedButton", defaultValue: { nil }) as! (@Composable (Material3SegmentedButtonOptions) -> Material3SegmentedButtonOptions)? }
+        set { setBuiltinValue(key: "_material3SegmentedButton", value: newValue, defaultValue: { nil }) }
+    }
+
     var _material3Text: (@Composable (Material3TextOptions) -> Material3TextOptions)? {
         get { builtinValue(key: "_material3Text", defaultValue: { nil }) as! (@Composable (Material3TextOptions) -> Material3TextOptions)? }
         set { setBuiltinValue(key: "_material3Text", value: newValue, defaultValue: { nil }) }
