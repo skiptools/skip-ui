@@ -51,13 +51,6 @@ public struct Color: ShapeStyle, Hashable, Sendable {
     #endif
 
     @available(*, unavailable)
-    public init(_ color: Any) {
-        #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color.White }
-        #endif
-    }
-
-    @available(*, unavailable)
     public init(cgColor: Any /* CGColor */) {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color.White }
@@ -110,6 +103,10 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color.hsv(hue: Self.clamp(hue) * 360, saturation: Self.clamp(saturation), value: Self.clamp(brightness), alpha: Self.clamp(opacity)) }
         #endif
+    }
+
+    public init(_ color: UIColor) {
+        self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
     }
 
     private static func clamp(_ value: Double) -> Float {

@@ -428,6 +428,7 @@ Support levels:
                   <li><code>init(red: Double, green: Double, blue: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(white: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0)</code></li>
+                  <li><code>init(_ color: UIColor)</code></li>
                   <li><code>static let accentColor: Color</code></li>
                   <li><code>static let primary: Color</code></li>
                   <li><code>static let secondary: Color</code></li>
@@ -1741,6 +1742,21 @@ Support levels:
                   <li><code>var applicationState: UIApplication.State</code></li>
                   <li><code>var isIdleTimerDisabled: Bool</code></li>
                   <li><code>func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+   <tr>
+      <td>✅</td>
+      <td><code>#colorLiteral()</code></td>
+    </tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>UIColor</code></summary>
+              <ul>
+                  <li><code>init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)</code></li>
               </ul>
           </details>      
        </td>
