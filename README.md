@@ -749,13 +749,19 @@ Support levels:
       <td><code>Picker</code> (<a href="https://skip.tools/docs/components/picker/">example</a>)</td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>ProgressView</code> (<a href="https://skip.tools/docs/components/progressview/">example</a>)</summary>
               <ul>
                   <li><code>init()</code></li>
                   <li><code>init(value: Double?, total: Double = 1.0)</code></li>
+                  <li><code>init(@ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ titleKey: LocalizedStringKey)</code></li>
+                  <li><code>init(_ title: String)</code></li>
+                  <li><code>init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(_ titleKey: LocalizedStringKey, value: Double?, total: Double = 1.0)</code></li>
+                  <li><code>init(_ title: String, value: Double?, total: Double = 1.0)</code></li>
               </ul>
           </details>      
        </td>
