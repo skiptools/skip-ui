@@ -69,19 +69,21 @@ public struct ProgressView : View {
         }
         if style == .linear {
             if let label, !EnvironmentValues.shared._labelsHidden {
+                let contentContext = context.content()
                 Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(3.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
-                    label.Compose(context: context.content())
-                    ComposeLinearProgress(context: context)
+                    label.Compose(context: contentContext)
+                    ComposeLinearProgress(context: contentContext)
                 }
             } else {
                 ComposeLinearProgress(context: context)
             }
         } else {
             if let label, !EnvironmentValues.shared._labelsHidden {
+                let contentContext = context.content()
                 Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                    ComposeCircularProgress(context: context)
-                    Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(4.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                        label.Compose(context: context.content())
+                    ComposeCircularProgress(context: contentContext)
+                    Row(horizontalArrangement: Arrangement.spacedBy(4.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                        label.Compose(context: contentContext)
                     }
                 }
             } else {
