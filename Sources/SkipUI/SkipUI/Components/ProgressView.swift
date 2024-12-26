@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 public struct ProgressView : View {
     let value: Double?
     let total: Double?
-    let label: (any View)?
+    let label: ComposeBuilder?
 
     public init() {
         self.value = nil
@@ -50,19 +50,15 @@ public struct ProgressView : View {
     public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> any View) {
         self.value = value
         self.total = total
-        self.label = label()
+        self.label = ComposeBuilder.from(label)
     }
 
     public init(_ titleKey: LocalizedStringKey, value: Double?, total: Double = 1.0) {
-        self.value = value
-        self.total = total
-        self.label = Text(titleKey)
+        self.init(value: value, total: total, label: { Text(titleKey) })
     }
 
     public init(_ title: String, value: Double?, total: Double = 1.0) {
-        self.value = value
-        self.total = total
-        self.label = Text(verbatim: title)
+        self.init(value: value, total: total, label: { Text(verbatim: title) })
     }
 
     #if SKIP
