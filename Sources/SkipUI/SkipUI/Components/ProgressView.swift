@@ -8,6 +8,7 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -72,7 +73,7 @@ public struct ProgressView : View {
         }
         if style == .linear {
             if let label, !EnvironmentValues.shared._labelsHidden {
-                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(4.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(3.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                     label.Compose(context: context.content())
                     ComposeLinearProgress(context: context)
                 }
@@ -81,9 +82,11 @@ public struct ProgressView : View {
             }
         } else {
             if let label, !EnvironmentValues.shared._labelsHidden {
-                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(8.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
                     ComposeCircularProgress(context: context)
-                    label.Compose(context: context.content())
+                    Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(4.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                        label.Compose(context: context.content())
+                    }
                 }
             } else {
                 ComposeCircularProgress(context: context)
