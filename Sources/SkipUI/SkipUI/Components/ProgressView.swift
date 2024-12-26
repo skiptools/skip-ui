@@ -5,7 +5,9 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -18,51 +20,48 @@ import androidx.compose.ui.unit.dp
 public struct ProgressView : View {
     let value: Double?
     let total: Double?
+    let label: (any View)?
 
     public init() {
         self.value = nil
         self.total = nil
+        self.label = nil
     }
 
-    @available(*, unavailable)
     public init(@ViewBuilder label: () -> any View) {
-        self.value = nil
-        self.total = nil
+        self.init(value: nil, label: label)
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey) {
-        self.value = nil
-        self.total = nil
+        self.init(titleKey, value: nil)
     }
 
-    @available(*, unavailable)
     public init(_ title: String) {
-        self.value = nil
-        self.total = nil
+        self.init(title, value: nil)
     }
 
     public init(value: Double?, total: Double = 1.0) {
         self.value = value
         self.total = total
+        self.label = nil
     }
 
-    @available(*, unavailable)
     public init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> any View) {
         self.value = value
         self.total = total
+        self.label = label()
     }
 
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, value: Double?, total: Double = 1.0) {
         self.value = value
         self.total = total
+        self.label = Text(titleKey)
     }
 
-    @available(*, unavailable)
     public init(_ title: String, value: Double?, total: Double = 1.0) {
         self.value = value
         self.total = total
+        self.label = Text(verbatim: title)
     }
 
     #if SKIP
@@ -72,23 +71,45 @@ public struct ProgressView : View {
             style = value == nil ? .circular : .linear
         }
         if style == .linear {
-            let modifier = Modifier.fillWidth().then(context.modifier)
-            let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
-            if value == nil || total == nil {
-                LinearProgressIndicator(modifier: modifier, color: color)
+            if let label, !EnvironmentValues.shared._labelsHidden {
+                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(4.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                    label.Compose(context: context.content())
+                    ComposeLinearProgress(context: context)
+                }
             } else {
-                LinearProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
+                ComposeLinearProgress(context: context)
             }
         } else {
-            let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
-            // Reduce size to better match SwiftUI
-            let indicatorModifier = Modifier.size(20.dp)
-            Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                if value == nil || total == nil {
-                    CircularProgressIndicator(modifier: indicatorModifier, color: color)
-                } else {
-                    CircularProgressIndicator(progress: Float(value! / total!), modifier: indicatorModifier, color: color)
+            if let label, !EnvironmentValues.shared._labelsHidden {
+                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(8.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+                    ComposeCircularProgress(context: context)
+                    label.Compose(context: context.content())
                 }
+            } else {
+                ComposeCircularProgress(context: context)
+            }
+        }
+    }
+
+    @Composable private func ComposeLinearProgress(context: ComposeContext) {
+        let modifier = Modifier.fillWidth().then(context.modifier)
+        let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
+        if value == nil || total == nil {
+            LinearProgressIndicator(modifier: modifier, color: color)
+        } else {
+            LinearProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
+        }
+    }
+
+    @Composable private func ComposeCircularProgress(context: ComposeContext) {
+        let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
+        // Reduce size to better match SwiftUI
+        let indicatorModifier = Modifier.size(20.dp)
+        Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+            if value == nil || total == nil {
+                CircularProgressIndicator(modifier: indicatorModifier, color: color)
+            } else {
+                CircularProgressIndicator(progress: Float(value! / total!), modifier: indicatorModifier, color: color)
             }
         }
     }
