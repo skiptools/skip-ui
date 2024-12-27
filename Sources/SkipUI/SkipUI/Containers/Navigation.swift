@@ -197,7 +197,8 @@ public struct NavigationStack<Root> : View where Root: View {
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
         let topBarHidden = remember { mutableStateOf(false) }
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: arguments.state, preference: arguments.toolbarPreferences.titleDisplayMode)
+        let hasTitle = arguments.title != NavigationTitlePreferenceKey.defaultValue
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: arguments.state, hasTitle: hasTitle, preference: arguments.toolbarPreferences.titleDisplayMode)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
         let toolbarItems = ToolbarItems(content: arguments.toolbarPreferences.content ?? [])
 
@@ -245,7 +246,7 @@ public struct NavigationStack<Root> : View where Root: View {
             }
             let topLeadingItems = toolbarItems.filterTopBarLeading()
             let topTrailingItems = toolbarItems.filterTopBarTrailing()
-            guard !arguments.isRoot || arguments.title != NavigationTitlePreferenceKey.defaultValue || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
+            guard !arguments.isRoot || hasTitle || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     topBarHidden.value = true
                     topBarBottomPx.value = Float(0.0)
@@ -677,10 +678,15 @@ struct NavigationDestination {
     }
 
     /// The effective title display mode for the given preference value.
-    func titleDisplayMode(for state: BackStackState, preference: ToolbarTitleDisplayMode?) -> ToolbarTitleDisplayMode {
+    func titleDisplayMode(for state: BackStackState, hasTitle: Bool, preference: ToolbarTitleDisplayMode?) -> ToolbarTitleDisplayMode {
         if let preference {
             state.titleDisplayMode = preference
             return preference
+        }
+
+        // Never add large title space when `title` and `titleDisplayMode` are unset in the current stack
+        guard hasTitle else {
+            return .inline
         }
 
         // Base the display mode on the back stack
