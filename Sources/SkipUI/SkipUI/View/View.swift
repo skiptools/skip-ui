@@ -114,6 +114,7 @@ extension View {
 
     public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> some View {
         #if SKIP
+        // NOTE: This is currently consumed only by Image and TabView (paging style)
         return environment(\._aspectRatio, (ratio, contentMode))
         #else
         return self

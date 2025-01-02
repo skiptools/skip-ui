@@ -83,8 +83,7 @@ public struct TabView : View {
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
         if let pageTabViewStyle = EnvironmentValues.shared._tabViewStyle as? PageTabViewStyle {
-            let indexDisplayMode = remember { pageTabViewStyle.indexDisplayMode }
-            ComposePageViewContent(indexDisplayMode: indexDisplayMode, context: context)
+            ComposePageViewContent(indexDisplayMode: pageTabViewStyle.indexDisplayMode, context: context)
         } else {
             ComposeTabViewContent(context: context)
         }
@@ -95,34 +94,48 @@ public struct TabView : View {
         let contentContext = context.content()
         let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
         var modifier = context.modifier
+        // This special case application of aspectRatio was needed by a particular user, until we're able to implement general support
         if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio, let aspectRatio {
             modifier = modifier.aspectRatio(Float(aspectRatio))
         }
-        Box(modifier: modifier) {
-            let pagerState = rememberPagerState(pageCount: { tabViews.count })
-            HorizontalPager(state: pagerState, modifier: Modifier.fillMaxWidth()) { page in
-                Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    tabViews[page].Compose(context: contentContext)
+        ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
+            Box(modifier: modifier) {
+                let pagerState = rememberPagerState(pageCount: { tabViews.count })
+                HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
+                    Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                        tabViews[page].Compose(context: contentContext)
+                    }
                 }
-            }
-            if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabViews.count > 1) {
-                let modifier = Modifier.wrapContentHeight().fillMaxWidth().align(androidx.compose.ui.Alignment.BottomCenter).padding(bottom: 16.dp)
-                ComposePageViewIndicatorContent(pagerState: pagerState, modifier: modifier, context: contentContext)
+                if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabViews.count > 1) {
+                    let modifier = Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth()
+                        .align(androidx.compose.ui.Alignment.BottomCenter)
+                        .padding(bottom: 16.dp)
+                    ComposePageViewIndicator(pagerState: pagerState, modifier: modifier, context: contentContext)
+                }
             }
         }
     }
 
     // https://developer.android.com/develop/ui/compose/layouts/pager#add-page
-    @Composable private func ComposePageViewIndicatorContent(pagerState: PagerState, modifier: Modifier, context: ComposeContext) {
+    @Composable private func ComposePageViewIndicator(pagerState: PagerState, modifier: Modifier, context: ComposeContext) {
         let coroutineScope = rememberCoroutineScope()
         Row(modifier: modifier, horizontalArrangement: Arrangement.Center) {
             for indicatorPage in 0..<pagerState.pageCount {
                 let isCurrentPage = pagerState.currentPage == indicatorPage
-                let buttonModifier = context.modifier.clickable(onClick: { coroutineScope.launch { pagerState.animateScrollToPage(indicatorPage) } }, enabled: !isCurrentPage)
+                let buttonModifier = context.modifier.clickable(onClick: {
+                    coroutineScope.launch { pagerState.animateScrollToPage(indicatorPage) }
+                }, enabled: !isCurrentPage)
                 Box(modifier: buttonModifier) {
-                    let color = isCurrentPage ? Color.white : Color.white.opacity(0.5)
+                    let indicatorColor = isCurrentPage ? Color.white : Color.white.opacity(0.5)
                     let indicatorDynamicSize = 8.dp * LocalDensity.current.fontScale
-                    Box(modifier: Modifier.padding(indicatorDynamicSize / 2).clip(CircleShape).background(color.colorImpl()).size(indicatorDynamicSize))
+                    let indicatorModifier = Modifier
+                        .padding(horizontal: indicatorDynamicSize)
+                        .clip(CircleShape)
+                        .background(indicatorColor.colorImpl())
+                        .size(indicatorDynamicSize)
+                    Box(modifier: indicatorModifier)
                 }
             }
         }
@@ -480,13 +493,14 @@ final class TabIndexComposer: RenderingComposer {
 }
 #endif
 
-// MARK: TabView Style
+// MARK: TabViewStyle
 
 public protocol TabViewStyle: Equatable {}
 
 public struct DefaultTabViewStyle : TabViewStyle {
     public init() {}
 }
+
 extension TabViewStyle where Self == DefaultTabViewStyle {
     public static var automatic: DefaultTabViewStyle { DefaultTabViewStyle() }
 }
@@ -494,6 +508,7 @@ extension TabViewStyle where Self == DefaultTabViewStyle {
 public struct TabBarOnlyTabViewStyle: TabViewStyle {
     public init() {}
 }
+
 extension TabViewStyle where Self == TabBarOnlyTabViewStyle {
     public static var tabBarOnly: TabBarOnlyTabViewStyle { TabBarOnlyTabViewStyle() }
 }
@@ -517,6 +532,7 @@ public struct PageTabViewStyle: TabViewStyle {
         self.indexDisplayMode = indexDisplayMode
     }
 }
+
 extension TabViewStyle where Self == PageTabViewStyle {
     public static var page: PageTabViewStyle { PageTabViewStyle() }
 
