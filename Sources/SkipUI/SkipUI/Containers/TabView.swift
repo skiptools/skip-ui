@@ -11,9 +11,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +24,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -36,12 +44,14 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -52,6 +62,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 #endif
 
 public struct TabView : View {
@@ -71,6 +82,53 @@ public struct TabView : View {
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable public override func ComposeContent(context: ComposeContext) {
+        if let pageTabViewStyle = EnvironmentValues.shared._tabViewStyle as? PageTabViewStyle {
+            let indexDisplayMode = remember { pageTabViewStyle.indexDisplayMode }
+            ComposePageViewContent(indexDisplayMode: indexDisplayMode, context: context)
+        } else {
+            ComposeTabViewContent(context: context)
+        }
+    }
+
+    @Composable private func ComposePageViewContent(indexDisplayMode: PageTabViewStyle.IndexDisplayMode, context: ComposeContext) {
+        // WARNING: This function is a potential recomposition hotspot
+        let contentContext = context.content()
+        let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
+        var modifier = context.modifier
+        if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio, let aspectRatio {
+            modifier = modifier.aspectRatio(Float(aspectRatio))
+        }
+        Box(modifier: modifier) {
+            let pagerState = rememberPagerState(pageCount: { tabViews.count })
+            HorizontalPager(state: pagerState, modifier: Modifier.fillMaxWidth()) { page in
+                Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    tabViews[page].Compose(context: contentContext)
+                }
+            }
+            if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabViews.count > 1) {
+                let modifier = Modifier.wrapContentHeight().fillMaxWidth().align(androidx.compose.ui.Alignment.BottomCenter).padding(bottom: 16.dp)
+                ComposePageViewIndicatorContent(pagerState: pagerState, modifier: modifier, context: contentContext)
+            }
+        }
+    }
+
+    // https://developer.android.com/develop/ui/compose/layouts/pager#add-page
+    @Composable private func ComposePageViewIndicatorContent(pagerState: PagerState, modifier: Modifier, context: ComposeContext) {
+        let coroutineScope = rememberCoroutineScope()
+        Row(modifier: modifier, horizontalArrangement: Arrangement.Center) {
+            for indicatorPage in 0..<pagerState.pageCount {
+                let isCurrentPage = pagerState.currentPage == indicatorPage
+                let buttonModifier = context.modifier.clickable(onClick: { coroutineScope.launch { pagerState.animateScrollToPage(indicatorPage) } }, enabled: !isCurrentPage)
+                Box(modifier: buttonModifier) {
+                    let color = isCurrentPage ? Color.white : Color.white.opacity(0.5)
+                    let indicatorDynamicSize = 8.dp * LocalDensity.current.fontScale
+                    Box(modifier: Modifier.padding(indicatorDynamicSize / 2).clip(CircleShape).background(color.colorImpl()).size(indicatorDynamicSize))
+                }
+            }
+        }
+    }
+
+    @Composable private func ComposeTabViewContent(context: ComposeContext) {
         // WARNING: This function is a potential recomposition hotspot. It should not need to be called on every tab
         // change. Test after any modification
 
@@ -422,18 +480,52 @@ final class TabIndexComposer: RenderingComposer {
 }
 #endif
 
-public struct TabViewStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
+// MARK: TabView Style
 
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
+public protocol TabViewStyle: Equatable {}
+
+public struct DefaultTabViewStyle : TabViewStyle {
+    public init() {}
+}
+extension TabViewStyle where Self == DefaultTabViewStyle {
+    public static var automatic: DefaultTabViewStyle { DefaultTabViewStyle() }
+}
+
+public struct TabBarOnlyTabViewStyle: TabViewStyle {
+    public init() {}
+}
+extension TabViewStyle where Self == TabBarOnlyTabViewStyle {
+    public static var tabBarOnly: TabBarOnlyTabViewStyle { TabBarOnlyTabViewStyle() }
+}
+
+public struct PageTabViewStyle: TabViewStyle {
+    public let indexDisplayMode: PageTabViewStyle.IndexDisplayMode
+
+    public struct IndexDisplayMode: RawRepresentable, Equatable {
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        public static let automatic = IndexDisplayMode(rawValue: 0)
+        public static let always = IndexDisplayMode(rawValue: 1)
+        public static let never = IndexDisplayMode(rawValue: 2)
     }
 
-    public static let automatic = TabViewStyle(rawValue: 0)
-
-    @available(*, unavailable)
-    public static let page = TabViewStyle(rawValue: 1)
+    public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) {
+        self.indexDisplayMode = indexDisplayMode
+    }
 }
+extension TabViewStyle where Self == PageTabViewStyle {
+    public static var page: PageTabViewStyle { PageTabViewStyle() }
+
+    public static func page(indexDisplayMode: PageTabViewStyle.IndexDisplayMode) -> PageTabViewStyle {
+        return PageTabViewStyle(indexDisplayMode: indexDisplayMode)
+    }
+}
+
+// MARK: View extensions
 
 extension View {
     public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
@@ -444,9 +536,12 @@ extension View {
         #endif
     }
 
-    public func tabViewStyle(_ style: TabViewStyle) -> some View {
-        // We only support .automatic
+    public func tabViewStyle(_ style: any TabViewStyle) -> some View {
+        #if SKIP
+        return environment(\._tabViewStyle, style)
+        #else
         return self
+        #endif
     }
 
     #if SKIP
@@ -488,46 +583,4 @@ public struct Material3NavigationBarOptions {
         return Material3NavigationBarOptions(modifier: modifier, containerColor: containerColor, contentColor: contentColor, tonalElevation: tonalElevation, onItemClick: onItemClick, itemIcon: itemIcon, itemModifier: itemModifier, itemEnabled: itemEnabled, itemLabel: itemLabel, alwaysShowItemLabels: alwaysShowItemLabels, itemColors: itemColors, itemInteractionSource: itemInteractionSource)
     }
 }
-#endif
-
-#if false
-
-// TODO: Process for use in SkipUI
-
-@available(iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-@available(macOS, unavailable)
-extension TabViewStyle /* where Self == PageTabViewStyle */ {
-
-    /// A `TabViewStyle` that implements a paged scrolling `TabView` with an
-    /// index display mode.
-    public static func page(indexDisplayMode: PageTabViewStyle.IndexDisplayMode) -> PageTabViewStyle { fatalError() }
-}
-
-/// A `TabViewStyle` that implements a paged scrolling `TabView`.
-///
-/// You can also use ``TabViewStyle/page`` or
-/// ``TabViewStyle/page(indexDisplayMode:)`` to construct this style.
-@available(iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-@available(macOS, unavailable)
-public struct PageTabViewStyle /* : TabViewStyle */ {
-
-    /// A style for displaying the page index view
-    public struct IndexDisplayMode : Sendable {
-
-        /// Displays an index view when there are more than one page
-        public static let automatic: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
-
-        /// Always display an index view regardless of page count
-        @available(watchOS 8.0, *)
-        public static let always: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
-
-        /// Never display an index view
-        @available(watchOS 8.0, *)
-        public static let never: PageTabViewStyle.IndexDisplayMode = { fatalError() }()
-    }
-
-    /// Creates a new `PageTabViewStyle` with an index display mode
-    public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) { fatalError() }
-}
-
 #endif
