@@ -101,7 +101,7 @@ public struct AsyncImage : View {
     }
     #endif
 
-    @ViewBuilder static func defaultPlaceholder() -> some View {
+    @ViewBuilder private static func defaultPlaceholder() -> some View {
         #if SKIP
         Color.placeholder
         #else

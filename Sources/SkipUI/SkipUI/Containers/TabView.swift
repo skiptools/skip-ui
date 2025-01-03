@@ -93,12 +93,7 @@ public struct TabView : View {
         // WARNING: This function is a potential recomposition hotspot
         let contentContext = context.content()
         let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
-        var modifier = context.modifier
-        // This special case application of aspectRatio was needed by a particular user, until we're able to implement general support
-        if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio, let aspectRatio {
-            modifier = modifier.aspectRatio(Float(aspectRatio))
-        }
-        ComposeContainer(modifier: modifier, fillWidth: true) { modifier in
+        ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
             Box(modifier: modifier) {
                 let pagerState = rememberPagerState(pageCount: { tabViews.count })
                 HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
