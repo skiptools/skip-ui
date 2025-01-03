@@ -114,8 +114,16 @@ extension View {
 
     public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> some View {
         #if SKIP
-        // NOTE: This is currently consumed only by Image and TabView (paging style)
-        return environment(\._aspectRatio, (ratio, contentMode))
+        // Image has its own support for aspect ratios, and we allow the loaded Image in AsyncImage to consume the modifier too
+        if let ratio, !strippingModifiers(perform: { $0 is Image || $0 is AsyncImage }) {
+            // contentMode is not supported for non-Image views
+            return ComposeModifierView(targetView: self) {
+                $0.modifier = $0.modifier.aspectRatio(Float(ratio))
+                return ComposeResult.ok
+            }
+        } else {
+            return environment(\._aspectRatio, (ratio, contentMode))
+        }
         #else
         return self
         #endif

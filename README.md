@@ -1060,7 +1060,7 @@ Support levels:
           <details>
               <summary><code>.aspectRatio</code></summary>
               <ul>
-                  <li>Only supported for images</li>
+                  <li><code>contentMode</code> is only supported for images</li>
               </ul>
           </details>      
        </td>
@@ -1631,6 +1631,20 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.tabItem</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>
+          <details>
+              <summary><code>.tabViewStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.page</code></li>
+                  <li><code>.tabBarOnly</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
