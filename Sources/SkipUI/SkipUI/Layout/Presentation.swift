@@ -6,7 +6,6 @@
 
 import Foundation
 #if SKIP
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
@@ -43,7 +41,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -51,12 +48,9 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -67,7 +61,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
@@ -79,18 +72,12 @@ let overlayPresentationCornerRadius = 16.0
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    let isDismissingForSizeClassChange = remember { mutableStateOf(false) }
-    if HandlePresentationSizeClassChange(isPresented: isPresented, isDismissingForSizeClassChange: isDismissingForSizeClassChange) {
-        return
-    }
-
     let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
     let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
-    let shouldBePresented = !isDismissingForSizeClassChange.value && isPresentedValue
-    if shouldBePresented || sheetState.isVisible {
+    if isPresentedValue || sheetState.isVisible {
         let contentViews = ComposeBuilder.from(content).collectViews(context: context)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
@@ -109,9 +96,9 @@ let overlayPresentationCornerRadius = 16.0
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+            let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
-            let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             var systemBarEdges: Edge.Set = [.top, .bottom]
 
             let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
@@ -157,6 +144,8 @@ let overlayPresentationCornerRadius = 16.0
                 topInset.value = inset
                 // Push the presentation root content area below the top bar
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+            } else {
+                topInset.value = 0.dp
             }
 
             let clipShape = RoundedCornerShape(topStart: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp, topEnd: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp)
@@ -216,14 +205,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
-    let isDismissingForSizeClassChange = remember { mutableStateOf(false) }
-    if HandlePresentationSizeClassChange(isPresented: isPresented, isDismissingForSizeClassChange: isDismissingForSizeClassChange) {
-        return
-    }
-
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
-    let shouldBePresented = !isDismissingForSizeClassChange.value && isPresented.get()
-    if shouldBePresented || sheetState.isVisible {
+    if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
         let actionViews: [View]
         if let composeBuilder = actions as? ComposeBuilder {
@@ -332,25 +315,6 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     Box(modifier: Modifier.fillMaxWidth().requiredHeightIn(min: 60.dp).clickable(onClick: action), contentAlignment: androidx.compose.ui.Alignment.Center) {
         content()
     }
-}
-
-/// Handle size class changes (typically due to orientation change) in our various presentations.
-///
-/// Sheets deform on change, so we re-present.
-@Composable func HandlePresentationSizeClassChange(isPresented: Binding<Bool>, isDismissingForSizeClassChange: MutableState<Bool>) -> Bool {
-    let verticalSizeClass = rememberUpdatedState(EnvironmentValues.shared.verticalSizeClass)
-    let rememberedVerticalSizeClass = remember { mutableStateOf(verticalSizeClass.value) }
-    if verticalSizeClass.value == rememberedVerticalSizeClass.value {
-        return false
-    }
-    LaunchedEffect(verticalSizeClass.value, rememberedVerticalSizeClass.value) {
-        if isPresented.get() && verticalSizeClass.value != rememberedVerticalSizeClass.value {
-            isDismissingForSizeClassChange.value = true
-            isDismissingForSizeClassChange.value = false
-        }
-        rememberedVerticalSizeClass.value = verticalSizeClass.value
-    }
-    return true
 }
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
