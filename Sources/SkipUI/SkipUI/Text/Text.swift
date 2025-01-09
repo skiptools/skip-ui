@@ -62,6 +62,15 @@ public struct Text: View, Equatable {
         modifiedView = textView
     }
 
+    public init(_ resource: LocalizedStringResource) {
+        #if SKIP // LocalizedStringResource.keyAndValue is not accessible via Foundation
+        textView = _Text(key: LocalizedStringKey(resource), tableName: resource.table, bundle: resource.bundle?.bundle ?? Bundle.main)
+        #else
+        textView = _Text(verbatim: "MissingLocalizedStringResource")
+        #endif
+        modifiedView = textView
+    }
+
     public init(_ key: String, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(key: LocalizedStringKey(stringLiteral: key), tableName: tableName, bundle: bundle)
         modifiedView = textView

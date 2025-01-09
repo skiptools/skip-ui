@@ -34,6 +34,16 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         self.stringInterpolation = stringInterpolation
     }
 
+    public init(resource: LocalizedStringResource) {
+        var interp = LocalizedStringKey.StringInterpolation(literalCapacity: 0, interpolationCount: 0)
+        #if SKIP
+        // For (presumably) historical reasons, SwiftUI.LocalizedStringKey and Foundation.LocalizedStringResource are both StringInterpolationProtocol, but have different implementation, so copy the underlying fields over manually
+        interp.pattern = resource.keyAndValue.stringInterpolation.pattern
+        interp.values.addAll(resource.keyAndValue.stringInterpolation.values)
+        #endif
+        self.stringInterpolation = interp
+    }
+
     /// Returns the pattern string to use for looking up localized values in the `.xcstrings` file
     public var patternFormat: String {
         stringInterpolation.pattern
@@ -130,20 +140,5 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
             #endif
             pattern += "%@"
         }
-
-        //public mutating func appendInterpolation(_ string: String) { fatalError() }
-        //public mutating func appendInterpolation<Subject>(_ subject: Subject, formatter: Formatter? = nil) where Subject : ReferenceConvertible { fatalError() }
-        //public mutating func appendInterpolation<Subject>(_ subject: Subject, formatter: Formatter? = nil) where Subject : NSObject { fatalError() }
-        //public mutating func appendInterpolation<F>(_ input: F.FormatInput, format: F) where F : FormatStyle, F.FormatInput : Equatable, F.FormatOutput == String { fatalError() }
-        //public mutating func appendInterpolation<T>(_ value: T) where T : _FormatSpecifiable { fatalError() }
-        //public mutating func appendInterpolation<T>(_ value: T, specifier: String) where T : _FormatSpecifiable { fatalError() }
-        //public mutating func appendInterpolation(_ text: Text) { fatalError() }
-        //public mutating func appendInterpolation(_ attributedString: AttributedString) { fatalError() }
-        //public mutating func appendInterpolation(_ image: Image) { fatalError() }
-        //public mutating func appendInterpolation(_ date: Date, style: Text.DateStyle) { fatalError() }
-        //public mutating func appendInterpolation(_ dates: ClosedRange<Date>) { fatalError() }
-        //public mutating func appendInterpolation(_ interval: DateInterval) { fatalError() }
-        //public mutating func appendInterpolation(timerInterval: ClosedRange<Date>, pauseTime: Date? = nil, countsDown: Bool = true, showsHours: Bool = true) { fatalError() }
-        //public mutating func appendInterpolation(_ resource: LocalizedStringResource) { fatalError() }
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.testTagsAsResourceId
 #elseif canImport(CoreGraphics)
 import class Accessibility.AXCustomContent
 import class Accessibility.AXChartDescriptor
@@ -21,10 +22,11 @@ import struct CoreGraphics.CGPoint
 #endif
 
 extension View {
+    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityIdentifier(_ identifier: String) -> some View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.testTag(identifier)
+            $0.modifier = $0.modifier.semantics { testTagsAsResourceId = true }.testTag(identifier)
             return ComposeResult.ok
         }
         #else
