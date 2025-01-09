@@ -12,8 +12,8 @@ settings:
           contents:
             - block: 'create("libs")'
               contents:
-                - 'version("coil", "3.0.0")'
-                - 'version("androidx-navigation", "2.8.3")'
+                - 'version("coil", "3.0.4")'
+                - 'version("androidx-navigation", "2.8.5")'
                 - 'version("androidx-appcompat", "1.7.0")'
                 - 'version("androidx-activity", "1.9.3")'
                 - 'version("androidx-lifecycle-process", "2.8.7")'
