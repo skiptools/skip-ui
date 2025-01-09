@@ -1,3 +1,9 @@
+## 1.17.2
+
+Released 2025-01-09
+
+  - Add Text.init(LocalizedStringResource) (#101)
+
 ## 1.13.11
 
 Released 2024-11-05
