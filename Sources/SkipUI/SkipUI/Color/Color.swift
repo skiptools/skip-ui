@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+import Foundation
 #if SKIP
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -107,6 +108,19 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     public init(_ color: UIColor) {
         self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
+    }
+
+    public init(uiColor color: UIColor) {
+        self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
+    }
+
+    public init(_ name: String, bundle: Bundle? = nil) {
+        #if SKIP
+        let assetColorInfo: AssetColorInfo? = rememberCachedAsset(namedColorCache, AssetKey(name: name, bundle: bundle)) { _ in
+            assetColorInfo(name: name, bundle: bundle ?? Bundle.main)
+        }
+        colorImpl = { assetColorInfo?.colorImpl() ?? Color.gray.colorImpl() }
+        #endif
     }
 
     private static func clamp(_ value: Double) -> Float {
@@ -238,22 +252,6 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         ComposeColor(light: 0xFFA2845E, dark: 0xFFAC8E68)
     })
     #endif
-
-    // MARK: -
-
-    @available(*, unavailable)
-    public init(_ name: String, bundle: Any? = nil /* Bundle? = nil */) {
-        #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color.White }
-        #endif
-    }
-
-    @available(*, unavailable)
-    public init(uiColor: Any /* UIColor */) {
-        #if SKIP
-        colorImpl = { androidx.compose.ui.graphics.Color.White }
-        #endif
-    }
 
     // MARK: -
 
@@ -429,6 +427,137 @@ extension ShapeStyle where Self == Color {
         #endif
     }
 }
+
+#if SKIP
+
+private let namedColorCache: [AssetKey: AssetColorInfo?] = [:]
+
+private struct AssetColorInfo {
+    let light: ColorSet.ColorSpec?
+    let dark: ColorSet.ColorSpec?
+
+    /// The `ColorSet` that was loaded for the given info.
+    let colorSet: ColorSet
+
+    @Composable func colorImpl() -> androidx.compose.ui.graphics.Color {
+        let colorScheme = EnvironmentValues.shared.colorScheme
+        var color: androidx.compose.ui.graphics.Color? = nil
+        if colorScheme == .dark, let dark {
+            color = dark.colorImpl()
+        } else {
+            color = light?.colorImpl()
+        }
+        return color ?? Color.gray.colorImpl()
+    }
+}
+
+private func assetColorInfo(name: String, bundle: Bundle) -> AssetColorInfo? {
+    for dataURL in assetContentsURLs(name: "\(name).colorset", bundle: bundle) {
+        do {
+            let data = try Data(contentsOf: dataURL)
+            logger.debug("loading colorset asset contents from: \(dataURL)")
+            let colorSet = try JSONDecoder().decode(ColorSet.self, from: data)
+            let lightColor = colorSet.colors.sortedByAssetFit(colorScheme: ColorScheme.light).compactMap { $0.color }.last
+            let darkColor = colorSet.colors.sortedByAssetFit(colorScheme: ColorScheme.dark).compactMap { $0.color }.last
+            return AssetColorInfo(light: lightColor, dark: darkColor, colorSet: colorSet)
+        } catch {
+            logger.warning("error loading color data from \(name): \(error)")
+        }
+    }
+    return nil
+}
+
+/* The `Contents.json` in a `*.colorset` folder for a symbol
+ https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/Named_Color.html
+ {
+   "colors" : [
+     {
+       "color" : {
+         "platform" : "universal",
+         "reference" : "systemBlueColor"
+       },
+       "idiom" : "universal"
+     }
+   ],
+   "info" : {
+     "author" : "xcode",
+     "version" : 1
+   }
+ }
+ */
+private struct ColorSet : Decodable {
+    let colors: [ColorInfo]
+    let info: AssetContentsInfo
+
+    struct ColorInfo : Decodable, AssetSortable {
+        let color: ColorSpec?
+        let idiom: String? // e.g. "universal"
+        let appearances: [AssetAppearance]?
+    }
+
+    struct ColorSpec : Decodable {
+        let platform: String? // e.g. "ios"
+        let reference: String? // e.g. "systemBlueColor"
+        let components: ColorComponents?
+
+        @Composable func colorImpl() -> androidx.compose.ui.graphics.Color? {
+            if let components {
+                return components.color.colorImpl()
+            }
+            switch reference {
+            case "labelColor":
+                return Color.primary.colorImpl()
+            case "secondaryLabelColor":
+                return Color.secondary.colorImpl()
+            case "systemBlueColor":
+                return Color.blue.colorImpl()
+            case "systemBrownColor":
+                return Color.brown.colorImpl()
+            case "systemCyanColor":
+                return Color.cyan.colorImpl()
+            case "systemGrayColor":
+                return Color.gray.colorImpl()
+            case "systemGreenColor":
+                return Color.green.colorImpl()
+            case "systemIndigoColor":
+                return Color.indigo.colorImpl()
+            case "systemMintColor":
+                return Color.mint.colorImpl()
+            case "systemOrangeColor":
+                return Color.orange.colorImpl()
+            case "systemPinkColor":
+                return Color.pink.colorImpl()
+            case "systemPurpleColor":
+                return Color.purple.colorImpl()
+            case "systemRedColor":
+                return Color.red.colorImpl()
+            case "systemTealColor":
+                return Color.teal.colorImpl()
+            case "systemYellowColor":
+                return Color.yellow.colorImpl()
+            default:
+                return nil
+            }
+        }
+    }
+
+    struct ColorComponents : Decodable {
+        let red: String?
+        let green: String?
+        let blue: String?
+        let alpha: String?
+
+        var color: Color {
+            let redValue = Double(red ?? "") ?? 0.0
+            let greenValue = Double(green ?? "") ?? 0.0
+            let blueValue = Double(blue ?? "") ?? 0.0
+            let alphaValue = Double(alpha ?? "") ?? 1.0
+            return Color(red: redValue, green: greenValue, blue: blueValue, opacity: alphaValue)
+        }
+    }
+}
+
+#endif
 
 #if !SKIP
 

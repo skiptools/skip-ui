@@ -429,6 +429,8 @@ Support levels:
                   <li><code>init(white: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(_ color: UIColor)</code></li>
+                  <li><code>init(uiColor: UIColor)</code></li>
+                  <li><code>init(_ name: String. bundle: Bundle? = nil)</code></li>
                   <li><code>static let accentColor: Color</code></li>
                   <li><code>static let primary: Color</code></li>
                   <li><code>static let secondary: Color</code></li>
@@ -450,6 +452,7 @@ Support levels:
                   <li><code>static let brown: Color</code></li>
                   <li><code>func opacity(_ opacity: Double) -> Color</code></li>
                   <li><code>var gradient: AnyGradient</code></li>
+                  <li>See <a href="#named-colors">Named Colors</a></li>
               </ul>
           </details>      
        </td>
@@ -2126,19 +2129,19 @@ Images can be bundled in asset catalogs provided in the `Resources` folder of yo
 .target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
 ```
 
-Once the asset catalog is added to your `Resources` folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
+Once an asset catalog is added to your `Resources` folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
 
 ```swift
 Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
 ```
 
+When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+{: class="callout warning"}
+
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
 Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 {: class="callout info"}
-
-When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
-{: class="callout warning"}
 
 In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
@@ -2349,6 +2352,30 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 - Nesting of `ForEach` and `Section` views is limited.
 - SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
 - See also the `ForEach` view [topic](#foreach).
+
+### Named Colors
+
+Named colors can be bundled in asset catalogs provided in the `Resources` folder of your SwiftPM modules. Your `Package.swift` project should have the module's `.target` include the `Resources` folder for resource processing (which is the default for projects created with `skip init`):
+
+```swift
+.target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
+```
+
+Once an asset catalog is added to your `Resources` folder, any named colors can be loaded and displayed using the `Color(_:bundle:)` constructor. For example:
+
+```swift
+Color("WarningYellow", bundle: .module)
+```
+
+When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+{: class="callout warning"}
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
+
+Note that you **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
+{: class="callout info"}
+
+For Android, Skip only uses named colors that you've set for "Universal" devices. You can define the color using RGB values or use any of the "Universal System Color" constants.
 
 ### Navigation
 
