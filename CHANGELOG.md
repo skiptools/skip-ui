@@ -1,3 +1,10 @@
+## 1.18.1
+
+Released 2025-01-17
+
+  - Localized strings will fall back to the default locale for unhandled locales (#107)
+  - Fix HTML formatting
+
 ## 1.17.2
 
 Released 2025-01-09
