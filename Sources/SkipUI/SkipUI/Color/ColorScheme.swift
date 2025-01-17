@@ -32,11 +32,14 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
         let isDarkMode = self == ColorScheme.dark
         // Dynamic color is available on Android 12+
         let isDynamicColor = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-        let colorScheme: androidx.compose.material3.ColorScheme
+        var colorScheme: androidx.compose.material3.ColorScheme
         if isDarkMode {
             colorScheme = isDynamicColor ? dynamicDarkColorScheme(context) : darkColorScheme()
         } else {
             colorScheme = isDynamicColor ? dynamicLightColorScheme(context) : lightColorScheme()
+        }
+        if let primary = Color.assetAccentColor(colorScheme: isDarkMode ? ColorScheme.dark : ColorScheme.light) {
+            colorScheme = colorScheme.copy(primary: primary)
         }
         guard let customization = EnvironmentValues.shared._material3ColorScheme else {
             return colorScheme

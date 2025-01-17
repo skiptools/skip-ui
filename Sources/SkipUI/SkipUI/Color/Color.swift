@@ -167,6 +167,14 @@ public struct Color: ShapeStyle, Hashable, Sendable {
     }
 
     #if SKIP
+    @Composable static func assetAccentColor(colorScheme: ColorScheme) -> androidx.compose.ui.graphics.Color? {
+        let name = "AccentColor"
+        let colorInfo = rememberCachedAsset(namedColorCache, AssetKey(name: name, bundle: Bundle.main)) { _ in
+            assetColorInfo(name: name, bundle: Bundle.main)
+        }
+        return colorInfo?.colorImpl(colorScheme: colorScheme)
+    }
+
     static let background = Color(colorImpl: {
         MaterialTheme.colorScheme.surface
     })
@@ -439,15 +447,14 @@ private struct AssetColorInfo {
     /// The `ColorSet` that was loaded for the given info.
     let colorSet: ColorSet
 
-    @Composable func colorImpl() -> androidx.compose.ui.graphics.Color {
-        let colorScheme = EnvironmentValues.shared.colorScheme
+    @Composable func colorImpl(colorScheme: ColorScheme? = nil) -> androidx.compose.ui.graphics.Color? {
+        let colorScheme = colorScheme ?? EnvironmentValues.shared.colorScheme
         var color: androidx.compose.ui.graphics.Color? = nil
         if colorScheme == .dark, let dark {
-            color = dark.colorImpl()
+            return dark.colorImpl()
         } else {
-            color = light?.colorImpl()
+            return light?.colorImpl()
         }
-        return color ?? Color.gray.colorImpl()
     }
 }
 
