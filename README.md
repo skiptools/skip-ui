@@ -429,6 +429,8 @@ Support levels:
                   <li><code>init(white: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(_ color: UIColor)</code></li>
+                  <li><code>init(uiColor: UIColor)</code></li>
+                  <li><code>init(_ name: String. bundle: Bundle? = nil)</code></li>
                   <li><code>static let accentColor: Color</code></li>
                   <li><code>static let primary: Color</code></li>
                   <li><code>static let secondary: Color</code></li>
@@ -450,6 +452,7 @@ Support levels:
                   <li><code>static let brown: Color</code></li>
                   <li><code>func opacity(_ opacity: Double) -> Color</code></li>
                   <li><code>var gradient: AnyGradient</code></li>
+                  <li>See <a href="#colors">Colors</a></li>
               </ul>
           </details>      
        </td>
@@ -1329,6 +1332,8 @@ Support levels:
           <details>
               <summary><code>.navigationDestination</code></summary>
               <ul>
+                  <li><code>func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View</code></li>
+                  <li><code>func navigationDestination(isPresented: Binding&lt;Bool&gt;, @ViewBuilder destination: () -> any View) -> some View</code></li>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
           </details>      
@@ -1988,6 +1993,38 @@ Skip converts the various SwiftUI animation types to their Compose equivalents. 
 
 Custom `Animatables` and `Transitions` are not supported. Finally, if you nest `withAnimation` blocks, Android will apply the innermost animation to all block actions.
 
+### Colors
+
+#### Accent Color
+
+In addition to programmatically using SwiftUI's `.tint` modifier, iOS allows you to set your application's accent color via the `AccentColor` resource in your app's `Assets` asset catalog. In a Skip app, you can find `Assets` in the `Darwin` folder. 
+
+Skip also supports these mechanisms, but your generated Android app can't access the `Darwin` folder contents. To define an accent color resource for your Android app, create a color set called `AccentColor` in the `Sources/<YourAppModule>/Resources/Module` asset catalog. See the section on Named Colors below for additional details. 
+
+#### Named Colors
+
+Named colors can be bundled in asset catalogs provided in the `Resources` folder of your SwiftPM modules. Your `Package.swift` project should have the module's `.target` include the `Resources` folder for resource processing (which is the default for projects created with `skip init`):
+
+```swift
+.target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
+```
+
+Once an asset catalog is added to your `Resources` folder, any named colors can be loaded and displayed using the `Color(_:bundle:)` constructor. For example:
+
+```swift
+Color("WarningYellow", bundle: .module)
+```
+
+When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+{: class="callout warning"}
+
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
+
+Note that you **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
+{: class="callout info"}
+
+For Android, Skip only uses named colors that you've set for "Universal" devices. You can define the color using RGB values or use any of the "Universal System Color" constants.
+
 ### ColorScheme
 
 SkipUI fully supports the `.preferredColorScheme` modifier. If you created your app with the `skip` tool prior to v0.8.26, however, you will have to update the included `Android/app/src/main/kotlin/.../Main.kt` file in order for the modifier to work correctly. Using the latest [`Main.kt`](https://github.com/skiptools/skipapp-hello/blob/main/Android/app/src/main/kotlin/hello/skip/Main.kt) as your template, please do the following:
@@ -2126,19 +2163,19 @@ Images can be bundled in asset catalogs provided in the `Resources` folder of yo
 .target(name: "MyModule", dependencies: ..., resources: [.process("Resources")], plugins: skipstone)
 ```
 
-Once the asset catalog is added to your `Resources` folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
+Once an asset catalog is added to your `Resources` folder, any bundled images can be loaded and displayed using the `Image(name:bundle:)` constructor. For example:
 
 ```swift
 Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
 ```
 
+When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+{: class="callout warning"}
+
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
 Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 {: class="callout info"}
-
-When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
-{: class="callout warning"}
 
 In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
@@ -2378,9 +2415,15 @@ struct ListView : View {
 }
 ```
 
-SkipUI supports both of these models. Using `.navigationDestinations`, however, requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
+There is another form of `.navigationDestination` that takes a binding and a destination:
 
-Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
+```swift
+func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination: () -> any View) -> some View
+```
+
+SkipUI supports all of these models. When using `.navigationDestination(isPresented:destination:)`, note that manually setting `isPresented` to `false` will **not** dismiss your view. Prefer standard dismissing mechanisms. Using `.navigationDestination(for:destination:)` to bind data types to destinations also requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
+
+Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` data key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
 
 #### Modals
 

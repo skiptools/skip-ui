@@ -118,9 +118,9 @@ public struct Image : View, Equatable {
     }
 
     @Composable private func ComposeNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
-        if let assetImageInfo = rememberCached(assetImageCache, NameBundleColorScheme(name, bundle, colorScheme)) { _ in imageResourceURL(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
+        if let assetImageInfo = rememberCachedAsset(assetImageCache, AssetKey(name: name, bundle: bundle, colorScheme: colorScheme)) { _ in assetImageInfo(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
             ComposeAssetImage(asset: assetImageInfo, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
-        } else if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(name, bundle, nil)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
+        } else if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: name, bundle: bundle)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
             ComposeSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
@@ -255,7 +255,7 @@ public struct Image : View, Equatable {
             return symbolInfos
         }
 
-        let symbolInfos = rememberCached(symbolXMLCache, url) { url in
+        let symbolInfos = rememberCachedAsset(symbolXMLCache, url) { url in
             parseSymbolXML(url)
         }
 
@@ -337,7 +337,7 @@ public struct Image : View, Equatable {
     @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         // we first check to see if there is a bundled symbol with the name in any of the asset catalogs, in which case we will use that symbol
         // note that we can only use the `main` (i.e., top-level) bundle to look up image resources, since Image(systemName:) does not accept a bundle
-        if let symbolResourceURL = rememberCached(contentsCache, NameBundleColorScheme(systemName, nil, nil)) { _ in symbolResourceURL(name: systemName, bundle: Bundle.main) } {
+        if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: systemName)) { _ in symbolResourceURL(name: systemName, bundle: Bundle.main) } {
             ComposeSymbolImage(name: systemName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
             return
        }
@@ -806,43 +806,14 @@ public struct Image : View, Equatable {
         case large
     }
 
-    /// Find all the `.xcassets` resource for the given bundle
-    private func assetContentsURLs(name: String, bundle: Bundle) -> [URL] {
-        #if SKIP
-        let resourceNames = bundle.resourcesIndex
-        #else
-        let resourceNames: [String] = []
-        #endif
-
-        var resourceURLs: [URL] = []
-        for resourceName in resourceNames {
-            let components = resourceName.split(separator: "/").map({ String($0) })
-            // return every *.xcassets/NAME/Contents.json
-            if components.first?.hasSuffix(".xcassets") == true
-                && components.dropFirst().first == name
-                && components.last == "Contents.json",
-               let contentsURL = bundle.url(forResource: resourceName, withExtension: nil) {
-                resourceURLs.append(contentsURL)
-            }
-        }
-        return resourceURLs
-    }
-
-    private func imageResourceURL(name: String, colorScheme: ColorScheme, bundle: Bundle) -> AssetImageInfo? {
+    #if SKIP
+    private func assetImageInfo(name: String, colorScheme: ColorScheme, bundle: Bundle) -> AssetImageInfo? {
         for dataURL in assetContentsURLs(name: "\(name).imageset", bundle: bundle) {
             do {
                 let data = try Data(contentsOf: dataURL)
                 logger.debug("loading imageset asset contents from: \(dataURL)")
                 let imageSet = try JSONDecoder().decode(ImageSet.self, from: data)
-                var images = imageSet.images
-                // check for any images that map to the given color scheme and append them as higher-priority candidates for the image to render
-                images += images.filter {
-                    // e.g.: { "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ], "filename" : "Cat_BW.jpg", "idiom" : "universal" }
-                    $0.appearances?
-                        .filter({ $0.appearance == "luminosity" })
-                        .compactMap(\.value)
-                        .contains(colorScheme == .dark ? "dark" : "light") == true
-                }
+                let images = imageSet.images.sortedByAssetFit(colorScheme: colorScheme)
                 // fall-back to load the highest-resolution image that is set (e.g., 3x before 2x before 1x)
                 if let fileName = images.compactMap(\.filename).last {
                     // get the image filename and append it to the end
@@ -876,6 +847,7 @@ public struct Image : View, Equatable {
 
         return nil
     }
+    #endif
 }
 
 // SKIP NOWARN
@@ -902,26 +874,9 @@ private struct SymbolPath {
     let attrs: [String]
 }
 
-/// A cache key for remembering the Content.json URL location in the bundled assets for the given name, bundle, and ColorScheme combination
-private struct NameBundleColorScheme: Hashable {
-    let name: String
-    let bundle: Bundle?
-    let colorScheme: ColorScheme?
-}
-
 private let symbolXMLCache : [URL: [SymbolSize: SymbolInfo]] = [:]
-private let assetImageCache: [NameBundleColorScheme: AssetImageInfo?] = [:]
-private let contentsCache: [NameBundleColorScheme: URL?] = [:]
-
-/// A simple local cache that returns the cached value if it exists, or else instantiates it using the block and stores the result in the cache
-private func rememberCached<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -> U) -> U {
-    synchronized(cache) {
-        if let value = cache[key] { return value }
-        let value = block(key)
-        cache[key] = value
-        return value
-    }
-}
+private let assetImageCache: [AssetKey: AssetImageInfo?] = [:]
+private let contentsCache: [AssetKey: URL?] = [:]
 
 @Composable private func ImageLayout(intrinsicWidth: Float, intrinsicHeight: Float, aspectRatio: Double?, contentMode: ContentMode?, image: @Composable () -> Void) {
     Layout(content = {
@@ -999,17 +954,6 @@ private struct AspectRatioContentScale: ContentScale {
 }
 #endif
 
-fileprivate struct AssetImageInfo {
-    /// The URL to the asset image
-    let url: URL
-    /// The ImageSet that was loaded for the given info
-    let imageSet: ImageSet
-
-    var isTemplateImage: Bool {
-        imageSet.properties?.templateRenderingIntent == "template"
-    }
-}
-
 /// The Symbols layer contains up to 27 sublayers, each representing a symbol image variant. Identifiers of symbol variants have the form <weight>-<{S, M, L}>, where weight corresponds to a weight of the system font and S, M, or L matches the small, medium, or large symbol scale.
 private enum SymbolSize : String {
     case UltralightS = "Ultralight-S"
@@ -1057,6 +1001,17 @@ private enum SymbolSize : String {
     }
 }
 
+#if SKIP
+fileprivate struct AssetImageInfo {
+    /// The URL to the asset image
+    let url: URL
+    /// The ImageSet that was loaded for the given info
+    let imageSet: ImageSet
+
+    var isTemplateImage: Bool {
+        imageSet.properties?.templateRenderingIntent == "template"
+    }
+}
 
 /* The `Contents.json` in a `*.imageset` folder for an image
  https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/ImageSetType.html
@@ -1087,16 +1042,11 @@ private struct ImageSet : Decodable {
     let info: AssetContentsInfo
     let properties: ImageAssetProperties?
 
-    struct ImageInfo : Decodable {
+    struct ImageInfo : Decodable, AssetSortable {
         let filename : String?
         let idiom: String? // e.g. "universal"
         let scale: String? // e.g. "3x"
-        let appearances: [ImageAppearance]?
-    }
-
-    struct ImageAppearance : Decodable {
-        let appearance: String? // e.g., "luminosity"
-        let value: String? // e.g., "light", "dark"
+        let appearances: [AssetAppearance]?
     }
 
     struct ImageAssetProperties: Decodable {
@@ -1133,45 +1083,7 @@ private struct SymbolSet : Decodable {
         let idiom: String? // e.g. "universal"
     }
 }
-
-/* The `Contents.json` in a `*.colorset` folder for a symbol
- https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/Named_Color.html
- {
-   "colors" : [
-     {
-       "color" : {
-         "platform" : "universal",
-         "reference" : "systemBlueColor"
-       },
-       "idiom" : "universal"
-     }
-   ],
-   "info" : {
-     "author" : "xcode",
-     "version" : 1
-   }
- }
- */
-private struct ColorSet : Decodable {
-    let colors: [ColorSetColor]
-    let info: AssetContentsInfo
-
-    struct ColorSetColor : Decodable {
-        let color : ColorInfo?
-        let idiom: String? // e.g. "universal"
-    }
-
-    struct ColorInfo : Decodable {
-        let platform: String? // e.g. "universal"
-        let reference: String? // e.g. "systemBlueColor"
-    }
-}
-
-
-private struct AssetContentsInfo : Decodable {
-    let author: String? // e.g. "xcode"
-    let version: Int? // e.g. 1
-}
+#endif
 
 #if false
 
