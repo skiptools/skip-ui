@@ -594,6 +594,7 @@ struct NavigationDestination {
         let targetValue: Any?
         let stateSaver: ComposeStateSaver
         var titleDisplayMode: ToolbarTitleDisplayMode?
+        var binding: Binding<Bool>?
 
         init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
@@ -639,12 +640,15 @@ struct NavigationDestination {
     }
 
     /// Navigate to a destination view.
-    func navigateToView(_ view: any View) {
+    ///
+    /// - Parameter binding: Optional binding to toggle to `false` when the view is popped.
+    /// - Returns: The navigation stack entry ID of the pushed view.
+    func navigateToView(_ view: any View, binding: Binding<Bool>? = nil) -> String? {
         let targetValue = viewDestinationValue
         viewDestinationValue += 1
 
         let route = Self.route(for: viewDestinationIndex, valueString: String(describing: targetValue))
-        navigate(route: route, destination: { _ in view }, targetValue: targetValue)
+        return navigate(route: route, destination: { _ in view }, targetValue: targetValue, binding: binding)
     }
 
     /// Pop the back stack.
@@ -661,6 +665,18 @@ struct NavigationDestination {
         } else if !isRoot {
             navController.popBackStack()
         }
+    }
+
+    /// Whether the given view entry ID is presented.
+    func isViewPresented(id: String, asTop: Bool = false) -> Bool {
+        let stack = navController.currentBackStack.value
+        guard !stack.isEmpty() else {
+            return false
+        }
+        guard !asTop else {
+            return stack.last().id == id
+        }
+        return stack.any { $0.id == id }
     }
 
     /// The entry being navigated to.
@@ -705,7 +721,18 @@ struct NavigationDestination {
     @Composable private func syncState() {
         // Collect as state to ensure we get re-called on change
         let entryList = navController.currentBackStack.collectAsState()
-        // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while animating away to find their state
+
+        // Toggle any presented bindings for popped states back to false. Do this immediately so that we don't
+        // re-present views that were removed from the stack
+        let entryIDs = Set(entryList.value.map { $0.id })
+        for (id, state) in backStackState {
+            if !entryIDs.contains(id) {
+                state.binding?.wrappedValue = false
+            }
+        }
+
+        // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while
+        // animating away to find their state
         LaunchedEffect(entryList.value) {
             delay(1000) // 1 second
             var syncedBackStackState: [String: BackStackState] = [:]
@@ -787,13 +814,22 @@ struct NavigationDestination {
         return true
     }
 
-    private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any) {
+    private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
         // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
         keyboardController?.hide()
         navController.navigate(route)
-        if let entry = navController.currentBackStackEntry, backStackState[entry.id] == nil {
-            backStackState[entry.id] = BackStackState(id: entry.id, route: route, destination: destination, targetValue: targetValue)
+        guard let entry = navController.currentBackStackEntry else {
+            return nil
         }
+        var state = backStackState[entry.id]
+        if state == nil {
+            state = BackStackState(id: entry.id, route: route, destination: destination, targetValue: targetValue)
+            backStackState[entry.id] = state
+        }
+        if let binding {
+            state?.binding = binding
+        }
+        return entry.id
     }
 
     private func route(for targetType: Any.Type, value: Any) -> String {
@@ -873,9 +909,29 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func navigationDestination<V>(isPresented: Binding<Bool>, @ViewBuilder destination: () -> V) -> some View where V : View {
+    public func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination: () -> any View) -> some View {
+        #if SKIP
+        let destinationView = ComposeBuilder.from(destination)
+        return ComposeModifierView(targetView: self) { context in
+            let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<String?, Any>) { mutableStateOf<String?>(nil) }
+            guard let navigator = LocalNavigator.current else {
+                return ComposeResult.ok
+            }
+            if isPresented.wrappedValue {
+                if id.value == nil || !navigator.isViewPresented(id: id.value!) {
+                    id.value = navigator.navigateToView(destinationView, binding: isPresented)
+                }
+            } else {
+                if let idValue = id.value, navigator.isViewPresented(id: idValue, asTop: true) {
+                    navigator.navigateBack()
+                }
+                id.value = nil
+            }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
