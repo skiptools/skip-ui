@@ -657,8 +657,9 @@ extension SemanticsNode {
 
 // Used in `testCustomEnvironmentValue`
 private struct EnvironmentValueTestKey: EnvironmentKey {
-  static let defaultValue = "default"
+    static let defaultValue = "default"
 }
+
 extension EnvironmentValues {
     fileprivate var testValue: String {
         get { self[EnvironmentValueTestKey.self] }

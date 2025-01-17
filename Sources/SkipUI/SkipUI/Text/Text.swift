@@ -343,8 +343,7 @@ struct _Text: View, Equatable {
         // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
         // cache the Kotlin-ized version too so that we don't have to convert it on every compose
         let locale = EnvironmentValues.shared.locale
-        if let bundle = self.bundle?.localizedBundle(locale: locale) {
-            let (_, locfmt, locnode) = bundle.localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName)
+        if let (_, locfmt, locnode) = (self.bundle ?? Bundle.main).localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName, locale: locale) {
             return (locfmt, locnode, key.stringInterpolation.values)
         } else {
             return (key.patternFormat.kotlinFormatString, MarkdownNode.from(string: key.patternFormat), key.stringInterpolation.values)
