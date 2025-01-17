@@ -430,7 +430,7 @@ Support levels:
                   <li><code>init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(_ color: UIColor)</code></li>
                   <li><code>init(uiColor: UIColor)</code></li>
-                  <li><code>init(_ name: String. bundle: Bundle? = nil)</code></li>
+                  <li><code>init(_ name: String, bundle: Bundle? = nil)</code></li>
                   <li><code>static let accentColor: Color</code></li>
                   <li><code>static let primary: Color</code></li>
                   <li><code>static let secondary: Color</code></li>
@@ -1332,7 +1332,7 @@ Support levels:
           <details>
               <summary><code>.navigationDestination</code></summary>
               <ul>
-                  <li><code>func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View</code></li>
+                  <li><code>func navigationDestination&lt;D&gt;(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View</code></li>
                   <li><code>func navigationDestination(isPresented: Binding&lt;Bool&gt;, @ViewBuilder destination: () -> any View) -> some View</code></li>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
