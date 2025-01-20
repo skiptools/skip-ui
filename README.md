@@ -392,6 +392,17 @@ Support levels:
       <td><code>@EnvironmentObject</code> (<a href="https://skip.tools/docs/components/observable/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+         <details>
+              <summary><code>@FocusState</code></summary>
+              <ul>
+                  <li><code>FocusState.Binding</code> is not supported, though you can manually create a <code>Binding(get: { myFocusState.wrappedValue }, set: { myFocusState.wrappedValue = $0 })</code></li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>@ObservedObject</code> (<a href="https://skip.tools/docs/components/observable/">example</a>)</td>
     </tr>
@@ -1178,6 +1189,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.fill</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.focused</code></td>
     </tr>
     <tr>
       <td>✅</td>
