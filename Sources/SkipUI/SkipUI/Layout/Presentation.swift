@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -85,6 +86,7 @@ let overlayPresentationCornerRadius = 16.0
         let handleHeightPx = with(LocalDensity.current) { handleHeight.toPx() }
         let handlePadding = isFullScreen ? 0.dp : 10.dp
         let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
+        let sheetMaxWidth = isFullScreen ? Dp.Unspecified : BottomSheetDefaults.SheetMaxWidth
         let shape = GenericShape { size, _ in
             let y = topInsetPx - handleHeightPx - handlePaddingPx
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
@@ -95,11 +97,11 @@ let overlayPresentationCornerRadius = 16.0
             isPresented.set(false)
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
-            var systemBarEdges: Edge.Set = [.top, .bottom]
+            var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
 
             let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
             let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
