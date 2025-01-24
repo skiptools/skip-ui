@@ -16,6 +16,11 @@ extension UIFeedbackGenerator {
     private var vibrator: android.os.Vibrator? {
         let context = ProcessInfo.processInfo.androidContext // Android-specific extension to get the global Context
 
+        if android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S {
+            logger.log("vibratorManager: return null due to Android version too old (\(android.os.Build.VERSION.SDK_INT))")
+            return nil
+        }
+
         guard let vibratorManager = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager else {
             logger.log("vibratorManager: returned null")
             return nil
