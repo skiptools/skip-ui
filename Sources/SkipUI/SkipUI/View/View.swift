@@ -1029,21 +1029,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func sensoryFeedback(_ feedback: SensoryFeedback, trigger: any Equatable) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> some View where T: Equatable {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View where T : Equatable {
-        return self
-    }
-
     public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
