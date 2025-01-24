@@ -1,3 +1,11 @@
+## 1.20.1
+
+Released 2025-01-24
+
+  - Merge pull request #111 from skiptools/vibrator-manager-os-check
+  - Add View.sensoryFeedback functions
+  - Check for android.os.Build.VERSION_CODES.S for VibratorManager
+
 ## 1.18.1
 
 Released 2025-01-17
