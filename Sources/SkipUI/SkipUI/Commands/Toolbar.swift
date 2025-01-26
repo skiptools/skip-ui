@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
@@ -455,9 +456,6 @@ struct ToolbarItems {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// A built-in set of commands for manipulating window toolbars.
 ///
 /// These commands are optional and can be explicitly requested by passing a
@@ -512,4 +510,5 @@ public struct ToolbarCommands : Commands {
 //
 //}
 
+#endif
 #endif

@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// An interface for a stored variable that updates an external property of a
 /// view.
 ///
@@ -34,6 +31,4 @@ extension DynamicProperty {
     /// value.
     public mutating func update() { fatalError() }
 }
-
-
 #endif

@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public struct KeyEquivalent : Hashable, Sendable {
     public let character: Character
 
@@ -58,9 +60,6 @@ public struct KeyEquivalent : Hashable, Sendable {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 @available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
 @available(watchOS, unavailable)
 extension KeyEquivalent : ExpressibleByExtendedGraphemeClusterLiteral {
@@ -83,4 +82,5 @@ extension KeyEquivalent : ExpressibleByExtendedGraphemeClusterLiteral {
     public typealias UnicodeScalarLiteralType = Character
 }
 
+#endif
 #endif

@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -109,4 +110,5 @@ struct PreferredColorSchemePreferenceKey: PreferenceKey {
 struct PreferredColorScheme: Equatable {
     let colorScheme: ColorScheme?
 }
+#endif
 #endif

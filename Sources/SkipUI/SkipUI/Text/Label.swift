@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
@@ -159,9 +160,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import protocol Foundation.ParseableFormatStyle
 import protocol Foundation.FormatStyle
 import protocol Foundation.ReferenceConvertible
@@ -362,4 +360,5 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
 //    public typealias Body = some View
 }
 
+#endif
 #endif

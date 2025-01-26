@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if !SKIP
 #if canImport(CoreGraphics)
 import struct CoreGraphics.CGPoint
@@ -14,3 +15,5 @@ public enum HoverPhase : Equatable, Sendable {
     case active(CGPoint)
     case ended
 }
+
+#endif

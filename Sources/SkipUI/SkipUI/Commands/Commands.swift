@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// No-op
 func stubCommands() -> some Commands {
     //return never() // raises warning: “A call to a never-returning function”
@@ -504,5 +501,4 @@ public struct SidebarCommands : Commands {
     /// property.
     //public typealias Body = NeverView
 }
-
 #endif

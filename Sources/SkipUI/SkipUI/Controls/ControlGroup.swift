@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public struct ControlGroup : View {
     @available(*, unavailable)
     public init(@ViewBuilder content: () -> any View) {
@@ -57,9 +59,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 //@available(watchOS, unavailable)
 //extension ControlGroup where Content == ControlGroupStyleConfiguration.Content {
 //
@@ -120,4 +119,5 @@ public struct ControlGroupStyleConfiguration {
     public let label: ControlGroupStyleConfiguration.Label = { fatalError() }()
 }
 
+#endif
 #endif

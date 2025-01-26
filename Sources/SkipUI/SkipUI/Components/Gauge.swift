@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// A view that shows a value within a range.
 ///
 /// A gauge is a view that shows a current level of a value in relation
@@ -589,5 +586,4 @@ public struct DefaultGaugeStyle : GaugeStyle {
     /// A view representing the body of a gauge.
 //    public typealias Body = some View
 }
-
 #endif

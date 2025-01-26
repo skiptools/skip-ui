@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -337,7 +338,6 @@ extension View {
 }
 
 #if false
-
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector
 
@@ -801,4 +801,5 @@ public struct PagingScrollTargetBehavior : ScrollTargetBehavior {
     public func updateTarget(_ target: inout ScrollTarget, context: PagingScrollTargetBehavior.TargetContext) { fatalError() }
 }
 
+#endif
 #endif

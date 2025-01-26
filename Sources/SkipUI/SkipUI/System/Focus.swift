@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.SideEffect
@@ -42,8 +43,6 @@ extension View {
         return focused(condition, equals: true)
     }
 }
-
-// TODO: Process for use in SkipUI
 
 #if false
 import protocol Combine.ObservableObject
@@ -979,4 +978,5 @@ extension View {
 
 }
 
+#endif
 #endif

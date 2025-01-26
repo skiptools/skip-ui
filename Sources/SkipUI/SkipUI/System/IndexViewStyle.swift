@@ -4,11 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
-
 /// Defines the implementation of all `IndexView` instances within a view
 /// hierarchy.
 ///
@@ -43,5 +39,4 @@ extension View {
     public func indexViewStyle<S>(_ style: S) -> some View where S : IndexViewStyle { return stubView() }
 
 }
-
 #endif

@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -106,9 +107,6 @@ public struct ZStack : View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// An overlaying container that you can use in conditional layouts.
 ///
 /// This layout container behaves like a ``ZStack``, but conforms to the
@@ -154,4 +152,5 @@ public struct ZStack : View {
 extension ZStackLayout : Sendable {
 }
 
+#endif
 #endif

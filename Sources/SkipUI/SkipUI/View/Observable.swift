@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Combine
 #if SKIP
 import androidx.compose.runtime.DisposableEffect
@@ -53,3 +54,5 @@ public struct SubscriptionView<PublisherType, Content> : View where /* Publisher
     }
     #endif
 }
+
+#endif

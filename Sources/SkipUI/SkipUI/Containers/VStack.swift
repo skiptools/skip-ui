@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -167,9 +168,6 @@ final class VStackComposer: RenderingComposer {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// A vertical container that you can use in conditional layouts.
 ///
 /// This layout container behaves like a ``VStack``, but conforms to the
@@ -227,4 +225,5 @@ final class VStackComposer: RenderingComposer {
 extension VStackLayout : Sendable {
 }
 
+#endif
 #endif

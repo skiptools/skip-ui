@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// An index view style that places a page index view over its content.
 ///
 /// You can also use ``IndexViewStyle/page`` to construct this style.
@@ -39,5 +36,4 @@ public struct PageIndexViewStyle : IndexViewStyle {
     /// page index views receiving this style
     public init(backgroundDisplayMode: PageIndexViewStyle.BackgroundDisplayMode = .automatic) { fatalError() }
 }
-
 #endif

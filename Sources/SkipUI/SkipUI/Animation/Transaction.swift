@@ -4,8 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
+#if !SKIP_BRIDGE
 #if !SKIP
 
 /// The context of the current state-processing update.
@@ -100,11 +99,9 @@ public protocol TransactionKey {
     static var defaultValue: Self.Value { get }
 }
 
-
 #endif
 
 #if false
-
 @available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
@@ -418,5 +415,5 @@ extension View {
     public func animation<V>(_ animation: Animation?, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return stubView() }
 
 }
-
+#endif
 #endif

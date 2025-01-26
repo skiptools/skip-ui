@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public enum Edge : Int, Hashable, CaseIterable, Sendable {
     case top = 1
     case leading = 2
@@ -31,3 +33,5 @@ public enum Edge : Int, Hashable, CaseIterable, Sendable {
         }
     }
 }
+
+#endif

@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if SKIP
+
 /// Allow views to specialize based on their placement.
 struct ViewPlacement: RawRepresentable, OptionSet {
     let rawValue: Int
@@ -14,3 +16,5 @@ struct ViewPlacement: RawRepresentable, OptionSet {
     static let tagged = ViewPlacement(rawValue: 8)
     static let toolbar = ViewPlacement(rawValue: 16)
 }
+
+#endif

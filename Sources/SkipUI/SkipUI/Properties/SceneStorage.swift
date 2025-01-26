@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct Foundation.Data
 import struct Foundation.URL
 
@@ -245,5 +242,4 @@ extension SceneStorage {
     /// - Parameter key: a key used to save and restore the value.
     public init<R>(_ key: String) where Value == R?, R : RawRepresentable, R.RawValue == Int { fatalError() }
 }
-
 #endif

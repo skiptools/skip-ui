@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
 import struct QuartzCore.CATransform3D
@@ -63,5 +60,4 @@ extension ProjectionTransform {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ProjectionTransform : Sendable {
 }
-
 #endif

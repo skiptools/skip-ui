@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGFloat
 
 /// for each of the top, bottom, leading, and trailing edges,
@@ -113,5 +110,4 @@ public struct ViewSpacing : Sendable {
     ///   of both this view and the adjacent views on their shared edge.
     public func distance(to next: ViewSpacing, along axis: Axis) -> CGFloat { fatalError() }
 }
-
 #endif

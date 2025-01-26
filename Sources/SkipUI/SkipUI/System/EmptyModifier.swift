@@ -5,6 +5,7 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if SKIP
+
 public struct EmptyModifier : ViewModifier {
     public static let identity: EmptyModifier = EmptyModifier()
 
@@ -12,4 +13,5 @@ public struct EmptyModifier : ViewModifier {
         content
     }
 }
+
 #endif

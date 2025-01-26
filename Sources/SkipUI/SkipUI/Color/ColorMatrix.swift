@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// A matrix to use in an RGBA color transformation.
 ///
 /// The matrix has five columns, each with a red, green, blue, and alpha
@@ -66,6 +63,4 @@
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension ColorMatrix : Sendable {
 }
-
-
 #endif

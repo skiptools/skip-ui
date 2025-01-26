@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// The way that file dialogs present the file system.
 ///
 /// Apply the options using the ``View/fileDialogBrowserOptions(_:)`` modifier.
@@ -87,6 +84,4 @@ public struct FileDialogBrowserOptions : OptionSet {
 @available(watchOS, unavailable)
 extension FileDialogBrowserOptions : Sendable {
 }
-
-
 #endif

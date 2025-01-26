@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGPoint
 import typealias Foundation.TimeInterval
 
@@ -239,5 +236,4 @@ extension SpatialEventCollection.Event.Phase : Equatable {
 @available(tvOS, unavailable)
 extension SpatialEventCollection.Event.Phase : Hashable {
 }
-
 #endif

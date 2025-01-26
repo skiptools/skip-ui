@@ -4,8 +4,6 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
 import protocol CoreTransferable.Transferable
 import struct Foundation.URL
@@ -29,8 +27,6 @@ func stubTransferRepresentation() -> some TransferRepresentation {
 
 }
 #endif
-
-
 
 /// An interface that you implement to interact with a drop operation in a view
 /// modified to accept drops.
@@ -1487,5 +1483,4 @@ extension View {
     public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return stubView() }
 
 }
-
 #endif

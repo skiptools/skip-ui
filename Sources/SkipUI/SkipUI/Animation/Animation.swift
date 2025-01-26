@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.animation.Animatable
@@ -644,9 +645,6 @@ public protocol Animatable {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGRect
@@ -2054,4 +2052,5 @@ extension Never : KeyframeTrackContent {
     public typealias Value = Never
 }
 
+#endif
 #endif
