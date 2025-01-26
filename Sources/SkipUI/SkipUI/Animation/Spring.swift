@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.AnimationSpec
@@ -119,9 +120,6 @@ public enum SpringLoadingBehavior : Hashable, Sendable {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 extension Spring {
     /// The estimated duration required for the spring system to be considered
     /// at rest.
@@ -202,5 +200,5 @@ public struct SpringKeyframe<Value> : KeyframeTrackContent where Value : Animata
     public typealias Body = SpringKeyframe<Value>
 //    @KeyframeTrackContentBuilder<Self.Value> public var body: Body { fatalError() }
 }
-
+#endif
 #endif

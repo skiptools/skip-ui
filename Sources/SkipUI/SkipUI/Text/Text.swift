@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -812,9 +813,6 @@ public struct RedactionReasons : OptionSet, Sendable {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import struct Foundation.AttributedString
 import struct Foundation.Date
 import struct Foundation.DateInterval
@@ -1334,4 +1332,5 @@ extension AttributeDynamicLookup {
     public subscript<T>(dynamicMember keyPath: KeyPath<AttributeScopes.SkipUIAttributes, T>) -> T where T : AttributedStringKey { get { fatalError() } }
 }
 
+#endif
 #endif

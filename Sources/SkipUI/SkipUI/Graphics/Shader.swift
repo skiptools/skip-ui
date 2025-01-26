@@ -4,8 +4,6 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
@@ -314,5 +312,4 @@ extension View {
     public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
 
 }
-
 #endif

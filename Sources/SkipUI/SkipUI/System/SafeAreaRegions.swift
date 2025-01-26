@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Rect
@@ -65,4 +66,5 @@ struct SafeArea: Equatable {
         return SafeArea(presentation: presentationBoundsPx, safe: Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight), absoluteSystemBars: systemBarEdges)
     }
 }
+#endif
 #endif

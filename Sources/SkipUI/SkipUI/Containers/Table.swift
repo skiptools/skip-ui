@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -468,3 +469,5 @@ public struct DisclosureTableRow {
     public init(_ value: Any, isExpanded: Binding<Bool>? = nil, @ViewBuilder content: () -> any View) {
     }
 }
+
+#endif

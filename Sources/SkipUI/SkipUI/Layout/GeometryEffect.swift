@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGSize
 
 /// An effect that changes the visual appearance of a view, largely without
@@ -33,6 +30,4 @@ extension GeometryEffect {
     /// performing its layout calculations.
 //    public func ignoredByLayout() -> _IgnoredByLayoutEffect<Self> { fatalError() }
 }
-
-
 #endif

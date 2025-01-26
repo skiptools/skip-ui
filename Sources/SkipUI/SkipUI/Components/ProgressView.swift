@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -144,9 +145,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import struct Foundation.Date
 import class Foundation.Progress
 
@@ -408,4 +406,5 @@ public struct DefaultDateProgressLabel : View {
 }
 
 
+#endif
 #endif

@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -298,9 +299,6 @@ public struct Material3RippleOptions {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 //extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
 
@@ -503,4 +501,5 @@ public struct PrimitiveButtonStyleConfiguration {
     public func trigger() { fatalError() }
 }
 
+#endif
 #endif

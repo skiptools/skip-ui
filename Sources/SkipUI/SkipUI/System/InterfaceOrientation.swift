@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// The orientation of the interface from the user's perspective.
 ///
 /// By default, device previews appear right side up, using orientation
@@ -50,6 +47,4 @@ public struct InterfaceOrientation : CaseIterable, Identifiable, Equatable, Send
     /// an instance.
     public typealias ID = String
 }
-
-
 #endif

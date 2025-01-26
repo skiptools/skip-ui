@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
@@ -633,5 +630,4 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
     /// - Returns: The sequence of dates that you provided at initialization.
     public func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries { fatalError() }
 }
-
 #endif

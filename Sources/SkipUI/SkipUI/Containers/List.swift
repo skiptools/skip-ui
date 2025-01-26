@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
@@ -853,9 +854,6 @@ final class ListItemModifierView: ComposeModifierView, ListItemAdapting {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension List {
 
@@ -1385,4 +1383,5 @@ extension List {
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
 
+#endif
 #endif

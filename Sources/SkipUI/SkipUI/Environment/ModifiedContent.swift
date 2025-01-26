@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGPoint
 
 /// A value with a modifier applied to it.
@@ -613,5 +610,4 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     public func accessibility(value: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
-
 #endif

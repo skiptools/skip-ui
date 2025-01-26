@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// The selection effect to apply to a palette item.
 ///
 /// You can configure the selection effect of a palette item by using the
@@ -91,5 +88,4 @@ extension View {
     /// - Parameter effect: The type of effect to apply when a palette item is selected.
     public func paletteSelectionEffect(_ effect: PaletteSelectionEffect) -> some View { return stubView() }
 }
-
 #endif

@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.compose.foundation.background
@@ -980,4 +981,5 @@ struct InteractiveDismissDisabledPreferenceKey: PreferenceKey {
         }
     }
 }
+#endif
 #endif

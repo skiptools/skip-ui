@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import androidx.appcompat.app.AppCompatActivity
@@ -84,9 +85,6 @@ struct OnNewIntentListener : Consumer<Intent> {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 #if canImport(Foundation)
 import class Foundation.NSUserActivity
 
@@ -120,4 +118,5 @@ extension NSUserActivity {
 
 #endif
 
+#endif
 #endif

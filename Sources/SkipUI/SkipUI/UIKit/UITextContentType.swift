@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public struct UITextContentType: RawRepresentable, Equatable {
     public let rawValue: Int
 
@@ -55,3 +57,5 @@ public struct UITextContentType: RawRepresentable, Equatable {
     public static let creditCardExpirationYear = UITextContentType(rawValue: 41)
     public static let creditCardType = UITextContentType(rawValue: 42)
 }
+
+#endif

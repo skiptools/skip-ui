@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// The scroll behavior that aligns scroll targets to view-based geometry.
 ///
 /// You use this behavior when a scroll view should always align its
@@ -98,5 +95,4 @@ public struct ViewAlignedScrollTargetBehavior : ScrollTargetBehavior {
     /// than it would otherwise.
     public func updateTarget(_ target: inout ScrollTarget, context: ViewAlignedScrollTargetBehavior.TargetContext) { fatalError() }
 }
-
 #endif

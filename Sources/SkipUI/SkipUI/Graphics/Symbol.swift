@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 extension View {
     @available(*, unavailable)
     public func symbolEffect(_ effect: Any, options: Any? = nil /* SymbolEffectOptions = .default */, isActive: Bool = true) -> some View {
@@ -70,15 +72,7 @@ public struct SymbolVariants : Hashable, Sendable {
     }
 }
 
-
-
-
-#if canImport(Symbols)
-#if !os(macOS)
 #if false
-
-// TODO: Process for use in SkipUI
-
 import protocol Symbols.SymbolEffect
 import struct Symbols.SymbolEffectOptions
 import protocol Symbols.TransitionSymbolEffect
@@ -179,8 +173,5 @@ extension EnvironmentValues {
     /// second is outlined.](SymbolVariants-none-1)
     public var symbolVariants: SymbolVariants { get { fatalError() } }
 }
-
 #endif
 #endif
-#endif
-

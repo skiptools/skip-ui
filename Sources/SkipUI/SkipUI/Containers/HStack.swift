@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -124,9 +125,6 @@ public struct HStack : View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// A horizontal container that you can use in conditional layouts.
 ///
 /// This layout container behaves like an ``HStack``, but conforms to the
@@ -182,5 +180,5 @@ public struct HStack : View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension HStackLayout : Sendable {
 }
-
+#endif
 #endif

@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.Composable
 #endif
@@ -50,9 +51,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 //@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 //extension Form where Content == FormStyleConfiguration.Content {
 //
@@ -81,4 +79,5 @@ public struct FormStyleConfiguration {
     public let content: FormStyleConfiguration.Content = { fatalError() }()
 }
 
+#endif
 #endif

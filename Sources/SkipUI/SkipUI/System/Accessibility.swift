@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.contentDescription
@@ -591,7 +592,6 @@ public struct AccessibilityZoomGestureAction {
 }
 
 #if false
-
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Never : AccessibilityRotorContent {
 }
@@ -994,4 +994,5 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     public func accessibilityCustomContent<V>(_ labelKey: LocalizedStringKey, _ value: V, importance: AXCustomContent.Importance = .default) -> ModifiedContent<Content, Modifier> where V : StringProtocol { fatalError() }
 }
 
+#endif
 #endif

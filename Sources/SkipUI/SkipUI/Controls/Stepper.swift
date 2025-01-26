@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public struct Stepper : View {
     @available(*, unavailable)
     public init(@ViewBuilder label: () -> any View, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
@@ -73,9 +75,6 @@ public struct Stepper : View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 
@@ -379,4 +378,5 @@ extension Stepper {
     public init<S, F>(_ title: S, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where S : StringProtocol, F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 }
 
+#endif
 #endif

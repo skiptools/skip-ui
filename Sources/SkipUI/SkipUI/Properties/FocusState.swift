@@ -49,4 +49,3 @@ public final class FocusState<Value>: StateTracker {
     }
 }
 #endif
-
