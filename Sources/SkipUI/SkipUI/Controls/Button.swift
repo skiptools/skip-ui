@@ -29,6 +29,7 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
+// SKIP @bridge
 public struct Button : View, ListItemAdapting {
     let action: () -> Void
     let label: ComposeBuilder
@@ -58,6 +59,13 @@ public struct Button : View, ListItemAdapting {
 
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
         self.init(role: role, action: action, label: { Text(titleKey) })
+    }
+
+    // SKIP @bridge
+    public init(anyLabel: Any?, action: @escaping () -> Void) {
+        self.label = ComposeBuilder.from { (anyLabel as? any View) ?? EmptyView() }
+        self.action = action
+        self.role = nil
     }
 
     #if SKIP
