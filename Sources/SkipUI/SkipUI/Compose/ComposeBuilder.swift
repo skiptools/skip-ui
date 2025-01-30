@@ -35,10 +35,10 @@ public struct ComposeBuilder: View {
     }
 
     // SKIP @bridge
-    public init(anyViews: [Any?]) {
+    public init(bridgedViews: [Any?]) {
         #if SKIP
         self.content = { context in
-            anyViews.forEach { ($0 as? View)?.Compose(context: context) }
+            bridgedViews.forEach { ($0 as? View)?.Compose(context: context) }
             return ComposeResult.ok
         }
         #endif

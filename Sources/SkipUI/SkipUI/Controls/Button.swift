@@ -62,8 +62,8 @@ public struct Button : View, ListItemAdapting {
     }
 
     // SKIP @bridge
-    public init(anyLabel: Any?, action: @escaping () -> Void) {
-        self.label = ComposeBuilder.from { (anyLabel as? any View) ?? EmptyView() }
+    public init(bridgedLabel: Any?, action: @escaping () -> Void) {
+        self.label = ComposeBuilder.from { (bridgedLabel as? any View) ?? EmptyView() }
         self.action = action
         self.role = nil
     }
