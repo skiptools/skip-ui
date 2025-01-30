@@ -2030,13 +2030,14 @@ Once an asset catalog is added to your `Resources` folder, any named colors can 
 Color("WarningYellow", bundle: .module)
 ```
 
-When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+Your named colors must use Xcode's "Floating point (0.0-1.0)" input method. You can convert named colors using other methods by selecting them in Xcode and using the UI picker to update the input method. The values will be preserved.
 {: class="callout warning"}
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
-Note that you **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
-{: class="callout info"}
+When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
+Note that you also **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
+{: class="callout warning"}
 
 For Android, Skip only uses named colors that you've set for "Universal" devices. You can define the color using RGB values or use any of the "Universal System Color" constants.
 
