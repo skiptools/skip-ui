@@ -6,6 +6,7 @@
 
 #if !SKIP_BRIDGE
 
+// NOTE: Keep in sync with SkipFuseUI.Alignment
 public struct Alignment : Equatable, Sendable {
     public var horizontal: HorizontalAlignment
     public var vertical: VerticalAlignment

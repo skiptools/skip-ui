@@ -23,6 +23,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct ZStack : View {
     let alignment: Alignment
     let content: ComposeBuilder
@@ -30,6 +31,12 @@ public struct ZStack : View {
     public init(alignment: Alignment = .center, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(horizontalAlignmentKey: String, verticalAlignmentKey: String, anyContent: Any?) {
+        self.alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
+        self.content = ComposeBuilder.from { (anyContent as? any View) ?? EmptyView() }
     }
 
     #if SKIP

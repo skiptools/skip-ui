@@ -11,6 +11,7 @@ import struct CoreGraphics.CGFloat
 #endif
 #endif
 
+// NOTE: Keep in sync with SkipFuseUI.VerticalAlignment
 public struct VerticalAlignment : Equatable, Sendable {
     let key: String
 
@@ -28,8 +29,8 @@ public struct VerticalAlignment : Equatable, Sendable {
         fatalError()
     }
 
-    public static let top = VerticalAlignment(key: "top")
     public static let center = VerticalAlignment(key: "center")
+    public static let top = VerticalAlignment(key: "top")
     public static let bottom = VerticalAlignment(key: "bottom")
     public static let firstTextBaseline = VerticalAlignment(key: "firstTextBaseline")
     public static let lastTextBaseline = VerticalAlignment(key: "lastTextBaseline")

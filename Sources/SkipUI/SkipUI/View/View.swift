@@ -39,6 +39,7 @@ import struct CoreGraphics.CGSize
 import struct Foundation.URL
 #endif
 
+// SKIP @bridge
 public protocol View {
     #if SKIP
     // SKIP DECLARE: fun body(): View = EmptyView()

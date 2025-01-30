@@ -44,10 +44,12 @@ import skip.foundation.Locale
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct Text: View, Equatable {
     private let textView: _Text
     private let modifiedView: any View
 
+    // SKIP @bridge
     public init(verbatim: String) {
         textView = _Text(verbatim: verbatim)
         modifiedView = textView
@@ -166,6 +168,7 @@ public struct Text: View, Equatable {
     }
     #endif
 
+    // SKIP @bridge
     public static func ==(lhs: Text, rhs: Text) -> Bool {
         return lhs.textView == rhs.textView
     }

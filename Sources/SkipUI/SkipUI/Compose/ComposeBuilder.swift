@@ -10,27 +10,38 @@ import androidx.compose.runtime.Composable
 #endif
 
 /// Used to wrap the content of SwiftUI `@ViewBuilders` for rendering by Compose.
+// SKIP @bridge
 public struct ComposeBuilder: View {
     #if SKIP
     private let content: @Composable (ComposeContext) -> ComposeResult
     #endif
-
-    /// Construct with static content.
-    ///
-    /// Used primarily when manually constructing views for internal use.
-    public init(view: any View) {
-        #if SKIP
-        self.init(content: { context in
-            return view.Compose(context: context)
-        })
-        #endif
-    }
 
     /// If the result of the given block is a `ComposeBuilder` return it, else create a `ComposeBuilder` whose content is the
     /// resulting view.
     public static func from(_ content: () -> any View) -> ComposeBuilder {
         let view = content()
         return view as? ComposeBuilder ?? ComposeBuilder(view: view)
+    }
+
+    /// Construct with static content.
+    ///
+    /// Used primarily when manually constructing views for internal use.
+    public init(view: any View) {
+        #if SKIP
+        self.content = { context in
+            return view.Compose(context: context)
+        }
+        #endif
+    }
+
+    // SKIP @bridge
+    public init(anyViews: [Any?]) {
+        #if SKIP
+        self.content = { context in
+            anyViews.forEach { ($0 as? View)?.Compose(context: context) }
+            return ComposeResult.ok
+        }
+        #endif
     }
 
     #if SKIP

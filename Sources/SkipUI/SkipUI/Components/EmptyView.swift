@@ -9,7 +9,9 @@
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public struct EmptyView : View, Sendable {
+    // SKIP @bridge
     public init() {
     }
     

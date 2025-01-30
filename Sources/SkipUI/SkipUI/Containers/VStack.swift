@@ -27,6 +27,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct VStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
@@ -36,6 +37,13 @@ public struct VStack : View {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(alignmentKey: String, spacing: CGFloat?, anyContent: Any?) {
+        self.alignment = HorizontalAlignment(key: alignmentKey)
+        self.spacing = spacing
+        self.content = ComposeBuilder.from { (anyContent as? any View) ?? EmptyView() }
     }
 
     #if SKIP
@@ -50,7 +58,7 @@ public struct VStack : View {
             composer = VStackComposer()
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
-        
+
         let views = content.collectViews(context: context)
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
