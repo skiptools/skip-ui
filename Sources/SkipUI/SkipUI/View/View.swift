@@ -269,9 +269,15 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func colorInvert() -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) {
+            $0.modifier = $0.modifier.then(Modifier.colorInvert())
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
