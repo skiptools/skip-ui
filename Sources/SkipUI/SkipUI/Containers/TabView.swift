@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -39,8 +40,10 @@ import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +65,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 #endif
 
@@ -93,32 +97,86 @@ public struct TabView : View {
         // WARNING: This function is a potential recomposition hotspot
         let contentContext = context.content()
         let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
+        let tags = tabViews.map { TagModifierView.strip(from: $0, role: ComposeModifierRole.tag)?.value }
+        let coroutineScope = rememberCoroutineScope()
+        let isSyncingToSelection = remember { mutableStateOf(false) }
+        let pagerState = rememberPagerState(pageCount: { tabViews.count })
         ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
             Box(modifier: modifier) {
-                let pagerState = rememberPagerState(pageCount: { tabViews.count })
-                HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
-                    Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                        tabViews[page].Compose(context: contentContext)
-                    }
-                }
+                syncPagerStateToSelection(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, coroutineScope: coroutineScope)
+                ComposePageViewPager(pagerState: pagerState, tabViews: tabViews, tags: tags, isSyncingToSelection: isSyncingToSelection, context: contentContext)
                 if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabViews.count > 1) {
                     let modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
                         .align(androidx.compose.ui.Alignment.BottomCenter)
                         .padding(bottom: 16.dp)
-                    ComposePageViewIndicator(pagerState: pagerState, modifier: modifier, context: contentContext)
+                    ComposePageViewIndicator(pagerState: pagerState, modifier: modifier, coroutineScope: coroutineScope, context: contentContext)
                 }
             }
         }
     }
 
+    @Composable private func ComposePageViewPager(pagerState: PagerState, tabViews: [View], tags: [Any?], isSyncingToSelection: MutableState<Bool>, context: ComposeContext) {
+        HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
+            if page >= 0 && page < tabViews.count {
+                Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    tabViews[page].Compose(context: context)
+                }
+                // We don't get a callback when the user scrolls the pager, so use the rendering callback to sync any
+                // user-initiated navigation to the selection binding
+                syncSelectionToPagerState(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection)
+            }
+        }
+    }
+
+    @Composable private func syncPagerStateToSelection(_ pagerState: PagerState, tags: [Any?], isSyncingToSelection: MutableState<Bool>, coroutineScope: CoroutineScope) {
+        guard let selectedTag = selection?.wrappedValue else {
+            return
+        }
+        let selectedPageState = rememberUpdatedState(tags.firstIndex { $0 == selectedTag })
+        guard let selectedPage = selectedPageState.value, selectedPage != pagerState.targetPage else {
+            return
+        }
+        // Don't attempt to sync to the selection while the user is scrolling
+        guard !pagerState.isScrollInProgress || isSyncingToSelection.value else {
+            return
+        }
+        let isWithAnimationState = rememberUpdatedState(Animation.isInWithAnimation)
+        // Track that we're syncing to the selection so that we don't try to sync the other way while waiting for
+        // the coroutine to launch, or confuse the resulting scrolling with user scrolling
+        isSyncingToSelection.value = true
+        coroutineScope.launch {
+            if let selectedPage = selectedPageState.value {
+                if pagerState.isScrollInProgress || isWithAnimationState.value {
+                    pagerState.animateScrollToPage(selectedPage)
+                } else {
+                    pagerState.scrollToPage(selectedPage)
+                }
+                isSyncingToSelection.value = false
+            }
+        }
+    }
+
+    @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: [Any?], isSyncingToSelection: MutableState<Bool>) {
+        // Don't confuse our own programmatic scrolling with user scrolling
+        guard !isSyncingToSelection.value else {
+            return
+        }
+        guard pagerState.targetPage >= 0 && pagerState.targetPage < tags.count else {
+            return
+        }
+        guard let targetTag = tags[pagerState.targetPage], let selectedTag = selection?.wrappedValue, selectedTag != targetTag else {
+            return
+        }
+        selection?.wrappedValue = targetTag
+    }
+
     // https://developer.android.com/develop/ui/compose/layouts/pager#add-page
-    @Composable private func ComposePageViewIndicator(pagerState: PagerState, modifier: Modifier, context: ComposeContext) {
-        let coroutineScope = rememberCoroutineScope()
+    @Composable private func ComposePageViewIndicator(pagerState: PagerState, modifier: Modifier, coroutineScope: CoroutineScope, context: ComposeContext) {
         Row(modifier: modifier, horizontalArrangement: Arrangement.Center) {
             for indicatorPage in 0..<pagerState.pageCount {
-                let isCurrentPage = pagerState.currentPage == indicatorPage
+                let isCurrentPage = pagerState.targetPage == indicatorPage
                 let buttonModifier = context.modifier.clickable(onClick: {
                     coroutineScope.launch { pagerState.animateScrollToPage(indicatorPage) }
                 }, enabled: !isCurrentPage)
@@ -594,4 +652,5 @@ public struct Material3NavigationBarOptions {
         return Material3NavigationBarOptions(modifier: modifier, containerColor: containerColor, contentColor: contentColor, tonalElevation: tonalElevation, onItemClick: onItemClick, itemIcon: itemIcon, itemModifier: itemModifier, itemEnabled: itemEnabled, itemLabel: itemLabel, alwaysShowItemLabels: alwaysShowItemLabels, itemColors: itemColors, itemInteractionSource: itemInteractionSource)
     }
 }
+#endif
 #endif

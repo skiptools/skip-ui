@@ -4,7 +4,45 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
+#if !SKIP_BRIDGE
+#if SKIP
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.focus.FocusRequester
+#endif
+
+extension View {
+    public func focused<Value>(_ binding: Binding<Value>, equals value: Value) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { context in
+            let focusRequester = remember { FocusRequester() }
+            context.modifier = context.modifier
+                .focusRequester(focusRequester)
+                .onFocusChanged {
+                    if $0.hasFocus {
+                        binding.wrappedValue = value
+                    } else if binding.wrappedValue == value {
+                        if value == true || value == false {
+                            binding.wrappedValue = false as! Value
+                        } else {
+                            binding.wrappedValue = nil as! Value
+                        }
+                    }
+                }
+            if value == binding.wrappedValue {
+                SideEffect { focusRequester.requestFocus() }
+            }
+            return ComposeResult.ok
+        }
+        #else
+        return self
+        #endif
+    }
+
+    public func focused(_ condition: Binding<Bool>) -> some View {
+        return focused(condition, equals: true)
+    }
+}
 
 #if false
 import protocol Combine.ObservableObject
@@ -940,4 +978,5 @@ extension View {
 
 }
 
+#endif
 #endif

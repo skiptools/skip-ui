@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -26,6 +27,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct VStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
@@ -35,6 +37,13 @@ public struct VStack : View {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(alignmentKey: String, spacing: CGFloat?, bridgedContent: Any?) {
+        self.alignment = HorizontalAlignment(key: alignmentKey)
+        self.spacing = spacing
+        self.content = ComposeBuilder.from { (bridgedContent as? any View) ?? EmptyView() }
     }
 
     #if SKIP
@@ -49,7 +58,7 @@ public struct VStack : View {
             composer = VStackComposer()
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
-        
+
         let views = content.collectViews(context: context)
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
@@ -167,9 +176,6 @@ final class VStackComposer: RenderingComposer {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// A vertical container that you can use in conditional layouts.
 ///
 /// This layout container behaves like a ``VStack``, but conforms to the
@@ -227,4 +233,5 @@ final class VStackComposer: RenderingComposer {
 extension VStackLayout : Sendable {
 }
 
+#endif
 #endif

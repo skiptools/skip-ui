@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// An interface, consisting of a label and additional content, that you
 /// display when the content of your app is unavailable to users.
 ///
@@ -187,5 +184,4 @@ extension ContentUnavailableView where LabelX == SearchUnavailableContent.Label,
     /// - Parameter text: The search text query.
     public static func search(text: String) -> ContentUnavailableView<LabelX, Description, Actions> { fatalError() }
 }
-
 #endif

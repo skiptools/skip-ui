@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -172,9 +173,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension PreferenceKey where Self.Value : ExpressibleByNilLiteral {
 
@@ -339,4 +337,5 @@ extension View {
 
 }
 
+#endif
 #endif

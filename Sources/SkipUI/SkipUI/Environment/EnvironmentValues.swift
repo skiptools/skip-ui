@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if canImport(Observation)
 import Observation
@@ -604,9 +605,6 @@ extension EnvironmentValues {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import protocol Combine.ObservableObject
 import struct CoreGraphics.CGFloat
 import struct Foundation.Calendar
@@ -1999,4 +1997,4 @@ public protocol EnvironmentalModifier : ViewModifier where Self.Body == Never {
 }
 
 #endif
-
+#endif

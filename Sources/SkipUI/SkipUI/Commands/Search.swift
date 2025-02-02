@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -232,9 +233,6 @@ final class SearchFieldScrollConnection: NestedScrollConnection {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// The ways that searchable modifiers can show or hide search scopes.
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 public struct SearchScopeActivation {
@@ -1271,4 +1269,5 @@ extension View {
 
 }
 
+#endif
 #endif

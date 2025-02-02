@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 public enum LayoutDirection : Hashable, CaseIterable, Sendable {
     case leftToRight
     case rightToLeft
@@ -17,9 +19,6 @@ public enum LayoutDirectionBehavior : Hashable, Sendable {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGRect
@@ -1653,4 +1652,5 @@ extension View {
 
 }
 
+#endif
 #endif

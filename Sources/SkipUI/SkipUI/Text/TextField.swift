@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardActions
@@ -379,9 +380,6 @@ func KeyboardActions(submitState: OnSubmitState?, clearFocusWith: FocusManager? 
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 
@@ -973,4 +971,5 @@ extension TextField {
 //    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
 //}
 
+#endif
 #endif

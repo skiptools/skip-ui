@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -43,4 +44,5 @@ extension View {
         }
     }
 }
+#endif
 #endif

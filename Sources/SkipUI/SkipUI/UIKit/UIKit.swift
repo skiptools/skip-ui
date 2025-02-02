@@ -5,9 +5,6 @@
 // as published by the Free Software Foundation https://fsf.org
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 #if canImport(UIKit)
 import protocol Combine.ObservableObject
 import protocol UIKit.UIApplicationDelegate
@@ -1328,5 +1325,4 @@ extension Label /* where Title == Text, Icon == Image */ {
 }
 
 #endif
-
 #endif

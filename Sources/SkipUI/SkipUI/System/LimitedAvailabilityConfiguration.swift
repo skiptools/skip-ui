@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// A type-erased widget configuration.
 ///
 /// You don't use this type directly. Instead SkipUI creates this type on
@@ -24,6 +21,4 @@
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
-
-
 #endif

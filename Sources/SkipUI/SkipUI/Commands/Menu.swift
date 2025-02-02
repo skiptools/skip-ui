@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -244,9 +245,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 //@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
 //@available(watchOS, unavailable)
 //extension Menu where Label == MenuStyleConfiguration.Label, Content == MenuStyleConfiguration.Content {
@@ -337,4 +335,5 @@ public struct MenuStyleConfiguration {
     }
 }
 
+#endif
 #endif

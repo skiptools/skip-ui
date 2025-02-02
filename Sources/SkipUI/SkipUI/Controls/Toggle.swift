@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -104,9 +105,6 @@ extension View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 //extension Toggle where Label == ToggleStyleConfiguration.Label {
 
@@ -255,4 +253,5 @@ public struct ToggleStyleConfiguration {
     public var isMixed: Bool { get { fatalError() } }
 }
 
+#endif
 #endif

@@ -4,12 +4,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if !SKIP
 #if canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 #endif
 
+// NOTE: Keep in sync with SkipFuseUI.HorizontalAlignment
 public struct HorizontalAlignment : Equatable, Sendable {
     let key: String
 
@@ -27,8 +29,8 @@ public struct HorizontalAlignment : Equatable, Sendable {
         fatalError()
     }
 
-    public static let leading: HorizontalAlignment = HorizontalAlignment(key: "leading")
     public static let center: HorizontalAlignment = HorizontalAlignment(key: "center")
+    public static let leading: HorizontalAlignment = HorizontalAlignment(key: "leading")
     public static let trailing: HorizontalAlignment = HorizontalAlignment(key: "trailing")
     public static let listRowSeparatorLeading = HorizontalAlignment(key: "listRowSeparatorLeading")
     public static let listRowSeparatorTrailing = HorizontalAlignment(key: "listRowSeparatorTrailing")
@@ -47,3 +49,5 @@ public struct HorizontalAlignment : Equatable, Sendable {
     }
     #endif
 }
+
+#endif

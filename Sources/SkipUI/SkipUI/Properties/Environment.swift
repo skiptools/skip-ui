@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 // Model Environment as a class rather than struct to mutate by reference and avoid copy overhead
 public final class Environment<Value> where Value: Any {
     public init() {
@@ -19,3 +21,5 @@ public final class Environment<Value> where Value: Any {
         return Binding(get: { self.wrappedValue }, set: { self.wrappedValue = $0 })
     }
 }
+
+#endif

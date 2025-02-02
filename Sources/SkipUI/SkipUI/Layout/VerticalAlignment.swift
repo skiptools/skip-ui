@@ -4,12 +4,14 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if !SKIP
 #if canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 #endif
 
+// NOTE: Keep in sync with SkipFuseUI.VerticalAlignment
 public struct VerticalAlignment : Equatable, Sendable {
     let key: String
 
@@ -27,8 +29,8 @@ public struct VerticalAlignment : Equatable, Sendable {
         fatalError()
     }
 
-    public static let top = VerticalAlignment(key: "top")
     public static let center = VerticalAlignment(key: "center")
+    public static let top = VerticalAlignment(key: "top")
     public static let bottom = VerticalAlignment(key: "bottom")
     public static let firstTextBaseline = VerticalAlignment(key: "firstTextBaseline")
     public static let lastTextBaseline = VerticalAlignment(key: "lastTextBaseline")
@@ -47,3 +49,5 @@ public struct VerticalAlignment : Equatable, Sendable {
     }
     #endif
 }
+
+#endif

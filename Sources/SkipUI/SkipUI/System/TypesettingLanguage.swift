@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct Foundation.Locale
 
 /// Defines how typesetting language is determined for text.
@@ -85,7 +82,5 @@ extension View {
     ///   supply.
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> some View { return stubView() }
-
 }
-
 #endif

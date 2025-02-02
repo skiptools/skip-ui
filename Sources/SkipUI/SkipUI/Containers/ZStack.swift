@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -22,6 +23,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct ZStack : View {
     let alignment: Alignment
     let content: ComposeBuilder
@@ -29,6 +31,12 @@ public struct ZStack : View {
     public init(alignment: Alignment = .center, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: Any?) {
+        self.alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
+        self.content = ComposeBuilder.from { (bridgedContent as? any View) ?? EmptyView() }
     }
 
     #if SKIP
@@ -106,9 +114,6 @@ public struct ZStack : View {
 }
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 /// An overlaying container that you can use in conditional layouts.
 ///
 /// This layout container behaves like a ``ZStack``, but conforms to the
@@ -154,4 +159,5 @@ public struct ZStack : View {
 extension ZStackLayout : Sendable {
 }
 
+#endif
 #endif

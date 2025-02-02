@@ -4,6 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
 #if SKIP
 import android.graphics.Bitmap
@@ -1086,9 +1087,6 @@ private struct SymbolSet : Decodable {
 #endif
 
 #if false
-
-// TODO: Process for use in SkipUI
-
 import class CoreGraphics.CGContext
 import struct CoreGraphics.CGFloat
 import class CoreGraphics.CGImage
@@ -1559,5 +1557,5 @@ final public class ImageRenderer<Content> : ObservableObject where Content : Vie
     public typealias ObjectWillChangePublisher = PassthroughSubject<Void, Never>
 }
 #endif
-
+#endif
 #endif

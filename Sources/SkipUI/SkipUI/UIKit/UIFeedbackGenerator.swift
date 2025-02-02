@@ -4,33 +4,39 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
 import Foundation
+
+// note that this needs AndroidManifest.xml permission:
+// <uses-permission android:name="android.permission.VIBRATE"/>
+#if SKIP
+let systemVibratorService = createSystemVibratorService()
+
+private func createSystemVibratorService() -> android.os.Vibrator? {
+    let context = ProcessInfo.processInfo.androidContext // Android-specific extension to get the global Context
+
+    if android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S {
+        logger.log("vibratorManager: return null due to Android version too old (\(android.os.Build.VERSION.SDK_INT))")
+        return nil
+    }
+
+    guard let vibratorManager = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager else {
+        logger.log("vibratorManager: returned null")
+        return nil
+    }
+
+    logger.log("vibratorManager: \(vibratorManager)")
+
+    // https://developer.android.com/reference/android/os/Vibrator
+    return vibratorManager.getDefaultVibrator()
+}
+#endif
 
 public protocol UIFeedbackGenerator {
 }
 
-extension UIFeedbackGenerator {
-    #if SKIP
-    // note that this needs AndroidManifest.xml permission:
-    // <uses-permission android:name="android.permission.VIBRATE"/>
-    private var vibrator: android.os.Vibrator? {
-        let context = ProcessInfo.processInfo.androidContext // Android-specific extension to get the global Context
-
-        guard let vibratorManager = context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager else {
-            logger.log("vibratorManager: returned null")
-            return nil
-        }
-
-        logger.log("vibratorManager: \(vibratorManager)")
-
-        // https://developer.android.com/reference/android/os/Vibrator
-        return vibratorManager.getDefaultVibrator()
-    }
-    #endif
-}
-
 /// UIImpactFeedbackGenerator is used to give user feedback when an impact between UI elements occurs
-@MainActor open class UIImpactFeedbackGenerator : UIFeedbackGenerator {
+open class UIImpactFeedbackGenerator : UIFeedbackGenerator {
     private let style: UIImpactFeedbackGenerator.FeedbackStyle
 
     public init() {
@@ -44,7 +50,7 @@ extension UIFeedbackGenerator {
     /// call when your UI element impacts something else
     open func impactOccurred() {
         #if SKIP
-        self.vibrator?.vibrate(style.vibrationEffect)
+        systemVibratorService?.vibrate(style.vibrationEffect)
         #endif
     }
 
@@ -56,7 +62,7 @@ extension UIFeedbackGenerator {
         let effect = android.os.VibrationEffect.startComposition()
             .addPrimitive(android.os.VibrationEffect.Composition.PRIMITIVE_CLICK, Float(intensity), 0)
             .compose()
-        self.vibrator?.vibrate(effect)
+        systemVibratorService?.vibrate(effect)
         #endif
     }
 
@@ -93,7 +99,7 @@ extension UIFeedbackGenerator {
 }
 
 /// UINotificationFeedbackGenerator is used to give user feedback when an notification is displayed
-@MainActor open class UINotificationFeedbackGenerator : UIFeedbackGenerator {
+open class UINotificationFeedbackGenerator : UIFeedbackGenerator {
 
     public init() {
     }
@@ -102,7 +108,7 @@ extension UIFeedbackGenerator {
     open func notificationOccurred(_ notificationType: FeedbackType) {
         #if SKIP
         // amplitude parameter: “The strength of the vibration. This must be a value between 1 and 255”
-        self.vibrator?.vibrate(notificationType.vibrationEffect)
+        systemVibratorService?.vibrate(notificationType.vibrationEffect)
         #endif
     }
 
@@ -143,7 +149,7 @@ extension UIFeedbackGenerator {
 
 
 /// UINotificationFeedbackGenerator is used to give user feedback when an notification is displayed
-@MainActor open class UISelectionFeedbackGenerator : UIFeedbackGenerator {
+open class UISelectionFeedbackGenerator : UIFeedbackGenerator {
 
     public init() {
     }
@@ -151,7 +157,7 @@ extension UIFeedbackGenerator {
     /// call when a notification is displayed, passing the corresponding type
     open func selectionChanged() {
         #if SKIP
-        self.vibrator?.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
+        systemVibratorService?.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_TICK))
         #endif
     }
 
@@ -159,3 +165,5 @@ extension UIFeedbackGenerator {
         selectionChanged()
     }
 }
+
+#endif

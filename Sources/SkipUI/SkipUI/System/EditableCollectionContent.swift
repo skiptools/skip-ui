@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// An opaque wrapper view that adds editing capabilities to a row in a list.
 ///
 /// You don't use this type directly. Instead SkipUI creates this type on
@@ -23,5 +20,4 @@ extension EditableCollectionContent : View where Content : View {
 
 //    public typealias Body = some View
 }
-
 #endif

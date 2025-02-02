@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGRect
 
 /// An attachment anchor for a popover.
@@ -21,5 +18,4 @@ public enum PopoverAttachmentAnchor {
     /// describes possible alignments relative to a SkipUI view.
     case point(UnitPoint)
 }
-
 #endif

@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// The standard sizes of sidebar rows.
 ///
 /// On macOS, sidebar rows have three different sizes: small, medium, and large.
@@ -35,8 +32,5 @@ public enum SidebarRowSize : Sendable {
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension SidebarRowSize : Hashable {
-
-
 }
-
 #endif

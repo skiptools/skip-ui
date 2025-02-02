@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 /// A keyframe that immediately moves to the given value without interpolating.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 public struct MoveKeyframe<Value> : KeyframeTrackContent where Value : Animatable {
@@ -22,5 +19,4 @@ public struct MoveKeyframe<Value> : KeyframeTrackContent where Value : Animatabl
     public typealias Body = MoveKeyframe<Value>
     public var body: Body { fatalError() }
 }
-
 #endif

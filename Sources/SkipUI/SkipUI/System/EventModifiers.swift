@@ -4,6 +4,8 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
+#if !SKIP_BRIDGE
+
 @frozen public struct EventModifiers : OptionSet, Hashable, Sendable {
     public let rawValue: Int
 
@@ -19,3 +21,5 @@
     public static let numericPad = EventModifiers(rawValue: 32)
     public static let all = EventModifiers(rawValue: 63)
 }
+
+#endif

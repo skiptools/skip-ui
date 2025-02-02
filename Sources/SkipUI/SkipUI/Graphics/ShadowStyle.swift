@@ -4,10 +4,7 @@
 // under the terms of the GNU Lesser General Public License 3.0
 // as published by the Free Software Foundation https://fsf.org
 
-// TODO: Process for use in SkipUI
-
 #if false
-
 import struct CoreGraphics.CGFloat
 
 /// A style to use when rendering shadows.
@@ -48,5 +45,4 @@ public struct ShadowStyle : Equatable, Sendable {
 
     
 }
-
 #endif
