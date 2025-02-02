@@ -6,6 +6,7 @@
 
 #if !SKIP_BRIDGE
 
+/// Specify a  `SwiftUI.ShapeStyle` in bridgable form.
 // SKIP @bridge
 public enum ShapeStyleSpec {
     case color(ColorSpec)
