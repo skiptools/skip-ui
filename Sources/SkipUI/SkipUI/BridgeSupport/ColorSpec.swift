@@ -6,6 +6,7 @@
 
 #if !SKIP_BRIDGE
 
+/// Specify a  `SwiftUI.Color` in bridgable form.
 // SKIP @bridge
 public enum ColorSpec {
     case primary
