@@ -229,7 +229,7 @@ extension View {
         return self
     }
 
-    public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> some View {
+    public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             if let color = style.asColor(opacity: 1.0, animationContext: $0) {
@@ -242,6 +242,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func border(styleSpec: ShapeStyleSpec, width: Double) -> any View {
+        let style = styleSpec.asShapeStyle()
+        return border(style, width: width)
     }
 
     @available(*, unavailable)
@@ -271,7 +277,8 @@ extension View {
         #endif
     }
 
-    public func colorInvert() -> some View {
+    // SKIP @bridge
+    public func colorInvert() -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.then(ColorInvertModifier())
@@ -447,7 +454,7 @@ extension View {
         return self
     }
 
-    public func foregroundColor(_ color: Color?) -> some View {
+    public func foregroundColor(_ color: Color?) -> any View {
         #if SKIP
         return environment(\._foregroundStyle, color)
         #else
@@ -455,12 +462,22 @@ extension View {
         #endif
     }
 
-    public func foregroundStyle(_ style: any ShapeStyle) -> some View {
+    // SKIP @bridge
+    public func foregroundColor(styleSpec: ShapeStyleSpec?) -> any View {
+        return foregroundColor(styleSpec?.asShapeStyle() as? Color)
+    }
+
+    public func foregroundStyle(_ style: any ShapeStyle) -> any View {
         #if SKIP
         return environment(\._foregroundStyle, style)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func foregroundStyle(styleSpec: ShapeStyleSpec) -> any View {
+        return foregroundStyle(styleSpec.asShapeStyle())
     }
 
     @available(*, unavailable)

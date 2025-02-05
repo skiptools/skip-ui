@@ -34,9 +34,9 @@ public struct ZStack : View {
     }
 
     // SKIP @bridge
-    public init(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: Any?) {
+    public init(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: any View) {
         self.alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
-        self.content = ComposeBuilder.from { (bridgedContent as? any View) ?? EmptyView() }
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
