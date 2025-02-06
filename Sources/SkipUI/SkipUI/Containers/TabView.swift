@@ -69,6 +69,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 #endif
 
+// SKIP @bridge
 public struct TabView : View {
     let selection: Binding<Any>?
     let content: ComposeBuilder
@@ -81,6 +82,16 @@ public struct TabView : View {
     public init(selection: Any?, @ViewBuilder content: () -> any View) {
         self.selection = selection as! Binding<Any>?
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(selectionGet: (() -> Any)?, selectionSet: ((Any) -> Void)?, bridgedContent: any View) {
+        if let selectionGet, let selectionSet {
+            self.selection = Binding(get: selectionGet, set: selectionSet)
+        } else {
+            self.selection = nil
+        }
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
@@ -597,12 +608,17 @@ extension TabViewStyle where Self == PageTabViewStyle {
 // MARK: View extensions
 
 extension View {
-    public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
+    public func tabItem(@ViewBuilder _ label: () -> any View) -> any View {
         #if SKIP
         return TabItemModifierView(view: self, label: label)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func tabItem(bridgedLabel: any View) -> any View {
+        return tabItem({ bridgedLabel })
     }
 
     public func tabViewStyle(_ style: any TabViewStyle) -> some View {

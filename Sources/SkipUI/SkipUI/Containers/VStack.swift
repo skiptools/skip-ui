@@ -40,10 +40,10 @@ public struct VStack : View {
     }
 
     // SKIP @bridge
-    public init(alignmentKey: String, spacing: CGFloat?, bridgedContent: Any?) {
+    public init(alignmentKey: String, spacing: Double?, bridgedContent: any View) {
         self.alignment = HorizontalAlignment(key: alignmentKey)
-        self.spacing = spacing
-        self.content = ComposeBuilder.from { (bridgedContent as? any View) ?? EmptyView() }
+        self.spacing = spacing == nil ? nil : CGFloat(spacing!)
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
