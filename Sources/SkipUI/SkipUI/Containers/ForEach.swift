@@ -10,6 +10,7 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public final class ForEach : View, LazyItemFactory {
     let identifier: ((Any) -> AnyHashable?)?
     let indexRange: Range<Int>?
@@ -31,6 +32,18 @@ public final class ForEach : View, LazyItemFactory {
         self.objectsBinding = objectsBinding
         self.objectsBindingContent = objectsBindingContent
         self.editActions = editActions
+    }
+
+    // SKIP @bridge
+    public init(startIndex: Int, endIndex: Int, identifier: @escaping (Int) -> AnyHashable, bridgedContent: @escaping (Int) -> any View) {
+        self.identifier = { identifier($0 as! Int) }
+        self.indexRange = startIndex..<endIndex
+        self.indexedContent = bridgedContent
+        self.objects = nil
+        self.objectContent = nil
+        self.objectsBinding = nil
+        self.objectsBindingContent = nil
+        self.editActions = []
     }
 
     public func onDelete(perform action: ((IndexSet) -> Void)?) -> ForEach {
@@ -66,7 +79,9 @@ public final class ForEach : View, LazyItemFactory {
         if let indexRange {
             for index in indexRange {
                 var views = collectViews(from: indexedContent!(index), context: context)
-                if isTagging {
+                if isTagging, let identifier {
+                    views = taggedViews(for: views, defaultTag: identifier(index), context: context)
+                } else if isTagging {
                     views = taggedViews(for: views, defaultTag: index, context: context)
                 }
                 views.forEach { $0.Compose(context: context) }
