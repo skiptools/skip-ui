@@ -1077,7 +1077,8 @@ extension View {
         return self
     }
 
-    public func tag(_ tag: Any) -> some View {
+    // SKIP @bridge
+    public func tag(_ tag: Any) -> any View {
         #if SKIP
         return TagModifierView(view: self, value: tag, role: ComposeModifierRole.tag)
         #else

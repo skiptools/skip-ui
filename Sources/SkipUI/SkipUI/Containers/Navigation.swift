@@ -90,26 +90,34 @@ import kotlin.reflect.full.superclasses
 import kotlinx.coroutines.delay
 #endif
 
-public struct NavigationStack<Root> : View where Root: View {
-    let root: Root
+// SKIP @bridge
+public struct NavigationStack : View {
+    let root: ComposeBuilder
     let path: Binding<[Any]>?
     let navigationPath: Binding<NavigationPath>?
 
-    public init(@ViewBuilder root: () -> Root) {
-        self.root = root()
+    public init(@ViewBuilder root: () -> any View) {
+        self.root = ComposeBuilder.from(root)
         self.path = nil
         self.navigationPath = nil
     }
 
-    public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> Root) {
-        self.root = root()
+    public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> any View) {
+        self.root = ComposeBuilder.from(root)
         self.path = nil
         self.navigationPath = path
     }
 
-    public init(path: Any, @ViewBuilder root: () -> Root) {
-        self.root = root()
+    public init(path: Any, @ViewBuilder root: () -> any View) {
+        self.root = ComposeBuilder.from(root)
         self.path = path as! Binding<[Any]>?
+        self.navigationPath = nil
+    }
+
+    // SKIP @bridge
+    public init(bridgedRoot: any View) {
+        self.root = ComposeBuilder.from { bridgedRoot }
+        self.path = nil
         self.navigationPath = nil
     }
 
@@ -1069,6 +1077,7 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
 }
 #endif
 
+// SKIP @bridge
 public struct NavigationLink : View, ListItemAdapting {
     let value: Any?
     let destination: ComposeBuilder?
@@ -1105,8 +1114,11 @@ public struct NavigationLink : View, ListItemAdapting {
         self.init(destination: destination, label: { Text(titleKey) })
     }
 
-    public init(_ title: String, @ViewBuilder destination: () -> any View) {
-        self.init(destination: destination, label: { Text(verbatim: title) })
+    // SKIP @bridge
+    public init(bridgedDestination: any View, bridgedLabel: any View) {
+        self.value = nil
+        self.destination = ComposeBuilder.from { bridgedDestination }
+        self.label = ComposeBuilder.from { bridgedLabel }
     }
 
     #if SKIP
