@@ -67,6 +67,7 @@ import struct CoreGraphics.CGFloat
 /// Corner radius for list sections.
 let listSectionCornerRadius = 8.0
 
+// SKIP @bridge
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
 public final class List : View {
     let fixedContent: ComposeBuilder?
@@ -98,6 +99,18 @@ public final class List : View {
     @available(*, unavailable)
     public convenience init(selection: Binding<Any>, @ViewBuilder content: () -> any View) {
         self.init(fixedContent: content())
+    }
+
+    // SKIP @bridge
+    public init(bridgedContent: any View) {
+        if let forEach = bridgedContent as? ForEach {
+            self.fixedContent = nil
+            self.forEach = forEach
+        } else {
+            self.fixedContent = ComposeBuilder.from { bridgedContent }
+            self.forEach = nil
+        }
+        self.itemTransformer = nil
     }
 
     #if SKIP
