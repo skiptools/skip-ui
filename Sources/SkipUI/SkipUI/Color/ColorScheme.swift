@@ -16,9 +16,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 #endif
 
-public enum ColorScheme : CaseIterable, Hashable, Sendable {
-    case light
-    case dark
+public enum ColorScheme : Int, CaseIterable, Hashable, Sendable {
+    case light = 0 // For bridging
+    case dark = 1 // For bridging
 
     #if SKIP
     /// Return the color scheme for the current material color scheme.
@@ -51,7 +51,7 @@ public enum ColorScheme : CaseIterable, Hashable, Sendable {
 }
 
 extension View {
-    public func colorScheme(_ colorScheme: ColorScheme) -> some View {
+    public func colorScheme(_ colorScheme: ColorScheme) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
@@ -63,12 +63,22 @@ extension View {
         #endif
     }
 
-    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
+    // SKIP @bridge
+    public func colorScheme(bridgedColorScheme: Int) -> any View {
+        return colorScheme(ColorScheme(rawValue: bridgedColorScheme)!)
+    }
+
+    public func preferredColorScheme(_ colorScheme: ColorScheme?) -> any View {
         #if SKIP
         return preference(key: PreferredColorSchemePreferenceKey.self, value: PreferredColorScheme(colorScheme: colorScheme))
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func preferredColorScheme(bridgedColorScheme: Int?) -> any View {
+        return preferredColorScheme(bridgedColorScheme == nil ? nil : ColorScheme(rawValue: bridgedColorScheme!))
     }
 
     #if SKIP
