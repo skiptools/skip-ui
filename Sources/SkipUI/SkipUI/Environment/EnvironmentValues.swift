@@ -100,6 +100,20 @@ public final class EnvironmentValues {
         lastSetValues[compositionLocal] = value
     }
 
+    @Composable public func bridged(key: String) -> EnvironmentSupport? {
+        if let builtinValue = builtinBridged(key: key) {
+            return builtinValue
+        }
+        let compositionLocal = bridgedCompositionLocal(key: key)
+        let value = compositionLocal.current
+        return value == Unit ? nil : value as! EnvironmentSupport
+    }
+
+    public func setBridged(key: String, value: EnvironmentSupport?) {
+        let compositionLocal = bridgedCompositionLocal(key: key)
+        lastSetValues[compositionLocal] = value ?? Unit
+    }
+
     /// The Compose `CompositionLocal` for the given environment value key type.
     public func valueCompositionLocal(key: Any.Type) -> ProvidableCompositionLocal<Any> {
         // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
@@ -109,6 +123,11 @@ public final class EnvironmentValues {
     /// The Compose `CompositionLocal` for the given environment object type.
     public func objectCompositionLocal(type: Any.Type) -> ProvidableCompositionLocal<Any> {
         return compositionLocal(key: type, defaultValue: { nil })
+    }
+
+    /// The Compose `CompositionLocal` for the given bridged key.
+    public func bridgedCompositionLocal(key: String) -> ProvidableCompositionLocal<Any> {
+        return compositionLocal(key: key, defaultValue: { nil })
     }
 
     func compositionLocal(key: AnyHashable, defaultValue: () -> Any?) -> ProvidableCompositionLocal<Any> {
@@ -125,21 +144,21 @@ public final class EnvironmentValues {
 extension View {
     #if SKIP
     // Use inline final func to get reified generic type
-    @inline(__always) public final func environment<T>(_ object: T?) -> some View {
+    @inline(__always) public final func environment<T>(_ object: T?) -> any View {
         return environmentObject(type: T.self, object: object)
     }
     #else
-    public func environment<T>(_ object: T?) -> some View {
+    public func environment<T>(_ object: T?) -> any View {
         return self
     }
     #endif
 
-    public func environmentObject(_ object: Any) -> some View {
+    public func environmentObject(_ object: Any) -> any View {
         return environmentObject(type: type(of: object), object: object)
     }
 
     // Must be public to allow access from our inline `environment` function.
-    public func environmentObject(type: Any.Type, object: Any?) -> some View {
+    public func environmentObject(type: Any.Type, object: Any?) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let compositionLocal = EnvironmentValues.shared.objectCompositionLocal(type: type)
@@ -153,11 +172,26 @@ extension View {
     }
 
     // We rely on the transpiler to turn the `WriteableKeyPath` provided in code into a `setValue` closure
-    public func environment<V>(_ setValue: (V) -> Void, _ value: V) -> some View {
+    public func environment<V>(_ setValue: (V) -> Void, _ value: V) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             EnvironmentValues.shared.setValues {
                 _ in setValue(value)
+            } in: {
+                view.Compose(context: context)
+            }
+        }
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func environment(bridgedKey: String, value: EnvironmentSupport?) -> any View {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            EnvironmentValues.shared.setValues {
+                $0.setBridged(key: bridgedKey, value: value)
             } in: {
                 view.Compose(context: context)
             }
@@ -183,6 +217,17 @@ extension EnvironmentValues {
     private func setBuiltinValue(key: AnyHashable, value: Any?, defaultValue: () -> Any?) {
         let compositionLocal = compositionLocal(key: key, defaultValue: defaultValue)
         lastSetValues[compositionLocal] = value ?? Unit
+    }
+
+    @Composable private func builtinBridged(key: String) -> EnvironmentSupport? {
+        // NOTE: We also maintain equivalent code in SkipFuseUI.EnvironmentValues.
+        // It would be nice to come up with a better way to do this...
+        switch key {
+        case "colorScheme":
+            return EnvironmentSupport(builtinValue: colorScheme.rawValue)
+        default:
+            return nil
+        }
     }
 
     // MARK: - Public values
