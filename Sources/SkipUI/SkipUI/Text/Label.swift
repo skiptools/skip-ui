@@ -80,9 +80,9 @@ public struct Label : View {
 
     @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color?, titlePadding: Double) {
         Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            ComposeImage(context: context, imageColor: imageColor)
+            ComposeImage(context: context.content(), imageColor: imageColor)
             Box(modifier: Modifier.padding(start: titlePadding.dp)) {
-                title.Compose(context: context.content())
+                ComposeTitle(context: context.content())
             }
         }
     }
@@ -98,10 +98,10 @@ public struct Label : View {
             EnvironmentValues.shared.setValues {
                 $0.set_foregroundStyle(imageColor)
             } in: {
-                image.Compose(context: context.content())
+                image.Compose(context: context)
             }
         } else {
-            image.Compose(context: context.content())
+            image.Compose(context: context)
         }
     }
     #else
