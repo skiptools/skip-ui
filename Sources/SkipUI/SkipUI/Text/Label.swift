@@ -46,35 +46,41 @@ public struct Label : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
+        var style = EnvironmentValues.shared._labelStyle ?? LabelStyle.automatic
         let placement = EnvironmentValues.shared._placement
-        if placement.contains(ViewPlacement.toolbar) {
-            ComposeImage(context: context)
-        } else if placement.contains(ViewPlacement.systemTextColor) && !EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._foregroundStyle == nil {
-            ComposeLabel(context: context, imageColor: Color.primary.opacity(Double(ContentAlpha.disabled)))
+        if style == .automatic {
+            if placement.contains(ViewPlacement.toolbar) {
+                style = .iconOnly
+            } else {
+                style = .titleAndIcon
+            }
+        }
+        var imageColor: Color?
+        var titlePadding = 0.0
+        if placement.contains(ViewPlacement.systemTextColor) && !EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._foregroundStyle == nil {
+            imageColor = Color.primary.opacity(Double(ContentAlpha.disabled))
         } else if placement.contains(ViewPlacement.onPrimaryColor) && EnvironmentValues.shared._foregroundStyle == nil {
             var imageColor = Color(colorImpl: { MaterialTheme.colorScheme.onPrimary })
             if !EnvironmentValues.shared.isEnabled {
                 imageColor = imageColor.opacity(Double(ContentAlpha.disabled))
             }
-            ComposeLabel(context: context, imageColor: imageColor)
         } else if placement.contains(ViewPlacement.listItem) {
-            ComposeLabel(context: context, imageColor: EnvironmentValues.shared._foregroundStyle as? Color ?? EnvironmentValues.shared._listItemTint ?? Color.accentColor, titlePadding: 6.0)
-        } else {
-            ComposeLabel(context: context)
+            imageColor = EnvironmentValues.shared._foregroundStyle as? Color ?? EnvironmentValues.shared._listItemTint ?? Color.accentColor
+            titlePadding = 6.0
+        }
+        switch style {
+        case .titleOnly:
+            ComposeTitle(context: context)
+        case .iconOnly:
+            ComposeImage(context: context, imageColor: imageColor)
+        default:
+            ComposeLabel(context: context, imageColor: imageColor, titlePadding: titlePadding)
         }
     }
 
-    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color? = nil, titlePadding: Double = 0.0) {
+    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color?, titlePadding: Double) {
         Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            if let imageColor {
-                EnvironmentValues.shared.setValues {
-                    $0.set_foregroundStyle(imageColor)
-                } in: {
-                    image.Compose(context: context.content())
-                }
-            } else {
-                image.Compose(context: context.content())
-            }
+            ComposeImage(context: context, imageColor: imageColor)
             Box(modifier: Modifier.padding(start: titlePadding.dp)) {
                 title.Compose(context: context.content())
             }
@@ -87,8 +93,16 @@ public struct Label : View {
     }
 
     /// Compose only the image of this label.
-    @Composable func ComposeImage(context: ComposeContext) -> ComposeResult {
-        return image.Compose(context: context)
+    @Composable func ComposeImage(context: ComposeContext, imageColor: Color? = nil) {
+        if let imageColor {
+            EnvironmentValues.shared.setValues {
+                $0.set_foregroundStyle(imageColor)
+            } in: {
+                image.Compose(context: context.content())
+            }
+        } else {
+            image.Compose(context: context.content())
+        }
     }
     #else
     public var body: some View {
@@ -106,13 +120,10 @@ public struct LabelStyle: RawRepresentable, Equatable {
 
     public static let automatic = LabelStyle(rawValue: 0)
 
-    @available(*, unavailable)
     public static let titleOnly = LabelStyle(rawValue: 1)
 
-    @available(*, unavailable)
     public static let iconOnly = LabelStyle(rawValue: 2)
 
-    @available(*, unavailable)
     public static let titleAndIcon = LabelStyle(rawValue: 3)
 }
 
@@ -150,8 +161,11 @@ public struct LabeledContentStyle: RawRepresentable, Equatable {
 
 extension View {
     public func labelStyle(_ style: LabelStyle) -> some View {
-        // We only support .automatic
+        #if SKIP
+        return environment(\._labelStyle, style)
+        #else
         return self
+        #endif
     }
 
     public func labeledContentStyle(_ style: LabeledContentStyle) -> some View {

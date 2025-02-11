@@ -501,6 +501,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_labelsHidden", value: newValue, defaultValue: { false }) }
     }
 
+    var _labelStyle: LabelStyle? {
+        get { builtinValue(key: "_labelStyle", defaultValue: { nil }) as! LabelStyle? }
+        set { setBuiltinValue(key: "_labelStyle", value: newValue, defaultValue: { nil }) }
+    }
+
     var _layoutAxis: Axis? {
         get { builtinValue(key: "_layoutAxis", defaultValue: { nil }) as! Axis? }
         set { setBuiltinValue(key: "_layoutAxis", value: newValue, defaultValue: { nil }) }
