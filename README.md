@@ -1291,6 +1291,21 @@ Support levels:
       <td><code>.labelsHidden</code></td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td>
+          <details>
+              <summary><code>.labelStyle</code></summary>
+              <ul>
+                  <li><code>.automatic</code></li>
+                  <li><code>.titleOnly</code></li>
+                  <li><code>.iconOnly</code></li>
+                  <li><code>.titleAndIcon</code></li>
+                  <li>Custom styles are not supported</li>
+              </ul>
+          </details>
+       </td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
           <details>
