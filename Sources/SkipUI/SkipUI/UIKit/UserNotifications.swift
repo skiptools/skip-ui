@@ -69,7 +69,6 @@ public final class UNUserNotificationCenter {
     }
 
     static func onActivityDestroy() {
-        android.util.Log.e("", "DESTROYING ACTIVITY AND CLEARING PERMISSION LAUNCHER") //~~~
         // The permission launcher appears to hold a strong reference to the activity, so we must nil it to avoid memory leaks
         self.shared.requestPermissionLauncher = nil
     }
