@@ -70,7 +70,13 @@ public struct Section : View, LazyItemFactory {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
+        if let header {
+            header.Compose(context: context)
+        }
         content.Compose(context: context)
+        if let footer {
+            footer.Compose(context: context)
+        }
     }
 
     @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
