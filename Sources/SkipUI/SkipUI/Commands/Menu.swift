@@ -112,8 +112,14 @@ public final class Menu : View {
                             nestedMenu.value = nil
                         }
                     }) {
-                        let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
-                        Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
+                        var placement = EnvironmentValues.shared._placement
+                        EnvironmentValues.shared.setValues {
+                            placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
+                            $0.set_placement(placement)
+                        } in: {
+                            let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
+                            Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
+                        }
                     }
                 } else {
                     toggleMenu = {}
