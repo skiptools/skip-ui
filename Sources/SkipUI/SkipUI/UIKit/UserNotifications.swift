@@ -22,6 +22,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.IconCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -57,9 +61,16 @@ public final class UNUserNotificationCenter {
                 }
                 continuations?.forEach { $0.resume(isGranted) }
             }
+            // Register an observer to release the permission launcher on destroy
+            activity.lifecycle.addObserver(UNUserNotificationCenterLifecycleEventObserver())
         } catch {
             android.util.Log.w("SkipUI", "error initializing permission launcher", error as? Throwable)
         }
+    }
+
+    static func onActivityDestroy() {
+        // The permission launcher appears to hold a strong reference to the activity, so we must nil it to avoid memory leaks
+        self.shared.requestPermissionLauncher = nil
     }
     #endif
 
@@ -196,6 +207,29 @@ public final class UNUserNotificationCenter {
         fatalError()
     }
 }
+
+#if SKIP
+struct UNUserNotificationCenterLifecycleEventObserver: LifecycleEventObserver, DefaultLifecycleObserver {
+    override func onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        switch event {
+        case Lifecycle.Event.ON_CREATE:
+            break
+        case Lifecycle.Event.ON_START:
+            break
+        case Lifecycle.Event.ON_RESUME:
+            break
+        case Lifecycle.Event.ON_PAUSE:
+            break
+        case Lifecycle.Event.ON_STOP:
+            break
+        case Lifecycle.Event.ON_DESTROY:
+            UNUserNotificationCenter.onActivityDestroy()
+        case Lifecycle.Event.ON_ANY:
+            break
+        }
+    }
+}
+#endif
 
 @MainActor
 public protocol UNUserNotificationCenterDelegate {
