@@ -12,30 +12,33 @@
 /// This support object is placed in the Compose environment.
 // SKIP @bridge
 public final class EnvironmentSupport {
-    private let finalizer: ((Int64) -> Int64)?
-
     /// Supply a Swift pointer to an object that holds the environment value and a block to release the object on finalize.
     // SKIP @bridge
-    public init(valueHolder: Int64, finalizer: @escaping (Int64) -> Int64) {
+    public init(valueHolder: Int64) {
         self.valueHolder = valueHolder
-        self.finalizer = finalizer
         self.builtinValue = nil
     }
 
     public init(builtinValue: Any?) {
         self.builtinValue = builtinValue
-        self.valueHolder = nil
-        self.finalizer = nil
+        self.valueHolder = Int64(0)
     }
 
+    #if SKIP
     deinit {
-        if valueHolder != nil, let finalizer {
-            valueHolder = finalizer(valueHolder!)
+        if valueHolder != Int64(0) {
+            valueHolder = Swift_release(valueHolder)
         }
     }
 
+    /// - Seealso `SkipFuseUI.Environment`
+    // SKIP EXTERN
+    private func Swift_release(Swift_valueHolder: Int64) -> Int64
+    #endif
+
+
     // SKIP @bridge
-    public private(set) var valueHolder: Int64?
+    public private(set) var valueHolder: Int64
 
     // SKIP @bridge
     public let builtinValue: Any?

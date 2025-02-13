@@ -17,22 +17,26 @@ import androidx.compose.runtime.mutableStateOf
 /// and from the native view.
 // SKIP @bridge
 public final class StateSupport: StateTracker {
-    private let finalizer: (Int64) -> Int64
     #if SKIP
     private var state: MutableState<Int>? = nil
     #endif
 
     /// Supply a Swift pointer to an object that holds the `@State` value and a block to release the object on finalize.
     // SKIP @bridge
-    public init(valueHolder: Int64, finalizer: @escaping (Int64) -> Int64) {
+    public init(valueHolder: Int64) {
         self.valueHolder = valueHolder
-        self.finalizer = finalizer
         StateTracking.register(self)
     }
 
+    #if SKIP
     deinit {
-        valueHolder = finalizer(valueHolder)
+        valueHolder = Swift_release(valueHolder)
     }
+
+    /// - Seealso `SkipFuseUI.BridgedStateBox`
+    // SKIP EXTERN
+    private func Swift_release(Swift_valueHolder: Int64) -> Int64
+    #endif
 
     // SKIP @bridge
     public private(set) var valueHolder: Int64
