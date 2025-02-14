@@ -93,6 +93,11 @@ public final class ShareLink : View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
+        ComposeAction()
+        content.Compose(context: context)
+    }
+
+    @Composable func ComposeAction() {
         let localContext = LocalContext.current
 
         let intent = Intent().apply {
@@ -108,7 +113,6 @@ public final class ShareLink : View {
             let shareIntent = Intent.createChooser(intent, nil)
             localContext.startActivity(shareIntent)
         }
-        content.Compose(context: context)
     }
     #else
     public var body: some View {

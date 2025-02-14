@@ -112,8 +112,14 @@ public final class Menu : View {
                             nestedMenu.value = nil
                         }
                     }) {
-                        let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
-                        Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
+                        var placement = EnvironmentValues.shared._placement
+                        EnvironmentValues.shared.setValues {
+                            placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
+                            $0.set_placement(placement)
+                        } in: {
+                            let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
+                            Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
+                        }
                     }
                 } else {
                     toggleMenu = {}
@@ -124,7 +130,14 @@ public final class Menu : View {
 
     @Composable static func ComposeDropdownMenuItems(for itemViews: [View], selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
         for itemView in itemViews {
-            if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
+            if var strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
+                if let shareLink = strippedItemView as? ShareLink {
+                    shareLink.ComposeAction()
+                    strippedItemView = shareLink.content
+                } else if let link = strippedItemView as? Link {
+                    link.ComposeAction()
+                    strippedItemView = link.content
+                }
                 if let button = strippedItemView as? Button {
                     let isSelected: Bool?
                     if let tagView = itemView as? TagModifierView, tagView.role == ComposeModifierRole.tag {

@@ -33,8 +33,12 @@ public final class Link : View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
-        openURL = EnvironmentValues.shared.openURL
+        ComposeAction()
         content.Compose(context: context)
+    }
+
+    @Composable func ComposeAction() {
+        openURL = EnvironmentValues.shared.openURL
     }
     #else
     public var body: some View {

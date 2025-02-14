@@ -47,6 +47,14 @@ public struct Button : View, ListItemAdapting {
         self.init(action: action, label: { Text(titleKey) })
     }
 
+    public init(_ title: String, systemImage: String, role: ButtonRole? = nil, action: @escaping () -> Void) {
+        self.init(role: role, action: action, label: { Label(title, systemImage: systemImage) })
+    }
+
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole? = nil, action: @escaping () -> Void) {
+        self.init(role: role, action: action, label: { Label(titleKey, systemImage: systemImage) })
+    }
+
     public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
         self.role = role
         self.action = action
