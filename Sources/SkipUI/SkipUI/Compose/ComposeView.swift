@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 /// Used to directly wrap user Compose content.
 ///
 /// - Seealso: `ComposeBuilder`
+// SKIP @bridge
 public struct ComposeView: View {
     #if SKIP
     private let content: @Composable (ComposeContext) -> Void
@@ -23,7 +24,16 @@ public struct ComposeView: View {
     public init(content: @Composable (ComposeContext) -> Void) {
         self.content = content
     }
+    #endif
 
+    // SKIP @bridge
+    public init(bridgedContent: Any) {
+        #if SKIP
+        self.content = { (bridgedContent as? ContentComposer)?.Compose(context: $0) }
+        #endif
+    }
+
+    #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         content(context)
     }
@@ -35,6 +45,11 @@ public struct ComposeView: View {
 }
 
 #if SKIP
+/// Encapsulation of Composable content.
+public protocol ContentComposer {
+    @Composable func Compose(context: ComposeContext)
+}
+
 extension View {
     /// Add the given modifier to the underlying Compose view.
     public func composeModifier(_ modifier: (Modifier) -> Modifier) -> View {
