@@ -7,8 +7,8 @@
 #if !SKIP_BRIDGE
 
 public struct Binding<Value> {
-    let get: () -> Value
-    let set: (Value) -> Void
+    public let get: () -> Value // Public bridging from SkipFuseUI.Binding
+    public let set: (Value) -> Void // Public for bridging from SkipFuseUI.Binding
 
     public init(get: @escaping () -> Value, set: @escaping (Value) -> Void) {
         self.get = get
@@ -60,6 +60,17 @@ public struct Binding<Value> {
         return Binding(get: { value }, set: { _ in })
     }
 }
+
+#if SKIP
+
+extension Binding : SwiftCustomBridged {
+    // BUG: The extension is not recorded unless it has members
+    public var __swiftCustomBridged__: Int {
+        return 0
+    }
+}
+
+#endif
 
 #if !SKIP
 
