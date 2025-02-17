@@ -620,6 +620,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_scrollContentBackground", value: newValue, defaultValue: { nil }) }
     }
 
+    var _scrollTargetBehavior: ScrollTargetBehavior? {
+        get { builtinValue(key: "_scrollTargetBehavior", defaultValue: { nil }) as! ScrollTargetBehavior? }
+        set { setBuiltinValue(key: "_scrollTargetBehavior", value: newValue, defaultValue: { nil }) }
+    }
+
     /// While `_scrollAxes` contains the effective scroll directions, this property contains the nominal directions
     /// of any ancestor scroll view.
     var _scrollViewAxes: Axis.Set {

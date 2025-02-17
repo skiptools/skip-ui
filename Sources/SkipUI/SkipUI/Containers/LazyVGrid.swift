@@ -6,6 +6,10 @@
 
 #if !SKIP_BRIDGE
 #if SKIP
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +57,7 @@ public struct LazyVGrid: View {
         let verticalArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp)
         let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.vertical)
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.vertical : []
+        let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
         // Collect all top-level views to compose. The LazyVerticalGrid itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyVerticalGrid body, then use LazyVerticalGrid's
@@ -70,6 +75,7 @@ public struct LazyVGrid: View {
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
                 // Integrate with our scroll-to-top and ScrollViewReader
                 let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+                let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
                 let coroutineScope = rememberCoroutineScope()
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
                     coroutineScope.launch {
@@ -93,67 +99,71 @@ public struct LazyVGrid: View {
                     PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: gridState))
                 }
 
-                LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxSize(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
-                    factoryContext.value.initialize(
-                        startItemIndex: isSearchable ? 1 : 0,
-                        item: { view, _ in
-                            item {
-                                Box(contentAlignment: boxAlignment) {
-                                    view.Compose(context: itemContext)
+                EnvironmentValues.shared.setValues {
+                    $0.set_scrollTargetBehavior(nil)
+                } in: {
+                    LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxSize(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                        factoryContext.value.initialize(
+                            startItemIndex: isSearchable ? 1 : 0,
+                            item: { view, _ in
+                                item {
+                                    Box(contentAlignment: boxAlignment) {
+                                        view.Compose(context: itemContext)
+                                    }
+                                }
+                            },
+                            indexedItems: { range, identifier, _, _, _, _, factory in
+                                let count = range.endExclusive - range.start
+                                let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
+                                items(count: count, key: key) { index in
+                                    Box(contentAlignment: boxAlignment) {
+                                        factory(index + range.start).Compose(context: itemContext)
+                                    }
+                                }
+                            },
+                            objectItems: { objects, identifier, _, _, _, _, factory in
+                                let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
+                                items(count: objects.count, key: key) { index in
+                                    Box(contentAlignment: boxAlignment) {
+                                        factory(objects[index]).Compose(context: itemContext)
+                                    }
+                                }
+                            },
+                            objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
+                                let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
+                                items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                                    Box(contentAlignment: boxAlignment) {
+                                        factory(objectsBinding, index).Compose(context: itemContext)
+                                    }
+                                }
+                            },
+                            sectionHeader: { view in
+                                item(span: { GridItemSpan(maxLineSpan) }) {
+                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                        view.Compose(context: itemContext)
+                                    }
+                                }
+                            },
+                            sectionFooter: { view in
+                                item(span: { GridItemSpan(maxLineSpan) }) {
+                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                        view.Compose(context: itemContext)
+                                    }
                                 }
                             }
-                        },
-                        indexedItems: { range, identifier, _, _, _, _, factory in
-                            let count = range.endExclusive - range.start
-                            let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
-                            items(count: count, key: key) { index in
-                                Box(contentAlignment: boxAlignment) {
-                                    factory(index + range.start).Compose(context: itemContext)
-                                }
-                            }
-                        },
-                        objectItems: { objects, identifier, _, _, _, _, factory in
-                            let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
-                            items(count: objects.count, key: key) { index in
-                                Box(contentAlignment: boxAlignment) {
-                                    factory(objects[index]).Compose(context: itemContext)
-                                }
-                            }
-                        },
-                        objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
-                            let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
-                            items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                                Box(contentAlignment: boxAlignment) {
-                                    factory(objectsBinding, index).Compose(context: itemContext)
-                                }
-                            }
-                        },
-                        sectionHeader: { view in
+                        )
+                        if isSearchable {
                             item(span: { GridItemSpan(maxLineSpan) }) {
-                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    view.Compose(context: itemContext)
-                                }
-                            }
-                        },
-                        sectionFooter: { view in
-                            item(span: { GridItemSpan(maxLineSpan) }) {
-                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    view.Compose(context: itemContext)
-                                }
+                                let modifier = Modifier.padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp).fillMaxWidth()
+                                SearchField(state: searchableState!, context: context.content(modifier: modifier))
                             }
                         }
-                    )
-                    if isSearchable {
-                        item(span: { GridItemSpan(maxLineSpan) }) {
-                            let modifier = Modifier.padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp).fillMaxWidth()
-                            SearchField(state: searchableState!, context: context.content(modifier: modifier))
-                        }
-                    }
-                    for (view, level) in collectingComposer.views {
-                        if let factory = view as? LazyItemFactory {
-                            factory.composeLazyItems(context: factoryContext.value, level: level)
-                        } else {
-                            factoryContext.value.item(view, level)
+                        for (view, level) in collectingComposer.views {
+                            if let factory = view as? LazyItemFactory {
+                                factory.composeLazyItems(context: factoryContext.value, level: level)
+                            } else {
+                                factoryContext.value.item(view, level)
+                            }
                         }
                     }
                 }

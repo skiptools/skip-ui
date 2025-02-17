@@ -6,6 +6,10 @@
 
 #if !SKIP_BRIDGE
 #if SKIP
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -43,6 +47,7 @@ public struct LazyHStack : View {
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
         let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.horizontal)
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.horizontal : []
+        let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
         // Collect all top-level views to compose. The LazyRow itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyRow body, then use LazyRow's
@@ -56,6 +61,7 @@ public struct LazyHStack : View {
         ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             // Integrate with ScrollViewReader
             let listState = rememberLazyListState()
+            let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
             let coroutineScope = rememberCoroutineScope()
             let scrollToID: (Any) -> Void = { id in
                 if let itemIndex = factoryContext.value.index(for: id) {
@@ -70,49 +76,53 @@ public struct LazyHStack : View {
             }
             PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
 
-            LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
-                factoryContext.value.initialize(
-                    startItemIndex: 0,
-                    item: { view, _ in
-                        item {
-                            view.Compose(context: itemContext)
+            EnvironmentValues.shared.setValues {
+                $0.set_scrollTargetBehavior(nil)
+            } in: {
+                LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                    factoryContext.value.initialize(
+                        startItemIndex: 0,
+                        item: { view, _ in
+                            item {
+                                view.Compose(context: itemContext)
+                            }
+                        },
+                        indexedItems: { range, identifier, _, _, _, _, factory in
+                            let count = range.endExclusive - range.start
+                            let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
+                            items(count: count, key: key) { index in
+                                factory(index + range.start).Compose(context: itemContext)
+                            }
+                        },
+                        objectItems: { objects, identifier, _, _, _, _, factory in
+                            let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
+                            items(count: objects.count, key: key) { index in
+                                factory(objects[index]).Compose(context: itemContext)
+                            }
+                        },
+                        objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
+                            let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
+                            items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                                factory(objectsBinding, index).Compose(context: itemContext)
+                            }
+                        },
+                        sectionHeader: { view in
+                            item {
+                                view.Compose(context: itemContext)
+                            }
+                        },
+                        sectionFooter: { view in
+                            item {
+                                view.Compose(context: itemContext)
+                            }
                         }
-                    },
-                    indexedItems: { range, identifier, _, _, _, _, factory in
-                        let count = range.endExclusive - range.start
-                        let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
-                        items(count: count, key: key) { index in
-                            factory(index + range.start).Compose(context: itemContext)
+                    )
+                    for (view, level) in collectingComposer.views {
+                        if let factory = view as? LazyItemFactory {
+                            factory.composeLazyItems(context: factoryContext.value, level: level)
+                        } else {
+                            factoryContext.value.item(view, level)
                         }
-                    },
-                    objectItems: { objects, identifier, _, _, _, _, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
-                        items(count: objects.count, key: key) { index in
-                            factory(objects[index]).Compose(context: itemContext)
-                        }
-                    },
-                    objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
-                        items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                            factory(objectsBinding, index).Compose(context: itemContext)
-                        }
-                    },
-                    sectionHeader: { view in
-                        item {
-                            view.Compose(context: itemContext)
-                        }
-                    },
-                    sectionFooter: { view in
-                        item {
-                            view.Compose(context: itemContext)
-                        }
-                    }
-                )
-                for (view, level) in collectingComposer.views {
-                    if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext.value, level: level)
-                    } else {
-                        factoryContext.value.item(view, level)
                     }
                 }
             }
