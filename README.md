@@ -797,13 +797,23 @@ Support levels:
       <td><code>ScrollView</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td>
+          <details>
+              <summary><code>ScrollView</code></summary>
+              <ul>
+                  <li>See <a href="#scrolling">Scrolling</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
           <details>
               <summary><code>ScrollViewProxy</code></summary>
               <ul>
-                  <li>Works only for <code>List</code> and lazy containers: <code>LazyVStack</code>, <code>LazyHStack</code>, <code>LazyVGrid</code>, <code>LazyHGrid</code></li>
-                  <li><code>UnitRect</code> parameter is ignored</li>
+                  <li>See <a href="#scrolling">Scrolling</a></li>
               </ul>
           </details>      
        </td>
@@ -814,7 +824,7 @@ Support levels:
           <details>
               <summary><code>ScrollViewReader</code></summary>
               <ul>
-                  <li>See <code>ScrollViewProxy</code></li>
+                  <li>See <a href="#scrolling">Scrolling</a></li>
               </ul>
           </details>      
        </td>
@@ -1606,6 +1616,29 @@ Support levels:
       <td><code>.scrollContentBackground</code></td>
     </tr>
     <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>.scrollTargetBehavior</code></summary>
+              <ul>
+                <li>Only <code>.viewAligned</code> is supported</li>
+                <li>See <a href="#scrolling">Scrolling</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>.scrollTargetLayout</code></summary>
+              <ul>
+                <li>See <a href="#scrolling">Scrolling</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
           <details>
@@ -2146,7 +2179,6 @@ SkipUI renders SwiftUI grid views using native Compose grids. This provides maxi
 - Maximum `GridItem` sizes are ignored.
 - Also see the `ForEach` [topic](#foreach).
 
-
 ### Haptics
 
 SkipUI supports UIKit's `UIFeedbackGenerator` API for generating haptic feedback on the device, typically as a result of user interaction. Some examples are as follows:
@@ -2514,6 +2546,25 @@ override fun onCreate(savedInstanceState: android.os.Bundle?) {
 ```
 
 With these updates in place, your app should extend below the system bars. If you're running a modern SkipUI version and want to *disable* edge-to-edge mode, simply remove the `enableEdgeToEdge()` call.
+
+### Scrolling
+
+`ScrollView` generally works just as on iOS, but is subject to several limitations on its content. While you must be aware of these limitations, they should not prove too difficult to work with in practice:
+
+- The `UnitRect` parameter to `ScrollView` and `ScrollViewProxy` is ignored.
+- `ScrollViewProxy` works only for `List` and lazy containers: `LazyHStack`, `LazyVStack`, `LazyHGrid`, and `LazyVGrid`.
+- If you place a lazy container in a `ScrollView`, it must be the **only** content of that `ScrollView`.
+- The content of any `ScrollView` with the `.scrollTargetBehavior` modifier applied must be a single lazy container with the `.scrollTargetLayout` modifier applied, as in the following example:
+
+```swift
+ScrollView(.horizontal) {
+    LazyHStack {
+        ...
+    }
+    .scrollTargetLayout()
+}
+.scrollTargetBehavior(.viewAligned)
+```
 
 ## Contributing
 

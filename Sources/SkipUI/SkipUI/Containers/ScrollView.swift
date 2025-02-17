@@ -326,14 +326,58 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func scrollTargetBehavior(_ behavior: Any /* some ScrollTargetBehavior */) -> some View {
+    public func scrollTargetBehavior(_ behavior: some ScrollTargetBehavior) -> some View {
+        #if SKIP
+        return environment(\._scrollTargetBehavior, behavior)
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func scrollTargetLayout(isEnabled: Bool = true) -> some View {
+        // We do not support specifying scroll targets, but we want the natural pattern of using this modifier
+        // on the VStack/HStack content of a ScrollView to work without #if SKIP-ing it out
         return self
+    }
+}
+
+// MARK: ScrollTargetBehavior
+
+public protocol ScrollTargetBehavior: Equatable {
+}
+
+public struct PagingScrollTargetBehavior: ScrollTargetBehavior {
+    @available(*, unavailable)
+    public init() {
+    }
+}
+
+extension ScrollTargetBehavior where Self == PagingScrollTargetBehavior {
+    @available(*, unavailable)
+    public static var paging: PagingScrollTargetBehavior {
+        fatalError()
+    }
+}
+
+public struct ViewAlignedScrollTargetBehavior: ScrollTargetBehavior {
+    public init() {
+    }
+
+    public enum LimitBehavior {
+        case automatic
+        case always
+        case never
+    }
+}
+
+extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
+    public static var viewAligned: ViewAlignedScrollTargetBehavior {
+        return ViewAlignedScrollTargetBehavior()
+    }
+
+    public static func viewAligned(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior) -> ViewAlignedScrollTargetBehavior {
+        // Note: we currently ignore the limit behavior
+        return ViewAlignedScrollTargetBehavior()
     }
 }
 
@@ -342,231 +386,6 @@ import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector
 
 // TODO: Process for use in SkipUI
-
-/// A type that defines the scroll behavior of a scrollable view.
-///
-/// A scrollable view calculates where scroll gestures should end using its
-/// deceleration rate and the state of its scroll gesture by default. A scroll
-/// behavior allows for customizing this logic.
-///
-/// You define a scroll behavior using the
-/// ``ScrollTargetBehavior/updateTarget(_:context:)`` method.
-///
-/// Using this method, you can control where someone can scroll in a scrollable
-/// view. For example, you can create a custom scroll behavior
-/// that aligns to every 10 points by doing the following:
-///
-///     struct BasicScrollTargetBehavior: ScrollTargetBehavior {
-///         func updateTarget(_ target: inout Target, context: TargetContext) {
-///             // Align to every 1/10 the size of the scroll view.
-///             target.rect.x.round(
-///                 toMultipleOf: round(context.containerSize.width / 10.0))
-///         }
-///     }
-///
-/// ### Paging Behavior
-///
-/// SkipUI offers built in scroll behaviors. One such behavior
-/// is the ``PagingScrollTargetBehavior`` which uses the geometry of the scroll
-/// view to decide where to allow scrolls to end.
-///
-/// In the following example, every view in the lazy stack is flexible
-/// in both directions and the scroll view will settle to container aligned
-/// boundaries.
-///
-///     ScrollView {
-///         LazyVStack(spacing: 0.0) {
-///             ForEach(items) { item in
-///                 FullScreenItem(item)
-///             }
-///         }
-///     }
-///     .scrollTargetBehavior(.paging)
-///
-/// ### View Aligned Behavior
-///
-/// SkipUI also offers a ``ViewAlignedScrollTargetBehavior`` scroll behavior
-/// that will always settle on the geometry of individual views.
-///
-///     ScrollView(.horizontal) {
-///         LazyHStack(spacing: 10.0) {
-///             ForEach(items) { item in
-///                 ItemView(item)
-///             }
-///         }
-///         .scrollTargetLayout()
-///     }
-///     .scrollTargetBehavior(.viewAligned)
-///     .safeAreaPadding(.horizontal, 20.0)
-///
-/// You configure which views should be used for settling using the
-/// ``View/scrollTargetLayout()`` modifier. Apply this modifier to a
-/// layout container like ``LazyVStack`` or ``HStack`` and each individual
-/// view in that layout will be considered for alignment.
-///
-/// You can also associate invidiual views for alignment using the
-/// ``View/scrollTarget()`` modifier.
-///
-///     ScrollView(.horizontal) {
-///         HeaderView()
-///             .scrollTarget()
-///         LazyVStack {
-///             // other content...
-///         }
-///         .scrollTargetLayout()
-///     }
-///     .scrollTargetBehavior(.viewAligned)
-///
-/// Use types conforming to this protocol with the
-/// ``View/scrollTargetBehavior(_:)`` modifier.
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-public protocol ScrollTargetBehavior {
-
-    /// Updates the proposed target that a scrollable view should scroll to.
-    ///
-    /// The system calls this method in two main cases:
-    /// - When a scroll gesture ends, it calculates where it would naturally
-    ///   scroll to using its deceleration rate. The system
-    ///   provides this calculated value as the target of this method.
-    /// - When a scrollable view's size changes, it calculates where it should
-    ///   be scrolled given the new size and provides this calculates value
-    ///   as the target of this method.
-    ///
-    /// You can implement this method to override the calculated target
-    /// which will have the scrollable view scroll to a different position
-    /// than it would otherwise.
-    func updateTarget(_ target: inout ScrollTarget, context: Self.TargetContext)
-
-    /// The context in which a scroll behavior updates the scroll target.
-    typealias TargetContext = ScrollTargetBehaviorContext
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension ScrollTargetBehavior where Self == PagingScrollTargetBehavior {
-
-    /// The scroll behavior that aligns scroll targets to container-based
-    /// geometry.
-    ///
-    /// In the following example, every view in the lazy stack is flexible
-    /// in both directions and the scroll view settles to container-aligned
-    /// boundaries.
-    ///
-    ///     ScrollView {
-    ///         LazyVStack(spacing: 0.0) {
-    ///             ForEach(items) { item in
-    ///                 FullScreenItem(item)
-    ///             }
-    ///         }
-    ///     }
-    ///     .scrollTargetBehavior(.paging)
-    ///
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public static var paging: PagingScrollTargetBehavior { get { fatalError() } }
-}
-
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
-
-    /// The scroll behavior that aligns scroll targets to view-based geometry.
-    ///
-    /// You use this behavior when a scroll view should always align its
-    /// scroll targets to a rectangle that's aligned to the geometry of a view. In
-    /// the following example, the scroll view always picks an item view
-    /// to settle on.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LazyHStack(spacing: 10.0) {
-    ///             ForEach(items) { item in
-    ///                 ItemView(item)
-    ///             }
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///     .padding(.horizontal, 20.0)
-    ///
-    /// You configure which views should be used for settling using the
-    /// ``View/scrollTargetLayout()`` modifier. Apply this modifier to a
-    /// layout container like ``LazyVStack`` or ``HStack`` and each individual
-    /// view in that layout will be considered for alignment.
-    ///
-    /// You can also associate invidiual views for alignment using the
-    /// ``View/scrollTarget()`` modifier.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LeadingView()
-    ///             .scrollTarget()
-    ///         LazyHStack {
-    ///             // other content...
-    ///         }
-    ///         .scrollTarget()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///
-    /// You can customize whether the view aligned behavior limits the
-    /// number of views that can be scrolled at a time by using the
-    /// ``ViewAlignedScrollTargetBehavior.LimitBehavior`` type. Provide a value
-    /// of ``ViewAlignedScrollTargetBehavior.LimitBehavior/always`` to always
-    /// have the behavior only allow a few views to be scrolled at a time.
-    ///
-    /// By default, the view aligned behavior limits the number of views
-    /// it scrolls when in a compact horizontal size class when scrollable
-    /// in the horizontal axis, when in a compact vertical size class when
-    /// scrollable in the vertical axis, and otherwise doesn't impose any
-    /// limit on the number of views that can be scrolled.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public static var viewAligned: ViewAlignedScrollTargetBehavior { get { fatalError() } }
-
-    /// The scroll behavior that aligns scroll targets to view-based geometry.
-    ///
-    /// You use this behavior when a scroll view should always align its
-    /// scroll targets to a rectangle that's aligned to the geometry of a view. In
-    /// the following example, the scroll view always picks an item view
-    /// to settle on.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LazyHStack(spacing: 10.0) {
-    ///             ForEach(items) { item in
-    ///                 ItemView(item)
-    ///             }
-    ///         }
-    ///         .scrollTargetLayout()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///     .padding(.horizontal, 20.0)
-    ///
-    /// You configure which views should be used for settling using the
-    /// ``View/scrollTargetLayout()`` modifier. Apply this modifier to a
-    /// layout container like ``LazyVStack`` or ``HStack`` and each individual
-    /// view in that layout will be considered for alignment.
-    ///
-    /// You can also associate invidiual views for alignment using the
-    /// ``View/scrollTarget()`` modifier.
-    ///
-    ///     ScrollView(.horizontal) {
-    ///         LeadingView()
-    ///             .scrollTarget()
-    ///         LazyHStack {
-    ///             // other content...
-    ///         }
-    ///         .scrollTarget()
-    ///     }
-    ///     .scrollTargetBehavior(.viewAligned)
-    ///
-    /// You can customize whether the view aligned behavior limits the
-    /// number of views that can be scrolled at a time by using the
-    /// ``ViewAlignedScrollTargetBehavior.LimitBehavior`` type. Provide a value
-    /// of ``ViewAlignedScrollTargetBehavior.LimitBehavior/always`` to always
-    /// have the behavior only allow a few views to be scrolled at a time.
-    ///
-    /// By default, the view aligned behavior limits the number of views
-    /// it scrolls when in a compact horizontal size class when scrollable
-    /// in the horizontal axis, when in a compact vertical size class when
-    /// scrollable in the vertical axis, and otherwise doesn't impose any
-    /// limit on the number of views that can be scrolled.
-    @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-    public static func viewAligned(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior) -> Self { fatalError() }
-}
 
 /// The context in which a scroll target behavior updates its scroll target.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)

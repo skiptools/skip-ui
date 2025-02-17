@@ -6,6 +6,10 @@
 
 #if !SKIP_BRIDGE
 #if SKIP
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -49,6 +53,7 @@ public struct LazyHGrid: View {
         let horizontalArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp)
         let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.horizontal)
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.horizontal : []
+        let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
         // Collect all top-level views to compose. The LazyHorizontalGrid itself is not a composable context, so we have to execute
         // our content's Compose function to collect its views before entering the LazyHorizontalGrid body, then use LazyHorizontalGrid's
@@ -62,6 +67,7 @@ public struct LazyHGrid: View {
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
             let gridState = rememberLazyGridState()
+            let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
             let coroutineScope = rememberCoroutineScope()
             let scrollToID: (Any) -> Void = { id in
                 if let itemIndex = factoryContext.value.index(for: id) {
@@ -76,61 +82,65 @@ public struct LazyHGrid: View {
             }
             PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
 
-            LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled) {
-                factoryContext.value.initialize(
-                    startItemIndex: 0,
-                    item: { view, _ in
-                        item {
-                            Box(contentAlignment: boxAlignment) {
-                                view.Compose(context: itemContext)
+            EnvironmentValues.shared.setValues {
+                $0.set_scrollTargetBehavior(nil)
+            } in: {
+                LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                    factoryContext.value.initialize(
+                        startItemIndex: 0,
+                        item: { view, _ in
+                            item {
+                                Box(contentAlignment: boxAlignment) {
+                                    view.Compose(context: itemContext)
+                                }
+                            }
+                        },
+                        indexedItems: { range, identifier, _, _, _, _, factory in
+                            let count = range.endExclusive - range.start
+                            let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
+                            items(count: count, key: key) { index in
+                                Box(contentAlignment: boxAlignment) {
+                                    factory(index + range.start).Compose(context: itemContext)
+                                }
+                            }
+                        },
+                        objectItems: { objects, identifier, _, _, _, _, factory in
+                            let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
+                            items(count: objects.count, key: key) { index in
+                                Box(contentAlignment: boxAlignment) {
+                                    factory(objects[index]).Compose(context: itemContext)
+                                }
+                            }
+                        },
+                        objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
+                            let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
+                            items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                                Box(contentAlignment: boxAlignment) {
+                                    factory(objectsBinding, index).Compose(context: itemContext)
+                                }
+                            }
+                        },
+                        sectionHeader: { view in
+                            item(span: { GridItemSpan(maxLineSpan) }) {
+                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                    view.Compose(context: itemContext)
+                                }
+                            }
+                        },
+                        sectionFooter: { view in
+                            item(span: { GridItemSpan(maxLineSpan) }) {
+                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                    view.Compose(context: itemContext)
+                                }
                             }
                         }
-                    },
-                    indexedItems: { range, identifier, _, _, _, _, factory in
-                        let count = range.endExclusive - range.start
-                        let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
-                        items(count: count, key: key) { index in
-                            Box(contentAlignment: boxAlignment) {
-                                factory(index + range.start).Compose(context: itemContext)
-                            }
+                    )
+                    for (view, level) in collectingComposer.views {
+                        if let factory = view as? LazyItemFactory {
+                            factory.composeLazyItems(context: factoryContext.value, level: level)
+                        } else {
+                            factoryContext.value.item(view, level)
                         }
-                    },
-                    objectItems: { objects, identifier, _, _, _, _, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
-                        items(count: objects.count, key: key) { index in
-                            Box(contentAlignment: boxAlignment) {
-                                factory(objects[index]).Compose(context: itemContext)
-                            }
-                        }
-                    },
-                    objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
-                        let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
-                        items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                            Box(contentAlignment: boxAlignment) {
-                                factory(objectsBinding, index).Compose(context: itemContext)
-                            }
-                        }
-                    },
-                    sectionHeader: { view in
-                        item(span: { GridItemSpan(maxLineSpan) }) {
-                            Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                view.Compose(context: itemContext)
-                            }
-                        }
-                    },
-                    sectionFooter: { view in
-                        item(span: { GridItemSpan(maxLineSpan) }) {
-                            Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                view.Compose(context: itemContext)
-                            }
-                        }
-                    }
-                )
-                for (view, level) in collectingComposer.views {
-                    if let factory = view as? LazyItemFactory {
-                        factory.composeLazyItems(context: factoryContext.value, level: level)
-                    } else {
-                        factoryContext.value.item(view, level)
                     }
                 }
             }
