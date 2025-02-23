@@ -1,3 +1,11 @@
+## 1.26.1
+
+Released 2025-02-23
+
+  - Merge pull request #130 from skiptools/permissions
+  - Add showRationale callback to requestPermission
+  - Add UIApplication.shared.requestPermission
+
 ## 1.20.1
 
 Released 2025-01-24
