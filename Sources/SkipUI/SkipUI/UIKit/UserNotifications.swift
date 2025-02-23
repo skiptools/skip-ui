@@ -48,7 +48,7 @@ public final class UNUserNotificationCenter {
         guard Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU else {
             return true
         }
-        UIApplication.shared.requestPermission("POST_NOTIFICATIONS")
+        UIApplication.shared.requestPermission(Manifest.permission.POST_NOTIFICATIONS)
         #else
         fatalError()
         #endif

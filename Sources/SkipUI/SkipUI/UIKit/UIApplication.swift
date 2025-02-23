@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.ActivityCompat
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.registerForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -98,14 +99,29 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         self.requestPermissionLauncher = nil
     }
 
-    public func requestPermission(_ permission: String) async -> Bool {
+    /// Requests the given permission.
+    /// - Parameters:
+    ///   - permission: the name of the permission, such as `android.permission.POST_NOTIFICATIONS`
+    ///   - showRationale: an optional async callback to invoke when the system determies that a rationale should be displayed for the permission check
+    /// - Returns: true if the permission was granted, false if denied or there was an error making the request
+    public func requestPermission(_ permission: String, showRationale: (() async -> Bool)? = nil) async -> Bool {
         logger.info("requestPermission: \(permission)")
-        guard let activity = self.androidActivity, ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED else {
-            return true
+        guard let activity = self.androidActivity else {
+            return false
+        }
+        if ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED {
+            return true // already granted
         }
         guard let requestPermissionLauncher else {
             logger.warning("requestPermission: \(permission) requestPermissionLauncher is nil")
             return false
+        }
+        // check if we are expected to show a rationalle for the permission request, and if so,
+        // and if we have a `showRationale` callback, then wait for the result
+        if let showRationale, ActivityCompat.shouldShowRequestPermissionRationale(activity, permission) == true {
+            if await showRationale() == false {
+                return false
+            }
         }
         suspendCoroutine { continuation in
             var count = 0
