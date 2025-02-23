@@ -9,15 +9,24 @@ import Foundation
 import OSLog
 #if SKIP
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.registerForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 import java.lang.ref.WeakReference
 #endif
 
@@ -25,6 +34,10 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
 
 @MainActor public class UIApplication /* : UIResponder */ {
     public static let shared = UIApplication()
+    #if SKIP
+    private var requestPermissionLauncher: ActivityResultLauncher<String>?
+    private let waitingContinuations: MutableList<Continuation<Bool>> = mutableListOf<Continuation<Bool>>()
+    #endif
 
     private init() {
         #if SKIP
@@ -61,7 +74,49 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     public static func launch(_ activity: AppCompatActivity) {
         if activity !== shared.androidActivity {
             shared.androidActivity = activity
-            UNUserNotificationCenter.launch(activity)
+
+            // Must registerForActivityResult on or before Activity.onCreate
+            do {
+                let contract = ActivityResultContracts.RequestPermission()
+                shared.requestPermissionLauncher = activity.registerForActivityResult(contract) { isGranted in
+                    var continuations: ArrayList<Continuation<Bool>>? = nil
+                    synchronized (shared.waitingContinuations) {
+                        continuations = ArrayList(shared.waitingContinuations)
+                        shared.waitingContinuations.clear()
+                    }
+                    continuations?.forEach { $0.resume(isGranted) }
+                }
+                logger.info("requestPermissionLauncher: \(shared.requestPermissionLauncher)")
+            } catch {
+                android.util.Log.w("SkipUI", "error initializing permission launcher", error as? Throwable)
+            }
+        }
+    }
+
+    func onActivityDestroy() {
+        // The permission launcher appears to hold a strong reference to the activity, so we must nil it to avoid memory leaks
+        self.requestPermissionLauncher = nil
+    }
+
+    public func requestPermission(_ permission: String) async -> Bool {
+        logger.info("requestPermission: \(permission)")
+        guard let activity = self.androidActivity, ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED else {
+            return true
+        }
+        guard let requestPermissionLauncher else {
+            logger.warning("requestPermission: \(permission) requestPermissionLauncher is nil")
+            return false
+        }
+        suspendCoroutine { continuation in
+            var count = 0
+            synchronized(waitingContinuations) {
+                waitingContinuations.add(continuation)
+                count = waitingContinuations.count()
+            }
+            if count == 1 {
+                logger.info("launch requestPermission: \(permission)")
+                requestPermissionLauncher?.launch(permission)
+            }
         }
     }
     #endif
@@ -351,7 +406,7 @@ struct UIApplicationLifecycleEventObserver: LifecycleEventObserver, DefaultLifec
         case Lifecycle.Event.ON_STOP:
             application.applicationState = .background
         case Lifecycle.Event.ON_DESTROY:
-            break
+            application.onActivityDestroy()
         case Lifecycle.Event.ON_ANY:
             break
         }

@@ -15,29 +15,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.registerForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.random.Random
 #endif
 
 public final class UNUserNotificationCenter {
     private static let shared = UNUserNotificationCenter()
-    #if SKIP
-    private var requestPermissionLauncher: ActivityResultLauncher<String>?
-    private let waitingContinuations: MutableList<Continuation<Bool>> = mutableListOf<Continuation<Bool>>()
-    #endif
 
     private init() {
     }
@@ -45,34 +33,6 @@ public final class UNUserNotificationCenter {
     public static func current() -> UNUserNotificationCenter {
         return shared
     }
-
-    #if SKIP
-    /// Called by `UIApplication` when it receives its activity reference.
-    static func launch(_ activity: AppCompatActivity) {
-        let shared = self.shared
-        // Must registerForActivityResult on or before Activity.onCreate
-        do {
-            let contract = ActivityResultContracts.RequestPermission()
-            shared.requestPermissionLauncher = activity.registerForActivityResult(contract) { isGranted in
-                var continuations: ArrayList<Continuation<Bool>>? = nil
-                synchronized (shared.waitingContinuations) {
-                    continuations = ArrayList(shared.waitingContinuations)
-                    shared.waitingContinuations.clear()
-                }
-                continuations?.forEach { $0.resume(isGranted) }
-            }
-            // Register an observer to release the permission launcher on destroy
-            activity.lifecycle.addObserver(UNUserNotificationCenterLifecycleEventObserver())
-        } catch {
-            android.util.Log.w("SkipUI", "error initializing permission launcher", error as? Throwable)
-        }
-    }
-
-    static func onActivityDestroy() {
-        // The permission launcher appears to hold a strong reference to the activity, so we must nil it to avoid memory leaks
-        self.shared.requestPermissionLauncher = nil
-    }
-    #endif
 
     @available(*, unavailable)
     public func getNotificationSettings() async -> Any /* UNNotificationSettings */ {
@@ -86,21 +46,9 @@ public final class UNUserNotificationCenter {
     public func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
         #if SKIP
         guard Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU else {
-            return false
-        }
-        guard let activity = UIApplication.shared.androidActivity, ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED else {
             return true
         }
-        suspendCoroutine { continuation in
-            var count = 0
-            synchronized(waitingContinuations) {
-                waitingContinuations.add(continuation)
-                count = waitingContinuations.count()
-            }
-            if count == 1 {
-                requestPermissionLauncher?.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
+        UIApplication.shared.requestPermission("POST_NOTIFICATIONS")
         #else
         fatalError()
         #endif
@@ -207,29 +155,6 @@ public final class UNUserNotificationCenter {
         fatalError()
     }
 }
-
-#if SKIP
-struct UNUserNotificationCenterLifecycleEventObserver: LifecycleEventObserver, DefaultLifecycleObserver {
-    override func onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-        switch event {
-        case Lifecycle.Event.ON_CREATE:
-            break
-        case Lifecycle.Event.ON_START:
-            break
-        case Lifecycle.Event.ON_RESUME:
-            break
-        case Lifecycle.Event.ON_PAUSE:
-            break
-        case Lifecycle.Event.ON_STOP:
-            break
-        case Lifecycle.Event.ON_DESTROY:
-            UNUserNotificationCenter.onActivityDestroy()
-        case Lifecycle.Event.ON_ANY:
-            break
-        }
-    }
-}
-#endif
 
 @MainActor
 public protocol UNUserNotificationCenterDelegate {
