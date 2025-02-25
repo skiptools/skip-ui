@@ -74,11 +74,14 @@ public struct AsyncImage : View {
         }
 
         let urlString = url.absoluteString
-        // Coil does not automatically handle embedded jar URLs like jar:file:/data/app/…/base.apk!/showcase/module/Resources/swift-logo.png, so
-        // we add a custom `JarURLFetcher` fetcher that will handle loading the URL. Otherwise use Coil's default URL string handling
-        let requestSource: Any = JarURLFetcher.isJarURL(url) ? url : urlString
+        // Coil does not automatically handle embedded jar URLs like
+        // jar:file:/data/app/…/base.apk!/showcase/module/Resources/swift-logo.png or
+        // asset:/showcase/module/Resources/swift-logo.png, so
+        // we add a custom fetchers that will handle loading the URL.
+        // Otherwise use Coil's default URL string handling
+        let requestSource: Any = AssetURLFetcher.handlesURL(url) ? url : urlString
         let model = ImageRequest.Builder(LocalContext.current)
-            .fetcherFactory(JarURLFetcher.Factory())
+            .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
             .decoderFactory(coil3.svg.SvgDecoder.Factory())
             //.decoderFactory(coil3.gif.GifDecoder.Factory())
             .decoderFactory(PdfDecoder.Factory())
@@ -136,13 +139,15 @@ public enum AsyncImagePhase {
 }
 
 #if SKIP
-/// A Coil fetcher that handles `skip.foundation.URL` instances for the `jar:` scheme.
-final class JarURLFetcher : Fetcher {
+/// A Coil fetcher that handles `skip.foundation.URL` instances for known custom URL schemes.
+final class AssetURLFetcher : Fetcher {
     private let url: URL
     private let options: coil3.request.Options
+    static let handledURLSchemes: Set<String> = ["asset", "jar", "jarfile", "jar:file"]
 
-    static func isJarURL(_ url: URL) -> Bool {
-        return url.absoluteString.hasPrefix("jar")
+    static func handlesURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme else { return false }
+        return handledURLSchemes.contains(scheme)
     }
 
     init(url: URL, options: coil3.request.Options) {
@@ -161,8 +166,8 @@ final class JarURLFetcher : Fetcher {
 
     final class Factory : Fetcher.Factory<URL> {
         override func create(data: URL, options: coil3.request.Options, imageLoader: ImageLoader) -> Fetcher? {
-            if (!JarURLFetcher.isJarURL(data)) { return nil }
-            return JarURLFetcher(url: data, options: options)
+            if (!AssetURLFetcher.handlesURL(data)) { return nil }
+            return AssetURLFetcher(url: data, options: options)
         }
     }
 }

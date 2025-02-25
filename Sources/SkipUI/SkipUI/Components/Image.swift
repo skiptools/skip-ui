@@ -129,7 +129,7 @@ public struct Image : View, Equatable {
     @Composable private func ComposeAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let url = asset.url
         let model = ImageRequest.Builder(LocalContext.current)
-            .fetcherFactory(JarURLFetcher.Factory())
+            .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
             .decoderFactory(coil3.svg.SvgDecoder.Factory())
             //.decoderFactory(coil3.gif.GifDecoder.Factory())
             .decoderFactory(PdfDecoder.Factory())
