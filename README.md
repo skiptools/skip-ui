@@ -1110,6 +1110,17 @@ Support levels:
       <td><code>.backgroundStyle</code></td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.blur</code></summary>
+              <ul>
+                  <li><code>opaque</code> parameter is ignored</li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.bold</code></td>
     </tr>

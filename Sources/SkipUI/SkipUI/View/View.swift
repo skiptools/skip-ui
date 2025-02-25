@@ -14,6 +14,8 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
@@ -220,9 +222,15 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func blur(radius: CGFloat, opaque: Bool = false) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) {
+            $0.modifier = $0.modifier.blur(radiusX: radius.dp, radiusY: radius.dp, edgeTreatment: BlurredEdgeTreatment.Unbounded)
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> any View {
