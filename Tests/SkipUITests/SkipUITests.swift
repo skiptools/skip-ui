@@ -315,24 +315,19 @@ final class SkipUITests: SkipUITestCase {
     func testLocalizableStringsIndex() throws {
         #if SKIP
         // verify that the resources index contains the localized strings files derived from the `Localizable.xcstrings` file
-        let resourcesIndex = try String(contentsOf: XCTUnwrap(Bundle.module.url(forResource: "resources", withExtension: "lst")))
-        XCTAssertEqual(resourcesIndex, """
-        Assets.xcassets/Contents.json
-        Assets.xcassets/dumbbell.fill.symbolset/Contents.json
-        Assets.xcassets/dumbbell.fill.symbolset/dumbbell.fill.svg
-        ar.lproj/Localizable.strings
-        fr.lproj/Localizable.strings
-        he.lproj/Localizable.strings
-        ja.lproj/Localizable.strings
-        pt-BR.lproj/Localizable.strings
-        ru.lproj/Localizable.strings
-        sv.lproj/Localizable.strings
-        uk.lproj/Localizable.strings
-        zh-Hans.lproj/Localizable.strings
-        zh-Hant.lproj/Localizable.strings
-        """)
+        XCTAssertNotNil(Bundle.module.url(forResource: "ar.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "fr.lproj/Localizable", withExtension: "strings"))
+        XCTAssertNotNil(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: "", localization: "he"))
+
+        XCTAssertNotNil(Bundle.module.url(forResource: "ja.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "pt-BR.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "ru.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "sv.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "uk.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "zh-Hans.lproj/Localizable.strings", withExtension: ""))
+        XCTAssertNotNil(Bundle.module.url(forResource: "zh-Hant.lproj/Localizable.strings", withExtension: ""))
         #else
-        throw XCTSkip("non-Android platforms do not create a resources.lst index file")
+        throw XCTSkip("non-Android platforms do not create a resources index file")
         #endif
     }
 

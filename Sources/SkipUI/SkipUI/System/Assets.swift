@@ -19,7 +19,10 @@ func rememberCachedAsset<T: Hashable, U>(_ cache: [T: U], _ key: T, block: (T) -
 
 /// Find all the `.xcassets` resource for the given bundle.
 func assetContentsURLs(name: String, bundle: Bundle) -> [URL] {
+    let name = name.replace(" ", "%20")
+
     let resourceNames = bundle.resourcesIndex
+
     var resourceURLs: [URL] = []
     for resourceName in resourceNames {
         let components = resourceName.split(separator: "/").map({ String($0) })
