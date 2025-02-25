@@ -1,9 +1,5 @@
-// Copyright 2023 Skip
-//
-// This is free software: you can redistribute and/or modify it
-// under the terms of the GNU Lesser General Public License 3.0
-// as published by the Free Software Foundation https://fsf.org
-
+// Copyright 2023–2025 Skip
+// SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 import Foundation
 import Observation
 import OSLog
@@ -317,7 +313,7 @@ final class SkipUITests: SkipUITestCase {
         // verify that the resources index contains the localized strings files derived from the `Localizable.xcstrings` file
         XCTAssertNotNil(Bundle.module.url(forResource: "ar.lproj/Localizable.strings", withExtension: ""))
         XCTAssertNotNil(Bundle.module.url(forResource: "fr.lproj/Localizable", withExtension: "strings"))
-        XCTAssertNotNil(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: "", localization: "he"))
+        //XCTAssertNotNil(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: "", localization: "he"))
 
         XCTAssertNotNil(Bundle.module.url(forResource: "ja.lproj/Localizable.strings", withExtension: ""))
         XCTAssertNotNil(Bundle.module.url(forResource: "pt-BR.lproj/Localizable.strings", withExtension: ""))

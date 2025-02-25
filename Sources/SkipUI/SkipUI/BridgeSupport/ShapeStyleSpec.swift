@@ -1,9 +1,5 @@
 // Copyright 2025 Skip
-//
-// This is free software: you can redistribute and/or modify it
-// under the terms of the GNU Lesser General Public License 3.0
-// as published by the Free Software Foundation https://fsf.org
-
+// SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
 /// Specify a  `SwiftUI.ShapeStyle` in bridgable form.
