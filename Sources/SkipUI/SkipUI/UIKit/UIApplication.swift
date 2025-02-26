@@ -7,7 +7,6 @@ import OSLog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
@@ -29,7 +28,9 @@ import java.lang.ref.WeakReference
 
 let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb logcat '*:S' 'skip.ui.SkipUI:V'
 
-@MainActor public class UIApplication /* : UIResponder */ {
+// SKIP @bridge
+/* @MainActor */ public class UIApplication /* : UIResponder */ {
+    // SKIP @bridge
     public static let shared = UIApplication()
     #if SKIP
     private var requestPermissionLauncher: ActivityResultLauncher<String>?
@@ -47,7 +48,9 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     /// The Android main activity.
     ///
     /// This API mirrors `ProcessInfo.androidContext` for the application context.
-    public private(set) var androidActivity: AppCompatActivity? {
+    ///
+    // SKIP @bridge
+    public private(set) var androidActivity: androidx.appcompat.app.AppCompatActivity? {
         get {
             let activity = androidActivityReference?.get()
             return activity?.isDestroyed == false ? activity : nil
@@ -63,12 +66,12 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             }
         }
     }
-    private var androidActivityReference: WeakReference<AppCompatActivity>?
+    private var androidActivityReference: WeakReference<androidx.appcompat.app.AppCompatActivity>?
 
     /// Setup the Android main activity.
     ///
     /// This API mirrors `ProcessInfo.launch` for the application context.
-    public static func launch(_ activity: AppCompatActivity) {
+    public static func launch(_ activity: androidx.appcompat.app.AppCompatActivity) {
         if activity !== shared.androidActivity {
             shared.androidActivity = activity
 
@@ -100,7 +103,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     ///   - permission: the name of the permission, such as `android.permission.POST_NOTIFICATIONS`
     ///   - showRationale: an optional async callback to invoke when the system determies that a rationale should be displayed for the permission check
     /// - Returns: true if the permission was granted, false if denied or there was an error making the request
-    public func requestPermission(_ permission: String, showRationale: (() async -> Bool)? = nil) async -> Bool {
+    public func requestPermission(_ permission: String, showRationale: (() async -> Bool)?) async -> Bool {
         logger.info("requestPermission: \(permission)")
         guard let activity = self.androidActivity else {
             return false
@@ -131,6 +134,16 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             }
         }
     }
+
+    /// Requests the given permission.
+    /// - Parameters:
+    ///   - permission: the name of the permission, such as `android.permission.POST_NOTIFICATIONS`
+    /// - Returns: true if the permission was granted, false if denied or there was an error making the request
+    // SKIP @bridge
+    public func requestPermission(_ permission: String) async -> Bool {
+        // We can't bridge the `showRationale` parameter async closure
+        return await requestPermission(permission, showRationale: nil)
+    }
     #endif
 
     @available(*, unavailable)
@@ -142,6 +155,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         }
     }
 
+    // SKIP @bridge
     public var isIdleTimerDisabled = false {
         didSet {
             setWindowFlagsForIsIdleTimerDisabled()
@@ -164,7 +178,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         fatalError()
     }
 
-    public func open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]) async -> Bool {
+    public func open(_ url: URL, options: [OpenExternalURLOptionsKey : Any] = [:]) async -> Bool {
         #if SKIP
         let context = ProcessInfo.processInfo.androidContext
         do {
@@ -180,6 +194,14 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         #else
         fatalError()
         #endif
+    }
+
+    // SKIP @bridge
+    public func bridgedOpen(_ url: URL, options: [String : Any]) async -> Bool {
+        let keyedOptions = options.reduce(into: [OpenExternalURLOptionsKey : Any]()) { result, entry in
+            result[OpenExternalURLOptionsKey(rawValue: entry.key)] = entry.value
+        }
+        return await open(url, options: keyedOptions)
     }
 
     @available(*, unavailable)
@@ -215,6 +237,11 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     #else
     private let applicationState = UIApplication.State.active
     #endif
+
+    // SKIP @bridge
+    public var bridgedApplicationState: Int {
+        return applicationState.rawValue
+    }
 
     @available(*, unavailable)
     public var backgroundTimeRemaining: TimeInterval {
@@ -375,6 +402,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         fatalError()
     }
 
+    // NOTE: Keep in sync with SkipFuseUI.UIApplication.State
     public enum State : Int {
         case active = 0
         case inactive = 1
