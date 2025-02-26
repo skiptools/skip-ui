@@ -79,6 +79,13 @@ public struct Text: View, Equatable {
         self.init(verbatim: style.format(date))
     }
 
+    // SKIP @bridge
+    public init(keyPattern: String, keyValues: [Any]?, tableName: String?, bundle: Bundle?) {
+        let interpolation = LocalizedStringKey.StringInterpolation(pattern: keyPattern, values: keyValues)
+        textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, bundle: bundle)
+        modifiedView = textView
+    }
+
     init(textView: _Text, modifiedView: any View) {
         self.textView = textView
         // Don't copy view
@@ -244,9 +251,9 @@ public struct Text: View, Equatable {
         return self
     }
 
-    public enum Case : Equatable, Sendable {
-        case uppercase
-        case lowercase
+    public enum Case : Int, Equatable, Sendable {
+        case uppercase = 0 // For bridging
+        case lowercase = 1 // For bridging
     }
 
     public struct LineStyle : Hashable, Sendable {
@@ -700,12 +707,17 @@ extension View {
         #endif
     }
 
-    public func textCase(_ textCase: Text.Case?) -> some View {
+    public func textCase(_ textCase: Text.Case?) -> any View {
         #if SKIP
         return textEnvironment(for: self) { $0.textCase = textCase }
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func bridgedTextCase(_ textCase: Int?) -> any View {
+        return self.textCase(textCase == nil ? nil : Text.Case(rawValue: textCase!))
     }
 
     @available(*, unavailable)

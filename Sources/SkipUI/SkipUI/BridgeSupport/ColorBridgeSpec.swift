@@ -4,7 +4,7 @@
 
 /// Specify a  `SwiftUI.Color` in bridgable form.
 // SKIP @bridge
-public enum ColorSpec {
+public enum ColorBridgeSpec {
     case primary
     case secondary
 

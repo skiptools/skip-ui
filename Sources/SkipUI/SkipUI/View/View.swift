@@ -249,7 +249,7 @@ extension View {
     }
 
     // SKIP @bridge
-    public func border(styleSpec: ShapeStyleSpec, width: Double) -> any View {
+    public func border(styleSpec: ShapeStyleBridgeSpec, width: Double) -> any View {
         let style = styleSpec.asShapeStyle()
         return border(style, width: width)
     }
@@ -467,7 +467,7 @@ extension View {
     }
 
     // SKIP @bridge
-    public func foregroundColor(styleSpec: ShapeStyleSpec?) -> any View {
+    public func foregroundColor(styleSpec: ShapeStyleBridgeSpec?) -> any View {
         return foregroundColor(styleSpec?.asShapeStyle() as? Color)
     }
 
@@ -480,7 +480,7 @@ extension View {
     }
 
     // SKIP @bridge
-    public func foregroundStyle(styleSpec: ShapeStyleSpec) -> any View {
+    public func foregroundStyle(styleSpec: ShapeStyleBridgeSpec) -> any View {
         return foregroundStyle(styleSpec.asShapeStyle())
     }
 

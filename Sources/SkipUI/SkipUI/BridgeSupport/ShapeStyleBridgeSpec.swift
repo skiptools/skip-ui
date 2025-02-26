@@ -4,8 +4,8 @@
 
 /// Specify a  `SwiftUI.ShapeStyle` in bridgable form.
 // SKIP @bridge
-public enum ShapeStyleSpec {
-    case color(ColorSpec)
+public enum ShapeStyleBridgeSpec {
+    case color(ColorBridgeSpec)
 
     func asShapeStyle() -> any ShapeStyle {
         switch self {
