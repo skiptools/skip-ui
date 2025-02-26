@@ -103,7 +103,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     ///   - permission: the name of the permission, such as `android.permission.POST_NOTIFICATIONS`
     ///   - showRationale: an optional async callback to invoke when the system determies that a rationale should be displayed for the permission check
     /// - Returns: true if the permission was granted, false if denied or there was an error making the request
-    public func requestPermission(_ permission: String, showRationale: (() async -> Bool)? = nil) async -> Bool {
+    public func requestPermission(_ permission: String, showRationale: (() async -> Bool)?) async -> Bool {
         logger.info("requestPermission: \(permission)")
         guard let activity = self.androidActivity else {
             return false
@@ -133,6 +133,16 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
                 requestPermissionLauncher?.launch(permission)
             }
         }
+    }
+
+    /// Requests the given permission.
+    /// - Parameters:
+    ///   - permission: the name of the permission, such as `android.permission.POST_NOTIFICATIONS`
+    /// - Returns: true if the permission was granted, false if denied or there was an error making the request
+    // SKIP @bridge
+    public func requestPermission(_ permission: String) async -> Bool {
+        // We can't bridge the `showRationale` parameter async closure
+        return await requestPermission(permission, showRationale: nil)
     }
     #endif
 
