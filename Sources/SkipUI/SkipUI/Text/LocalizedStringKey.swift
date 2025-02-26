@@ -9,7 +9,7 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
     /// Valid types for `StringLiteralType` are `String` and `StaticString`.
     public typealias StringLiteralType = String
 
-    internal var stringInterpolation: LocalizedStringKey.StringInterpolation
+    var stringInterpolation: LocalizedStringKey.StringInterpolation
 
     #if SKIP
     public init(_ string: String) {
@@ -56,11 +56,20 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
         public typealias StringLiteralType = String
 
         #if SKIP
-        let values: MutableList<AnyHashable> = mutableListOf()
+        let values: MutableList<Any> = mutableListOf()
         #endif
         var pattern = ""
 
         public init(literalCapacity: Int, interpolationCount: Int) {
+        }
+
+        init(pattern: String, values: [Any]?) {
+            self.pattern = pattern
+            #if SKIP
+            if let values {
+                self.values.addAll(values)
+            }
+            #endif
         }
 
         public mutating func appendLiteral(_ literal: String) {
@@ -131,9 +140,9 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
             pattern += "%f"
         }
 
-        public mutating func appendInterpolation<T: Hashable>(_ value: T) {
+        public mutating func appendInterpolation<T: Any>(_ value: T) {
             #if SKIP
-            values.add(value as AnyHashable)
+            values.add(value)
             #endif
             pattern += "%@"
         }

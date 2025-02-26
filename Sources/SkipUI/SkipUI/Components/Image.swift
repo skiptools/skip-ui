@@ -54,7 +54,6 @@ import struct CoreGraphics.CGSize
 
 public struct Image : View, Equatable {
     let image: ImageType
-    var capInsets = EdgeInsets()
     var resizingMode: ResizingMode?
     let scale = 1.0
 
@@ -82,6 +81,20 @@ public struct Image : View, Equatable {
 
     public init(systemName: String, unusedp0: Nothing? = nil, unusedp1: Nothing? = nil) {
         self.image = .system(systemName: systemName)
+    }
+
+    // SKIP @bridge
+    public init(name: String, bundle: Bundle? = nil, label: Text? = nil, system: Bool = false, decorative: Bool = false, bridgedResizingMode: Int? = nil) {
+        if system {
+            self.image = .system(systemName: name)
+        } else if decorative {
+            self.image = .decorative(name: name, bundle: bundle)
+        } else {
+            self.image = .named(name: name, bundle: bundle, label: label)
+        }
+        if let bridgedResizingMode {
+            self.resizingMode = ResizingMode(rawValue: bridgedResizingMode)
+        }
     }
 
     #if SKIP
@@ -729,9 +742,9 @@ public struct Image : View, Equatable {
     }
 #endif
 
-    public enum ResizingMode : Hashable, Sendable {
-        case tile
-        case stretch
+    public enum ResizingMode : Int, Hashable {
+        case tile = 0 // For bridging
+        case stretch = 1 // For bridging
     }
 
     public func resizable() -> Image {
@@ -742,17 +755,12 @@ public struct Image : View, Equatable {
 
     @available(*, unavailable) // No capInsets support yet
     public func resizable(capInsets: EdgeInsets) -> Image {
-        var image = self
-        image.capInsets = capInsets
-        return image
+        fatalError()
     }
 
     @available(*, unavailable) // No resizingMode support yet
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode) -> Image {
-        var image = self
-        image.capInsets = capInsets
-        image.resizingMode = resizingMode
-        return image
+        fatalError()
     }
 
     public enum Interpolation : Hashable, Sendable {
