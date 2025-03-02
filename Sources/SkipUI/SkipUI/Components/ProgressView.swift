@@ -103,7 +103,13 @@ public struct ProgressView : View {
         if value == nil || total == nil {
             LinearProgressIndicator(modifier: modifier, color: color)
         } else {
-            LinearProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
+            LinearProgressIndicator(
+                progress: { Float(value! / total!) },
+                modifier: modifier,
+                color: color,
+                gapSize = -8.dp, // Makes sure the progress overlaps the background
+                drawStopIndicator = {}
+            )
         }
     }
 
