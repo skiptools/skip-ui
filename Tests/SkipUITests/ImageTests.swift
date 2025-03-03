@@ -192,6 +192,7 @@ final class ImageTests: XCSnapshotTestCase {
 
     func testRenderVectorDrawableResource() {
         #if SKIP
+        throw XCTSkip("Resources in res/ are no longer copied to the project, so SkipUITests/Skip/res/values/strings.xml and SkipUITests/Skip/res/drawable/battery_charging.xml are no longer being found")
         let ctx = ProcessInfo.processInfo.androidContext
         let resources = ctx.getResources()
         let pkg = ctx.getPackageName()
