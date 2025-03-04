@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 #endif
 
+// SKIP @bridge
 public class UIImage {
     #if SKIP
     let bitmap: Bitmap?
@@ -95,6 +96,11 @@ public class UIImage {
         self.scale = 1.0
     }
 
+    // SKIP @bridge
+    public static func bridgedInit(contentsOfFile path: String) -> UIImage? {
+        return UIImage(contentsOfFile: path)
+    }
+
     public init?(data: Data, scale: CGFloat = 1.0) {
         #if SKIP
         let bytes = data.kotlin(nocopy: true)
@@ -104,6 +110,11 @@ public class UIImage {
         self.bitmap = bitmap
         #endif
         self.scale = scale
+    }
+
+    // SKIP @bridge
+    public static func bridgedInit(data: Data, scale: CGFloat) -> UIImage? {
+        return UIImage(data: data, scale: scale)
     }
 
     @available(*, unavailable)
@@ -178,6 +189,7 @@ public class UIImage {
         fatalError()
     }
 
+    // SKIP @bridge
     public let scale: CGFloat
 
     @available(*, unavailable)
@@ -257,6 +269,8 @@ public class UIImage {
     @available(*, unavailable)
     public func drawAsPattern(in rect: CGRect) {
     }
+
+    // SKIP @bridge
     public func jpegData(compressionQuality: CGFloat) -> Data? {
         #if !SKIP
         return nil
@@ -268,6 +282,8 @@ public class UIImage {
         return Data(platformValue: bytes)
         #endif
     }
+
+    // SKIP @bridge
     public func pngData() -> Data? {
         #if !SKIP
         return nil

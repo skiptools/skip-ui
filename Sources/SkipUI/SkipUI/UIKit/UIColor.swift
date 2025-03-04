@@ -5,12 +5,14 @@
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public final class UIColor {
     let red: CGFloat
     let green: CGFloat
     let blue: CGFloat
     let alpha: CGFloat
 
+    // SKIP @bridge
     public init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
         self.red = red
         self.green = green

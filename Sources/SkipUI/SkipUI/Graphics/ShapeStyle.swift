@@ -9,7 +9,8 @@ import androidx.compose.ui.graphics.SolidColor
 
 // Note: ShapeStyle does not extend View in SwiftUI, but most concrete ShapeStyles do and it helps us disambiguate calls
 // to functions that are overloaded on both View and ShapeStyle, like some .background(...) variants
-public protocol ShapeStyle : View, Sendable {
+// SKIP @bridge
+public protocol ShapeStyle : View {
     #if SKIP
     /// Not all Composables support Brushes.
     @Composable func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color?
@@ -60,9 +61,11 @@ public struct AnyShapeStyle : ShapeStyle {
     #endif
 }
 
+// SKIP @bridge
 public struct ForegroundStyle : ShapeStyle {
     static let shared = ForegroundStyle()
 
+    // SKIP @bridge
     public init() {
     }
 
@@ -87,9 +90,11 @@ extension ShapeStyle where Self == ForegroundStyle {
     }
 }
 
+// SKIP @bridge
 public struct BackgroundStyle : ShapeStyle {
     static let shared = BackgroundStyle()
 
+    // SKIP @bridge
     public init() {
     }
 
@@ -119,6 +124,43 @@ public struct BackgroundStyle : ShapeStyle {
 extension ShapeStyle where Self == BackgroundStyle {
     public static var background: BackgroundStyle {
         return BackgroundStyle.shared
+    }
+}
+
+// SKIP @bridge
+public struct TintShapeStyle : ShapeStyle {
+    static let shared = TintShapeStyle()
+
+    // SKIP @bridge
+    public init() {
+    }
+
+    #if SKIP
+    @Composable override func asColor(opacity: Double, animationContext: ComposeContext?) -> androidx.compose.ui.graphics.Color? {
+        if let style = EnvironmentValues.shared._tint {
+            return style.asColor(opacity: opacity, animationContext: animationContext)
+        } else {
+            return Color.accentColor.asColor(opacity: opacity, animationContext: nil)
+        }
+    }
+
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        if let style = EnvironmentValues.shared._tint {
+            return style.asBrush(opacity: opacity, animationContext: animationContext)
+        } else {
+            return Color.accentColor.asBrush(opacity: opacity, animationContext: nil)
+        }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+extension ShapeStyle where Self == TintShapeStyle {
+    public static var tint: TintShapeStyle {
+        return TintShapeStyle.shared
     }
 }
 
@@ -662,35 +704,6 @@ extension ShapeStyle where Self == Material {
 
     /// A material matching the style of system toolbars.
     public static var bar: Material { get { fatalError() } }
-}
-
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-extension ShapeStyle where Self == TintShapeStyle {
-
-    /// A style that reflects the current tint color.
-    ///
-    /// You can set the tint color with the `tint(_:)` modifier. If no explicit
-    /// tint is set, the tint is derived from the app's accent color.
-    public static var tint: TintShapeStyle { get { fatalError() } }
-}
-
-/// A style that reflects the current tint color.
-///
-/// You can set the tint color with the ``View/tint(_:)-93mfq`` modifier. If no
-/// explicit tint is set, the tint is derived from the app's accent color.
-///
-/// You can also use ``ShapeStyle/tint`` to construct this style.
-@available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
-public struct TintShapeStyle : ShapeStyle {
-
-    /// Creates a tint shape style.
-    public init() { fatalError() }
-
-    /// The type of shape style this will resolve to.
-    ///
-    /// When you create a custom shape style, Swift infers this type
-    /// from your implementation of the required `resolve` function.
-    public typealias Resolved = Never
 }
 
 /// A style used to visually indicate selection following platform conventional
