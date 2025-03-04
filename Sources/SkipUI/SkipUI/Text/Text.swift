@@ -80,9 +80,9 @@ public struct Text: View, Equatable {
     }
 
     // SKIP @bridge
-    public init(keyPattern: String, keyValues: [Any]?, tableName: String?, bundle: Bundle?) {
+    public init(keyPattern: String, keyValues: [Any]?, tableName: String?, bridgedBundle: Any?) {
         let interpolation = LocalizedStringKey.StringInterpolation(pattern: keyPattern, values: keyValues)
-        textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, bundle: bundle)
+        textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, bundle: bridgedBundle as? Bundle)
         modifiedView = textView
     }
 
@@ -256,7 +256,7 @@ public struct Text: View, Equatable {
         case lowercase = 1 // For bridging
     }
 
-    public struct LineStyle : Hashable, Sendable {
+    public struct LineStyle : Hashable {
         public let pattern: Text.LineStyle.Pattern
         public let color: Color?
 
@@ -490,10 +490,10 @@ struct _Text: View, Equatable {
     #endif
 }
 
-public enum TextAlignment : Hashable, CaseIterable, Sendable {
-    case leading
-    case center
-    case trailing
+public enum TextAlignment : Int, Hashable, CaseIterable, Sendable {
+    case leading = 0 // For bridging
+    case center = 1 // For bridging
+    case trailing = 2 // For bridging
 
     #if SKIP
     /// Convert this enum to a Compose `TextAlign` value.
@@ -574,7 +574,8 @@ extension View {
         return self
     }
 
-    public func font(_ font: Font?) -> some View {
+    // SKIP @bridge
+    public func font(_ font: Font?) -> any View {
         #if SKIP
         return environment(\.font, font)
         #else
@@ -590,12 +591,24 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func fontDesign(bridgedDesign: Int?) -> any View {
+        let design = bridgedDesign == nil ? nil : Font.Design(rawValue: bridgedDesign!)
+        return fontDesign(design)
+    }
+
     public func fontWeight(_ weight: Font.Weight?) -> some View {
         #if SKIP
         return textEnvironment(for: self) { $0.fontWeight = weight }
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func fontWeight(bridgedWeight: Int?) -> any View {
+        let weight = bridgedWeight == nil ? nil : Font.Weight(value: bridgedWeight!)
+        return fontWeight(weight)
     }
 
     @available(*, unavailable)
@@ -608,7 +621,8 @@ extension View {
         return self
     }
 
-    public func italic(_ isActive: Bool = true) -> some View {
+    // SKIP @bridge
+    public func italic(_ isActive: Bool = true) -> any View {
         #if SKIP
         return textEnvironment(for: self) { $0.isItalic = isActive }
         #else
@@ -621,7 +635,8 @@ extension View {
         return self
     }
 
-    public func lineLimit(_ number: Int?) -> some View {
+    // SKIP @bridge
+    public func lineLimit(_ number: Int?) -> any View {
         #if SKIP
         return environment(\.lineLimit, number)
         #else
@@ -666,6 +681,11 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func multilineTextAlignment(bridgedAlignment: Int) -> any View {
+        return multilineTextAlignment(TextAlignment(rawValue: bridgedAlignment) ?? .center)
+    }
+
     @available(*, unavailable)
     public func privacySensitive(_ sensitive: Bool = true) -> some View {
         return self
@@ -677,6 +697,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func redacted(bridgedReason: Int) -> any View {
+        return redacted(reason: RedactionReasons(rawValue: bridgedReason))
     }
 
     @available(*, unavailable)
@@ -705,6 +730,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func bridgedStrikethrough(_ isActive: Bool) -> any View {
+        return self.strikethrough(isActive)
     }
 
     public func textCase(_ textCase: Text.Case?) -> any View {
@@ -746,6 +776,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func bridgedUnderline(_ isActive: Bool) -> any View {
+        return underline(isActive)
     }
 
     @available(*, unavailable)

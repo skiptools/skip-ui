@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.sp
 import struct CoreGraphics.CGFloat
 #endif
 
-public struct Font : Hashable, Sendable {
+// SKIP @bridge
+public struct Font : Hashable {
     #if SKIP
     public let fontImpl: @Composable () -> androidx.compose.ui.text.TextStyle
 
@@ -96,18 +97,18 @@ public struct Font : Hashable, Sendable {
     }
     #endif
 
-    public enum TextStyle : CaseIterable, Hashable, Sendable {
-        case largeTitle
-        case title
-        case title2
-        case title3
-        case headline
-        case subheadline
-        case body
-        case callout
-        case footnote
-        case caption
-        case caption2
+    public enum TextStyle : Int, CaseIterable, Hashable, Sendable {
+        case largeTitle = 0 // For bridging
+        case title = 1 // For bridging
+        case title2 = 2 // For bridging
+        case title3 = 3 // For bridging
+        case headline = 4 // For bridging
+        case subheadline = 5 // For bridging
+        case body = 6 // For bridging
+        case callout = 7 // For bridging
+        case footnote = 8 // For bridging
+        case caption = 9 // For bridging
+        case caption2 = 10 // For bridging
     }
 
     public static func system(_ style: Font.TextStyle, design: Font.Design? = nil, weight: Font.Weight? = nil) -> Font {
@@ -148,6 +149,14 @@ public struct Font : Hashable, Sendable {
         #endif
     }
 
+    // SKIP @bridge
+    public static func system(bridgedStyle: Int, bridgedDesign: Int?, bridgedWeight: Int?) -> Font {
+        let style = Font.TextStyle(rawValue: bridgedStyle) ?? .body
+        let design = bridgedDesign == nil ? nil : Font.Design(rawValue: bridgedDesign!)
+        let weight = bridgedWeight == nil ? nil : Font.Weight(value: bridgedWeight!)
+        return system(style, design: design, weight: weight)
+    }
+
     public static func system(size: CGFloat, weight: Font.Weight? = nil, design: Font.Design? = nil) -> Font {
         #if SKIP
         return Font(fontImpl: {
@@ -156,6 +165,13 @@ public struct Font : Hashable, Sendable {
         #else
         fatalError()
         #endif
+    }
+
+    // SKIP @bridge
+    public static func system(size: CGFloat, bridgedDesign: Int?, bridgedWeight: Int?) -> Font {
+        let design = bridgedDesign == nil ? nil : Font.Design(rawValue: bridgedDesign!)
+        let weight = bridgedWeight == nil ? nil : Font.Weight(value: bridgedWeight!)
+        return system(size: size, weight: weight, design: design)
     }
 
     #if SKIP
@@ -191,6 +207,7 @@ public struct Font : Hashable, Sendable {
     }
     #endif
 
+    // SKIP @bridge
     public static func custom(_ name: String, size: CGFloat) -> Font {
         #if SKIP
         return Font(fontImpl: {
@@ -213,7 +230,13 @@ public struct Font : Hashable, Sendable {
         #endif
     }
 
-    public static func custom(_ name: String, fixedSize: CGFloat) -> Font {
+    // SKIP @bridge
+    public static func custom(_ name: String, size: CGFloat, bridgedRelativeTo textStyle: Int) -> Font {
+        return custom(name, size: size, relativeTo: Font.TextStyle(rawValue: textStyle) ?? .body)
+    }
+
+    // SKIP @bridge
+    public static func custom(_ name: String, fixedSize: CGFloat, unusedp: Any? = nil) -> Font {
         return Font.custom(name, size: fixedSize)
     }
 
@@ -224,6 +247,7 @@ public struct Font : Hashable, Sendable {
         #endif
     }
 
+    // SKIP @bridge
     public func italic() -> Font {
         #if SKIP
         return Font(fontImpl: {
@@ -262,6 +286,11 @@ public struct Font : Hashable, Sendable {
         #else
         fatalError()
         #endif
+    }
+
+    // SKIP @bridge
+    public func weight(bridgedWeight: Int) -> Font {
+        return weight(Font.Weight(value: bridgedWeight))
     }
 
     #if SKIP
@@ -306,7 +335,7 @@ public struct Font : Hashable, Sendable {
         return design(Design.monospaced)
     }
 
-    func design(_ design: Design?) -> Font {
+    public func design(_ design: Design?) -> Font {
         #if SKIP
         return Font(fontImpl: {
             fontImpl().copy(fontFamily: Self.fontFamily(for: design))
@@ -316,22 +345,27 @@ public struct Font : Hashable, Sendable {
         #endif
     }
 
+    // SKIP @bridge
+    public func design(bridgedValue: Int) -> Font {
+        return design(Design(rawValue: bridgedValue))
+    }
+
     @available(*, unavailable)
     public func leading(_ leading: Font.Leading) -> Font {
         fatalError()
     }
 
     public struct Weight : Hashable, Sendable {
-        let value: Double
-        public static let ultraLight = Weight(value: -0.8)
-        public static let thin = Weight(value: -0.6)
-        public static let light = Weight(value: -0.4)
-        public static let regular = Weight(value: 0.0)
-        public static let medium = Weight(value: 0.23)
-        public static let semibold = Weight(value: 0.3)
-        public static let bold = Weight(value: 0.4)
-        public static let heavy = Weight(value: 0.56)
-        public static let black = Weight(value: 0.62)
+        let value: Int
+        public static let ultraLight = Weight(value: -3) // For bridging (-0.8)
+        public static let thin = Weight(value: -2) // For bridging (-0.6)
+        public static let light = Weight(value: -1) // For bridging (-0.4)
+        public static let regular = Weight(value: 0) // For bridging (0.0)
+        public static let medium = Weight(value: 1) // For bridging (0.23)
+        public static let semibold = Weight(value: 2) // For bridging (0.3)
+        public static let bold = Weight(value: 3) // For bridging (0.4)
+        public static let heavy = Weight(value: 4) // For bridging (0.56)
+        public static let black = Weight(value: 5) // For bridging (0.62)
     }
 
     public struct Width : Hashable, Sendable {
@@ -353,11 +387,11 @@ public struct Font : Hashable, Sendable {
         case loose
     }
 
-    public enum Design : Hashable, Sendable {
-        case `default`
-        case serif
-        case rounded
-        case monospaced
+    public enum Design : Int, Hashable, Sendable {
+        case `default` = 0 // For bridging
+        case serif = 1 // For bridging
+        case rounded = 2 // For bridging
+        case monospaced = 3 // For bridging
     }
 
     #if SKIP

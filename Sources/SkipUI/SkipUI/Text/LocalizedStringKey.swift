@@ -140,9 +140,9 @@ public struct LocalizedStringKey : ExpressibleByStringInterpolation, Equatable {
             pattern += "%f"
         }
 
-        public mutating func appendInterpolation<T: Any>(_ value: T) {
+        public mutating func appendInterpolation<T>(_ value: T) {
             #if SKIP
-            values.add(value)
+            values.add(value as! Any)
             #endif
             pattern += "%@"
         }

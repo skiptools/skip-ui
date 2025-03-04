@@ -13,7 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 #endif
 
-public struct Color: ShapeStyle, Hashable, Sendable {
+// SKIP @bridge
+public struct Color: ShapeStyle, Hashable {
     #if SKIP
     public let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 
@@ -79,6 +80,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         case displayP3
     }
 
+    // SKIP @bridge
     public init(red: Double, green: Double, blue: Double, opacity: Double = 1.0) {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color(red: Self.clamp(red), green: Self.clamp(green), blue: Self.clamp(blue), alpha = Self.clamp(opacity)) }
@@ -89,6 +91,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         self.init(red: red, green: green, blue: blue, opacity: opacity)
     }
 
+    // SKIP @bridge
     public init(white: Double, opacity: Double = 1.0) {
         self.init(red: white, green: white, blue: white, opacity: opacity)
     }
@@ -97,16 +100,19 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         self.init(white: white, opacity: opacity)
     }
 
-    public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0) {
+    // SKIP @bridge
+    public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1.0, unusedp: Any? = nil) {
         #if SKIP
         colorImpl = { androidx.compose.ui.graphics.Color.hsv(hue: Self.clamp(hue) * 360, saturation: Self.clamp(saturation), value: Self.clamp(brightness), alpha: Self.clamp(opacity)) }
         #endif
     }
 
+    // SKIP @bridge
     public init(_ color: UIColor) {
         self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
     }
 
+    // SKIP @bridge
     public init(uiColor color: UIColor) {
         self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
     }
@@ -118,6 +124,11 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         }
         colorImpl = { assetColorInfo?.colorImpl() ?? Color.gray.colorImpl() }
         #endif
+    }
+
+    // SKIP @bridge
+    public init(name: String, bridgedBundle: Any?, unusedp: Any? = nil) {
+        self.init(name, bundle: bridgedBundle as? Bundle)
     }
 
     private static func clamp(_ value: Double) -> Float {
@@ -155,6 +166,7 @@ public struct Color: ShapeStyle, Hashable, Sendable {
 
     // MARK: -
 
+    // SKIP @bridge
     public static var accentColor: Color {
         #if SKIP
         return Color(colorImpl: { MaterialTheme.colorScheme.primary })
@@ -202,64 +214,102 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         _primary.opacity(placeholderOpacity)
     }
 
-    fileprivate static let _primary = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _primary = Color(colorImpl: {
         MaterialTheme.colorScheme.onBackground
     })
-    fileprivate static let _secondary = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _secondary = Color(colorImpl: {
         MaterialTheme.colorScheme.onBackground.copy(alpha: ContentAlpha.medium)
     })
-    fileprivate static let _clear = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _clear = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.Transparent
     })
-    fileprivate static let _white = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _white = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.White
     })
-    fileprivate static let _black = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _black = Color(colorImpl: {
         androidx.compose.ui.graphics.Color.Black
     })
-    fileprivate static let _gray = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _gray = Color(colorImpl: {
         ComposeColor(light: 0xFF8E8E93, dark: 0xFF8E8E93)
     })
-    fileprivate static let _red = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _red = Color(colorImpl: {
         ComposeColor(light: 0xFFFF3B30, dark: 0xFFFF453A)
     })
-    fileprivate static let _orange = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _orange = Color(colorImpl: {
         ComposeColor(light: 0xFFFF9500, dark: 0xFFFF9F0A)
     })
-    fileprivate static let _yellow = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _yellow = Color(colorImpl: {
         ComposeColor(light: 0xFFFFCC00, dark: 0xFFFFD60A)
     })
-    fileprivate static let _green = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _green = Color(colorImpl: {
         ComposeColor(light: 0xFF34C759, dark: 0xFF30D158)
     })
-    fileprivate static let _mint = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _mint = Color(colorImpl: {
         ComposeColor(light: 0xFF00C7BE, dark: 0xFF63E6E2)
     })
-    fileprivate static let _teal = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _teal = Color(colorImpl: {
         ComposeColor(light: 0xFF30B0C7, dark: 0xFF40C8E0)
     })
-    fileprivate static let _cyan = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _cyan = Color(colorImpl: {
         ComposeColor(light: 0xFF32ADE6, dark: 0xFF64D2FF)
     })
-    fileprivate static let _blue = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _blue = Color(colorImpl: {
         ComposeColor(light: 0xFF007AFF, dark: 0xFF0A84FF)
     })
-    fileprivate static let _indigo = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _indigo = Color(colorImpl: {
         ComposeColor(light: 0xFF5856D6, dark: 0xFF5E5CE6)
     })
-    fileprivate static let _purple = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _purple = Color(colorImpl: {
         ComposeColor(light: 0xFFAF52DE, dark: 0xFFBF5AF2)
     })
-    fileprivate static let _pink = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _pink = Color(colorImpl: {
         ComposeColor(light: 0xFFFF2D55, dark: 0xFFFF375F)
     })
-    fileprivate static let _brown = Color(colorImpl: {
+    // SKIP @bridge
+    public static let _brown = Color(colorImpl: {
         ComposeColor(light: 0xFFA2845E, dark: 0xFFAC8E68)
     })
+    #else
+    public static let _primary = Color(white: 1, opacity: 1)
+    public static let _secondary = Color(white: 1, opacity: 1)
+    public static let _clear = Color(white: 1, opacity: 1)
+    public static let _white = Color(white: 1, opacity: 1)
+    public static let _black = Color(white: 1, opacity: 1)
+    public static let _gray = Color(white: 1, opacity: 1)
+    public static let _red = Color(white: 1, opacity: 1)
+    public static let _orange = Color(white: 1, opacity: 1)
+    public static let _yellow = Color(white: 1, opacity: 1)
+    public static let _green = Color(white: 1, opacity: 1)
+    public static let _mint = Color(white: 1, opacity: 1)
+    public static let _teal = Color(white: 1, opacity: 1)
+    public static let _cyan = Color(white: 1, opacity: 1)
+    public static let _blue = Color(white: 1, opacity: 1)
+    public static let _indigo = Color(white: 1, opacity: 1)
+    public static let _purple = Color(white: 1, opacity: 1)
+    public static let _pink = Color(white: 1, opacity: 1)
+    public static let _brown = Color(white: 1, opacity: 1)
     #endif
 
     // MARK: -
 
+    // SKIP @bridge
     public func opacity(_ opacity: Double) -> Color {
         #if SKIP
         guard opacity != 1.0 else {
@@ -274,22 +324,27 @@ public struct Color: ShapeStyle, Hashable, Sendable {
         #endif
     }
 
+    // SKIP @bridge
+    public func saturate(by multiplier: Double) -> Color {
+        #if SKIP
+        let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color = {
+            let color = colorImpl()
+            let hsv = FloatArray(3)
+            android.graphics.Color.RGBToHSV(Int(color.red * 255), Int(color.green * 255), Int(color.blue * 255), hsv)
+            androidx.compose.ui.graphics.Color.hsv(hsv[0], min(Float(1.0), hsv[1] * Float(multiplier)), hsv[2], alpha: color.alpha)
+        }
+        return Color(colorImpl: colorImpl)
+        #else
+        return self
+        #endif
+    }
+
     public var gradient: AnyGradient {
         #if SKIP
         // Create a SwiftUI-like gradient by varying the saturation of this color
-        let startColorImpl: @Composable () -> androidx.compose.ui.graphics.Color = {
-            let color = colorImpl()
-            let hsv = FloatArray(3)
-            android.graphics.Color.RGBToHSV(Int(color.red * 255), Int(color.green * 255), Int(color.blue * 255), hsv)
-            androidx.compose.ui.graphics.Color.hsv(hsv[0], hsv[1] * Float(0.75), hsv[2], alpha: color.alpha)
-        }
-        let endColorImpl: @Composable () -> androidx.compose.ui.graphics.Color = {
-            let color = colorImpl()
-            let hsv = FloatArray(3)
-            android.graphics.Color.RGBToHSV(Int(color.red * 255), Int(color.green * 255), Int(color.blue * 255), hsv)
-            androidx.compose.ui.graphics.Color.hsv(hsv[0], min(Float(1.0), hsv[1] * (Float(1.0) / Float(0.75))), hsv[2], alpha: color.alpha)
-        }
-        return AnyGradient(gradient = Gradient(colors: [Color(colorImpl: startColorImpl), Color(colorImpl: endColorImpl)]))
+        let startColor = saturate(by: 0.75)
+        let endColor = saturate(by: 1.33)
+        return AnyGradient(gradient: Gradient(colors: [startColor, endColor]))
         #else
         fatalError()
         #endif

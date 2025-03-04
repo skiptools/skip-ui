@@ -35,9 +35,9 @@ public struct HStack : View {
     }
 
     // SKIP @bridge
-    public init(alignmentKey: String, spacing: Double?, bridgedContent: any View) {
+    public init(alignmentKey: String, spacing: CGFloat?, bridgedContent: any View) {
         self.alignment = VerticalAlignment(key: alignmentKey)
-        self.spacing = spacing == nil ? nil : CGFloat(spacing!)
+        self.spacing = spacing == nil ? nil : spacing!
         self.content = ComposeBuilder.from { bridgedContent }
     }
 

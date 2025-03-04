@@ -52,6 +52,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct Image : View, Equatable {
     let image: ImageType
     var resizingMode: ResizingMode?
@@ -67,41 +68,43 @@ public struct Image : View, Equatable {
         #endif
     }
 
-    public init(_ name: String, bundle: Bundle? = Bundle.main) {
+    public init(_ name: String, bundle: Bundle? = nil) {
         self.image = .named(name: name, bundle: bundle, label: nil)
     }
 
-    public init(_ name: String, bundle: Bundle? = Bundle.main, label: Text) {
+    public init(_ name: String, bundle: Bundle? = nil, label: Text) {
         self.image = .named(name: name, bundle: bundle, label: label)
     }
 
-    public init(decorative name: String, bundle: Bundle? = Bundle.main) {
+    public init(decorative name: String, bundle: Bundle? = nil) {
         self.image = .decorative(name: name, bundle: bundle)
     }
 
-    public init(systemName: String, unusedp0: Nothing? = nil, unusedp1: Nothing? = nil) {
+    public init(systemName: String, unusedp0: Any? = nil, unusedp1: Any? = nil) {
         self.image = .system(systemName: systemName)
     }
 
     // SKIP @bridge
-    public init(name: String, bundle: Bundle? = nil, label: Text? = nil, system: Bool = false, decorative: Bool = false, bridgedResizingMode: Int? = nil) {
-        if system {
+    public init(name: String, isSystem: Bool, isDecorative: Bool, bridgedBundle: Any?, label: Text?) {
+        if isSystem {
             self.image = .system(systemName: name)
-        } else if decorative {
-            self.image = .decorative(name: name, bundle: bundle)
+        } else if isDecorative {
+            self.image = .decorative(name: name, bundle: bridgedBundle as? Bundle)
         } else {
-            self.image = .named(name: name, bundle: bundle, label: label)
+            self.image = .named(name: name, bundle: bridgedBundle as? Bundle, label: label)
         }
-        if let bridgedResizingMode {
-            self.resizingMode = ResizingMode(rawValue: bridgedResizingMode)
-        }
+    }
+
+    // SKIP @bridge
+    public init(uiImage: UIImage) {
+        #if SKIP
+        self.image = .bitmap(bitmap: uiImage.bitmap!, scale: uiImage.scale)
+        #else
+        fatalError()
+        #endif
     }
 
     #if SKIP
-    public init(uiImage: UIImage) {
-        self.image = .bitmap(bitmap: uiImage.bitmap!, scale: uiImage.scale)
-    }
-
     public init(painter: Painter, scale: CGFloat) {
         self.image = .painter(painter: painter, scale: scale)
     }
@@ -747,6 +750,7 @@ public struct Image : View, Equatable {
         case stretch = 1 // For bridging
     }
 
+    // SKIP @bridge
     public func resizable() -> Image {
         var image = self
         image.resizingMode = .stretch
