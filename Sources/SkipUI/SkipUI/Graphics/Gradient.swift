@@ -26,7 +26,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 public struct Gradient : ShapeStyle, Hashable {
-    public struct Stop : Hashable, Sendable {
+    public struct Stop : Hashable {
         public let color: Color
         public let location: CGFloat
 
@@ -69,7 +69,7 @@ public struct Gradient : ShapeStyle, Hashable {
     }
     #endif
 
-    public struct ColorSpace : Hashable, Sendable {
+    public struct ColorSpace : Hashable {
         public static let device = Gradient.ColorSpace()
         public static let perceptual = Gradient.ColorSpace()
     }
@@ -79,7 +79,7 @@ public struct Gradient : ShapeStyle, Hashable {
     }
 }
 
-public struct AnyGradient : ShapeStyle, Sendable {
+public struct AnyGradient : ShapeStyle {
     let gradient: LinearGradient
 
     public init(gradient: Gradient) {
@@ -103,7 +103,8 @@ public struct AnyGradient : ShapeStyle, Sendable {
     #endif
 }
 
-public struct LinearGradient : ShapeStyle, Sendable {
+// SKIP @bridge
+public struct LinearGradient : ShapeStyle {
     let gradient: Gradient
     let startPoint: UnitPoint
     let endPoint: UnitPoint
@@ -120,6 +121,14 @@ public struct LinearGradient : ShapeStyle, Sendable {
 
     public init(colors: [Color], startPoint: UnitPoint, endPoint: UnitPoint) {
         self.init(gradient: Gradient(colors: colors), startPoint: startPoint, endPoint: endPoint)
+    }
+
+    // SKIP @bridge
+    public init(colors: [Color], locations: [CGFloat], startX: CGFloat, startY: CGFloat, endX: CGFloat, endY: CGFloat) {
+        let stops = zip(colors, locations).map { Gradient.Stop(color: $0.0, location: $0.1) }
+        self.gradient = Gradient(stops: stops)
+        self.startPoint = UnitPoint(x: startX, y: startY)
+        self.endPoint = UnitPoint(x: endX, y: endY)
     }
 
     #if SKIP
@@ -159,7 +168,8 @@ public struct LinearGradient : ShapeStyle, Sendable {
     #endif
 }
 
-public struct EllipticalGradient : ShapeStyle, Sendable {
+// SKIP @bridge
+public struct EllipticalGradient : ShapeStyle {
     let gradient: Gradient
     let center: UnitPoint
     let startFraction: CGFloat
@@ -178,6 +188,15 @@ public struct EllipticalGradient : ShapeStyle, Sendable {
 
     public init(stops: [Gradient.Stop], center: UnitPoint = .center, startRadiusFraction: CGFloat = 0.0, endRadiusFraction: CGFloat = 0.5) {
         self.init(gradient: Gradient(stops: stops), center: center, startRadiusFraction: startRadiusFraction, endRadiusFraction: endRadiusFraction)
+    }
+
+    // SKIP @bridge
+    public init(colors: [Color], locations: [CGFloat], centerX: CGFloat, centerY: CGFloat, startFraction: CGFloat, endFraction: CGFloat) {
+        let stops = zip(colors, locations).map { Gradient.Stop(color: $0.0, location: $0.1) }
+        self.gradient = Gradient(stops: stops)
+        self.center = UnitPoint(x: centerX, y: centerY)
+        self.startFraction = startFraction
+        self.endFraction = endFraction
     }
 
     #if SKIP
@@ -219,7 +238,8 @@ public struct EllipticalGradient : ShapeStyle, Sendable {
     #endif
 }
 
-public struct RadialGradient : ShapeStyle, Sendable {
+// SKIP @bridge
+public struct RadialGradient : ShapeStyle {
     let gradient: Gradient
     let center: UnitPoint
     let startRadius: CGFloat
@@ -238,6 +258,15 @@ public struct RadialGradient : ShapeStyle, Sendable {
 
     public init(stops: [Gradient.Stop], center: UnitPoint, startRadius: CGFloat, endRadius: CGFloat) {
         self.init(gradient: Gradient(stops: stops), center: center, startRadius: startRadius, endRadius: endRadius)
+    }
+
+    // SKIP @bridge
+    public init(colors: [Color], locations: [CGFloat], centerX: CGFloat, centerY: CGFloat, startRadius: CGFloat, endRadius: CGFloat) {
+        let stops = zip(colors, locations).map { Gradient.Stop(color: $0.0, location: $0.1) }
+        self.gradient = Gradient(stops: stops)
+        self.center = UnitPoint(x: centerX, y: centerY)
+        self.startRadius = startRadius
+        self.endRadius = endRadius
     }
 
     #if SKIP
@@ -276,7 +305,7 @@ public struct RadialGradient : ShapeStyle, Sendable {
     #endif
 }
 
-public struct AngularGradient : ShapeStyle, Sendable {
+public struct AngularGradient : ShapeStyle {
     @available(*, unavailable)
     public init(gradient: Gradient, center: UnitPoint, startAngle: Angle = .zero, endAngle: Angle = .zero) {
     }
