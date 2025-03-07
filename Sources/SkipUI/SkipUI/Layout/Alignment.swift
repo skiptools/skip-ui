@@ -11,7 +11,7 @@ public struct Alignment : Equatable, Sendable {
     public static let leading = Alignment(horizontal: .leading, vertical: .center)
     public static let trailing = Alignment(horizontal: .trailing, vertical: .center)
     public static let top = Alignment(horizontal: .center, vertical: .top)
-    public static let bottom = Alignment(horizontal: .leading, vertical: .bottom)
+    public static let bottom = Alignment(horizontal: .center, vertical: .bottom)
     public static let topLeading = Alignment(horizontal: .leading, vertical: .top)
     public static let topTrailing = Alignment(horizontal: .trailing, vertical: .top)
     public static let bottomLeading = Alignment(horizontal: .leading, vertical: .bottom)
