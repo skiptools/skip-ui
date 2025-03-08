@@ -558,6 +558,8 @@ final class TabIndexComposer: RenderingComposer {
 public protocol TabViewStyle: Equatable {}
 
 public struct DefaultTabViewStyle : TabViewStyle {
+    static let identifier = 0 // For bridging
+
     public init() {}
 }
 
@@ -566,6 +568,8 @@ extension TabViewStyle where Self == DefaultTabViewStyle {
 }
 
 public struct TabBarOnlyTabViewStyle: TabViewStyle {
+    static let identifier = 1 // For bridging
+
     public init() {}
 }
 
@@ -574,6 +578,8 @@ extension TabViewStyle where Self == TabBarOnlyTabViewStyle {
 }
 
 public struct PageTabViewStyle: TabViewStyle {
+    static let identifier = 2 // For bridging
+
     public let indexDisplayMode: PageTabViewStyle.IndexDisplayMode
 
     public struct IndexDisplayMode: RawRepresentable, Equatable {
@@ -583,9 +589,9 @@ public struct PageTabViewStyle: TabViewStyle {
             self.rawValue = rawValue
         }
 
-        public static let automatic = IndexDisplayMode(rawValue: 0)
-        public static let always = IndexDisplayMode(rawValue: 1)
-        public static let never = IndexDisplayMode(rawValue: 2)
+        public static let automatic = IndexDisplayMode(rawValue: 0) // For bridging
+        public static let always = IndexDisplayMode(rawValue: 1) // For bridging
+        public static let never = IndexDisplayMode(rawValue: 2) // For bridging
     }
 
     public init(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) {
@@ -604,7 +610,7 @@ extension TabViewStyle where Self == PageTabViewStyle {
 // MARK: View extensions
 
 extension View {
-    public func tabItem(@ViewBuilder _ label: () -> any View) -> any View {
+    public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
         #if SKIP
         return TabItemModifierView(view: self, label: label)
         #else
@@ -623,6 +629,21 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func tabViewStyle(bridgedStyle: Int, bridgedDisplayMode: Int? = nil) -> any View {
+        let style: any TabViewStyle
+        switch bridgedStyle {
+        case TabBarOnlyTabViewStyle.identifier:
+            style = TabBarOnlyTabViewStyle()
+        case PageTabViewStyle.identifier:
+            let indexDisplayMode: PageTabViewStyle.IndexDisplayMode = (bridgedDisplayMode == nil ? nil : PageTabViewStyle.IndexDisplayMode(rawValue: bridgedDisplayMode!)) ?? .automatic
+            style = PageTabViewStyle(indexDisplayMode: indexDisplayMode)
+        default:
+            style = DefaultTabViewStyle()
+        }
+        return tabViewStyle(style)
     }
 
     #if SKIP

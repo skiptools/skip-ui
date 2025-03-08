@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 #endif
 
+// SKIP @bridge
 public struct Label : View {
     let title: ComposeBuilder
     let image: ComposeBuilder
@@ -22,6 +23,12 @@ public struct Label : View {
     public init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View) {
         self.title = ComposeBuilder.from(title)
         self.image = ComposeBuilder.from(icon)
+    }
+
+    // SKIP @bridge
+    public init(bridgedTitle: any View, bridgedImage: any View) {
+        self.title = ComposeBuilder.from { bridgedTitle }
+        self.image = ComposeBuilder.from { bridgedImage  }
     }
 
     public init(_ titleKey: LocalizedStringKey, image: String) {
@@ -114,13 +121,10 @@ public struct LabelStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = LabelStyle(rawValue: 0)
-
-    public static let titleOnly = LabelStyle(rawValue: 1)
-
-    public static let iconOnly = LabelStyle(rawValue: 2)
-
-    public static let titleAndIcon = LabelStyle(rawValue: 3)
+    public static let automatic = LabelStyle(rawValue: 0) // For bridging
+    public static let titleOnly = LabelStyle(rawValue: 1) // For bridging
+    public static let iconOnly = LabelStyle(rawValue: 2) // For bridging
+    public static let titleAndIcon = LabelStyle(rawValue: 3) // For bridging
 }
 
 public struct LabeledContent {
@@ -162,6 +166,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func labelStyle(bridgedStyle: Int) -> any View {
+        return labelStyle(LabelStyle(rawValue: bridgedStyle))
     }
 
     public func labeledContentStyle(_ style: LabeledContentStyle) -> some View {

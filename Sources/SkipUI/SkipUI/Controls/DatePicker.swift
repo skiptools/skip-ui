@@ -219,7 +219,7 @@ public struct DatePicker : View {
 }
 #endif
 
-public struct DatePickerComponents : OptionSet, Sendable {
+public struct DatePickerComponents : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

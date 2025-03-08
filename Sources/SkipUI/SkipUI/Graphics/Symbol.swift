@@ -35,7 +35,7 @@ public enum SymbolRenderingMode {
     case monochrome, multicolor, hierarchical, palette
 }
 
-public struct SymbolVariants : Hashable, Sendable {
+public struct SymbolVariants : Hashable {
     public static let none = SymbolVariants()
     public static let circle = SymbolVariants()
     public static let square = SymbolVariants()

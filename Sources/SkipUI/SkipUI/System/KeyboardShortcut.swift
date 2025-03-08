@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public struct KeyboardShortcut : Hashable, Sendable {
-    public enum Localization : Hashable, Sendable {
+public struct KeyboardShortcut : Hashable {
+    public enum Localization : Hashable {
         case automatic
         case withoutMirroring
         case custom

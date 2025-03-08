@@ -205,13 +205,13 @@ struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
 }
 #endif
 
-public enum ScrollBounceBehavior : Sendable {
+public enum ScrollBounceBehavior {
     case automatic
     case always
     case basedOnSize
 }
 
-public enum ScrollDismissesKeyboardMode : Sendable {
+public enum ScrollDismissesKeyboardMode {
     case automatic
     case immediately
     case interactively
@@ -235,7 +235,7 @@ public struct ScrollTarget {
     }
 }
 
-public struct PinnedScrollableViews : OptionSet, Sendable {
+public struct PinnedScrollableViews : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

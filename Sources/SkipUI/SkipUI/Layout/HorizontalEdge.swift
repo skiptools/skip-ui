@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum HorizontalEdge : Int, CaseIterable, Codable, Hashable, Sendable {
+public enum HorizontalEdge : Int, CaseIterable, Codable, Hashable {
     case leading = 1
     case trailing = 2
 

@@ -108,7 +108,7 @@ public struct Path : Shape, Equatable {
         return boundingRect.contains(p)
     }
 
-    public enum Element : Equatable, Sendable {
+    public enum Element : Equatable {
         case move(to: CGPoint)
         case line(to: CGPoint)
         case quadCurve(to: CGPoint, control: CGPoint)

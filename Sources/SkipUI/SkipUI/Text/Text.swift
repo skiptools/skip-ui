@@ -251,7 +251,7 @@ public struct Text: View, Equatable {
         return self
     }
 
-    public enum Case : Int, Equatable, Sendable {
+    public enum Case : Int, Equatable {
         case uppercase = 0 // For bridging
         case lowercase = 1 // For bridging
     }
@@ -265,7 +265,7 @@ public struct Text: View, Equatable {
             self.color = color
         }
 
-        public enum Pattern : Sendable {
+        public enum Pattern {
             case solid
             case dot
             case dash
@@ -276,12 +276,12 @@ public struct Text: View, Equatable {
         public static let single = Text.LineStyle()
     }
 
-    public enum Scale : Sendable, Hashable {
+    public enum Scale : Hashable {
         case `default`
         case secondary
     }
 
-    public enum TruncationMode : Sendable {
+    public enum TruncationMode {
         case head
         case tail
         case middle
@@ -490,7 +490,7 @@ struct _Text: View, Equatable {
     #endif
 }
 
-public enum TextAlignment : Int, Hashable, CaseIterable, Sendable {
+public enum TextAlignment : Int, Hashable, CaseIterable {
     case leading = 0 // For bridging
     case center = 1 // For bridging
     case trailing = 2 // For bridging
@@ -842,7 +842,7 @@ public struct Material3TextOptions {
 }
 #endif
 
-public struct RedactionReasons : OptionSet, Sendable {
+public struct RedactionReasons : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

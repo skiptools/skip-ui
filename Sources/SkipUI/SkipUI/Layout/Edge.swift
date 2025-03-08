@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum Edge : Int, Hashable, CaseIterable, Sendable {
-    case top = 1
-    case leading = 2
-    case bottom = 4
-    case trailing = 8
+public enum Edge : Int, Hashable, CaseIterable {
+    case top = 1 // For bridging
+    case leading = 2 // For bridging
+    case bottom = 4 // For bridging
+    case trailing = 8 // For bridging
 
-    public struct Set : OptionSet, Equatable, Sendable {
+    public struct Set : OptionSet, Equatable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
