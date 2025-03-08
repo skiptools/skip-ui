@@ -74,7 +74,7 @@ public struct Color: ShapeStyle, Hashable {
 
     // MARK: -
 
-    public enum RGBColorSpace : Hashable, Sendable {
+    public enum RGBColorSpace : Hashable {
         case sRGB
         case sRGBLinear
         case displayP3

@@ -5,15 +5,21 @@
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public struct Form : View {
-    #if SKIP
     // It appears that on iOS, List and Form render the same
     let list: List
 
     public init(@ViewBuilder content: () -> any View) {
-        list = List(content: content)
+        self.list = List(content: content)
     }
 
+    // SKIP @bridge
+    public init(bridgedContent: any View) {
+        self.list = List(bridgedContent: bridgedContent)
+    }
+
+    #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let _ = list.Compose(context: context)
     }

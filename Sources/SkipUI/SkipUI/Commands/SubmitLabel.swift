@@ -5,7 +5,7 @@
 import androidx.compose.ui.text.input.ImeAction
 #endif
 
-public enum SubmitLabel : Sendable {
+public enum SubmitLabel {
     case done
     case go
     case send

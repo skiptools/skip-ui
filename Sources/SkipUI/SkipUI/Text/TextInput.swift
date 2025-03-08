@@ -5,7 +5,7 @@
 import androidx.compose.ui.text.input.KeyboardCapitalization
 #endif
 
-public enum TextInputAutocapitalization : Sendable {
+public enum TextInputAutocapitalization {
     case never
     case words
     case sentences

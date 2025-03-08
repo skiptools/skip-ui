@@ -164,7 +164,7 @@ extension ShapeStyle where Self == TintShapeStyle {
     }
 }
 
-public struct FillStyle : Equatable, Sendable {
+public struct FillStyle : Equatable {
     public var isEOFilled: Bool
     public var isAntialiased: Bool
 
@@ -174,7 +174,7 @@ public struct FillStyle : Equatable, Sendable {
     }
 }
 
-public enum RoundedCornerStyle : Hashable, Sendable {
+public enum RoundedCornerStyle : Hashable {
     case circular
     case continuous
 }

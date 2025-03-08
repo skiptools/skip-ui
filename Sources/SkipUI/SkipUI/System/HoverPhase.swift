@@ -7,7 +7,7 @@ import struct CoreGraphics.CGPoint
 #endif
 #endif
 
-public enum HoverPhase : Equatable, Sendable {
+public enum HoverPhase : Equatable {
     case active(CGPoint)
     case ended
 }

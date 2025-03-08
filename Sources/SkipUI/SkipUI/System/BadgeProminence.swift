@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum BadgeProminence : Hashable, Sendable {
+public enum BadgeProminence : Hashable {
     case decreased
     case standard
     case increased

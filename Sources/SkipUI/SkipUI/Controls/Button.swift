@@ -201,13 +201,13 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let borderedProminent = ButtonStyle(rawValue: 4)
 }
 
-public enum ButtonRepeatBehavior : Hashable, Sendable {
+public enum ButtonRepeatBehavior : Hashable {
     case automatic
     case enabled
     case disabled
 }
 
-public enum ButtonRole : Equatable, Sendable {
+public enum ButtonRole : Equatable {
     case destructive
     case cancel
 }

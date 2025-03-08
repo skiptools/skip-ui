@@ -91,30 +91,39 @@ public struct NavigationStack : View {
     let root: ComposeBuilder
     let path: Binding<[Any]>?
     let navigationPath: Binding<NavigationPath>?
+    let destinationValueKey: ((Any) -> String)?
 
     public init(@ViewBuilder root: () -> any View) {
         self.root = ComposeBuilder.from(root)
         self.path = nil
         self.navigationPath = nil
+        self.destinationValueKey = nil
     }
 
     public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> any View) {
         self.root = ComposeBuilder.from(root)
         self.path = nil
         self.navigationPath = path
+        self.destinationValueKey = nil
     }
 
     public init(path: Any, @ViewBuilder root: () -> any View) {
         self.root = ComposeBuilder.from(root)
         self.path = path as! Binding<[Any]>?
         self.navigationPath = nil
+        self.destinationValueKey = nil
     }
 
     // SKIP @bridge
-    public init(bridgedRoot: any View) {
+    public init(getData: (() -> [Any])?, setData: (([Any]) -> Void)?, bridgedRoot: any View, destinationValueKey: @escaping (Any) -> String) {
         self.root = ComposeBuilder.from { bridgedRoot }
-        self.path = nil
         self.navigationPath = nil
+        if let getData, let setData {
+            self.path = Binding(get: getData, set: setData)
+        } else {
+            self.path = nil
+        }
+        self.destinationValueKey = destinationValueKey
     }
 
     #if SKIP
@@ -127,7 +136,7 @@ public struct NavigationStack : View {
         let destinationsCollector = PreferenceCollector<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, state: destinations, isErasable: false)
         let reducedDestinations = destinations.value.reduced
         let navController = rememberNavController()
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: reducedDestinations)) }
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: reducedDestinations, destinationValueKey: destinationValueKey)) }
         navigator.value.didCompose(navController: navController, destinations: reducedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
@@ -552,7 +561,7 @@ public struct NavigationStack : View {
     let targetValue: Any
 }
 
-typealias NavigationDestinations = Dictionary<Any.Type, NavigationDestination>
+typealias NavigationDestinations = Dictionary<AnyHashable, NavigationDestination>
 struct NavigationDestination {
     let destination: (Any) -> any View
     // No way to compare closures. Assume equal so we don't think our destinations are constantly updating
@@ -581,7 +590,8 @@ struct NavigationDestination {
     private var navController: NavHostController
     private var keyboardController: SoftwareKeyboardController?
     private var destinations: NavigationDestinations
-    private var destinationIndexes: [Any.Type: Int] = [:]
+    private var destinationIndexes: [AnyHashable: Int] = [:]
+    private var destinationValueKey: ((Any) -> String)?
 
     // We reserve the last destination index for static destinations. Every time we navigate to a static destination view, we increment the
     // destination value to give it a unique navigation path of e.g. 99/0, 99/1, 99/2, etc
@@ -610,9 +620,10 @@ struct NavigationDestination {
         }
     }
 
-    init(navController: NavHostController, destinations: NavigationDestinations) {
+    init(navController: NavHostController, destinations: NavigationDestinations, destinationValueKey: ((Any) -> String)?) {
         self.navController = navController
         self.destinations = destinations
+        self.destinationValueKey = destinationValueKey
         updateDestinationIndexes()
     }
 
@@ -640,8 +651,18 @@ struct NavigationDestination {
         } else if let navigationPath {
             navigationPath.wrappedValue.append(targetValue)
         } else {
-            let _ = navigate(to: targetValue, type: type(of: targetValue))
+            navigate(toKeyed: targetValue)
         }
+    }
+
+    private func navigate(toKeyed targetValue: Any) {
+        let key: AnyHashable
+        if let destinationValueKey {
+            key = destinationValueKey(targetValue)
+        } else {
+            key = type(of: targetValue)
+        }
+        let _ = navigate(toKeyed: targetValue, key: key)
     }
 
     /// Navigate to a destination view.
@@ -797,24 +818,26 @@ struct NavigationDestination {
         }
         // Navigate to any new path values
         for i in pathIndex..<path.count {
-            let _ = navigate(to: path[i], type: type(of: path[i]))
+            let _ = navigate(toKeyed: path[i])
         }
     }
 
-    private func navigate(to targetValue: Any, type: Any.Type?) -> Bool {
-        guard let type else {
+    private func navigate(toKeyed targetValue: Any, key: AnyHashable?) -> Bool {
+        guard let key else {
             return false
         }
-        guard let destination = destinations[type] else {
-            for supertype in type.superclasses {
-                if navigate(to: targetValue, type: supertype as? Any.Type) {
-                    return true
+        guard let destination = destinations[key] else {
+            if let type = key as? Any.Type {
+                for supertype in type.superclasses {
+                    if navigate(toKeyed: targetValue, key: supertype) {
+                        return true
+                    }
                 }
             }
             return false
         }
 
-        let route = route(for: type, value: targetValue)
+        let route = route(for: key, value: targetValue)
         navigate(route: route, destination: destination.destination, targetValue: targetValue)
         return true
     }
@@ -837,9 +860,9 @@ struct NavigationDestination {
         return entry.id
     }
 
-    private func route(for targetType: Any.Type, value: Any) -> String {
-        guard let index = destinationIndexes[targetType] else {
-            return String(describing: targetType) + "?"
+    private func route(for key: AnyHashable, value: Any) -> String {
+        guard let index = destinationIndexes[key] else {
+            return String(describing: key) + "?"
         }
         // Escape '/' because it is meaningful in navigation routes
         var valueString = composeBundleString(for: value)
@@ -848,9 +871,9 @@ struct NavigationDestination {
     }
 
     private func updateDestinationIndexes() {
-        for type in destinations.keys {
-            if destinationIndexes[type] == nil {
-                destinationIndexes[type] = destinationIndexes.count
+        for key in destinations.keys {
+            if destinationIndexes[key] == nil {
+                destinationIndexes[key] = destinationIndexes.count
             }
         }
     }
@@ -871,16 +894,17 @@ public struct NavigationSplitViewStyle: RawRepresentable, Equatable {
     public static var prominentDetail = NavigationSplitViewStyle(rawValue: 2)
 }
 
-public struct NavigationBarItem : Hashable, Sendable {
-    public enum TitleDisplayMode : Equatable, Sendable {
-        case automatic
-        case inline
-        case large
+public struct NavigationBarItem : Hashable {
+    public enum TitleDisplayMode : Int, Equatable {
+        case automatic = 0 // For bridging
+        case inline = 1 // For bridging
+        case large = 2 // For bridging
     }
 }
 
 extension View {
-    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> some View {
+    // SKIP @bridge
+    public func navigationBarBackButtonHidden(_ hidesBackButton: Bool = true) -> any View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(backButtonHidden: hidesBackButton))
         #else
@@ -888,7 +912,7 @@ extension View {
         #endif
     }
 
-    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> some View {
+    public func navigationBarTitleDisplayMode(_ displayMode: NavigationBarItem.TitleDisplayMode) -> any View {
         #if SKIP
         let toolbarTitleDisplayMode: ToolbarTitleDisplayMode
         switch displayMode {
@@ -905,7 +929,12 @@ extension View {
         #endif
     }
 
-    public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D: Any {
+    // SKIP @bridge
+    public func navigationBarTitleDisplayMode(bridgedDisplayMode: Int) -> any View {
+        return navigationBarTitleDisplayMode(NavigationBarItem.TitleDisplayMode(rawValue: bridgedDisplayMode) ?? NavigationBarItem.TitleDisplayMode.automatic)
+    }
+
+    public func navigationDestination<D>(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> any View where D: Any {
         #if SKIP
         let destinations: NavigationDestinations = [data: NavigationDestination(destination: { destination($0 as! D) })]
         return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
@@ -914,7 +943,17 @@ extension View {
         #endif
     }
 
-    public func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination: () -> any View) -> some View {
+    // SKIP @bridge
+    public func navigationDestination(destinationKey: String, bridgedDestination: @escaping (Any) -> any View) -> any View {
+        #if SKIP
+        let destinations: NavigationDestinations = [destinationKey: NavigationDestination(destination: { bridgedDestination($0) })]
+        return preference(key: NavigationDestinationsPreferenceKey.self, value: destinations)
+        #else
+        return self
+        #endif
+    }
+
+    public func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination: () -> any View) -> any View {
         #if SKIP
         let destinationView = ComposeBuilder.from(destination)
         return ComposeModifierView(targetView: self) { context in
@@ -937,6 +976,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func navigationDestination(getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, bridgedDestination: any View) -> any View {
+        return navigationDestination(isPresented: Binding(get: getIsPresented, set: setIsPresented), destination: { bridgedDestination })
     }
 
     @available(*, unavailable)
@@ -964,7 +1008,8 @@ extension View {
         return self
     }
 
-    public func navigationTitle(_ title: Text) -> some View {
+    // SKIP @bridge
+    public func navigationTitle(_ title: Text) -> any View {
         #if SKIP
         return preference(key: NavigationTitlePreferenceKey.self, value: title)
         #else
@@ -1111,9 +1156,9 @@ public struct NavigationLink : View, ListItemAdapting {
     }
 
     // SKIP @bridge
-    public init(bridgedDestination: any View, bridgedLabel: any View) {
-        self.value = nil
-        self.destination = ComposeBuilder.from { bridgedDestination }
+    public init(bridgedDestination: (any View)?, value: Any?, bridgedLabel: any View) {
+        self.destination = bridgedDestination == nil ? nil : ComposeBuilder.from { bridgedDestination! }
+        self.value = value
         self.label = ComposeBuilder.from { bridgedLabel }
     }
 

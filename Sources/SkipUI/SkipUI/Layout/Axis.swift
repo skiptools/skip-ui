@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum Axis : Int, Hashable, CaseIterable, Sendable {
+public enum Axis : Int, Hashable, CaseIterable {
     case horizontal = 1
     case vertical = 2
 
-    public struct Set : OptionSet, Hashable, Sendable {
+    public struct Set : OptionSet, Hashable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

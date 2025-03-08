@@ -121,7 +121,7 @@ public struct WindowGroup : Scene {
     //    }
 }
 
-public enum WindowResizability : Sendable {
+public enum WindowResizability {
     case automatic
     case contentSize
     case contentMinSize

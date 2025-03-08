@@ -732,39 +732,40 @@ public struct ListStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = ListStyle(rawValue: 0)
+    public static let automatic = ListStyle(rawValue: 0) // For bridging
 
     @available(*, unavailable)
-    public static let sidebar = ListStyle(rawValue: 1)
+    public static let sidebar = ListStyle(rawValue: 1) // For bridging
 
     @available(*, unavailable)
-    public static let insetGrouped = ListStyle(rawValue: 2)
+    public static let insetGrouped = ListStyle(rawValue: 2) // For bridging
 
     @available(*, unavailable)
-    public static let grouped = ListStyle(rawValue: 3)
+    public static let grouped = ListStyle(rawValue: 3) // For bridging
 
     @available(*, unavailable)
-    public static let inset = ListStyle(rawValue: 4)
+    public static let inset = ListStyle(rawValue: 4) // For bridging
 
-    public static let plain = ListStyle(rawValue: 5)
+    public static let plain = ListStyle(rawValue: 5) // For bridging
 }
 
-public enum ListItemTint : Sendable {
+public enum ListItemTint {
     case fixed(Color)
     case preferred(Color)
     case monochrome
 }
 
-public enum ListSectionSpacing : Sendable {
+public enum ListSectionSpacing {
     case `default`
     case compact
     case custom(CGFloat)
 }
 
 extension View {
-    public func listRowBackground(_ view: Any?) -> some View {
+    // SKIP @bridge
+    public func listRowBackground(_ view: (any View)?) -> any View {
         #if SKIP
-        return ListItemModifierView(view: self, background: view as! View?)
+        return ListItemModifierView(view: self, background: view)
         #else
         return self
         #endif
@@ -776,6 +777,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func listRowSeparator(bridgedVisibility: Int, bridgedEdges: Int) -> any View {
+        return listRowSeparator(Visibility(rawValue: bridgedVisibility) ?? .automatic, edges: VerticalEdge.Set(rawValue: bridgedEdges))
     }
 
     @available(*, unavailable)
@@ -801,7 +807,13 @@ extension View {
         #endif
     }
 
-    public func listItemTint(_ tint: Color?) -> some View {
+    // SKIP @bridge
+    public func listStyle(bridgedStyle: Int) -> any View {
+        return listStyle(ListStyle(rawValue: bridgedStyle))
+    }
+
+    // SKIP @bridge
+    public func listItemTint(_ tint: Color?) -> any View {
         #if SKIP
         return environment(\._listItemTint, tint)
         #else

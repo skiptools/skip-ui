@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum EditMode : Hashable, Sendable {
+public enum EditMode : Hashable {
     case inactive
     case transient
     case active

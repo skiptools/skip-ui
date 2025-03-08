@@ -75,7 +75,7 @@ extension Transition {
     #endif
 }
 
-public struct ContentTransition : RawRepresentable, Equatable, Sendable {
+public struct ContentTransition : RawRepresentable, Equatable {
     public let rawValue: Int
     public init(rawValue: Int) {
         self.rawValue = rawValue
@@ -156,7 +156,7 @@ public struct AnyTransition {
     }
 }
 
-public enum TransitionPhase: Hashable, Sendable {
+public enum TransitionPhase: Hashable {
     case willAppear
     case identity
     case didDisappear
@@ -177,7 +177,7 @@ public enum TransitionPhase: Hashable, Sendable {
     }
 }
 
-public struct TransitionProperties : Sendable {
+public struct TransitionProperties {
     public let hasMotion: Bool
 
     public init(hasMotion: Bool = true) {

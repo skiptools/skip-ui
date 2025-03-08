@@ -156,7 +156,7 @@ struct PreferenceNode<Value>: Equatable {
 #endif
 
 extension View {
-    public func preference(key: Any.Type, value: Any) -> some View {
+    public func preference(key: Any.Type, value: Any) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             PreferenceValues.shared.contribute(context: $0, key: key, value: value)

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum ColorRenderingMode : Hashable, Sendable {
+public enum ColorRenderingMode : Hashable {
     case nonLinear
     case linear
     case extendedLinear

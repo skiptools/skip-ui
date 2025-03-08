@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
-public struct EdgeInsets : Equatable, Sendable {
+public struct EdgeInsets : Equatable {
     public var top: CGFloat
     public var leading: CGFloat
     public var bottom: CGFloat

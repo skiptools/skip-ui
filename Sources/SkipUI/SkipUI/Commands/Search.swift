@@ -69,7 +69,7 @@ extension View {
     }
 }
 
-public struct SearchFieldPlacement : RawRepresentable, Sendable {
+public struct SearchFieldPlacement : RawRepresentable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -92,7 +92,7 @@ public struct SearchFieldPlacement : RawRepresentable, Sendable {
         return SearchFieldPlacement(rawValue: 4)
     }
 
-    public enum NavigationBarDrawerDisplayMode : Sendable {
+    public enum NavigationBarDrawerDisplayMode {
         case automatic
         case always
     }
