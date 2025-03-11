@@ -10,7 +10,7 @@ public protocol Scene {
 
 extension Scene {
     @available(*, unavailable)
-    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping @Sendable (D) async -> R) -> some Scene /* where D : Sendable, R : Sendable */ {
+    public func backgroundTask<D, R>(_ task: BackgroundTask<D, R>, action: @escaping (D) async -> R) -> some Scene /* where D : Sendable, R : Sendable */ {
         return self
     }
 
@@ -70,7 +70,7 @@ extension Scene {
     }
 }
 
-public struct ScenePadding : Equatable, Sendable {
+public struct ScenePadding : Equatable {
     public static let minimum = ScenePadding()
 }
 
@@ -86,7 +86,7 @@ extension View {
     }
 }
 
-public enum ScenePhase : Int, Comparable, Hashable, Sendable {
+public enum ScenePhase : Int, Comparable, Hashable {
     case background
     case inactive
     case active

@@ -101,7 +101,7 @@ extension Gesture {
 public struct DragGesture : Gesture {
     public typealias V = DragGesture.Value
 
-    public struct Value : Equatable, Sendable {
+    public struct Value : Equatable {
         public var time: Date
         public var location: CGPoint
         public var startLocation: CGPoint
@@ -147,7 +147,7 @@ public struct LongPressGesture : Gesture {
 public struct MagnifyGesture : Gesture {
     public typealias V = MagnifyGesture.Value
 
-    public struct Value : Equatable, Sendable {
+    public struct Value : Equatable {
         public var time: Date
         public var magnification: CGFloat
         public var velocity: CGFloat
@@ -166,7 +166,7 @@ public struct MagnifyGesture : Gesture {
 public struct RotateGesture : Gesture {
     public typealias V = RotateGesture.Value
 
-    public struct Value : Equatable, Sendable {
+    public struct Value : Equatable {
         public var time: Date
         public var rotation: Angle
         public var velocity: Angle
@@ -198,7 +198,7 @@ public struct SpatialEventGesture : Gesture {
 public struct SpatialTapGesture : Gesture {
     public typealias V = SpatialTapGesture.Value
 
-    public struct Value : Equatable, Sendable {
+    public struct Value : Equatable {
         public var location: CGPoint
     }
 
@@ -212,7 +212,7 @@ public struct SpatialTapGesture : Gesture {
     }
 }
 
-public struct GestureMask : OptionSet, Sendable {
+public struct GestureMask : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

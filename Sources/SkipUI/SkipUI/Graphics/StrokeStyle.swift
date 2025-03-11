@@ -11,11 +11,11 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
-public enum CGLineCap : Int, Sendable {
+public enum CGLineCap : Int {
     case butt, round, square
 
 }
-public enum CGLineJoin : Int, Sendable {
+public enum CGLineJoin : Int {
     case miter, round, bevel
 }
 #elseif canImport(CoreGraphics)
@@ -24,7 +24,7 @@ import enum CoreGraphics.CGLineCap
 import enum CoreGraphics.CGLineJoin
 #endif
 
-public struct StrokeStyle : Equatable, Sendable {
+public struct StrokeStyle : Equatable {
     public var lineWidth: CGFloat
     public var lineCap: CGLineCap
     public var lineJoin: CGLineJoin

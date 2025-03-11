@@ -66,7 +66,7 @@ open class UIImpactFeedbackGenerator : UIFeedbackGenerator {
         impactOccurred(intensity: intensity)
     }
 
-    public enum FeedbackStyle : Int, @unchecked Sendable {
+    public enum FeedbackStyle : Int {
         case light = 0
         case medium = 1
         case heavy = 2
@@ -113,7 +113,7 @@ open class UINotificationFeedbackGenerator : UIFeedbackGenerator {
         notificationOccurred(notificationType)
     }
 
-    public enum FeedbackType : Int, @unchecked Sendable {
+    public enum FeedbackType : Int {
         case success = 0
         case warning = 1
         case error = 2

@@ -9,7 +9,7 @@ import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.TweenSpec
 #endif
 
-public struct Spring : Hashable, Sendable {
+public struct Spring : Hashable {
     #if SKIP
     private let animationSpec: AnimationSpec<Any>
 
@@ -109,7 +109,7 @@ public struct Spring : Hashable, Sendable {
     }
 }
 
-public enum SpringLoadingBehavior : Hashable, Sendable {
+public enum SpringLoadingBehavior : Hashable {
     case automatic
     case enabled
     case disabled

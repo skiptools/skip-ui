@@ -413,7 +413,7 @@ extension View {
     }
 }
 
-public struct AccessibilityActionKind : Equatable, Sendable {
+public struct AccessibilityActionKind : Equatable {
     public static let `default` = AccessibilityActionKind()
     public static let escape = AccessibilityActionKind()
     public static let magicTap = AccessibilityActionKind()
@@ -425,7 +425,7 @@ public struct AccessibilityActionKind : Equatable, Sendable {
     }
 }
 
-public enum AccessibilityAdjustmentDirection : Hashable, Sendable {
+public enum AccessibilityAdjustmentDirection : Hashable {
     case increment
     case decrement
 }
@@ -445,7 +445,7 @@ public struct AccessibilityCustomContentKey : Equatable {
     }
 }
 
-public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
+public struct AccessibilityDirectTouchOptions : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -507,7 +507,7 @@ public struct AccessibilityRotorEntry<ID>: AccessibilityRotorContent where ID : 
     }
 }
 
-public struct AccessibilitySystemRotor : Sendable {
+public struct AccessibilitySystemRotor {
     public static func links(visited: Bool) -> AccessibilitySystemRotor {
         return AccessibilitySystemRotor()
     }
@@ -530,7 +530,7 @@ public struct AccessibilitySystemRotor : Sendable {
     public static let landmarks = AccessibilitySystemRotor()
 }
 
-public struct AccessibilityTechnologies : OptionSet, Sendable {
+public struct AccessibilityTechnologies : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -541,11 +541,11 @@ public struct AccessibilityTechnologies : OptionSet, Sendable {
     public static let switchControl = AccessibilityTechnologies(rawValue: 2)
 }
 
-public enum AccessibilityTextContentType : Sendable {
+public enum AccessibilityTextContentType {
     case plain, console, fileSystem, messaging, narrative, sourceCode, spreadsheet, wordProcessing
 }
 
-public struct AccessibilityTraits : OptionSet, Sendable {
+public struct AccessibilityTraits : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

@@ -92,7 +92,7 @@ final class AnimationHolder {
 }
 #endif
 
-public struct Animation : Hashable, Sendable {
+public struct Animation : Hashable {
     #if SKIP
     /// The current active animation, whether from the environment via `animation` or from `withAnimation`.
     @Composable static func current(isAnimating: Bool) -> Animation? {
@@ -392,7 +392,7 @@ public struct Animation : Hashable, Sendable {
     }
 }
 
-public enum AnimationCompletionCriteria : Hashable, Sendable {
+public enum AnimationCompletionCriteria : Hashable {
     case logicallyComplete
     case removed
 }

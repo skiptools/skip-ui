@@ -5,7 +5,7 @@
 import android.os.VibrationEffect
 #endif
 
-public struct SensoryFeedback : RawRepresentable, Equatable, Sendable {
+public struct SensoryFeedback : RawRepresentable, Equatable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -34,13 +34,13 @@ public struct SensoryFeedback : RawRepresentable, Equatable, Sendable {
         fatalError()
     }
 
-    public enum Weight : Equatable, Sendable {
+    public enum Weight : Equatable {
         case light
         case medium
         case heavy
     }
 
-    public enum Flexibility : Equatable, Sendable {
+    public enum Flexibility : Equatable {
         case rigid
         case solid
         case soft

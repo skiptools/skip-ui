@@ -106,7 +106,7 @@ public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
     #endif
 }
 
-public enum ToolbarCustomizationBehavior : Sendable {
+public enum ToolbarCustomizationBehavior {
     case `default`
     case reorderable
     case disabled
@@ -137,7 +137,7 @@ public enum ToolbarPlacement: Equatable {
     case tabBar
 }
 
-public enum ToolbarRole : Sendable {
+public enum ToolbarRole {
     case automatic
     case navigationStack
     case browser
@@ -151,7 +151,7 @@ public enum ToolbarTitleDisplayMode {
     case inline
 }
 
-public struct ToolbarCustomizationOptions : OptionSet, Sendable {
+public struct ToolbarCustomizationOptions : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

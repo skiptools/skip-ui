@@ -97,7 +97,7 @@ public struct Font : Hashable {
     }
     #endif
 
-    public enum TextStyle : Int, CaseIterable, Hashable, Sendable {
+    public enum TextStyle : Int, CaseIterable, Hashable {
         case largeTitle = 0 // For bridging
         case title = 1 // For bridging
         case title2 = 2 // For bridging
@@ -355,7 +355,7 @@ public struct Font : Hashable {
         fatalError()
     }
 
-    public struct Weight : Hashable, Sendable {
+    public struct Weight : Hashable {
         let value: Int
         public static let ultraLight = Weight(value: -3) // For bridging (-0.8)
         public static let thin = Weight(value: -2) // For bridging (-0.6)
@@ -368,7 +368,7 @@ public struct Font : Hashable {
         public static let black = Weight(value: 5) // For bridging (0.62)
     }
 
-    public struct Width : Hashable, Sendable {
+    public struct Width : Hashable {
         public var value: CGFloat
 
         public init(_ value: CGFloat) {
@@ -381,13 +381,13 @@ public struct Font : Hashable {
         public static let expanded = Width(1.2)
     }
 
-    public enum Leading : Hashable, Sendable {
+    public enum Leading : Hashable {
         case standard
         case tight
         case loose
     }
 
-    public enum Design : Int, Hashable, Sendable {
+    public enum Design : Int, Hashable {
         case `default` = 0 // For bridging
         case serif = 1 // For bridging
         case rounded = 2 // For bridging
@@ -412,7 +412,7 @@ public struct Font : Hashable {
     #endif
 }
 
-public enum LegibilityWeight : Hashable, Sendable {
+public enum LegibilityWeight : Hashable {
     case regular
     case bold
 }

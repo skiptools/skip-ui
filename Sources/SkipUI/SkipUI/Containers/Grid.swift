@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
-public struct GridItem : Sendable {
-    public enum Size : Sendable {
+public struct GridItem {
+    public enum Size {
         case fixed(CGFloat)
         case flexible(minimum: CGFloat = 10.0, maximum: CGFloat = .infinity)
         case adaptive(minimum: CGFloat, maximum: CGFloat = .infinity)
