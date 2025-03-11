@@ -607,6 +607,11 @@ private struct ColorSet : Decodable {
         let alpha: String?
 
         var color: Color {
+            // Note that colors might be in the form of "0xAB" hex or non-decimal "255" numbers,
+            // corresponding to the "Input Method" menu in the Xcode colorset asset.
+            // These seem to be no metadata indicating the input method, other than looking at
+            // the value and seeing whether it starts with "0x" (hex) or contains a dot (float)
+            // See: https://github.com/skiptools/skip-ui/issues/146
             let redValue = Double(red ?? "") ?? 0.0
             let greenValue = Double(green ?? "") ?? 0.0
             let blueValue = Double(blue ?? "") ?? 0.0
