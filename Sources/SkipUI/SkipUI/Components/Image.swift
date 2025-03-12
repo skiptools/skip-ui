@@ -450,7 +450,8 @@ public struct Image : View, Equatable {
         case "gearshape": return "Icons.Outlined.Settings" //􀣋
         case "square.and.arrow.up": return "Icons.Outlined.Share" //􀈂
         case "cart": return "Icons.Outlined.ShoppingCart" //􀍩
-        case "star": return "Icons.Outlined.Star" //􀋃
+        // #148 Icons.Outlined.Star is not actually outlined!
+        // case "star": return "Icons.Outlined.Star" //􀋃
         case "hand.thumbsup": return "Icons.Outlined.ThumbUp" //􀉿
         case "exclamationmark.triangle": return "Icons.Outlined.Warning" //􀇿
 
