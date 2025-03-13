@@ -773,7 +773,7 @@ struct NavigationDestination {
             pathIndex += 1
             backStackIndex += 1
         }
-        
+
         // If we exhausted the path and the back stack contains only post-path views, keep them in place. This allows
         // users to have a path binding but then append arbitrary views as leaves
         var hasOnlyTrailingViews = false
@@ -1148,7 +1148,7 @@ public struct NavigationLink : View, ListItemAdapting {
         return (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled
     }
 
-    @Composable private func navigationAction() -> () -> Void {
+    @Composable internal func navigationAction() -> () -> Void {
         let navigator = LocalNavigator.current
         return {
             // Hack to prevent multiple quick taps from pushing duplicate entries
