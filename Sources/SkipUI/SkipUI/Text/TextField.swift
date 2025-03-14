@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -80,7 +81,7 @@ public struct TextField : View {
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
         let colors = Self.colors(styleInfo: styleInfo)
-        let keyboardOptions = EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
+		let keyboardOptions = isSecure ? KeyboardOptions(keyboardType = KeyboardType.Password) : EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
 
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
