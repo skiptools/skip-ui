@@ -81,7 +81,7 @@ public struct TextField : View {
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
         let colors = Self.colors(styleInfo: styleInfo)
-		let keyboardOptions = isSecure ? KeyboardOptions(keyboardType = KeyboardType.Password) : EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
+        let keyboardOptions = isSecure ? KeyboardOptions(keyboardType = KeyboardType.Password) : EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
 
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
