@@ -30,6 +30,7 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
+// SKIP @bridge
 public struct ScrollView : View {
     let content: ComposeBuilder
     let axes: Axis.Set
@@ -37,6 +38,12 @@ public struct ScrollView : View {
     public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> any View) {
         self.axes = axes
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(bridgedAxes: Int, bridgedContent: any View) {
+        self.axes = Axis.Set(rawValue: bridgedAxes)
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
@@ -131,6 +138,7 @@ public struct ScrollView : View {
     #endif
 }
 
+// SKIP @bridge
 public struct ScrollViewProxy {
     #if SKIP
     let scrollToID: (Any) -> Void
@@ -142,12 +150,25 @@ public struct ScrollViewProxy {
         scrollToID(id)
         #endif
     }
+
+    // SKIP @bridge
+    public func scrollTo(bridgedID: Any, anchorX: CGFloat?, anchorY: CGFloat?) {
+        let anchor: UnitPoint?
+        if let anchorX, let anchorY {
+            anchor = UnitPoint(x: anchorX, y: anchorY)
+        } else {
+            anchor = nil
+        }
+        scrollTo(bridgedID, anchor: anchor)
+    }
 }
 
-public struct ScrollViewReader<Content> : View where Content : View {
-    public let content: (ScrollViewProxy) -> Content
+// SKIP @bridge
+public struct ScrollViewReader : View {
+    public let content: (ScrollViewProxy) -> any View
 
-    public init(@ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
+    // SKIP @bridge
+    public init(@ViewBuilder content: @escaping (ScrollViewProxy) -> any View) {
         self.content = content
     }
 
@@ -274,12 +295,17 @@ extension View {
         return self
     }
 
-    public func scrollContentBackground(_ visibility: Visibility) -> some View {
+    public func scrollContentBackground(_ visibility: Visibility) -> any View {
         #if SKIP
         return environment(\._scrollContentBackground, visibility)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func scrollContentBackground(bridgedVisibility: Int) -> any View {
+        return scrollContentBackground(Visibility(rawValue: bridgedVisibility) ?? .automatic)
     }
 
     @available(*, unavailable)
@@ -322,7 +348,8 @@ extension View {
         return self
     }
 
-    public func scrollTargetBehavior(_ behavior: some ScrollTargetBehavior) -> some View {
+    // SKIP @bridge
+    public func scrollTargetBehavior(_ behavior: any ScrollTargetBehavior) -> any View {
         #if SKIP
         return environment(\._scrollTargetBehavior, behavior)
         #else
@@ -330,7 +357,8 @@ extension View {
         #endif
     }
 
-    public func scrollTargetLayout(isEnabled: Bool = true) -> some View {
+    // SKIP @bridge
+    public func scrollTargetLayout(isEnabled: Bool = true) -> any View {
         // We do not support specifying scroll targets, but we want the natural pattern of using this modifier
         // on the VStack/HStack content of a ScrollView to work without #if SKIP-ing it out
         return self
@@ -339,7 +367,8 @@ extension View {
 
 // MARK: ScrollTargetBehavior
 
-public protocol ScrollTargetBehavior: Equatable {
+// SKIP @bridge
+public protocol ScrollTargetBehavior {
 }
 
 public struct PagingScrollTargetBehavior: ScrollTargetBehavior {
@@ -355,14 +384,23 @@ extension ScrollTargetBehavior where Self == PagingScrollTargetBehavior {
     }
 }
 
+// SKIP @bridge
 public struct ViewAlignedScrollTargetBehavior: ScrollTargetBehavior {
-    public init() {
+    public init(limitBehavior: LimitBehavior = .automatic) {
+        // Note: we currently ignore the limit behavior
     }
 
-    public enum LimitBehavior {
-        case automatic
-        case always
-        case never
+    // SKIP @bridge
+    public init(bridgedLimitBehavior: Int) {
+        // Note: we currently ignore the limit behavior
+    }
+
+    public enum LimitBehavior : Int {
+        case automatic = 0 // For bridging
+        case always = 1 // For bridging
+        case never = 2 // For bridging
+        case alwaysByFew = 3 // For bridging
+        case alwaysByOne = 4 // For bridging
     }
 }
 
@@ -372,8 +410,7 @@ extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
     }
 
     public static func viewAligned(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior) -> ViewAlignedScrollTargetBehavior {
-        // Note: we currently ignore the limit behavior
-        return ViewAlignedScrollTargetBehavior()
+        return ViewAlignedScrollTargetBehavior(limitBehavior: limitBehavior)
     }
 }
 

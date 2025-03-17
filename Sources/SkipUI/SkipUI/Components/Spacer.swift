@@ -11,9 +11,11 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct Spacer : View {
     private let minLength: CGFloat?
 
+    // SKIP @bridge
     public init(minLength: CGFloat? = nil) {
         self.minLength = minLength
     }

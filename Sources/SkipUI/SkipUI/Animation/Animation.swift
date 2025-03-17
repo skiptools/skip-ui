@@ -48,7 +48,8 @@ public func withAnimation<Result>(_ animation: Animation? = .default, completion
 }
 
 extension View {
-    public func animation(_ animation: Animation?, value: Any?) -> some View {
+    // SKIP @bridge
+    public func animation(_ animation: Animation?, value: Any?) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Any?, Any>) { mutableStateOf(value) }
@@ -92,7 +93,41 @@ final class AnimationHolder {
 }
 #endif
 
+// SKIP @bridge
 public struct Animation : Hashable {
+    // SKIP @bridge
+    public static func preBodyWithAnimation(_ animation: Animation?) -> Bool {
+        #if SKIP
+        // SwiftUI's withAnimation works as if by snapshotting the view tree at the beginning of the block,
+        // snapshotting again at the end fo the block, and animating the difference with the given animation.
+        // We don't have the ability to snapshot. Instead, we run the given body, which should trigger a
+        // recompose. We set a global animation instance that animatable properties check via `current()`
+        // so that the recompose will begin animations. We then wait for the next frame and unset the global.
+        // Note that we cannot properly handle `withAnimation` nesting with different animations; instead
+        // the last set animation wins
+        var isNested = false
+        synchronized (withAnimationLock) {
+            isNested = _withAnimation != nil
+            _withAnimation = animation
+        }
+        return isNested
+        #else
+        return false
+        #endif
+    }
+
+    // SKIP @bridge
+    public static func postBodyWithAnimation() {
+        #if SKIP
+        GlobalScope.async(Dispatchers.Main) {
+            awaitFrame()
+            synchronized (withAnimationLock) {
+                _withAnimation = nil
+            }
+        }
+        #endif
+    }
+
     #if SKIP
     /// The current active animation, whether from the environment via `animation` or from `withAnimation`.
     @Composable static func current(isAnimating: Bool) -> Animation? {
@@ -124,26 +159,10 @@ public struct Animation : Hashable {
 
     /// Internal implementation of global `withAnimation` SwiftUI function.
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
-        // SwiftUI's withAnimation works as if by snapshotting the view tree at the beginning of the block,
-        // snapshotting again at the end fo the block, and animating the difference with the given animation.
-        // We don't have the ability to snapshot. Instead, we run the given body, which should trigger a
-        // recompose. We set a global animation instance that animatable properties check via `current()`
-        // so that the recompose will begin animations. We then wait for the next frame and unset the global.
-        // Note that we cannot properly handle `withAnimation` nesting with different animations; instead
-        // the last set animation wins
-        var isNested = false
-        synchronized (withAnimationLock) {
-            isNested = _withAnimation != nil
-            _withAnimation = animation
-        }
+        let isNested = preBodyWithAnimation(animation)
         defer {
-            if !isNested {
-                GlobalScope.async(Dispatchers.Main) {
-                    awaitFrame()
-                    synchronized (withAnimationLock) {
-                        _withAnimation = nil
-                    }
-                }
+            if isNested {
+                postBodyWithAnimation()
             }
         }
         return body()
@@ -169,6 +188,7 @@ public struct Animation : Hashable {
     }
     #endif
 
+    // SKIP @bridge
     public static func spring(duration: TimeInterval = 0.5, bounce: Double = 0.0, blendDuration: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring(duration: duration, bounce: bounce).asAnimationSpec())
@@ -177,6 +197,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static func spring(response: Double = 0.5, dampingFraction: Double = 0.825, blendDuration: TimeInterval = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring(response: response, dampingRatio: dampingFraction).asAnimationSpec())
@@ -185,18 +206,22 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var spring: Animation {
         return spring(response: 0.5, dampingFraction: 0.825)
     }
 
+    // SKIP @bridge
     public static func interactiveSpring(response: Double = 0.15, dampingFraction: Double = 0.86, blendDuration: TimeInterval = 0.25) -> Animation {
         return spring(response: response, dampingFraction: dampingFraction, blendDuration: blendDuration)
     }
 
+    // SKIP @bridge
     public static var interactiveSpring: Animation {
         return interactiveSpring(response: 0.15, dampingFraction: 0.86)
     }
 
+    // SKIP @bridge
     public static func interactiveSpring(duration: TimeInterval = 0.15, extraBounce: Double = 0.0, blendDuration: TimeInterval = 0.25) -> Animation {
         #if SKIP
         return spring(duration: duration, bounce: extraBounce, blendDuration: blendDuration)
@@ -205,10 +230,12 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var smooth: Animation {
         return smooth(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring.smooth(duration: duration, extraBounce: extraBounce).asAnimationSpec())
@@ -217,10 +244,12 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var snappy: Animation {
         return snappy(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring.snappy(duration: duration, extraBounce: extraBounce).asAnimationSpec())
@@ -229,10 +258,12 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var bouncy: Animation {
         return bouncy(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring.bouncy(duration: duration, extraBounce: extraBounce).asAnimationSpec())
@@ -241,6 +272,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static func spring(_ spring: Spring, blendDuration: TimeInterval = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: spring.asAnimationSpec())
@@ -249,6 +281,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static func interpolatingSpring(_ spring: Spring, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: spring.asAnimationSpec())
@@ -265,50 +298,61 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var `default`: Animation {
         // WARNING: Android can't repeat non-duration-based animations, so changing the default to a spring would
         // prevent default repeatable animations
         return timingCurve(UnitCurve.easeInOut, duration: defaultAnimationDuration)
     }
 
+    // SKIP @bridge
     public static func easeInOut(duration: TimeInterval) -> Animation {
         return timingCurve(UnitCurve.easeInOut, duration: duration)
     }
 
+    // SKIP @bridge
     public static var easeInOut: Animation {
         return easeInOut(duration: defaultAnimationDuration)
     }
 
+    // SKIP @bridge
     public static func easeIn(duration: TimeInterval) -> Animation {
         return timingCurve(UnitCurve.easeIn, duration: duration)
     }
 
+    // SKIP @bridge
     public static var easeIn: Animation {
         return easeIn(duration: defaultAnimationDuration)
     }
 
+    // SKIP @bridge
     public static func easeOut(duration: TimeInterval) -> Animation {
         return timingCurve(UnitCurve.easeOut, duration: duration)
     }
 
+    // SKIP @bridge
     public static var easeOut: Animation {
         return easeOut(duration: defaultAnimationDuration)
     }
 
+    // SKIP @bridge
     public static func linear(duration: TimeInterval) -> Animation {
         return timingCurve(UnitCurve.linear, duration: duration)
     }
 
+    // SKIP @bridge
     public static var linear: Animation {
         return linear(duration: defaultAnimationDuration)
     }
 
+    // SKIP @bridge
     public static func timingCurve(_ p1x: Double, _ p1y: Double, _ p2x: Double, _ p2y: Double, duration: TimeInterval = 0.35) -> Animation {
         let p1 = UnitPoint(x: p1x, y: p1y)
         let p2 = UnitPoint(x: p2x, y: p2y)
         return timingCurve(UnitCurve(startControlPoint: p1, endControlPoint: p2), duration: duration)
     }
 
+    // SKIP @bridge
     public static func interpolatingSpring(mass: Double = 1.0, stiffness: Double, damping: Double, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring(mass: mass, stiffness: stiffness, damping: damping).asAnimationSpec())
@@ -317,6 +361,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static func interpolatingSpring(duration: TimeInterval = 0.5, bounce: Double = 0.0, initialVelocity: Double = 0.0) -> Animation {
         #if SKIP
         return Animation(spec: Spring(duration: duration, bounce: bounce).asAnimationSpec())
@@ -325,14 +370,17 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public static var interpolatingSpring: Animation {
         return interpolatingSpring(duration: 0.5, bounce: 0.0, initialVelocity: 0.0)
     }
 
+    // SKIP @bridge
     public func logicallyComplete(after duration: TimeInterval) -> Animation {
         return self
     }
 
+    // SKIP @bridge
     public func delay(_ delay: TimeInterval) -> Animation {
         #if SKIP
         if let tweenSpec = spec as? TweenSpec<Any> {
@@ -349,6 +397,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public func speed(_ speed: Double) -> Animation {
         #if SKIP
         if let tweenSpec = spec as? TweenSpec<Any> {
@@ -367,6 +416,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public func repeatCount(_ repeatCount: Int, autoreverses: Bool = true) -> Animation {
         #if SKIP
         if let durationBasedSpec = spec as? DurationBasedAnimationSpec<Any> {
@@ -379,6 +429,7 @@ public struct Animation : Hashable {
         #endif
     }
 
+    // SKIP @bridge
     public func repeatForever(autoreverses: Bool = true) -> Animation {
         #if SKIP
         if let durationBasedSpec = spec as? DurationBasedAnimationSpec<Any> {

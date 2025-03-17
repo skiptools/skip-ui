@@ -9,6 +9,7 @@ import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.TweenSpec
 #endif
 
+// SKIP @bridge
 public struct Spring : Hashable {
     #if SKIP
     private let animationSpec: AnimationSpec<Any>
@@ -19,6 +20,7 @@ public struct Spring : Hashable {
     }
     #endif
 
+    // SKIP @bridge
     public init(duration: TimeInterval = 0.5, bounce: Double = 0.0) {
         #if SKIP
         animationSpec = TweenSpec(durationMillis: Int(duration * 1000.0), easing: EaseInOutBack)
@@ -35,6 +37,7 @@ public struct Spring : Hashable {
         return 0.0
     }
 
+    // SKIP @bridge
     public init(response: Double, dampingRatio: Double) {
         #if SKIP
         animationSpec = TweenSpec(durationMillis: Int(response * 1000.0), easing: EaseInOutBack)
@@ -51,6 +54,7 @@ public struct Spring : Hashable {
         return 0.0
     }
 
+    // SKIP @bridge
     public init(mass: Double = 1.0, stiffness: Double, damping: Double, allowOverDamping: Bool = false) {
         #if SKIP
         let dampingRatio = damping / (2.0 * sqrt(mass * stiffness))
@@ -73,6 +77,7 @@ public struct Spring : Hashable {
         return 0.0
     }
 
+    // SKIP @bridge
     public init(settlingDuration: TimeInterval, dampingRatio: Double, epsilon: Double = 0.001) {
         #if SKIP
         animationSpec = TweenSpec(durationMillis: Int(settlingDuration * 1000.0), easing: EaseInOutBack)
@@ -84,26 +89,32 @@ public struct Spring : Hashable {
         return 0.0
     }
 
+    // SKIP @bridge
     public static var smooth: Spring {
         return smooth(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func smooth(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         return Spring(duration: duration, bounce: extraBounce)
     }
 
+    // SKIP @bridge
     public static var snappy: Spring {
         return snappy(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func snappy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         return Spring(duration: duration, bounce: extraBounce)
     }
 
+    // SKIP @bridge
     public static var bouncy: Spring {
         return bouncy(duration: 0.5, extraBounce: 0.0)
     }
 
+    // SKIP @bridge
     public static func bouncy(duration: TimeInterval = 0.5, extraBounce: Double = 0.0) -> Spring {
         return Spring(duration: duration, bounce: extraBounce)
     }
