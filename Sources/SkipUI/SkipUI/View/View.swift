@@ -133,7 +133,7 @@ extension View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
     }
 
-    public func background(_ background: any View, alignment: Alignment = .center) -> some View {
+    public func background(_ background: any View, alignment: Alignment = .center) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             BackgroundLayout(view: view, context: context, background: background, alignment: alignment)
@@ -143,19 +143,24 @@ extension View {
         #endif
     }
 
-    public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+    public func background(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> any View {
         return background(content(), alignment: alignment)
+    }
+
+    // SKIP @bridge
+    public func background(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: any View) -> any View {
+        return background(alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)), content: { bridgedContent })
     }
 
     /// - Warning: The second argument here should default to `.all`. Our implementation is not yet sophisticated enough to auto-detect when it is
     ///     against a safe area boundary, so this would cause problems. Therefore we default to `[]` and rely on ther user to specify the edges.
-    public func background(ignoresSafeAreaEdges edges: Edge.Set = []) -> some View {
+    public func background(ignoresSafeAreaEdges edges: Edge.Set = []) -> any View {
         return self.background(BackgroundStyle.shared, ignoresSafeAreaEdges: edges)
     }
 
     /// - Warning: The second argument here should default to `.all`. Our implementation is not yet sophisticated enough to auto-detect when it is
     ///     against a safe area boundary, so this would cause problems. Therefore we default to `[]` and rely on ther user to specify the edges.
-    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = []) -> some View {
+    public func background(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = []) -> any View {
         #if SKIP
         if edges.isEmpty {
             return ComposeModifierView(targetView: self) {
@@ -176,15 +181,21 @@ extension View {
         #endif
     }
 
-    public func background(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+    // SKIP @bridge
+    public func background(_ style: any ShapeStyle, bridgedIgnoresSafeAreaEdges: Int) -> any View {
+        return background(style, ignoresSafeAreaEdges: Edge.Set(rawValue: bridgedIgnoresSafeAreaEdges))
+    }
+
+    public func background(in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> any View {
         return background(BackgroundStyle.shared, in: shape, fillStyle: fillStyle)
     }
 
-    public func background(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+    public func background(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> any View {
         return background(content: { shape.fill(style) })
     }
 
-    public func backgroundStyle(_ style: any ShapeStyle) -> some View {
+    // SKIP @bridge
+    public func backgroundStyle(_ style: any ShapeStyle) -> any View {
         #if SKIP
         return environment(\.backgroundStyle, style)
         #else
@@ -492,6 +503,11 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func frame(width: CGFloat?, height: CGFloat?, horizontalAlignmentKey: String, verticalAlignmentKey: String) -> any View {
+        return frame(width: width, height: height, alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)))
+    }
+
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
@@ -500,6 +516,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func frame(minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, horizontalAlignmentKey: String, verticalAlignmentKey: String) -> any View {
+        return frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)))
     }
 
     public func grayscale(_ amount: Double) -> some View {
@@ -859,6 +880,11 @@ extension View {
 
     public func padding(_ length: CGFloat? = nil) -> some View {
         return padding(.all, length)
+    }
+
+    // SKIP @bridge
+    public func padding(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat) -> any View {
+        return padding(EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing))
     }
 
     @available(*, unavailable)

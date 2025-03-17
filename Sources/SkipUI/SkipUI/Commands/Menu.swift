@@ -221,7 +221,7 @@ public struct MenuActionDismissBehavior: RawRepresentable, Equatable {
     public static let disabled = MenuActionDismissBehavior(rawValue: 1)
 }
 
-public struct MenuOrder: RawRepresentable, Equatable, Hashable, Sendable {
+public struct MenuOrder: RawRepresentable, Equatable, Hashable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

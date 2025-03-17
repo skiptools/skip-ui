@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public enum LayoutDirection : Hashable, CaseIterable, Sendable {
+public enum LayoutDirection : Hashable, CaseIterable {
     case leftToRight
     case rightToLeft
 }
 
-public enum LayoutDirectionBehavior : Hashable, Sendable {
+public enum LayoutDirectionBehavior : Hashable {
     case fixed
     case mirrors(in: LayoutDirection)
 

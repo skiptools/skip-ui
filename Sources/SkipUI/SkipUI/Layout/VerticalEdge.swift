@@ -3,10 +3,10 @@
 #if !SKIP_BRIDGE
 
 public enum VerticalEdge : Int, Hashable, CaseIterable, Codable {
-    case top = 1
-    case bottom = 2
+    case top = 1 // For bridging
+    case bottom = 2 // For bridging
 
-    public struct Set : OptionSet, Sendable {
+    public struct Set : OptionSet {
         public let rawValue: Int
 
         public init(rawValue: Int) {

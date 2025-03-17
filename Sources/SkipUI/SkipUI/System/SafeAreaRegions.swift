@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Rect
 #endif
 
-public struct SafeAreaRegions : OptionSet, Sendable {
+public struct SafeAreaRegions : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

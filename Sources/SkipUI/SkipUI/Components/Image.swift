@@ -768,7 +768,7 @@ public struct Image : View, Equatable {
         fatalError()
     }
 
-    public enum Interpolation : Hashable, Sendable {
+    public enum Interpolation : Hashable {
         case none
         case low
         case medium
@@ -783,13 +783,13 @@ public struct Image : View, Equatable {
         return self
     }
 
-    public enum DynamicRange : Hashable, Sendable {
+    public enum DynamicRange : Hashable {
         case standard
         case constrainedHigh
         case high
     }
 
-    public enum TemplateRenderingMode : Hashable, Sendable {
+    public enum TemplateRenderingMode : Hashable {
         case template
         case original
     }
@@ -799,7 +799,7 @@ public struct Image : View, Equatable {
         return self
     }
 
-    public enum Orientation : UInt8, CaseIterable, Hashable, Sendable {
+    public enum Orientation : UInt8, CaseIterable, Hashable {
         case up
         case upMirrored
         case down
@@ -810,7 +810,7 @@ public struct Image : View, Equatable {
         case rightMirrored
     }
 
-    public enum Scale : Hashable, Sendable {
+    public enum Scale : Hashable {
         case small
         case medium
         case large

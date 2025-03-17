@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-public struct SubmitTriggers : OptionSet, Sendable {
+public struct SubmitTriggers : OptionSet {
     public let rawValue: Int
 
     public init(rawValue: Int) {

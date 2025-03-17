@@ -25,7 +25,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
-public protocol Shape: View, Sendable {
+public protocol Shape: View {
     func path(in rect: CGRect) -> Path
     var layoutDirectionBehavior: LayoutDirectionBehavior { get }
     func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize
@@ -452,7 +452,7 @@ public final class Ellipse : Shape {
     #endif
 }
 
-public final class AnyShape : Shape, Sendable {
+public final class AnyShape : Shape {
     private let shape: any Shape
 
     public init(_ shape: any Shape) {
@@ -483,7 +483,7 @@ public final class AnyShape : Shape, Sendable {
     #endif
 }
 
-public struct RectangleCornerRadii : Equatable, Sendable /*, Animatable */ {
+public struct RectangleCornerRadii : Equatable /*, Animatable */ {
     public let topLeading: CGFloat
     public let bottomLeading: CGFloat
     public let bottomTrailing: CGFloat

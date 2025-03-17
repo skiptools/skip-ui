@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 #endif
 
-public enum ColorScheme : Int, CaseIterable, Hashable, Sendable {
+public enum ColorScheme : Int, CaseIterable, Hashable {
     case light = 0 // For bridging
     case dark = 1 // For bridging
 
