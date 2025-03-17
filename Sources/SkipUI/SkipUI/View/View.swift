@@ -735,10 +735,10 @@ extension View {
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
             let rememberedInitial = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(true) }
-            
+
             let isInitial = rememberedInitial.value
             rememberedInitial.value = false
-            
+
             let oldValue = rememberedValue.value
             let isUpdate = oldValue != value
             if isUpdate {
@@ -1095,7 +1095,7 @@ extension View {
     }
 
     // SKIP @bridge
-    public func tag(_ tag: Any) -> any View {
+    public func tag(_ tag: Any?) -> any View {
         #if SKIP
         return TagModifierView(view: self, value: tag, role: ComposeModifierRole.tag)
         #else
@@ -1171,9 +1171,9 @@ extension View {
 #if SKIP
 /// Used to mark views with a tag or ID.
 struct TagModifierView: ComposeModifierView {
-    let value: Any
+    let value: Any?
 
-    init(view: View, value: Any, role: ComposeModifierRole) {
+    init(view: View, value: Any?, role: ComposeModifierRole) {
         self.value = value
         super.init(view: view, role: role)
     }
