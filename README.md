@@ -2368,7 +2368,6 @@ If a matching system symbol with the same name is not found in any of the asset 
 | plus.circle.fill | Icons.Outlined.AddCircle |
 | square.and.arrow.up | Icons.Outlined.Share |
 | square.and.arrow.up.fill | Icons.Filled.Share |
-| star | Icons.Outlined.Star |
 | star.fill | Icons.Filled.Star |
 | trash | Icons.Outlined.Delete |
 | trash.fill | Icons.Filled.Delete |
