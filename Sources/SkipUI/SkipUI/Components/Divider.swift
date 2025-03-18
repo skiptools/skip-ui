@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
+// SKIP @bridge
 public struct Divider : View {
+    // SKIP @bridge
     public init() {
     }
 
