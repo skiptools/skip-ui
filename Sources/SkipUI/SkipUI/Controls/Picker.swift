@@ -33,6 +33,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 #endif
 
+// SKIP @bridge
 public struct Picker<SelectionValue> : View, ListItemAdapting {
     let selection: Binding<SelectionValue>
     let label: ComposeBuilder
@@ -50,6 +51,13 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
 
     public init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {
         self.init(selection: selection, content: content, label: { Text(verbatim: title) })
+    }
+
+    // SKIP @bridge
+    public init(getSelection: @escaping () -> SelectionValue, setSelection: @escaping (SelectionValue) -> Void, bridgedContent: any View, bridgedLabel: any View) {
+        self.selection = Binding(get: getSelection, set: setSelection)
+        self.content = ComposeBuilder.from { bridgedContent }
+        self.label = ComposeBuilder.from { bridgedLabel }
     }
 
     #if SKIP
@@ -232,29 +240,34 @@ public struct PickerStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = PickerStyle(rawValue: 1)
-    public static let navigationLink = PickerStyle(rawValue: 2)
-    public static let segmented = PickerStyle(rawValue: 3)
+    public static let automatic = PickerStyle(rawValue: 1) // For bridging
+    public static let navigationLink = PickerStyle(rawValue: 2) // For bridging
+    public static let segmented = PickerStyle(rawValue: 3) // For bridging
 
     @available(*, unavailable)
-    public static let inline = PickerStyle(rawValue: 4)
+    public static let inline = PickerStyle(rawValue: 4) // For bridging
 
     @available(*, unavailable)
-    public static let wheel = PickerStyle(rawValue: 5)
+    public static let wheel = PickerStyle(rawValue: 5) // For bridging
 
-    public static let menu = PickerStyle(rawValue: 6)
+    public static let menu = PickerStyle(rawValue: 6) // For bridging
 
     @available(*, unavailable)
-    public static let palette = PickerStyle(rawValue: 7)
+    public static let palette = PickerStyle(rawValue: 7) // For bridging
 }
 
 extension View {
-    public func pickerStyle(_ style: PickerStyle) -> some View {
+    public func pickerStyle(_ style: PickerStyle) -> any View {
         #if SKIP
         return environment(\._pickerStyle, style)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func pickerStyle(bridgedStyle: Int) -> any View {
+        return pickerStyle(PickerStyle(rawValue: bridgedStyle))
     }
 
     #if SKIP
