@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 #endif
 
 extension View {
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> some View {
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let submitState = EnvironmentValues.shared._onSubmitState
@@ -60,11 +60,16 @@ extension View {
         #endif
     }
 
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> some View {
+    // SKIP @bridge
+    public func searchable(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?) -> any View {
+        return searchable(text: Binding(get: getText, set: setText), prompt: prompt)
+    }
+
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> any View {
         return searchable(text: text, placement: placement, prompt: Text(prompt))
     }
 
-    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: String) -> some View {
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: String) -> any View {
         return searchable(text: text, placement: placement, prompt: Text(verbatim: prompt))
     }
 }
