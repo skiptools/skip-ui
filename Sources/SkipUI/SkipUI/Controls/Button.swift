@@ -66,10 +66,10 @@ public struct Button : View, ListItemAdapting {
     }
 
     // SKIP @bridge
-    public init(bridgedLabel: any View, action: @escaping () -> Void) {
-        self.label = ComposeBuilder.from { bridgedLabel }
+    public init(bridgedRole: Int?, action: @escaping () -> Void, bridgedLabel: any View) {
+        self.role = bridgedRole == nil ? nil : ButtonRole(rawValue: bridgedRole!)
         self.action = action
-        self.role = nil
+        self.label = ComposeBuilder.from { bridgedLabel }
     }
 
     #if SKIP
@@ -194,11 +194,11 @@ public struct ButtonStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = ButtonStyle(rawValue: 0)
-    public static let plain = ButtonStyle(rawValue: 1)
-    public static let borderless = ButtonStyle(rawValue: 2)
-    public static let bordered = ButtonStyle(rawValue: 3)
-    public static let borderedProminent = ButtonStyle(rawValue: 4)
+    public static let automatic = ButtonStyle(rawValue: 0) // For bridging
+    public static let plain = ButtonStyle(rawValue: 1) // For bridging
+    public static let borderless = ButtonStyle(rawValue: 2) // For bridging
+    public static let bordered = ButtonStyle(rawValue: 3) // For bridging
+    public static let borderedProminent = ButtonStyle(rawValue: 4) // For bridging
 }
 
 public enum ButtonRepeatBehavior : Hashable {
@@ -207,18 +207,23 @@ public enum ButtonRepeatBehavior : Hashable {
     case disabled
 }
 
-public enum ButtonRole : Equatable {
-    case destructive
-    case cancel
+public enum ButtonRole : Int, Equatable {
+    case destructive = 1 // For bridging
+    case cancel = 2 // For bridging
 }
 
 extension View {
-    public func buttonStyle(_ style: ButtonStyle) -> some View {
+    public func buttonStyle(_ style: ButtonStyle) -> any View {
         #if SKIP
         return environment(\._buttonStyle, style)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func buttonStyle(bridgedStyle: Int) -> any View {
+        return buttonStyle(ButtonStyle(rawValue: bridgedStyle))
     }
 
     @available(*, unavailable)

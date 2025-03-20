@@ -412,7 +412,8 @@ extension View {
         return self
     }
 
-    public func disabled(_ disabled: Bool) -> some View {
+    // SKIP @bridge
+    public func disabled(_ disabled: Bool) -> any View {
         #if SKIP
         return environment(\.isEnabled, !disabled)
         #else
@@ -1121,7 +1122,8 @@ extension View {
         #endif
     }
 
-    public func tint(_ color: Color?) -> some View {
+    // SKIP @bridge
+    public func tint(_ color: Color?) -> any View {
         #if SKIP
         return environment(\._tint, color)
         #else
