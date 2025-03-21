@@ -211,6 +211,7 @@ public struct NavigationStack : View {
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable private func ComposeEntry(navigator: MutableState<Navigator>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        android.util.Log.e("", "RECOMPOSING ENTRY HERE !!!!!!!!!!") //~~~
         let context = context.content(stateSaver: arguments.state.stateSaver)
 
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
