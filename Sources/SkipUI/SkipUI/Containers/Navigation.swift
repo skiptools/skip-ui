@@ -167,9 +167,11 @@ public struct NavigationStack : View {
                             let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
                             let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
                             let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
+                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
+                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
                             let arguments = NavigationEntryArguments(isRoot: true, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
-                            PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, destinationsCollector]) {
-                                ComposeEntry(navigator: navigator, arguments: arguments, context: context) { context in
+                            PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
+                                ComposeEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                     root.Compose(context: context)
                                 }
                             }
@@ -190,12 +192,14 @@ public struct NavigationStack : View {
                                 let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
                                 let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
                                 let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
+                                let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
+                                let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
                                 } in: {
                                     let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
-                                    PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector,  destinationsCollector]) {
-                                        ComposeEntry(navigator: navigator, arguments: arguments, context: context) { context in
+                                    PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
+                                        ComposeEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                             let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
                                             ComposeDestination(state.destination, arguments: destinationArguments, context: context)
                                         }
@@ -210,17 +214,16 @@ public struct NavigationStack : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
-        android.util.Log.e("", "RECOMPOSING ENTRY HERE !!!!!!!!!!") //~~~
-        let context = context.content(stateSaver: arguments.state.stateSaver)
+    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, toolbarContent: MutableState<Preference<ToolbarContentPreferences>>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        let state = arguments.state
+        let context = context.content(stateSaver: state.stateSaver)
 
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
         let topBarHidden = remember { mutableStateOf(false) }
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
         let hasTitle = arguments.title != NavigationTitlePreferenceKey.defaultValue
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: arguments.state, hasTitle: hasTitle, preference: arguments.toolbarPreferences.titleDisplayMode)
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: arguments.toolbarPreferences.titleDisplayMode)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
-        let toolbarItems = ToolbarItems(content: arguments.toolbarPreferences.content ?? [])
 
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -264,6 +267,8 @@ public struct NavigationStack : View {
                 }
                 return
             }
+            
+            let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
             let topLeadingItems = toolbarItems.filterTopBarLeading()
             let topTrailingItems = toolbarItems.filterTopBarTrailing()
             guard !arguments.isRoot || hasTitle || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
@@ -397,6 +402,8 @@ public struct NavigationStack : View {
                 }
                 return
             }
+
+            let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
             let bottomItems = toolbarItems.filterBottomBar()
             guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {

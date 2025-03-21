@@ -213,7 +213,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         } else {
             actionViews = [actions]
         }
-        let composableActions = actionViews.compactMap {
+        let composableActions: [View] = actionViews.compactMap {
             $0.strippingModifiers { $0 as? Button ?? $0 as? Link ?? $0 as? NavigationLink }
         }
         let messageViews: [View]
@@ -343,10 +343,10 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     } else {
         actionViews = [actions]
     }
-    let textFields = actionViews.compactMap {
+    let textFields: [TextField] = actionViews.compactMap {
         $0.strippingModifiers { ($0 as? TextField) ?? ($0 as? SecureField)?.textField }
     }
-    let optionViews = actionViews.compactMap {
+    let optionViews: [View] = actionViews.compactMap {
         $0.strippingModifiers { $0 as? Button ?? $0 as? NavigationLink ?? $0 as? Link }
     }
     let messageViews: [View]

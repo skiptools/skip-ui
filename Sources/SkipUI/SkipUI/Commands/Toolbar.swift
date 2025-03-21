@@ -180,7 +180,7 @@ extension View {
 
     public func toolbar(id: String, @ViewBuilder content: () -> any View) -> any View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(content: [content()]))
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(content: [content()]))
         #else
         return self
         #endif
@@ -189,7 +189,7 @@ extension View {
     // SKIP @bridge
     public func toolbar(id: String, bridgedContent: any View) -> any View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(content: [bridgedContent], compareContent: true))
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(content: [bridgedContent]))
         #else
         return self
         #endif
@@ -360,7 +360,7 @@ extension View {
     @available(*, unavailable)
     public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> some View {
         #if SKIP
-        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(titleMenu: content()))
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(titleMenu: content()))
         #else
         return self
         #endif
@@ -386,19 +386,13 @@ struct ToolbarPreferenceKey: PreferenceKey {
 }
 
 struct ToolbarPreferences: Equatable {
-    let content: [View]?
-    let compareContent: Bool
     let titleDisplayMode: ToolbarTitleDisplayMode?
-    let titleMenu: View?
     let backButtonHidden: Bool?
     let navigationBar: ToolbarBarPreferences?
     let bottomBar: ToolbarBarPreferences?
 
-    init(content: [View]? = nil, compareContent: Bool = false, titleDisplayMode: ToolbarTitleDisplayMode? = nil, titleMenu: View? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
-        self.content = content
-        self.compareContent = compareContent
+    init(titleDisplayMode: ToolbarTitleDisplayMode? = nil, backButtonHidden: Bool? = nil, navigationBar: ToolbarBarPreferences? = nil, bottomBar: ToolbarBarPreferences? = nil) {
         self.titleDisplayMode = titleDisplayMode
-        self.titleMenu = titleMenu
         self.backButtonHidden = backButtonHidden
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
@@ -420,21 +414,12 @@ struct ToolbarPreferences: Equatable {
         }
         self.navigationBar = navigationBar
         self.bottomBar = bottomBar
-        self.content = nil
-        self.compareContent = false
         self.titleDisplayMode = nil
-        self.titleMenu = nil
         self.backButtonHidden = nil
     }
 
     func reduce(_ next: ToolbarPreferences) -> ToolbarPreferences {
-        let rcontent: [View]?
-        if let ncontent = next.content, let content {
-            rcontent = content + ncontent
-        } else {
-            rcontent = next.content ?? content
-        }
-        return ToolbarPreferences(content: rcontent, compareContent: compareContent || next.compareContent, titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, titleMenu: next.titleMenu ?? titleMenu, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
+        return ToolbarPreferences(titleDisplayMode: next.titleDisplayMode ?? titleDisplayMode, backButtonHidden: next.backButtonHidden ?? backButtonHidden, navigationBar: reduceBar(navigationBar, next.navigationBar), bottomBar: reduceBar(bottomBar, next.bottomBar))
     }
 
     private func reduceBar(_ bar: ToolbarBarPreferences?, _ next: ToolbarBarPreferences?) -> ToolbarBarPreferences? {
@@ -446,19 +431,7 @@ struct ToolbarPreferences: Equatable {
     }
 
     public static func ==(lhs: ToolbarPreferences, rhs: ToolbarPreferences) -> Bool {
-        guard lhs.titleDisplayMode == rhs.titleDisplayMode, lhs.backButtonHidden == rhs.backButtonHidden, lhs.navigationBar == rhs.navigationBar, lhs.bottomBar == rhs.bottomBar else {
-            return false
-        }
-        guard (lhs.content?.count ?? 0) == (rhs.content?.count ?? 0), (lhs.titleMenu != nil) == (rhs.titleMenu != nil) else {
-            return false
-        }
-        // In transpiled mode no need to compare on views because the toolbar block will get re-evaluated on
-        // change to any state it accesses. TODO: In native mode this is not the case, so we have to live with extra
-        // recompositions from logically-equal views that nevertheless are different instances
-        guard compareContent else {
-            return true
-        }
-        
+        return lhs.titleDisplayMode == rhs.titleDisplayMode && lhs.backButtonHidden == rhs.backButtonHidden && lhs.navigationBar == rhs.navigationBar && lhs.bottomBar == rhs.bottomBar
     }
 }
 
@@ -477,6 +450,44 @@ struct ToolbarBarPreferences: Equatable {
     public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
         // Don't compare on background because it will never compare equal
         return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme && lhs.isSystemBackground == rhs.isSystemBackground && lhs.scrollableState == rhs.scrollableState
+    }
+}
+
+struct ToolbarContentPreferenceKey: PreferenceKey {
+    typealias Value = ToolbarContentPreferences
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ToolbarContentPreferences>
+    class Companion: PreferenceKeyCompanion {
+        let defaultValue = ToolbarContentPreferences()
+        func reduce(value: inout ToolbarContentPreferences, nextValue: () -> ToolbarContentPreferences) {
+            value = value.reduce(nextValue())
+        }
+    }
+}
+
+struct ToolbarContentPreferences: Equatable {
+    let content: [View]?
+    let titleMenu: View?
+
+    init(content: [View]? = nil, titleMenu: View? = nil) {
+        self.content = content
+        self.titleMenu = titleMenu
+    }
+
+    func reduce(_ next: ToolbarContentPreferences) -> ToolbarContentPreferences {
+        let rcontent: [View]?
+        if let ncontent = next.content, let content {
+            rcontent = content + ncontent
+        } else {
+            rcontent = next.content ?? content
+        }
+        return ToolbarContentPreferences(content: rcontent, titleMenu: next.titleMenu ?? titleMenu)
+    }
+
+    public static func ==(lhs: ToolbarContentPreferences, rhs: ToolbarContentPreferences) -> Bool {
+        // Views are not going to compare equal most of the time, even if they are logically the same.
+        // That's why we isolate content from other preferences, so we can only access it in the bars themselves
+        return lhs.content == rhs.content && lhs.titleMenu == rhs.titleMenu
     }
 }
 
