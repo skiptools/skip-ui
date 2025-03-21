@@ -221,6 +221,8 @@ extension EnvironmentValues {
         switch key {
         case "colorScheme":
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
+        case "dismiss":
+            return EnvironmentSupport(builtinValue: dismiss)
         default:
             return nil
         }

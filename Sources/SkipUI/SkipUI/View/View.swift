@@ -560,7 +560,8 @@ extension View {
         return self
     }
 
-    public func hidden() -> some View {
+    // SKIP @bridge
+    public func hidden() -> any View {
         #if SKIP
         return opacity(0.0)
         #else
@@ -592,7 +593,7 @@ extension View {
         #endif
     }
 
-    public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> some View {
+    public func ignoresSafeArea(_ regions: SafeAreaRegions = .all, edges: Edge.Set = .all) -> any View {
         #if SKIP
         guard regions.contains(.container) else {
             return self
@@ -603,6 +604,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func ignoresSafeArea(bridgedRegions: Int, bridgedEdges: Int) -> any View {
+        return ignoresSafeArea(SafeAreaRegions(rawValue: bridgedRegions), edges: Edge.Set(rawValue: bridgedEdges))
     }
 
     @available(*, unavailable)
