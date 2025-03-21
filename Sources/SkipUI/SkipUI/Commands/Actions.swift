@@ -3,8 +3,10 @@
 #if !SKIP_BRIDGE
 import Foundation
 
+// SKIP @bridge
 public struct DismissAction {
-    let action: () -> Void
+    // SKIP @bridge
+    public let action: () -> Void
 
     static let `default` = DismissAction(action: { })
 

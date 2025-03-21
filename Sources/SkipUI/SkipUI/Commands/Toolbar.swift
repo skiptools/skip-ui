@@ -30,7 +30,8 @@ extension CustomizableToolbarContent {
 // `@ViewBuilder` logic built into the transpiler. The Swift compiler will guarantee that the
 // only allowed toolbar content are types that conform to `ToolbarContent`
 
-public struct ToolbarItem : CustomizableToolbarContent {
+// SKIP @bridge
+public struct ToolbarItem : View, CustomizableToolbarContent {
     let placement: ToolbarItemPlacement
     let content: ComposeBuilder
 
@@ -39,10 +40,15 @@ public struct ToolbarItem : CustomizableToolbarContent {
         self.content = ComposeBuilder.from(content)
     }
 
-    @available(*, unavailable)
     public init(id: String, placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
         self.placement = placement
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(id: String, bridgedPlacement: Int, bridgedContent: any View) {
+        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement) ?? .automatic
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
@@ -64,6 +70,7 @@ public struct ToolbarItem : CustomizableToolbarContent {
     #endif
 }
 
+// SKIP @bridge
 public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     let placement: ToolbarItemPlacement
     let content: ComposeBuilder
@@ -73,10 +80,15 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
         self.content = ComposeBuilder.from(content)
     }
 
-    @available(*, unavailable)
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.placement = placement
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(bridgedPlacement: Int, bridgedContent: any View) {
+        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement) ?? .automatic
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
@@ -112,29 +124,29 @@ public enum ToolbarCustomizationBehavior {
     case disabled
 }
 
-public enum ToolbarItemPlacement {
-    case automatic
-    case principal
-    case navigation
-    case primaryAction
-    case secondaryAction
-    case status
-    case confirmationAction
-    case cancellationAction
-    case destructiveAction
-    case keyboard
-    case topBarLeading
-    case topBarTrailing
-    case bottomBar
-    case navigationBarLeading
-    case navigationBarTrailing
+public enum ToolbarItemPlacement: Int {
+    case automatic = 0 // For bridging
+    case principal = 1 // For bridging
+    case navigation = 2 // For bridging
+    case primaryAction = 3 // For bridging
+    case secondaryAction = 4 // For bridging
+    case status = 5 // For bridging
+    case confirmationAction = 6 // For bridging
+    case cancellationAction = 7 // For bridging
+    case destructiveAction = 8 // For bridging
+    case keyboard = 9 // For bridging
+    case topBarLeading = 10 // For bridging
+    case topBarTrailing = 11 // For bridging
+    case bottomBar = 12 // For bridging
+    case navigationBarLeading = 13 // For bridging
+    case navigationBarTrailing = 14 // For bridging
 }
 
-public enum ToolbarPlacement: Equatable {
-    case automatic
-    case bottomBar
-    case navigationBar
-    case tabBar
+public enum ToolbarPlacement: Int, Equatable {
+    case automatic = 0 // For bridging
+    case bottomBar = 1 // For bridging
+    case navigationBar = 2 // For bridging
+    case tabBar = 3 // For bridging
 }
 
 public enum ToolbarRole {
@@ -144,11 +156,11 @@ public enum ToolbarRole {
     case editor
 }
 
-public enum ToolbarTitleDisplayMode {
-    case automatic
-    case large
-    case inlineLarge
-    case inline
+public enum ToolbarTitleDisplayMode: Int {
+    case automatic = 0 // For bridging
+    case large = 1 // For bridging
+    case inlineLarge = 2 // For bridging
+    case inline = 3 // For bridging
 }
 
 public struct ToolbarCustomizationOptions : OptionSet {
@@ -162,7 +174,11 @@ public struct ToolbarCustomizationOptions : OptionSet {
 }
 
 extension View {
-    public func toolbar(@ViewBuilder content: () -> any View) -> some View {
+    public func toolbar(@ViewBuilder content: () -> any View) -> any View {
+        return toolbar(id: "", content: content)
+    }
+
+    public func toolbar(id: String, @ViewBuilder content: () -> any View) -> any View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(content: [content()]))
         #else
@@ -170,19 +186,44 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func toolbar(id: String, @ViewBuilder content: () -> any View) -> some View {
+    // SKIP @bridge
+    public func toolbar(id: String, bridgedContent: any View) -> any View {
+        #if SKIP
+        return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(content: [bridgedContent]))
+        #else
         return self
+        #endif
     }
 
-    public func toolbar(_ visibility: Visibility) -> some View {
-        return toolbar(visibility, for: .bottomBar, .navigationBar, .tabBar)
+    public func toolbar(_ visibility: Visibility) -> any View {
+        return _toolbarVisibility(visibility, for: [])
     }
 
-    public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+    public func toolbar(_ visibility: Visibility, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarVisibility(visibility, for: bars)
+    }
+
+    public func toolbarVisibility(_ visibility: Visibility) -> any View {
+        return _toolbarVisibility(visibility, for: [])
+    }
+
+    public func toolbarVisibility(_ visibility: Visibility, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarVisibility(visibility, for: bars)
+    }
+
+    // SKIP @bridge
+    public func toolbarVisibility(bridgedVisibility: Int, bridgedPlacements: [Int]) -> any View {
+        return _toolbarVisibility(Visibility(rawValue: bridgedVisibility) ?? .automatic, for: bridgedPlacements.compactMap { ToolbarPlacement(rawValue: $0) })
+    }
+
+    public func _toolbarVisibility(_ visibility: Visibility, for placements: [ToolbarPlacement]) -> any View {
         #if SKIP
         // SKIP REPLACE: var view = this
         var view = self
+        var bars = placements
+        if bars.isEmpty {
+            bars = [.bottomBar, .navigationBar, .tabBar]
+        }
         if bars.contains(ToolbarPlacement.tabBar) {
             view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility))
         }
@@ -195,14 +236,27 @@ extension View {
         #endif
     }
 
-    public func toolbarBackground(_ style: any ShapeStyle) -> some View {
-        return toolbarBackground(style, for: .bottomBar, .navigationBar, .tabBar)
+    public func toolbarBackground(_ style: any ShapeStyle) -> any View {
+        return _toolbarBackground(style, for: [])
     }
 
-    public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> some View {
+    public func toolbarBackground(_ style: any ShapeStyle, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarBackground(style, for: bars)
+    }
+
+    // SKIP @bridge
+    public func toolbarBackground(_ style: any ShapeStyle, bridgedPlacements: [Int]) -> any View {
+        return _toolbarBackground(style, for: bridgedPlacements.compactMap { ToolbarPlacement(rawValue: $0) })
+    }
+
+    public func _toolbarBackground(_ style: any ShapeStyle, for placements: [ToolbarPlacement]) -> any View {
         #if SKIP
         // SKIP REPLACE: var view = this
         var view = self
+        var bars = placements
+        if bars.isEmpty {
+            bars = [.bottomBar, .navigationBar, .tabBar]
+        }
         if bars.contains(ToolbarPlacement.tabBar) {
             view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(background: style))
         }
@@ -215,14 +269,35 @@ extension View {
         #endif
     }
 
-    public func toolbarBackground(_ visibility: Visibility) -> some View {
-        return toolbarBackground(visibility, for: .bottomBar, .navigationBar, .tabBar)
+    public func toolbarBackground(_ visibility: Visibility) -> any View {
+        return _toolbarBackgroundVisibility(visibility, for: [])
     }
 
-    public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> some View {
+    public func toolbarBackground(_ visibility: Visibility, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarBackgroundVisibility(visibility, for: bars)
+    }
+
+    public func toolbarBackgroundVisibility(_ visibility: Visibility) -> any View {
+        return _toolbarBackgroundVisibility(visibility, for: [])
+    }
+
+    public func toolbarBackgroundVisibility(_ visibility: Visibility, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarBackgroundVisibility(visibility, for: bars)
+    }
+
+    // SKIP @bridge
+    public func toolbarBackgroundVisibility(bridgedVisibility: Int, bridgedPlacements: [Int]) -> any View {
+        return _toolbarBackgroundVisibility(Visibility(rawValue: bridgedVisibility) ?? .automatic, for: bridgedPlacements.compactMap { ToolbarPlacement(rawValue: $0) })
+    }
+
+    public func _toolbarBackgroundVisibility(_ visibility: Visibility, for placements: [ToolbarPlacement]) -> any View {
         #if SKIP
         // SKIP REPLACE: var view = this
         var view = self
+        var bars = placements
+        if bars.isEmpty {
+            bars = [.bottomBar, .navigationBar, .tabBar]
+        }
         if bars.contains(ToolbarPlacement.tabBar) {
             view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(backgroundVisibility: visibility))
         }
@@ -235,14 +310,28 @@ extension View {
         #endif
     }
 
-    public func toolbarColorScheme(_ colorScheme: ColorScheme?) -> some View {
-        return toolbarColorScheme(colorScheme, for: .bottomBar, .navigationBar, .tabBar)
+    public func toolbarColorScheme(_ colorScheme: ColorScheme?) -> any View {
+        return _toolbarColorScheme(colorScheme, for: [])
     }
 
-    public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> some View {
+    public func toolbarColorScheme(_ colorScheme: ColorScheme?, for bars: ToolbarPlacement...) -> any View {
+        return _toolbarColorScheme(colorScheme, for: bars)
+    }
+
+    // SKIP @bridge
+    public func toolbarColorScheme(bridgedColorScheme: Int?, bridgedPlacements: [Int]) -> any View {
+        let colorScheme: ColorScheme? = bridgedColorScheme == nil ? nil : ColorScheme(rawValue: bridgedColorScheme!)
+        return _toolbarColorScheme(colorScheme, for: bridgedPlacements.compactMap { ToolbarPlacement(rawValue: $0) })
+    }
+
+    public func _toolbarColorScheme(_ colorScheme: ColorScheme?, for placements: [ToolbarPlacement]) -> some View {
         #if SKIP
         // SKIP REPLACE: var view = this
         var view = self
+        var bars = placements
+        if bars.isEmpty {
+            bars = [.bottomBar, .navigationBar, .tabBar]
+        }
         if bars.contains(ToolbarPlacement.tabBar) {
             view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(colorScheme: colorScheme))
         }
@@ -255,12 +344,17 @@ extension View {
         #endif
     }
 
-    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> some View {
+    public func toolbarTitleDisplayMode(_ mode: ToolbarTitleDisplayMode) -> any View {
         #if SKIP
         return preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(titleDisplayMode: mode))
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func toolbarTitleDisplayMode(bridgedMode: Int) -> any View {
+        return toolbarTitleDisplayMode(ToolbarTitleDisplayMode(rawValue: bridgedMode) ?? .automatic)
     }
 
     @available(*, unavailable)
