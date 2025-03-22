@@ -225,8 +225,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             messageViews = []
         }
         let messageText = messageViews.compactMap {
-            $0.strippingModifiers { $0 as? Text }
-        }.first
+            $0.strippingModifiers { $0 as? TextRepresentable }
+        }.first?.textRepresentation(context: context)
 
         ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
             // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
@@ -288,9 +288,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             continue
         }
         ConfirmationDialogButton(action: { isPresented.set(false); buttonView.action() }) {
-            let text = buttonView.makeComposeLabel().collectViews(context: context).compactMap {
-                $0.strippingModifiers { $0 as? Text }
-            }.first
+            let text = buttonView.makeComposeLabel().textRepresentation(context: context)
             let color = buttonView.role == .destructive ? Color.red.colorImpl() : tint
             androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
         }
@@ -298,9 +296,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
     if let cancelButton {
         ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
-            let text = cancelButton.makeComposeLabel().collectViews(context: context).compactMap {
-                $0.strippingModifiers { $0 as? Text }
-            }.first
+            let text = cancelButton.makeComposeLabel().textRepresentation(context: context)
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
         }
     } else {
@@ -343,8 +339,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         messageViews = []
     }
     let messageText = messageViews.compactMap {
-        $0.strippingModifiers { $0 as? Text }
-    }.first
+        $0.strippingModifiers { $0 as? TextRepresentable }
+    }.first?.textRepresentation(context: context)
 
     BasicAlertDialog(onDismissRequest: { isPresented.set(false) }) {
         let modifier = Modifier.wrapContentWidth().wrapContentHeight().then(context.modifier)
@@ -387,9 +383,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 
     let buttonContent: @Composable (ButtonRepresentable, Bool) -> Void = { buttonRep, isCancel in
-        let text = buttonRep.makeComposeLabel().collectViews(context: context).compactMap {
-            $0.strippingModifiers { $0 as? Text }
-        }.first
+        let text = buttonRep.makeComposeLabel().textRepresentation(context: context)
         let color = buttonRep.role == .destructive ? Color.red.colorImpl() : tint
         let style = isCancel ? buttonFont.bold().fontImpl() : buttonFont.fontImpl()
         androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: style)

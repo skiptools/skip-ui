@@ -83,6 +83,12 @@ public struct ComposeBuilder: View {
         content(viewCollectingContext)
         return views
     }
+
+    @Composable func textRepresentation(context: ComposeContext) -> Text? {
+        return collectViews(context: context).compactMap {
+            $0.strippingModifiers { $0 as? TextRepresentable }
+        }.first?.textRepresentation(context: context)
+    }
     #else
     public var body: some View {
         stubView()

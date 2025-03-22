@@ -86,6 +86,10 @@ public struct Button : View, ListItemAdapting, ButtonRepresentable, TextRepresen
         Self.ComposeButton(label: label, context: context, role: role, action: action)
     }
 
+    @Composable func textRepresentation(context: ComposeContext) -> Text? {
+        return label.textRepresentation(context: context)
+    }
+
     @Composable func makeComposeLabel() -> ComposeBuilder {
         return label
     }
