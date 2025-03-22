@@ -126,23 +126,16 @@ public final class Menu : View {
 
     @Composable static func ComposeDropdownMenuItems(for itemViews: [View], selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
         for itemView in itemViews {
-            if var strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
-                if let shareLink = strippedItemView as? ShareLink {
-                    shareLink.ComposeAction()
-                    strippedItemView = shareLink.content
-                } else if let link = strippedItemView as? Link {
-                    link.ComposeAction()
-                    strippedItemView = link.content
-                }
-                if let button = strippedItemView as? Button {
+            if let strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
+                if let buttonRep = strippedItemView as? ButtonRepresentable {
                     let isSelected: Bool?
                     if let tagView = itemView as? TagModifierView, tagView.role == ComposeModifierRole.tag {
                         isSelected = tagView.value == selection
                     } else {
                         isSelected = nil
                     }
-                    ComposeDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
-                        button.action()
+                    ComposeDropdownMenuItem(for: buttonRep.makeComposeLabel(), context: context, isSelected: isSelected) {
+                        buttonRep.action?()
                         replaceMenu(nil)
                     }
                 } else if let text = strippedItemView as? Text {

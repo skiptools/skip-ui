@@ -213,8 +213,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         } else {
             actionViews = [actions]
         }
-        let composableActions: [View] = actionViews.compactMap {
-            $0.strippingModifiers { $0 as? Button ?? $0 as? Link ?? $0 as? NavigationLink }
+        let buttonViews = actionViews.compactMap {
+            $0.strippingModifiers { $0 as? ButtonRepresentable }
         }
         let messageViews: [View]
         if let composeBuilder = message as? ComposeBuilder {
@@ -246,7 +246,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver)
             Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                ComposeConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, actionViews: composableActions, message: messageText)
+                ComposeConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, buttonViews: buttonViews, message: messageText)
             }
         }
     }
@@ -259,7 +259,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 }
 
-@Composable func ComposeConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, actionViews: [View], message: Text?) {
+@Composable func ComposeConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, buttonViews: [ButtonRepresentable], message: Text?) {
     let padding = 16.dp
     if let title {
         androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.secondary.colorImpl(), text: title.localizedTextString(), style: Font.callout.bold().fontImpl())
@@ -274,46 +274,31 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: padding)
     let buttonFont = Font.title3
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-    guard !actionViews.isEmpty else {
+    guard !buttonViews.isEmpty else {
         ConfirmationDialogButton(action: { isPresented.set(false) }) {
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
         }
         return
     }
 
-    var cancelButton: Button? = nil
-    for actionView in actionViews {
-        var button = actionView as? Button
-        if let link = actionView as? Link {
-            link.ComposeAction()
-            button = link.content
+    var cancelButton: ButtonRepresentable? = nil
+    for buttonView in buttonViews {
+        guard buttonView.role != .cancel else {
+            cancelButton = buttonView
+            continue
         }
-        if let button {
-            guard button.role != .cancel else {
-                cancelButton = button
-                continue
-            }
-            ConfirmationDialogButton(action: { isPresented.set(false); button.action() }) {
-                let text = button.label.collectViews(context: context).compactMap {
-                    $0.strippingModifiers { $0 as? Text }
-                }.first
-                let color = button.role == .destructive ? Color.red.colorImpl() : tint
-                androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
-            }
-        } else if let navigationLink = actionView as? NavigationLink {
-            let navigationAction = navigationLink.navigationAction()
-            ConfirmationDialogButton(action: { isPresented.set(false); navigationAction() }) {
-                let text = navigationLink.label.collectViews(context: context).compactMap {
-                    $0.strippingModifiers { $0 as? Text }
-                }.first
-                androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
-            }
+        ConfirmationDialogButton(action: { isPresented.set(false); buttonView.action() }) {
+            let text = buttonView.makeComposeLabel().collectViews(context: context).compactMap {
+                $0.strippingModifiers { $0 as? Text }
+            }.first
+            let color = buttonView.role == .destructive ? Color.red.colorImpl() : tint
+            androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
         }
         androidx.compose.material3.Divider()
     }
     if let cancelButton {
         ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
-            let text = cancelButton.label.collectViews(context: context).compactMap {
+            let text = cancelButton.makeComposeLabel().collectViews(context: context).compactMap {
                 $0.strippingModifiers { $0 as? Text }
             }.first
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
@@ -346,8 +331,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let textFields: [TextField] = actionViews.compactMap {
         $0.strippingModifiers { ($0 as? TextField) ?? ($0 as? SecureField)?.textField }
     }
-    let optionViews: [View] = actionViews.compactMap {
-        $0.strippingModifiers { $0 as? Button ?? $0 as? NavigationLink ?? $0 as? Link }
+    let buttonViews = actionViews.compactMap {
+        $0.strippingModifiers { $0 as? ButtonRepresentable }
     }
     let messageViews: [View]
     if let composeBuilder = message as? ComposeBuilder {
@@ -366,13 +351,13 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
             let contentContext = context.content()
             Column(modifier: Modifier.padding(top: 16.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                ComposeAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionViews: optionViews, message: messageText)
+                ComposeAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, buttonViews: buttonViews, message: messageText)
             }
         }
     }
 }
 
-@Composable func ComposeAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: [TextField], actionViews: [View], message: Text?) {
+@Composable func ComposeAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: [TextField], buttonViews: [ButtonRepresentable], message: Text?) {
     let padding = 16.dp
     if let title {
         androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.primary.colorImpl(), text: title.localizedTextString(), style: Font.title3.bold().fontImpl(), textAlign: TextAlign.Center)
@@ -394,81 +379,62 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
     let buttonFont = Font.title3
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-    guard !actionViews.isEmpty else {
-        AlertButton(modifier: Modifier.fillMaxWidth(), view: nil, isPresented: isPresented) {
+    guard !buttonViews.isEmpty else {
+        AlertButton(modifier: Modifier.fillMaxWidth(), buttonView: nil, isPresented: isPresented) {
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
         }
         return
     }
 
-    let buttonContent: @Composable (View, Bool) -> Void = { view, isCancel in
-        let button = view as? Button ?? (view as? Link)?.content
-        let label = button?.label ?? (view as? NavigationLink)?.label
-        let text = label?.collectViews(context: context).compactMap {
+    let buttonContent: @Composable (ButtonRepresentable, Bool) -> Void = { buttonRep, isCancel in
+        let text = buttonRep.makeComposeLabel().collectViews(context: context).compactMap {
             $0.strippingModifiers { $0 as? Text }
         }.first
-        let color = button?.role == .destructive ? Color.red.colorImpl() : tint
+        let color = buttonRep.role == .destructive ? Color.red.colorImpl() : tint
         let style = isCancel ? buttonFont.bold().fontImpl() : buttonFont.fontImpl()
         androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: style)
     }
 
-    let optionViews = actionViews.filter {
-        if let button = $0 as? Button {
-            return button.role != .cancel
-        }
-        return $0 is Link || $0 is NavigationLink
-    }
-    let cancelButton = actionViews.first {
-        guard let button = $0 as? Button else { return false }
-        return button.role == .cancel
-    }
+    let buttonViewsExcludingCancel = buttonViews.filter { $0.role != .cancel }
+    let cancelButton = buttonViews.first { $0.role == .cancel }
     let cancelCount = cancelButton == nil ? 0 : 1
-    if optionViews.count + cancelCount == 2 {
+    if buttonViewsExcludingCancel.count + cancelCount == 2 {
         // Horizontal layout for two buttons //TODO: Should revert to vertical when text is too long
         Row(modifier: Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             let modifier = Modifier.weight(Float(1.0))
-            if let view = cancelButton ?? optionViews.first {
-                AlertButton(modifier: modifier, view: view, isPresented: isPresented) {
-                    buttonContent(view, view === cancelButton)
+            if let buttonRep = cancelButton ?? buttonViewsExcludingCancel.first {
+                AlertButton(modifier: modifier, buttonView: buttonRep, isPresented: isPresented) {
+                    buttonContent(buttonRep, buttonRep === cancelButton)
                 }
                 androidx.compose.material3.VerticalDivider()
             }
-            if let button = optionViews.last {
-                AlertButton(modifier: modifier, view: button, isPresented: isPresented) {
-                    buttonContent(button, false)
+            if let buttonRep = buttonViewsExcludingCancel.last {
+                AlertButton(modifier: modifier, buttonView: buttonRep, isPresented: isPresented) {
+                    buttonContent(buttonRep, false)
                 }
             }
         }
     } else {
         // Vertical layout
         let modifier = Modifier.fillMaxWidth()
-        for actionView in optionViews {
-            AlertButton(modifier: modifier, view: actionView, isPresented: isPresented) {
-                buttonContent(actionView, false)
+        for buttonView in buttonViewsExcludingCancel {
+            AlertButton(modifier: modifier, buttonView: buttonView, isPresented: isPresented) {
+                buttonContent(buttonView, false)
             }
-            if actionView !== optionViews.last || cancelButton != nil {
+            if buttonView !== buttonViewsExcludingCancel.last || cancelButton != nil {
                 androidx.compose.material3.Divider()
             }
         }
         if let cancelButton {
-            AlertButton(modifier: modifier, view: cancelButton, isPresented: isPresented) {
+            AlertButton(modifier: modifier, buttonView: cancelButton, isPresented: isPresented) {
                 buttonContent(cancelButton, true)
             }
         }
     }
 }
 
-@Composable func AlertButton(modifier: Modifier, view: View?, isPresented: Binding<Bool>, content: @Composable () -> Void) {
-    var action: (() -> Void)?
-    if let button = view as? Button {
-        action = button.action
-    } else if let link = view as? Link {
-        link.ComposeAction()
-        action = link.content.action
-    } else if let navigationLink = view as? NavigationLink {
-        action = navigationLink.navigationAction()
-    }
-    Box(modifier: modifier.clickable(onClick: { isPresented.set(false); action?() }), contentAlignment: androidx.compose.ui.Alignment.Center) {
+@Composable func AlertButton(modifier: Modifier, buttonView: ButtonRepresentable?, isPresented: Binding<Bool>, content: @Composable () -> Void) {
+    Box(modifier: modifier.clickable(onClick: { isPresented.set(false); buttonView?.action?() }), contentAlignment: androidx.compose.ui.Alignment.Center) {
         content()
     }
 }
