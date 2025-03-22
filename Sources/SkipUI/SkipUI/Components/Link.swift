@@ -8,24 +8,31 @@ import androidx.compose.runtime.Composable
 
 // Use a class to be able to update our openURL action on compose by reference.
 // SKIP @bridge
-public final class Link : View {
-    let content: Button
+public final class Link : View, ButtonRepresentable {
+    var action: () -> Void
+    let label: ComposeBuilder
+    let role: ButtonRole? = nil
+
     var openURL = OpenURLAction.default
 
     public init(destination: URL, @ViewBuilder label: () -> any View) {
         #if SKIP
-        content = Button(action: { self.openURL(destination) }, label: label)
+        self.action = { self.openURL(destination) }
+        self.label = ComposeBuilder.from(label)
         #else
-        content = Button("", action: {})
+        self.action = {}
+        self.label = ComposeBuilder(view: EmptyView())
         #endif
     }
 
     // SKIP @bridge
     public init(destination: URL, bridgedLabel: any View) {
         #if SKIP
-        content = Button(bridgedRole: nil, action: { self.openURL(destination) }, bridgedLabel: bridgedLabel)
+        self.action = { self.openURL(destination) }
+        self.label = ComposeBuilder(view: bridgedLabel)
         #else
-        content = Button("", action: {})
+        self.action = {}
+        self.label = ComposeBuilder(view: EmptyView())
         #endif
     }
 
@@ -39,12 +46,13 @@ public final class Link : View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
-        ComposeAction()
-        content.Compose(context: context)
+        let label = makeComposeLabel()
+        Button(action: action, label: { label }).Compose(context: context)
     }
 
-    @Composable func ComposeAction() {
+    @Composable func makeComposeLabel() -> ComposeBuilder {
         openURL = EnvironmentValues.shared.openURL
+        return label
     }
     #else
     public var body: some View {

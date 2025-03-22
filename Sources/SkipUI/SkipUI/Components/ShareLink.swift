@@ -10,14 +10,16 @@ import androidx.core.content.ContextCompat.startActivity
 #endif
 
 // Use a class to be able to update our openURL action on compose by reference.
-public final class ShareLink : View {
+public final class ShareLink : View, ButtonRepresentable {
     private static let defaultSystemImageName = "square.and.arrow.up"
+    private static let defaultTitle = "Share..."
 
     let text: Text
     let subject: Text?
     let message: Text?
-    let content: Button
     var action: () -> Void
+    let label: ComposeBuilder
+    let role: ButtonRole? = nil
 
     init(text: Text, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
         self.text = text
@@ -25,9 +27,9 @@ public final class ShareLink : View {
         self.message = message
         self.action = { }
         #if SKIP
-        self.content = Button(action: { self.action() }, label: label)
+        self.label = ComposeBuilder.from(label)
         #else
-        self.content = Button("", action: {})
+        self.label = ComposeBuilder(view: EmptyView())
         #endif
     }
 
@@ -41,13 +43,13 @@ public final class ShareLink : View {
 
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
         self.init(text: Text(item.absoluteString), subject: subject, message: message) {
-            Image(systemName: Self.defaultSystemImageName)
+            Label(Self.defaultTitle, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: Text(item), subject: subject, message: message) {
-            Image(systemName: Self.defaultSystemImageName)
+            Label(Self.defaultTitle, systemImage: Self.defaultSystemImageName)
         }
     }
 
@@ -89,11 +91,11 @@ public final class ShareLink : View {
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
-        ComposeAction()
-        content.Compose(context: context)
+        let label = makeComposeLabel()
+        Button(action: action, label: { label }).Compose(context: context)
     }
 
-    @Composable func ComposeAction() {
+    @Composable func makeComposeLabel() -> ComposeBuilder {
         let localContext = LocalContext.current
 
         let intent = Intent().apply {
@@ -109,6 +111,7 @@ public final class ShareLink : View {
             let shareIntent = Intent.createChooser(intent, nil)
             localContext.startActivity(shareIntent)
         }
+        return label
     }
     #else
     public var body: some View {
