@@ -428,7 +428,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 }
 
 @Composable func AlertButton(modifier: Modifier, buttonView: ButtonRepresentable?, isPresented: Binding<Bool>, content: @Composable () -> Void) {
-    Box(modifier: modifier.clickable(onClick: { isPresented.set(false); buttonView?.action?() }), contentAlignment: androidx.compose.ui.Alignment.Center) {
+    Box(modifier: modifier.clickable(onClick: { isPresented.set(false); buttonView?.action() }), contentAlignment: androidx.compose.ui.Alignment.Center) {
         content()
     }
 }

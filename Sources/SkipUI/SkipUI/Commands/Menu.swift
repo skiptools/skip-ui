@@ -135,7 +135,7 @@ public final class Menu : View {
                         isSelected = nil
                     }
                     ComposeDropdownMenuItem(for: buttonRep.makeComposeLabel(), context: context, isSelected: isSelected) {
-                        buttonRep.action?()
+                        buttonRep.action()
                         replaceMenu(nil)
                     }
                 } else if let text = strippedItemView as? Text {
