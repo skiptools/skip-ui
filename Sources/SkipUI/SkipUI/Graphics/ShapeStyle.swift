@@ -174,9 +174,9 @@ public struct FillStyle : Equatable {
     }
 }
 
-public enum RoundedCornerStyle : Hashable {
-    case circular
-    case continuous
+public enum RoundedCornerStyle : Int, Hashable {
+    case circular = 0 // For bridging
+    case continuous = 1 // For bridging
 }
 
 #if false

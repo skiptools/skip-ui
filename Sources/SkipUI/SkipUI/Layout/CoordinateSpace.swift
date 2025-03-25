@@ -20,6 +20,17 @@ public protocol CoordinateSpaceProtocol {
     var coordinateSpace: CoordinateSpace { get }
 }
 
+func CoordinateSpaceProtocolFrom(bridged: Int, name: AnyHashable?) -> CoordinateSpaceProtocol {
+    switch bridged {
+    case 0:
+        return GlobalCoordinateSpace.global
+    case 1:
+        return LocalCoordinateSpace.local
+    default:
+        return NamedCoordinateSpace.named(name ?? "" as AnyHashable)
+    }
+}
+
 extension CoordinateSpaceProtocol {
     public static func scrollView(axis: Axis) -> NamedCoordinateSpace {
         return named("_scrollView_axis_\(axis.rawValue)_")

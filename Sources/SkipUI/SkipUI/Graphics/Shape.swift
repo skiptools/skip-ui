@@ -25,6 +25,7 @@ import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public protocol Shape: View {
     func path(in rect: CGRect) -> Path
     var layoutDirectionBehavior: LayoutDirectionBehavior { get }
@@ -91,6 +92,11 @@ extension Shape where Self == Ellipse {
 extension Shape {
     public func path(in rect: CGRect) -> Path {
         return Path()
+    }
+
+    // SKIP @bridge
+    public func path(inX: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> Path {
+        return path(in: CGRect(x: inX, y: y, width: width, height: height))
     }
 
     public var layoutDirectionBehavior: LayoutDirectionBehavior {
@@ -292,7 +298,9 @@ public struct ModifiedShape : Shape {
 }
 #endif
 
+// SKIP @bridge
 public struct Circle : Shape {
+    // SKIP @bridge
     public init() {
     }
 
@@ -315,7 +323,9 @@ public struct Circle : Shape {
     #endif
 }
 
+// SKIP @bridge
 public struct Rectangle : Shape {
+    // SKIP @bridge
     public init() {
     }
 
@@ -335,6 +345,7 @@ public struct Rectangle : Shape {
     #endif
 }
 
+// SKIP @bridge
 public struct RoundedRectangle : Shape {
     public let cornerSize: CGSize
     public let style: RoundedCornerStyle
@@ -348,6 +359,12 @@ public struct RoundedRectangle : Shape {
     public init(cornerRadius: CGFloat, style: RoundedCornerStyle = .continuous) {
         self.cornerSize = CGSize(width: cornerRadius, height: cornerRadius)
         self.style = style
+    }
+
+    // SKIP @bridge
+    public init(cornerWidth: CGFloat, cornerHeight: CGFloat, bridgedStyle: Int) {
+        self.cornerSize = CGSize(width: cornerWidth, height: cornerHeight)
+        self.style = RoundedCornerStyle(rawValue: bridgedStyle) ?? .continuous
     }
 
     public func path(in rect: CGRect) -> Path {
@@ -366,6 +383,7 @@ public struct RoundedRectangle : Shape {
     #endif
 }
 
+// SKIP @bridge
 public struct UnevenRoundedRectangle : Shape {
     public let cornerRadii: RectangleCornerRadii
     public let style: RoundedCornerStyle
@@ -378,6 +396,12 @@ public struct UnevenRoundedRectangle : Shape {
     public init(topLeadingRadius: CGFloat = 0.0, bottomLeadingRadius: CGFloat = 0.0, bottomTrailingRadius: CGFloat = 0.0, topTrailingRadius: CGFloat = 0.0, style: RoundedCornerStyle = .continuous) {
         self.cornerRadii = RectangleCornerRadii(topLeading: topLeadingRadius, bottomLeading: bottomLeadingRadius, bottomTrailing: bottomTrailingRadius, topTrailing: topTrailingRadius)
         self.style = style
+    }
+
+    // SKIP @bridge
+    public init(topLeadingRadius: CGFloat, bottomLeadingRadius: CGFloat, bottomTrailingRadius: CGFloat, topTrailingRadius: CGFloat, bridgedStyle: Int) {
+        self.cornerRadii = RectangleCornerRadii(topLeading: topLeadingRadius, bottomLeading: bottomLeadingRadius, bottomTrailing: bottomTrailingRadius, topTrailing: topTrailingRadius)
+        self.style = RoundedCornerStyle(rawValue: bridgedStyle) ?? .continuous
     }
 
     public func path(in rect: CGRect) -> Path {
@@ -396,11 +420,17 @@ public struct UnevenRoundedRectangle : Shape {
     #endif
 }
 
+// SKIP @bridge
 public final class Capsule : Shape {
     public let style: RoundedCornerStyle
 
     public init(style: RoundedCornerStyle = .continuous) {
         self.style = style
+    }
+
+    // SKIP @bridge
+    public init(bridgedStyle: Int) {
+        self.style = RoundedCornerStyle(rawValue: bridgedStyle) ?? .continuous
     }
 
     public func path(in rect: CGRect) -> Path {
@@ -432,7 +462,9 @@ public final class Capsule : Shape {
     #endif
 }
 
+// SKIP @bridge
 public final class Ellipse : Shape {
+    // SKIP @bridge
     public init() {
     }
 
@@ -445,6 +477,27 @@ public final class Ellipse : Shape {
         return true
     }
     #else
+    public typealias AnimatableData = EmptyAnimatableData
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+    public typealias Body = NeverView
+    public var body: Body { fatalError() }
+    #endif
+}
+
+// SKIP @bridge
+public final class BridgedCustomShape : Shape {
+    public let pathBlock: (CGFloat, CGFloat, CGFloat, CGFloat) -> Path
+
+    // SKIP @bridge
+    public init(_ path: @escaping (CGFloat, CGFloat, CGFloat, CGFloat) -> Path) {
+        self.pathBlock = path
+    }
+
+    public func path(in rect: CGRect) -> Path {
+        return pathBlock(rect.origin.x, rect.origin.y, rect.width, rect.height)
+    }
+
+    #if !SKIP
     public typealias AnimatableData = EmptyAnimatableData
     public var animatableData: AnimatableData { get { fatalError() } set { } }
     public typealias Body = NeverView
@@ -521,6 +574,12 @@ extension Shape {
         #endif
     }
 
+    // SKIP @bridge
+    public func fill(_ content: any ShapeStyle, eoFill: Bool, antialiased: Bool) -> any Shape {
+        return fill(content, style: FillStyle(eoFill: eoFill, antialiased: antialiased))
+    }
+
+    // SKIP @bridge
     public func inset(by amount: CGFloat) -> any Shape {
         #if SKIP
         var modifiedShape = self.modified
@@ -545,6 +604,7 @@ extension Shape {
         #endif
     }
 
+    // SKIP @bridge
     public func offset(x: CGFloat = 0, y: CGFloat = 0) -> any Shape {
         return self.offset(CGPoint(x: x, y: y))
     }
@@ -557,6 +617,11 @@ extension Shape {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func rotation(bridgedAngle: Double, anchorX: CGFloat, anchorY: CGFloat) -> any Shape {
+        return rotation(Angle(radians: bridgedAngle), anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
     public func scale(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> any Shape {
@@ -573,11 +638,25 @@ extension Shape {
         return self.scale(x: scale, y: scale, anchor: anchor)
     }
 
+    // SKIP @bridge
+    public func scale(width: CGFloat, height: CGFloat, anchorX: CGFloat, anchorY: CGFloat) -> any Shape {
+        return scale(x: width, y: height, anchor: UnitPoint(x: anchorX, y: anchorY))
+    }
+
     public func stroke(_ content: any ShapeStyle, style: StrokeStyle, antialiased: Bool = true) -> any Shape {
         #if SKIP
         var modifiedShape = self.modified
         modifiedShape.strokes.append(ShapeStroke(content, style, false))
         return modifiedShape
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func stroke(_ content: any ShapeStyle, lineWidth: CGFloat, bridgedLineCap: Int, bridgedLineJoin: Int, miterLmit: CGFloat, dash: [CGFloat], dashPhase: CGFloat, antialiased: Bool) -> any Shape {
+        #if SKIP
+        return stroke(content, style: StrokeStyle(lineWidth: lineWidth, lineCap: CGLineCap(rawValue: bridgedLineCap) ?? .butt, lineJoin: CGLineJoin(rawValue: bridgedLineJoin) ?? .miter, miterLimit: miterLmit, dash: dash, dashPhase: dashPhase), antialiased: antialiased)
         #else
         return self
         #endif
@@ -615,6 +694,15 @@ extension Shape {
 
     public func strokeBorder(lineWidth: CGFloat = 1.0, antialiased: Bool = true) -> any View {
         return strokeBorder(ForegroundStyle(), style: StrokeStyle(lineWidth: lineWidth), antialiased: antialiased)
+    }
+
+    // SKIP @bridge
+    public func strokeBorder(_ content: any ShapeStyle, lineWidth: CGFloat, bridgedLineCap: Int, bridgedLineJoin: Int, miterLmit: CGFloat, dash: [CGFloat], dashPhase: CGFloat, antialiased: Bool) -> any View {
+        #if SKIP
+        return strokeBorder(content, style: StrokeStyle(lineWidth: lineWidth, lineCap: CGLineCap(rawValue: bridgedLineCap) ?? .butt, lineJoin: CGLineJoin(rawValue: bridgedLineJoin) ?? .miter, miterLimit: miterLmit, dash: dash, dashPhase: dashPhase), antialiased: antialiased)
+        #else
+        return self
+        #endif
     }
 }
 

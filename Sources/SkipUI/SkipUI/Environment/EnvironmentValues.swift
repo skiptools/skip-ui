@@ -223,6 +223,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
         case "dismiss":
             return EnvironmentSupport(builtinValue: dismiss)
+        case "layoutDirection":
+            return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
         default:
             return nil
         }
