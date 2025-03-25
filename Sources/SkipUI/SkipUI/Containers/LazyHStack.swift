@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct LazyHStack : View {
     let alignment: VerticalAlignment
     let spacing: CGFloat?
@@ -28,6 +29,13 @@ public struct LazyHStack : View {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(alignmentKey: String, spacing: CGFloat?, bridgedPinnedViews: Int, bridgedContent: any View) {
+        self.alignment = VerticalAlignment(key: alignmentKey)
+        self.spacing = spacing
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP
