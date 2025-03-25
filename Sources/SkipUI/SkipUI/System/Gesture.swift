@@ -245,13 +245,15 @@ extension View {
     }
 
     // SKIP @bridge
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: ((Bool) -> Void)? = nil) -> any View {
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void) -> any View {
         let longPressGesture = LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
-        if let onPressingChanged {
-            return gesture(longPressGesture.onChanged(onPressingChanged).onEnded({ _ in action() }))
-        } else {
-            return gesture(longPressGesture.onEnded({ _ in action() }))
-        }
+        return gesture(longPressGesture.onEnded({ _ in action() }))
+    }
+
+    // SKIP @bridge
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: @escaping (Bool) -> Void) -> any View {
+        let longPressGesture = LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
+        return gesture(longPressGesture.onChanged(onPressingChanged).onEnded({ _ in action() }))
     }
 
     public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> any View {
