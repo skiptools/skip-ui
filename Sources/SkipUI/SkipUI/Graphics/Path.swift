@@ -18,12 +18,18 @@ import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct Path : Shape, Equatable {
     #if SKIP
     private let path: androidx.compose.ui.graphics.Path
 
-    public init(path: androidx.compose.ui.graphics.Path = androidx.compose.ui.graphics.Path()) {
+    public init(path: androidx.compose.ui.graphics.Path) {
         self.path = path
+    }
+
+    // SKIP @bridge
+    public init() {
+        self.path = androidx.compose.ui.graphics.Path()
     }
 
     // Custom copy constructor to copy the path
@@ -66,6 +72,15 @@ public struct Path : Shape, Equatable {
         callback(&self)
     }
 
+    // SKIP @bridge
+    public func copy() -> Path {
+        #if SKIP
+        return Path(copy: self)
+        #else
+        return self
+        #endif
+    }
+
     public func path(in rect: CGRect) -> Path {
         return self
     }
@@ -87,6 +102,7 @@ public struct Path : Shape, Equatable {
     public var body: Body { fatalError() }
     #endif
 
+    // SKIP @bridge
     public var isEmpty: Bool {
         #if SKIP
         return path.isEmpty
@@ -104,8 +120,19 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public var bridgedBoundingRect: (CGFloat, CGFloat, CGFloat, CGFloat) {
+        let rect = boundingRect
+        return (rect.origin.x, rect.origin.y, rect.size.width, rect.size.height)
+    }
+
     public func contains(_ p: CGPoint, eoFill: Bool = false) -> Bool {
         return boundingRect.contains(p)
+    }
+
+    // SKIP @bridge
+    public func contains(x: CGFloat, y: CGFloat, eoFill: Bool) -> Bool {
+        return contains(CGPoint(x: x, y: y), eoFill: eoFill)
     }
 
     public enum Element : Equatable {
@@ -136,10 +163,20 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func move(toX: CGFloat, y: CGFloat) {
+        move(to: CGPoint(x: toX, y: y))
+    }
+
     public mutating func addLine(to end: CGPoint) {
         #if SKIP
         path.lineTo(Float(end.x), Float(end.y))
         #endif
+    }
+
+    // SKIP @bridge
+    public mutating func addLine(toX: CGFloat, y: CGFloat) {
+        addLine(to: CGPoint(x: toX, y: y))
     }
 
     public mutating func addQuadCurve(to end: CGPoint, control: CGPoint) {
@@ -148,12 +185,23 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addQuadCurve(toX: CGFloat, y: CGFloat, controlX: CGFloat, controlY: CGFloat) {
+        addQuadCurve(to: CGPoint(x: toX, y: y), control: CGPoint(x: controlX, y: controlY))
+    }
+
     public mutating func addCurve(to end: CGPoint, control1: CGPoint, control2: CGPoint) {
         #if SKIP
         path.cubicTo(Float(control1.x), Float(control1.y), Float(control2.x), Float(control2.y), Float(end.x), Float(end.y))
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addCurve(toX: CGFloat, y: CGFloat, control1X: CGFloat, control1Y: CGFloat, control2X: CGFloat, control2Y: CGFloat) {
+        addCurve(to: CGPoint(x: toX, y: y), control1: CGPoint(x: control1X, y: control1Y), control2: CGPoint(x: control2X, y: control2Y))
+    }
+
+    // SKIP @bridge
     public mutating func closeSubpath() {
         #if SKIP
         path.close()
@@ -170,6 +218,11 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addRect(CGRect(x: x, y: y, width: width, height: height), transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
+    }
+
     public mutating func addRoundedRect(in rect: CGRect, cornerSize: CGSize, style: RoundedCornerStyle = .continuous, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
@@ -178,6 +231,11 @@ public struct Path : Shape, Equatable {
             path.addPath(Path(roundedRect: rect, cornerSize: cornerSize, style: style).applying(transform).path)
         }
         #endif
+    }
+
+    // SKIP @bridge
+    public mutating func addRoundedRect(inX: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, cornerWidth: CGFloat, cornerHeight: CGFloat, bridgedCornerStyle: Int, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addRoundedRect(in: CGRect(x: inX, y: y, width: width, height: height), cornerSize: CGSize(width: cornerWidth, height: cornerHeight), style: RoundedCornerStyle(rawValue: bridgedCornerStyle) ?? .continuous, transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
     }
 
     public mutating func addRoundedRect(in rect: CGRect, cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous, transform: CGAffineTransform = .identity) {
@@ -190,6 +248,11 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addRoundedRect(inX: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, topLeading: CGFloat, bottomLeading: CGFloat, bottomTrailing: CGFloat, topTrailing: CGFloat, bridgedCornerStyle: Int, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addRoundedRect(in: CGRect(x: inX, y: y, width: width, height: height), cornerRadii: RectangleCornerRadii(topLeading: topLeading, bottomLeading: bottomLeading, bottomTrailing: bottomTrailing, topTrailing: topTrailing), style: RoundedCornerStyle(rawValue: bridgedCornerStyle) ?? .continuous, transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
+    }
+
     public mutating func addEllipse(in rect: CGRect, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
@@ -198,6 +261,11 @@ public struct Path : Shape, Equatable {
             path.addPath(Path(ellipseIn: rect).applying(transform).path)
         }
         #endif
+    }
+
+    // SKIP @bridge
+    public mutating func addEllipse(inX: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addEllipse(in: CGRect(x: inX, y: y, width: width, height: height), transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
     }
 
     public mutating func addRects(_ rects: [CGRect], transform: CGAffineTransform = .identity) {
@@ -225,9 +293,19 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addRelativeArc(centerX: CGFloat, y: CGFloat, radius: CGFloat, startAngle: Double, delta: Double, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addRelativeArc(center: CGPoint(x: centerX, y: y), radius: radius, startAngle: .radians(startAngle), delta: .radians(delta), transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
+    }
+
     public mutating func addArc(center: CGPoint, radius: CGFloat, startAngle: Angle, endAngle: Angle, clockwise: Bool, transform: CGAffineTransform = .identity) {
         let deltar = clockwise ? startAngle.radians - endAngle.radians : endAngle.radians - startAngle.radians
         addRelativeArc(center: center, radius: radius, startAngle: startAngle, delta: Angle(radians: deltar))
+    }
+
+    // SKIP @bridge
+    public mutating func addArc(centerX: CGFloat, y: CGFloat, radius: CGFloat, startAngle: Double, endAngle: Double, clockwise: Bool, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addArc(center: CGPoint(x: centerX, y: y), radius: radius, startAngle: .radians(startAngle), endAngle: .radians(endAngle), clockwise: clockwise, transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
     }
 
     @available(*, unavailable)
@@ -240,6 +318,11 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public mutating func addPath(_ other: Path, a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) {
+        addPath(other, transform: CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
+    }
+
     @available(*, unavailable)
     public var currentPoint: CGPoint? {
         return nil
@@ -250,6 +333,7 @@ public struct Path : Shape, Equatable {
         return self
     }
 
+    // SKIP @bridge
     public func intersection(_ other: Path, eoFill: Bool = false) -> Path {
         #if SKIP
         return Path(path: androidx.compose.ui.graphics.Path.combine(PathOperation.Intersect, path, other.path))
@@ -258,6 +342,7 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
     public func union(_ other: Path, eoFill: Bool = false) -> Path {
         #if SKIP
         return Path(path: androidx.compose.ui.graphics.Path.combine(PathOperation.Union, path, other.path))
@@ -266,6 +351,7 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
     public func subtracting(_ other: Path, eoFill: Bool = false) -> Path {
         #if SKIP
         return Path(path: androidx.compose.ui.graphics.Path.combine(PathOperation.Difference, path, other.path))
@@ -274,6 +360,7 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
     public func symmetricDifference(_ other: Path, eoFill: Bool = false) -> Path {
         #if SKIP
         return Path(path: androidx.compose.ui.graphics.Path.combine(PathOperation.Xor, path, other.path))
@@ -306,6 +393,12 @@ public struct Path : Shape, Equatable {
         #endif
     }
 
+    // SKIP @bridge
+    public func applying(a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat) -> Path {
+        return applying(CGAffineTransform(a: a, b: b, c: c, d: d, tx: tx, ty: ty))
+    }
+
+    // SKIP @bridge
     public func offsetBy(dx: CGFloat, dy: CGFloat) -> Path {
         #if SKIP
         let translatedPath = androidx.compose.ui.graphics.Path()

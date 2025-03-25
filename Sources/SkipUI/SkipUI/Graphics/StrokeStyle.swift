@@ -12,11 +12,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 
 public enum CGLineCap : Int {
-    case butt, round, square
+    case butt = 0 // For bridging
+    case round = 1 // For bridging
+    case square = 2 // For bridging
 
 }
 public enum CGLineJoin : Int {
-    case miter, round, bevel
+    case miter = 0 // For bridging
+    case round = 1 // For bridging
+    case bevel = 2 // For bridging
 }
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat

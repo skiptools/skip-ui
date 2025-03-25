@@ -195,6 +195,11 @@ extension View {
     }
 
     // SKIP @bridge
+    public func background(_ style: any ShapeStyle, in shape: any Shape, eoFill: Bool, antialiased: Bool) -> any View {
+        return background(style, in: shape, fillStyle: FillStyle(eoFill: eoFill, antialiased: antialiased))
+    }
+
+    // SKIP @bridge
     public func backgroundStyle(_ style: any ShapeStyle) -> any View {
         #if SKIP
         return environment(\.backgroundStyle, style)
@@ -679,11 +684,12 @@ extension View {
         return self
     }
 
-    public func offset(_ offset: CGSize) -> some View {
+    public func offset(_ offset: CGSize) -> any View {
         return self.offset(x: offset.width, y: offset.height)
     }
 
-    public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+    // SKIP @bridge
+    public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let density = LocalDensity.current
@@ -699,7 +705,8 @@ extension View {
         #endif
     }
 
-    public func onAppear(perform action: (() -> Void)? = nil) -> some View {
+    // SKIP @bridge
+    public func onAppear(perform action: (() -> Void)? = nil) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
             let hasAppeared = remember { mutableStateOf(false) }
@@ -796,7 +803,8 @@ extension View {
         return self
     }
 
-    public func onDisappear(perform action: (() -> Void)? = nil) -> some View {
+    // SKIP @bridge
+    public func onDisappear(perform action: (() -> Void)? = nil) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
             let disposeAction = rememberUpdatedState(action)
@@ -817,7 +825,8 @@ extension View {
         return self
     }
 
-    public func opacity(_ opacity: Double) -> some View {
+    // SKIP @bridge
+    public func opacity(_ opacity: Double) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let animatable = Float(opacity).asAnimatable(context: $0)
@@ -951,7 +960,7 @@ extension View {
         return self
     }
 
-    public func rotationEffect(_ angle: Angle) -> some View {
+    public func rotationEffect(_ angle: Angle) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let animatable = Float(angle.degrees).asAnimatable(context: $0)
@@ -964,7 +973,7 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> some View {
+    public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> any View {
         #if SKIP
         fatalError()
         #else
@@ -972,7 +981,13 @@ extension View {
         #endif
     }
 
-    public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> some View {
+    // SKIP @bridge
+    public func rotationEffect(bridgedAngle: Double, anchorX: CGFloat, anchorY: CGFloat) -> any View {
+        // Note: anchor is currently ignored
+        return rotationEffect(.radians(bridgedAngle))
+    }
+
+    public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let animatable = Float(angle.degrees).asAnimatable(context: context)
@@ -996,8 +1011,13 @@ extension View {
         #endif
     }
 
-    public func rotation3DEffect(_ angle: Angle, axis: (x: Int, y: Int, z: Int), perspective: CGFloat = 1.0) -> some View {
+    public func rotation3DEffect(_ angle: Angle, axis: (x: Int, y: Int, z: Int), perspective: CGFloat = 1.0) -> any View {
         return rotation3DEffect(angle, axis: (CGFloat(axis.x), CGFloat(axis.y), CGFloat(axis.z)), perspective: perspective)
+    }
+
+    // SKIP @bridge
+    public func rotation3DEffect(bridgedAngle: Double, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchorX: CGFloat, anchorY: CGFloat, anchorZ: CGFloat, perspective: CGFloat) -> any View {
+        return rotation3DEffect(.radians(bridgedAngle), axis: axis, anchor: UnitPoint(x: anchorX, y: anchorY), anchorZ: anchorZ, perspective: perspective)
     }
 
     @available(*, unavailable)
@@ -1038,25 +1058,25 @@ extension View {
         return aspectRatio(nil, contentMode: .fill)
     }
 
-    public func scaleEffect(_ scale: CGSize) -> some View {
+    public func scaleEffect(_ scale: CGSize) -> any View {
         return scaleEffect(x: scale.width, y: scale.height)
     }
 
     @available(*, unavailable)
-    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint) -> some View {
+    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint) -> any View {
         return scaleEffect(x: scale.width, y: scale.height)
     }
 
-    public func scaleEffect(_ s: CGFloat) -> some View {
+    public func scaleEffect(_ s: CGFloat) -> any View {
         return scaleEffect(x: s, y: s)
     }
 
     @available(*, unavailable)
-    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint) -> some View {
+    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint) -> any View {
         return scaleEffect(x: s, y: s)
     }
 
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View {
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             let animatable = (Float(x), Float(y)).asAnimatable(context: $0)
@@ -1068,8 +1088,14 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchorX: CGFloat, anchorY: CGFloat) -> any View {
+        // Note: anchor is currently ignored
+        return scaleEffect(x: x, y: y)
+    }
+
     @available(*, unavailable)
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> some View {
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> any View {
         return scaleEffect(x: x, y: y)
     }
 

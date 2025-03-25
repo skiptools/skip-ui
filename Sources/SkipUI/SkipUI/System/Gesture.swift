@@ -244,17 +244,19 @@ extension View {
         return self
     }
 
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void) -> some View {
+    // SKIP @bridge
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void) -> any View {
         let longPressGesture = LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
         return gesture(longPressGesture.onEnded({ _ in action() }))
     }
 
-    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: @escaping (Bool) -> Void) -> some View {
+    // SKIP @bridge
+    public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = CGFloat(10.0), perform action: @escaping () -> Void, onPressingChanged: @escaping (Bool) -> Void) -> any View {
         let longPressGesture = LongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance)
         return gesture(longPressGesture.onChanged(onPressingChanged).onEnded({ _ in action() }))
     }
 
-    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> some View {
+    public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local, perform action: @escaping (CGPoint) -> Void) -> any View {
         #if SKIP
         let tapGesture = TapGesture(count: count, coordinateSpace: coordinateSpace)
         var modified = tapGesture.modified
@@ -263,6 +265,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func onTapGesture(count: Int, bridgedCoordinateSpace: Int, name: Any?, perform action: @escaping (CGFloat, CGFloat) -> Void) -> any View {
+        let coordinateSpace = CoordinateSpaceProtocolFrom(bridged: bridgedCoordinateSpace, name: name as? AnyHashable)
+        return onTapGesture(count: count, coordinateSpace: coordinateSpace, perform: { p in action(p.x, p.y) })
     }
 
     @available(*, unavailable)
