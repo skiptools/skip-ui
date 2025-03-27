@@ -732,7 +732,7 @@ extension View {
         #endif
     }
 
-    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some View {
+    public func onChange<V>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
@@ -751,11 +751,12 @@ extension View {
     // inline rather than trailing at the call site. So for these onChange variants we've separated the 'initial' argument
     // out rather than default it
 
-    public func onChange<V>(of value: V, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
+    public func onChange<V>(of value: V, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> any View {
         return onChange(of: value, initial: false, action)
     }
 
-    public func onChange<V>(of value: V, initial: Bool, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> some View {
+    // SKIP @bridge
+    public func onChange<V>(of value: V, initial: Bool, _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V, Any>) { mutableStateOf(value) }
@@ -780,11 +781,11 @@ extension View {
         #endif
     }
 
-    public func onChange<V>(of value: V?, _ action: @escaping () -> Void) -> some View {
+    public func onChange<V>(of value: V?, _ action: @escaping () -> Void) -> any View {
         return onChange(of: value, initial: false, action)
     }
 
-    public func onChange<V>(of value: V?, initial: Bool, _ action: @escaping () -> Void) -> some View {
+    public func onChange<V>(of value: V?, initial: Bool, _ action: @escaping () -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<V?, Any>) { mutableStateOf(value) }
@@ -1220,7 +1221,8 @@ extension View {
         return self
     }
 
-    public func zIndex(_ value: Double) -> some View {
+    // SKIP @bridge
+    public func zIndex(_ value: Double) -> any View {
         #if SKIP
         return ZIndexModifierView(targetView: self, zIndex: value)
         #else
