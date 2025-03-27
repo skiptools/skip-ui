@@ -16,6 +16,7 @@ public final class EnvironmentSupport {
         self.builtinValue = nil
     }
 
+    // SKIP @bridge
     public init(builtinValue: Any?) {
         self.builtinValue = builtinValue
         self.valueHolder = Int64(0)

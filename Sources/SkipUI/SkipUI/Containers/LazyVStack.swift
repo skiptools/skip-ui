@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct LazyVStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
@@ -34,7 +35,14 @@ public struct LazyVStack : View {
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
     }
-    
+
+    // SKIP @bridge
+    public init(alignmentKey: String, spacing: CGFloat?, bridgedPinnedViews: Int, bridgedContent: any View) {
+        self.alignment = HorizontalAlignment(key: alignmentKey)
+        self.spacing = spacing
+        self.content = ComposeBuilder.from { bridgedContent }
+    }
+
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
         // Let any parent scroll view know about our builtin scrolling. If there is a parent scroll

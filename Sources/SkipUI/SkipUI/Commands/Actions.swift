@@ -8,6 +8,11 @@ public struct DismissAction {
     // SKIP @bridge
     public let action: () -> Void
 
+    // SKIP @bridge
+    public init(action: @escaping () -> Void) {
+        self.action = action
+    }
+
     static let `default` = DismissAction(action: { })
 
     public func callAsFunction() {
@@ -15,34 +20,43 @@ public struct DismissAction {
     }
 }
 
+// SKIP @bridge
 public struct OpenURLAction {
+    // SKIP @bridge
     public struct Result {
-        let rawValue: Int
-        let url: URL?
+        // SKIP @bridge
+        public let rawValue: Int
+        // SKIP @bridge
+        public let url: URL?
 
-        init (rawValue: Int, url: URL? = nil) {
+        // SKIP @bridge
+        public init (rawValue: Int, url: URL? = nil) {
             self.rawValue = rawValue
             self.url = url
         }
 
-        public static let handled = Result(rawValue: 0)
-        public static let discarded = Result(rawValue: 1)
-        public static let systemAction = Result(rawValue: 2)
+        public static let handled = Result(rawValue: 0) // For bridging
+        public static let discarded = Result(rawValue: 1) // For bridging
+        public static let systemAction = Result(rawValue: 2) // For bridging
         public static func systemAction(_ url: URL) -> Result {
-            return Result(rawValue: 2, url: url)
+            return Result(rawValue: 2, url: url) // For bridging
         }
     }
 
-    let handler: (URL) -> Result
-    let systemHandler: ((URL) throws -> Void)?
+    // SKIP @bridge
+    public let handler: (URL) -> Result
+    // SKIP @bridge
+    public let systemHandler: ((URL) throws -> Void)?
 
     static let `default`: OpenURLAction = OpenURLAction(handler: { _ in Result.systemAction })
 
+    // SKIP @bridge
     public init(handler: @escaping (URL) -> Result) {
         self.handler = handler
         self.systemHandler = nil
     }
 
+    // SKIP @bridge
     public init(handler: @escaping (URL) -> Result, systemHandler: @escaping (URL) throws -> Void) {
         self.handler = handler
         self.systemHandler = systemHandler
@@ -74,7 +88,11 @@ public struct OpenURLAction {
 }
 
 public struct RefreshAction {
-    let action: () async -> Void
+    public let action: () async -> Void
+
+    public init(action: @escaping () async -> Void) {
+        self.action = action
+    }
 
     public func callAsFunction() async {
         await action()

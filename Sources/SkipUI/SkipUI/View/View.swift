@@ -112,7 +112,7 @@ extension View {
         return self
     }
 
-    public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> some View {
+    public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> any View {
         #if SKIP
         // Image has its own support for aspect ratios, and we allow the loaded Image in AsyncImage to consume the modifier too
         if let ratio, !strippingModifiers(perform: { $0 is Image || $0 is AsyncImage }) {
@@ -129,8 +129,13 @@ extension View {
         #endif
     }
 
-    public func aspectRatio(_ size: CGSize, contentMode: ContentMode) -> some View {
+    public func aspectRatio(_ size: CGSize, contentMode: ContentMode) -> any View {
         return aspectRatio(size.width / size.height, contentMode: contentMode)
+    }
+
+    // SKIP @bridge
+    public func aspectRatio(_ ratio: CGFloat? = nil, bridgedContentMode: Int) -> any View {
+        return aspectRatio(ratio, contentMode: ContentMode(rawValue: bridgedContentMode) ?? .fit)
     }
 
     public func background(_ background: any View, alignment: Alignment = .center) -> any View {
@@ -270,7 +275,7 @@ extension View {
         return self
     }
 
-    public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> some View {
+    public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clip(shape.asComposeShape(density: LocalDensity.current))
@@ -281,7 +286,13 @@ extension View {
         #endif
     }
 
-    public func clipped(antialiased: Bool = false) -> some View {
+    // SKIP @bridge
+    public func clipShape(_ shape: any Shape, eoFill: Bool, antialiased: Bool) -> any View {
+        return clipShape(shape, style: FillStyle(eoFill: eoFill, antialiased: antialiased))
+    }
+
+    // SKIP @bridge
+    public func clipped(antialiased: Bool = false) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.clipToBounds()
@@ -383,7 +394,7 @@ extension View {
         return self
     }
 
-    public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> some View {
+    public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> any View {
         return clipShape(RoundedRectangle(cornerRadius: radius))
     }
 
@@ -838,7 +849,7 @@ extension View {
         #endif
     }
 
-    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> any View {
         #if SKIP
         let overlay = content()
         return ComposeModifierView(contentView: self) { view, context in
@@ -849,12 +860,27 @@ extension View {
         #endif
     }
 
-    public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+    // SKIP @bridge
+    public func overlay(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: any View) -> any View {
+        return overlay(alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)), content: { bridgedContent })
+    }
+
+    public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> any View {
         return overlay(style, in: Rectangle())
     }
 
-    public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+    // SKIP @bridge
+    public func overlay(_ style: any ShapeStyle, bridgedIgnoresSafeAreaEdges: Int) -> any View {
+        return overlay(style, ignoresSafeAreaEdges: Edge.Set(rawValue: bridgedIgnoresSafeAreaEdges))
+    }
+
+    public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> any View {
         return overlay(content: { shape.fill(style) })
+    }
+
+    // SKIP @bridge
+    public func overlay(_ style: any ShapeStyle, in shape: any Shape, eoFill: Bool, antialiased: Bool) -> any View {
+        return overlay(style, in: shape, fillStyle: FillStyle(eoFill: eoFill, antialiased: antialiased))
     }
 
     public func padding(_ insets: EdgeInsets) -> some View {
@@ -908,11 +934,12 @@ extension View {
         return self
     }
 
-    public func position(_ position: CGPoint) -> some View {
+    public func position(_ position: CGPoint) -> any View {
         return self.position(x: position.x, y: position.y)
     }
 
-    public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+    // SKIP @bridge
+    public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let density = LocalDensity.current
@@ -1050,11 +1077,11 @@ extension View {
         return self
     }
 
-    public func scaledToFit() -> some View {
+    public func scaledToFit() -> any View {
         return aspectRatio(nil, contentMode: .fit)
     }
 
-    public func scaledToFill() -> some View {
+    public func scaledToFill() -> any View {
         return aspectRatio(nil, contentMode: .fill)
     }
 
