@@ -25,9 +25,18 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 #endif
 
+protocol ButtonRepresentable {
+    var action: () -> Void { get set }
+    var label: ComposeBuilder { get }
+    var role: ButtonRole? { get }
+#if SKIP
+    @Composable func makeComposeLabel() -> ComposeBuilder
+#endif
+}
+
 // SKIP @bridge
-public struct Button : View, ListItemAdapting {
-    let action: () -> Void
+public struct Button : View, ListItemAdapting, ButtonRepresentable, TextRepresentable {
+    var action: () -> Void
     let label: ComposeBuilder
     let role: ButtonRole?
 
@@ -75,6 +84,14 @@ public struct Button : View, ListItemAdapting {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         Self.ComposeButton(label: label, context: context, role: role, action: action)
+    }
+
+    @Composable func textRepresentation(context: ComposeContext) -> Text? {
+        return label.textRepresentation(context: context)
+    }
+
+    @Composable func makeComposeLabel() -> ComposeBuilder {
+        return label
     }
 
     @Composable func shouldComposeListItem() -> Bool {
