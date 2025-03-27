@@ -12,7 +12,6 @@ import androidx.core.content.ContextCompat.startActivity
 // Use a class to be able to update our openURL action on compose by reference.
 public final class ShareLink : View, ButtonRepresentable {
     private static let defaultSystemImageName = "square.and.arrow.up"
-    private static let defaultTitle = "Share..."
 
     let text: Text
     let subject: Text?
@@ -42,14 +41,12 @@ public final class ShareLink : View, ButtonRepresentable {
     }
 
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message) {
-            Label(Self.defaultTitle, systemImage: Self.defaultSystemImageName)
-        }
+        self.init(item: item.absoluteString, subject: subject, message: message)
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: Text(item), subject: subject, message: message) {
-            Label(Self.defaultTitle, systemImage: Self.defaultSystemImageName)
+            Label("Share...", systemImage: Self.defaultSystemImageName)
         }
     }
 

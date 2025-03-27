@@ -29,7 +29,7 @@ public final class Link : View, ButtonRepresentable {
     public init(destination: URL, bridgedLabel: any View) {
         #if SKIP
         self.action = { self.openURL(destination) }
-        self.label = ComposeBuilder(view: bridgedLabel)
+        self.label = ComposeBuilder.from { bridgedLabel }
         #else
         self.action = {}
         self.label = ComposeBuilder(view: EmptyView())
