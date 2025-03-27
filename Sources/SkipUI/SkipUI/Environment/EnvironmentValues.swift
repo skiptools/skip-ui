@@ -106,6 +106,9 @@ public final class EnvironmentValues {
     }
 
     public func setBridged(key: String, value: EnvironmentSupport?) {
+        guard !setBuiltinBridged(key: key, value: value) else {
+            return
+        }
         let compositionLocal = bridgedCompositionLocal(key: key)
         lastSetValues[compositionLocal] = value ?? Unit
     }
@@ -215,6 +218,9 @@ extension EnvironmentValues {
         lastSetValues[compositionLocal] = value ?? Unit
     }
 
+    // MARK: - Builtin EnvironmentValues bridging
+    // Note: Must be matched by equivalent code in SkipFuseUI.EnvironmentValues
+
     @Composable private func builtinBridged(key: String) -> EnvironmentSupport? {
         // NOTE: We also maintain equivalent code in SkipFuseUI.EnvironmentValues.
         // It would be nice to come up with a better way to do this...
@@ -225,8 +231,30 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: dismiss)
         case "layoutDirection":
             return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
+        case "openURL":
+            return EnvironmentSupport(builtinValue: openURL)
         default:
             return nil
+        }
+    }
+
+    private func setBuiltinBridged(key: String, value: EnvironmentSupport?) -> Bool {
+        switch key {
+        case "colorScheme":
+            return false // Doesn't support setting outside of `.colorScheme(_:)` func
+        case "dismiss":
+            setdismiss(value?.builtinValue as? DismissAction ?? DismissAction.default)
+            return true
+        case "layoutDirection":
+            let rawValue = value?.builtinValue as? Int
+            let layoutDirection: LayoutDirection = rawValue == nil ? .leftToRight : LayoutDirection(rawValue: rawValue!) ?? .leftToRight
+            setlayoutDirection(layoutDirection)
+            return true
+        case "openURL":
+            setopenURL(value?.builtinValue as? OpenURLAction ?? OpenURLAction.default)
+            return true
+        default:
+            return false
         }
     }
 

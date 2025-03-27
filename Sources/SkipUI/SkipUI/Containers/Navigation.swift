@@ -92,14 +92,12 @@ public struct NavigationStack : View {
     let path: Binding<[Any]>?
     let navigationPath: Binding<NavigationPath>?
     let destinationKeyTransformer: ((Any) -> String)?
-    let destinationRouteFunction: ((Any) -> String)?
 
     public init(@ViewBuilder root: () -> any View) {
         self.root = ComposeBuilder.from(root)
         self.path = nil
         self.navigationPath = nil
         self.destinationKeyTransformer = nil
-        self.destinationRouteFunction = nil
     }
 
     public init(path: Binding<NavigationPath>, @ViewBuilder root: () -> any View) {
@@ -107,7 +105,6 @@ public struct NavigationStack : View {
         self.path = nil
         self.navigationPath = path
         self.destinationKeyTransformer = nil
-        self.destinationRouteFunction = nil
     }
 
     public init(path: Any, @ViewBuilder root: () -> any View) {
@@ -115,11 +112,10 @@ public struct NavigationStack : View {
         self.path = path as! Binding<[Any]>?
         self.navigationPath = nil
         self.destinationKeyTransformer = nil
-        self.destinationRouteFunction = nil
     }
 
     // SKIP @bridge
-    public init(getData: (() -> [Any])?, setData: (([Any]) -> Void)?, bridgedRoot: any View, destinationKeyTransformer: @escaping (Any) -> String, destinationRouteFunction: @escaping (Any) -> String) {
+    public init(getData: (() -> [Any])?, setData: (([Any]) -> Void)?, bridgedRoot: any View, destinationKeyTransformer: @escaping (Any) -> String) {
         self.root = ComposeBuilder.from { bridgedRoot }
         self.navigationPath = nil
         if let getData, let setData {
@@ -128,7 +124,6 @@ public struct NavigationStack : View {
             self.path = nil
         }
         self.destinationKeyTransformer = destinationKeyTransformer
-        self.destinationRouteFunction = destinationRouteFunction
     }
 
     #if SKIP
@@ -141,7 +136,7 @@ public struct NavigationStack : View {
         let destinationsCollector = PreferenceCollector<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, state: destinations, isErasable: false)
         let reducedDestinations = destinations.value.reduced
         let navController = rememberNavController()
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: reducedDestinations, destinationKeyTransformer: destinationKeyTransformer, destinationRouteFunction: destinationRouteFunction)) }
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: reducedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
         navigator.value.didCompose(navController: navController, destinations: reducedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
@@ -605,7 +600,6 @@ struct NavigationDestination {
     private var destinations: NavigationDestinations
     private var destinationIndexes: [AnyHashable: Int] = [:]
     private var destinationKeyTransformer: ((Any) -> String)?
-    private var destinationRouteFunction: ((Any) -> String)?
 
     // We reserve the last destination index for static destinations. Every time we navigate to a static destination view, we increment the
     // destination value to give it a unique navigation path of e.g. 99/0, 99/1, 99/2, etc
@@ -634,11 +628,10 @@ struct NavigationDestination {
         }
     }
 
-    init(navController: NavHostController, destinations: NavigationDestinations, destinationKeyTransformer: ((Any) -> String)?, destinationRouteFunction: ((Any) -> String)?) {
+    init(navController: NavHostController, destinations: NavigationDestinations, destinationKeyTransformer: ((Any) -> String)?) {
         self.navController = navController
         self.destinations = destinations
         self.destinationKeyTransformer = destinationKeyTransformer
-        self.destinationRouteFunction = destinationRouteFunction
         updateDestinationIndexes()
     }
 
@@ -880,13 +873,7 @@ struct NavigationDestination {
             return String(describing: key) + "?"
         }
         // Escape '/' because it is meaningful in navigation routes
-        var valueString: String
-        if let destinationRouteFunction {
-            valueString = destinationRouteFunction(value)
-        } else {
-            valueString = composeBundleString(for: value)
-        }
-        valueString = valueString.replacingOccurrences(of: "/", with: "%2F")
+        let valueString = composeBundleString(for: value).replacingOccurrences(of: "/", with: "%2F")
         return route(for: index, valueString: valueString)
     }
 

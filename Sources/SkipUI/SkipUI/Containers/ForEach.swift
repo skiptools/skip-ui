@@ -121,7 +121,13 @@ public final class ForEach : View, LazyItemFactory {
                     isFirstView = false
                 }
                 if isTagging {
-                    contentViews = taggedViews(for: contentViews, defaultTag: index, context: appendingContext)
+                    let defaultTag: Any?
+                    if let identifier {
+                        defaultTag = identifier(index)
+                    } else {
+                        defaultTag = index
+                    }
+                    contentViews = taggedViews(for: contentViews, defaultTag: defaultTag, context: appendingContext)
                 }
                 contentViews.forEach { $0.Compose(appendingContext) }
             }
@@ -218,7 +224,13 @@ public final class ForEach : View, LazyItemFactory {
     override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
         if let indexRange {
             let factory: (Int) -> View = context.isTagging ? { index in
-                return TagModifierView(view: indexedContent!(index), value: index, role: ComposeModifierRole.tag)
+                let tag: Any?
+                if let identifier {
+                    tag = identifier!(index)
+                } else {
+                    tag = index
+                }
+                return TagModifierView(view: indexedContent!(index), value: tag, role: ComposeModifierRole.tag)
             } : indexedContent!
             context.indexedItems(indexRange, identifier, onDeleteAction, onMoveAction, level, factory)
         } else if let objects {

@@ -849,7 +849,7 @@ extension View {
         #endif
     }
 
-    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> some View {
+    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> any View {
         #if SKIP
         let overlay = content()
         return ComposeModifierView(contentView: self) { view, context in
@@ -860,12 +860,27 @@ extension View {
         #endif
     }
 
-    public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+    // SKIP @bridge
+    public func overlay(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: any View) -> any View {
+        return overlay(alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)), content: { bridgedContent })
+    }
+
+    public func overlay(_ style: any ShapeStyle, ignoresSafeAreaEdges edges: Edge.Set = .all) -> any View {
         return overlay(style, in: Rectangle())
     }
 
-    public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> some View {
+    // SKIP @bridge
+    public func overlay(_ style: any ShapeStyle, bridgedIgnoresSafeAreaEdges: Int) -> any View {
+        return overlay(style, ignoresSafeAreaEdges: Edge.Set(rawValue: bridgedIgnoresSafeAreaEdges))
+    }
+
+    public func overlay(_ style: any ShapeStyle, in shape: any Shape, fillStyle: FillStyle = FillStyle()) -> any View {
         return overlay(content: { shape.fill(style) })
+    }
+
+    // SKIP @bridge
+    public func overlay(_ style: any ShapeStyle, in shape: any Shape, eoFill: Bool, antialiased: Bool) -> any View {
+        return overlay(style, in: shape, fillStyle: FillStyle(eoFill: eoFill, antialiased: antialiased))
     }
 
     public func padding(_ insets: EdgeInsets) -> some View {
@@ -919,11 +934,12 @@ extension View {
         return self
     }
 
-    public func position(_ position: CGPoint) -> some View {
+    public func position(_ position: CGPoint) -> any View {
         return self.position(x: position.x, y: position.y)
     }
 
-    public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+    // SKIP @bridge
+    public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let density = LocalDensity.current
