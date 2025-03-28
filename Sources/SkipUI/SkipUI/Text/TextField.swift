@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
+// SKIP @bridge
 public struct TextField : View {
     let text: Binding<String>
     let label: ComposeBuilder
@@ -35,6 +36,14 @@ public struct TextField : View {
     public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
         self.text = text
         self.label = ComposeBuilder.from(label)
+        self.prompt = prompt
+        self.isSecure = isSecure
+    }
+
+    // SKIP @bridge
+    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?, isSecure: Bool, bridgedLabel: any View) {
+        self.text = Binding(get: getText, set: setText)
+        self.label = ComposeBuilder.from { bridgedLabel }
         self.prompt = prompt
         self.isSecure = isSecure
     }
@@ -162,13 +171,14 @@ public struct TextFieldStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = TextFieldStyle(rawValue: 0)
-    public static let roundedBorder = TextFieldStyle(rawValue: 1)
-    public static let plain = TextFieldStyle(rawValue: 2)
+    public static let automatic = TextFieldStyle(rawValue: 0) // For bridging
+    public static let roundedBorder = TextFieldStyle(rawValue: 1) // For bridging
+    public static let plain = TextFieldStyle(rawValue: 2) // For bridging
 }
 
 extension View {
-    public func autocorrectionDisabled(_ disable: Bool = true) -> some View {
+    // SKIP @bridge
+    public func autocorrectionDisabled(_ disable: Bool = true) -> any View {
         #if SKIP
         return keyboardOptionsModifierView { options in
             return options == nil ? KeyboardOptions(autoCorrectEnabled: !disable) : options.copy(autoCorrectEnabled: !disable)
@@ -178,7 +188,7 @@ extension View {
         #endif
     }
 
-    public func keyboardType(_ type: UIKeyboardType) -> some View {
+    public func keyboardType(_ type: UIKeyboardType) -> any View {
         #if SKIP
         let keyboardType = type.asComposeKeyboardType()
         return keyboardOptionsModifierView { options in
@@ -189,7 +199,12 @@ extension View {
         #endif
     }
 
-    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping (() -> Void)) -> some View {
+    // SKIP @bridge
+    public func keyboardType(bridgedType: Int) -> any View {
+        return keyboardType(UIKeyboardType(rawValue: bridgedType) ?? .default)
+    }
+
+    public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping () -> Void) -> some View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             let state = EnvironmentValues.shared._onSubmitState
@@ -205,12 +220,17 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func onSubmit(bridgedTriggers: Int, action: @escaping () -> Void) -> any View {
+        return onSubmit(of: SubmitTriggers(rawValue: bridgedTriggers), action)
+    }
+
     @available(*, unavailable)
     public func submitScope(_ isBlocking: Bool = true) -> some View {
         return self
     }
 
-    public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
+    public func submitLabel(_ submitLabel: SubmitLabel) -> any View {
         #if SKIP
         let imeAction = submitLabel.asImeAction()
         return keyboardOptionsModifierView { options in
@@ -221,12 +241,17 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func submitLabel(bridgedLabel: Int) -> any View {
+        return submitLabel(SubmitLabel(rawValue: bridgedLabel) ?? .done)
+    }
+
     @available(*, unavailable)
     public func textContentType(_ textContentType: UITextContentType?) -> some View {
         return self
     }
 
-    public func textFieldStyle(_ style: TextFieldStyle) -> some View {
+    public func textFieldStyle(_ style: TextFieldStyle) -> any View {
         #if SKIP
         return environment(\._textFieldStyle, style)
         #else
@@ -234,7 +259,12 @@ extension View {
         #endif
     }
 
-    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> some View {
+    // SKIP @bridge
+    public func textFieldStyle(bridgedStyle: Int) -> any View {
+        return textFieldStyle(TextFieldStyle(rawValue: bridgedStyle))
+    }
+
+    public func textInputAutocapitalization(_ autocapitalization: TextInputAutocapitalization?) -> any View {
         #if SKIP
         let capitalization = (autocapitalization ?? TextInputAutocapitalization.sentences).asKeyboardCapitalization()
         return keyboardOptionsModifierView { options in
@@ -243,6 +273,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func textInputAutocapitalization(bridgedAutocapitalization: Int?) -> any View {
+        let autocap: TextInputAutocapitalization? = bridgedAutocapitalization == nil ? nil : TextInputAutocapitalization(rawValue: bridgedAutocapitalization!)
+        return textInputAutocapitalization(autocap)
     }
 
     #if SKIP

@@ -9,8 +9,8 @@ public struct SubmitTriggers : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let text = SubmitTriggers(rawValue: 1 << 0)
-    public static let search = SubmitTriggers(rawValue: 1 << 1)
+    public static let text = SubmitTriggers(rawValue: 1 << 0) // For bridging
+    public static let search = SubmitTriggers(rawValue: 1 << 1) // For bridging
 }
 
 #endif

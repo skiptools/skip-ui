@@ -161,7 +161,7 @@ public struct Animation : Hashable {
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
         let isNested = preBodyWithAnimation(animation)
         defer {
-            if isNested {
+            if !isNested {
                 postBodyWithAnimation()
             }
         }

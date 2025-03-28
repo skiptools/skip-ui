@@ -520,6 +520,21 @@ public enum PresentationDetent : Hashable {
 //        public subscript<T>(dynamicMember keyPath: KeyPath<EnvironmentValues, T>) -> T { get { fatalError() } }
     }
 
+    static func forBridged(identifier: Int, value: CGFloat) -> PresentationDetent? {
+        switch identifier {
+        case 0: // For bridging
+            return .medium
+        case 1: // For bridging
+            return .large
+        case 2: // For bridging
+            return .fraction(value)
+        case 3: // For bridging
+            return .height(value)
+        default:
+            return nil
+        }
+    }
+
     public func hash(into hasher: inout Hasher) {
         switch self {
         case .medium:
@@ -614,15 +629,15 @@ struct PresentationDetentPreferences: Equatable {
 #endif
 
 extension View {
-    public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> some View {
+    public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions)
     }
 
-    public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> some View {
+    public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, actions: actions)
     }
 
-    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> some View {
+    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
         return PresentationModifierView(view: self, providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions())
@@ -632,15 +647,21 @@ extension View {
         #endif
     }
 
-    public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+    // SKIP @bridge
+    public func alert(_ title: Text, getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, bridgedActions: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return alert(title, isPresented: isPresented, actions: { bridgedActions })
+    }
+
+    public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions, message: message)
     }
 
-    public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+    public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, actions: actions, message: message)
     }
 
-    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         #if SKIP
         return PresentationModifierView(view: self, providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions(), message: message())
@@ -650,15 +671,21 @@ extension View {
         #endif
     }
 
-    public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+    // SKIP @bridge
+    public func alert(_ title: Text, getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, bridgedActions: any View, bridgedMessage: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return alert(title, isPresented: isPresented, actions: { bridgedActions }, message: { bridgedMessage })
+    }
+
+    public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions)
     }
 
-    public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+    public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions)
     }
 
-    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> some View {
+    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
         #if SKIP
         let actionsWithData: () -> any View
         if let data {
@@ -672,15 +699,15 @@ extension View {
         #endif
     }
 
-    public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+    public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
-    public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+    public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
-    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> some View {
+    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
         #if SKIP
         let actionsWithData: () -> any View
         let messageWithData: () -> any View
@@ -744,15 +771,15 @@ extension View {
 //        #endif
 //    }
 
-    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+    public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
 
-    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+    public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
 
-    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> some View {
+    public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
         return PresentationModifierView(view: self, providesNavigation: true) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions())
@@ -760,6 +787,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func confirmationDialog(_ title: Text, getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, bridgedTitleVisibility: Int, bridgedActions: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return confirmationDialog(title, isPresented: isPresented, titleVisibility: Visibility(rawValue: bridgedTitleVisibility) ?? .automatic, actions: { bridgedActions })
     }
 
     public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
@@ -778,6 +811,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func confirmationDialog(_ title: Text, getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, bridgedTitleVisibility: Int, bridgedActions: any View, bridgedMessage: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return confirmationDialog(title, isPresented: isPresented, titleVisibility: Visibility(rawValue: bridgedTitleVisibility) ?? .automatic, actions: { bridgedActions }, message: { bridgedMessage })
     }
 
     public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
@@ -827,7 +866,7 @@ extension View {
         #endif
     }
 
-    public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> some View /* where Item : Identifiable, */ {
+    public func fullScreenCover<Item>(item: Binding<Item?>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping (Item) -> any View) -> any View /* where Item : Identifiable, */ {
         #if SKIP
         let isPresented = Binding<Bool>(
             get: {
@@ -850,7 +889,7 @@ extension View {
         #endif
     }
 
-    public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
+    public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> any View {
         #if SKIP
         return PresentationModifierView(view: self, providesNavigation: false) { context in
             SheetPresentation(isPresented: isPresented, isFullScreen: true, context: context, content: content, onDismiss: onDismiss)
@@ -860,7 +899,14 @@ extension View {
         #endif
     }
 
-    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> some View {
+    // SKIP @bridge
+    public func fullScreenCover(getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, onDismiss: (() -> Void)?, bridgedContent: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return fullScreenCover(isPresented: isPresented, onDismiss: onDismiss, content: { bridgedContent })
+    }
+
+    // SKIP @bridge
+    public func interactiveDismissDisabled(_ isDisabled: Bool = true) -> any View {
         #if SKIP
         return preference(key: InteractiveDismissDisabledPreferenceKey.self, value: isDisabled)
         #else
@@ -868,13 +914,16 @@ extension View {
         #endif
     }
 
-    #if SKIP
-    public func backDismissDisabled(_ isDisabled: Bool = true) -> some View {
+    // SKIP @bridge
+    public func backDismissDisabled(_ isDisabled: Bool = true) -> any View {
+        #if SKIP
         return BackDismissDisabledModifierView(view: self, isDisabled: isDisabled)
+        #else
+        return self
+        #endif
     }
-    #endif
 
-    public func presentationDetents(_ detents: Set<PresentationDetent>) -> some View {
+    public func presentationDetents(_ detents: Set<PresentationDetent>) -> any View {
         #if SKIP
         // TODO: Add support for multiple detents
         if detents.count == 0 {
@@ -885,6 +934,17 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func presentationDetents(bridgedDetents: [Int], values: [CGFloat]) -> any View {
+        var set: Set<PresentationDetent> = []
+        for i in 0..<bridgedDetents.count {
+            if let detent = PresentationDetent.forBridged(identifier: bridgedDetents[i], value: values[i]) {
+                set.insert(detent)
+            }
+        }
+        return presentationDetents(set)
     }
 
     @available(*, unavailable)
@@ -963,6 +1023,12 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func sheet(getIsPresented: @escaping () -> Bool, setIsPresented: @escaping (Bool) -> Void, onDismiss: (() -> Void)?, bridgedContent: any View) -> any View {
+        let isPresented = Binding(get: getIsPresented, set: setIsPresented)
+        return sheet(isPresented: isPresented, onDismiss: onDismiss, content: { bridgedContent })
     }
 }
 

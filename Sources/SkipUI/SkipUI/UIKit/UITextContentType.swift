@@ -9,6 +9,8 @@ public struct UITextContentType: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
+    // Warning: these values are used in bridging
+
     public static let name = UITextContentType(rawValue: 0) // Not allowed as a Kotlin enum case name
     public static let namePrefix = UITextContentType(rawValue: 1)
     public static let givenName = UITextContentType(rawValue: 2)

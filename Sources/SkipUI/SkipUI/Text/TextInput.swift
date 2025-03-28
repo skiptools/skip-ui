@@ -5,11 +5,11 @@
 import androidx.compose.ui.text.input.KeyboardCapitalization
 #endif
 
-public enum TextInputAutocapitalization {
-    case never
-    case words
-    case sentences
-    case characters
+public enum TextInputAutocapitalization: Int {
+    case never = 0 // For bridging
+    case words = 1 // For bridging
+    case sentences = 2 // For bridging
+    case characters = 3 // For bridging
 
     #if SKIP
     func asKeyboardCapitalization() -> KeyboardCapitalization {

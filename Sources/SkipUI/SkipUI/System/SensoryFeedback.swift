@@ -201,13 +201,13 @@ public struct SensoryFeedback : RawRepresentable, Equatable {
 }
 
 extension View {
-    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T) -> some View {
+    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T) -> any View {
         return onChange(of: trigger) {
             feedback.activate()
         }
     }
 
-    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> some View {
+    public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> any View {
         return onChange(of: trigger) { oldValue, newValue in
             if condition(oldValue, newValue) {
                 feedback.activate()
@@ -215,7 +215,7 @@ extension View {
         }
     }
 
-    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> some View {
+    public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> any View {
         return onChange(of: trigger) { oldValue, newValue in
             feedback(oldValue, newValue)?.activate()
         }

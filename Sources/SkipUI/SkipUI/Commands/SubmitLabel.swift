@@ -5,16 +5,16 @@
 import androidx.compose.ui.text.input.ImeAction
 #endif
 
-public enum SubmitLabel {
-    case done
-    case go
-    case send
-    case join
-    case route
-    case search
-    case `return`
-    case next
-    case `continue`
+public enum SubmitLabel: Int {
+    case done = 0 // For bridging
+    case go = 1 // For bridging
+    case send = 2 // For bridging
+    case join = 3 // For bridging
+    case route = 4 // For bridging
+    case search = 5 // For bridging
+    case `return` = 6 // For bridging
+    case next = 7 // For bridging
+    case `continue` = 8 // For bridging
 
     #if SKIP
     func asImeAction() -> ImeAction {

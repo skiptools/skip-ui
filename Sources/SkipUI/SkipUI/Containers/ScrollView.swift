@@ -35,13 +35,15 @@ public struct ScrollView : View {
     let content: ComposeBuilder
     let axes: Axis.Set
 
-    public init(_ axes: Axis.Set = .vertical, @ViewBuilder content: () -> any View) {
+    public init(_ axes: Axis.Set = .vertical, showsIndicators: Bool = true, @ViewBuilder content: () -> any View) {
+        // Note: showsIndicator is ignored
         self.axes = axes
         self.content = ComposeBuilder.from(content)
     }
 
     // SKIP @bridge
-    public init(bridgedAxes: Int, bridgedContent: any View) {
+    public init(bridgedAxes: Int, showsIndicators: Bool, bridgedContent: any View) {
+        // Note: showsIndicator is ignored
         self.axes = Axis.Set(rawValue: bridgedAxes)
         self.content = ComposeBuilder.from { bridgedContent }
     }
