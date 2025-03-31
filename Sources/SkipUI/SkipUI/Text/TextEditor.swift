@@ -11,11 +11,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
+// SKIP @bridge
 public struct TextEditor : View {
     let text: Binding<String>
 
     public init(text: Binding<String>) {
         self.text = text
+    }
+
+    // SKIP @bridge
+    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void) {
+        self.text = Binding(get: getText, set: setText)
     }
 
     #if SKIP
@@ -48,13 +54,18 @@ public struct TextEditorStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = TextEditorStyle(rawValue: 0)
-    public static let plain = TextEditorStyle(rawValue: 1)
+    public static let automatic = TextEditorStyle(rawValue: 0) // For bridging
+    public static let plain = TextEditorStyle(rawValue: 1) // For bridging
 }
 
 extension View {
-    public func textEditorStyle(_ style: TextEditorStyle) -> some View {
+    public func textEditorStyle(_ style: TextEditorStyle) -> any View {
         return self
+    }
+
+    // SKIP @bridge
+    public func textEditorStyle(bridgedStyle: Int) -> any View {
+        return textEditorStyle(TextEditorStyle(rawValue: bridgedStyle))
     }
 
     @available(*, unavailable)
