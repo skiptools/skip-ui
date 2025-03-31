@@ -16,15 +16,17 @@ public struct EditActions /* <Data> */ : OptionSet {
 }
 
 extension View {
-    public func deleteDisabled(_ isDisabled: Bool) -> some View {
+    // SKIP @bridge
+    public func deleteDisabled(_ isDisabled: Bool) -> any View {
         #if SKIP
         return EditActionsModifierView(view: self, isDeleteDisabled: isDisabled)
         #else
         return self
         #endif
     }
-    
-    public func moveDisabled(_ isDisabled: Bool) -> some View {
+
+    // SKIP @bridge
+    public func moveDisabled(_ isDisabled: Bool) -> any View {
         #if SKIP
         return EditActionsModifierView(view: self, isMoveDisabled: isDisabled)
         #else

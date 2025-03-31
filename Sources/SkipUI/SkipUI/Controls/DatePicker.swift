@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 #endif
 
+// SKIP @bridge
 public struct DatePicker : View {
     public typealias Components = DatePickerComponents
 
@@ -56,6 +57,11 @@ public struct DatePicker : View {
         } else {
             timeFormatter = nil
         }
+    }
+
+    // SKIP @bridge
+    public init(getSelection: @escaping () -> Date, setSelection: @escaping (Date) -> Void, bridgedDisplayedComponents: Int, bridgedLabel: any View) {
+        self.init(selection: Binding(get: getSelection, set: setSelection), displayedComponents: DatePickerComponents(rawValue: bridgedDisplayedComponents), label: { bridgedLabel })
     }
 
     @available(*, unavailable)
@@ -226,8 +232,8 @@ public struct DatePickerComponents : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let hourAndMinute = DatePickerComponents(rawValue: 1 << 0)
-    public static let date = DatePickerComponents(rawValue: 1 << 1)
+    public static let hourAndMinute = DatePickerComponents(rawValue: 1 << 0) // For bridging
+    public static let date = DatePickerComponents(rawValue: 1 << 1) // For bridging
 }
 
 public struct DatePickerStyle: RawRepresentable, Equatable {
@@ -237,21 +243,26 @@ public struct DatePickerStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = DatePickerStyle(rawValue: 0)
+    public static let automatic = DatePickerStyle(rawValue: 0) // For bridging
 
     @available(*, unavailable)
-    public static let graphical = DatePickerStyle(rawValue: 1)
+    public static let graphical = DatePickerStyle(rawValue: 1) // For bridging
 
     @available(*, unavailable)
-    public static let wheel = DatePickerStyle(rawValue: 2)
+    public static let wheel = DatePickerStyle(rawValue: 2) // For bridging
 
-    public static let compact = DatePickerStyle(rawValue: 3)
+    public static let compact = DatePickerStyle(rawValue: 3) // For bridging
 }
 
 extension View {
-    public func datePickerStyle(_ style: DatePickerStyle) -> some View {
+    public func datePickerStyle(_ style: DatePickerStyle) -> any View {
         // We only support .automatic / .compact
         return self
+    }
+
+    // SKIP @bridge
+    public func datePickerStyle(bridgedStyle: Int) -> any View {
+        return datePickerStyle(DatePickerStyle(rawValue: bridgedStyle))
     }
 }
 

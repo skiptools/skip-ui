@@ -47,9 +47,31 @@ public final class ForEach : View, LazyItemFactory {
         return self
     }
 
+    // SKIP @bridge
+    public func onDeleteArray(bridgedAction: (([Int]) -> Void)?) -> ForEach {
+        let action: ((IndexSet) -> Void)?
+        if let bridgedAction {
+            action = { bridgedAction(Array($0)) }
+        } else {
+            action = nil
+        }
+        return onDelete(perform: action)
+    }
+
     public func onMove(perform action: ((IndexSet, Int) -> Void)?) -> ForEach {
         onMoveAction = action
         return self
+    }
+
+    // SKIP @bridge
+    public func onMoveArray(bridgedAction: (([Int], Int) -> Void)?) -> ForEach {
+        let action: ((IndexSet, Int) -> Void)?
+        if let bridgedAction {
+            action = { bridgedAction(Array($0), $1) }
+        } else {
+            action = nil
+        }
+        return onMove(perform: action)
     }
 
     #if SKIP

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
 
+// SKIP @bridge
 public struct Toggle : View {
     let isOn: Binding<Bool>
     let label: any View
@@ -19,6 +20,12 @@ public struct Toggle : View {
     public init(isOn: Binding<Bool>, @ViewBuilder label: () -> any View) {
         self.isOn = isOn
         self.label = label()
+    }
+
+    // SKIP @bridge
+    public init(getIsOn: @escaping () -> Bool, setIsOn: @escaping (Bool) -> Void, bridgedLabel: any View) {
+        self.isOn = Binding(get: getIsOn, set: setIsOn)
+        self.label = ComposeBuilder.from { bridgedLabel }
     }
 
     @available(*, unavailable)

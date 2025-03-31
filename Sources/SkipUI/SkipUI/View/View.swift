@@ -662,7 +662,8 @@ extension View {
         return self
     }
 
-    public func labelsHidden() -> some View {
+    // SKIP @bridge
+    public func labelsHidden() -> any View {
         #if SKIP
         return environment(\._labelsHidden, true)
         #else
