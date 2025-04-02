@@ -219,10 +219,10 @@ extension EnvironmentValues {
     }
 
     // MARK: - Builtin EnvironmentValues bridging
-    // Note: Must be matched by equivalent code in SkipFuseUI.EnvironmentValues
+    // Note: Must be matched by equivalent code in SkipSwiftUI.EnvironmentValues
 
     @Composable private func builtinBridged(key: String) -> EnvironmentSupport? {
-        // NOTE: We also maintain equivalent code in SkipFuseUI.EnvironmentValues.
+        // NOTE: We also maintain equivalent code in SkipSwiftUI.EnvironmentValues.
         // It would be nice to come up with a better way to do this...
         switch key {
         case "colorScheme":

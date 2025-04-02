@@ -3,8 +3,8 @@
 #if !SKIP_BRIDGE
 
 public struct Binding<Value> {
-    public let get: () -> Value // Public bridging from SkipFuseUI.Binding
-    public let set: (Value) -> Void // Public for bridging from SkipFuseUI.Binding
+    public let get: () -> Value // Public bridging from SkipSwiftUI.Binding
+    public let set: (Value) -> Void // Public for bridging from SkipSwiftUI.Binding
 
     public init(get: @escaping () -> Value, set: @escaping (Value) -> Void) {
         self.get = get
