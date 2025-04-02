@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 #endif
 
+// SKIP @bridge
 public struct ProgressView : View {
     let value: Double?
     let total: Double?
@@ -56,6 +57,13 @@ public struct ProgressView : View {
 
     public init(_ title: String, value: Double?, total: Double = 1.0) {
         self.init(value: value, total: total, label: { Text(verbatim: title) })
+    }
+
+    // SKIP @bridge
+    public init(value: Double?, total: Double?, bridgedLabel: (any View)?) {
+        self.value = value
+        self.total = total
+        self.label = bridgedLabel == nil ? nil : ComposeBuilder.from { bridgedLabel! }
     }
 
     #if SKIP
@@ -125,18 +133,23 @@ public struct ProgressViewStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = ProgressViewStyle(rawValue: 0)
-    public static let linear = ProgressViewStyle(rawValue: 1)
-    public static let circular = ProgressViewStyle(rawValue: 2)
+    public static let automatic = ProgressViewStyle(rawValue: 0) // For bridging
+    public static let linear = ProgressViewStyle(rawValue: 1) // For bridging
+    public static let circular = ProgressViewStyle(rawValue: 2) // For bridging
 }
 
 extension View {
-    public func progressViewStyle(_ style: ProgressViewStyle) -> some View {
+    public func progressViewStyle(_ style: ProgressViewStyle) -> any View {
         #if SKIP
         return environment(\._progressViewStyle, style)
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func progressViewStyle(bridgedStyle: Int) -> any View {
+        return progressViewStyle(ProgressViewStyle(rawValue: bridgedStyle))
     }
 }
 

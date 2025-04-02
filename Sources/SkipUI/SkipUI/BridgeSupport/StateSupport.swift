@@ -30,7 +30,7 @@ public final class StateSupport: StateTracker {
         valueHolder = Swift_release(valueHolder)
     }
 
-    /// - Seealso `SkipFuseUI.BridgedStateBox`
+    /// - Seealso `SkipSwiftUI.BridgedStateBox`
     // SKIP EXTERN
     private func Swift_release(Swift_valueHolder: Int64) -> Int64
     #endif

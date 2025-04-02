@@ -402,7 +402,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         fatalError()
     }
 
-    // NOTE: Keep in sync with SkipFuseUI.UIApplication.State
+    // NOTE: Keep in sync with SkipSwiftUI.UIApplication.State
     public enum State : Int {
         case active = 0
         case inactive = 1

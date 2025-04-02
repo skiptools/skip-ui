@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 
-// NOTE: Keep in sync with SkipFuseUI.Alignment
+// NOTE: Keep in sync with SkipSwiftUI.Alignment
 public struct Alignment : Equatable {
     public var horizontal: HorizontalAlignment
     public var vertical: VerticalAlignment

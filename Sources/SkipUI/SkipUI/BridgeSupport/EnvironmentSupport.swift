@@ -29,7 +29,7 @@ public final class EnvironmentSupport {
         }
     }
 
-    /// - Seealso `SkipFuseUI.Environment`
+    /// - Seealso `SkipSwiftUI.Environment`
     // SKIP EXTERN
     private func Swift_release(Swift_valueHolder: Int64) -> Int64
     #endif

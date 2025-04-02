@@ -11,7 +11,7 @@ import androidx.compose.runtime.saveable.SaverScope
 /// We typically use a `ComposeStateSaver` to save state, but when working with Compose internal state like `LazyList` state, use this function
 /// to turn user-supplied values into strings that Compose can save natively.
 ///
-/// - Seealso: `SkipFuseUI.Java_composeBundleString(for:)`
+/// - Seealso: `SkipSwiftUI.Java_composeBundleString(for:)`
 func composeBundleString(for value: Any?) -> String {
     if let identifiable = value as? Identifiable {
         return String(describing: identifiable.id)
