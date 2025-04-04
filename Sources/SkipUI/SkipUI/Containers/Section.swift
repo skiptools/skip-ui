@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 #endif
 
 // Erase generics to facilitate specialized constructor support.
+// SKIP @bridge
 public struct Section : View, LazyItemFactory {
     let header: ComposeBuilder?
     let footer: ComposeBuilder?
@@ -62,6 +63,13 @@ public struct Section : View, LazyItemFactory {
     @available(*, unavailable)
     public init(isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
         self.init(content: content, header: header)
+    }
+
+    // SKIP @bridge
+    public init(bridgedContent: any View, bridgedHeader: (any View)?, bridgedFooter: (any View)?) {
+        self.content = ComposeBuilder.from { bridgedContent }
+        self.header = bridgedHeader == nil ? nil : ComposeBuilder.from { bridgedHeader! }
+        self.footer = bridgedFooter == nil ? nil : ComposeBuilder.from { bridgedFooter! }
     }
 
     #if SKIP

@@ -31,8 +31,8 @@ public final class ForEach : View, LazyItemFactory {
     }
 
     // SKIP @bridge
-    public init(startIndex: Int, endIndex: Int, identifier: @escaping (Int) -> AnyHashable, bridgedContent: @escaping (Int) -> any View) {
-        self.identifier = { identifier($0 as! Int) }
+    public init(startIndex: Int, endIndex: Int, identifier: ((Int) -> AnyHashable)?, bridgedContent: @escaping (Int) -> any View) {
+        self.identifier = identifier == nil ? nil : { identifier!($0 as! Int) }
         self.indexRange = startIndex..<endIndex
         self.indexedContent = bridgedContent
         self.objects = nil
