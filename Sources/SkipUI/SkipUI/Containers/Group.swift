@@ -12,11 +12,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 #endif
 
+// SKIP @bridge
 public struct Group : View {
     let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View) {
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(bridgedContent: any View) {
+        self.content = ComposeBuilder.from { bridgedContent }
     }
 
     #if SKIP

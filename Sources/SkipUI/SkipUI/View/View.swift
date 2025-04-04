@@ -601,7 +601,8 @@ extension View {
         return self
     }
 
-    public func id(_ id: Any) -> some View {
+    // SKIP @bridge
+    public func id(_ id: Any) -> any View {
         #if SKIP
         return TagModifierView(view: self, value: id, role: ComposeModifierRole.id)
         #else
