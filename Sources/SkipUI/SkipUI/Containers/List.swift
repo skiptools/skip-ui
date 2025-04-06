@@ -77,7 +77,7 @@ public final class List : View {
             self.fixedContent = nil
         }
         if let indexRange {
-            self.forEach = ForEach(identifier: identifier, indexRange: indexRange, indexedContent: indexedContent)
+            self.forEach = ForEach(identifier: identifier, indexRange: { indexRange }, indexedContent: indexedContent)
         } else if let objects {
             self.forEach = ForEach(identifier: identifier, objects: objects, objectContent: objectContent)
         } else if let objectsBinding {
