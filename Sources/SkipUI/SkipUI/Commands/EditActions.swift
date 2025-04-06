@@ -10,9 +10,9 @@ public struct EditActions /* <Data> */ : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let move = EditActions(rawValue: 1)
-    public static let delete = EditActions(rawValue: 2)
-    public static let all = EditActions(rawValue: 3)
+    public static let move = EditActions(rawValue: 1) // For bridging
+    public static let delete = EditActions(rawValue: 2) // For bridging
+    public static let all = EditActions(rawValue: 3) // For bridging
 }
 
 extension View {
