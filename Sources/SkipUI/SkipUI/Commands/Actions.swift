@@ -87,6 +87,7 @@ public struct OpenURLAction {
     }
 }
 
+// SKIP @bridge
 public struct RefreshAction {
     public let action: () async -> Void
 
@@ -94,8 +95,33 @@ public struct RefreshAction {
         self.action = action
     }
 
+    // SKIP @bridge
+    public init(bridgedAction: @escaping (CompletionHandler) -> Void, bridgedCancel: @escaping () -> Void) {
+        #if SKIP
+        self.action = {
+            kotlinx.coroutines.suspendCancellableCoroutine { continuation in
+                continuation.invokeOnCancellation { _ in
+                    bridgedCancel()
+                }
+                let completionHandler = CompletionHandler({ continuation.resume(Unit, nil) })
+                bridgedAction(completionHandler)
+            }
+        }
+        #else
+        self.action = {}
+        #endif
+    }
+
     public func callAsFunction() async {
         await action()
+    }
+
+    // SKIP @bridge
+    public func run(completion: @escaping () -> Void) {
+        Task {
+            await action()
+            completion()
+        }
     }
 }
 
