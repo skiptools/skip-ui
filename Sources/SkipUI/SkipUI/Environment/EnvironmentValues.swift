@@ -229,6 +229,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
         case "dismiss":
             return EnvironmentSupport(builtinValue: dismiss)
+        case "isSearching":
+            return EnvironmentSupport(builtinValue: isSearching)
         case "layoutDirection":
             return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
         case "openURL":
@@ -247,6 +249,8 @@ extension EnvironmentValues {
         case "dismiss":
             setdismiss(value?.builtinValue as? DismissAction ?? DismissAction.default)
             return true
+        case "isSearching":
+            return false
         case "layoutDirection":
             let rawValue = value?.builtinValue as? Int
             let layoutDirection: LayoutDirection = rawValue == nil ? .leftToRight : LayoutDirection(rawValue: rawValue!) ?? .leftToRight

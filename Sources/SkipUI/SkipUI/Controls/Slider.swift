@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 #endif
 
+// SKIP @bridge
 public struct Slider : View {
     let value: Binding<Double>
     let bounds: ClosedRange<Double>
@@ -29,6 +30,14 @@ public struct Slider : View {
 
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View) {
         self.init(value: value, in: bounds, step: step)
+    }
+
+    // SKIP @bridge
+    public init(getValue: @escaping () -> Double, setValue: @escaping (Double) -> Void, min: Double, max: Double, step: Double?, bridgedLabel: (any View)?) {
+        self.value = Binding(get: getValue, set: setValue)
+        self.bounds = min...max
+        self.step = step
+        // Note: label is ignored
     }
 
     @available(*, unavailable)
