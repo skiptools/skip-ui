@@ -233,6 +233,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
         case "openURL":
             return EnvironmentSupport(builtinValue: openURL)
+        case "refresh":
+            return EnvironmentSupport(builtinValue: refresh)
         default:
             return nil
         }
@@ -252,6 +254,9 @@ extension EnvironmentValues {
             return true
         case "openURL":
             setopenURL(value?.builtinValue as? OpenURLAction ?? OpenURLAction.default)
+            return true
+        case "refresh":
+            setrefresh(value?.builtinValue as? RefreshAction)
             return true
         default:
             return false

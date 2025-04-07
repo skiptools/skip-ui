@@ -1166,16 +1166,38 @@ extension View {
         #endif
     }
 
-    public func task(priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
+    public func task(priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> any View {
         return task(id: 0, priority: priority, action)
     }
 
-    public func task(id value: Any, priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> some View {
+    public func task(id value: Any, priority: TaskPriority = .userInitiated, _ action: @escaping () async -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
             let handler = rememberUpdatedState(action)
             LaunchedEffect(value) {
                 handler.value()
+            }
+            return ComposeResult.ok
+        }
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func task(id value: Any, bridgedAction: @escaping (CompletionHandler) -> Void, bridgedCancel: @escaping () -> Void) -> any View {
+        #if SKIP
+        return ComposeModifierView(targetView: self) { _ in
+            let actionState = rememberUpdatedState(bridgedAction)
+            let cancelState = rememberUpdatedState(bridgedCancel)
+            LaunchedEffect(value) {
+                kotlinx.coroutines.suspendCancellableCoroutine { continuation in
+                    continuation.invokeOnCancellation { _ in
+                        cancelState.value()
+                    }
+                    let completionHandler = CompletionHandler({ continuation.resume(Unit, nil) })
+                    actionState.value(completionHandler)
+                }
             }
             return ComposeResult.ok
         }

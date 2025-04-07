@@ -21,6 +21,7 @@ import okio.buffer
 import okio.source
 #endif
 
+// SKIP @bridge
 public struct AsyncImage : View {
     let url: URL?
     let scale: CGFloat
@@ -60,6 +61,35 @@ public struct AsyncImage : View {
         self.url = url
         self.scale = scale
         self.content = content
+    }
+
+    // Note that we reverse the `url` and `scale` parameter order just to create a unique JVM signature
+    // SKIP @bridge
+    public init(scale: CGFloat, url: URL?, bridgedContent: ((Image?, (any Error)?) -> any View)?) {
+        self.url = url
+        self.scale = scale
+        self.content = { phase in
+            switch phase {
+            case .empty:
+                if let bridgedContent {
+                    return bridgedContent(nil, nil)
+                } else {
+                    return Self.defaultPlaceholder()
+                }
+            case .failure(let error):
+                if let bridgedContent {
+                    return bridgedContent(nil, error)
+                } else {
+                    return Self.defaultPlaceholder()
+                }
+            case .success(let image):
+                if let bridgedContent {
+                    return bridgedContent(image, nil)
+                } else {
+                    return image
+                }
+            }
+        }
     }
 
     #if SKIP
