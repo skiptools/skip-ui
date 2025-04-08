@@ -317,6 +317,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
     }
 
+    public var lineLimitReservesSpace: Bool? {
+        get { builtinValue(key: "lineLimitReservesSpace", defaultValue: { nil }) as! Bool? }
+        set { setBuiltinValue(key: "lineLimitReservesSpace", value: newValue, defaultValue: { nil }) }
+    }
+
     public var locale: Locale {
         get { Locale(LocalConfiguration.current.locales[0]) }
         set {
