@@ -5,9 +5,11 @@
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public struct EquatableView : View {
     public let content: any View
 
+    // SKIP @bridge
     public init(content: any View) {
         self.content = content
     }

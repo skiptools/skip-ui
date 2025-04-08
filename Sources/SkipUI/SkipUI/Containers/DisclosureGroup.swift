@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 #endif
 
+// SKIP @bridge
 public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
     let label: ComposeBuilder
     let content: ComposeBuilder
@@ -52,6 +53,13 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
         self.label = ComposeBuilder.from(label)
         self.content = ComposeBuilder.from(content)
         self.expandedBinding = isExpanded
+    }
+
+    // SKIP @bridge
+    public init(getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void, bridgedLabel: any View, bridgedContent: any View) {
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.content = ComposeBuilder.from { bridgedContent }
+        self.expandedBinding = Binding(get: getExpanded, set: setExpanded)
     }
 
     @available(*, unavailable)

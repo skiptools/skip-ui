@@ -243,7 +243,8 @@ extension View {
         return self
     }
 
-    public func blur(radius: CGFloat, opaque: Bool = false) -> some View {
+    // SKIP @bridge
+    public func blur(radius: CGFloat, opaque: Bool = false) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.blur(radiusX: radius.dp, radiusY: radius.dp, edgeTreatment: BlurredEdgeTreatment.Unbounded)
@@ -320,7 +321,8 @@ extension View {
         return self
     }
 
-    public func compositingGroup() -> some View {
+    // SKIP @bridge
+    public func compositingGroup() -> any View {
         return self
     }
 
@@ -394,6 +396,7 @@ extension View {
         return self
     }
 
+    // No need to @bridge because we define it in terms of `clipShape`
     public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> any View {
         return clipShape(RoundedRectangle(cornerRadius: radius))
     }
@@ -442,6 +445,7 @@ extension View {
         return self
     }
 
+    // No need to @bridge
     public func equatable() -> some View {
         return EquatableView(content: self)
     }
@@ -540,7 +544,8 @@ extension View {
         return frame(minWidth: minWidth, idealWidth: idealWidth, maxWidth: maxWidth, minHeight: minHeight, idealHeight: idealHeight, maxHeight: maxHeight, alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)))
     }
 
-    public func grayscale(_ amount: Double) -> some View {
+    // SKIP @bridge
+    public func grayscale(_ amount: Double) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) {
             $0.modifier = $0.modifier.then(GrayscaleModifier(amount: amount))
@@ -972,6 +977,7 @@ extension View {
         return self
     }
 
+    // No need to @bridge because we define in terms of `EnvironmentValues.refresh`
     public func refreshable(action: @escaping () async -> Void) -> some View {
         #if SKIP
         return environment(\.refresh, RefreshAction(action: action))
@@ -1080,10 +1086,12 @@ extension View {
         return self
     }
 
+    // No need to @bridge because we define in terms of `.aspectRatio`
     public func scaledToFit() -> any View {
         return aspectRatio(nil, contentMode: .fit)
     }
 
+    // No need to @bridge because we define in terms of `.aspectRatio`
     public func scaledToFill() -> any View {
         return aspectRatio(nil, contentMode: .fill)
     }
@@ -1134,7 +1142,8 @@ extension View {
         return self
     }
 
-    public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> some View {
+    // SKIP @bridge
+    public func shadow(color: Color = Color(/* .sRGBLinear, */ white: 0.0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             // See Shadowed.kt
@@ -1195,7 +1204,9 @@ extension View {
                     continuation.invokeOnCancellation { _ in
                         cancelState.value()
                     }
-                    let completionHandler = CompletionHandler({ continuation.resume(Unit, nil) })
+                    let completionHandler = CompletionHandler({
+                        do { continuation.resume(Unit, nil) } catch {}
+                    })
                     actionState.value(completionHandler)
                 }
             }

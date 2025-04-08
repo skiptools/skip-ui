@@ -103,7 +103,9 @@ public struct RefreshAction {
                 continuation.invokeOnCancellation { _ in
                     bridgedCancel()
                 }
-                let completionHandler = CompletionHandler({ continuation.resume(Unit, nil) })
+                let completionHandler = CompletionHandler({
+                    do { continuation.resume(Unit, nil) } catch {}
+                })
                 bridgedAction(completionHandler)
             }
         }
