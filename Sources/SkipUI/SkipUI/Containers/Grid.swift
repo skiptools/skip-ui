@@ -8,7 +8,9 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct GridItem {
+    // SKIP @bridge
     public enum Size {
         case fixed(CGFloat)
         case flexible(minimum: CGFloat = 10.0, maximum: CGFloat = .infinity)
@@ -23,6 +25,17 @@ public struct GridItem {
         self.size = size
         self.spacing = spacing
         self.alignment = alignment
+    }
+
+    // SKIP @bridge
+    public init(size: GridItem.Size, spacing: CGFloat?, horizontalAlignmentKey: String?, verticalAlignmentKey: String?) {
+        self.size = size
+        self.spacing = spacing
+        if let horizontalAlignmentKey, let verticalAlignmentKey {
+            self.alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
+        } else {
+            self.alignment = nil
+        }
     }
 
     #if SKIP

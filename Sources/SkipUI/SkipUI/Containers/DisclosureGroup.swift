@@ -56,7 +56,7 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
     }
 
     // SKIP @bridge
-    public init(getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void, bridgedLabel: any View, bridgedContent: any View) {
+    public init(getExpanded: @escaping () -> Bool, setExpanded: @escaping (Bool) -> Void, bridgedContent: any View, bridgedLabel: any View) {
         self.label = ComposeBuilder.from { bridgedLabel }
         self.content = ComposeBuilder.from { bridgedContent }
         self.expandedBinding = Binding(get: getExpanded, set: setExpanded)

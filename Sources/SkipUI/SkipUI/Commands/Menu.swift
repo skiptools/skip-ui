@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 #endif
 
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
+// SKIP @bridge
 public final class Menu : View {
     let content: ComposeBuilder
     let label: ComposeBuilder
@@ -59,7 +60,22 @@ public final class Menu : View {
 
     public convenience init(_ title: String, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
         self.init(content: content, label: { Text(verbatim: title) }, primaryAction: primaryAction)
+    }
 
+    // SKIP @bridge
+    public init(bridgedContent: any View, bridgedLabel: any View, primaryAction: (() -> Void)?) {
+        self.content = ComposeBuilder.from { bridgedContent }
+        if let primaryAction {
+            self.label = ComposeBuilder.from { bridgedLabel }
+            self.primaryAction = primaryAction
+        } else {
+            #if SKIP
+            self.label = ComposeBuilder(view: Button(action: { self.toggleMenu() }, label: { bridgedLabel }))
+            #else
+            self.label = ComposeBuilder.from { bridgedLabel }
+            #endif
+            self.primaryAction = nil
+        }
     }
 
     #if SKIP
@@ -204,8 +220,8 @@ public struct MenuStyle: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = MenuStyle(rawValue: 0)
-    public static let button = MenuStyle(rawValue: 1)
+    public static let automatic = MenuStyle(rawValue: 0) // For bridging
+    public static let button = MenuStyle(rawValue: 1) // For bridging
 }
 
 public struct MenuActionDismissBehavior: RawRepresentable, Equatable {
@@ -215,10 +231,10 @@ public struct MenuActionDismissBehavior: RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = MenuActionDismissBehavior(rawValue: 0)
-    public static let enabled = MenuActionDismissBehavior(rawValue: 0)
+    public static let automatic = MenuActionDismissBehavior(rawValue: 0) // For bridging
+    public static let enabled = MenuActionDismissBehavior(rawValue: 0) // For bridging
     @available(*, unavailable)
-    public static let disabled = MenuActionDismissBehavior(rawValue: 1)
+    public static let disabled = MenuActionDismissBehavior(rawValue: 1) // For bridging
 }
 
 public struct MenuOrder: RawRepresentable, Equatable, Hashable {
@@ -228,19 +244,29 @@ public struct MenuOrder: RawRepresentable, Equatable, Hashable {
         self.rawValue = rawValue
     }
 
-    public static let automatic = MenuOrder(rawValue: 0)
+    public static let automatic = MenuOrder(rawValue: 0) // For bridging
     @available(*, unavailable)
-    public static let priority = MenuOrder(rawValue: 1)
-    public static let fixed = MenuOrder(rawValue: 2)
+    public static let priority = MenuOrder(rawValue: 1) // For bridging
+    public static let fixed = MenuOrder(rawValue: 2) // For bridging
 }
 
 extension View {
-    public func menuStyle(_ style: MenuStyle) -> some View {
+    public func menuStyle(_ style: MenuStyle) -> any View {
         return self
     }
 
-    public func menuActionDismissBehavior(_ behavior: MenuActionDismissBehavior) -> some View {
+    // SKIP @bridge
+    public func menuStyle(bridgedStyle: Int) -> any View {
+        return menuStyle(MenuStyle(rawValue: bridgedStyle))
+    }
+
+    public func menuActionDismissBehavior(_ behavior: MenuActionDismissBehavior) -> any View {
         return self
+    }
+
+    // SKIP @bridge
+    public func menuActionDismissBehavior(bridgedBehavior: Int) -> any View {
+        return menuActionDismissBehavior(MenuActionDismissBehavior(rawValue: bridgedBehavior))
     }
 
     @available(*, unavailable)
@@ -248,8 +274,13 @@ extension View {
         return self
     }
 
-    public func menuOrder(_ order: MenuOrder) -> some View {
+    public func menuOrder(_ order: MenuOrder) -> any View {
         return self
+    }
+
+    // SKIP @bridge
+    public func menuOrder(bridgedOrder: Int) -> any View {
+        return menuOrder(MenuOrder(rawValue: bridgedOrder))
     }
 }
 
