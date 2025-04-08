@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import struct CoreGraphics.CGFloat
 #endif
 
+// SKIP @bridge
 public struct LazyHGrid: View {
     let rows: [GridItem]
     let alignment: VerticalAlignment
@@ -32,6 +33,15 @@ public struct LazyHGrid: View {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
+    }
+
+    // SKIP @bridge
+    public init(rows: [GridItem], alignmentKey: String, spacing: CGFloat?, bridgedPinnedViews: Int, bridgedContent: any View) {
+        self.rows = rows
+        self.alignment = VerticalAlignment(key: alignmentKey)
+        self.spacing = spacing
+        self.content = ComposeBuilder.from { bridgedContent }
+        // Note: `bridgedPinnedViews` is ignored
     }
 
     #if SKIP

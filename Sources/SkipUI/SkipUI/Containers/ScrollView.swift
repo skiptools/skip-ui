@@ -266,9 +266,9 @@ public struct PinnedScrollableViews : OptionSet {
     }
 
     @available(*, unavailable)
-    public static let sectionHeaders = PinnedScrollableViews(rawValue: 1 << 0)
+    public static let sectionHeaders = PinnedScrollableViews(rawValue: 1 << 0) // For bridging
     @available(*, unavailable)
-    public static let sectionFooters = PinnedScrollableViews(rawValue: 1 << 1)
+    public static let sectionFooters = PinnedScrollableViews(rawValue: 1 << 1) // For bridging
 }
 
 extension View {
