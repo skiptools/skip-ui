@@ -70,7 +70,7 @@ public struct LazyHGrid: View {
 
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
-        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
             let gridState = rememberLazyGridState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()

@@ -77,7 +77,7 @@ public struct LazyVGrid: View {
 
         let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
-        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
+        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
                 // Integrate with our scroll-to-top and ScrollViewReader
                 let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
@@ -108,7 +108,7 @@ public struct LazyVGrid: View {
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
                 } in: {
-                    LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxSize(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                    LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxWidth(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         factoryContext.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
                             item: { view, _ in
