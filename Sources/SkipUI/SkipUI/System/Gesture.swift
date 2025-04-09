@@ -26,7 +26,7 @@ import org.burnoutcrew.reorderable.awaitPointerSlopOrCancellation
 import kotlin.math.abs
 #endif
 
-public protocol Gesture<V> {
+public protocol Gesture<V> : BridgedGesture {
     associatedtype V
     #if SKIP
     var modified: ModifiedGesure { get }
@@ -98,7 +98,66 @@ extension Gesture {
     #endif
 }
 
-public struct DragGesture : Gesture {
+// SKIP @bridge
+public protocol BridgedGesture {
+}
+
+extension BridgedGesture {
+    // SKIP @bridge
+    public func onChangedBool(bridgedAction: @escaping (Bool) -> Void) -> any BridgedGesture {
+        return (self as! any Gesture<Bool>).onChanged(bridgedAction)
+    }
+
+    // SKIP @bridge
+    public func onEndedBool(bridgedAction: @escaping (Bool) -> Void) -> any BridgedGesture {
+        return (self as! any Gesture<Bool>).onEnded(bridgedAction)
+    }
+
+    // SKIP @bridge
+    public func onChangedCGFloat(bridgedAction: @escaping (CGFloat) -> Void) -> any BridgedGesture {
+        return (self as! any Gesture<CGFloat>).onChanged(bridgedAction)
+    }
+
+    // SKIP @bridge
+    public func onEndedCGFloat(bridgedAction: @escaping (CGFloat) -> Void) -> any BridgedGesture {
+        return (self as! any Gesture<CGFloat>).onEnded(bridgedAction)
+    }
+
+    // SKIP @bridge
+    public func onChangedDragGestureValue(bridgedAction: @escaping (DragGestureValue) -> Void) -> any BridgedGesture {
+        let action: (DragGesture.Value) -> Void = { bridgedAction(DragGestureValue($0)) }
+        return (self as! any Gesture<DragGesture.Value>).onChanged(action)
+    }
+
+    // SKIP @bridge
+    public func onEndedDragGestureValue(bridgedAction: @escaping (DragGestureValue) -> Void) -> any BridgedGesture {
+        let action: (DragGesture.Value) -> Void = { bridgedAction(DragGestureValue($0)) }
+        return (self as! any Gesture<DragGesture.Value>).onEnded(action)
+    }
+
+    // SKIP @bridge
+    public func onChangedVoid(bridgedAction: @escaping () -> Void) -> any BridgedGesture {
+        #if SKIP
+        let action: (Unit) -> Void = { _ in bridgedAction() }
+        return (self as! any Gesture<Unit>).onChanged(action)
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func onEndedVoid(bridgedAction: @escaping () -> Void) -> any BridgedGesture {
+        #if SKIP
+        let action: (Unit) -> Void = { _ in bridgedAction() }
+        return (self as! any Gesture<Unit>).onEnded(action)
+        #else
+        return self
+        #endif
+    }
+}
+
+// SKIP @bridge
+public struct DragGesture : Gesture, BridgedGesture {
     public typealias V = DragGesture.Value
 
     public struct Value : Equatable {
@@ -118,9 +177,50 @@ public struct DragGesture : Gesture {
         self.minimumDistance = minimumDistance
         self.coordinateSpace = coordinateSpace
     }
+
+    // SKIP @bridge
+    public init(minimumDistance: CGFloat, bridgedCoordinateSpace: Int, name: Any?) {
+        self.minimumDistance = minimumDistance
+        self.coordinateSpace = CoordinateSpaceProtocolFrom(bridged: bridgedCoordinateSpace, name: name as? AnyHashable)
+    }
 }
 
-public struct TapGesture : Gesture {
+// SKIP @bridge
+public struct DragGestureValue {
+    // SKIP @bridge
+    public let time: Double
+    // SKIP @bridge
+    public let locationX: CGFloat
+    // SKIP @bridge
+    public let locationY: CGFloat
+    // SKIP @bridge
+    public let startLocationX: CGFloat
+    // SKIP @bridge
+    public let startLocationY: CGFloat
+    // SKIP @bridge
+    public let velocityWidth: CGFloat
+    // SKIP @bridge
+    public let velocityHeight: CGFloat
+    // SKIP @bridge
+    public let predictedEndLocationX: CGFloat
+    // SKIP @bridge
+    public let predictedEndLocationY: CGFloat
+
+    init(_ value: DragGesture.Value) {
+        self.time = value.time.timeIntervalSinceReferenceDate
+        self.locationX = value.location.x
+        self.locationY = value.location.y
+        self.startLocationX = value.startLocation.x
+        self.startLocationY = value.startLocation.y
+        self.velocityWidth = value.velocity.width
+        self.velocityHeight = value.velocity.height
+        self.predictedEndLocationX = value.predictedEndLocation.x
+        self.predictedEndLocationY = value.predictedEndLocation.y
+    }
+}
+
+// SKIP @bridge
+public struct TapGesture : Gesture, BridgedGesture {
     public typealias V = Void
 
     public var count: Int
@@ -130,14 +230,22 @@ public struct TapGesture : Gesture {
         self.count = count
         self.coordinateSpace = coordinateSpace
     }
+
+    // SKIP @bridge
+    public init(count: Int, bridgedCoordinateSpace: Int, name: Any?) {
+        self.count = count
+        self.coordinateSpace = CoordinateSpaceProtocolFrom(bridged: bridgedCoordinateSpace, name: name as? AnyHashable)
+    }
 }
 
-public struct LongPressGesture : Gesture {
+// SKIP @bridge
+public struct LongPressGesture : Gesture, BridgedGesture {
     public typealias V = Bool
 
     public var minimumDuration: Double
     public var maximumDistance: CGFloat
 
+    // SKIP @bridge
     public init(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10.0) {
         self.minimumDuration = minimumDuration
         self.maximumDistance = maximumDistance
@@ -219,28 +327,44 @@ public struct GestureMask : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let none = GestureMask(rawValue: 1)
-    public static let gesture = GestureMask(rawValue: 2)
-    public static let subviews = GestureMask(rawValue: 4)
-    public static let all = GestureMask(rawValue: 7)
+    public static let none: GestureMask = []
+    @available(*, unavailable)
+    public static let gesture = GestureMask(rawValue: 1) // For bridging
+    @available(*, unavailable)
+    public static let subviews = GestureMask(rawValue: 2) // For bridging
+    public static let all = GestureMask(rawValue: 3) // For bridging
 }
 
 extension View {
-    public func gesture<V>(_ gesture: any Gesture<V>) -> some View {
+    public func gesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> any View {
+        // We only support a mask of `.all` or `.none`
+        return self.gesture(gesture, isEnabled: !mask.isEmpty)
+    }
+
+    public func gesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> any View {
         #if SKIP
-        return GestureModifierView(view: self, gesture: gesture as! Gesture<Any>)
+        return GestureModifierView(view: self, gesture: gesture as! Gesture<Any>, isEnabled: isEnabled)
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func bridgedGesture(_ gesture: Any, isEnabled: Bool) -> any View {
+        #if SKIP
+        return GestureModifierView(view: self, gesture: gesture as! Gesture<Any>, isEnabled: isEnabled)
         #else
         return self
         #endif
     }
 
     @available(*, unavailable)
-    public func gesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask) -> some View {
+    public func highPriorityGesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> some View {
         return self
     }
 
     @available(*, unavailable)
-    public func highPriorityGesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> some View {
+    public func highPriorityGesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> some View {
         return self
     }
 
@@ -354,9 +478,9 @@ public struct ModifiedGesture<V> : Gesture {
 final class GestureModifierView: ComposeModifierView {
     var gestures: [ModifiedGesture<Any>]
 
-    init(view: View, gesture: Gesture<Any>) {
+    init(view: View, gesture: Gesture<Any>, isEnabled: Bool) {
         super.init(view: view)
-        gestures = [gesture.modified]
+        gestures = isEnabled ? [gesture.modified] : []
 
         // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
         if let wrappedGestureView = view.strippingModifiers(until: { $0 is GestureModifierView }, perform: { $0 as? GestureModifierView }) {
