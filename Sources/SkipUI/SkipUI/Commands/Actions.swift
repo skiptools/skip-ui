@@ -96,16 +96,16 @@ public struct RefreshAction {
     }
 
     // SKIP @bridge
-    public init(bridgedAction: @escaping (CompletionHandler) -> Void, bridgedCancel: @escaping () -> Void) {
+    public init(bridgedAction: @escaping (CompletionHandler) -> Void, unusedp: Int? = nil) {
         #if SKIP
         self.action = {
             kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                continuation.invokeOnCancellation { _ in
-                    bridgedCancel()
-                }
                 let completionHandler = CompletionHandler({
                     do { continuation.resume(Unit, nil) } catch {}
                 })
+                continuation.invokeOnCancellation { _ in
+                    completionHandler.onCancel?()
+                }
                 bridgedAction(completionHandler)
             }
         }
