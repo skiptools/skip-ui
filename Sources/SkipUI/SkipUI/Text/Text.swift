@@ -40,8 +40,14 @@ import skip.foundation.Locale
 import struct CoreGraphics.CGFloat
 #endif
 
+protocol TextRepresentable {
+    #if SKIP
+    @Composable func textRepresentation(context: ComposeContext) -> Text?
+    #endif
+}
+
 // SKIP @bridge
-public struct Text: View, Equatable {
+public struct Text: View, Equatable, TextRepresentable {
     private let textView: _Text
     private let modifiedView: any View
 
@@ -94,6 +100,10 @@ public struct Text: View, Equatable {
     }
 
     #if SKIP
+    @Composable func textRepresentation(context: ComposeContext) -> Text? {
+        return self
+    }
+
     /// Interpret the key against the given bundle and the environment's current locale.
     @Composable public func localizedTextString() -> String {
         return textView.localizedTextString()
@@ -305,7 +315,7 @@ public struct Text: View, Equatable {
 
         @available(*, unavailable)
         public static let offset = DateStyle(format: { _ in fatalError() })
-        
+
         @available(*, unavailable)
         public static let timer = DateStyle(format: { _ in fatalError() })
 

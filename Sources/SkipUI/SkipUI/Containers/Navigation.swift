@@ -262,7 +262,7 @@ public struct NavigationStack : View {
                 }
                 return
             }
-            
+
             let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
             let topLeadingItems = toolbarItems.filterTopBarLeading()
             let topTrailingItems = toolbarItems.filterTopBarTrailing()
@@ -1126,10 +1126,13 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
 #endif
 
 // SKIP @bridge
-public struct NavigationLink : View, ListItemAdapting {
+public struct NavigationLink : View, ListItemAdapting, ButtonRepresentable {
     let value: Any?
     let destination: ComposeBuilder?
+
+    var action: () -> Void = {}
     let label: ComposeBuilder
+    let role: ButtonRole? = nil
 
     private static let minimumNavigationInterval = 0.35
     private static var lastNavigationTime = 0.0
@@ -1174,6 +1177,12 @@ public struct NavigationLink : View, ListItemAdapting {
         Button.ComposeButton(label: label, context: context, isEnabled: isNavigationEnabled(), action: navigationAction())
     }
 
+    @Composable func makeComposeLabel() -> ComposeBuilder {
+        let navigator = LocalNavigator.current
+        action = navigationAction()
+        return label
+    }
+
     @Composable func shouldComposeListItem() -> Bool {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
         return buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain
@@ -1200,7 +1209,7 @@ public struct NavigationLink : View, ListItemAdapting {
         return (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled
     }
 
-    @Composable internal func navigationAction() -> () -> Void {
+    @Composable func navigationAction() -> () -> Void {
         let navigator = LocalNavigator.current
         return {
             // Hack to prevent multiple quick taps from pushing duplicate entries

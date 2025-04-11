@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct Label : View {
+public struct Label : View, TextRepresentable {
     let title: ComposeBuilder
     let image: ComposeBuilder
 
@@ -79,6 +79,12 @@ public struct Label : View {
         default:
             ComposeLabel(context: context, imageColor: imageColor, titlePadding: titlePadding)
         }
+    }
+
+    @Composable func textRepresentation(context: ComposeContext) -> Text? {
+        return title.collectViews(context: context).compactMap {
+            $0.strippingModifiers { $0 as? Text }
+        }.first
     }
 
     @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color?, titlePadding: Double) {
