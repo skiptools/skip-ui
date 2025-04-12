@@ -20,7 +20,7 @@ public final class ShareLink : View {
     let content: Button
     var action: () -> Void
 
-    init(text: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+    init(text: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View, unusedp: Any? = nil) {
         self.text = text
         self.subject = subject
         self.message = message
