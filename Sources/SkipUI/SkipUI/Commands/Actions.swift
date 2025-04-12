@@ -96,7 +96,7 @@ public struct RefreshAction {
     }
 
     // SKIP @bridge
-    public init(bridgedAction: @escaping (CompletionHandler) -> Void, unusedp: Int? = nil) {
+    public init(bridgedAction: @escaping (CompletionHandler) -> Void, unusedp: Any? = nil) {
         #if SKIP
         self.action = {
             kotlinx.coroutines.suspendCancellableCoroutine { continuation in
