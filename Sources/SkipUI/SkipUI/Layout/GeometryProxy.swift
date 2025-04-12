@@ -5,10 +5,12 @@
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Density
 #elseif canImport(CoreGraphics)
+import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public struct GeometryProxy {
     #if SKIP
     let globalFramePx: Rect
@@ -23,6 +25,12 @@ public struct GeometryProxy {
         #else
         return .zero
         #endif
+    }
+
+    // SKIP @bridge
+    public var bridgedSize: (CGFloat, CGFloat) {
+        let size = self.size
+        return (size.width, size.height)
     }
 
     @available(*, unavailable)
@@ -52,6 +60,13 @@ public struct GeometryProxy {
         #else
         return .zero
         #endif
+    }
+
+    // SKIP @bridge
+    public func frame(bridgedCoordinateSpace: Int, name: Any?) -> (CGFloat, CGFloat, CGFloat, CGFloat) {
+        let coordinateSpace = CoordinateSpaceProtocolFrom(bridged: bridgedCoordinateSpace, name: name as? AnyHashable)
+        let frame = self.frame(in: coordinateSpace)
+        return (frame.origin.x, frame.origin.y, frame.width, frame.height)
     }
 }
 

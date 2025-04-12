@@ -1194,19 +1194,18 @@ extension View {
     }
 
     // SKIP @bridge
-    public func task(id value: Any, bridgedAction: @escaping (CompletionHandler) -> Void, bridgedCancel: @escaping () -> Void) -> any View {
+    public func task(id value: Any, bridgedAction: @escaping (CompletionHandler) -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { _ in
             let actionState = rememberUpdatedState(bridgedAction)
-            let cancelState = rememberUpdatedState(bridgedCancel)
             LaunchedEffect(value) {
                 kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                    continuation.invokeOnCancellation { _ in
-                        cancelState.value()
-                    }
                     let completionHandler = CompletionHandler({
                         do { continuation.resume(Unit, nil) } catch {}
                     })
+                    continuation.invokeOnCancellation { _ in
+                        completionHandler.onCancel?()
+                    }
                     actionState.value(completionHandler)
                 }
             }

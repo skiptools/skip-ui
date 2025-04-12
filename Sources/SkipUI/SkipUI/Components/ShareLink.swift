@@ -10,16 +10,17 @@ import androidx.core.content.ContextCompat.startActivity
 #endif
 
 // Use a class to be able to update our openURL action on compose by reference.
+// SKIP @bridge
 public final class ShareLink : View {
     private static let defaultSystemImageName = "square.and.arrow.up"
 
-    let text: Text
+    let text: String
     let subject: Text?
     let message: Text?
     let content: Button
     var action: () -> Void
 
-    init(text: Text, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
+    init(text: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
         self.text = text
         self.subject = subject
         self.message = message
@@ -31,58 +32,72 @@ public final class ShareLink : View {
         #endif
     }
 
+    // SKIP @bridge
+    public init(text: String, subject: Text?, message: Text?, bridgedLabel: (any View)?) {
+        self.text = text
+        self.subject = subject
+        self.message = message
+        self.action = { }
+        let label: () -> any View = bridgedLabel == nil ? { Image(systemName: Self.defaultSystemImageName) } : { bridgedLabel! }
+        #if SKIP
+        self.content = Button(action: { self.action() }, label: label)
+        #else
+        self.content = Button("", action: {})
+        #endif
+    }
+
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message, label: label)
+        self.init(text: item.absoluteString, subject: subject, message: message, label: label)
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil, @ViewBuilder label: () -> any View) {
-        self.init(text: Text(item), subject: subject, message: message, label: label)
+        self.init(text: item, subject: subject, message: message, label: label)
     }
 
     public convenience init(item: URL, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message) {
+        self.init(text: item.absoluteString, subject: subject, message: message) {
             Image(systemName: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(item: String, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item), subject: subject, message: message) {
+        self.init(text: item, subject: subject, message: message) {
             Image(systemName: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: URL, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message) {
+        self.init(text: item.absoluteString, subject: subject, message: message) {
             Label(titleKey, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item), subject: subject, message: message) {
+        self.init(text: item, subject: subject, message: message) {
             Label(titleKey, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: String, item: URL, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message) {
+        self.init(text: item.absoluteString, subject: subject, message: message) {
             Label(title, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: String, item: String, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item), subject: subject, message: message) {
+        self.init(text: item, subject: subject, message: message) {
             Label(title, systemImage: Self.defaultSystemImageName)
         }
     }
 
     public convenience init(_ title: Text, item: URL, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item.absoluteString), subject: subject, message: message) {
+        self.init(text: item.absoluteString, subject: subject, message: message) {
             Label(title: { title }, icon: { Image(systemName: Self.defaultSystemImageName) })
         }
     }
 
     public convenience init(_ title: Text, item: String, subject: Text? = nil, message: Text? = nil) {
-        self.init(text: Text(item), subject: subject, message: message) {
+        self.init(text: item, subject: subject, message: message) {
             Label(title: { title }, icon: { Image(systemName: Self.defaultSystemImageName) })
         }
     }
@@ -98,7 +113,7 @@ public final class ShareLink : View {
 
         let intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, text.localizedTextString())
+            putExtra(Intent.EXTRA_TEXT, text)
             if let subject {
                 putExtra(Intent.EXTRA_SUBJECT, subject.localizedTextString())
             }

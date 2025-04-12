@@ -13,9 +13,11 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalDensity
 #endif
 
+// SKIP @bridge
 public struct GeometryReader : View {
     public let content: (GeometryProxy) -> any View
 
+    // SKIP @bridge
     public init(@ViewBuilder content: @escaping (GeometryProxy) -> any View) {
         self.content = content
     }
