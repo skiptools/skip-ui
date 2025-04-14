@@ -12,26 +12,24 @@ public struct SensoryFeedback : RawRepresentable, Equatable {
         self.rawValue = rawValue
     }
 
-    public static let success = SensoryFeedback(rawValue: 1)
-    public static let warning = SensoryFeedback(rawValue: 2)
-    public static let error = SensoryFeedback(rawValue: 3)
-    public static let selection = SensoryFeedback(rawValue: 4)
-    public static let increase = SensoryFeedback(rawValue: 5)
-    public static let decrease = SensoryFeedback(rawValue: 6)
-    public static let start = SensoryFeedback(rawValue: 7)
-    public static let stop = SensoryFeedback(rawValue: 8)
-    public static let alignment = SensoryFeedback(rawValue: 9)
-    public static let levelChange = SensoryFeedback(rawValue: 10)
-    public static let impact = SensoryFeedback(rawValue: 11)
+    public static let success = SensoryFeedback(rawValue: 1) // For bridging
+    public static let warning = SensoryFeedback(rawValue: 2) // For bridging
+    public static let error = SensoryFeedback(rawValue: 3) // For bridging
+    public static let selection = SensoryFeedback(rawValue: 4) // For bridging
+    public static let increase = SensoryFeedback(rawValue: 5) // For bridging
+    public static let decrease = SensoryFeedback(rawValue: 6) // For bridging
+    public static let start = SensoryFeedback(rawValue: 7) // For bridging
+    public static let stop = SensoryFeedback(rawValue: 8) // For bridging
+    public static let alignment = SensoryFeedback(rawValue: 9) // For bridging
+    public static let levelChange = SensoryFeedback(rawValue: 10) // For bridging
+    public static let impact = SensoryFeedback(rawValue: 11) // For bridging
 
-    @available(*, unavailable)
     public static func impact(weight: SensoryFeedback.Weight = .medium, intensity: Double = 1.0) -> SensoryFeedback {
-        fatalError()
+        return SensoryFeedback.impact
     }
 
-    @available(*, unavailable)
     public static func impact(flexibility: SensoryFeedback.Flexibility, intensity: Double = 1.0) -> SensoryFeedback {
-        fatalError()
+        return SensoryFeedback.impact
     }
 
     public enum Weight : Equatable {
@@ -207,6 +205,12 @@ extension View {
         }
     }
 
+    // SKIP @bridge
+    public func sensoryFeedback(bridgedFeedback: Int, trigger: Any?) -> any View {
+        let feedback = SensoryFeedback(rawValue: bridgedFeedback)
+        return self.sensoryFeedback(feedback, trigger: trigger)
+    }
+
     public func sensoryFeedback<T>(_ feedback: SensoryFeedback, trigger: T, condition: @escaping (_ oldValue: T, _ newValue: T) -> Bool) -> any View {
         return onChange(of: trigger) { oldValue, newValue in
             if condition(oldValue, newValue) {
@@ -218,6 +222,17 @@ extension View {
     public func sensoryFeedback<T>(trigger: T, _ feedback: @escaping (_ oldValue: T, _ newValue: T) -> SensoryFeedback?) -> any View {
         return onChange(of: trigger) { oldValue, newValue in
             feedback(oldValue, newValue)?.activate()
+        }
+    }
+
+    // SKIP @bridge
+    public func sensoryFeedbackClosure(trigger: Any?, bridgedFeedback: @escaping (_ oldValue: Any?, _ newValue: Any?) -> Int?) -> any View {
+        return self.sensoryFeedback(trigger: trigger) { oldValue, newValue in
+            if let feedback = bridgedFeedback(oldValue, newValue) {
+                return SensoryFeedback(rawValue: feedback)
+            } else {
+                return nil
+            }
         }
     }
 }
