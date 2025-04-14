@@ -46,7 +46,7 @@ public struct HStack : View {
         let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
 
-        let views = content.collectViews(context: context)
+        let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
         let idMap: (View) -> Any? = { TagModifierView.strip(from: $0, role: ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }

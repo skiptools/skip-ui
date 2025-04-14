@@ -55,7 +55,7 @@ public struct VStack : View {
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
 
-        let views = content.collectViews(context: context)
+        let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }

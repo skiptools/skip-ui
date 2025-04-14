@@ -22,6 +22,7 @@ import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGSize
 #endif
 
+// SKIP @bridge
 public protocol Transition {
     #if false
     associatedtype Body : View
@@ -89,9 +90,11 @@ public struct ContentTransition : RawRepresentable, Equatable {
     }
 }
 
+// SKIP @bridge
 public struct AnyTransition {
     let transition: any Transition
 
+    // SKIP @bridge
     public init(_ transition: any Transition) {
         self.transition = transition
     }
@@ -185,10 +188,12 @@ public struct TransitionProperties {
     }
 }
 
+// SKIP @bridge
 public struct AsymmetricTransition<Insertion, Removal> : Transition {
     public var insertion: Insertion
     public var removal: Removal
 
+    // SKIP @bridge
     public init(insertion: Insertion, removal: Removal) {
         self.insertion = insertion
         self.removal = removal
@@ -210,10 +215,12 @@ public struct AsymmetricTransition<Insertion, Removal> : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct CombinedTransition : Transition {
     public var first: any Transition
     public var second: any Transition
 
+    // SKIP @bridge
     public init(_ first: any Transition, _ second: any Transition) {
         self.first = first
         self.second = second
@@ -230,11 +237,17 @@ public struct CombinedTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct PushTransition : Transition {
     public var edge: Edge
 
     public init(edge: Edge) {
         self.edge = edge
+    }
+
+    // SKIP @bridge
+    public init(bridgedEdge: Int) {
+        self.init(edge: Edge(rawValue: bridgedEdge) ?? .leading)
     }
 
     #if false
@@ -262,6 +275,7 @@ public struct PushTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct ScaleTransition : Transition {
     public var scale: Double
     public var anchor: UnitPoint
@@ -269,6 +283,11 @@ public struct ScaleTransition : Transition {
     public init(_ scale: Double, anchor: UnitPoint = .center) {
         self.scale = scale
         self.anchor = anchor
+    }
+
+    // SKIP @bridge
+    public init(scale: Double, anchorX: CGFloat, anchorY: CGFloat) {
+        self.init(scale, anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
     #if false
@@ -294,7 +313,12 @@ public struct ScaleTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct SlideTransition : Transition {
+    // SKIP @bridge
+    public init() {
+    }
+
     #if false
     public func body(content: SlideTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
     #endif
@@ -320,7 +344,12 @@ public struct SlideTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct IdentityTransition : Transition {
+    // SKIP @bridge
+    public init () {
+    }
+
     #if false
     public func body(content: IdentityTransition.Content, phase: TransitionPhase) -> Body { fatalError() }
     public static let properties: TransitionProperties = { fatalError() }()
@@ -337,11 +366,17 @@ public struct IdentityTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct MoveTransition : Transition {
     public var edge: Edge
 
     public init(edge: Edge) {
         self.edge = edge
+    }
+
+    // SKIP @bridge
+    public init(bridgedEdge: Int) {
+        self.init(edge: Edge(rawValue: bridgedEdge) ?? .leading)
     }
 
     #if false
@@ -369,11 +404,17 @@ public struct MoveTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct OffsetTransition : Transition {
     public var offset: CGSize
 
     public init(_ offset: CGSize) {
         self.offset = offset
+    }
+
+    // SKIP @bridge
+    public init(offsetWidth: CGFloat, height: CGFloat) {
+        self.init(CGSize(width: offsetWidth, height: height))
     }
 
     #if false
@@ -401,8 +442,13 @@ public struct OffsetTransition : Transition {
     #endif
 }
 
+// SKIP @bridge
 public struct OpacityTransition : Transition {
     static let shared = OpacityTransition()
+
+    // SKIP @bridge
+    public init() {
+    }
 
     #if false
     public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
@@ -418,7 +464,8 @@ extension View {
     }
     #endif
 
-    public func transition(_ t: AnyTransition) -> some View {
+    // SKIP @bridge
+    public func transition(_ t: AnyTransition) -> any View {
         #if SKIP
         return TransitionModifierView(view: self, transition: t.transition)
         #else

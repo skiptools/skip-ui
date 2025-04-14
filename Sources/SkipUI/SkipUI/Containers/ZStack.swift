@@ -37,7 +37,7 @@ public struct ZStack : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let views = content.collectViews(context: context)
+        let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(transform = idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
