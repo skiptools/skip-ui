@@ -1,22 +1,29 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if SKIP
+#if !SKIP_BRIDGE
 import Foundation
 
+#if SKIP
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context.CLIPBOARD_SERVICE
+#endif
 
+// SKIP @bridge
 public class UIPasteboard {
+    // SKIP @bridge
     public static let general = UIPasteboard()
 
     private init() {
+        #if SKIP
         let context = ProcessInfo.processInfo.androidContext
         if let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager {
             clipboardManager.addPrimaryClipChangedListener(Listener())
         }
+        #endif
     }
 
+    #if SKIP
     @available(*, unavailable)
     public init?(name pasteboardName: UIPasteboard.Name, create: Bool) {
     }
@@ -93,10 +100,6 @@ public class UIPasteboard {
     public func setData(_ data: Data, forPasteboardType pasteboardType: String) {
     }
 
-    public var numberOfItems: Int {
-        return string != nil ? 1 : 0
-    }
-
     @available(*, unavailable)
     public func types(forItemSet itemSet: IndexSet?) -> [[String]] {
         fatalError()
@@ -135,9 +138,17 @@ public class UIPasteboard {
     open func setItems(_ items: [[String : Any]], options: [UIPasteboard.OptionsKey : Any] = [:]) {
         fatalError()
     }
+    #endif
 
+    // SKIP @bridge
+    public var numberOfItems: Int {
+        return string != nil ? 1 : 0
+    }
+
+    // SKIP @bridge
     public var string: String? {
         get {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return nil
@@ -148,18 +159,25 @@ public class UIPasteboard {
             // SKIP NOWARN
             let string = String(clipData.getItemAt(0).coerceToText(context))
             return string.isEmpty ? nil : string
+            #else
+            return nil
+            #endif
         }
         set {
+            #if SKIP
             if let newValue {
                 strings = [newValue]
             } else {
                 strings = nil
             }
+            #endif
         }
     }
 
+    // SKIP @bridge
     public var strings: [String]? {
         get {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return nil
@@ -177,8 +195,12 @@ public class UIPasteboard {
                 }
             }
             return strings.isEmpty ? nil : strings
+            #else
+            return nil
+            #endif
         }
         set {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return
@@ -192,11 +214,14 @@ public class UIPasteboard {
                 clipData.addItem(ClipData.Item(newValue[i]))
             }
             clipboardManager.setPrimaryClip(clipData)
+            #endif
         }
     }
 
+    // SKIP @bridge
     public var url: URL? {
         get {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return nil
@@ -205,25 +230,32 @@ public class UIPasteboard {
                 return nil
             }
             // We attempt to get each item as a URI first to avoid coerceToText potentially resolving the URI
-            // content into a string
-            if let androidURI = clipData.getItemAt(0).getUri(), let url = URL(string: androidURI.toString()) {
+            // content into a string. Do not allow empty URL strings as they cannot be bridged to native
+            if let string = clipData.getItemAt(0).getUri()?.toString(), !string.isEmpty, let url = URL(string: string) {
                 return url
             }
             // SKIP NOWARN
             let string = String(clipData.getItemAt(0).coerceToText(context))
-            return URL(string: string)
+            return string.isEmpty ? nil : URL(string: string)
+            #else
+            return nil
+            #endif
         }
         set {
+            #if SKIP
             if let newValue {
                 urls = [newValue]
             } else {
                 urls = nil
             }
+            #endif
         }
     }
 
+    // SKIP @bridge
     public var urls: [URL]? {
         get {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return nil
@@ -235,19 +267,23 @@ public class UIPasteboard {
             var urls: [URL] = []
             for i in 0..<count {
                 // We attempt to get each item as a URI first to avoid coerceToText potentially resolving the URI
-                // content into a string
-                if let androidURI = clipData.getItemAt(i).getUri(), let url = URL(string: androidURI.toString()) {
+                // content into a string. Do not allow empty URL strings as they cannot be bridged to native
+                if let string = clipData.getItemAt(i).getUri()?.toString(), !string.isEmpty, let url = URL(string: string) {
                     urls.append(url)
                 } else {
                     // SKIP NOWARN
-                    if let string = String(clipData.getItemAt(i).coerceToText(context)), let url = URL(string: string) {
+                    if let string = String(clipData.getItemAt(i).coerceToText(context)), !string.isEmpty, let url = URL(string: string) {
                         urls.append(url)
                     }
                 }
             }
             return urls.isEmpty ? nil : urls
+            #else
+            return nil
+            #endif
         }
         set {
+            #if SKIP
             let context = ProcessInfo.processInfo.androidContext
             guard let clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager else {
                 return
@@ -261,9 +297,21 @@ public class UIPasteboard {
                 clipData.addItem(ClipData.Item(android.net.Uri.parse(newValue[i].absoluteString)))
             }
             clipboardManager.setPrimaryClip(clipData)
+            #endif
         }
     }
 
+    // SKIP @bridge
+    public var hasStrings: Bool {
+        return string != nil
+    }
+
+    // SKIP @bridge
+    public var hasURLs: Bool {
+        return url != nil
+    }
+
+    #if SKIP
     @available(*, unavailable)
     public var image: Any? /* UIImage */ {
         get {
@@ -298,14 +346,6 @@ public class UIPasteboard {
         }
         set {
         }
-    }
-
-    public var hasStrings: Bool {
-        return string != nil
-    }
-
-    public var hasURLs: Bool {
-        return url != nil
     }
 
     @available(*, unavailable)
@@ -519,5 +559,6 @@ public class UIPasteboard {
             self.rawValue = rawValue
         }
     }
+    #endif
 }
 #endif
