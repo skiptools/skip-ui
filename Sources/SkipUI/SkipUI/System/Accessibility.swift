@@ -19,11 +19,14 @@ import struct CoreGraphics.CGPoint
 #endif
 
 extension View {
+    // SKIP @bridge
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
-    public func accessibilityIdentifier(_ identifier: String) -> some View {
+    public func accessibilityIdentifier(_ identifier: String, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { testTagsAsResourceId = true }.testTag(identifier)
+            if isEnabled {
+                $0.modifier = $0.modifier.semantics { testTagsAsResourceId = true }.testTag(identifier)
+            }
             return ComposeResult.ok
         }
         #else
@@ -31,11 +34,14 @@ extension View {
         #endif
     }
 
-    public func accessibilityLabel(_ label: Text) -> some View {
+    // SKIP @bridge
+    public func accessibilityLabel(_ label: Text, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            let description = label.localizedTextString()
-            $0.modifier = $0.modifier.semantics { contentDescription = description }
+            if isEnabled {
+                let description = label.localizedTextString()
+                $0.modifier = $0.modifier.semantics { contentDescription = description }
+            }
             return ComposeResult.ok
         }
         #else
@@ -43,10 +49,12 @@ extension View {
         #endif
     }
 
-    public func accessibilityLabel(_ label: String) -> some View {
+    public func accessibilityLabel(_ label: String, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { contentDescription = label }
+            if isEnabled {
+                $0.modifier = $0.modifier.semantics { contentDescription = label }
+            }
             return ComposeResult.ok
         }
         #else
@@ -54,8 +62,8 @@ extension View {
         #endif
     }
 
-    public func accessibilityLabel(_ key: LocalizedStringKey) -> some View {
-        return accessibilityLabel(Text(key))
+    public func accessibilityLabel(_ key: LocalizedStringKey, isEnabled: Bool = true) -> any View {
+        return accessibilityLabel(Text(key), isEnabled: isEnabled)
     }
 
     @available(*, unavailable)
@@ -234,11 +242,14 @@ extension View {
         return self
     }
 
+    // SKIP @bridge
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
-    public func accessibilityHidden(_ hidden: Bool) -> some View {
+    public func accessibilityHidden(_ hidden: Bool, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { if hidden { invisibleToUser() } }
+            if isEnabled {
+                $0.modifier = $0.modifier.semantics { if hidden { invisibleToUser() } }
+            }
             return ComposeResult.ok
         }
         #else
@@ -301,7 +312,7 @@ extension View {
         return self
     }
 
-    public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View {
+    public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             if traits.contains(.isButton) {
@@ -327,6 +338,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func accessibilityAddTraits(bridgedTraits: Int) -> any View {
+        return accessibilityAddTraits(AccessibilityTraits(rawValue: bridgedTraits))
     }
 
     @available(*, unavailable)
@@ -359,7 +375,7 @@ extension View {
         return self
     }
 
-    public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> some View {
+    public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { heading() }
@@ -370,11 +386,19 @@ extension View {
         #endif
     }
 
-    public func accessibilityValue(_ value: Text) -> some View {
+    // SKIP @bridge
+    public func accessibilityHeading(bridgedLevel: Int) -> any View {
+        return accessibilityHeading(AccessibilityHeadingLevel(rawValue: bridgedLevel) ?? .unspecified)
+    }
+
+    // SKIP @bridge
+    public func accessibilityValue(_ value: Text, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
-            let description = value.localizedTextString()
-            $0.modifier = $0.modifier.semantics { stateDescription = description }
+            if isEnabled {
+                let description = value.localizedTextString()
+                $0.modifier = $0.modifier.semantics { stateDescription = description }
+            }
             return ComposeResult.ok
         }
         #else
@@ -382,7 +406,7 @@ extension View {
         #endif
     }
 
-    public func accessibilityValue(_ value: String) -> some View {
+    public func accessibilityValue(_ value: String) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self, role: .accessibility) {
             $0.modifier = $0.modifier.semantics { stateDescription = value }
@@ -393,7 +417,7 @@ extension View {
         #endif
     }
 
-    public func accessibilityValue(_ key: LocalizedStringKey) -> some View {
+    public func accessibilityValue(_ key: LocalizedStringKey) -> any View {
         return accessibilityValue(Text(key))
     }
 
@@ -456,14 +480,14 @@ public struct AccessibilityDirectTouchOptions : OptionSet {
     public static let requiresActivation = AccessibilityDirectTouchOptions(rawValue: 2)
 }
 
-public enum AccessibilityHeadingLevel : UInt {
-    case unspecified
-    case h1
-    case h2
-    case h3
-    case h4
-    case h5
-    case h6
+public enum AccessibilityHeadingLevel : Int {
+    case unspecified = 0 // For bridging
+    case h1 = 1 // For bridging
+    case h2 = 2 // For bridging
+    case h3 = 3 // For bridging
+    case h4 = 4 // For bridging
+    case h5 = 5 // For bridging
+    case h6 = 6 // For bridging
 }
 
 public enum AccessibilityLabeledPairRole : Hashable {
@@ -552,22 +576,23 @@ public struct AccessibilityTraits : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let isButton = AccessibilityTraits(rawValue: 1 << 0)
-    public static let isHeader = AccessibilityTraits(rawValue: 1 << 1)
-    public static let isSelected = AccessibilityTraits(rawValue: 1 << 2)
-    public static let isLink = AccessibilityTraits(rawValue: 1 << 3)
-    public static let isSearchField = AccessibilityTraits(rawValue: 1 << 4)
-    public static let isImage = AccessibilityTraits(rawValue: 1 << 5)
-    public static let playsSound = AccessibilityTraits(rawValue: 1 << 6)
-    public static let isKeyboardKey = AccessibilityTraits(rawValue: 1 << 7)
-    public static let isStaticText = AccessibilityTraits(rawValue: 1 << 8)
-    public static let isSummaryElement = AccessibilityTraits(rawValue: 1 << 9)
-    public static let updatesFrequently = AccessibilityTraits(rawValue: 1 << 10)
-    public static let startsMediaSession = AccessibilityTraits(rawValue: 1 << 11)
-    public static let allowsDirectInteraction = AccessibilityTraits(rawValue: 1 << 12)
-    public static let causesPageTurn = AccessibilityTraits(rawValue: 1 << 13)
-    public static let isModal = AccessibilityTraits(rawValue: 1 << 14)
-    public static let isToggle = AccessibilityTraits(rawValue: 1 << 15)
+    public static let isButton = AccessibilityTraits(rawValue: 1 << 0) // For bridging
+    public static let isHeader = AccessibilityTraits(rawValue: 1 << 1) // For bridging
+    public static let isSelected = AccessibilityTraits(rawValue: 1 << 2) // For bridging
+    public static let isLink = AccessibilityTraits(rawValue: 1 << 3) // For bridging
+    public static let isSearchField = AccessibilityTraits(rawValue: 1 << 4) // For bridging
+    public static let isImage = AccessibilityTraits(rawValue: 1 << 5) // For bridging
+    public static let playsSound = AccessibilityTraits(rawValue: 1 << 6) // For bridging
+    public static let isKeyboardKey = AccessibilityTraits(rawValue: 1 << 7) // For bridging
+    public static let isStaticText = AccessibilityTraits(rawValue: 1 << 8) // For bridging
+    public static let isSummaryElement = AccessibilityTraits(rawValue: 1 << 9) // For bridging
+    public static let updatesFrequently = AccessibilityTraits(rawValue: 1 << 10) // For bridging
+    public static let startsMediaSession = AccessibilityTraits(rawValue: 1 << 11) // For bridging
+    public static let allowsDirectInteraction = AccessibilityTraits(rawValue: 1 << 12) // For bridging
+    public static let causesPageTurn = AccessibilityTraits(rawValue: 1 << 13) // For bridging
+    public static let isModal = AccessibilityTraits(rawValue: 1 << 14) // For bridging
+    public static let isToggle = AccessibilityTraits(rawValue: 1 << 15) // For bridging
+    public static let isTabBar = AccessibilityTraits(rawValue: 1 << 16) // For bridging
 }
 
 public struct AccessibilityZoomGestureAction {
