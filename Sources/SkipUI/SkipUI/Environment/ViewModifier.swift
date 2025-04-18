@@ -6,15 +6,16 @@ import SkipModel
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public protocol ViewModifier {
     #if SKIP
     // SKIP DECLARE: fun body(content: View): View = content
     @ViewBuilder @MainActor func body(content: View) -> any View
     typealias Content = View
     #else
-    associatedtype Body : View
-    @ViewBuilder @MainActor func body(content: Self.Content) -> Self.Body
-    associatedtype Content
+//    associatedtype Body : View
+//    @ViewBuilder @MainActor func body(content: Self.Content) -> Self.Body
+//    associatedtype Content
     #endif
 }
 
@@ -31,7 +32,8 @@ extension ViewModifier {
 #endif
 
 extension View {
-    public func modifier(_ viewModifier: any ViewModifier) -> some View {
+    // SKIP @bridge
+    public func modifier(_ viewModifier: any ViewModifier) -> any View {
         #if SKIP
         return ComposeModifierView(contentView: self) { view, context in
             viewModifier.Compose(content: view, context: context)
