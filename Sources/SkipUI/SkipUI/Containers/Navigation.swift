@@ -264,8 +264,8 @@ public struct NavigationStack : View {
             }
             
             let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-            let topLeadingItems = toolbarItems.filterTopBarLeading()
-            let topTrailingItems = toolbarItems.filterTopBarTrailing()
+            let topLeadingItems = toolbarItems.filterTopBarLeading(context: context)
+            let topTrailingItems = toolbarItems.filterTopBarTrailing(context: context)
             guard !arguments.isRoot || hasTitle || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     topBarHidden.value = true
@@ -399,7 +399,7 @@ public struct NavigationStack : View {
             }
 
             let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-            let bottomItems = toolbarItems.filterBottomBar()
+            let bottomItems = toolbarItems.filterBottomBar(context: context)
             guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)

@@ -494,19 +494,19 @@ struct ToolbarContentPreferences: Equatable {
 struct ToolbarItems {
     let content: [View]
 
-    @Composable func filterTopBarLeading() -> [View] {
-        return filter(expandGroups: false) {
+    @Composable func filterTopBarLeading(context: ComposeContext) -> [View] {
+        return filter(expandGroups: false, context: context) {
             switch $0 {
             case .topBarLeading, .navigationBarLeading, .cancellationAction:
                 return true
             default:
                 return false
             }
-        } + filter(expandGroups: false) { $0 == .principal }
+        } + filter(expandGroups: false, context: context) { $0 == .principal }
     }
 
-    @Composable func filterTopBarTrailing() -> [View] {
-        return filter(expandGroups: false) {
+    @Composable func filterTopBarTrailing(context: ComposeContext) -> [View] {
+        return filter(expandGroups: false, context: context) {
             switch $0 {
             case .automatic, .confirmationAction, .primaryAction, .secondaryAction, .topBarTrailing, .navigationBarTrailing:
                 return true
@@ -516,8 +516,8 @@ struct ToolbarItems {
         }
     }
 
-    @Composable func filterBottomBar() -> [View] {
-        var views = filter(expandGroups: true) { $0 == .bottomBar }
+    @Composable func filterBottomBar(context: ComposeContext) -> [View] {
+        var views = filter(expandGroups: true, context: context) { $0 == .bottomBar }
         // SwiftUI inserts a spacer between the first and remaining items
         if views.count > 1 && !views.contains(where: { $0.strippingModifiers { $0 is Spacer } }) {
             views.insert(Spacer(), at: 1)
@@ -525,9 +525,9 @@ struct ToolbarItems {
         return views
     }
 
-    @Composable private func filter(expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
+    @Composable private func filter(expandGroups: Bool, context: ComposeContext, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
         let filtered = mutableListOf<View>()
-        let context = ComposeContext(composer: SideEffectComposer { view, context in
+        let context = context.content(composer: SideEffectComposer { view, context in
             filter(view: view, expandGroups: expandGroups, placement: placement, filtered: filtered, context: context)
         })
         content.forEach { $0.Compose(context: context) }
