@@ -15,14 +15,17 @@ import androidx.compose.ui.Modifier
 // SKIP @bridge
 public struct Group : View {
     let content: ComposeBuilder
+    let isBridged: Bool
 
     public init(@ViewBuilder content: () -> any View) {
         self.content = ComposeBuilder.from(content)
+        self.isBridged = false
     }
 
     // SKIP @bridge
     public init(bridgedContent: any View) {
         self.content = ComposeBuilder.from { bridgedContent }
+        self.isBridged = true
     }
 
     #if SKIP
@@ -32,7 +35,7 @@ public struct Group : View {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let views = content.collectViews(context: context)
+        let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
         let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
         let ids = views.compactMap(transform = idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
@@ -46,7 +49,7 @@ public struct Group : View {
         if ids.count < views.count {
             views.forEach { $0.Compose(context: context) }
         } else {
-            let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil)
+            let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil, isBridged: isBridged)
             ComposeAnimatedContent(context: context, arguments: arguments)
         }
     }
