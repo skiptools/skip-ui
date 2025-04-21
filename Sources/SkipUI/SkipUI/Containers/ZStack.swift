@@ -23,16 +23,19 @@ import struct CoreGraphics.CGSize
 public struct ZStack : View {
     let alignment: Alignment
     let content: ComposeBuilder
+    let isBridged: Bool
 
     public init(alignment: Alignment = .center, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.content = ComposeBuilder.from(content)
+        self.isBridged = false
     }
 
     // SKIP @bridge
     public init(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedContent: any View) {
         self.alignment = Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey))
         self.content = ComposeBuilder.from { bridgedContent }
+        self.isBridged = true
     }
 
     #if SKIP
@@ -58,7 +61,7 @@ public struct ZStack : View {
             }
         } else {
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
-                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil)
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil, isBridged: isBridged)
                 ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments)
             }
         }

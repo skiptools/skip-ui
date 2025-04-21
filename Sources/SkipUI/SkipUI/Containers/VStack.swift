@@ -28,11 +28,13 @@ public struct VStack : View {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
     let content: ComposeBuilder
+    let isBridged: Bool
 
     public init(alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.spacing = spacing
         self.content = ComposeBuilder.from(content)
+        self.isBridged = false
     }
 
     // SKIP @bridge
@@ -40,6 +42,7 @@ public struct VStack : View {
         self.alignment = HorizontalAlignment(key: alignmentKey)
         self.spacing = spacing == nil ? nil : spacing!
         self.content = ComposeBuilder.from { bridgedContent }
+        self.isBridged = true
     }
 
     #if SKIP
@@ -83,7 +86,7 @@ public struct VStack : View {
             }
         } else {
             ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
-                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: composer)
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: composer, isBridged: isBridged)
                 ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement)
             }
         }

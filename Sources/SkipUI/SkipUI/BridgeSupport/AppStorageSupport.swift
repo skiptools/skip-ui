@@ -16,11 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 public final class AppStorageSupport: StateTracker {
     private let key: String
     private let store: UserDefaults?
-    private var value: Any
-    private let get: (UserDefaults, Any) -> Any
-    private let set: (UserDefaults, Any) -> Void
+    private var value: Any?
+    private let get: (UserDefaults, Any?) -> Any?
+    private let set: (UserDefaults, Any?) -> Void
     #if SKIP
-    private var state: MutableState<Any>? = nil
+    private var state: MutableState<Any?>? = nil
     #endif
     /// The property change listener from the UserDefaults
     private var listener: Any? = nil
@@ -31,7 +31,7 @@ public final class AppStorageSupport: StateTracker {
         self.store = store as? UserDefaults
         self.value = value
         self.get = { $1 as? Bool ?? $0.bool(forKey: key) }
-        self.set = { $0.set($1 as? Bool ?? false, forKey: key) }
+        self.set = { $0.set($1 as? Bool, forKey: key) }
         StateTracking.register(self)
     }
 
@@ -41,7 +41,7 @@ public final class AppStorageSupport: StateTracker {
         self.store = store as? UserDefaults
         self.value = value
         self.get = { $1 as? Double ?? $0.double(forKey: key) }
-        self.set = { $0.set($1 as? Double ?? 0.0, forKey: key) }
+        self.set = { $0.set($1 as? Double, forKey: key) }
         StateTracking.register(self)
     }
 
@@ -51,7 +51,7 @@ public final class AppStorageSupport: StateTracker {
         self.store = store as? UserDefaults
         self.value = value
         self.get = { $1 as? Int ?? $0.integer(forKey: key) }
-        self.set = { $0.set($1 as? Int ?? 0, forKey: key) }
+        self.set = { $0.set($1 as? Int, forKey: key) }
         StateTracking.register(self)
     }
 
@@ -60,8 +60,8 @@ public final class AppStorageSupport: StateTracker {
         self.key = key
         self.store = store as? UserDefaults
         self.value = value
-        self.get = { $1 as? String ?? $0.string(forKey: key) ?? "" }
-        self.set = { $0.set($1 as? String ?? "", forKey: key) }
+        self.get = { $1 as? String ?? $0.string(forKey: key) }
+        self.set = { $0.set($1 as? String, forKey: key) }
         StateTracking.register(self)
     }
 
@@ -70,8 +70,8 @@ public final class AppStorageSupport: StateTracker {
         self.key = key
         self.store = store as? UserDefaults
         self.value = value
-        self.get = { $1 as? URL ?? $0.url(forKey: key) ?? URL(string: "http://localhost")! }
-        self.set = { $0.set($1 as? String ?? "", forKey: key) }
+        self.get = { $1 as? URL ?? $0.url(forKey: key) }
+        self.set = { $0.set($1 as? URL, forKey: key) }
         StateTracking.register(self)
     }
 
@@ -80,20 +80,20 @@ public final class AppStorageSupport: StateTracker {
         self.key = key
         self.store = store as? UserDefaults
         self.value = value
-        self.get = { $1 as? Data ?? $0.data(forKey: key) ?? Data() }
-        self.set = { $0.set($1 as? Data ?? Data(), forKey: key) }
+        self.get = { $1 as? Data ?? $0.data(forKey: key) }
+        self.set = { $0.set($1 as? Data, forKey: key) }
         StateTracking.register(self)
     }
 
     // SKIP @bridge
-    public var boolValue: Bool {
+    public var boolValue: Bool? {
         get {
             #if SKIP
             if let state {
-                return state.value as? Bool ?? false
+                return state.value as? Bool
             }
             #endif
-            return value as? Bool ?? false
+            return value as? Bool
         }
         set {
             #if SKIP
@@ -106,14 +106,14 @@ public final class AppStorageSupport: StateTracker {
     }
 
     // SKIP @bridge
-    public var doubleValue: Double {
+    public var doubleValue: Double? {
         get {
             #if SKIP
             if let state {
-                return state.value as? Double ?? 0.0
+                return state.value as? Double
             }
             #endif
-            return value as? Double ?? 0.0
+            return value as? Double
         }
         set {
             #if SKIP
@@ -126,14 +126,14 @@ public final class AppStorageSupport: StateTracker {
     }
 
     // SKIP @bridge
-    public var intValue: Int {
+    public var intValue: Int? {
         get {
             #if SKIP
             if let state {
-                return state.value as? Int ?? 0
+                return state.value as? Int
             }
             #endif
-            return value as? Int ?? 0
+            return value as? Int
         }
         set {
             #if SKIP
@@ -146,14 +146,14 @@ public final class AppStorageSupport: StateTracker {
     }
 
     // SKIP @bridge
-    public var stringValue: String {
+    public var stringValue: String? {
         get {
             #if SKIP
             if let state {
-                return state.value as? String ?? ""
+                return state.value as? String
             }
             #endif
-            return value as? String ?? ""
+            return value as? String
         }
         set {
             #if SKIP
@@ -166,14 +166,14 @@ public final class AppStorageSupport: StateTracker {
     }
 
     // SKIP @bridge
-    public var urlValue: URL {
+    public var urlValue: URL? {
         get {
             #if SKIP
             if let state {
-                return state.value as? URL ?? URL(string: "http://localhost")!
+                return state.value as? URL
             }
             #endif
-            return value as? URL ?? URL(string: "http://localhost")!
+            return value as? URL
         }
         set {
             #if SKIP
@@ -186,14 +186,14 @@ public final class AppStorageSupport: StateTracker {
     }
 
     // SKIP @bridge
-    public var dataValue: Data {
+    public var dataValue: Data? {
         get {
             #if SKIP
             if let state {
-                return state.value as? Data ?? Data()
+                return state.value as? Data
             }
             #endif
-            return value as? Data ?? Data()
+            return value as? Data
         }
         set {
             #if SKIP
@@ -224,7 +224,7 @@ public final class AppStorageSupport: StateTracker {
         let object = store.object(forKey: key)
         if let object {
             value = get(store, object)
-        } else {
+        } else if let value {
             set(store, value)
         }
         state = mutableStateOf(value)
