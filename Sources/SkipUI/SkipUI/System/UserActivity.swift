@@ -30,7 +30,7 @@ extension View {
         return self
     }
 
-    public func onOpenURL(perform action: @escaping (URL) -> Void) -> some View {
+    public func onOpenURL(perform action: @escaping (URL) -> Void) -> any View {
         #if SKIP
         return ComposeModifierView(targetView: self) { context in
             guard let activity = LocalContext.current as? AppCompatActivity else {
@@ -67,6 +67,11 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func onOpenURLString(perform action: @escaping (String) -> Void) -> any View {
+        return onOpenURL(perform: { action($0.absoluteString) })
     }
 }
 
