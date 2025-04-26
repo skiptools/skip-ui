@@ -175,7 +175,20 @@ public struct Font : Hashable {
     }
 
     #if SKIP
+    // Cache is used not only to avoid expense of recreating font families, but also because recreated families for
+    // the same name do not compare equal, causing recompositions under some configs:
+    // https://github.com/skiptools/skip/issues/399
+    private static var fontFamilyCache: [String: FontFamily] = [:]
+
     private static func findNamedFont(_ fontName: String, ctx: Context) -> FontFamily? {
+        var fontFamily: FontFamily? = nil
+        synchronized(fontFamilyCache) {
+            fontFamily = fontFamilyCache[fontName]
+        }
+        guard fontFamily == nil else {
+            return fontFamily
+        }
+
         // Android font names are lowercased and separated by "_" characters, since Android resource names can take only alphanumeric characters.
         // Font lookups on Android reference the font's filename, whereas SwiftUI references the font's Postscript name
         // So the best way to have the same font lookup code work on both platforms is to name the
@@ -191,19 +204,21 @@ public struct Font : Hashable {
             // try to fall back on system installed fonts like "courier"
             if let typeface = Typeface.create(name, Typeface.NORMAL) {
                 //android.util.Log.i("SkipUI", "found font: \(typeface)")
-                return FontFamily(typeface)
+                fontFamily = FontFamily(typeface)
+            } else {
+                android.util.Log.w("SkipUI", "unable to find font named: \(fontName) (\(name))")
             }
-
-            android.util.Log.w("SkipUI", "unable to find font named: \(fontName) (\(name))")
-            return nil
+        } else if let customTypeface = ctx.resources.getFont(fid) {
+            fontFamily = FontFamily(customTypeface)
+        } else {
+            android.util.Log.w("SkipUI", "unable to find font named: \(name)")
         }
-
-        if let customTypeface = ctx.resources.getFont(fid) {
-            return FontFamily(customTypeface)
+        if let fontFamily {
+            synchronized(fontFamilyCache) {
+                fontFamilyCache[fontName] = fontFamily
+            }
         }
-
-        android.util.Log.w("SkipUI", "unable to find font named: \(name)")
-        return nil
+        return fontFamily
     }
     #endif
 
