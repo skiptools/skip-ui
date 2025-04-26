@@ -152,6 +152,17 @@ struct PreferenceCollector<Value> {
 struct PreferenceNode<Value>: Equatable {
     let id: Int
     let value: Value
+
+    public static func ==(lhs: PreferenceNode<Value>, rhs: PreferenceNode<Value>) -> Bool {
+        guard lhs.id == rhs.id else {
+            return false
+        }
+        // Consider lambdas as always equal, otherwise we'll never compare equal
+        guard !(lhs.value is Function<Any>) || !(rhs.value is Function<Any>) else {
+            return true
+        }
+        return lhs.value == rhs.value
+    }
 }
 #endif
 
