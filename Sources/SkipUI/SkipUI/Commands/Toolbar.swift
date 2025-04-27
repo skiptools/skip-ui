@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.runtime.Composable
 #endif
 
+// SKIP @bridge
 public protocol ToolbarContent : View {
 //    associatedtype Body : ToolbarContent
 //    @ToolbarContentBuilder var body: Self.Body { get }
