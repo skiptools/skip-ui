@@ -403,6 +403,17 @@ Support levels:
       </td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+         <details>
+              <summary><code>@GestureState</code></summary>
+              <ul>
+                  <li>Only supported in native mode (<code>SkipFuseUI</code>)</li>
+              </ul>
+          </details> 
+      </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>@ObservedObject</code> (<a href="https://skip.tools/docs/components/observable/">example</a>)</td>
     </tr>
@@ -974,6 +985,17 @@ Support levels:
               </ul>
           </details>      
        </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+         <details>
+              <summary><code>ToolbarContent</code></summary>
+              <ul>
+                  <li>All of the items in a given custom <code>ToolbarContent</code> view must have the same <code>ToolbarItemPlacement</code></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
