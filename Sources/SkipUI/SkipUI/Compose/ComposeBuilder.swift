@@ -76,8 +76,12 @@ public struct ComposeBuilder: View {
     /// Use a custom composer to collect the views composed within this view.
     @Composable public func collectViews(context: ComposeContext) -> [View] {
         var views: [View] = []
-        let viewCollectingContext = context.content(composer: SideEffectComposer { view, _ in
-            views.append(view)
+        let viewCollectingContext = context.content(composer: SideEffectComposer { view, context in
+            if let builder = view as? ComposeBuilder {
+                views += builder.collectViews(context: context(false))
+            } else {
+                views.append(view)
+            }
             return ComposeResult.ok
         })
         content(viewCollectingContext)

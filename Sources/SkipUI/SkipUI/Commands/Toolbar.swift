@@ -495,69 +495,84 @@ struct ToolbarContentPreferences: Equatable {
 struct ToolbarItems {
     let content: [View]
 
-    @Composable func filterTopBarLeading(context: ComposeContext) -> [View] {
-        return filter(expandGroups: false, context: context) {
-            switch $0 {
+    /// Proces our content items, dividing them into the locations at which they should render.
+    @Composable func process(context: ComposeContext) -> (topLeading: [View], topTrailing: [View], bottom: [View]) {
+        let items = gather(context: context)
+        var leading: [View] = []
+        var trailing: [View] = []
+        var principal: View? = nil
+        var bottom: [View] = []
+        for (view, placement) in items {
+            switch placement {
+            case .principal:
+                principal = view
             case .topBarLeading, .navigationBarLeading, .cancellationAction:
-                return true
+                leading.append(view)
+            case .bottomBar:
+                bottom.append(view)
             default:
-                return false
-            }
-        } + filter(expandGroups: false, context: context) { $0 == .principal }
-    }
-
-    @Composable func filterTopBarTrailing(context: ComposeContext) -> [View] {
-        return filter(expandGroups: false, context: context) {
-            switch $0 {
-            case .automatic, .confirmationAction, .primaryAction, .secondaryAction, .topBarTrailing, .navigationBarTrailing:
-                return true
-            default:
-                return false
+                trailing.append(view)
             }
         }
-    }
-
-    @Composable func filterBottomBar(context: ComposeContext) -> [View] {
-        var views = filter(expandGroups: true, context: context) { $0 == .bottomBar }
-        // SwiftUI inserts a spacer between the first and remaining items
-        if views.count > 1 && !views.contains(where: { $0.strippingModifiers { $0 is Spacer } }) {
-            views.insert(Spacer(), at: 1)
+        if let principal {
+            leading.append(principal)
         }
-        return views
+        // SwiftUI inserts a spacer before the last bottom item
+        if bottom.count > 1 && !bottom.contains(where: { $0.strippingModifiers { $0 is Spacer } }) {
+            bottom.insert(Spacer(), at: bottom.count - 1)
+        }
+        return (leading, trailing, bottom)
     }
 
-    @Composable private func filter(expandGroups: Bool, context: ComposeContext, placement: (ToolbarItemPlacement) -> Bool) -> [View] {
-        let filtered = mutableListOf<View>()
-        let context = context.content(composer: SideEffectComposer { view, context in
-            filter(view: view, expandGroups: expandGroups, placement: placement, filtered: filtered, context: context)
-        })
+    @Composable private func gather(context: ComposeContext) -> [(View, ToolbarItemPlacement)] {
+        let items = mutableListOf<(View, ToolbarItemPlacement)>()
+        let context = context.content(composer: ToolbarContentGatheringComposer(items: items))
         content.forEach { $0.Compose(context: context) }
-        return Array(filtered, nocopy: true)
+        return Array(items, nocopy: true)
+    }
+}
+
+/// Helper to gather toolbar items and extract their palcements.
+final class ToolbarContentGatheringComposer : SideEffectComposer {
+    let items: MutableList<(View, ToolbarItemPlacement)>
+    let defaultPlacement: ToolbarItemPlacement
+
+    init(items: MutableList<(View, ToolbarItemPlacement)>, defaultPlacement: ToolbarItemPlacement = .automatic) {
+        super.init()
+        self.items = items
+        self.defaultPlacement = defaultPlacement
     }
 
-    @Composable private func filter(view: any View, expandGroups: Bool, placement: (ToolbarItemPlacement) -> Bool, filtered: MutableList<View>, context: (Bool) -> ComposeContext) -> ComposeResult {
-        if let itemGroup = view as? ToolbarItemGroup {
-            if placement(itemGroup.placement) {
-                if expandGroups {
-                    itemGroup.content.collectViews(context: context(false))
-                        .filter { !$0.isSwiftUIEmptyView }
-                        .forEach { filtered.add($0) }
-                } else {
-                    filtered.add(itemGroup)
-                }
+    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
+        if let composeBuilder = view as? ComposeBuilder {
+            composeBuilder.ComposeContent(context: context(true))
+        } else if let itemGroup = view as? ToolbarItemGroup {
+            // We have to recurse into groups on the bottom bar in order to properly insert spacers between items
+            // to match iOS
+            let placement = itemGroup.placement == .automatic ? defaultPlacement : itemGroup.placement
+            if placement == .bottomBar {
+                // Recurse with a composer that also defaults to this placement
+                let filterComposer = ToolbarContentGatheringComposer(items: items, defaultPlacement: placement)
+                let context = context(false).content(composer: filterComposer)
+                itemGroup.ComposeContent(context: context)
+            } else {
+                items.add((itemGroup, placement))
             }
         } else if let item = view as? ToolbarItem {
-            if placement(item.placement) {
-                filtered.add(item)
-            }
+            let placement = item.placement == .automatic ? defaultPlacement : item.placement
+            items.add((item, placement))
         } else if let toolbarContent = view as? ToolbarContent {
-            // Create a builder that is able to collect the view's internal content by calling ComposeContent
-            let contentBuilder = ComposeBuilder(content: { view.ComposeContent(context: $0); ComposeResult.ok })
-            for view in contentBuilder.collectViews(context: context(false)) {
-                filter(view: view, expandGroups: expandGroups, placement: placement, filtered: filtered, context: context)
+            // Gather the custom content items to check their placement. We have to then add the custom content as
+            // a single item in a single place, because attempting to compose its individual items or compose it
+            // multiple times breaks updates on recompose
+            let content = mutableListOf<(View, ToolbarItemPlacement)>()
+            let composer = ToolbarContentGatheringComposer(items: content, defaultPlacement: defaultPlacement)
+            toolbarContent.ComposeContent(context: context(false).content(composer: composer))
+            if let (_, placement) = content.firstOrNull() {
+                items.add((toolbarContent, placement))
             }
-        } else if placement(.automatic), !view.isSwiftUIEmptyView {
-            filtered.add(view)
+        } else if !view.isSwiftUIEmptyView {
+            items.add((view, defaultPlacement))
         }
         return ComposeResult.ok
     }
