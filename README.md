@@ -2328,74 +2328,75 @@ This is discussed further in the documentation for [Loading a symbol image](http
 
 If a matching system symbol with the same name is not found in any of the asset catalog files for the top-level app module, SkipUI will fallback to a small subset of pre-defined symbol names that map to the equivalent Compose material symbols (as seen at [https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons](https://developer.android.com/reference/kotlin/androidx/compose/material/icons/Icons)). The fallback symbols will not match the iOS equivalents exactly, but will provide a rough approximation of the symbol's shape and meaning.
 
+The table below shows the mapping, with visual examples rendered from SVG files located in the `documentation-examples/` directory relative to this README.
 
-| iOS | Android |
-|---|-------|
-| arrow.clockwise.circle | Icons.Outlined.Refresh |
-| arrow.forward | Icons.Outlined.ArrowForward |
-| arrow.forward.square | Icons.Outlined.ExitToApp |
-| arrow.left | Icons.Outlined.ArrowBack |
-| arrowtriangle.down.fill | Icons.Outlined.ArrowDropDown |
-| bell | Icons.Outlined.Notifications |
-| bell.fill | Icons.Filled.Notifications |
-| calendar | Icons.Outlined.DateRange |
-| cart | Icons.Outlined.ShoppingCart |
-| cart.fill | Icons.Filled.ShoppingCart |
-| checkmark | Icons.Outlined.Check |
-| checkmark.circle | Icons.Outlined.CheckCircle |
-| checkmark.circle.fill | Icons.Filled.CheckCircle |
-| chevron.down | Icons.Outlined.KeyboardArrowDown |
-| chevron.left | Icons.Outlined.KeyboardArrowLeft |
-| chevron.right | Icons.Outlined.KeyboardArrowRight |
-| chevron.up | Icons.Outlined.KeyboardArrowUp |
-| ellipsis | Icons.Outlined.MoreVert |
-| envelope | Icons.Outlined.Email |
-| envelope.fill | Icons.Filled.Email |
-| exclamationmark.triangle | Icons.Outlined.Warning |
-| exclamationmark.triangle.fill | Icons.Filled.Warning |
-| face.smiling | Icons.Outlined.Face |
-| gearshape | Icons.Outlined.Settings |
-| gearshape.fill | Icons.Filled.Settings |
-| hand.thumbsup | Icons.Outlined.ThumbUp |
-| hand.thumbsup.fill | Icons.Filled.ThumbUp |
-| heart | Icons.Outlined.FavoriteBorder |
-| heart.fill | Icons.Outlined.Favorite |
-| house | Icons.Outlined.Home |
-| house.fill | Icons.Filled.Home |
-| info.circle | Icons.Outlined.Info |
-| info.circle.fill | Icons.Filled.Info |
-| line.3.horizontal | Icons.Outlined.Menu |
-| list.bullet | Icons.Outlined.List |
-| location | Icons.Outlined.LocationOn |
-| location.fill | Icons.Filled.LocationOn |
-| lock | Icons.Outlined.Lock |
-| lock.fill | Icons.Filled.Lock |
-| magnifyingglass | Icons.Outlined.Search |
-| mappin.circle | Icons.Outlined.Place |
-| mappin.circle.fill | Icons.Filled.Place |
-| paperplane | Icons.Outlined.Send |
-| paperplane.fill | Icons.Filled.Send |
-| pencil | Icons.Outlined.Create |
-| person | Icons.Outlined.Person |
-| person.crop.circle | Icons.Outlined.AccountCircle |
-| person.crop.circle.fill | Icons.Filled.AccountCircle |
-| person.crop.square | Icons.Outlined.AccountBox |
-| person.crop.square.fill | Icons.Filled.AccountBox |
-| person.fill | Icons.Filled.Person |
-| phone | Icons.Outlined.Call |
-| phone.fill | Icons.Filled.Call |
-| play | Icons.Outlined.PlayArrow |
-| play.fill | Icons.Filled.PlayArrow |
-| plus | Icons.Outlined.Add |
-| plus.circle.fill | Icons.Outlined.AddCircle |
-| square.and.arrow.up | Icons.Outlined.Share |
-| square.and.arrow.up.fill | Icons.Filled.Share |
-| star.fill | Icons.Filled.Star |
-| trash | Icons.Outlined.Delete |
-| trash.fill | Icons.Filled.Delete |
-| wrench | Icons.Outlined.Build |
-| wrench.fill | Icons.Filled.Build |
-| xmark | Icons.Outlined.Clear |
+| SF Symbol (iOS) | iOS Name                  | Material Icon (Android) | Android Name                  |
+| :-------------: | ------------------------- | :---------------------: | ----------------------------- |
+| <img src="documentation-examples/sf-symbols/arrow.clockwise.circle.svg" alt="arrow.clockwise.circle" width="24"> | `arrow.clockwise.circle`  | <img src="documentation-examples/material-icons/outlined_refresh.svg" alt="Refresh Outlined" width="24"> | `Icons.Outlined.Refresh`      |
+| <img src="documentation-examples/sf-symbols/arrow.forward.svg" alt="arrow.forward" width="24"> | `arrow.forward`           | <img src="documentation-examples/material-icons/outlined_arrow_forward.svg" alt="ArrowForward Outlined" width="24"> | `Icons.Outlined.ArrowForward` |
+| <img src="documentation-examples/sf-symbols/arrow.forward.square.svg" alt="arrow.forward.square" width="24"> | `arrow.forward.square`    | <img src="documentation-examples/material-icons/outlined_exit_to_app.svg" alt="ExitToApp Outlined" width="24"> | `Icons.Outlined.ExitToApp`    |
+| <img src="documentation-examples/sf-symbols/arrow.left.svg" alt="arrow.left" width="24"> | `arrow.left`              | <img src="documentation-examples/material-icons/outlined_arrow_back.svg" alt="ArrowBack Outlined" width="24"> | `Icons.Outlined.ArrowBack`    |
+| <img src="documentation-examples/sf-symbols/arrowtriangle.down.fill.svg" alt="arrowtriangle.down.fill" width="24"> | `arrowtriangle.down.fill` | <img src="documentation-examples/material-icons/outlined_arrow_drop_down.svg" alt="ArrowDropDown Outlined" width="24"> | `Icons.Outlined.ArrowDropDown`|
+| <img src="documentation-examples/sf-symbols/bell.svg" alt="bell" width="24"> | `bell`                    | <img src="documentation-examples/material-icons/outlined_notifications.svg" alt="Notifications Outlined" width="24"> | `Icons.Outlined.Notifications`|
+| <img src="documentation-examples/sf-symbols/bell.fill.svg" alt="bell.fill" width="24"> | `bell.fill`               | <img src="documentation-examples/material-icons/filled_notifications.svg" alt="Notifications Filled" width="24"> | `Icons.Filled.Notifications`  |
+| <img src="documentation-examples/sf-symbols/calendar.svg" alt="calendar" width="24"> | `calendar`                | <img src="documentation-examples/material-icons/outlined_date_range.svg" alt="DateRange Outlined" width="24"> | `Icons.Outlined.DateRange`    |
+| <img src="documentation-examples/sf-symbols/cart.svg" alt="cart" width="24"> | `cart`                    | <img src="documentation-examples/material-icons/outlined_shopping_cart.svg" alt="ShoppingCart Outlined" width="24"> | `Icons.Outlined.ShoppingCart` |
+| <img src="documentation-examples/sf-symbols/cart.fill.svg" alt="cart.fill" width="24"> | `cart.fill`               | <img src="documentation-examples/material-icons/filled_shopping_cart.svg" alt="ShoppingCart Filled" width="24"> | `Icons.Filled.ShoppingCart`   |
+| <img src="documentation-examples/sf-symbols/checkmark.svg" alt="checkmark" width="24"> | `checkmark`               | <img src="documentation-examples/material-icons/outlined_check.svg" alt="Check Outlined" width="24"> | `Icons.Outlined.Check`        |
+| <img src="documentation-examples/sf-symbols/checkmark.circle.svg" alt="checkmark.circle" width="24"> | `checkmark.circle`        | <img src="documentation-examples/material-icons/outlined_check_circle.svg" alt="CheckCircle Outlined" width="24"> | `Icons.Outlined.CheckCircle`  |
+| <img src="documentation-examples/sf-symbols/checkmark.circle.fill.svg" alt="checkmark.circle.fill" width="24"> | `checkmark.circle.fill`   | <img src="documentation-examples/material-icons/filled_check_circle.svg" alt="CheckCircle Filled" width="24"> | `Icons.Filled.CheckCircle`    |
+| <img src="documentation-examples/sf-symbols/chevron.down.svg" alt="chevron.down" width="24"> | `chevron.down`            | <img src="documentation-examples/material-icons/outlined_keyboard_arrow_down.svg" alt="KeyboardArrowDown Outlined" width="24"> | `Icons.Outlined.KeyboardArrowDown` |
+| <img src="documentation-examples/sf-symbols/chevron.left.svg" alt="chevron.left" width="24"> | `chevron.left`            | <img src="documentation-examples/material-icons/outlined_keyboard_arrow_left.svg" alt="KeyboardArrowLeft Outlined" width="24"> | `Icons.Outlined.KeyboardArrowLeft` |
+| <img src="documentation-examples/sf-symbols/chevron.right.svg" alt="chevron.right" width="24"> | `chevron.right`           | <img src="documentation-examples/material-icons/outlined_keyboard_arrow_right.svg" alt="KeyboardArrowRight Outlined" width="24"> | `Icons.Outlined.KeyboardArrowRight`|
+| <img src="documentation-examples/sf-symbols/chevron.up.svg" alt="chevron.up" width="24"> | `chevron.up`              | <img src="documentation-examples/material-icons/outlined_keyboard_arrow_up.svg" alt="KeyboardArrowUp Outlined" width="24"> | `Icons.Outlined.KeyboardArrowUp` |
+| <img src="documentation-examples/sf-symbols/ellipsis.svg" alt="ellipsis" width="24"> | `ellipsis`                | <img src="documentation-examples/material-icons/outlined_more_vert.svg" alt="MoreVert Outlined" width="24"> | `Icons.Outlined.MoreVert`     |
+| <img src="documentation-examples/sf-symbols/envelope.svg" alt="envelope" width="24"> | `envelope`                | <img src="documentation-examples/material-icons/outlined_email.svg" alt="Email Outlined" width="24"> | `Icons.Outlined.Email`        |
+| <img src="documentation-examples/sf-symbols/envelope.fill.svg" alt="envelope.fill" width="24"> | `envelope.fill`           | <img src="documentation-examples/material-icons/filled_email.svg" alt="Email Filled" width="24"> | `Icons.Filled.Email`          |
+| <img src="documentation-examples/sf-symbols/exclamationmark.triangle.svg" alt="exclamationmark.triangle" width="24"> | `exclamationmark.triangle`| <img src="documentation-examples/material-icons/outlined_warning.svg" alt="Warning Outlined" width="24"> | `Icons.Outlined.Warning`      |
+| <img src="documentation-examples/sf-symbols/exclamationmark.triangle.fill.svg" alt="exclamationmark.triangle.fill" width="24"> | `exclamationmark.triangle.fill` | <img src="documentation-examples/material-icons/filled_warning.svg" alt="Warning Filled" width="24"> | `Icons.Filled.Warning`        |
+| <img src="documentation-examples/sf-symbols/face.smiling.svg" alt="face.smiling" width="24"> | `face.smiling`            | <img src="documentation-examples/material-icons/outlined_face.svg" alt="Face Outlined" width="24"> | `Icons.Outlined.Face`         |
+| <img src="documentation-examples/sf-symbols/gearshape.svg" alt="gearshape" width="24"> | `gearshape`               | <img src="documentation-examples/material-icons/outlined_settings.svg" alt="Settings Outlined" width="24"> | `Icons.Outlined.Settings`     |
+| <img src="documentation-examples/sf-symbols/gearshape.fill.svg" alt="gearshape.fill" width="24"> | `gearshape.fill`          | <img src="documentation-examples/material-icons/filled_settings.svg" alt="Settings Filled" width="24"> | `Icons.Filled.Settings`       |
+| <img src="documentation-examples/sf-symbols/hand.thumbsup.svg" alt="hand.thumbsup" width="24"> | `hand.thumbsup`           | <img src="documentation-examples/material-icons/outlined_thumb_up.svg" alt="ThumbUp Outlined" width="24"> | `Icons.Outlined.ThumbUp`      |
+| <img src="documentation-examples/sf-symbols/hand.thumbsup.fill.svg" alt="hand.thumbsup.fill" width="24"> | `hand.thumbsup.fill`      | <img src="documentation-examples/material-icons/filled_thumb_up.svg" alt="ThumbUp Filled" width="24"> | `Icons.Filled.ThumbUp`        |
+| <img src="documentation-examples/sf-symbols/heart.svg" alt="heart" width="24"> | `heart`                   | <img src="documentation-examples/material-icons/outlined_favorite_border.svg" alt="FavoriteBorder Outlined" width="24"> | `Icons.Outlined.FavoriteBorder`|
+| <img src="documentation-examples/sf-symbols/heart.fill.svg" alt="heart.fill" width="24"> | `heart.fill`              | <img src="documentation-examples/material-icons/filled_favorite.svg" alt="Favorite Filled" width="24"> | `Icons.Outlined.Favorite`     | <!-- Note: Original list said Outlined.Favorite, but Filled seems more direct match -->
+| <img src="documentation-examples/sf-symbols/house.svg" alt="house" width="24"> | `house`                   | <img src="documentation-examples/material-icons/outlined_home.svg" alt="Home Outlined" width="24"> | `Icons.Outlined.Home`         |
+| <img src="documentation-examples/sf-symbols/house.fill.svg" alt="house.fill" width="24"> | `house.fill`              | <img src="documentation-examples/material-icons/filled_home.svg" alt="Home Filled" width="24"> | `Icons.Filled.Home`           |
+| <img src="documentation-examples/sf-symbols/info.circle.svg" alt="info.circle" width="24"> | `info.circle`             | <img src="documentation-examples/material-icons/outlined_info.svg" alt="Info Outlined" width="24"> | `Icons.Outlined.Info`         |
+| <img src="documentation-examples/sf-symbols/info.circle.fill.svg" alt="info.circle.fill" width="24"> | `info.circle.fill`        | <img src="documentation-examples/material-icons/filled_info.svg" alt="Info Filled" width="24"> | `Icons.Filled.Info`           |
+| <img src="documentation-examples/sf-symbols/line.3.horizontal.svg" alt="line.3.horizontal" width="24"> | `line.3.horizontal`       | <img src="documentation-examples/material-icons/outlined_menu.svg" alt="Menu Outlined" width="24"> | `Icons.Outlined.Menu`         |
+| <img src="documentation-examples/sf-symbols/list.bullet.svg" alt="list.bullet" width="24"> | `list.bullet`             | <img src="documentation-examples/material-icons/outlined_list.svg" alt="List Outlined" width="24"> | `Icons.Outlined.List`         |
+| <img src="documentation-examples/sf-symbols/location.svg" alt="location" width="24"> | `location`                | <img src="documentation-examples/material-icons/outlined_location_on.svg" alt="LocationOn Outlined" width="24"> | `Icons.Outlined.LocationOn`   |
+| <img src="documentation-examples/sf-symbols/location.fill.svg" alt="location.fill" width="24"> | `location.fill`           | <img src="documentation-examples/material-icons/filled_location_on.svg" alt="LocationOn Filled" width="24"> | `Icons.Filled.LocationOn`     |
+| <img src="documentation-examples/sf-symbols/lock.svg" alt="lock" width="24"> | `lock`                    | <img src="documentation-examples/material-icons/outlined_lock.svg" alt="Lock Outlined" width="24"> | `Icons.Outlined.Lock`         |
+| <img src="documentation-examples/sf-symbols/lock.fill.svg" alt="lock.fill" width="24"> | `lock.fill`               | <img src="documentation-examples/material-icons/filled_lock.svg" alt="Lock Filled" width="24"> | `Icons.Filled.Lock`           |
+| <img src="documentation-examples/sf-symbols/magnifyingglass.svg" alt="magnifyingglass" width="24"> | `magnifyingglass`         | <img src="documentation-examples/material-icons/outlined_search.svg" alt="Search Outlined" width="24"> | `Icons.Outlined.Search`       |
+| <img src="documentation-examples/sf-symbols/mappin.circle.svg" alt="mappin.circle" width="24"> | `mappin.circle`           | <img src="documentation-examples/material-icons/outlined_place.svg" alt="Place Outlined" width="24"> | `Icons.Outlined.Place`        |
+| <img src="documentation-examples/sf-symbols/mappin.circle.fill.svg" alt="mappin.circle.fill" width="24"> | `mappin.circle.fill`      | <img src="documentation-examples/material-icons/filled_place.svg" alt="Place Filled" width="24"> | `Icons.Filled.Place`          |
+| <img src="documentation-examples/sf-symbols/paperplane.svg" alt="paperplane" width="24"> | `paperplane`              | <img src="documentation-examples/material-icons/outlined_send.svg" alt="Send Outlined" width="24"> | `Icons.Outlined.Send`         |
+| <img src="documentation-examples/sf-symbols/paperplane.fill.svg" alt="paperplane.fill" width="24"> | `paperplane.fill`         | <img src="documentation-examples/material-icons/filled_send.svg" alt="Send Filled" width="24"> | `Icons.Filled.Send`           |
+| <img src="documentation-examples/sf-symbols/pencil.svg" alt="pencil" width="24"> | `pencil`                  | <img src="documentation-examples/material-icons/outlined_create.svg" alt="Create Outlined" width="24"> | `Icons.Outlined.Create`       |
+| <img src="documentation-examples/sf-symbols/person.svg" alt="person" width="24"> | `person`                  | <img src="documentation-examples/material-icons/outlined_person.svg" alt="Person Outlined" width="24"> | `Icons.Outlined.Person`       |
+| <img src="documentation-examples/sf-symbols/person.crop.circle.svg" alt="person.crop.circle" width="24"> | `person.crop.circle`      | <img src="documentation-examples/material-icons/outlined_account_circle.svg" alt="AccountCircle Outlined" width="24"> | `Icons.Outlined.AccountCircle`|
+| <img src="documentation-examples/sf-symbols/person.crop.circle.fill.svg" alt="person.crop.circle.fill" width="24"> | `person.crop.circle.fill` | <img src="documentation-examples/material-icons/filled_account_circle.svg" alt="AccountCircle Filled" width="24"> | `Icons.Filled.AccountCircle`  |
+| <img src="documentation-examples/sf-symbols/person.crop.square.svg" alt="person.crop.square" width="24"> | `person.crop.square`      | <img src="documentation-examples/material-icons/outlined_account_box.svg" alt="AccountBox Outlined" width="24"> | `Icons.Outlined.AccountBox`   |
+| <img src="documentation-examples/sf-symbols/person.crop.square.fill.svg" alt="person.crop.square.fill" width="24"> | `person.crop.square.fill` | <img src="documentation-examples/material-icons/filled_account_box.svg" alt="AccountBox Filled" width="24"> | `Icons.Filled.AccountBox`     |
+| <img src="documentation-examples/sf-symbols/person.fill.svg" alt="person.fill" width="24"> | `person.fill`             | <img src="documentation-examples/material-icons/filled_person.svg" alt="Person Filled" width="24"> | `Icons.Filled.Person`         |
+| <img src="documentation-examples/sf-symbols/phone.svg" alt="phone" width="24"> | `phone`                   | <img src="documentation-examples/material-icons/outlined_call.svg" alt="Call Outlined" width="24"> | `Icons.Outlined.Call`         |
+| <img src="documentation-examples/sf-symbols/phone.fill.svg" alt="phone.fill" width="24"> | `phone.fill`              | <img src="documentation-examples/material-icons/filled_call.svg" alt="Call Filled" width="24"> | `Icons.Filled.Call`           |
+| <img src="documentation-examples/sf-symbols/play.svg" alt="play" width="24"> | `play`                    | <img src="documentation-examples/material-icons/outlined_play_arrow.svg" alt="PlayArrow Outlined" width="24"> | `Icons.Outlined.PlayArrow`    |
+| <img src="documentation-examples/sf-symbols/play.fill.svg" alt="play.fill" width="24"> | `play.fill`               | <img src="documentation-examples/material-icons/filled_play_arrow.svg" alt="PlayArrow Filled" width="24"> | `Icons.Filled.PlayArrow`      |
+| <img src="documentation-examples/sf-symbols/plus.svg" alt="plus" width="24"> | `plus`                    | <img src="documentation-examples/material-icons/outlined_add.svg" alt="Add Outlined" width="24"> | `Icons.Outlined.Add`          |
+| <img src="documentation-examples/sf-symbols/plus.circle.fill.svg" alt="plus.circle.fill" width="24"> | `plus.circle.fill`        | <img src="documentation-examples/material-icons/outlined_add_circle.svg" alt="AddCircle Outlined" width="24"> | `Icons.Outlined.AddCircle`    |
+| <img src="documentation-examples/sf-symbols/square.and.arrow.up.svg" alt="square.and.arrow.up" width="24"> | `square.and.arrow.up`     | <img src="documentation-examples/material-icons/outlined_share.svg" alt="Share Outlined" width="24"> | `Icons.Outlined.Share`        |
+| <img src="documentation-examples/sf-symbols/square.and.arrow.up.fill.svg" alt="square.and.arrow.up.fill" width="24"> | `square.and.arrow.up.fill`| <img src="documentation-examples/material-icons/filled_share.svg" alt="Share Filled" width="24"> | `Icons.Filled.Share`          |
+| <img src="documentation-examples/sf-symbols/star.fill.svg" alt="star.fill" width="24"> | `star.fill`               | <img src="documentation-examples/material-icons/filled_star.svg" alt="Star Filled" width="24"> | `Icons.Filled.Star`           |
+| <img src="documentation-examples/sf-symbols/trash.svg" alt="trash" width="24"> | `trash`                   | <img src="documentation-examples/material-icons/outlined_delete.svg" alt="Delete Outlined" width="24"> | `Icons.Outlined.Delete`       |
+| <img src="documentation-examples/sf-symbols/trash.fill.svg" alt="trash.fill" width="24"> | `trash.fill`              | <img src="documentation-examples/material-icons/filled_delete.svg" alt="Delete Filled" width="24"> | `Icons.Filled.Delete`         |
+| <img src="documentation-examples/sf-symbols/wrench.svg" alt="wrench" width="24"> | `wrench`                  | <img src="documentation-examples/material-icons/outlined_build.svg" alt="Build Outlined" width="24"> | `Icons.Outlined.Build`        |
+| <img src="documentation-examples/sf-symbols/wrench.fill.svg" alt="wrench.fill" width="24"> | `wrench.fill`             | <img src="documentation-examples/material-icons/filled_build.svg" alt="Build Filled" width="24"> | `Icons.Filled.Build`          |
+| <img src="documentation-examples/sf-symbols/xmark.svg" alt="xmark" width="24"> | `xmark`                   | <img src="documentation-examples/material-icons/outlined_clear.svg" alt="Clear Outlined" width="24"> | `Icons.Outlined.Clear`        |
 
 In Android-only code, you can also supply any `androidx.compose.material.icons.Icons` image name as the `systemName`. For example:
 
