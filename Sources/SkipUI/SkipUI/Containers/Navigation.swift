@@ -220,6 +220,12 @@ public struct NavigationStack : View {
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: arguments.toolbarPreferences.titleDisplayMode)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
 
+        // We would like to only process toolbar content in our topBar/bottomBar Composables, but composing
+        // custom ToolbarContent multiple times (in order to process the placement of the items in its body
+        // content for each bar) prevents it from updating properly on recompose
+        let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
+        let (topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.process(context: context)
+
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
         let searchFieldHeightPx = with(density) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -262,10 +268,7 @@ public struct NavigationStack : View {
                 }
                 return
             }
-            
-            let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-            let topLeadingItems = toolbarItems.filterTopBarLeading(context: context)
-            let topTrailingItems = toolbarItems.filterTopBarTrailing(context: context)
+
             guard !arguments.isRoot || hasTitle || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     topBarHidden.value = true
@@ -397,9 +400,6 @@ public struct NavigationStack : View {
                 }
                 return
             }
-
-            let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-            let bottomItems = toolbarItems.filterBottomBar(context: context)
             guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
