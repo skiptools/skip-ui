@@ -81,7 +81,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         let listState = rememberLazyListState()
         // Integrate with our scroll-to-top navigation bar taps
         let coroutineScope = rememberCoroutineScope()
-        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: listState) {
             coroutineScope.launch {
                 listState.animateScrollToItem(0)
             }

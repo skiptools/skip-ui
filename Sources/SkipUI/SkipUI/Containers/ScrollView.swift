@@ -66,7 +66,7 @@ public struct ScrollView : View {
             effectiveScrollAxes.insert(Axis.Set.vertical)
             if !axes.contains(.horizontal) {
                 // Integrate with our scroll-to-top navigation bar taps
-                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: scrollState) {
                     coroutineScope.launch {
                         scrollState.animateScrollTo(0)
                     }
@@ -176,9 +176,9 @@ public struct ScrollViewReader : View {
 
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
-        let scrollToID = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<(Any) -> Void>, Any>) { mutableStateOf(Preference<(Any) -> Void>(key: ScrollToIDPreferenceKey.self)) }
-        let scrollToIDCollector = PreferenceCollector<(Any) -> Void>(key: ScrollToIDPreferenceKey.self, state: scrollToID)
-        let scrollProxy = ScrollViewProxy(scrollToID: scrollToID.value.reduced)
+        let scrollToID = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToIDAction>, Any>) { mutableStateOf(Preference<ScrollToIDAction>(key: ScrollToIDPreferenceKey.self)) }
+        let scrollToIDCollector = PreferenceCollector<ScrollToIDAction>(key: ScrollToIDPreferenceKey.self, state: scrollToID)
+        let scrollProxy = ScrollViewProxy(scrollToID: scrollToID.value.reduced.action)
         PreferenceValues.shared.collectPreferences([scrollToIDCollector]) {
             content(scrollProxy).Compose(context)
         }
@@ -192,26 +192,48 @@ public struct ScrollViewReader : View {
 
 #if SKIP
 struct ScrollToTopPreferenceKey: PreferenceKey {
-    typealias Value = () -> Void
+    typealias Value = ScrollToTopAction
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<() -> Unit>
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ScrollToTopAction>
     final class Companion: PreferenceKeyCompanion {
-        let defaultValue: () -> Void = {}
-        func reduce(value: inout () -> Void, nextValue: () -> () -> Void) {
+        let defaultValue = ScrollToTopAction(key: nil, action: { })
+        func reduce(value: inout ScrollToTopAction, nextValue: () -> ScrollToTopAction) {
             value = nextValue()
         }
     }
 }
 
-struct ScrollToIDPreferenceKey: PreferenceKey {
-    typealias Value = (Any) -> Void
+struct ScrollToTopAction : Equatable {
+    // Key the action on the listState/gridState/etc that performs the scrolling, so that on
+    // recompose when the remembered state might change, the preference action is updated
+    let key: Any?
+    let action: () -> Void
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<(Any) -> Unit>
+    static func ==(lhs: ScrollToTopAction, rhs: ScrollToTopAction) -> Bool {
+        return lhs.key == rhs.key
+    }
+}
+
+struct ScrollToIDPreferenceKey: PreferenceKey {
+    typealias Value = ScrollToIDAction
+
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ScrollToIDAction>
     final class Companion: PreferenceKeyCompanion {
-        let defaultValue: (Any) -> Void = { _ in }
-        func reduce(value: inout (Any) -> Void, nextValue: () -> (Any) -> Void) {
+        let defaultValue = ScrollToIDAction(key: nil, action: { _ in })
+        func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
             value = nextValue()
         }
+    }
+}
+
+struct ScrollToIDAction : Equatable {
+    // Key the action on the listState/gridState/etc that performs the scrolling, so that on
+    // recompose when the remembered state might change, the preference action is updated
+    let key: Any?
+    let action: (Any) -> Void
+
+    static func ==(lhs: ScrollToIDAction, rhs: ScrollToIDAction) -> Bool {
+        return lhs.key == rhs.key
     }
 }
 

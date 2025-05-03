@@ -75,7 +75,7 @@ public struct LazyHGrid: View {
             let gridState = rememberLazyGridState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
             let coroutineScope = rememberCoroutineScope()
-            let scrollToID: (Any) -> Void = { id in
+            let scrollToID = ScrollToIDAction(key: gridState) { id in
                 if let itemIndex = factoryContext.value.index(for: id) {
                     coroutineScope.launch {
                         if Animation.isInWithAnimation {

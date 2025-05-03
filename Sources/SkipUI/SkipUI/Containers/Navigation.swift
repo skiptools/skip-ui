@@ -235,8 +235,8 @@ public struct NavigationStack : View {
         let searchableStatePreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>) { mutableStateOf(Preference<SearchableState?>(key: SearchableStatePreferenceKey.self)) }
         let searchableStateCollector = PreferenceCollector<SearchableState?>(key: SearchableStatePreferenceKey.self, state: searchableStatePreference)
 
-        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<() -> Void>, Any>) { mutableStateOf(Preference<() -> Void>(key: ScrollToTopPreferenceKey.self)) }
-        let scrollToTopCollector = PreferenceCollector<() -> Void>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
+        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>) { mutableStateOf(Preference<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self)) }
+        let scrollToTopCollector = PreferenceCollector<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
 
         let scrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
@@ -322,7 +322,7 @@ public struct NavigationStack : View {
                     let interactionSource = remember { MutableInteractionSource() }
                     var topBarModifier = Modifier.zIndex(Float(1.1))
                         .clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                            scrollToTop.value.reduced()
+                            scrollToTop.value.reduced.action()
                         })
                         .onGloballyPositionedInWindow {
                             topBarBottomPx.value = $0.bottom

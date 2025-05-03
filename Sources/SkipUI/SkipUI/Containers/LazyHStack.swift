@@ -67,7 +67,7 @@ public struct LazyHStack : View {
             let listState = rememberLazyListState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
             let coroutineScope = rememberCoroutineScope()
-            let scrollToID: (Any) -> Void = { id in
+            let scrollToID = ScrollToIDAction(key: listState) { id in
                 if let itemIndex = factoryContext.value.index(for: id) {
                     coroutineScope.launch {
                         if Animation.isInWithAnimation {
