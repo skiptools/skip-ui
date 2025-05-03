@@ -76,12 +76,12 @@ public struct LazyVStack : View {
                 let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
                 let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
                 let coroutineScope = rememberCoroutineScope()
-                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+                PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: listState) {
                     coroutineScope.launch {
                         listState.animateScrollToItem(0)
                     }
                 })
-                let scrollToID: (Any) -> Void = { id in
+                let scrollToID = ScrollToIDAction(key: listState) { id in
                     if let itemIndex = factoryContext.value.index(for: id) {
                         coroutineScope.launch {
                             if Animation.isInWithAnimation {

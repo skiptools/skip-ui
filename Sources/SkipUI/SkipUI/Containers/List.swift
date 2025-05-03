@@ -196,12 +196,12 @@ public final class List : View {
 
         // Integrate with our scroll-to-top and ScrollViewReader
         let coroutineScope = rememberCoroutineScope()
-        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: {
+        PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: reorderableState.listState) {
             coroutineScope.launch {
                 reorderableState.listState.animateScrollToItem(0)
             }
         })
-        let scrollToID: (Any) -> Void = { id in
+        let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
             if let itemIndex = factoryContext.value.index(for: id) {
                 coroutineScope.launch {
                     if Animation.isInWithAnimation {
