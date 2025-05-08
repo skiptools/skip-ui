@@ -104,7 +104,17 @@ public final class UNUserNotificationCenter {
             notificationBuilder.setSmallIcon(IconCompat.createWithContentUri(imageAttachment.url.absoluteString))
         } else {
             let packageName = application.getPackageName()
-            let resId = application.resources.getIdentifier("ic_launcher", "mipmap", packageName)
+            
+            // Notification icon: must be a resource with transparent background and white logo
+            // eg: to be used as a default icon must be added in the AndroidManifest.xml with the following code:
+            // <meta-data
+            // android:name="com.google.firebase.messaging.default_notification_icon"
+            // android:resource="@drawable/ic_notification" />
+            
+            let iconNotificationIdentifier = "ic_notification"
+            let resourceFolder = "drawable"
+            
+            let resId = application.resources.getIdentifier(iconNotificationIdentifier, resourceFolder, packageName)
             notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
         }
 
