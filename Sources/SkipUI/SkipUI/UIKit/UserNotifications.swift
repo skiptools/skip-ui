@@ -114,8 +114,14 @@ public final class UNUserNotificationCenter {
             let iconNotificationIdentifier = "ic_notification"
             let resourceFolder = "drawable"
             
-            let resId = application.resources.getIdentifier(iconNotificationIdentifier, resourceFolder, packageName)
-//            notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
+            var resId = application.resources.getIdentifier(iconNotificationIdentifier, resourceFolder, packageName)
+            
+            // Check if the resource is found, otherwise fallback to use the default app icon (eg. ic_launcher)
+            if resId == 0 {
+                resId = application.resources.getIdentifier("ic_launcher", "mipmap", packageName)
+            }
+            
+            notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
         }
 
         let manager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as! NotificationManager
