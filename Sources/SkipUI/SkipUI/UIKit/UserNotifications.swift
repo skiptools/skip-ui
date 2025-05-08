@@ -115,7 +115,7 @@ public final class UNUserNotificationCenter {
             let resourceFolder = "drawable"
             
             let resId = application.resources.getIdentifier(iconNotificationIdentifier, resourceFolder, packageName)
-            notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
+//            notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
         }
 
         let manager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as! NotificationManager

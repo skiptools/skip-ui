@@ -1935,6 +1935,8 @@ Skip integrates its support for the UserNotifications framework into SkipUI.
 
 The following table summarizes SkipUI's UserNotifications support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any UserNotifications API you want.
 
+
+
 Support levels:
 
   - ✅ – Full
