@@ -1933,9 +1933,17 @@ Support levels:
 
 Skip integrates its support for the UserNotifications framework into SkipUI.
 
+**Important:** on Android devices to properly display notification icons in the status bar they must have specific properites. The icon must have a transparent background and a solid shape (usually white). It's recommended to use a specific icon for that and it must be specified in the AndroidManifest.xml with the following code inside the application tag:
+
+```xml
+<meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+```
+
+SKIP assume that the icon is called `ic_notification` and it's available inside the drawable resources. Otherwise it will fall back to use the app icon (eg. @mipmap/ic_launcher). Note that in this case it will most likely be displayed as solid white dot instead of the usual app icon.
+
 The following table summarizes SkipUI's UserNotifications support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !SKIP` blocks - you can use any UserNotifications API you want.
-
-
 
 Support levels:
 
