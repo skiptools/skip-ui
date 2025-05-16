@@ -5,7 +5,7 @@
 /// Generic completion handler to take the place of passing a completion closure to a bridged closure, as we
 /// do not yet supporting bridging closure arguments to closures.
 // SKIP @bridge
-public final class CompletionHandler {
+public final class CompletionHandler : @unchecked Sendable {
     private let handler: () -> Void
 
     public init(_ handler: @escaping () -> Void) {
