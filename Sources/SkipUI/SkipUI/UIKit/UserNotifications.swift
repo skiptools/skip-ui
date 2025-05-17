@@ -20,12 +20,14 @@ import androidx.lifecycle.LifecycleOwner
 import kotlin.random.Random
 #endif
 
+// SKIP @bridge
 public final class UNUserNotificationCenter {
     private static let shared = UNUserNotificationCenter()
 
     private init() {
     }
 
+    // SKIP @bridge
     public static func current() -> UNUserNotificationCenter {
         return shared
     }
@@ -50,6 +52,12 @@ public final class UNUserNotificationCenter {
         #endif
     }
 
+    // SKIP @bridge
+    public func requestAuthorization(bridgedOptions: Int) async throws -> Bool {
+        return try await requestAuthorization(options: UNAuthorizationOptions(rawValue: bridgedOptions))
+    }
+
+    // SKIP @bridge
     public var delegate: (any UNUserNotificationCenterDelegate)?
 
     @available(*, unavailable)
@@ -57,8 +65,8 @@ public final class UNUserNotificationCenter {
         fatalError()
     }
 
-    @MainActor
-    public func add(_ request: UNNotificationRequest) async throws {
+    // SKIP @bridge
+    @MainActor public func add(_ request: UNNotificationRequest) async throws {
         guard let delegate else {
             return
         }
@@ -67,7 +75,6 @@ public final class UNUserNotificationCenter {
         guard options.contains(.banner) || options.contains(.alert) else {
             return
         }
-
         #if SKIP
         guard let activity = UIApplication.shared.androidActivity else {
             return
@@ -168,8 +175,8 @@ public final class UNUserNotificationCenter {
     }
 }
 
-@MainActor
-public protocol UNUserNotificationCenterDelegate {
+// SKIP @bridge
+@MainActor public protocol UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive notification: UNNotificationResponse) async
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions
@@ -196,27 +203,34 @@ public struct UNAuthorizationOptions : OptionSet {
         self.rawValue = rawValue
     }
 
-    public static let badge = UNAuthorizationOptions(rawValue: 1 << 0)
-    public static let sound = UNAuthorizationOptions(rawValue: 1 << 1)
-    public static let alert = UNAuthorizationOptions(rawValue: 1 << 2)
-    public static let carPlay = UNAuthorizationOptions(rawValue: 1 << 3)
-    public static let criticalAlert = UNAuthorizationOptions(rawValue: 1 << 4)
-    public static let providesAppNotificationSettings = UNAuthorizationOptions(rawValue: 1 << 5)
-    public static var provisional = UNAuthorizationOptions(rawValue: 1 << 6)
+    public static let badge = UNAuthorizationOptions(rawValue: 1 << 0) // For bridging
+    public static let sound = UNAuthorizationOptions(rawValue: 1 << 1) // For bridging
+    public static let alert = UNAuthorizationOptions(rawValue: 1 << 2) // For bridging
+    public static let carPlay = UNAuthorizationOptions(rawValue: 1 << 3) // For bridging
+    public static let criticalAlert = UNAuthorizationOptions(rawValue: 1 << 4) // For bridging
+    public static let providesAppNotificationSettings = UNAuthorizationOptions(rawValue: 1 << 5) // For bridging
+    public static var provisional = UNAuthorizationOptions(rawValue: 1 << 6) // For bridging
 }
 
+// SKIP @bridge
 public final class UNNotification {
+    // SKIP @bridge
     public let request: UNNotificationRequest
+    // SKIP @bridge
     public let date: Date
 
+    // SKIP @bridge
     public init(request: UNNotificationRequest, date: Date) {
         self.request = request
         self.date = date
     }
 }
 
+// SKIP @bridge
 public final class UNNotificationRequest {
+    // SKIP @bridge
     public let identifier: String
+    // SKIP @bridge
     public let content: UNNotificationContent
     public let trigger: UNNotificationTrigger?
 
@@ -225,13 +239,21 @@ public final class UNNotificationRequest {
         self.content = content
         self.trigger = trigger
     }
+
+    // SKIP @bridge
+    public convenience init(identifier: String, content: UNNotificationContent) {
+        self.init(identifier: identifier, content: content, trigger: UNPushNotificationTrigger(repeats: false))
+    }
 }
 
-public let UNNotificationDefaultActionIdentifier = "UNNotificationDefaultActionIdentifier"
-public let UNNotificationDismissActionIdentifier = "UNNotificationDismissActionIdentifier"
+public let UNNotificationDefaultActionIdentifier = "UNNotificationDefaultActionIdentifier" // For bridging
+public let UNNotificationDismissActionIdentifier = "UNNotificationDismissActionIdentifier" // For bridging
 
+// SKIP @bridge
 public final class UNNotificationResponse {
+    // SKIP @bridge
     public let actionIdentifier: String
+    // SKIP @bridge
     public let notification: UNNotification
 
     @available(*, unavailable)
@@ -239,40 +261,62 @@ public final class UNNotificationResponse {
         fatalError()
     }
 
-    public init(actionIdentifier: String = UNNotificationDefaultActionIdentifier, notification: UNNotification) {
+    // SKIP @bridge
+    public init(actionIdentifier: String = "UNNotificationDefaultActionIdentifier" /* UNNotificationDefaultActionIdentifier */, notification: UNNotification) {
         self.actionIdentifier = actionIdentifier
         self.notification = notification
     }
 }
 
+// SKIP @bridge
 public struct UNNotificationPresentationOptions : OptionSet {
+    // SKIP @bridge
     public let rawValue: Int
 
+    // SKIP @bridge
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
 
-    public static let badge = UNNotificationPresentationOptions(rawValue: 1 << 0)
-    public static let banner = UNNotificationPresentationOptions(rawValue: 1 << 1)
-    public static let list = UNNotificationPresentationOptions(rawValue: 1 << 2)
-    public static let sound = UNNotificationPresentationOptions(rawValue: 1 << 3)
-    public static let alert = UNNotificationPresentationOptions(rawValue: 1 << 4)
+    public static let badge = UNNotificationPresentationOptions(rawValue: 1 << 0) // For bridging
+    public static let banner = UNNotificationPresentationOptions(rawValue: 1 << 1) // For bridging
+    public static let list = UNNotificationPresentationOptions(rawValue: 1 << 2) // For bridging
+    public static let sound = UNNotificationPresentationOptions(rawValue: 1 << 3) // For bridging
+    public static let alert = UNNotificationPresentationOptions(rawValue: 1 << 4) // For bridging
 }
 
+// SKIP @bridge
 public class UNNotificationContent {
+    // SKIP @bridge
     public internal(set) var title: String
+    // SKIP @bridge
     public internal(set) var subtitle: String
+    // SKIP @bridge
     public internal(set) var body: String
     public internal(set) var badge: NSNumber?
+    // SKIP @bridge
+    public var bridgedBadge: Int? {
+        return badge?.intValue
+    }
+    // SKIP @bridge
     public internal(set) var sound: UNNotificationSound?
+    // SKIP @bridge
     public internal(set) var launchImageName: String
+    // SKIP @bridge
     public internal(set) var userInfo: [AnyHashable: Any]
+    // SKIP @bridge
     public internal(set) var attachments: [UNNotificationAttachment]
+    // SKIP @bridge
     public internal(set) var categoryIdentifier: String
+    // SKIP @bridge
     public internal(set) var threadIdentifier: String
+    // SKIP @bridge
     public internal(set) var targetContentIdentifier: String?
+    // SKIP @bridge
     public internal(set) var summaryArgument: String
+    // SKIP @bridge
     public internal(set) var summaryArgumentCount: Int
+    // SKIP @bridge
     public internal(set) var filterCriteria: String?
 
     public init(title: String = "", subtitle: String = "", body: String = "", badge: NSNumber? = nil, sound: UNNotificationSound? = UNNotificationSound.default, launchImageName: String = "", userInfo: [AnyHashable: Any] = [:], attachments: [UNNotificationAttachment] = [], categoryIdentifier: String = "", threadIdentifier: String = "", targetContentIdentifier: String? = nil, summaryArgument: String = "", summaryArgumentCount: Int = 0, filterCriteria: String? = nil) {
@@ -290,6 +334,11 @@ public class UNNotificationContent {
         self.summaryArgument = summaryArgument
         self.summaryArgumentCount = summaryArgumentCount
         self.filterCriteria = filterCriteria
+    }
+
+    // SKIP @bridge
+    public static func bridgedContent(title: String, subtitle: String, body: String, badge: Int?, sound: UNNotificationSound?, launchImageName: String, userInfo: [AnyHashable: Any], attachments: [UNNotificationAttachment], categoryIdentifier: String, threadIdentifier: String, targetContentIdentifier: String?, summaryArgument: String, summaryArgumentCount: Int, filterCriteria: String?) -> UNNotificationContent {
+        return UNNotificationContent(title: title, subtitle: subtitle, body: body, badge: badge == nil ? nil : NSNumber(value: Int32(badge!)), sound: sound, launchImageName: launchImageName, userInfo: userInfo, attachments: attachments, categoryIdentifier: categoryIdentifier, threadIdentifier: threadIdentifier, targetContentIdentifier: targetContentIdentifier, summaryArgument: summaryArgument, summaryArgumentCount: summaryArgumentCount, filterCriteria: filterCriteria)
     }
 }
 
@@ -352,18 +401,27 @@ public final class UNMutableNotificationContent : UNNotificationContent {
     }
 }
 
+// SKIP @bridge
 public final class UNNotificationSound {
     public let name: UNNotificationSoundName
+    // SKIP @bridge
+    public var bridgedName: String {
+        return name.rawValue
+    }
+    // SKIP @bridge
     public let volume: Float
 
+    // SKIP @bridge
     public static var `default`: UNNotificationSound {
         return UNNotificationSound(named: UNNotificationSoundName(rawValue: "default"))
     }
 
+    // SKIP @bridge
     public static var defaultCriticalSound: UNNotificationSound {
         return UNNotificationSound(named: UNNotificationSoundName(rawValue: "default_critical"))
     }
 
+    // SKIP @bridge
     public static func defaultCriticalSound(withAudioVolume volume: Float) -> UNNotificationSound {
         return UNNotificationSound(named: UNNotificationSoundName(rawValue: "default_critical"), volume: volume)
     }
@@ -371,6 +429,11 @@ public final class UNNotificationSound {
     public init(named name: UNNotificationSoundName, volume: Float = Float(0.0)) {
         self.name = name
         self.volume = volume
+    }
+
+    // SKIP @bridge
+    public convenience init(named name: String, volume: Float) {
+        self.init(named: UNNotificationSoundName(rawValue: name), volume: volume)
     }
 
     public static func soundNamed(_ name: UNNotificationSoundName) -> UNNotificationSound {
@@ -391,12 +454,18 @@ public let UNNotificationAttachmentOptionsThumbnailHiddenKey = "UNNotificationAt
 public let UNNotificationAttachmentOptionsThumbnailClippingRectKey = "UNNotificationAttachmentOptionsThumbnailClippingRectKey"
 public let UNNotificationAttachmentOptionsThumbnailTimeKey = "UNNotificationAttachmentOptionsThumbnailTimeKey"
 
+// SKIP @bridge
 public class UNNotificationAttachment {
+    // SKIP @bridge
     public let identifier: String
+    // SKIP @bridge
     public let url: URL
+    // SKIP @bridge
     public let type: String
+    // SKIP @bridge
     public let timeShift: TimeInterval
 
+    // SKIP @bridge
     public init(identifier: String, url: URL, type: String = "public.data", timeShift: TimeInterval = 0) {
         self.identifier = identifier
         self.url = url
