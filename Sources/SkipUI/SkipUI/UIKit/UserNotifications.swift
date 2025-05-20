@@ -66,7 +66,7 @@ public final class UNUserNotificationCenter {
     }
 
     // SKIP @bridge
-    @MainActor public func add(_ request: UNNotificationRequest) async throws {
+    public func add(_ request: UNNotificationRequest) async throws {
         guard let delegate else {
             return
         }
@@ -176,7 +176,7 @@ public final class UNUserNotificationCenter {
 }
 
 // SKIP @bridge
-@MainActor public protocol UNUserNotificationCenterDelegate {
+public protocol UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive notification: UNNotificationResponse) async
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification) async -> UNNotificationPresentationOptions
@@ -227,7 +227,7 @@ public final class UNNotification {
 }
 
 // SKIP @bridge
-public final class UNNotificationRequest {
+public final class UNNotificationRequest : @unchecked Sendable {
     // SKIP @bridge
     public let identifier: String
     // SKIP @bridge
