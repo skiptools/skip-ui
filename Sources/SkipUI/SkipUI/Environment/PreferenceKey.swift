@@ -5,17 +5,22 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -181,7 +186,34 @@ extension View {
     // TODO: Add Equatable constraint to K.Value
     // SKIP DECLARE: public fun <K: PreferenceKey<V>, V: Any> View.onPreferenceChange(key: KClass<K>, perform: (V) -> Unit): View
     public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey/*, K.Value : Equatable*/ {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let preferenceState = remember(key) { mutableStateOf(Preference<V>(key: key /*as! K.Type*/)) }
+
+            let collector = remember(key, preferenceState) {
+                PreferenceCollector(key: key, state: preferenceState)
+            }
+
+            let currentActionCallback = rememberUpdatedState(action)
+            
+            // Port this to Swift somehow??
+            
+            // SKIP INSERT:
+            // LaunchedEffect(collector.state, key) {
+            //     snapshotFlow { collector.state.value.reduced }
+            //         .distinctUntilChanged()
+            //         .collect { collectedNewValue ->
+            //             currentActionCallback.value(collectedNewValue)
+            //         }
+            // }
+
+            PreferenceValues.shared.collectPreferences(collectors: [collector as! PreferenceCollector<Any>]) {
+                view.Compose(context: context.content())
+            }
+        }
+        #else
         return self
+        #endif
     }
 }
 
