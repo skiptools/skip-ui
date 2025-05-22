@@ -302,8 +302,14 @@ public class UNNotificationContent {
     public internal(set) var sound: UNNotificationSound?
     // SKIP @bridge
     public internal(set) var launchImageName: String
-    // SKIP @bridge
     public internal(set) var userInfo: [AnyHashable: Any]
+    // SKIP @bridge
+    public var bridgedUserInfo: [AnyHashable: Any] {
+        return userInfo.filter { entry in
+            let value = entry.value
+            return value is Bool || value is Double || value is Float || value is Int || value is Int64 || value is String || value is Array<Any> || value is Dictionary<AnyHashable, Any> || value is Set<AnyHashable>
+        }
+    }
     // SKIP @bridge
     public internal(set) var attachments: [UNNotificationAttachment]
     // SKIP @bridge
