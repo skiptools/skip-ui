@@ -271,7 +271,7 @@ public final class List : View {
                 startItemIndex: startItemIndex,
                 item: { view, level in
                     item {
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let itemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling)
                         })
@@ -284,7 +284,7 @@ public final class List : View {
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -296,7 +296,7 @@ public final class List : View {
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -308,7 +308,7 @@ public final class List : View {
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
                         let index = factoryContext.value.remapIndex(index, from: offset)
-                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                        let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let editableItemContext = context.content(composer: RenderingComposer { view, context in
                             ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                         })
@@ -318,7 +318,7 @@ public final class List : View {
                 sectionHeader: { view in
                     let context = view === collectingComposer.views.firstOrNull() ? topSectionHeaderContext : sectionHeaderContext
                     if styling.style == .plain {
-                        stickyHeader {
+                        stickyHeader { _ in
                             view.Compose(context: context)
                         }
                     } else {

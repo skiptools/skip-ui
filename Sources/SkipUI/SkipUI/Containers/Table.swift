@@ -114,12 +114,12 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
             }
             if !isCompact {
                 item {
-                    let animationModifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                    let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                     ComposeHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
                 }
             }
             items(count: data.count, key: key) { index in
-                let animationModifier = shouldAnimateItems() ? Modifier.animateItemPlacement() : Modifier
+                let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                 ComposeRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
             }
             if footerSafeAreaHeight.value > 0.0 {
