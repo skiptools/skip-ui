@@ -21,4 +21,23 @@ public final class CompletionHandler : @unchecked Sendable {
     public var onCancel: (() -> Void)?
 }
 
+/// Generic completion handler to take the place of passing a completion closure to a bridged closure, as we
+/// do not yet supporting bridging closure arguments to closures.
+// SKIP @bridge
+public final class ValueCompletionHandler : @unchecked Sendable {
+    private let handler: (Any?) -> Void
+
+    public init(_ handler: @escaping (Any?) -> Void) {
+        self.handler = handler
+    }
+
+    // SKIP @bridge
+    public func run(_ value: Any?) {
+        handler(value)
+    }
+
+    // SKIP @bridge
+    public var onCancel: (() -> Void)?
+}
+
 #endif
