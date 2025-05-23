@@ -5,17 +5,22 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.reflect.full.companionObjectInstance
 #endif
 
@@ -168,16 +173,50 @@ struct PreferenceNode<Value>: Equatable {
 
 extension View {
     public func preference(key: Any.Type, value: Any) -> any View {
-        #if SKIP
+#if SKIP
         return ComposeModifierView(targetView: self) {
             PreferenceValues.shared.contribute(context: $0, key: key, value: value)
             return ComposeResult.ok
+        }
+#else
+        return self
+#endif
+    }
+    
+    // TODO: Add Equatable constraint to K.Value
+    // SKIP DECLARE: public fun <K: PreferenceKey<V>, V: Any> View.onPreferenceChange(key: KClass<K>, perform: (V) -> Unit): View
+    public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey/*, K.Value : Equatable*/ {
+        #if SKIP
+        return ComposeModifierView(contentView: self) { view, context in
+            let preferenceState = remember(key) { mutableStateOf(Preference<V>(key: key /*as! K.Type*/)) }
+
+            let collector = remember(key, preferenceState) {
+                PreferenceCollector(key: key, state: preferenceState)
+            }
+
+            let currentActionCallback = rememberUpdatedState(action)
+            
+            // Port this to Swift somehow??
+            
+            // SKIP INSERT:
+            // LaunchedEffect(collector.state, key) {
+            //     snapshotFlow { collector.state.value.reduced }
+            //         .distinctUntilChanged()
+            //         .collect { collectedNewValue ->
+            //             currentActionCallback.value(collectedNewValue)
+            //         }
+            // }
+
+            PreferenceValues.shared.collectPreferences(collectors: [collector as! PreferenceCollector<Any>]) {
+                view.Compose(context: context.content())
+            }
         }
         #else
         return self
         #endif
     }
 }
+
 
 #if false
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -316,23 +355,6 @@ extension View {
     ///
     /// - Returns: a new version of the view that writes the preference.
     public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Adds an action to perform when the specified preference key's value
-    /// changes.
-    ///
-    /// - Parameters:
-    ///   - key: The key to monitor for value changes.
-    ///   - action: The action to perform when the value for `key` changes. The
-    ///     `action` closure passes the new value as its parameter.
-    ///
-    /// - Returns: A view that triggers `action` when the value for `key`
-    ///   changes.
-    public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return stubView() }
 
 }
 
