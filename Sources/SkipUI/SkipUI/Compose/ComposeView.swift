@@ -46,7 +46,14 @@ public protocol ContentComposer {
     @Composable func Compose(context: ComposeContext)
 }
 
+/// Encapsulation of a Compose modifier.
+public protocol ContentModifier {
+    func modify(view: any View) -> any View
+}
+#endif
+
 extension View {
+    #if SKIP
     /// Add the given modifier to the underlying Compose view.
     public func composeModifier(_ modifier: (Modifier) -> Modifier) -> View {
         return ComposeModifierView(targetView: self) {
@@ -54,6 +61,16 @@ extension View {
             return ComposeResult.ok
         }
     }
+    #endif
+
+    /// Apply the given `ContentModifier`.
+    // SKIP @bridge
+    public func applyContentModifier(bridgedContent: Any) -> any View {
+        #if SKIP
+        return (bridgedContent as? ContentModifier)?.modify(view: self) ?? self
+        #else
+        return self
+        #endif
+    }
 }
-#endif
 #endif
