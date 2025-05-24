@@ -102,6 +102,24 @@ SkipUI enhances all SwiftUI views with a `Compose(context:)` method, allowing yo
 
 Skip Fuse:
 
+```swift
+#if os(Android)
+ComposeView { ColumnComposer() }
+#endif
+
+...
+
+#if SKIP
+struct ColumnComposer : ContentComposer {
+    @Composable func Compose(context: ComposeContext) {
+        androidx.compose.foundation.layout.Column(modifier: context.modifier) {
+            Text("Hello from SwiftUI").Compose(context: context.content())
+            androidx.compose.material3.Text("Hello from Compose")
+        }
+    }
+}
+#endif
+```
 
 Skip Lite:
 
@@ -117,8 +135,6 @@ ComposeView { context in
 ```
 
 With `ComposeView` and the `Compose(context:)` function, you can move fluidly between SwiftUI and Compose code. These techniques work not only with standard SwiftUI and Compose components, but with your own custom SwiftUI views and Compose functions as well.
-
-`ComposeView` and the `Compose()` function are only available in Android, so you must guard all uses with the `#if SKIP` compiler directives. 
 
 ### Additional Considerations
 
@@ -136,7 +152,51 @@ This pattern allows SkipUI to take advantage of Compose's UI state mechanisms in
 
 ## composeModifier
 
-In addition to `ComposeView` above, SkipUI offers the `composeModifier` SwiftUI modifier. This modifier allows you to apply any Compose modifiers to the underlying Compose view. It takes a block that accepts a single `androidx.compose.ui.Modifier` parameter and returns a `Modifier` as well. For example:
+In addition to `ComposeView` above, SkipUI offers the `composeModifier` SwiftUI modifier. This modifier allows you to apply any Compose modifiers to the underlying Compose view.
+
+### Skip Fuse
+
+Using `composeModifier` from Skip Fuse is much like using `ComposeView`:
+
+1. Define a `ContentModifier` in a transpiled `#if SKIP` block.
+1. Use `.composeModifier` to apply the `ContentModifier ` to the target SwiftUI view.
+
+Within your `ContentModifier`, apply any SkipUI modifiers to the given target view. This includes the [Material](#material) modifiers we describe below, or the same-named transpiled `composeModifier`, which takes a block that accepts a single `androidx.compose.ui.Modifier` parameter and returns a `Modifier` as well. The following example applies Compose's `imePadding` modifier our SwiftUI on Android:
+
+```swift
+import SkipFuseUI
+
+...
+
+VStack {
+    TextField("Enter username:", text: $username)
+        #if os(Android)
+        .composeModifier { IMEPaddingModifier() }
+        #endif
+}
+
+#if SKIP
+import androidx.compose.foundation.layout.imePadding
+
+struct IMEPaddingModifier : ContentModifier {
+    func modify(view: any View) -> any View {
+        view.composeModifier { $0.imePadding() } 
+    }
+}
+#endif
+```
+
+The `ContentModfiier` protocol consists of a single function:
+
+```swift
+public protocol ContentModifier {
+    func modify(view: any View) -> any View
+}
+```
+
+### Skip Lite
+
+If you are writing your SwiftUI using Skip Lite, you don't need to define a `ContentModfifier`. You can apply [Material](#material) modifiers or `.composeModifier` directly:
 
 ```swift
 #if SKIP
@@ -146,16 +206,10 @@ import androidx.compose.foundation.layout.imePadding
 ...
 
 TextField("Enter username:", text: $username)
-    .textFieldStyle(.plain)
     #if SKIP
     .composeModifier { $0.imePadding() }
     #endif
 ```
-
-Like `ComposeView`, the `composeModifier` function is only available in Android, so you must guard all uses with the `#if SKIP` compiler directives. 
-
-`composeModifier` is currently only available for Skip Lite transpiled Swift.
-{: class="callout info"}
 
 ## Material
 
@@ -184,7 +238,30 @@ internal fun PresentationRootView(context: ComposeContext) {
 }
 ```
 
-Skip also provides the SwiftUI `.material3ColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `Material3ColorScheme` Kotlin function. It is only available for Android, so you must use it within a `#if SKIP` block. For example:
+Skip also provides the SwiftUI `.material3ColorScheme(_:)` modifier to customize a SwiftUI view hierarchy. The modifier takes the same closure as the `Material3ColorScheme` Kotlin function. Apply this modifier using the `.composeModifier` techniques discussed in the previous section. For example:
+
+Skip Fuse:
+
+```swift
+MyView()
+    #if os(Android)
+    .composeModifier { ColorSchemeModifier() }
+    #endif
+
+...
+
+#if SKIP
+struct ColorSchemeModifier : ContentModifier {
+    func modify(view: any View) -> any View {
+        view.material3ColorScheme { colors, isDark in
+            colors.copy(surface: isDark ? Color.purple.asComposeColor() : Color.yellow.asComposeColor())
+        } 
+    }  
+}
+#endif
+```
+
+Skip Lite: 
 
 ```swift
 MyView()
@@ -203,9 +280,6 @@ Skip's built-in components use the following Material 3 colors, if you'd like to
 - `outline`
 - `outlineVariant`
 
-The `material3ColorScheme` modifier is currently only available for Skip Lite transpiled Swift.
-{: class="callout info"}
-
 ### Material Components
 
 In addition to the `.material3ColorScheme` modifier detailed above, Skip includes many other `.material3` modifiers for its underlying Material 3 components. This family of modifiers share a common API pattern:
@@ -215,10 +289,36 @@ In addition to the `.material3ColorScheme` modifier detailed above, Skip include
 - The modifiers place your closure into the SwiftUI `Environment`. This means that you can apply the modifier on a root view, and it will affect all subviews. While you may be used to placing navigation and tab bar modifiers on the views *within* the `NavigationStack` or `TabView`, the `.material3` family of modifiers always go *on or outside* the views you want to affect.
 - Because they are designed to reach beneath Skip's SwiftUI covers, the modifiers use Compose terminology and types. In fact the properties of the supplied `Material3<Component>Options` structs typically exactly match the corresponding `androidx.compose.material3` component function parameters.
 
-You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary). All `material3` modifiers are currently only available for Skip Lite transpiled Swift.
+You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary).
 {: class="callout info"}
 
 Here is an example of changing the selected indicator color on your Android tab bar, which is implemented by the Material 3 `NavigationBar` component:
+
+Skip Fuse:
+
+```swift
+TabView {
+    ...
+}
+#if os(Android)
+.composeModifier { NavigationBarModifier() }
+#endif
+
+...
+
+#if SKIP
+struct NavigationBarModifier : ContentModifier {
+    func modify(view: any View) -> any View {
+        view.material3NavigationBar { options in 
+            let updatedColors = options.itemColors.copy(selectedIndicatorColor: Color.green.asComposeColor())
+            return options.copy(itemColors: updatedColors) 
+        }
+    } 
+} 
+#endif
+```
+
+Skip Lite:
 
 ```swift
 TabView {
@@ -371,11 +471,11 @@ public struct Material3TopAppBarOptions {
 }
 ```
 
-Note that `.material3TopAppBar` involves API that Compose deems experimental, so you must add the following to any `View` where you use it:
+Note that `.material3TopAppBar` involves API that Compose deems experimental, so you must add the following to any Skip Fuse `ContentModfifier` or Skip Lite `View` where you use it:
 
 ```swift
 // SKIP INSERT: @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-struct MyView: View {
+struct MyContentModifier : ContentModifier {
     ...
 }
 ```
