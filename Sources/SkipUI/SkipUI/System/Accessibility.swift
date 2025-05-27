@@ -6,6 +6,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.popup
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -107,19 +108,31 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func accessibilityHint(_ hint: Text) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            let label = hint.localizedTextString()
+            $0.modifier = $0.modifier.semantics { onClick(label: label, action: nil ) }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func accessibilityHint(_ hintKey: LocalizedStringKey) -> some View {
-        return self
+        return accessibilityHint(Text(hintKey))
     }
 
-    @available(*, unavailable)
     public func accessibilityHint(_ hint: String) -> some View {
+        #if SKIP
+        return ComposeModifierView(targetView: self, role: .accessibility) {
+            $0.modifier = $0.modifier.semantics { onClick(label: hint, action: nil ) }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
