@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -246,9 +247,23 @@ extension View {
         return submitLabel(SubmitLabel(rawValue: bridgedLabel) ?? .done)
     }
 
-    @available(*, unavailable)
     public func textContentType(_ textContentType: UITextContentType?) -> some View {
+        #if SKIP
+        guard let ctype = textContentType?._contentType else { return self }
+        return ComposeModifierView(targetView: self) {
+            $0.modifier = $0.modifier.semantics {
+                contentType = ctype
+            }
+            return ComposeResult.ok
+        }
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func textContentType(bridgedContentType: Int) -> any View {
+        return textContentType(UITextContentType(rawValue: bridgedContentType))
     }
 
     public func textFieldStyle(_ style: TextFieldStyle) -> any View {

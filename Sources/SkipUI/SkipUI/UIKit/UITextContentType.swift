@@ -54,6 +54,58 @@ public struct UITextContentType: RawRepresentable, Equatable {
     public static let creditCardExpirationMonth = UITextContentType(rawValue: 40)
     public static let creditCardExpirationYear = UITextContentType(rawValue: 41)
     public static let creditCardType = UITextContentType(rawValue: 42)
+
+    #if SKIP
+    var _contentType: androidx.compose.ui.autofill.ContentType? {
+        // https://developer.android.com/reference/kotlin/androidx/compose/ui/autofill/ContentType#summary
+        switch self {
+        case .name: return androidx.compose.ui.autofill.ContentType.PersonFullName
+        case .namePrefix: return androidx.compose.ui.autofill.ContentType.PersonNamePrefix
+        case .givenName: return androidx.compose.ui.autofill.ContentType.PersonFirstName
+        case .middleName: return androidx.compose.ui.autofill.ContentType.PersonMiddleName
+        case .familyName: return androidx.compose.ui.autofill.ContentType.PersonLastName
+        case .nameSuffix: return androidx.compose.ui.autofill.ContentType.PersonNameSuffix
+        case .nickname: return nil
+        case .jobTitle: return nil
+        case .organizationName: return nil
+        case .location: return nil
+        case .fullStreetAddress: return androidx.compose.ui.autofill.ContentType.PostalAddress
+        case .streetAddressLine1: return androidx.compose.ui.autofill.ContentType.AddressStreet
+        case .streetAddressLine2: return nil
+        case .addressCity: return androidx.compose.ui.autofill.ContentType.AddressLocality
+        case .addressState: return androidx.compose.ui.autofill.ContentType.AddressRegion
+        case .addressCityAndState: return nil
+        case .sublocality: return nil
+        case .countryName: return androidx.compose.ui.autofill.ContentType.AddressCountry
+        case .postalCode: return androidx.compose.ui.autofill.ContentType.PostalCode
+        case .telephoneNumber: return androidx.compose.ui.autofill.ContentType.PhoneNumber
+        case .emailAddress: return androidx.compose.ui.autofill.ContentType.EmailAddress
+        case .URL: return nil
+        case .creditCardNumber: return androidx.compose.ui.autofill.ContentType.CreditCardNumber
+        case .username: return androidx.compose.ui.autofill.ContentType.Username
+        case .password: return androidx.compose.ui.autofill.ContentType.Password
+        case .newPassword: return androidx.compose.ui.autofill.ContentType.NewPassword
+        case .oneTimeCode: return androidx.compose.ui.autofill.ContentType.SmsOtpCode
+        case .shipmentTrackingNumber: return nil
+        case .flightNumber: return nil
+        case .dateTime: return nil
+        case .birthdate: return androidx.compose.ui.autofill.ContentType.BirthDateFull
+        case .birthdateDay: return androidx.compose.ui.autofill.ContentType.BirthDateDay
+        case .birthdateMonth: return androidx.compose.ui.autofill.ContentType.BirthDateMonth
+        case .birthdateYear: return androidx.compose.ui.autofill.ContentType.BirthDateYear
+        case .creditCardSecurityCode: return androidx.compose.ui.autofill.ContentType.CreditCardSecurityCode
+        case .creditCardName: return nil
+        case .creditCardGivenName: return androidx.compose.ui.autofill.ContentType.PersonFirstName
+        case .creditCardMiddleName: return androidx.compose.ui.autofill.ContentType.PersonMiddleName
+        case .creditCardFamilyName: return androidx.compose.ui.autofill.ContentType.PersonLastName
+        case .creditCardExpiration: return androidx.compose.ui.autofill.ContentType.CreditCardExpirationDate
+        case .creditCardExpirationMonth: return androidx.compose.ui.autofill.ContentType.CreditCardExpirationMonth
+        case .creditCardExpirationYear: return androidx.compose.ui.autofill.ContentType.CreditCardExpirationYear
+        case .creditCardType: return nil
+        default: return nil
+        }
+    }
+    #endif
 }
 
 #endif
