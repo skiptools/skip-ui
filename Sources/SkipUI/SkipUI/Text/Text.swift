@@ -364,6 +364,8 @@ struct _Text: View, Equatable {
         let textDecoration = textEnvironment.textDecoration
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
+        let reservesSpace = EnvironmentValues.shared._lineLimitReservesSpace ?? false
+        let minLines = reservesSpace ? maxLines : 1
         let redaction = EnvironmentValues.shared.redactionReasons
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
@@ -390,7 +392,7 @@ struct _Text: View, Equatable {
                     }
                 }
             }
-            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
         } else {
             var text: String
             if let interpolations {
@@ -403,7 +405,7 @@ struct _Text: View, Equatable {
             } else if styleInfo.isLowercased {
                 text = text.lowercased()
             }
-            options = Material3TextOptions(text: text, modifier: context.modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+            options = Material3TextOptions(text: text, modifier: context.modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
@@ -649,9 +651,13 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func lineLimit(_ limit: Int, reservesSpace: Bool) -> some View {
+    // SKIP @bridge
+    public func lineLimit(_ limit: Int, reservesSpace: Bool) -> any View {
+        #if SKIP
+        return environment(\.lineLimit, limit).environment(\._lineLimitReservesSpace, reservesSpace)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

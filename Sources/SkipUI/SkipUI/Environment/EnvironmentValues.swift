@@ -557,6 +557,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_layoutScrollAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
     }
 
+    public var _lineLimitReservesSpace: Bool? {
+        get { builtinValue(key: "_lineLimitReservesSpace", defaultValue: { nil }) as! Bool? }
+        set { setBuiltinValue(key: "_lineLimitReservesSpace", value: newValue, defaultValue: { nil }) }
+    }
+    
     var _listItemTint: Color? {
         get { builtinValue(key: "_listItemTint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_listItemTint", value: newValue, defaultValue: { nil }) }
