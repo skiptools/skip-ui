@@ -62,7 +62,6 @@ public struct LazyHGrid: View, Renderable {
         let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
-        let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
@@ -92,7 +91,7 @@ public struct LazyHGrid: View, Renderable {
                         item: { renderable, _ in
                             item {
                                 Box(contentAlignment: boxAlignment) {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             }
                         },
@@ -101,37 +100,40 @@ public struct LazyHGrid: View, Renderable {
                             let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0 + range.start)) }
                             items(count: count, key: key) { index in
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(index + range.start, itemContext).Render(context: itemContext)
+                                    let scopedContext = context.content(scope: self)
+                                    factory(index + range.start, scopedContext).Render(context: scopedContext)
                                 }
                             }
                         },
                         objectItems: { objects, identifier, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                             items(count: objects.count, key: key) { index in
+                                let scopedContext = context.content(scope: self)
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(objects[index], itemContext).Render(context: itemContext)
+                                    factory(objects[index], scopedContext).Render(context: scopedContext)
                                 }
                             }
                         },
                         objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                             items(count: objectsBinding.wrappedValue.count, key: key) { index in
+                                let scopedContext = context.content(scope: self)
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(objectsBinding, index, itemContext).Render(context: itemContext)
+                                    factory(objectsBinding, index, scopedContext).Render(context: scopedContext)
                                 }
                             }
                         },
                         sectionHeader: { renderable in
                             item(span: { GridItemSpan(maxLineSpan) }) {
                                 Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             }
                         },
                         sectionFooter: { renderable in
                             item(span: { GridItemSpan(maxLineSpan) }) {
                                 Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             }
                         }

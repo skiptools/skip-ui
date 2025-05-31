@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 ///
 /// This type is often used as an argument to internal `@Composable` functions and is not mutated by reference, so mark `@Stable`
 /// to avoid excessive recomposition.
-@Stable public struct ComposeContext: Equatable{
+@Stable public struct ComposeContext: Equatable {
     /// Modifiers to apply.
     public var modifier: Modifier = Modifier
 
@@ -19,15 +19,19 @@ import androidx.compose.ui.Modifier
 
     /// Use in conjunction with `rememberSaveable` to store view state.
     public var stateSaver: Saver<Any?, Any> = ComposeStateSaver()
+    
+    /// The scope of the current composition (so users can call scoped modifiers).
+    public var scope: AnyObject?
 
     /// The context to pass to child content of a container view.
     ///
     /// By default, modifiers and the `composer` are reset for child content.
-    public func content(modifier: Modifier = Modifier, composer: Composer? = nil, stateSaver: Saver<Any?, Any>? = nil) -> ComposeContext {
+    public func content(modifier: Modifier = Modifier, composer: Composer? = nil, stateSaver: Saver<Any?, Any>? = nil, scope: AnyObject? = nil) -> ComposeContext {
         var context = self
         context.modifier = modifier
         context.composer = composer
         context.stateSaver = stateSaver ?? self.stateSaver
+        context.scope = scope
         return context
     }
 }
