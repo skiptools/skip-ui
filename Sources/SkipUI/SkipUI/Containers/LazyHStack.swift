@@ -60,7 +60,6 @@ public struct LazyHStack : View {
         let viewsCollector = context.content(composer: collectingComposer)
         content.Compose(context: viewsCollector)
 
-        let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             // Integrate with ScrollViewReader
@@ -88,36 +87,36 @@ public struct LazyHStack : View {
                         startItemIndex: 0,
                         item: { view, _ in
                             item {
-                                view.Compose(context: itemContext)
+                                view.Compose(context: context.content(scope: self))
                             }
                         },
                         indexedItems: { range, identifier, _, _, _, _, factory in
                             let count = range.endExclusive - range.start
                             let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                             items(count: count, key: key) { index in
-                                factory(index + range.start).Compose(context: itemContext)
+                                factory(index + range.start).Compose(context: context.content(scope: self))
                             }
                         },
                         objectItems: { objects, identifier, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                             items(count: objects.count, key: key) { index in
-                                factory(objects[index]).Compose(context: itemContext)
+                                factory(objects[index]).Compose(context: context.content(scope: self))
                             }
                         },
                         objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                             let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                             items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                                factory(objectsBinding, index).Compose(context: itemContext)
+                                factory(objectsBinding, index).Compose(context: context.content(scope: self))
                             }
                         },
                         sectionHeader: { view in
                             item {
-                                view.Compose(context: itemContext)
+                                view.Compose(context: context.content(scope: self))
                             }
                         },
                         sectionFooter: { view in
                             item {
-                                view.Compose(context: itemContext)
+                                view.Compose(context: context.content(scope: self))
                             }
                         }
                     )
