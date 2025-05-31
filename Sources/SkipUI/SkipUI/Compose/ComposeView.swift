@@ -61,6 +61,18 @@ extension View {
             return ComposeResult.ok
         }
     }
+    
+    /// Add the given scoped modifier to the underlying Compose view.
+    // SKIP DECLARE: fun <S: Any> composeModifier(scope: KClass<S>, modifier: S.(Modifier) -> Modifier): View
+    public func composeModifier<S>(scope: S.Type, _ modifier: (Modifier) -> Modifier) throws -> View {
+        return ComposeModifierView(targetView: self) { context in
+            let scope = try context.scope as S
+            scope.run {
+                context.modifier = modifier(context.modifier)
+            }
+            return ComposeResult.ok
+        }
+    }
     #endif
 
     /// Apply the given `ContentModifier`.

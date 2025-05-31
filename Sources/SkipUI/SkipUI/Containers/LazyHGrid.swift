@@ -68,7 +68,6 @@ public struct LazyHGrid: View {
         let viewsCollector = context.content(composer: collectingComposer)
         content.Compose(context: viewsCollector)
 
-        let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
@@ -97,7 +96,7 @@ public struct LazyHGrid: View {
                         item: { view, _ in
                             item {
                                 Box(contentAlignment: boxAlignment) {
-                                    view.Compose(context: itemContext)
+                                    view.Compose(context: context.content(scope: self))
                                 }
                             }
                         },
@@ -106,7 +105,7 @@ public struct LazyHGrid: View {
                             let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                             items(count: count, key: key) { index in
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(index + range.start).Compose(context: itemContext)
+                                    factory(index + range.start).Compose(context: context.content(scope: self))
                                 }
                             }
                         },
@@ -114,7 +113,7 @@ public struct LazyHGrid: View {
                             let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                             items(count: objects.count, key: key) { index in
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(objects[index]).Compose(context: itemContext)
+                                    factory(objects[index]).Compose(context: context.content(scope: self))
                                 }
                             }
                         },
@@ -122,21 +121,21 @@ public struct LazyHGrid: View {
                             let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                             items(count: objectsBinding.wrappedValue.count, key: key) { index in
                                 Box(contentAlignment: boxAlignment) {
-                                    factory(objectsBinding, index).Compose(context: itemContext)
+                                    factory(objectsBinding, index).Compose(context: context.content(scope: self))
                                 }
                             }
                         },
                         sectionHeader: { view in
                             item(span: { GridItemSpan(maxLineSpan) }) {
                                 Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    view.Compose(context: itemContext)
+                                    view.Compose(context: context.content(scope: self))
                                 }
                             }
                         },
                         sectionFooter: { view in
                             item(span: { GridItemSpan(maxLineSpan) }) {
                                 Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    view.Compose(context: itemContext)
+                                    view.Compose(context: context.content(scope: self))
                                 }
                             }
                         }
