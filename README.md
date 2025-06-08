@@ -16,7 +16,7 @@ SkipUI is used directly by [Skip Lite](https://skip.tools/docs/status/#skip_fuse
 SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core *SkipStack* and is not intended to be imported directly.
-The module is transparently adopted by importing SkipFuseUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
+The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
 
 ### Android Libraries
 
@@ -43,7 +43,7 @@ In the following SkipFuseUI example, we use a SwiftUI `Text` to write "Hello fro
 1. Use a `ComposeView` to render the `ContentComposer` in the SwiftUI view tree.
 
 ```swift
-import SkipFuseUI
+import SwiftUI
 
 ...
 
@@ -164,7 +164,7 @@ Using `composeModifier` from Skip Fuse is much like using `ComposeView`:
 Within your `ContentModifier`, apply any SkipUI modifiers to the given target view. This includes the [Material](#material) modifiers we describe below, or the same-named transpiled `composeModifier`, which takes a block that accepts a single `androidx.compose.ui.Modifier` parameter and returns a `Modifier` as well. The following example applies Compose's `imePadding` modifier our SwiftUI on Android:
 
 ```swift
-import SkipFuseUI
+import SwiftUI
 
 ...
 
