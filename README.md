@@ -1501,12 +1501,13 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>🟢</td>
       <td>
           <details>
               <summary><code>.lineLimit</code></summary>
               <ul>
                   <li>func lineLimit(_ number: Int?) -> some View</li>
+                  <li>func lineLimit(_ number: Int, reservesSpace: Bool) -> some View</li>
               </ul>
           </details>      
        </td>
@@ -1910,6 +1911,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.textCase</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td><code>.textContentType</code></td>
     </tr>
     <tr>
       <td>✅</td>
