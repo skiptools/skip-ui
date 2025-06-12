@@ -211,6 +211,29 @@ TextField("Enter username:", text: $username)
     #endif
 ```
 
+You can also apply [scoped modifiers](https://developer.android.com/develop/ui/compose/modifiers#scope-safety). e.g. in a `LazyHStack` you can use modifiers scoped to [`LazyItemScope`](https://developer.android.com/reference/kotlin/androidx/compose/foundation/lazy/LazyItemScope), like `animateItem()`.
+
+```swift
+#if SKIP
+import androidx.compose.foundation.lazy.LazyItemScope
+#endif
+
+...
+
+LazyHStack {
+    ForEach(0..<count, id: \.self) { i in
+        Color.red
+            .frame(width: 20, height: 20)
+            .id(i + 1)
+            #if SKIP
+            .composeModifier(scope: LazyItemScope.self) {
+                $0.animateItem()
+            }
+            #endif
+    }
+}
+```
+
 ## Material
 
 Under the hood, SkipUI uses Android's Material 3 colors and components. While we expect you to use SwiftUI's built-in color schemes (`.preferredColorScheme`) and modifiers (`.background`, `.foregroundStyle`, `.tint`, and so on) for most UI styling, there are some Android customizations that have no SwiftUI equivalent. Skip therefore adds additional, Android-only API for manipulating Material colors and components.
