@@ -22,12 +22,32 @@ extension View {
     public func symbolVariant(_ variant: SymbolVariants) -> some View {
         return self
     }
+
+    @available(*, unavailable)
+    public func symbolVariableValueMode(_ mode: SymbolVariableValueMode?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func symbolColorRenderingMode(_ mode: SymbolColorRenderingMode?) -> some View {
+        return self
+    }
 }
 
 extension Image {
     @available(*, unavailable)
     public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> Image {
         return self
+    }
+
+    @available(*, unavailable)
+    public func symbolVariableValueMode(_ mode: SymbolVariableValueMode?) -> Image {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public func symbolColorRenderingMode(_ mode: SymbolColorRenderingMode?) -> Image {
+        fatalError()
     }
 }
 
@@ -66,6 +86,16 @@ public struct SymbolVariants : Hashable {
     public func contains(_ other: SymbolVariants) -> Bool {
         fatalError()
     }
+}
+
+public struct SymbolVariableValueMode : Equatable {
+    public static let color = SymbolVariableValueMode()
+    public static let draw = SymbolVariableValueMode()
+}
+
+public struct SymbolColorRenderingMode : Equatable, Sendable {
+    public static let flat = SymbolColorRenderingMode()
+    public static let gradient = SymbolColorRenderingMode()
 }
 
 #if false

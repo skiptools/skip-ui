@@ -22,6 +22,12 @@ public struct Group : View {
         self.isBridged = false
     }
 
+    @available(*, unavailable)
+    public init(subviews view: any View, @ViewBuilder transform: @escaping (Any /* SubviewsCollection */) -> any View) {
+        self.content = ComposeBuilder(view: EmptyView())
+        self.isBridged = false
+    }
+
     // SKIP @bridge
     public init(bridgedContent: any View) {
         self.content = ComposeBuilder.from { bridgedContent }

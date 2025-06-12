@@ -6,7 +6,7 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 #endif
 
-public struct UnitPoint : Hashable {
+public struct UnitPoint : Codable, Hashable {
     public var x = 0.0
     public var y = 0.0
 

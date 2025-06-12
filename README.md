@@ -714,10 +714,12 @@ Support levels:
                   <li><code>static func custom(_ name: String, size: CGFloat) -> Font</code></li>
                   <li><code>static func custom(_ name: String, size: CGFloat, relativeTo textStyle: Font.TextStyle) -> Font</code></li>
                   <li><code>static func custom(_ name: String, fixedSize: CGFloat) -> Font</code></li>
-                  <li><code>func italic() -> Font</code></li>
+                  <li><code>func italic(_ isActive: Bool = true) -> Font</code></li>
                   <li><code>func weight(_ weight: Font.Weight) -> Font</code></li>
-                  <li><code>func bold() -> Font</code></li>
-                  <li><code>func monospaced() -> Font</code></li>
+                  <li><code>func bold(_ isActive: Bool = true) -> Font</code></li>
+                  <li><code>func monospaced(_ isActive: Bool = true) -> Font</code></li>
+                  <li><code>func pointSize(_ size: CGFloat) -> Font</code></li>
+                  <li><code>func scaledBy(_ factor: CGFloat) -> Font</code></li>
               </ul>
           </details>      
        </td>

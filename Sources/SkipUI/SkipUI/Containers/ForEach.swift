@@ -344,5 +344,15 @@ public func ForEach<C, E>(_ data: Binding<C>, id: (E) -> AnyHashable?, editActio
     }, editActions: editActions)
 }
 
+@available(*, unavailable)
+public func ForEach(sections view: any View, @ViewBuilder content: @escaping (Any /* SectionConfiguration */) -> any View) -> ForEach {
+    fatalError()
+}
+
+@available(*, unavailable)
+public func ForEach(subviews view: any View, unusedp: Nothing? = nil, @ViewBuilder content: @escaping (Any /* Subview */) -> any View) -> ForEach {
+    fatalError()
+}
+
 #endif
 #endif

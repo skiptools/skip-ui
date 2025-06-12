@@ -73,6 +73,10 @@ extension View {
     public func onOpenURLString(perform action: @escaping (String) -> Void) -> any View {
         return onOpenURL(perform: { action($0.absoluteString) })
     }
+
+    public func onOpenURL(prefersInApp: Bool) -> some View {
+        return self
+    }
 }
 
 #if SKIP

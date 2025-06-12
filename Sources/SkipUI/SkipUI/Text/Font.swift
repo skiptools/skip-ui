@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 #if SKIP
-import android.content.Context
 import android.graphics.Typeface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -97,7 +96,7 @@ public struct Font : Hashable {
     }
     #endif
 
-    public enum TextStyle : Int, CaseIterable, Hashable {
+    public enum TextStyle : Int, CaseIterable, Codable, Hashable {
         case largeTitle = 0 // For bridging
         case title = 1 // For bridging
         case title2 = 2 // For bridging
@@ -180,7 +179,7 @@ public struct Font : Hashable {
     // https://github.com/skiptools/skip/issues/399
     private static var fontFamilyCache: [String: FontFamily] = [:]
 
-    private static func findNamedFont(_ fontName: String, ctx: Context) -> FontFamily? {
+    private static func findNamedFont(_ fontName: String, ctx: android.content.Context) -> FontFamily? {
         var fontFamily: FontFamily? = nil
         synchronized(fontFamilyCache) {
             fontFamily = fontFamilyCache[fontName]
@@ -256,6 +255,11 @@ public struct Font : Hashable {
     }
 
     @available(*, unavailable)
+    public static var `default`: Font {
+        fatalError()
+    }
+
+    @available(*, unavailable)
     public init(_ font: Any /* CTFont */) {
         #if SKIP
         fontImpl = { MaterialTheme.typography.bodyMedium }
@@ -263,10 +267,10 @@ public struct Font : Hashable {
     }
 
     // SKIP @bridge
-    public func italic() -> Font {
+    public func italic(_ isActive: Bool = true) -> Font {
         #if SKIP
         return Font(fontImpl: {
-            fontImpl().copy(fontStyle: androidx.compose.ui.text.font.FontStyle.Italic)
+            fontImpl().copy(fontStyle: isActive ?  androidx.compose.ui.text.font.FontStyle.Italic : androidx.compose.ui.text.font.FontStyle.Normal)
         })
         #else
         fatalError()
@@ -274,22 +278,22 @@ public struct Font : Hashable {
     }
 
     @available(*, unavailable)
-    public func smallCaps() -> Font {
+    public func smallCaps(_ isActive: Bool = true) -> Font {
         fatalError()
     }
 
     @available(*, unavailable)
-    public func lowercaseSmallCaps() -> Font {
+    public func lowercaseSmallCaps(_ isActive: Bool = true) -> Font {
         fatalError()
     }
 
     @available(*, unavailable)
-    public func uppercaseSmallCaps() -> Font {
+    public func uppercaseSmallCaps(_ isActive: Bool = true) -> Font {
         fatalError()
     }
 
     @available(*, unavailable)
-    public func monospacedDigit() -> Font {
+    public func monospacedDigit(_ isActive: Bool = true) -> Font {
         fatalError()
     }
 
@@ -342,12 +346,12 @@ public struct Font : Hashable {
         fatalError()
     }
 
-    public func bold() -> Font {
-        return weight(Weight.bold)
+    public func bold(_ isActive: Bool = true) -> Font {
+        return weight(isActive ? Weight.bold : Weight.regular)
     }
 
-    public func monospaced() -> Font {
-        return design(Design.monospaced)
+    public func monospaced(_ isActive: Bool = true) -> Font {
+        return design(isActive ? Design.monospaced : Design.default)
     }
 
     public func design(_ design: Design?) -> Font {
@@ -368,6 +372,55 @@ public struct Font : Hashable {
     @available(*, unavailable)
     public func leading(_ leading: Font.Leading) -> Font {
         fatalError()
+    }
+
+    // SKIP @bridge
+    public func pointSize(_ size: CGFloat) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            fontImpl().copy(fontSize: size.sp)
+        })
+        #else
+        fatalError()
+        #endif
+    }
+
+    // SKIP @bridge
+    public func scaledBy(_ factor: CGFloat) -> Font {
+        #if SKIP
+        return Font(fontImpl: {
+            let textStyle = fontImpl()
+            let pointSize = textStyle.fontSize.value * factor
+            return textStyle.copy(fontSize: pointSize.sp)
+        })
+        #else
+        fatalError()
+        #endif
+    }
+
+    @available(*, unavailable)
+    public func resolve(in context: Font.Context) -> Font.Resolved {
+        fatalError()
+    }
+
+    public struct Context : Hashable, CustomDebugStringConvertible {
+        public var debugDescription: String {
+            return "Font.Context"
+        }
+    }
+
+    public struct Resolved : Hashable {
+        public let ctFont: Int /* CTFont */
+        public let isBold: Bool
+        public let isItalic: Bool
+        public let pointSize: CGFloat
+        public let weight: Font.Weight
+        public let width: Font.Width
+        public let leading: Font.Leading
+        public let isMonospaced: Bool
+        public let isLowercaseSmallCaps: Bool
+        public let isUppercaseSmallCaps: Bool
+        public let isSmallCaps: Bool
     }
 
     public struct Weight : Hashable {
