@@ -212,6 +212,20 @@ public enum ButtonRole : Int, Equatable {
     case cancel = 2 // For bridging
 }
 
+public struct ButtonSizing : RawRepresentable, Hashable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = ButtonSizing(rawValue: 0) // For bridging
+    @available(*, unavailable)
+    public static let flexible = ButtonSizing(rawValue: 1) // For bridging
+    @available(*, unavailable)
+    public static let fitted = ButtonSizing(rawValue: 2) // For bridging
+}
+
 extension View {
     public func buttonStyle(_ style: ButtonStyle) -> any View {
         #if SKIP
@@ -233,6 +247,11 @@ extension View {
 
     @available(*, unavailable)
     public func buttonBorderShape(_ shape: Any) -> some View {
+        return self
+    }
+
+    public func buttonSizing(_ sizing: ButtonSizing) -> any View {
+        // We only support .automatic
         return self
     }
 

@@ -41,6 +41,9 @@ public struct OpenURLAction {
         public static func systemAction(_ url: URL) -> Result {
             return Result(rawValue: 2, url: url) // For bridging
         }
+        public static func systemAction(_ url: URL, prefersInApp: Bool) -> Result {
+            return Result(rawValue: 2, url: url) // For bridging
+        }
     }
 
     // SKIP @bridge

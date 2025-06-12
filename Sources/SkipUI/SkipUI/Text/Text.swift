@@ -315,6 +315,21 @@ public struct Text: View, Equatable {
             self.format = format
         }
     }
+
+    public struct WritingDirectionStrategy : Hashable {
+        @available(*, unavailable)
+        public static let layoutBased = WritingDirectionStrategy()
+        public static let contentBased = WritingDirectionStrategy()
+        public static let `default` = WritingDirectionStrategy()
+    }
+
+    public struct AlignmentStrategy : Hashable {
+        @available(*, unavailable)
+        public static let layoutBased = AlignmentStrategy()
+        @available(*, unavailable)
+        public static let writingDirectionBased = AlignmentStrategy()
+        public static let `default` = Text.AlignmentStrategy()
+    }
 }
 
 struct _Text: View, Equatable {
@@ -661,6 +676,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func lineHeight(_ lineHeight: Any? /* AttributedString.LineHeight? */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func lineSpacing(_ lineSpacing: CGFloat) -> some View {
         return self
     }
@@ -685,6 +705,10 @@ extension View {
         #else
         return self
         #endif
+    }
+
+    public func multilineTextAlignment(strategy: Text.AlignmentStrategy) -> some View {
+        return self
     }
 
     // SKIP @bridge
@@ -791,6 +815,10 @@ extension View {
 
     @available(*, unavailable)
     public func unredacted() -> some View {
+        return self
+    }
+
+    public func writingDirection(strategy: Text.WritingDirectionStrategy) -> some View {
         return self
     }
 

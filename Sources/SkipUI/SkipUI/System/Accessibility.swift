@@ -480,6 +480,12 @@ public struct AccessibilityCustomContentKey : Equatable {
 
     public init(_ labelKey: LocalizedStringKey) {
     }
+
+//    public init(_ label: LocalizedStringResource, id: String) {
+//    }
+//
+//    public init(_ label: LocalizedStringResource) {
+//    }
 }
 
 public struct AccessibilityDirectTouchOptions : OptionSet {

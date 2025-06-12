@@ -135,6 +135,15 @@ public struct Color: ShapeStyle, Hashable {
         return max(Float(0.0), min(Float(1.0), Float(value)))
     }
 
+    public func headroom(_ headroom: Double?) -> Color {
+        return self
+    }
+    
+    @available(*, unavailable)
+    public func exposureAdjust(_ stops: Double) -> Color {
+        fatalError()
+    }
+
     // MARK: -
 
     public struct Resolved : Hashable {
