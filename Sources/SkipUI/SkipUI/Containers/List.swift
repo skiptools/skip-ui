@@ -790,6 +790,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func listSectionIndexVisibility(_ visibility: Visibility) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func listSectionSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         return self
     }
