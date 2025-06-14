@@ -57,4 +57,9 @@ public struct Spacer : View {
     #endif
 }
 
+public enum SpacerSizing: Int {
+    case flexible = 1 // For bridging
+    case fixed = 2 // For bridging
+}
+
 #endif

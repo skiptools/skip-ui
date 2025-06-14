@@ -99,4 +99,17 @@ public struct Section : View, LazyItemFactory {
     }
     #endif
 }
+
+extension View {
+    @available(*, unavailable)
+    public func sectionIndexLabel(_ label: Text?) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sectionIndexLabel(_ label: String?) -> some View {
+        return self
+    }
+}
+
 #endif

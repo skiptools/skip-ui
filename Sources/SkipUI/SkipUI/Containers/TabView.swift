@@ -553,6 +553,23 @@ final class TabIndexComposer: RenderingComposer {
 }
 #endif
 
+// MARK: TabBar
+
+public struct TabBarMinimizeBehavior : RawRepresentable, Hashable {
+    public let rawValue: Int
+    
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    public static let automatic = TabBarMinimizeBehavior(rawValue: 1)
+    @available(*, unavailable)
+    public static let onScrollDown = TabBarMinimizeBehavior(rawValue: 2)
+    @available(*, unavailable)
+    public static let onScrollUp = TabBarMinimizeBehavior(rawValue: 3)
+    public static let never = TabBarMinimizeBehavior(rawValue: 4)
+}
+
 // MARK: TabViewStyle
 
 public protocol TabViewStyle: Equatable {}
@@ -623,6 +640,11 @@ extension View {
         return tabItem({ bridgedLabel })
     }
 
+    @available(*, unavailable)
+    public func tabViewBottomAccessory(@ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
     public func tabViewStyle(_ style: any TabViewStyle) -> some View {
         #if SKIP
         return environment(\._tabViewStyle, style)
@@ -644,6 +666,10 @@ extension View {
             style = DefaultTabViewStyle()
         }
         return tabViewStyle(style)
+    }
+
+    public func tabBarMinimizeBehavior(_ behavior: TabBarMinimizeBehavior) -> some View {
+        return self
     }
 
     #if SKIP

@@ -263,6 +263,12 @@ public enum ScrollDismissesKeyboardMode {
     case never
 }
 
+public enum ScrollEdgeEffectStyle : Hashable {
+    case automatic
+    case hard
+    case soft
+}
+
 public enum ScrollIndicatorVisibility : Equatable {
     case automatic
     case visible
@@ -343,6 +349,16 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func scrollEdgeEffectDisabled(_ disabled: Bool = true, for edges: Edge.Set = .all) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View {
         return self
     }
@@ -419,6 +435,14 @@ public struct ViewAlignedScrollTargetBehavior: ScrollTargetBehavior {
         // Note: we currently ignore the limit behavior
     }
 
+    @available(*, unavailable)
+    public init(anchor: UnitPoint?) {
+    }
+
+    @available(*, unavailable)
+    public init(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior, anchor: UnitPoint?) {
+    }
+
     public enum LimitBehavior : Int {
         case automatic = 0 // For bridging
         case always = 1 // For bridging
@@ -435,6 +459,16 @@ extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
 
     public static func viewAligned(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior) -> ViewAlignedScrollTargetBehavior {
         return ViewAlignedScrollTargetBehavior(limitBehavior: limitBehavior)
+    }
+
+    @available(*, unavailable)
+    public static func viewAligned(anchor: UnitPoint?) -> ViewAlignedScrollTargetBehavior {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public static func viewAligned(limitBehavior: ViewAlignedScrollTargetBehavior.LimitBehavior, anchor: UnitPoint?) -> ViewAlignedScrollTargetBehavior {
+        fatalError()
     }
 }
 

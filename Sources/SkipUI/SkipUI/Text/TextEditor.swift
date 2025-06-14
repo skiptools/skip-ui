@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,6 +24,20 @@ public struct TextEditor : View {
     public init(getText: @escaping () -> String, setText: @escaping (String) -> Void) {
         self.text = Binding(get: getText, set: setText)
     }
+
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>) {
+        self.text = text
+    }
+
+    @available(*, unavailable)
+    public init(text: Binding<String>, selection: Any? /* Binding<TextSelection?> */) {
+        self.text = Binding(get: { "" }, set: { _ in })
+    }
+
+//    @available(*, unavailable)
+//    public init(text: Binding<AttributedString>, selection: Any? /* Binding<AttributedTextSelection>? */ = nil) {
+//        self.text = Binding(get: { "" }, set: { _ in })
+//    }
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)

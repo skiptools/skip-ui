@@ -4,6 +4,8 @@
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Rect
+#elseif canImport(CoreGraphics)
+import struct CoreGraphics.CGFloat
 #endif
 
 public struct SafeAreaRegions : OptionSet {
@@ -63,4 +65,42 @@ struct SafeArea: Equatable {
     }
 }
 #endif
+
+extension View {
+    @available(*, unavailable)
+    public func safeAreaInset(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaInset(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ insets: EdgeInsets) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaPadding(_ length: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaBar(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func safeAreaBar(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> some View) -> some View {
+        return self
+    }
+}
+
 #endif

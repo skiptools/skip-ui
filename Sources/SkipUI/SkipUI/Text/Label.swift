@@ -176,6 +176,16 @@ extension View {
     public func labeledContentStyle(_ style: LabeledContentStyle) -> some View {
         return self
     }
+
+    @available(*, unavailable)
+    public func labelReservedIconWidth(_ value: CGFloat) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func labelIconToTitleSpacing(_ value: CGFloat) -> some View {
+        return self
+    }
 }
 
 #if false

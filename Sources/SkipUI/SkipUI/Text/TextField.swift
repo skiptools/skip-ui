@@ -296,6 +296,11 @@ extension View {
         return textInputAutocapitalization(autocap)
     }
 
+    @available(*, unavailable)
+    public func textInputFormattingControlVisibility(_ visibility: Visibility, for placement: TextInputFormattingControlPlacement.Set) -> some View {
+        return self
+    }
+
     #if SKIP
     /// Return a modifier view that updates the environment's keyboard options.
     public func keyboardOptionsModifierView(update: (KeyboardOptions?) -> KeyboardOptions) -> View {

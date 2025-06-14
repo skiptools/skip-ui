@@ -1045,6 +1045,21 @@ extension View {
         return self
     }
 
+    @available(*, unavailable)
+    public func navigationSubtitle(_ subtitle: Text) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSubtitle(_ subtitle: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSubtitle(_ subtitle: String) -> some View {
+        return self
+    }
+
     #if SKIP
     public func material3TopAppBar(_ options: @Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions) -> View {
         return environment(\._material3TopAppBar, options)

@@ -72,6 +72,11 @@ extension View {
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: String) -> any View {
         return searchable(text: text, placement: placement, prompt: Text(verbatim: prompt))
     }
+
+    @available(*, unavailable)
+    public func searchToolbarBehavior(_ behavior: SearchToolbarBehavior) -> some View {
+        return self
+    }
 }
 
 public struct SearchFieldPlacement : RawRepresentable {
@@ -101,6 +106,11 @@ public struct SearchFieldPlacement : RawRepresentable {
         case automatic
         case always
     }
+}
+
+public enum SearchToolbarBehavior: Hashable {
+    case automatic
+    case minimize
 }
 
 #if SKIP
@@ -397,7 +407,6 @@ public struct SearchUnavailableContent {
 //        public typealias Body = some View
     }
 }
-
 
 extension View {
 
