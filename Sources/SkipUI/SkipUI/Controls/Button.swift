@@ -65,11 +65,34 @@ public struct Button : View, ListItemAdapting {
         self.init(role: role, action: action, label: { Text(titleKey) })
     }
 
+    public init(role: ButtonRole, action: @escaping () -> Void) {
+        self.init(role: role, action: action, label: { Self.defaultLabel(for: role) })
+    }
+
     // SKIP @bridge
-    public init(bridgedRole: Int?, action: @escaping () -> Void, bridgedLabel: any View) {
+    public init(bridgedRole: Int?, action: @escaping () -> Void, bridgedLabel: (any View)?) {
         self.role = bridgedRole == nil ? nil : ButtonRole(rawValue: bridgedRole!)
         self.action = action
-        self.label = ComposeBuilder.from { bridgedLabel }
+        if let bridgedLabel {
+            self.label = ComposeBuilder.from { bridgedLabel }
+        } else if let role {
+            self.label = ComposeBuilder.from { Self.defaultLabel(for: role) }
+        } else {
+            self.label = ComposeBuilder.from { EmptyView() }
+        }
+    }
+
+    private static func defaultLabel(for role: ButtonRole) -> any View {
+        switch role {
+        case .cancel:
+            return Text("Cancel")
+        case .destructive:
+            return Text("Delete")
+        case .confirm:
+            return SkipUI.Label("OK", systemImage: "checkmark")
+        case .close:
+            return SkipUI.Label("Close", systemImage: "xmark")
+        }
     }
 
     #if SKIP
@@ -199,6 +222,8 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let borderless = ButtonStyle(rawValue: 2) // For bridging
     public static let bordered = ButtonStyle(rawValue: 3) // For bridging
     public static let borderedProminent = ButtonStyle(rawValue: 4) // For bridging
+    @available(*, unavailable)
+    public static let glass = ButtonStyle(rawValue: 5) // For bridging
 }
 
 public enum ButtonRepeatBehavior : Hashable {
@@ -210,6 +235,8 @@ public enum ButtonRepeatBehavior : Hashable {
 public enum ButtonRole : Int, Equatable {
     case destructive = 1 // For bridging
     case cancel = 2 // For bridging
+    case confirm = 3 // For bridging
+    case close = 4 // For bridging
 }
 
 public struct ButtonSizing : RawRepresentable, Hashable {

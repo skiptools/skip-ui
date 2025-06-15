@@ -3,7 +3,10 @@
 #if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
@@ -23,6 +26,16 @@ extension CustomizableToolbarContent {
 
     @available(*, unavailable)
     public func customizationBehavior(_ behavior: ToolbarCustomizationBehavior) -> some CustomizableToolbarContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sharedBackgroundVisibility(_ visibility: Visibility) -> some CustomizableToolbarContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func matchedTransitionSource(id: some Hashable, in namespace: Namespace.ID) -> some CustomizableToolbarContent {
         return self
     }
 }
@@ -48,7 +61,7 @@ public struct ToolbarItem : View, CustomizableToolbarContent {
 
     // SKIP @bridge
     public init(id: String, bridgedPlacement: Int, bridgedContent: any View) {
-        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement) ?? .automatic
+        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement)
         self.content = ComposeBuilder.from { bridgedContent }
     }
 
@@ -63,6 +76,21 @@ public struct ToolbarItem : View, CustomizableToolbarContent {
         } in: {
             content.Compose(context: context)
         }
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct DefaultToolbarItem : View, ToolbarContent {
+    @available(*, unavailable)
+    public init(kind: ToolbarDefaultItemKind, placement: ToolbarItemPlacement = .automatic) {
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
     }
     #else
     public var body: some View {
@@ -88,7 +116,7 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
 
     // SKIP @bridge
     public init(bridgedPlacement: Int, bridgedContent: any View) {
-        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement) ?? .automatic
+        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement)
         self.content = ComposeBuilder.from { bridgedContent }
     }
 
@@ -119,28 +147,75 @@ public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
     #endif
 }
 
+// SKIP @bridge
+public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View {
+    let sizing: SpacerSizing
+    let placement: ToolbarItemPlacement
+
+    public init(_ sizing: SpacerSizing = .flexible, placement: ToolbarItemPlacement = .automatic) {
+        self.sizing = sizing
+        self.placement = placement
+    }
+
+    // SKIP @bridge
+    public init(bridgedSizing: Int, bridgedPlacement: Int) {
+        self.sizing = SpacerSizing(rawValue: bridgedSizing) ?? .flexible
+        self.placement = ToolbarItemPlacement(rawValue: bridgedPlacement)
+    }
+
+    #if SKIP
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        let modifier: Modifier
+        if sizing == .fixed {
+            modifier = Modifier.width(8.dp)
+        } else {
+            modifier = EnvironmentValues.shared._fillWidth?() ?? Modifier
+        }
+        androidx.compose.foundation.layout.Spacer(modifier: modifier)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
 public enum ToolbarCustomizationBehavior {
     case `default`
     case reorderable
     case disabled
 }
 
-public enum ToolbarItemPlacement: Int {
-    case automatic = 0 // For bridging
-    case principal = 1 // For bridging
-    case navigation = 2 // For bridging
-    case primaryAction = 3 // For bridging
-    case secondaryAction = 4 // For bridging
-    case status = 5 // For bridging
-    case confirmationAction = 6 // For bridging
-    case cancellationAction = 7 // For bridging
-    case destructiveAction = 8 // For bridging
-    case keyboard = 9 // For bridging
-    case topBarLeading = 10 // For bridging
-    case topBarTrailing = 11 // For bridging
-    case bottomBar = 12 // For bridging
-    case navigationBarLeading = 13 // For bridging
-    case navigationBarTrailing = 14 // For bridging
+public struct ToolbarItemPlacement: RawRepresentable, Equatable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = ToolbarItemPlacement(rawValue: 0) // For bridging
+    public static let principal = ToolbarItemPlacement(rawValue: 1) // For bridging
+    public static let navigation = ToolbarItemPlacement(rawValue: 2) // For bridging
+    public static let primaryAction = ToolbarItemPlacement(rawValue: 3) // For bridging
+    public static let secondaryAction = ToolbarItemPlacement(rawValue: 4) // For bridging
+    public static let status = ToolbarItemPlacement(rawValue: 5) // For bridging
+    public static let confirmationAction = ToolbarItemPlacement(rawValue: 6) // For bridging
+    public static let cancellationAction = ToolbarItemPlacement(rawValue: 7) // For bridging
+    public static let destructiveAction = ToolbarItemPlacement(rawValue: 8) // For bridging
+    public static let keyboard = ToolbarItemPlacement(rawValue: 9) // For bridging
+    public static let topBarLeading = ToolbarItemPlacement(rawValue: 10) // For bridging
+    public static let topBarTrailing = ToolbarItemPlacement(rawValue: 11) // For bridging
+    public static let bottomBar = ToolbarItemPlacement(rawValue: 12) // For bridging
+    public static let navigationBarLeading = ToolbarItemPlacement(rawValue: 13) // For bridging
+    public static let navigationBarTrailing = ToolbarItemPlacement(rawValue: 14) // For bridging
+    @available(*, unavailable)
+    public static let title = ToolbarItemPlacement(rawValue: 15) // For bridging
+    @available(*, unavailable)
+    public static let largeTitle = ToolbarItemPlacement(rawValue: 16) // For bridging
+    @available(*, unavailable)
+    public static let subtitle = ToolbarItemPlacement(rawValue: 17) // For bridging
+    @available(*, unavailable)
+    public static let largeSubtitle = ToolbarItemPlacement(rawValue: 18) // For bridging
 }
 
 public enum ToolbarPlacement: Int, Equatable {
@@ -172,6 +247,18 @@ public struct ToolbarCustomizationOptions : OptionSet {
     }
 
     public static var alwaysAvailable = ToolbarCustomizationOptions(rawValue: 1 << 0)
+}
+
+public struct ToolbarDefaultItemKind : RawRepresentable {
+    public let rawValue: Int // For bridging
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let sidebarToggle = ToolbarDefaultItemKind(rawValue: 1) // For bridging
+    public static let title = ToolbarDefaultItemKind(rawValue: 2) // For bridging
+    public static let search = ToolbarDefaultItemKind(rawValue: 3) // For bridging
 }
 
 extension View {
@@ -518,7 +605,7 @@ struct ToolbarItems {
             leading.append(principal)
         }
         // SwiftUI inserts a spacer before the last bottom item
-        if bottom.count > 1 && !bottom.contains(where: { $0.strippingModifiers { $0 is Spacer } }) {
+        if bottom.count > 1 && !bottom.contains(where: { $0.strippingModifiers { $0 is Spacer || $0 is ToolbarSpacer } }) {
             bottom.insert(Spacer(), at: bottom.count - 1)
         }
         return (leading, trailing, bottom)
@@ -561,6 +648,9 @@ final class ToolbarContentGatheringComposer : SideEffectComposer {
         } else if let item = view as? ToolbarItem {
             let placement = item.placement == .automatic ? defaultPlacement : item.placement
             items.add((item, placement))
+        } else if let spacer = view as? ToolbarSpacer {
+            let placement = spacer.placement == .automatic ? defaultPlacement : spacer.placement
+            items.add((spacer, placement))
         } else if let toolbarContent = view as? ToolbarContent {
             // Gather the custom content items to check their placement. We have to then add the custom content as
             // a single item in a single place, because attempting to compose its individual items or compose it

@@ -28,6 +28,12 @@ public struct Group : View {
         self.isBridged = false
     }
 
+    @available(*, unavailable)
+    public init(sections view: any View, @ViewBuilder transform: @escaping (Any /* SectionCollection */) -> any View) {
+        self.content = ComposeBuilder(view: EmptyView())
+        self.isBridged = false
+    }
+
     // SKIP @bridge
     public init(bridgedContent: any View) {
         self.content = ComposeBuilder.from { bridgedContent }

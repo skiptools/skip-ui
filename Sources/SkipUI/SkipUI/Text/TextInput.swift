@@ -27,6 +27,21 @@ public enum TextInputAutocapitalization: Int {
     #endif
 }
 
+public struct TextInputFormattingControlPlacement {
+    public struct Set : OptionSet {
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        public static let contextMenu = TextInputFormattingControlPlacement.Set(rawValue: 1 << 0)
+        public static let inputAssistant = TextInputFormattingControlPlacement.Set(rawValue: 1 << 1)
+        public static let all = TextInputFormattingControlPlacement.Set(rawValue: 1 << 2)
+        public static let `default` = TextInputFormattingControlPlacement.Set(rawValue: 1 << 3)
+    }
+}
+
 #if false
 @available(iOS 17.0, *)
 @available(macOS, unavailable)

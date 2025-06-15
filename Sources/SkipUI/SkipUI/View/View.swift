@@ -1057,31 +1057,6 @@ extension View {
     }
 
     @available(*, unavailable)
-    public func safeAreaInset(edge: VerticalEdge, alignment: HorizontalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func safeAreaInset(edge: HorizontalEdge, alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func safeAreaPadding(_ insets: EdgeInsets) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func safeAreaPadding(_ edges: Edge.Set = .all, _ length: CGFloat? = nil) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
-    public func safeAreaPadding(_ length: CGFloat) -> some View {
-        return self
-    }
-
-    @available(*, unavailable)
     public func saturation(_ amount: Double) -> some View {
         return self
     }
