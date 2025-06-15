@@ -1160,6 +1160,10 @@ Support levels:
       <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>ToolbarSpacer</code></td>
+    </tr>
+    <tr>
       <td>🟠</td>
       <td>
           <details>
