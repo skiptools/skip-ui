@@ -237,6 +237,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: openURL)
         case "refresh":
             return EnvironmentSupport(builtinValue: refresh)
+        case "scenePhase":
+            return EnvironmentSupport(builtinValue: scenePhase.rawValue)
         default:
             return nil
         }
@@ -262,6 +264,8 @@ extension EnvironmentValues {
         case "refresh":
             setrefresh(value?.builtinValue as? RefreshAction)
             return true
+        case "scenePhase":
+            return false
         default:
             return false
         }
