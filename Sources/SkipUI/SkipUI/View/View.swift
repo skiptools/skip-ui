@@ -1113,6 +1113,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func sectionActions(@ViewBuilder content: () -> any View) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func selectionDisabled(_ isDisabled: Bool = true) -> some View {
         return self
     }

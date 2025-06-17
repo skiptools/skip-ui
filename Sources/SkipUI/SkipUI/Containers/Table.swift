@@ -328,14 +328,12 @@ public struct TableColumn : View {
         fatalError()
     }
 
-    @available(*, unavailable)
     public func customizationID(_ id: String) -> TableColumn {
-        fatalError()
+        return self
     }
 
-    @available(*, unavailable)
     public func disabledCustomizationBehavior(_ behavior: Any) -> TableColumn {
-        fatalError()
+        return self
     }
 
     enum WidthSpec {

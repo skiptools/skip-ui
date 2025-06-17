@@ -1043,6 +1043,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>Tab</code> (<a href="https://skip.tools/docs/components/tabview/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>🟠</td>
       <td>
           <details>
@@ -1069,6 +1080,17 @@ Support levels:
                   <li><code>init(_ title: Text, value: Value? = nil, comparator: Comparator? = nil, @ViewBuilder content: @escaping (ObjectType) -> some View)</code></li>
                   <li><code>func width(_ value: CGFloat? = nil)</code></li>
                   <li><code>func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil)</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
+      <td>🟠</td>
+      <td>
+          <details>
+              <summary><code>TabSection</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
               </ul>
           </details>      
        </td>
@@ -1890,7 +1912,14 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.tabItem</code></td>
+      <td>
+          <details>
+              <summary><code>.tabItem</code></summary>
+              <ul>
+                  <li>See <a href="#navigation">Navigation</a></li>
+              </ul>
+          </details> 
+      </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2659,7 +2688,7 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 
 SwiftUI has three primary forms of navigation: `TabView`, `NavigationStack`, and modal presentations. SkipUI has implemented all three, albeit with the restrictions explained below.
 
-SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Otherwise, `TabView` acts as you would expect.
+SkipUI's `TabView` does yet not support SwiftUI's overflow tab behavior. Adding too many tabs will just result in too many tabs rather than SwiftUI's automatic "More" tab. Similarly, `TabSections` and other features meant for top or sidebar tab placements are ignored. Otherwise, `TabView` acts as you would expect.
 
 In SwiftUI, you push views onto a `NavigationStack` with `NavigationLink`. `NavigationLink` has two ways to specify its destination view: embedding the view directly, or specifying a value that is mapped to a view through the `.navigationDestination` modifier, as in the following code sample:
 

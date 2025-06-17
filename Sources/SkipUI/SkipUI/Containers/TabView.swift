@@ -104,7 +104,7 @@ public struct TabView : View {
         // WARNING: This function is a potential recomposition hotspot
         let contentContext = context.content()
         let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
-        let tags = tabViews.map { TagModifierView.strip(from: $0, role: ComposeModifierRole.tag)?.value }
+        let tags = tabViews.map { tabTagValue(for: $0) }
         let coroutineScope = rememberCoroutineScope()
         let isSyncingToSelection = remember { mutableStateOf(false) }
         let pagerState = rememberPagerState(pageCount: { tabViews.count })
@@ -205,15 +205,25 @@ public struct TabView : View {
         // WARNING: This function is a potential recomposition hotspot. It should not need to be called on every tab
         // change. Test after any modification
 
-        let tabItemContext = context.content()
+        let tabContext = context.content()
         var tabViews: [View] = []
         EnvironmentValues.shared.setValues {
             $0.set_placement(ViewPlacement.tagged)
         } in: {
-            tabViews = content.collectViews(context: tabItemContext).filter { !$0.isSwiftUIEmptyView }
+            tabViews = content.collectViews(context: tabContext).filter { !$0.isSwiftUIEmptyView }
         }
-        let tabItems = tabViews.map { view in
-            view.strippingModifiers(until: { $0 is TabItemModifierView }, perform: { $0 as? TabItemModifierView })
+        let tabs: [Tab?] = tabViews.map { view in
+            view.strippingModifiers(until: {
+                $0 is Tab || $0 is TabItemModifierView
+            }, perform: {
+                if let tab = $0 as? Tab {
+                    return tab
+                } else if let modifier = $0 as? TabItemModifierView {
+                    return Tab(content: { modifier.view }, label: { modifier.label })
+                } else {
+                    return nil
+                }
+            })
         }
 
         let navController = rememberNavController()
@@ -241,7 +251,7 @@ public struct TabView : View {
         // when the bottom bar recomposes
         let reducedTabBarPreferences = tabBarPreferences.value.reduced
         let bottomBar: @Composable () -> Void = {
-            guard tabItems.contains(where: { $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
+            guard tabs.contains(where: { $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
@@ -310,7 +320,7 @@ public struct TabView : View {
                 // Pull the tab bar below the keyboard
                 let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                 PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
-                    let tabItemsState = rememberUpdatedState(tabItems)
+                    let tabsState = rememberUpdatedState(tabs)
                     let containerColor = showScrolledBackground ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
                     let onItemClick: (Int) -> Void = { tabIndex in
                         let route = String(describing: tabIndex)
@@ -321,12 +331,12 @@ public struct TabView : View {
                         }
                     }
                     let itemIcon: @Composable (Int) -> Void = { tabIndex in
-                        let tabItem = tabItemsState.value[tabIndex]
-                        tabItem?.ComposeImage(context: tabItemContext)
+                        let tab = tabsState.value[tabIndex]
+                        tab?.ComposeImage(context: tabContext)
                     }
                     let itemLabel: @Composable (Int) -> Void = { tabIndex in
-                        let tabItem = tabItemsState.value[tabIndex]
-                        tabItem?.ComposeTitle(context: tabItemContext)
+                        let tab = tabsState.value[tabIndex]
+                        tab?.ComposeTitle(context: tabContext)
                     }
                     var options = Material3NavigationBarOptions(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), onItemClick: onItemClick, itemIcon: itemIcon, itemLabel: itemLabel, itemColors: tabBarItemColors)
                     if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
@@ -425,17 +435,25 @@ public struct TabView : View {
         guard let tabIndex = Int(string: route), tabIndex >= 0, tabIndex < tabViews.count else {
             return nil
         }
-        return TagModifierView.strip(from: tabViews[tabIndex], role: ComposeModifierRole.tag)?.value
+        return tabTagValue(for: tabViews[tabIndex])
     }
 
     private func route(tagValue: Any, in tabViews: [View]) -> String? {
         for tabIndex in 0..<tabViews.count {
-            let tabTagValue = TagModifierView.strip(from: tabViews[tabIndex], role: ComposeModifierRole.tag)?.value
+            let tabTagValue = tabTagValue(for: tabViews[tabIndex])
             if tagValue == tabTagValue {
                 return String(describing: tabIndex)
             }
         }
         return nil
+    }
+
+    private func tabTagValue(for view: View) -> Any? {
+        if let tab = view.strippingModifiers(perform: { $0 as? Tab }), let value = tab.value {
+            return value
+        } else {
+            return TagModifierView.strip(from: view, role: ComposeModifierRole.tag)?.value
+        }
     }
 
     private func navigate(controller navController: NavHostController, route: String) {
@@ -503,28 +521,6 @@ struct TabItemModifierView: ComposeModifierView {
     @Composable public override func ComposeContent(context: ComposeContext) {
         view.Compose(context: context)
     }
-
-    @Composable func ComposeTitle(context: ComposeContext) {
-        label.Compose(context: context.content(composer: RenderingComposer { view, context in
-            let stripped = view.strippingModifiers { $0 }
-            if let label = stripped as? Label {
-                label.ComposeTitle(context: context(false))
-            } else if stripped is Text {
-                view.ComposeContent(context: context(false))
-            }
-        }))
-    }
-
-    @Composable func ComposeImage(context: ComposeContext) {
-        label.Compose(context: context.content(composer: RenderingComposer { view, context in
-            let stripped = view.strippingModifiers { $0 }
-            if let label = stripped as? Label {
-                label.ComposeImage(context: context(false))
-            } else if stripped is Image {
-                view.ComposeContent(context: context(false))
-            }
-        }))
-    }
 }
 
 final class TabIndexComposer: RenderingComposer {
@@ -552,23 +548,6 @@ final class TabIndexComposer: RenderingComposer {
     }
 }
 #endif
-
-// MARK: TabBar
-
-public struct TabBarMinimizeBehavior : RawRepresentable, Hashable {
-    public let rawValue: Int
-    
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-    
-    public static let automatic = TabBarMinimizeBehavior(rawValue: 1)
-    @available(*, unavailable)
-    public static let onScrollDown = TabBarMinimizeBehavior(rawValue: 2)
-    @available(*, unavailable)
-    public static let onScrollUp = TabBarMinimizeBehavior(rawValue: 3)
-    public static let never = TabBarMinimizeBehavior(rawValue: 4)
-}
 
 // MARK: TabViewStyle
 
@@ -624,6 +603,203 @@ extension TabViewStyle where Self == PageTabViewStyle {
     }
 }
 
+// MARK: Tab
+
+public struct TabBarMinimizeBehavior : RawRepresentable, Hashable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static let automatic = TabBarMinimizeBehavior(rawValue: 1)
+    @available(*, unavailable)
+    public static let onScrollDown = TabBarMinimizeBehavior(rawValue: 2)
+    @available(*, unavailable)
+    public static let onScrollUp = TabBarMinimizeBehavior(rawValue: 3)
+    public static let never = TabBarMinimizeBehavior(rawValue: 4)
+}
+
+public struct TabBarPlacement : RawRepresentable, Hashable {
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    @available(*, unavailable)
+    public static let topBar = TabBarPlacement(rawValue: 1) // For bridging
+    @available(*, unavailable)
+    public static let sidebar = TabBarPlacement(rawValue: 2) // For bridging
+    public static let bottomBar = TabBarPlacement(rawValue: 3) // For bridging
+    @available(*, unavailable)
+    public static let ornament = TabBarPlacement(rawValue: 4) // For bridging
+    public static let pageIndicator = TabBarPlacement(rawValue: 5) // For bridging
+}
+
+public enum AdaptableTabBarPlacement : Hashable {
+    case automatic
+    case tabBar
+    case sidebar
+}
+
+public struct Tab : View {
+    let label: ComposeBuilder
+    let content: ComposeBuilder
+    let value: Any?
+
+    public init(_ title: String, image: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(title, image: image))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(_ titleKey: LocalizedStringKey, image: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(titleKey, image: image))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(_ title: String, systemImage: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(title, systemImage: systemImage))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(titleKey, systemImage: systemImage))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+        if role == TabRole.search {
+            self.label = ComposeBuilder(view: Label("Search", image: "magnifyingglass"))
+        } else {
+            self.label = ComposeBuilder(view: EmptyView())
+        }
+    }
+
+    public init(value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
+        self.label = ComposeBuilder.from { label() }
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(_ title: String, image: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(title, image: image, value: nil, role: role, content: content)
+    }
+
+    public init(_ titleKey: LocalizedStringKey, image: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(titleKey, image: image, value: nil, role: role, content: content)
+    }
+
+    public init(_ title: String, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(title, systemImage: systemImage, value: nil, role: role, content: content)
+    }
+
+    public init(_ titleKey: LocalizedStringKey, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(titleKey, systemImage: systemImage, value: nil, role: role, content: content)
+    }
+
+    public init(role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(value: nil, role: role, content: content)
+    }
+
+    public init(role: TabRole? = nil, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
+        self.init(value: nil, role: role, content: content, label: label)
+    }
+
+    #if SKIP
+    @Composable override func ComposeContent(context: ComposeContext) {
+        content.Compose(context: context)
+    }
+
+    @Composable func ComposeTitle(context: ComposeContext) {
+        label.Compose(context: context.content(composer: RenderingComposer { view, context in
+            let stripped = view.strippingModifiers { $0 }
+            if let label = stripped as? Label {
+                label.ComposeTitle(context: context(false))
+            } else if stripped is Text {
+                view.ComposeContent(context: context(false))
+            }
+        }))
+    }
+
+    @Composable func ComposeImage(context: ComposeContext) {
+        label.Compose(context: context.content(composer: RenderingComposer { view, context in
+            let stripped = view.strippingModifiers { $0 }
+            if let label = stripped as? Label {
+                label.ComposeImage(context: context(false))
+            } else if stripped is Image {
+                view.ComposeContent(context: context(false))
+            }
+        }))
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
+public struct TabCustomizationBehavior : Equatable {
+    public static let automatic = TabCustomizationBehavior()
+    @available(*, unavailable)
+    public static let reorderable = TabCustomizationBehavior()
+    public static let disabled = TabCustomizationBehavior()
+}
+
+public struct TabPlacement : Hashable {
+    public static let automatic = TabPlacement()
+    @available(*, unavailable)
+    public static let pinned = TabPlacement()
+    @available(*, unavailable)
+    public static let sidebarOnly = TabPlacement()
+}
+
+public enum TabRole : Int, Hashable {
+    case search = 1 // For bridging
+}
+
+public struct TabSection : View {
+    private let content: any View
+
+    public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
+        self.content = content()
+    }
+
+    public init(@ViewBuilder content: () -> any View) {
+        self.content = content()
+    }
+
+    public init(_ title: String, @ViewBuilder content: () -> any View) {
+        self.content = content()
+    }
+
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
+        self.content = content()
+    }
+
+    #if SKIP
+    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
+        // We ignore tab sections, so we pass through the composer
+        ComposeContent(context: context)
+        return ComposeResult.ok
+    }
+
+    @Composable public override func ComposeContent(context: ComposeContext) {
+        content.Compose(context: context)
+    }
+    #else
+    public var body: some View {
+        stubView()
+    }
+    #endif
+}
+
 // MARK: View extensions
 
 extension View {
@@ -669,6 +845,25 @@ extension View {
     }
 
     public func tabBarMinimizeBehavior(_ behavior: TabBarMinimizeBehavior) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func customizationBehavior(_ behavior: TabCustomizationBehavior, for placements: AdaptableTabBarPlacement...) -> some View {
+        return self
+    }
+
+    public func customizationID(_ id: String) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func defaultVisibility(_ visibility: Visibility, for placements: AdaptableTabBarPlacement...) -> any View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func tabPlacement(_ placement: TabPlacement) -> any View {
         return self
     }
 
