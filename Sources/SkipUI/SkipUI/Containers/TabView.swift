@@ -676,7 +676,7 @@ public struct Tab : View {
         self.content = ComposeBuilder.from { content() }
         self.value = value
         if role == TabRole.search {
-            self.label = ComposeBuilder(view: Label("Search", image: "magnifyingglass"))
+            self.label = ComposeBuilder(view: Label("Search", systemImage: "magnifyingglass"))
         } else {
             self.label = ComposeBuilder(view: EmptyView())
         }
