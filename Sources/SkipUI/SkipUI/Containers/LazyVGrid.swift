@@ -75,7 +75,6 @@ public struct LazyVGrid: View {
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack() == false
 
-        let itemContext = context.content()
         let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
@@ -114,7 +113,7 @@ public struct LazyVGrid: View {
                             item: { view, _ in
                                 item {
                                     Box(contentAlignment: boxAlignment) {
-                                        view.Compose(context: itemContext)
+                                        view.Compose(context: context.content(scope: self))
                                     }
                                 }
                             },
@@ -123,7 +122,7 @@ public struct LazyVGrid: View {
                                 let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
                                 items(count: count, key: key) { index in
                                     Box(contentAlignment: boxAlignment) {
-                                        factory(index + range.start).Compose(context: itemContext)
+                                        factory(index + range.start).Compose(context: context.content(scope: self))
                                     }
                                 }
                             },
@@ -131,7 +130,7 @@ public struct LazyVGrid: View {
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                                 items(count: objects.count, key: key) { index in
                                     Box(contentAlignment: boxAlignment) {
-                                        factory(objects[index]).Compose(context: itemContext)
+                                        factory(objects[index]).Compose(context: context.content(scope: self))
                                     }
                                 }
                             },
@@ -139,21 +138,21 @@ public struct LazyVGrid: View {
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                                 items(count: objectsBinding.wrappedValue.count, key: key) { index in
                                     Box(contentAlignment: boxAlignment) {
-                                        factory(objectsBinding, index).Compose(context: itemContext)
+                                        factory(objectsBinding, index).Compose(context: context.content(scope: self))
                                     }
                                 }
                             },
                             sectionHeader: { view in
                                 item(span: { GridItemSpan(maxLineSpan) }) {
                                     Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                        view.Compose(context: itemContext)
+                                        view.Compose(context: context.content(scope: self))
                                     }
                                 }
                             },
                             sectionFooter: { view in
                                 item(span: { GridItemSpan(maxLineSpan) }) {
                                     Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                        view.Compose(context: itemContext)
+                                        view.Compose(context: context.content(scope: self))
                                     }
                                 }
                             }
@@ -161,7 +160,7 @@ public struct LazyVGrid: View {
                         if isSearchable {
                             item(span: { GridItemSpan(maxLineSpan) }) {
                                 let modifier = Modifier.padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp).fillMaxWidth()
-                                SearchField(state: searchableState!, context: context.content(modifier: modifier))
+                                SearchField(state: searchableState!, context: context.content(modifier: modifier, scope: self))
                             }
                         }
                         for (view, level) in collectingComposer.views {
