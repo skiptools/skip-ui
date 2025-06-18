@@ -87,9 +87,9 @@ extension View {
 }
 
 public enum ScenePhase : Int, Comparable, Hashable {
-    case background
-    case inactive
-    case active
+    case background = 1 // For bridging
+    case inactive = 2 // For bridging
+    case active = 3 // For bridging
 
     public static func < (a: ScenePhase, b: ScenePhase) -> Bool {
         return a.rawValue < b.rawValue
