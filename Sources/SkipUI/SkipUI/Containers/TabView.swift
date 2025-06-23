@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -344,6 +345,9 @@ public struct TabView : View {
                     }
                     NavigationBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
                         for tabIndex in 0..<tabViews.count {
+                            if tabs[tabIndex]?.isHidden == true {
+                                continue
+                            }
                             let route = String(describing: tabIndex)
                             let label: (@Composable () -> Void)?
                             if let itemLabel = options.itemLabel {
@@ -355,7 +359,7 @@ public struct TabView : View {
                                 onClick: { options.onItemClick(tabIndex) },
                                 icon: { options.itemIcon(tabIndex) },
                                 modifier: options.itemModifier(tabIndex),
-                                enabled: options.itemEnabled(tabIndex),
+                                enabled: options.itemEnabled(tabIndex) && tabs[tabIndex]?.isDisabled != true,
                                 label: label,
                                 alwaysShowLabel: options.alwaysShowItemLabels,
                                 colors: options.itemColors,
@@ -620,30 +624,20 @@ public struct TabBarMinimizeBehavior : RawRepresentable, Hashable {
     public static let never = TabBarMinimizeBehavior(rawValue: 4)
 }
 
-public struct TabBarPlacement : RawRepresentable, Hashable {
-    public let rawValue: Int
-
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    @available(*, unavailable)
-    public static let topBar = TabBarPlacement(rawValue: 1) // For bridging
-    @available(*, unavailable)
-    public static let sidebar = TabBarPlacement(rawValue: 2) // For bridging
-    public static let bottomBar = TabBarPlacement(rawValue: 3) // For bridging
-    @available(*, unavailable)
-    public static let ornament = TabBarPlacement(rawValue: 4) // For bridging
-    public static let pageIndicator = TabBarPlacement(rawValue: 5) // For bridging
-}
-
 public enum AdaptableTabBarPlacement : Hashable {
     case automatic
     case tabBar
     case sidebar
 }
 
-public struct Tab : View {
+// SKIP @bridge
+public protocol TabContent : View {
+    var isHidden: Bool { get set }
+    var isDisabled: Bool { get set }
+}
+
+// SKIP @bridge
+public struct Tab : TabContent {
     let label: ComposeBuilder
     let content: ComposeBuilder
     let value: Any?
@@ -688,6 +682,19 @@ public struct Tab : View {
         self.value = value
     }
 
+    // SKIP @bridge
+    public init(value: Any?, bridgedRole: Int?, bridgedContent: any View, bridgedLabel: (any View)?) {
+        if let bridgedLabel {
+            self.label = ComposeBuilder.from { bridgedLabel }
+        } else if bridgedRole == TabRole.search.rawValue {
+            self.label = ComposeBuilder(view: Label("Search", systemImage: "magnifyingglass"))
+        } else {
+            self.label = ComposeBuilder(view: EmptyView())
+        }
+        self.content = ComposeBuilder.from { bridgedContent }
+        self.value = value
+    }
+
     public init(_ title: String, image: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
         self.init(title, image: image, value: nil, role: role, content: content)
     }
@@ -711,6 +718,9 @@ public struct Tab : View {
     public init(role: TabRole? = nil, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
         self.init(value: nil, role: role, content: content, label: label)
     }
+
+    public var isHidden = false
+    public var isDisabled = false
 
     #if SKIP
     @Composable override func ComposeContent(context: ComposeContext) {
@@ -747,16 +757,13 @@ public struct Tab : View {
 
 public struct TabCustomizationBehavior : Equatable {
     public static let automatic = TabCustomizationBehavior()
-    @available(*, unavailable)
     public static let reorderable = TabCustomizationBehavior()
     public static let disabled = TabCustomizationBehavior()
 }
 
 public struct TabPlacement : Hashable {
     public static let automatic = TabPlacement()
-    @available(*, unavailable)
     public static let pinned = TabPlacement()
-    @available(*, unavailable)
     public static let sidebarOnly = TabPlacement()
 }
 
@@ -764,24 +771,33 @@ public enum TabRole : Int, Hashable {
     case search = 1 // For bridging
 }
 
-public struct TabSection : View {
-    private let content: any View
+// SKIP @bridge
+public struct TabSection : TabContent {
+    private let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
-        self.content = content()
+        self.content = ComposeBuilder.from { content() }
     }
 
     public init(@ViewBuilder content: () -> any View) {
-        self.content = content()
+        self.content = ComposeBuilder.from { content() }
     }
 
     public init(_ title: String, @ViewBuilder content: () -> any View) {
-        self.content = content()
+        self.content = ComposeBuilder.from { content() }
     }
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
-        self.content = content()
+        self.content = ComposeBuilder.from { content() }
     }
+
+    // SKIP @bridge
+    public init(bridgedContent: any View) {
+        self.content = ComposeBuilder.from { bridgedContent }
+    }
+
+    public var isHidden = false
+    public var isDisabled = false
 
     #if SKIP
     @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
@@ -791,7 +807,8 @@ public struct TabSection : View {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
+        // Collect the views so that our ComposeBuilder doesn't reset any RenderingComposer like the TabIndexComposer
+        content.collectViews(context: context).forEach { $0.Compose(context: context) }
     }
     #else
     public var body: some View {
@@ -801,6 +818,177 @@ public struct TabSection : View {
 }
 
 // MARK: View extensions
+
+extension TabContent {
+    @available(*, unavailable)
+    public func accessibilityValue(_ valueDescription: Text, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityValue(_ valueKey: LocalizedStringKey, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityValue(_ valueResource: LocalizedStringResource, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityValue(_ value: String, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityLabel(_ label: Text, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityLabel(_ labelKey: LocalizedStringKey, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityLabel(_ label: LocalizedStringResource, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityLabel(_ label: String, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityHint(_ hint: Text, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityHint(_ hintKey: LocalizedStringKey, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityHint(_ hint: LocalizedStringResource, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityHint(_ hint: String, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func customizationBehavior(_ behavior: TabCustomizationBehavior, for placements: AdaptableTabBarPlacement...) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func customizationID(_ id: String) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func sectionActions<Content>(@ViewBuilder content: () -> Content) -> some TabContent where Content : View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func dropDestination(for payloadType: Any.Type? = nil, action: @escaping ([Any]) -> Void) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func springLoadingBehavior(_ behavior: SpringLoadingBehavior) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func draggable(_ payload: Any) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ count: Int) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ label: Text?) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ key: LocalizedStringKey) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ resource: LocalizedStringResource) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func badge(_ label: String) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func popover(isPresented: Binding<Bool>, attachmentAnchor: Any? = nil, arrowEdge: Edge? = nil, @ViewBuilder content: () -> any View) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func popover(item: Binding<Any?>, attachmentAnchor: Any? = nil, arrowEdge: Edge? = nil, @ViewBuilder content: (Any) -> any View) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityInputLabels(_ inputLabels: [Any], isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func contextMenu(@ViewBuilder menuItems: () -> any View) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityIdentifier(_ identifier: String, isEnabled: Bool = true) -> some TabContent {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func defaultVisibility(_ visibility: Visibility, for placements: AdaptableTabBarPlacement...) -> some TabContent {
+        return self
+    }
+
+    // SKIP @bridge
+    public func hidden(_ hidden: Bool = true) -> any TabContent {
+        var tabContent = self
+        tabContent.isHidden = hidden
+        return tabContent
+    }
+
+    // SKIP @bridge
+    public func disabled(_ disabled: Bool) -> any TabContent {
+        var tabContent = self
+        tabContent.isDisabled = disabled
+        return tabContent
+    }
+
+    @available(*, unavailable)
+    public func tabPlacement(_ placement: TabPlacement) -> some TabContent {
+        return self
+    }
+}
 
 extension View {
     public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
@@ -854,6 +1042,11 @@ extension View {
     }
 
     public func customizationID(_ id: String) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func defaultAdaptableTabBarPlacement(_ defaultPlacement: AdaptableTabBarPlacement = .automatic) -> some View {
         return self
     }
 
