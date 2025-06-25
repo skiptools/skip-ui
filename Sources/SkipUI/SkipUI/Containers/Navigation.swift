@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -153,7 +154,7 @@ public struct NavigationStack : View {
                     let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
                     NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
                         composable(route: Navigator.rootRoute,
-                                   exitTransition: { fadeOut() + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                   exitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                    popEnterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
                             guard let state = navigator.value.state(for: entry) else {
                                 return
@@ -177,9 +178,9 @@ public struct NavigationStack : View {
                             composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"),
                                        arguments: listOf(navArgument("identifier") { type = NavType.StringType }),
                                        enterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? -1 : 1) / 3 }) },
-                                       exitTransition: { fadeOut() + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
+                                       exitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
                                        popEnterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                       popExitTransition: { fadeOut() + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) / 3 }) }) { entry in
+                                       popExitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) / 3 }) }) { entry in
                                 guard let state = navigator.value.state(for: entry), let targetValue = state.targetValue else {
                                     return
                                 }
