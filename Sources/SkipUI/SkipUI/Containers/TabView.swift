@@ -3,8 +3,8 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -383,8 +383,8 @@ public struct TabView : View {
                     NavHost(navController,
                             modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
                             startDestination: "0",
-                            enterTransition: { EnterTransition.None },
-                            exitTransition: { ExitTransition.None }) {
+                            enterTransition: { fadeIn() },
+                            exitTransition: { fadeOut() }) {
                         // Use a constant number of routes. Changing routes causes a NavHost to reset its state
                         for tabIndex in 0..<100 {
                             composable(String(describing: tabIndex)) { _ in
