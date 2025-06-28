@@ -6,9 +6,9 @@ import androidx.window.core.layout.WindowHeightSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 #endif
 
-public enum UserInterfaceSizeClass: Hashable {
-    case compact
-    case regular
+public enum UserInterfaceSizeClass: Int, Hashable {
+    case compact = 1 // For bridging
+    case regular = 2 // For bridging
 
     #if SKIP
     public static func fromWindowHeightSizeClass(_ sizeClass: WindowHeightSizeClass) -> UserInterfaceSizeClass {
