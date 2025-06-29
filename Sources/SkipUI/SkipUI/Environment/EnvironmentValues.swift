@@ -225,20 +225,38 @@ extension EnvironmentValues {
         // NOTE: We also maintain equivalent code in SkipSwiftUI.EnvironmentValues.
         // It would be nice to come up with a better way to do this...
         switch key {
+        case "autocorrectionDisabled":
+            return EnvironmentSupport(builtinValue: autocorrectionDisabled)
+        case "backgroundStyle":
+            return EnvironmentSupport(builtinValue: backgroundStyle)
         case "colorScheme":
             return EnvironmentSupport(builtinValue: colorScheme.rawValue)
         case "dismiss":
             return EnvironmentSupport(builtinValue: dismiss)
+        case "font":
+            return EnvironmentSupport(builtinValue: font)
+        case "horizontalSizeClass":
+            return EnvironmentSupport(builtinValue: horizontalSizeClass?.rawValue)
+        case "isEnabled":
+            return EnvironmentSupport(builtinValue: isEnabled)
         case "isSearching":
             return EnvironmentSupport(builtinValue: isSearching)
         case "layoutDirection":
             return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
+        case "lineLimit":
+            return EnvironmentSupport(builtinValue: lineLimit)
+        case "locale":
+            return EnvironmentSupport(builtinValue: locale)
         case "openURL":
             return EnvironmentSupport(builtinValue: openURL)
         case "refresh":
             return EnvironmentSupport(builtinValue: refresh)
         case "scenePhase":
             return EnvironmentSupport(builtinValue: scenePhase.rawValue)
+        case "timeZone":
+            return EnvironmentSupport(builtinValue: timeZone.identifier)
+        case "verticalSizeClass":
+            return EnvironmentSupport(builtinValue: verticalSizeClass?.rawValue)
         default:
             return nil
         }
@@ -246,17 +264,38 @@ extension EnvironmentValues {
 
     private func setBuiltinBridged(key: String, value: EnvironmentSupport?) -> Bool {
         switch key {
+        case "autocorrectionDisabled":
+            return false
+        case "backgroundStyle":
+            setbackgroundStyle(value?.builtinValue as? ShapeStyle)
+            return true
         case "colorScheme":
             return false // Doesn't support setting outside of `.colorScheme(_:)` func
         case "dismiss":
             setdismiss(value?.builtinValue as? DismissAction ?? DismissAction.default)
             return true
+        case "font":
+            setfont(value?.builtinValue as? Font)
+            return true
+        case "isEnabled":
+            setisEnabled(value as? Bool != false)
+            return true
         case "isSearching":
+            return false
+        case "horizontalSizeClass":
             return false
         case "layoutDirection":
             let rawValue = value?.builtinValue as? Int
             let layoutDirection: LayoutDirection = rawValue == nil ? .leftToRight : LayoutDirection(rawValue: rawValue!) ?? .leftToRight
             setlayoutDirection(layoutDirection)
+            return true
+        case "lineLimit":
+            setlineLimit(value?.builtinValue as? Int)
+            return true
+        case "locale":
+            if let locale = value?.builtinValue as? Locale {
+                setlocale(locale)
+            }
             return true
         case "openURL":
             setopenURL(value?.builtinValue as? OpenURLAction ?? OpenURLAction.default)
@@ -265,6 +304,13 @@ extension EnvironmentValues {
             setrefresh(value?.builtinValue as? RefreshAction)
             return true
         case "scenePhase":
+            return false
+        case "timeZone":
+            if let identifier = value?.builtinValue as? String, let timeZone = TimeZone(identifier: identifier) {
+                settimeZone(timeZone)
+            }
+            return true
+        case "verticalSizeClass":
             return false
         default:
             return false
