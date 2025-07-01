@@ -73,6 +73,7 @@ public struct ToolbarItem : View, CustomizableToolbarContent {
                 textEnvironment.fontWeight = Font.Weight.bold
                 $0.set_textEnvironment(textEnvironment)
             }
+            return ComposeResult.ok
         } in: {
             content.Compose(context: context)
         }

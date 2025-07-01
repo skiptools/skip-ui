@@ -47,6 +47,7 @@ extension View {
             if view.strippingModifiers(perform: { $0 is NavigationStack}) || LocalNavigator.current?.isRoot != true {
                 EnvironmentValues.shared.setValues {
                     $0.set_searchableState(state)
+                    return ComposeResult.ok
                 } in: {
                     view.Compose(context: context)
                 }

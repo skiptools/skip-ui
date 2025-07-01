@@ -552,6 +552,7 @@ func textEnvironment(for view: View, update: (inout TextEnvironment) -> Void) ->
             var textEnvironment = $0._textEnvironment
             update(&textEnvironment)
             $0.set_textEnvironment(textEnvironment)
+            return ComposeResult.ok
         } in: {
             view.Compose(context: context)
         }

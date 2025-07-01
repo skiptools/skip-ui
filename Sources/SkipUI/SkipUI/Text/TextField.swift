@@ -154,6 +154,7 @@ public struct TextField : View {
         }
         EnvironmentValues.shared.setValues {
             $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
+            return ComposeResult.ok
         } in: {
             prompt.Compose(context: context)
         }
@@ -212,6 +213,7 @@ extension View {
             let updatedState = state == nil ? OnSubmitState(triggers: triggers, action: action) : state!.appending(triggers: triggers, action: action)
             EnvironmentValues.shared.setValues {
                 $0.set_onSubmitState(updatedState)
+                return ComposeResult.ok
             } in: {
                 view.Compose(context: context)
             }
@@ -309,6 +311,7 @@ extension View {
             let updatedOptions = update(options)
             EnvironmentValues.shared.setValues {
                 $0.set_keyboardOptions(updatedOptions)
+                return ComposeResult.ok
             } in: {
                 view.Compose(context: context)
             }

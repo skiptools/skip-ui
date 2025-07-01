@@ -210,6 +210,7 @@ public struct TabView : View {
         var tabViews: [View] = []
         EnvironmentValues.shared.setValues {
             $0.set_placement(ViewPlacement.tagged)
+            return ComposeResult.ok
         } in: {
             tabViews = content.collectViews(context: tabContext).filter { !$0.isSwiftUIEmptyView }
         }
@@ -428,6 +429,7 @@ public struct TabView : View {
                 if let safeArea = arguments.safeArea {
                     $0.set_safeArea(safeArea)
                 }
+                return ComposeResult.ok
             } in: {
                 // Use a custom composer to only render the tabIndex'th view
                 content.Compose(context: context.content(composer: TabIndexComposer(index: arguments.tabIndex)))

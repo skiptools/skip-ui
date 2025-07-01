@@ -100,6 +100,7 @@ public struct Label : View {
         if let imageColor {
             EnvironmentValues.shared.setValues {
                 $0.set_foregroundStyle(imageColor)
+                return ComposeResult.ok
             } in: {
                 image.Compose(context: context)
             }

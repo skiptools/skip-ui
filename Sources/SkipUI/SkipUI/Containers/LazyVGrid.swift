@@ -107,6 +107,7 @@ public struct LazyVGrid: View {
 
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
+                    return ComposeResult.ok
                 } in: {
                     LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxWidth(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         factoryContext.value.initialize(

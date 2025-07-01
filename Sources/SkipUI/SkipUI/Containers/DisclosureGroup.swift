@@ -139,6 +139,7 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
                     if let foregroundStyle {
                         $0.set_foregroundStyle(foregroundStyle)
                     }
+                    return ComposeResult.ok
                 } in: {
                     label.Compose(context: contentContext)
                 }

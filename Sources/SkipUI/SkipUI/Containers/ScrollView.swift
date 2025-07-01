@@ -120,6 +120,7 @@ public struct ScrollView : View {
                         }
                         EnvironmentValues.shared.setValues {
                             $0.set_scrollViewAxes(axes)
+                            return ComposeResult.ok
                         } in: {
                             PreferenceValues.shared.collectPreferences([builtinScrollAxisSetCollector]) {
                                 content.Compose(context: contentContext)

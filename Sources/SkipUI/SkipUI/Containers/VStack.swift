@@ -77,6 +77,7 @@ public struct VStack : View {
                     let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
                     EnvironmentValues.shared.setValues {
                         $0.set_fillHeightModifier(fillHeightModifier)
+                        return ComposeResult.ok
                     } in: {
                         composer?.willCompose()
                         views.forEach { $0.Compose(context: contentContext) }
@@ -118,6 +119,7 @@ public struct VStack : View {
                 let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
                 EnvironmentValues.shared.setValues {
                     $0.set_fillHeightModifier(fillHeightModifier)
+                    return ComposeResult.ok
                 } in: {
                     arguments.composer?.willCompose()
                     for view in state {

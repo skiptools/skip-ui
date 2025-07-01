@@ -64,6 +64,7 @@ extension View {
                 if isValueChange || (animation?.isInfinite == true && hasChangedValue.value) {
                     $0.set_animation(animation)
                 }
+                return ComposeResult.ok
             } in: {
                 view.Compose(context: context)
             }

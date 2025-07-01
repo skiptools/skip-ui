@@ -81,6 +81,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                         $0.set_isEdgeToEdge(safeBounds != presentationBounds.value)
                     }
                     $0.set_safeArea(safeArea)
+                    return ComposeResult.ok
                 } in: {
                     Box(modifier: Modifier.fillMaxSize().padding(safeArea), contentAlignment = androidx.compose.ui.Alignment.Center) {
                         content(context)

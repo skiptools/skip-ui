@@ -69,7 +69,7 @@ public final class EnvironmentValues {
     ///
     /// - Seealso: ``View/environment(_:)``
     /// - Warning: Setting environment values should only be done within the `execute` block of this function.
-    @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> Void, in content: @Composable () -> Void) {
+    @Composable func setValues(_ execute: @Composable (EnvironmentValues) -> ComposeResult, in content: @Composable () -> Unit) {
         // Set the values in EnvironmentValues to keep any user-defined setter logic in place, then retrieve and clear the last set values
         execute(self)
         for action in lastSetActions {
@@ -82,7 +82,7 @@ public final class EnvironmentValues {
         }.toTypedArray()
         lastSetValues.clear()
         CompositionLocalProvider(*provided) {
-            content()
+            let _ = content()
         }
     }
 
@@ -176,6 +176,7 @@ extension View {
         return ComposeModifierView(contentView: self) { view, context in
             EnvironmentValues.shared.setValues {
                 _ in setValue(value)
+                return ComposeResult.ok
             } in: {
                 view.Compose(context: context)
             }
@@ -191,6 +192,7 @@ extension View {
         return ComposeModifierView(contentView: self) { view, context in
             EnvironmentValues.shared.setValues {
                 $0.setBridged(key: bridgedKey, value: value)
+                return ComposeResult.ok
             } in: {
                 view.Compose(context: context)
             }

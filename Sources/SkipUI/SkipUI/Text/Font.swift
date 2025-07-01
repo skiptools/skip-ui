@@ -94,6 +94,14 @@ public struct Font : Hashable {
         let lineHeight = style.lineHeight == TextUnit.Unspecified ? style.lineHeight : (style.lineHeight.value + amount).sp
         return style.copy(fontSize: fontSize, lineHeight: lineHeight)
     }
+
+    public static func ==(lhs: Font, rhs: Font) -> Bool {
+        return lhs === rhs
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.hashCode())
+    }
     #endif
 
     public enum TextStyle : Int, CaseIterable, Codable, Hashable {

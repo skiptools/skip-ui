@@ -68,6 +68,7 @@ public struct HStack : View {
                     let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
                     EnvironmentValues.shared.setValues {
                         $0.set_fillWidthModifier(fillWidthModifier)
+                        return ComposeResult.ok
                     } in: {
                         views.forEach { $0.Compose(context: contentContext) }
                     }
@@ -107,6 +108,7 @@ public struct HStack : View {
                 let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
                 EnvironmentValues.shared.setValues {
                     $0.set_fillWidthModifier(fillWidthModifier)
+                    return ComposeResult.ok
                 } in: {
                     for view in state {
                         let id = arguments.idMap(view)

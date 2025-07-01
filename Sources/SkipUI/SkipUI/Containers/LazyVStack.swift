@@ -100,6 +100,7 @@ public struct LazyVStack : View {
 
                 EnvironmentValues.shared.setValues {
                     $0.set_scrollTargetBehavior(nil)
+                    return ComposeResult.ok
                 } in: {
                     LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         factoryContext.value.initialize(
