@@ -13,7 +13,6 @@ struct AnimatedContentArguments: Equatable {
     let rememberedIds: MutableSet<Any>
     let newIds: Array<Any>
     let rememberedNewIds: MutableSet<Any>
-    let composer: RenderingComposer?
     let isBridged: Bool
 
     static func ==(lhs: AnimatedContentArguments, rhs: AnimatedContentArguments) -> Bool {

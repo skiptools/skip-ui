@@ -61,7 +61,7 @@ public struct Group : View {
         if ids.count < views.count {
             views.forEach { $0.Compose(context: context) }
         } else {
-            let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil, isBridged: isBridged)
+            let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
             ComposeAnimatedContent(context: context, arguments: arguments)
         }
     }

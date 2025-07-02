@@ -387,6 +387,7 @@ public struct TabView : View {
                             enterTransition: { fadeIn() },
                             exitTransition: { fadeOut() }) {
                         // Use a constant number of routes. Changing routes causes a NavHost to reset its state
+                        let entryContext = context.content()
                         for tabIndex in 0..<100 {
                             composable(String(describing: tabIndex)) { _ in
                                 // Inset manually where our container ignored the safe area, but we aren't showing a bar
@@ -409,7 +410,7 @@ public struct TabView : View {
                                     // recomposing when called with the same values
                                     let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
                                     PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
-                                        ComposeEntry(with: arguments, context: context)
+                                        ComposeEntry(with: arguments, context: entryContext)
                                     }
                                 }
                             }
@@ -431,8 +432,10 @@ public struct TabView : View {
                 }
                 return ComposeResult.ok
             } in: {
-                // Use a custom composer to only render the tabIndex'th view
-                content.Compose(context: context.content(composer: TabIndexComposer(index: arguments.tabIndex)))
+                let views = content.collectViews(context: context).filter { !$0.isSwiftUIEmptyView }
+                if views.count > arguments.tabIndex {
+                    views[arguments.tabIndex].Compose(context: context)
+                }
             }
         }
     }
@@ -526,31 +529,6 @@ struct TabItemModifierView: ComposeModifierView {
 
     @Composable public override func ComposeContent(context: ComposeContext) {
         view.Compose(context: context)
-    }
-}
-
-final class TabIndexComposer: RenderingComposer {
-    let index: Int
-    var currentIndex = 0
-
-    init(index: Int) {
-        self.index = index
-        super.init()
-    }
-
-    override func willCompose() {
-        currentIndex = 0
-    }
-
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
-        // Be sure to keep the filtering of empty views consistent with our rendering of corresponding TabItems in the navigation bar
-        guard !view.isSwiftUIEmptyView else {
-            return
-        }
-        if currentIndex == index {
-            view.ComposeContent(context: context(false))
-        }
-        currentIndex += 1
     }
 }
 #endif

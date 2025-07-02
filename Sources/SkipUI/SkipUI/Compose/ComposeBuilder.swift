@@ -64,13 +64,7 @@ public struct ComposeBuilder: View {
     }
 
     @Composable public override func ComposeContent(context: ComposeContext) {
-        if let composer = context.composer as? RenderingComposer {
-            composer.willCompose()
-            let result = content(context)
-            composer.didCompose(result: result)
-        } else {
-            content(context)
-        }
+        content(context)
     }
 
     /// Use a custom composer to collect the views composed within this view.
