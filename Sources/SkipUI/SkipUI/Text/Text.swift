@@ -173,7 +173,11 @@ public struct Text: View, Equatable {
 
     // SKIP @bridge
     public static func ==(lhs: Text, rhs: Text) -> Bool {
+        #if SKIP
+        return lhs.textView == rhs.textView && lhs.modifiedView == rhs.modifiedView
+        #else
         return lhs.textView == rhs.textView
+        #endif
     }
 
     // Text-specific implementations of View modifiers
