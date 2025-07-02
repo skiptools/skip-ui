@@ -51,7 +51,7 @@ public class ComposeModifierView: View {
         }
     }
 
-    func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+    override func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
         if until(self) {
             return perform(self)
         } else {

@@ -165,6 +165,11 @@ public struct Text: View, Equatable {
         }
         return TextStyleInfo(style: style, color: textColor, isUppercased: isUppercased, isLowercased: isLowercased)
     }
+
+    public override func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+        let text = modifiedView === textView ? self : Text(textView: textView, modifiedView: textView)
+        return perform(text)
+    }
     #else
     public var body: some View {
         stubView()
