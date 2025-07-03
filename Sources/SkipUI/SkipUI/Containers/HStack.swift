@@ -68,6 +68,7 @@ public struct HStack : View {
                     let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
                     EnvironmentValues.shared.setValues {
                         $0.set_fillWidthModifier(fillWidthModifier)
+                        return ComposeResult.ok
                     } in: {
                         views.forEach { $0.Compose(context: contentContext) }
                     }
@@ -75,7 +76,7 @@ public struct HStack : View {
             }
         } else {
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: nil, isBridged: isBridged)
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
                 ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement)
             }
         }
@@ -107,6 +108,7 @@ public struct HStack : View {
                 let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
                 EnvironmentValues.shared.setValues {
                     $0.set_fillWidthModifier(fillWidthModifier)
+                    return ComposeResult.ok
                 } in: {
                     for view in state {
                         let id = arguments.idMap(view)

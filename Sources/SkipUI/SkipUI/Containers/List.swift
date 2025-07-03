@@ -394,6 +394,7 @@ public final class List : View {
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.listItem))
+                    return ComposeResult.ok
                 } in: {
                     // Note that we're calling the same view's Compose function again with a new context
                     view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier(level: level), itemTransformer: itemTransformer)))
@@ -502,6 +503,7 @@ public final class List : View {
             Column(modifier: Modifier.fillMaxWidth()) {
                 EnvironmentValues.shared.setValues {
                     $0.set_listSectionHeaderStyle(styling.style)
+                    return ComposeResult.ok
                 } in: {
                     view.Compose(context: context.content(modifier: contentModifier))
                 }
@@ -526,6 +528,7 @@ public final class List : View {
                 Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
                     EnvironmentValues.shared.setValues {
                         $0.set_listSectionFooterStyle(styling.style)
+                        return ComposeResult.ok
                     } in: {
                         view.Compose(context: context.content(modifier: contentModifier))
                     }

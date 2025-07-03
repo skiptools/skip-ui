@@ -90,6 +90,7 @@ public struct LazyHGrid: View {
 
             EnvironmentValues.shared.setValues {
                 $0.set_scrollTargetBehavior(nil)
+                return ComposeResult.ok
             } in: {
                 LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                     factoryContext.value.initialize(

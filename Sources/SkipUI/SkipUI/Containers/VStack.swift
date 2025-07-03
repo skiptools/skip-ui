@@ -48,18 +48,15 @@ public struct VStack : View {
     #if SKIP
     @Composable public override func ComposeContent(context: ComposeContext) {
         let columnAlignment = alignment.asComposeAlignment()
-        let composer: VStackComposer?
         let columnArrangement: Arrangement.Vertical
         if let spacing {
-            composer = nil
             columnArrangement = Arrangement.spacedBy(spacing.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         } else {
-            composer = VStackComposer()
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
 
         let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
-        let idMap: (View) -> Any? = { TagModifierView.strip(from = it, role = ComposeModifierRole.id)?.value }
+        let idMap: (View) -> Any? = { TagModifierView.strip(from: $0, role: ComposeModifierRole.id)?.value }
         let ids = views.compactMap(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
         let newIds = ids.filter { !rememberedIds.contains(it) }
@@ -71,22 +68,24 @@ public struct VStack : View {
 
         if ids.count < views.count {
             rememberedNewIds.clear()
-            let contentContext = context.content(composer: composer)
+            let contentContext = context.content()
             ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
                 Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
                     let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
                     EnvironmentValues.shared.setValues {
                         $0.set_fillHeightModifier(fillHeightModifier)
+                        return ComposeResult.ok
                     } in: {
-                        composer?.willCompose()
-                        views.forEach { $0.Compose(context: contentContext) }
-                        composer?.didCompose(result: ComposeResult.ok)
+                        var lastViewWasText: Bool? = nil
+                        for view in views {
+                            lastViewWasText = ComposeSpaced(view: view, lastViewWasText: lastViewWasText, context: contentContext)
+                        }
                     }
                 }
             }
         } else {
             ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
-                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, composer: composer, isBridged: isBridged)
+                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
                 ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement)
             }
         }
@@ -118,8 +117,9 @@ public struct VStack : View {
                 let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
                 EnvironmentValues.shared.setValues {
                     $0.set_fillHeightModifier(fillHeightModifier)
+                    return ComposeResult.ok
                 } in: {
-                    arguments.composer?.willCompose()
+                    var lastViewWasText: Bool? = nil
                     for view in state {
                         let id = arguments.idMap(view)
                         var modifier: Modifier = Modifier
@@ -130,13 +130,34 @@ public struct VStack : View {
                             let exit = transition.asExitTransition(spec: spec)
                             modifier = modifier.animateEnterExit(enter: enter, exit: exit)
                         }
-                        let contentContext = context.content(modifier: modifier, composer: arguments.composer)
-                        view.Compose(context: contentContext)
+                        let contentContext = context.content(modifier: modifier)
+                        lastViewWasText = ComposeSpaced(view: view, lastViewWasText: lastViewWasText, context: contentContext)
                     }
-                    arguments.composer?.didCompose(result: ComposeResult.ok)
                 }
             }
         }, label: "VStack")
+    }
+
+    @Composable private func ComposeSpaced(view: View, lastViewWasText: Bool?, context: ComposeContext) -> Bool? {
+        guard !view.isSwiftUIEmptyView else {
+            return lastViewWasText
+        }
+        guard spacing == nil else {
+            view.Compose(context: context)
+            return lastViewWasText
+        }
+
+        let defaultSpacing = 8.0
+        // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
+        let textSpacing = 3.0
+        // If the Text has spacing modifiers, no longer special case its spacing
+        let isText = view.strippingModifiers(until: { $0.role == .spacing }) { $0 is Text }
+        if let lastViewWasText {
+            let spacing = lastViewWasText && isText ? textSpacing : defaultSpacing
+            androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
+        }
+        view.Compose(context: context)
+        return isText
     }
     #else
     public var body: some View {
@@ -144,35 +165,6 @@ public struct VStack : View {
     }
     #endif
 }
-
-#if SKIP
-final class VStackComposer: RenderingComposer {
-    private static let defaultSpacing = 8.0
-    // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
-    private static let textSpacing = 3.0
-
-    private var lastViewWasText: Bool? = nil
-
-    override func willCompose() {
-        lastViewWasText = nil
-    }
-
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
-        guard !view.isSwiftUIEmptyView else {
-            return
-        }
-        // If the Text has spacing modifiers, no longer special case its spacing
-        let isText = view.strippingModifiers(until: { $0.role == .spacing }) { $0 is Text }
-        var contentContext = context(false)
-        if let lastViewWasText {
-            let spacing = lastViewWasText && isText ? Self.textSpacing : Self.defaultSpacing
-            androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
-        }
-        view.ComposeContent(context: contentContext)
-        lastViewWasText = isText
-    }
-}
-#endif
 
 #if false
 /// A vertical container that you can use in conditional layouts.

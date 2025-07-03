@@ -194,6 +194,7 @@ public struct NavigationStack : View {
                                 let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
                                 EnvironmentValues.shared.setValues {
                                     $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
+                                    return ComposeResult.ok
                                 } in: {
                                     let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                                     PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
@@ -321,6 +322,7 @@ public struct NavigationStack : View {
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.toolbar))
                     $0.set_tint(tint)
+                    return ComposeResult.ok
                 } in: {
                     let interactionSource = remember { MutableInteractionSource() }
                     var topBarModifier = Modifier.zIndex(Float(1.1))
@@ -448,6 +450,7 @@ public struct NavigationStack : View {
                 EnvironmentValues.shared.setValues {
                     $0.set_tint(tint)
                     $0.set_placement(placement.union(ViewPlacement.toolbar))
+                    return ComposeResult.ok
                 } in: {
                     var bottomBarModifier = Modifier.zIndex(Float(1.1))
                         .onGloballyPositionedInWindow { bounds in
@@ -523,6 +526,7 @@ public struct NavigationStack : View {
                     if arguments.isRoot {
                         $0.set_searchableState(searchableState)
                     }
+                    return ComposeResult.ok
                 } in: {
                     // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
                     Box(modifier: Modifier.padding(top: topPadding)) {

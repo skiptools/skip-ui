@@ -59,14 +59,6 @@ public class RenderingComposer : Composer {
         self.compose = nil
     }
 
-    /// Called before a `ComposeBuilder` composes its content.
-    public func willCompose() {
-    }
-
-    /// Called after a `ComposeBuilder` composes its content.
-    public func didCompose(result: ComposeResult) {
-    }
-
     /// Compose the given view's content.
     ///
     /// - Parameter context: The context to use to render the view, optionally retaining this composer.

@@ -108,6 +108,7 @@ import androidx.compose.ui.Modifier
             }
             return EnvironmentValues.shared._fillHeightModifier ?? Modifier.fillMaxHeight()
         }
+        return ComposeResult.ok
     } in: {
         // Render the container content with the above environment setup
         content(modifier)

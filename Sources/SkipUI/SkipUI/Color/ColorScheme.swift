@@ -96,6 +96,7 @@ extension View {
 @Composable public func Material3ColorScheme(_ scheme: (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?, content: @Composable () -> Void) {
     EnvironmentValues.shared.setValues {
         $0.set_material3ColorScheme(scheme)
+        return ComposeResult.ok
     } in: {
         content()
     }

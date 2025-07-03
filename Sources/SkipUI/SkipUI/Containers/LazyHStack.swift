@@ -82,6 +82,7 @@ public struct LazyHStack : View {
 
             EnvironmentValues.shared.setValues {
                 $0.set_scrollTargetBehavior(nil)
+                return ComposeResult.ok
             } in: {
                 LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                     factoryContext.value.initialize(

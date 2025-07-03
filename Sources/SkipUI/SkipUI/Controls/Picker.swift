@@ -286,6 +286,7 @@ extension View {
 
     EnvironmentValues.shared.setValues {
         $0.set_placement(ViewPlacement.tagged)
+        return ComposeResult.ok
     } in: {
         content.Compose(viewCollector)
     }

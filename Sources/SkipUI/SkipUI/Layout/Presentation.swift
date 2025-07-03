@@ -159,6 +159,7 @@ let overlayPresentationCornerRadius = 16.0
                             $0.set_sheetDepth(sheetDepth + 1)
                         }
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
+                        return ComposeResult.ok
                     } in: {
                         PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
                             contentViews.forEach { $0.Compose(context: context) }
@@ -1050,6 +1051,7 @@ final class PresentationModifierView: ComposeModifierView {
             EnvironmentValues.shared.setValues {
                 $0.set_animation(nil)
                 $0.set_searchableState(nil)
+                return ComposeResult.ok
             } in: {
                 presentation(context.content())
             }

@@ -180,6 +180,7 @@ import androidx.compose.ui.unit.dp
     let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
     EnvironmentValues.shared.setValues {
         $0.set_safeArea(contentSafeArea)
+        return ComposeResult.ok
     } in: {
         Layout(modifier: modifier.onGloballyPositionedInWindow {
             let edges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: expandInto.union(checkEdges))

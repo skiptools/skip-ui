@@ -128,6 +128,7 @@ public final class Menu : View {
                         EnvironmentValues.shared.setValues {
                             placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
                             $0.set_placement(placement)
+                            return ComposeResult.ok
                         } in: {
                             let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
                             Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)

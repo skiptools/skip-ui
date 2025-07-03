@@ -135,6 +135,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         let foregroundStyle: ShapeStyle = EnvironmentValues.shared._foregroundStyle ?? Color.accentColor
         EnvironmentValues.shared.setValues {
             $0.set_foregroundStyle(foregroundStyle)
+            return ComposeResult.ok
         } in: {
             Column(modifier: modifier) {
                 Row(modifier: List.contentModifier(level: 0), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -191,6 +192,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                     EnvironmentValues.shared.setValues {
                         $0.set_foregroundStyle(itemForegroundStyle)
                         $0.set_placement(placement.union(ViewPlacement.listItem))
+                        return ComposeResult.ok
                     } in: {
                         tableColumn.cellContent(data[index]).Compose(context: itemContext)
                     }

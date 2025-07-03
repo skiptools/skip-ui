@@ -140,6 +140,7 @@ public struct Button : View, ListItemAdapting {
                     } else {
                         $0.set_placement(placement.union(ViewPlacement.systemTextColor))
                     }
+                    return ComposeResult.ok
                 } in: {
                     FilledTonalButton(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
@@ -162,6 +163,7 @@ public struct Button : View, ListItemAdapting {
                 let contentContext = context.content()
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.systemTextColor).union(ViewPlacement.onPrimaryColor))
+                    return ComposeResult.ok
                 } in: {
                     androidx.compose.material3.Button(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
                         label.Compose(context: contentContext)
@@ -199,6 +201,7 @@ public struct Button : View, ListItemAdapting {
 
         EnvironmentValues.shared.setValues {
             $0.set_foregroundStyle(foregroundStyle)
+            return ComposeResult.ok
         } in: {
             label.Compose(context: contentContext)
         }

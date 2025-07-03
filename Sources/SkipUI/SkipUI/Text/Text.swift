@@ -165,6 +165,11 @@ public struct Text: View, Equatable {
         }
         return TextStyleInfo(style: style, color: textColor, isUppercased: isUppercased, isLowercased: isLowercased)
     }
+
+    public override func strippingModifiers<R>(until: (ComposeModifierView) -> Bool = { _ in false }, perform: (any View?) -> R) -> R {
+        let text = modifiedView === textView ? self : Text(textView: textView, modifiedView: textView)
+        return perform(text)
+    }
     #else
     public var body: some View {
         stubView()
@@ -173,7 +178,11 @@ public struct Text: View, Equatable {
 
     // SKIP @bridge
     public static func ==(lhs: Text, rhs: Text) -> Bool {
+        #if SKIP
+        return lhs.textView == rhs.textView && lhs.modifiedView == rhs.modifiedView
+        #else
         return lhs.textView == rhs.textView
+        #endif
     }
 
     // Text-specific implementations of View modifiers
@@ -552,6 +561,7 @@ func textEnvironment(for view: View, update: (inout TextEnvironment) -> Void) ->
             var textEnvironment = $0._textEnvironment
             update(&textEnvironment)
             $0.set_textEnvironment(textEnvironment)
+            return ComposeResult.ok
         } in: {
             view.Compose(context: context)
         }
