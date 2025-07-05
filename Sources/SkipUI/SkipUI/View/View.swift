@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -229,6 +230,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func badge(_ resource: LocalizedStringResource) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func badge(_ label: String) -> some View {
         return self
     }
@@ -417,6 +423,11 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func dialogSuppressionToggle(_ titleResource: LocalizedStringResource, isSuppressed: Binding<Bool>) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func dialogSuppression(_ title: String, isSuppressed: Binding<Bool>) -> some View {
         return self
     }
@@ -568,6 +579,11 @@ extension View {
 
     @available(*, unavailable)
     public func help(_ textKey: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func help(_ textResource: LocalizedStringResource) -> some View {
         return self
     }
 
@@ -1227,6 +1243,11 @@ extension View {
 
     @available(*, unavailable)
     public func typeSelectEquivalent(_ stringKey: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func typeSelectEquivalent(_ stringResource: LocalizedStringResource) -> some View {
         return self
     }
 

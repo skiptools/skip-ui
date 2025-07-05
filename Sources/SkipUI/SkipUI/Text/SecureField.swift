@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
 #endif
@@ -18,6 +19,10 @@ public struct SecureField : View {
 
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
         self.init(text: text, prompt: prompt, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, prompt: Text? = nil) {
+        self.init(text: text, prompt: prompt, label: { Text(titleResource) })
     }
 
     #if SKIP

@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
@@ -69,8 +70,18 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
         self.expandedBinding = Binding(get: { false }, set: { _ in })
     }
 
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: @escaping () -> any View) {
+        self.label = ComposeBuilder.from({ Text(titleResource) })
+        self.content = ComposeBuilder.from(content)
+        self.expandedBinding = Binding(get: { false }, set: { _ in })
+    }
+
     public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View) {
         self.init(isExpanded: isExpanded, content: content, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, isExpanded: Binding<Bool>, @ViewBuilder content: @escaping () -> any View) {
+        self.init(isExpanded: isExpanded, content: content, label: { Text(titleResource) })
     }
 
     @available(*, unavailable)

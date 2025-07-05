@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 
 public struct ControlGroup : View {
     @available(*, unavailable)
@@ -13,6 +14,10 @@ public struct ControlGroup : View {
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) /* where Content == LabeledControlGroupContent<C, Text>, C : View */ {
     }
 
     @available(*, unavailable)

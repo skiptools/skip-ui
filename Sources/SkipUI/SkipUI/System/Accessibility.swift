@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.contentDescription
@@ -67,6 +68,10 @@ extension View {
         return accessibilityLabel(Text(key), isEnabled: isEnabled)
     }
 
+    public func accessibilityLabel(_ resource: LocalizedStringResource, isEnabled: Bool = true) -> any View {
+        return accessibilityLabel(Text(resource), isEnabled: isEnabled)
+    }
+
     @available(*, unavailable)
     public func accessibilityCustomContent(_ key: AccessibilityCustomContentKey, _ value: Text?, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
         return self
@@ -74,6 +79,11 @@ extension View {
 
     @available(*, unavailable)
     public func accessibilityCustomContent(_ key: AccessibilityCustomContentKey, _ valueKey: LocalizedStringKey, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityCustomContent(_ key: AccessibilityCustomContentKey, _ valueResource: LocalizedStringResource, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
         return self
     }
 
@@ -93,12 +103,27 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func accessibilityCustomContent(_ labelResource: LocalizedStringResource, _ value: Text, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func accessibilityCustomContent(_ labelKey: LocalizedStringKey, _ valueKey: LocalizedStringKey, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
         return self
     }
 
     @available(*, unavailable)
+    public func accessibilityCustomContent(_ labelResource: LocalizedStringResource, _ valueResource: LocalizedStringResource, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func accessibilityCustomContent(_ labelKey: LocalizedStringKey, _ value: String, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityCustomContent(_ labelResource: LocalizedStringResource, _ value: String, importance: Any? = nil /*AXCustomContent.Importance = .default*/) -> some View {
         return self
     }
 
@@ -122,6 +147,10 @@ extension View {
 
     public func accessibilityHint(_ hintKey: LocalizedStringKey) -> some View {
         return accessibilityHint(Text(hintKey))
+    }
+
+    public func accessibilityHint(_ hintResource: LocalizedStringResource) -> some View {
+        return accessibilityHint(Text(hintResource))
     }
 
     public func accessibilityHint(_ hint: String) -> some View {
@@ -157,6 +186,11 @@ extension View {
 
     @available(*, unavailable)
     public func accessibilityAction(named nameKey: LocalizedStringKey, _ handler: @escaping () -> Void) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityAction(named nameResource: LocalizedStringResource, _ handler: @escaping () -> Void) -> some View {
         return self
     }
 
@@ -211,12 +245,22 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func accessibilityRotor(_ labelResource: LocalizedStringResource, entries: @escaping () -> any AccessibilityRotorContent) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
     public func accessibilityRotor(_ label: String, entries: @escaping () -> any AccessibilityRotorContent) -> some View {
         return self
     }
 
     @available(*, unavailable)
     public func accessibilityRotor<EntryModel>(_ rotorLabelKey: LocalizedStringKey, entries: [EntryModel], entryLabel: Any /* KeyPath<EntryModel, String> */) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityRotor<EntryModel>(_ rotorLabelResource: LocalizedStringResource, entries: [EntryModel], entryLabel: Any /* KeyPath<EntryModel, String> */) -> some View {
         return self
     }
 
@@ -231,12 +275,22 @@ extension View {
     }
 
     @available(*, unavailable)
+    public func accessibilityRotor<EntryModel, ID>(_ rotorLabelResource: LocalizedStringResource, entries: [EntryModel], entryID: Any /* KeyPath<EntryModel, ID> */, entryLabel: Any /* KeyPath<EntryModel, String> */) -> some View where ID : Hashable {
+        return self
+    }
+
+    @available(*, unavailable)
     public func accessibilityRotor<EntryModel, ID>(_ rotorLabel: String, entries: [EntryModel], entryID: Any /* KeyPath<EntryModel, ID> */, entryLabel: Any /* KeyPath<EntryModel, String> */) -> some View where ID : Hashable {
         return self
     }
 
     @available(*, unavailable)
     public func accessibilityRotor(_ labelKey: LocalizedStringKey, textRanges: [Range<Int>]) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func accessibilityRotor(_ labelResource: LocalizedStringResource, textRanges: [Range<Int>]) -> some View {
         return self
     }
 
@@ -434,6 +488,10 @@ extension View {
         return accessibilityValue(Text(key))
     }
 
+    public func accessibilityValue(_ resource: LocalizedStringResource) -> any View {
+        return accessibilityValue(Text(resource))
+    }
+
     @available(*, unavailable)
     public func accessibilityScrollAction(_ handler: @escaping (Edge) -> Void) -> some View {
         return self
@@ -481,11 +539,11 @@ public struct AccessibilityCustomContentKey : Equatable {
     public init(_ labelKey: LocalizedStringKey) {
     }
 
-//    public init(_ label: LocalizedStringResource, id: String) {
-//    }
-//
-//    public init(_ label: LocalizedStringResource) {
-//    }
+    public init(_ label: LocalizedStringResource, id: String) {
+    }
+
+    public init(_ label: LocalizedStringResource) {
+    }
 }
 
 public struct AccessibilityDirectTouchOptions : OptionSet {
@@ -537,13 +595,22 @@ public struct AccessibilityRotorEntry<ID>: AccessibilityRotorContent where ID : 
     public init(_ labelKey: LocalizedStringKey, id: ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
     }
 
+    public init(_ labelResource: LocalizedStringResource, id: ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
+    }
+
     public init(_ label: String, id: ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
     }
 
     public init(_ labelKey: LocalizedStringKey, id: ID, in namespace: Namespace.ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
     }
 
+    public init(_ labelResource: LocalizedStringResource, id: ID, in namespace: Namespace.ID, textRange: Range<Int>? = nil, prepare: @escaping (() -> Void) = {}) {
+    }
+
     public init(_ labelKey: LocalizedStringKey, textRange: Range<Int>, prepare: @escaping (() -> Void) = {}) {
+    }
+
+    public init(_ labelResource: LocalizedStringResource, textRange: Range<Int>, prepare: @escaping (() -> Void) = {}) {
     }
 
     public init(_ label: String, textRange: Range<Int>, prepare: @escaping (() -> Void) = {}) {

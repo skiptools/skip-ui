@@ -634,6 +634,12 @@ public struct Tab : TabContent {
         self.value = value
     }
 
+    public init(_ titleResource: LocalizedStringResource, image: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(titleResource, image: image))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
     public init(_ title: String, systemImage: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
         self.label = ComposeBuilder(view: Label(title, systemImage: systemImage))
         self.content = ComposeBuilder.from { content() }
@@ -642,6 +648,12 @@ public struct Tab : TabContent {
 
     public init(_ titleKey: LocalizedStringKey, systemImage: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
         self.label = ComposeBuilder(view: Label(titleKey, systemImage: systemImage))
+        self.content = ComposeBuilder.from { content() }
+        self.value = value
+    }
+
+    public init(_ titleResource: LocalizedStringResource, systemImage: String, value: Any?, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.label = ComposeBuilder(view: Label(titleResource, systemImage: systemImage))
         self.content = ComposeBuilder.from { content() }
         self.value = value
     }
@@ -683,12 +695,20 @@ public struct Tab : TabContent {
         self.init(titleKey, image: image, value: nil, role: role, content: content)
     }
 
+    public init(_ titleResource: LocalizedStringResource, image: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(titleResource, image: image, value: nil, role: role, content: content)
+    }
+
     public init(_ title: String, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
         self.init(title, systemImage: systemImage, value: nil, role: role, content: content)
     }
 
     public init(_ titleKey: LocalizedStringKey, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
         self.init(titleKey, systemImage: systemImage, value: nil, role: role, content: content)
+    }
+
+    public init(_ titleResource: LocalizedStringResource, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> any View) {
+        self.init(titleResource, systemImage: systemImage, value: nil, role: role, content: content)
     }
 
     public init(role: TabRole? = nil, @ViewBuilder content: () -> any View) {
@@ -768,6 +788,10 @@ public struct TabSection : TabContent {
     }
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
+        self.content = ComposeBuilder.from { content() }
+    }
+
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
         self.content = ComposeBuilder.from { content() }
     }
 

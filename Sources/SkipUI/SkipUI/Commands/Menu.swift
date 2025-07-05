@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -42,6 +43,10 @@ public final class Menu : View {
         self.init(content: content, label: { Text(titleKey) })
     }
 
+    public convenience init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
+        self.init(content: content, label: { Text(titleResource) })
+    }
+
     public convenience init(_ title: String, @ViewBuilder content: () -> any View) {
         self.init(content: content, label: { Text(verbatim: title) })
     }
@@ -56,6 +61,10 @@ public final class Menu : View {
 
     public convenience init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
         self.init(content: content, label: { Text(titleKey) }, primaryAction: primaryAction)
+    }
+
+    public convenience init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {
+        self.init(content: content, label: { Text(titleResource) }, primaryAction: primaryAction)
     }
 
     public convenience init(_ title: String, @ViewBuilder content: () -> any View, primaryAction: @escaping () -> Void) {

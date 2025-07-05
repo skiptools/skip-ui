@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -67,6 +68,10 @@ extension View {
     }
 
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringKey) -> any View {
+        return searchable(text: text, placement: placement, prompt: Text(prompt))
+    }
+
+    public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: LocalizedStringResource) -> any View {
         return searchable(text: text, placement: placement, prompt: Text(prompt))
     }
 

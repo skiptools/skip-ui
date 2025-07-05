@@ -72,9 +72,21 @@ public final class ShareLink : View {
         }
     }
 
+    public convenience init(_ titleResource: LocalizedStringResource, item: URL, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item.absoluteString, subject: subject, message: message) {
+            Label(titleResource, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
     public convenience init(_ titleKey: LocalizedStringKey, item: String, subject: Text? = nil, message: Text? = nil) {
         self.init(text: item, subject: subject, message: message) {
             Label(titleKey, systemImage: Self.defaultSystemImageName)
+        }
+    }
+
+    public convenience init(_ titleResource: LocalizedStringResource, item: String, subject: Text? = nil, message: Text? = nil) {
+        self.init(text: item, subject: subject, message: message) {
+            Label(titleResource, systemImage: Self.defaultSystemImageName)
         }
     }
 

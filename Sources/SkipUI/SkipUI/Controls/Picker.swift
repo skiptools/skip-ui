@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -47,6 +48,10 @@ public struct Picker<SelectionValue> : View, ListItemAdapting {
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {
         self.init(selection: selection, content: content, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {
+        self.init(selection: selection, content: content, label: { Text(titleResource) })
     }
 
     public init(_ title: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View) {

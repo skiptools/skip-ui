@@ -361,9 +361,19 @@ public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, value: (Obje
     return TableColumn(columnHeader: Text(titleKey).bold(), columnWidth: .default, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
 }
 
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleResource: LocalizedStringResource, value: (ObjectType) -> String, comparator: Any? = null): TableColumn
+public func TableColumn<ObjectType>(_ titleResource: LocalizedStringResource, value: (ObjectType) -> String, comparator: Any? = nil) -> TableColumn {
+    return TableColumn(columnHeader: Text(titleResource).bold(), columnWidth: .default, cellContent: { Text(verbatim: value($0 as! ObjectType)) })
+}
+
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleKey: LocalizedStringKey, value: Any? = null, comparator: Any? = null, content: (ObjectType) -> View): TableColumn
 public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, value: Any? = nil, comparator: Any? = nil, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
     return TableColumn(columnHeader: Text(titleKey).bold(), columnWidth: .default, cellContent: { content($0 as! ObjectType) })
+}
+
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleResource: LocalizedStringResource, value: Any? = null, comparator: Any? = null, content: (ObjectType) -> View): TableColumn
+public func TableColumn<ObjectType>(_ titleResource: LocalizedStringResource, value: Any? = nil, comparator: Any? = nil, @ViewBuilder content: @escaping (ObjectType) -> any View) -> TableColumn {
+    return TableColumn(columnHeader: Text(titleResource).bold(), columnWidth: .default, cellContent: { content($0 as! ObjectType) })
 }
 
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, title: Text, value: (ObjectType) -> String, comparator: Any? = null): TableColumn
@@ -388,9 +398,15 @@ public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, sortUsing co
     fatalError()
 }
 
+// SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, titleResource: LocalizedStringResource, sortUsing: Any, content: (ObjectType) -> View): TableColumn
+@available(*, unavailable)
+public func TableColumn<ObjectType>(_ titleResource: LocalizedStringResource, sortUsing comparator: Any, @ViewBuilder content: @escaping (ObjectType) -> Content) -> TableColumn {
+    fatalError()
+}
+
 // SKIP DECLARE: fun <ObjectType> TableColumn(data: RandomAccessCollection<ObjectType>, text: Text, sortUsing: Any, content: (ObjectType) -> View): TableColumn
 @available(*, unavailable)
-public func TableColumn<ObjectType>(_ titleKey: LocalizedStringKey, sortUsing comparator: Any, @ViewBuilder content: @escaping (ObjectType) -> Content) -> TableColumn {
+public func TableColumn<ObjectType>(_ text: Text, sortUsing comparator: Any, @ViewBuilder content: @escaping (ObjectType) -> Content) -> TableColumn {
     fatalError()
 }
 #endif

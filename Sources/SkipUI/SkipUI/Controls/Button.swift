@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -43,12 +44,20 @@ public struct Button : View, ListItemAdapting {
         self.init(action: action, label: { Text(titleKey) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, action: @escaping () -> Void) {
+        self.init(action: action, label: { Text(titleResource) })
+    }
+
     public init(_ title: String, systemImage: String, role: ButtonRole? = nil, action: @escaping () -> Void) {
         self.init(role: role, action: action, label: { Label(title, systemImage: systemImage) })
     }
 
     public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole? = nil, action: @escaping () -> Void) {
         self.init(role: role, action: action, label: { Label(titleKey, systemImage: systemImage) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, systemImage: String, role: ButtonRole? = nil, action: @escaping () -> Void) {
+        self.init(role: role, action: action, label: { Label(titleResource, systemImage: systemImage) })
     }
 
     public init(role: ButtonRole?, action: @escaping () -> Void, @ViewBuilder label: () -> any View) {
@@ -63,6 +72,10 @@ public struct Button : View, ListItemAdapting {
 
     public init(_ titleKey: LocalizedStringKey, role: ButtonRole?, action: @escaping () -> Void) {
         self.init(role: role, action: action, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, role: ButtonRole?, action: @escaping () -> Void) {
+        self.init(role: role, action: action, label: { Text(titleResource) })
     }
 
     public init(role: ButtonRole, action: @escaping () -> Void) {

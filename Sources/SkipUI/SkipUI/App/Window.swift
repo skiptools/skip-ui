@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 
 public struct WindowGroup : Scene {
     @available(*, unavailable)
@@ -13,6 +14,10 @@ public struct WindowGroup : Scene {
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, id: String, @ViewBuilder content: () -> any View) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, id: String, @ViewBuilder content: () -> any View) {
     }
 
     @available(*, unavailable)
@@ -32,6 +37,10 @@ public struct WindowGroup : Scene {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
+    }
+
+    @available(*, unavailable)
     public init(_ title: String, @ViewBuilder content: () -> any View) {
     }
 
@@ -45,6 +54,10 @@ public struct WindowGroup : Scene {
 
     @available(*, unavailable)
     public init /* <D> */(_ titleKey: LocalizedStringKey, id: String, for type: Any.Type /* D.Type */, @ViewBuilder content: @escaping (Binding<Any? /* D? */>) -> any View) /* where D : Decodable, D : Encodable, D : Hashable */ {
+    }
+
+    @available(*, unavailable)
+    public init /* <D> */(_ titleResource: LocalizedStringResource, id: String, for type: Any.Type /* D.Type */, @ViewBuilder content: @escaping (Binding<Any? /* D? */>) -> any View) /* where D : Decodable, D : Encodable, D : Hashable */ {
     }
 
     @available(*, unavailable)
@@ -64,6 +77,10 @@ public struct WindowGroup : Scene {
     }
 
     @available(*, unavailable)
+    public init /* <D> */(_ titleResource: LocalizedStringResource, for type: Any.Type /* D.Type */, @ViewBuilder content: @escaping (Binding<Any? /* D? */>) -> any View) /* where D : Decodable, D : Encodable, D : Hashable */ {
+    }
+
+    @available(*, unavailable)
     public init /* <D> */(_ title: String, for type: Any.Type /* D.Type */, unusedp: Any? = nil, @ViewBuilder content: @escaping (Binding<Any? /* D? */>) -> any View) /* where D : Decodable, D : Encodable, D : Hashable */ {
     }
 
@@ -80,6 +97,10 @@ public struct WindowGroup : Scene {
     }
 
     @available(*, unavailable)
+    public init /* <D> */(_ titleResource: LocalizedStringResource, id: String, for type: Any.Type? = nil /* D.Type = D.self */, @ViewBuilder content: @escaping (Binding<Any /* D */>) -> any View, defaultValue: @escaping () -> Any /* D */) /* where D : Decodable, D : Encodable, D : Hashable */ {
+    }
+
+    @available(*, unavailable)
     public init /* <D> */(_ title: String, id: String, for type: Any.Type? = nil /* D.Type = D.self */, @ViewBuilder content: @escaping (Binding<Any /* D */>) -> any View, defaultValue: @escaping () -> Any /* D */) /* where D : Decodable, D : Encodable, D : Hashable */ {
     }
 
@@ -93,6 +114,10 @@ public struct WindowGroup : Scene {
 
     @available(*, unavailable)
     public init /* <D> */(_ titleKey: LocalizedStringKey, for type: Any.Type? = nil /* D.Type = D.self */, @ViewBuilder content: @escaping (Binding<Any /* D */>) -> any View, defaultValue: @escaping () -> Any /* D */) /* where D : Decodable, D : Encodable, D : Hashable */ {
+    }
+
+    @available(*, unavailable)
+    public init /* <D> */(_ titleResource: LocalizedStringResource, for type: Any.Type? = nil /* D.Type = D.self */, @ViewBuilder content: @escaping (Binding<Any /* D */>) -> any View, defaultValue: @escaping () -> Any /* D */) /* where D : Decodable, D : Encodable, D : Hashable */ {
     }
 
     @available(*, unavailable)

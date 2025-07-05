@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
 #endif
@@ -46,6 +47,10 @@ public struct Section : View, LazyItemFactory {
         self.init(content: content, header: { Text(titleKey) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
+        self.init(content: content, header: { Text(titleResource) })
+    }
+
     public init(_ title: String, @ViewBuilder content: () -> any View) {
         self.init(content: content, header: { Text(verbatim: title) })
     }
@@ -53,6 +58,11 @@ public struct Section : View, LazyItemFactory {
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
         self.init(titleKey, content: content)
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, isExpanded: Binding<Bool>, @ViewBuilder content: () -> any View) {
+        self.init(titleResource, content: content)
     }
 
     @available(*, unavailable)

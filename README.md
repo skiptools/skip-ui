@@ -651,6 +651,7 @@ Support levels:
               <ul>
                   <li><code>init(isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ titleKey: LocalizedStringKey, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
+                    <li><code>init(_ titleResource: LocalizedStringResource, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
                   <li><code>init(_ label: String, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
                   <li>Does not animate when used as a <code>List</code> or <code>Form</code> item</li>
                   <li>Always animates when **not** used as a <code>List</code> or <code>Form</code> item</li>
@@ -937,9 +938,11 @@ Support levels:
                   <li><code>init(value: Double?, total: Double = 1.0)</code></li>
                   <li><code>init(@ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ titleKey: LocalizedStringKey)</code></li>
+                  <li><code>init(_ titleResource: LocalizedStringResource)</code></li>
                   <li><code>init(_ title: String)</code></li>
                   <li><code>init(value: Double?, total: Double = 1.0, @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ titleKey: LocalizedStringKey, value: Double?, total: Double = 1.0)</code></li>
+                  <li><code>init(_ titleResource: LocalizedStringResource, value: Double?, total: Double = 1.0)</code></li>
                   <li><code>init(_ title: String, value: Double?, total: Double = 1.0)</code></li>
               </ul>
           </details>      
