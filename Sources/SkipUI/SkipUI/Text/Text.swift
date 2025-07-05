@@ -56,8 +56,6 @@ public struct Text: View, Equatable {
         modifiedView = textView
     }
 
-    //~~~ HOW IS SKIP DECIDING WHETHER TO USE THIS OR THE RESOURCE CONSTRUCTOR BELOW?
-    //~~~ THIS ONE IS MORE EFFICIENT
     public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = Bundle.main, comment: StaticString? = nil) {
         textView = _Text(key: key, tableName: tableName, bundle: bundle)
         modifiedView = textView
