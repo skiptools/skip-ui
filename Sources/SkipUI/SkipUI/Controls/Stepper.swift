@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 
 public struct Stepper : View {
     @available(*, unavailable)
@@ -28,6 +29,10 @@ public struct Stepper : View {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    }
+
+    @available(*, unavailable)
     public init(_ title: String, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
     }
 
@@ -36,7 +41,15 @@ public struct Stepper : View {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    }
+
+    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
     }
 
     @available(*, unavailable)
@@ -52,7 +65,15 @@ public struct Stepper : View {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Int>, in bounds: Range<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    }
+
+    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
     }
 
     @available(*, unavailable)

@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,10 @@ public struct ProgressView : View {
         self.init(titleKey, value: nil)
     }
 
+    public init(_ titleResource: LocalizedStringResource) {
+        self.init(titleResource, value: nil)
+    }
+
     public init(_ title: String) {
         self.init(title, value: nil)
     }
@@ -53,6 +58,10 @@ public struct ProgressView : View {
 
     public init(_ titleKey: LocalizedStringKey, value: Double?, total: Double = 1.0) {
         self.init(value: value, total: total, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, value: Double?, total: Double = 1.0) {
+        self.init(value: value, total: total, label: { Text(titleResource) })
     }
 
     public init(_ title: String, value: Double?, total: Double = 1.0) {

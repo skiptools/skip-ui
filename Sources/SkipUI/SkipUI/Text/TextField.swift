@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardActions
@@ -57,14 +58,28 @@ public struct TextField : View {
         self.init(text: text, prompt: prompt, label: { Text(titleKey) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, prompt: Text? = nil) {
+        self.init(text: text, prompt: prompt, label: { Text(titleResource) })
+    }
+
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) {
         self.init(titleKey, text: text)
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, axis: Axis) {
+        self.init(titleResource, text: text)
+    }
+
+    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?, axis: Axis) {
         self.init(titleKey, text: text, prompt: prompt)
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, prompt: Text?, axis: Axis) {
+        self.init(titleResource, text: text, prompt: prompt)
     }
 
     @available(*, unavailable)

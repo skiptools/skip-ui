@@ -33,6 +33,10 @@ public final class Link : View {
         self.init(destination: destination, label: { Text(titleKey) })
     }
 
+    public convenience init(_ titleResource: LocalizedStringResource, destination: URL) {
+        self.init(destination: destination, label: { Text(titleResource) })
+    }
+
     public convenience init(_ title: String, destination: URL) {
         self.init(destination: destination, label: { Text(verbatim: title) })
     }

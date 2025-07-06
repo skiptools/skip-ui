@@ -1,6 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
+import Foundation
 #if SKIP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -39,6 +40,11 @@ public struct Toggle : View {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, sources: Any, isOn: (Any) -> Binding<Bool>) {
+        self.init(isOn: isOn(0), label: { Text(titleResource) })
+    }
+
+    @available(*, unavailable)
     public init(_ title: String, sources: Any, isOn: (Any) -> Binding<Bool>) {
         self.init(isOn: isOn(0), label: { Text(verbatim: title) })
     }
@@ -46,6 +52,10 @@ public struct Toggle : View {
     #if SKIP
     public init(_ titleKey: LocalizedStringKey, isOn: Binding<Bool>) {
         self.init(isOn: isOn, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, isOn: Binding<Bool>) {
+        self.init(isOn: isOn, label: { Text(titleResource) })
     }
 
     public init(_ title: String, isOn: Binding<Bool>) {

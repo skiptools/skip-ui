@@ -634,6 +634,10 @@ extension View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions)
     }
 
+    public func alert(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
+        return alert(Text(titleResource), isPresented: isPresented, actions: actions)
+    }
+
     public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, actions: actions)
     }
@@ -656,6 +660,10 @@ extension View {
 
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions, message: message)
+    }
+
+    public func alert(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
+        return alert(Text(titleResource), isPresented: isPresented, actions: actions, message: message)
     }
 
     public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
@@ -682,6 +690,10 @@ extension View {
         return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions)
     }
 
+    public func alert<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
+        return alert(Text(titleResource), isPresented: isPresented, presenting: data, actions: actions)
+    }
+
     public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
         return alert(Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions)
     }
@@ -702,6 +714,10 @@ extension View {
 
     public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions, message: message)
+    }
+
+    public func alert<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
+        return alert(Text(titleResource), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
     public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
@@ -776,6 +792,10 @@ extension View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
 
+    public func confirmationDialog(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
+        return confirmationDialog(Text(titleResource), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
+    }
+
     public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions)
     }
@@ -798,6 +818,10 @@ extension View {
 
     public func confirmationDialog(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
+    }
+
+    public func confirmationDialog(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
+        return confirmationDialog(Text(titleResource), isPresented: isPresented, titleVisibility: titleVisibility, actions: actions, message: message)
     }
 
     public func confirmationDialog(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
@@ -824,6 +848,10 @@ extension View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
     }
 
+    public func confirmationDialog<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(titleResource), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
+    }
+
     public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(verbatim: title), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions)
     }
@@ -844,6 +872,10 @@ extension View {
 
     public func confirmationDialog<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
         return confirmationDialog(Text(titleKey), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
+    }
+
+    public func confirmationDialog<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {
+        return confirmationDialog(Text(titleResource), isPresented: isPresented, titleVisibility: titleVisibility, presenting: data, actions: actions, message: message)
     }
 
     public func confirmationDialog<T>(_ title: String, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, presenting data: T?, @ViewBuilder actions: @escaping (T) -> any View, @ViewBuilder message: @escaping (T) -> any View) -> any View {

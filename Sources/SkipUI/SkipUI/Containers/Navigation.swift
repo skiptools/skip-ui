@@ -1039,6 +1039,14 @@ extension View {
         #endif
     }
 
+    public func navigationTitle(_ title: LocalizedStringResource) -> some View {
+        #if SKIP
+        return preference(key: NavigationTitlePreferenceKey.self, value: Text(title))
+        #else
+        return self
+        #endif
+    }
+
     public func navigationTitle(_ title: String) -> some View {
         #if SKIP
         return preference(key: NavigationTitlePreferenceKey.self, value: Text(verbatim: title))
@@ -1059,6 +1067,11 @@ extension View {
 
     @available(*, unavailable)
     public func navigationSubtitle(_ subtitle: LocalizedStringKey) -> some View {
+        return self
+    }
+
+    @available(*, unavailable)
+    public func navigationSubtitle(_ subtitle: LocalizedStringResource) -> some View {
         return self
     }
 
@@ -1170,6 +1183,10 @@ public struct NavigationLink : View, ListItemAdapting {
         self.init(value: value, label: { Text(titleKey) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, value: Any?) {
+        self.init(value: value, label: { Text(titleResource) })
+    }
+
     public init(@ViewBuilder destination: () -> any View, @ViewBuilder label: () -> any View) {
         self.value = nil
         self.destination = ComposeBuilder.from(destination)
@@ -1182,6 +1199,10 @@ public struct NavigationLink : View, ListItemAdapting {
 
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> any View) {
         self.init(destination: destination, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder destination: () -> any View) {
+        self.init(destination: destination, label: { Text(titleResource) })
     }
 
     // SKIP @bridge

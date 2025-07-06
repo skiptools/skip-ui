@@ -63,7 +63,7 @@ public struct Text: View, Equatable {
 
     public init(_ resource: LocalizedStringResource) {
         #if SKIP // LocalizedStringResource.keyAndValue is not accessible via Foundation
-        textView = _Text(key: LocalizedStringKey(resource), tableName: resource.table, bundle: resource.bundle?.bundle ?? Bundle.main)
+        textView = _Text(key: LocalizedStringKey(resource), tableName: resource.table, locale: resource.locale, bundle: resource.bundle?.bundle ?? Bundle.main)
         #else
         textView = _Text(verbatim: "MissingLocalizedStringResource")
         #endif
@@ -80,9 +80,10 @@ public struct Text: View, Equatable {
     }
 
     // SKIP @bridge
-    public init(keyPattern: String, keyValues: [Any]?, tableName: String?, bridgedBundle: Any?) {
+    public init(keyPattern: String, keyValues: [Any]?, tableName: String?, localeIdentifier: String?, bridgedBundle: Any?) {
         let interpolation = LocalizedStringKey.StringInterpolation(pattern: keyPattern, values: keyValues)
-        textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, bundle: bridgedBundle as? Bundle)
+        let locale = localeIdentifier == nil ? nil : Locale(identifier: localeIdentifier!)
+        textView = _Text(key: LocalizedStringKey(stringInterpolation: interpolation), tableName: tableName, locale: locale, bundle: bridgedBundle as? Bundle)
         modifiedView = textView
     }
 
@@ -346,13 +347,15 @@ struct _Text: View, Equatable {
     let attributedString: AttributedString?
     let key: LocalizedStringKey?
     let tableName: String?
+    let locale: Locale?
     let bundle: Bundle?
 
-    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, bundle: Bundle? = nil) {
+    init(verbatim: String? = nil, attributedString: AttributedString? = nil, key: LocalizedStringKey? = nil, tableName: String? = nil, locale: Locale? = nil, bundle: Bundle? = nil) {
         self.verbatim = verbatim
         self.attributedString = attributedString
         self.key = key
         self.tableName = tableName
+        self.locale = locale
         self.bundle = bundle
     }
 
@@ -373,7 +376,7 @@ struct _Text: View, Equatable {
 
         // localize and Kotlin-ize the format string. the string is cached by the bundle, and we
         // cache the Kotlin-ized version too so that we don't have to convert it on every compose
-        let locale = EnvironmentValues.shared.locale
+        let locale = self.locale ?? EnvironmentValues.shared.locale
         if let (_, locfmt, locnode) = (self.bundle ?? Bundle.main).localizedInfo(forKey: key.patternFormat, value: nil, table: self.tableName, locale: locale) {
             return (locfmt, locnode, key.stringInterpolation.values)
         } else {

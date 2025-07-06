@@ -35,8 +35,16 @@ public struct Label : View {
         self.init(title: { Text(titleKey) }, icon: { Image(image, bundle: .main) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, image: String) {
+        self.init(title: { Text(titleResource) }, icon: { Image(image, bundle: .main) })
+    }
+
     public init(_ titleKey: LocalizedStringKey, systemImage: String) {
         self.init(title: { Text(titleKey) }, icon: { Image(systemName: systemImage) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, systemImage: String) {
+        self.init(title: { Text(titleResource) }, icon: { Image(systemName: systemImage) })
     }
 
     public init(_ title: String, image: String) {
@@ -138,11 +146,19 @@ public struct LabeledContent {
     }
 
     @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
+    }
+
+    @available(*, unavailable)
     public init(_ title: String, @ViewBuilder content: () -> any View) {
     }
 
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, value: String) {
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, value: String) {
     }
 
     @available(*, unavailable)

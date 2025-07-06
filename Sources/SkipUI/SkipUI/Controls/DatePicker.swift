@@ -76,9 +76,18 @@ public struct DatePicker : View {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
     }
 
+    public init(_ titleResource: LocalizedStringResource, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleResource) })
+    }
+
     @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
+    }
+
+    @available(*, unavailable)
+    public init(_ titleResource: LocalizedStringResource, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleResource) })
     }
 
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
