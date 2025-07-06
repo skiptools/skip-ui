@@ -73,7 +73,45 @@ public protocol ContentComposer {
 }
 ```
 
-Remember that any data you pass to your `ContentComposer` must be bridged from your compiled Swift to your `#if SKIP` block's transpiled Kotlin. Simple data types like the `String` used in the example above bridge automatically. See the [bridging](https://skip.tools/docs/modes/#bridging) documentation for information on bridging your own data types.
+#### Passing State
+
+Remember that any data you pass to your `ContentComposer` must be bridged from your compiled Swift to your `#if SKIP` block's transpiled Kotlin. Simple data types like the `String` used in the example above bridge automatically. 
+
+Skip also allows you to pass many built-in SwiftUI types. These types will bridge to their `SkipUI` implementations, which have been enhanced to allow you to use them in Compose. Examples include:
+
+- `Color`: Pass any `Color` value to your `ContentComposer`, then use the `SkipUI.Color.asComposeColor()` function within your Compose code to get an `androidx.compose.ui.graphics.Color` value.
+- `Font`: Similarly, pass any `Font` value and use the `SkipUI.Font.asComposeTextStyle()` function to get an `androidx.compose.ui.text.TextStyle`.
+- `Image`: You can pass a native `Image` to your `ContentComposer` and receive the equivalent `SkipUI.Image`. Images, however, do not have a one-to-one equivalent Compose value type. You can still call `Image.Compose(context:)` to render it in your Compose code.
+` `Text`: Passing a `Text` is a useful way to encapsulate a localizable string value. Call `SkipUI.Text.localizedTextString()` within your Compose code to get the localized value.
+
+Here is sample code using some of these techniques:
+
+```swift
+
+...
+
+#if os(Android)
+ComposeView {
+    MessageComposer(message: Text("Welcome"), textColor: .red)
+}
+#endif
+
+...
+
+#if SKIP
+struct MessageComposer : ContentComposer {
+    let message: Text
+    let textColor: Color
+
+    @Composable override func Compose(context: ComposeContext) {
+        androidx.compose.material3.Text(message.localizedTextString(), color: textColor.asComposeColor())
+    }
+}
+#endif
+
+```
+
+See the [bridging](https://skip.tools/docs/modes/#bridging) documentation for information on bridging your own data types.
 
 ### Skip Lite
 
