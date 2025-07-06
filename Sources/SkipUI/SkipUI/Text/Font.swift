@@ -23,6 +23,11 @@ public struct Font : Hashable {
         self.fontImpl = fontImpl
     }
 
+    /// Return the equivalent Compose text style.
+    @Composable public func asComposeTextStyle() -> androidx.compose.ui.text.TextStyle {
+        return fontImpl()
+    }
+
     // M3: Default Font Size/Line Height
     // displayLarge: Roboto 57/64
     // displayMedium: Roboto 45/52
