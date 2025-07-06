@@ -82,7 +82,7 @@ Skip also allows you to pass many built-in SwiftUI types. These types will bridg
 - `Color`: Pass any `Color` value to your `ContentComposer`, then use the `SkipUI.Color.asComposeColor()` function within your Compose code to get an `androidx.compose.ui.graphics.Color` value.
 - `Font`: Similarly, pass any `Font` value and use the `SkipUI.Font.asComposeTextStyle()` function to get an `androidx.compose.ui.text.TextStyle`.
 - `Image`: You can pass a native `Image` to your `ContentComposer` and receive the equivalent `SkipUI.Image`. Images, however, do not have a one-to-one equivalent Compose value type. You can still call `Image.Compose(context:)` to render it in your Compose code.
-` `Text`: Passing a `Text` is a useful way to encapsulate a localizable string value. Call `SkipUI.Text.localizedTextString()` within your Compose code to get the localized value.
+- `Text`: Passing a `Text` is a useful way to encapsulate a localizable string value. Call `SkipUI.Text.localizedTextString()` within your Compose code to get the localized value.
 
 Here is sample code using some of these techniques:
 
