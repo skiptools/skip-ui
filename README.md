@@ -1346,7 +1346,6 @@ Support levels:
               </ul>
           </details>      
        </td>
-      <td><code>.background</code> (<a href="https://skip.tools/docs/components/background/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
