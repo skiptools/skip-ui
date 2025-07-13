@@ -446,10 +446,9 @@ extension View {
         return toolbarTitleDisplayMode(ToolbarTitleDisplayMode(rawValue: bridgedMode) ?? .automatic)
     }
 
-    @available(*, unavailable)
     public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> some View {
         #if SKIP
-        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(titleMenu: content()))
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(titleMenu: ComposeBuilder.from(content)))
         #else
         return self
         #endif
@@ -556,9 +555,9 @@ struct ToolbarContentPreferenceKey: PreferenceKey {
 
 struct ToolbarContentPreferences: Equatable {
     let content: [View]?
-    let titleMenu: View?
+    let titleMenu: ComposeBuilder?
 
-    init(content: [View]? = nil, titleMenu: View? = nil) {
+    init(content: [View]? = nil, titleMenu: ComposeBuilder? = nil) {
         self.content = content
         self.titleMenu = titleMenu
     }
