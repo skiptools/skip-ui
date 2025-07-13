@@ -33,8 +33,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -345,7 +348,42 @@ public struct NavigationStack : View {
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
                     let topBarTitle: @Composable () -> Void = {
-                        androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        let titleMenu = toolbarContent.value.reduced.titleMenu
+                        if let titleMenu = titleMenu {
+                            let isMenuExpanded = remember { mutableStateOf(false) }
+                            
+                            Box {
+                                Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {
+                                        isMenuExpanded.value = !isMenuExpanded.value 
+                                    }
+                                ) {
+                                    androidx.compose.material3.Text(
+                                        text = arguments.title.localizedTextString(),
+                                        maxLines = 1, 
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Icon(
+                                        imageVector = Icons.Outlined.ArrowDropDown,
+                                        contentDescription = "Menu"
+                                    )
+                                }
+                                
+                                DropdownMenu(
+                                    expanded = isMenuExpanded.value,
+                                    onDismissRequest = { isMenuExpanded.value = false }
+                                ) {
+                                    let menuContext = context.content()
+                                    let itemViews = titleMenu.collectViews(context: menuContext)
+                                    let replaceMenu: (Menu?) -> Void = { menu in
+                                        isMenuExpanded.value = false
+                                    }
+                                    Menu.ComposeDropdownMenuItems(for: itemViews, context: menuContext, replaceMenu: replaceMenu)
+                                }
+                            }
+                        } else {
+                            androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        }
                     }
                     let topBarNavigationIcon: @Composable () -> Void = {
                         let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
