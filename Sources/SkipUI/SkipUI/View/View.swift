@@ -9,7 +9,9 @@ import skip.model.StateTracking
 // SKIP @bridge
 public protocol View {
     #if SKIP
-    // SKIP DECLARE: fun body(): View = EmptyView()
+    // Note: We default the body to invoke the deprecated `ComposeContent` function for backwards compatibility
+    // with custom pre-Renderable views that overrode `ComposeContent`
+    // SKIP DECLARE: fun body(): View = ComposeView({ ComposeContent(it) })
     @ViewBuilder @MainActor var body: any View { get }
     #else
     associatedtype Body : View
@@ -24,6 +26,10 @@ extension View {
     /// - Seealso: `Compose(context:)`
     @Composable public func Compose() -> ComposeResult {
         return Compose(context: ComposeContext())
+    }
+
+    /// DEPRECATED
+    @Composable public func ComposeContent(context: ComposeContext) {
     }
 
     /// Compose this view's content.
@@ -71,6 +77,9 @@ extension View {
     }
 }
 
+/// Helper for the rare cases that we want to treat a `View` as a `Renderable` without evaluating it.
+///
+/// - Warning: For special cases only.
 final class ViewRenderable: Renderable {
     let view: View
 
