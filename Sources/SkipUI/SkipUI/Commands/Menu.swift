@@ -139,7 +139,7 @@ public final class Menu : View, Renderable {
                             $0.set_placement(placement)
                             return ComposeResult.ok
                         } in: {
-                            let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context)
+                            let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context, options: 0)
                             Self.RenderDropdownMenuItems(for: renderables, context: contentContext, replaceMenu: replaceMenu)
                         }
                     }
@@ -177,11 +177,11 @@ public final class Menu : View, Renderable {
                 if let header = section.header {
                     DropdownMenuItem(text: { header.Compose(context: context) }, onClick: {}, enabled: false)
                 }
-                let sectionRenderables = section.content.Evaluate(context: context)
+                let sectionRenderables = section.content.Evaluate(context: context, options: 0)
                 RenderDropdownMenuItems(for: sectionRenderables, context: context, replaceMenu: replaceMenu)
                 Divider().Compose(context: context)
             } else if let menu = stripped as? Menu {
-                if let button = menu.label.Evaluate(context: context).firstOrNull()?.strip() as? Button {
+                if let button = menu.label.Evaluate(context: context, options: 0).firstOrNull()?.strip() as? Button {
                     RenderDropdownMenuItem(for: button.label, context: context) {
                         replaceMenu(menu)
                     }
@@ -194,7 +194,7 @@ public final class Menu : View, Renderable {
     }
 
     @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
-        let renderables = view.Evaluate(context: context)
+        let renderables = view.Evaluate(context: context, options: 0)
         let label = renderables.firstOrNull()?.strip() as? Label
         if let isSelected {
             let selectedIcon: @Composable () -> Void

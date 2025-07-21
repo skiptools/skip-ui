@@ -93,7 +93,7 @@ public final class Picker<SelectionValue> : View, Renderable {
         let (selected, tagged) = processPickerContent(content: content, selection: selection, context: context)
         let contentContext = context.content()
         let navigator = LocalNavigator.current
-        let label = (self.label.Evaluate(context: context).firstOrNull() ?? EmptyView()) as Renderable // Let transpiler understand type
+        let label = (self.label.Evaluate(context: context, options: 0).firstOrNull() ?? EmptyView()) as Renderable // Let transpiler understand type
         let title = titleFromLabel(label, context: context)
         let modifier = context.modifier.clickable(onClick: {
             navigator?.navigateToView(PickerSelectionView(title: title, content: content, selection: selection))
@@ -193,7 +193,7 @@ public final class Picker<SelectionValue> : View, Renderable {
         let action: () -> Void
         if style == .navigationLink {
             let navigator = LocalNavigator.current
-            let label = self.label.Evaluate(context: context).firstOrNull() ?? EmptyView()
+            let label = self.label.Evaluate(context: context, options: 0).firstOrNull() ?? EmptyView()
             let title = titleFromLabel(label, context: context)
             action = { navigator?.navigateToView(PickerSelectionView(title: title, content: content, selection: selection)) }
         } else {
@@ -251,7 +251,7 @@ public final class Picker<SelectionValue> : View, Renderable {
         let stripped = label.strip()
         if let text = stripped as? Text {
             return text
-        } else if let label = stripped as? Label, let text = label.title.Evaluate(context: context).firstOrNull()?.strip() as? Text {
+        } else if let label = stripped as? Label, let text = label.title.Evaluate(context: context, options: 0).firstOrNull()?.strip() as? Text {
             return text
         } else {
             return Text(verbatim: String(describing: selection.wrappedValue))
@@ -334,7 +334,7 @@ extension View {
     for renderable in renderables {
         let current: kotlin.collections.List<Renderable>
         if let view = renderable as? View, renderable.strip() is ForEach {
-            current = view.Evaluate(context: context)
+            current = view.Evaluate(context: context, options: 0)
         } else {
             current = listOf(renderable)
         }

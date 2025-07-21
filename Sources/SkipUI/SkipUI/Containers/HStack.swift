@@ -49,7 +49,7 @@ public struct HStack : View, Renderable {
         let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
 
-        let renderables = content.Evaluate(context: context).filter { !$0.isSwiftUIEmptyView }
+        let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
         let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
         let ids = renderables.mapNotNull(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }

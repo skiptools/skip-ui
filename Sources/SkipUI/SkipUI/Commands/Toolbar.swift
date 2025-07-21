@@ -130,15 +130,15 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
         } in: {
             return content.Evaluate(context: context, options: options)
         }
-        return renderables.map { renderable in
+        return renderables.map {
+            let renderable = $0 as Renderable // Tell transpiler the type
             if var toolbarItem = renderable as? ToolbarItem {
                 if toolbarItem.placement == .automatic {
                     toolbarItem.placement = placement
                 }
                 return toolbarItem
             } else {
-                let renderableView = renderable as? View ?? ComposeView { renderable.Render($0) }
-                return ToolbarItem(placement: placement, content: { renderableView })
+                return ToolbarItem(placement: placement, content: { renderable.asView() })
             }
         }
     }
@@ -607,7 +607,7 @@ struct ToolbarItems {
         var principal: Renderable? = nil
         let bottom: kotlin.collections.MutableList<Renderable> = mutableListOf()
         for view in content {
-            let renderables = view.Evaluate(context: context)
+            let renderables = view.Evaluate(context: context, options: 0)
             for renderable in renderables {
                 let placement = (renderable as? ToolbarItem)?.placement ?? ToolbarItemPlacement.automatic
                 switch placement {
@@ -630,7 +630,7 @@ struct ToolbarItems {
             let stripped = $0.strip()
             return stripped is Spacer || stripped is ToolbarSpacer
         }) {
-            bottom.add(bottom.size - 1, Spacer())
+            bottom.add(1, Spacer())
         }
         return (leading, trailing, bottom)
     }

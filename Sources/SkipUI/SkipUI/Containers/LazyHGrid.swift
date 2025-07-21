@@ -61,7 +61,7 @@ public struct LazyHGrid: View, Renderable {
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.horizontal : []
         let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
-        let renderables = content.Evaluate(context: context)
+        let renderables = content.EvaluateLazyItems(context: context)
         let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in

@@ -165,19 +165,19 @@ public final class ForEach : View, Renderable, LazyItemFactory {
         guard let firstView else {
             return nil
         }
-        let renderables = firstView.Evaluate(context: context)
+        let renderables = firstView.Evaluate(context: context, options: 0)
         guard !renderables.any({ TagModifier.on(content: $0, role: .tag) != nil }) else {
             return nil
         }
 
         // If we do not produce tagged views, then we can match the supplied tag against our id function
         if let indexRange, let index = tag as? Int, indexRange().contains(index) {
-            return indexedContent!(index).Evaluate(context: context).firstOrNull()
+            return indexedContent!(index).Evaluate(context: context, options: 0).firstOrNull()
         } else if let objects, let identifier {
             for object in objects {
                 let id = identifier(object)
                 if id == tag {
-                    return objectContent!(object).Evaluate(context: context).firstOrNull()
+                    return objectContent!(object).Evaluate(context: context, options: 0).firstOrNull()
                 }
             }
         } else if let objectsBinding, let identifier {
@@ -185,7 +185,7 @@ public final class ForEach : View, Renderable, LazyItemFactory {
             for i in 0..<objects.count {
                 let id = identifier(objects[i])
                 if id == tag {
-                    return objectsBindingContent!(objectsBinding, i).Evaluate(context: context).firstOrNull()
+                    return objectsBindingContent!(objectsBinding, i).Evaluate(context: context, options: 0).firstOrNull()
                 }
             }
         }
@@ -205,7 +205,7 @@ public final class ForEach : View, Renderable, LazyItemFactory {
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         if let indexRange {
             let factory: @Composable (Int, ComposeContext) -> Renderable = { index, context in
-                let renderables = ModifiedContent.apply(modifiers: modifiers, to: indexedContent!(index)).Evaluate(context: context)
+                let renderables = ModifiedContent.apply(modifiers: modifiers, to: indexedContent!(index)).Evaluate(context: context, options: 0)
                 let renderable = renderables.firstOrNull() ?? EmptyView()
                 let tag: Any?
                 if let identifier {
@@ -218,7 +218,7 @@ public final class ForEach : View, Renderable, LazyItemFactory {
             collector.indexedItems(indexRange(), identifier, onDeleteAction, onMoveAction, level, factory)
         } else if let objects {
             let factory: @Composable (Any, ComposeContext) -> Renderable = { object, context in
-                let renderables = ModifiedContent.apply(modifiers: modifiers, to: objectContent!(object)).Evaluate(context: context)
+                let renderables = ModifiedContent.apply(modifiers: modifiers, to: objectContent!(object)).Evaluate(context: context, options: 0)
                 let renderable = renderables.firstOrNull() ?? EmptyView()
                 guard let tag = identifier!(object) else {
                     return renderable
@@ -228,7 +228,7 @@ public final class ForEach : View, Renderable, LazyItemFactory {
             collector.objectItems(objects, identifier!, onDeleteAction, onMoveAction, level, factory)
         } else if let objectsBinding {
             let factory: @Composable (Binding<any RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable = { objects, index, context in
-                let renderables = ModifiedContent.apply(modifiers: modifiers, to: objectsBindingContent!(objects, index)).Evaluate(context: context)
+                let renderables = ModifiedContent.apply(modifiers: modifiers, to: objectsBindingContent!(objects, index)).Evaluate(context: context, options: 0)
                 let renderable = renderables.firstOrNull() ?? EmptyView()
                 guard let tag = identifier!(objects.wrappedValue[index]) else {
                     return renderable

@@ -183,7 +183,6 @@ public final class List : View, Renderable {
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         let moveTrigger = remember { mutableStateOf(0) }
         let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable && arguments.headerSafeAreaHeight.value <= 0 ? 1 : 0)
-        android.util.Log.e("", "LISTSTATE: \(listState) ===========================") //~~~
         let reorderableState = rememberReorderableLazyListState(listState: listState, onMove: { from, to in
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
             itemCollector.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })

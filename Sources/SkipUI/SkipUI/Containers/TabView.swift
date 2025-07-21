@@ -436,8 +436,18 @@ public struct TabView : View, Renderable {
     @Composable private func EvaluateContent(context: ComposeContext) -> kotlin.collections.List<Renderable> {
         // Evaluate our content without recursively evaluating every custom tab view. We only want to fully
         // evaluate views when we render them
-        return content.Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
-            .filter { !$0.isSwiftUIEmptyView }
+        let options = EvaluateOptions(isKeepNonModified: true).value
+        let renderables = content.Evaluate(context: context, options: options)
+        var tabContent: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        for renderable in renderables {
+            // Expand through sections
+            if let tabSection = renderable as? TabSection {
+                tabContent.addAll(tabSection.Evaluate(context: context, options: options))
+            } else {
+                tabContent.add(renderable)
+            }
+        }
+        return tabContent
     }
 
     private func tagValue(route: String, in tabRenderables: kotlin.collections.List<Renderable>) -> Any? {
@@ -724,7 +734,7 @@ public struct Tab : TabContent, Renderable {
     }
 
     @Composable func RenderTitle(context: ComposeContext) {
-        let renderable = label.Evaluate(context: context).firstOrNull() ?? EmptyView()
+        let renderable = label.Evaluate(context: context, options: 0).firstOrNull() ?? EmptyView()
         let stripped = renderable.strip()
         if let label = stripped as? Label {
             label.RenderTitle(context: context)
@@ -734,7 +744,7 @@ public struct Tab : TabContent, Renderable {
     }
 
     @Composable func RenderImage(context: ComposeContext) {
-        let renderable = label.Evaluate(context: context).firstOrNull() ?? EmptyView()
+        let renderable = label.Evaluate(context: context, options: 0).firstOrNull() ?? EmptyView()
         let stripped = renderable.strip()
         if let label = stripped as? Label {
             label.RenderImage(context: context)
@@ -766,7 +776,7 @@ public enum TabRole : Int, Hashable {
 }
 
 // SKIP @bridge
-public struct TabSection : TabContent {
+public struct TabSection : TabContent, Renderable {
     private let content: ComposeBuilder
 
     public init(@ViewBuilder content: () -> any View, @ViewBuilder header: () -> any View) {
@@ -809,6 +819,10 @@ public struct TabSection : TabContent {
             }
         }
         return renderables
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        // We should never render directly, but we are collected as a Renderable in tab view content
     }
     #else
     public var body: some View {

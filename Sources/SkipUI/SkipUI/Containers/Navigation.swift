@@ -478,11 +478,10 @@ public struct NavigationStack : View, Renderable {
                         BottomAppBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation, contentPadding: options.contentPadding, windowInsets: windowInsets) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
-                                ComposeBuilder { itemContext in
+                                ComposeView { context in
                                     for renderable in bottomItems {
-                                        renderable.Render(context: itemContext)
+                                        renderable.Render(context: context)
                                     }
-                                    return ComposeResult.ok
                                 }
                             }.Compose(context)
                         }
@@ -1234,7 +1233,7 @@ public struct NavigationLink : View, Renderable {
 
     @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
         ModifiedContent.RenderWithModifiers(modifiers, context: context) { context in
-            let renderables = label.Evaluate(context: context)
+            let renderables = label.Evaluate(context: context, options: 0)
             Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                 Box(modifier: Modifier.weight(Float(1.0))) {
                     let labelContext = context.content()

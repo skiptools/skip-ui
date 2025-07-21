@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.runtime.Composable
+import skip.model.StateTracking
 #endif
 
 // SKIP @bridge
@@ -22,9 +23,14 @@ public protocol ViewModifier {
 extension ViewModifier {
     /// Evaluate renderable content.
     ///
+    /// - Warning: Do not give `options` a default value in this function signature. We have seen it cause bugs in which
+    ///     the default version of the function is always invoked, ignoring implementor overrides.
     /// - Seealso: `View.Evaluate(context:options:)`
-    @Composable public func Evaluate(content: Content, context: ComposeContext, options: Int = 0) -> kotlin.collections.List<Renderable> {
-        return body(content: content).Evaluate(context: context, options: options)
+    @Composable public func Evaluate(content: Content, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        StateTracking.pushBody()
+        let renderables = body(content: content).Evaluate(context: context, options: options)
+        StateTracking.popBody()
+        return renderables
     }
 }
 

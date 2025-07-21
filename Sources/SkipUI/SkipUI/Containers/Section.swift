@@ -85,22 +85,18 @@ public struct Section : View {
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         let isLazy = EvaluateOptions(options).lazyItemLevel != nil
         var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
-        if let header {
-            let headerRenderables = header.Evaluate(context: context)
-            if isLazy {
-                renderables.add(LazySectionHeader(content: headerRenderables.firstOrNull() ?? EmptyView()))
-            } else if let header {
-                renderables.addAll(headerRenderables)
-            }
+        let headerRenderables = header?.Evaluate(context: context, options: 0)
+        if isLazy {
+            renderables.add(LazySectionHeader(content: headerRenderables?.firstOrNull() ?? EmptyView()))
+        } else if let headerRenderables {
+            renderables.addAll(headerRenderables)
         }
         renderables.addAll(content.Evaluate(context: context, options: options))
-        if let footer {
-            let footerRenderables = footer.Evaluate(context: context)
-            if isLazy {
-                renderables.add(LazySectionFooter(content: footerRenderables.firstOrNull() ?? EmptyView()))
-            } else if let footer {
-                renderables.addAll(footerRenderables)
-            }
+        let footerRenderables = footer?.Evaluate(context: context, options: 0)
+        if isLazy {
+            renderables.add(LazySectionFooter(content: footerRenderables?.firstOrNull() ?? EmptyView()))
+        } else if let footerRenderables {
+            renderables.addAll(footerRenderables)
         }
         return renderables
     }

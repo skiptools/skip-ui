@@ -72,13 +72,13 @@ let overlayPresentationCornerRadius = 16.0
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
     let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
     let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
-    let backDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: BackDismissDisabledPreferenceKey.self)) }
-    let backDismissDisabledCollector = PreferenceCollector<Bool>(key: BackDismissDisabledPreferenceKey.self, state: backDismissDisabledPreference)
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
     if isPresentedValue || sheetState.isVisible {
-        let contentView = ComposeBuilder.from(content)
+        // Don't fully evaluate content until we set up the presented environment. For now we just want
+        // to get at the modifiers to look for `BackDismissDisabled`
+        let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
         let handleHeight = isFullScreen ? 0.dp : 8.dp
@@ -91,11 +91,13 @@ let overlayPresentationCornerRadius = 16.0
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
         let interactiveDismissDisabled = isFullScreen || interactiveDismissDisabledPreference.value.reduced
-        let backDismissDisabled = backDismissDisabledPreference.value.reduced
+        // Implementing backDismissDisabled as a preference doesn't work because preferences require an extra composition
+        // and only the first composition of `ModalBottomSheetProperties` is taken into account. So we require the
+        // modifier directly on the content view
+        let backDismissDisabled = isBackDismissDisabled(on: contentRenderables)
         let onDismissRequest = {
             isPresented.set(false)
         }
-        //~~~ backDismissDisabled not working since switching to Preference. I vaguely remember updates to these properties not properly triggering a recompose. Compose bug?
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
@@ -164,8 +166,10 @@ let overlayPresentationCornerRadius = 16.0
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                         return ComposeResult.ok
                     } in: {
-                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, backDismissDisabledCollector, detentPreferencesCollector]) {
-                            contentView.Compose(context: context)
+                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
+                            for renderable in contentRenderables {
+                                renderable.Render(context: context)
+                            }
                         }
                     }
                 }
@@ -196,6 +200,15 @@ let overlayPresentationCornerRadius = 16.0
     }
 }
 
+func isBackDismissDisabled(on renderables: kotlin.collections.List<Renderable>) -> Bool {
+    for renderable in renderables {
+        if let disabled = renderable.forEachModifier(perform: { ($0 as? BackDismissDisabledModifier)?.disabled  }) {
+            return disabled
+        }
+    }
+    return false
+}
+
 final class DisableScrollToDismissConnection : NestedScrollConnection {
     override func onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource) -> Offset {
         return available.copy(x: Float(0.0))
@@ -211,12 +224,12 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
-        let actionRenderables = actions.Evaluate(context: context)
+        let actionRenderables = actions.Evaluate(context: context, options: 0)
         let composableActions: kotlin.collections.List<Renderable> = actionRenderables.mapNotNull {
             let stripped = $0.strip()
             return stripped as? Button ?? stripped as? Link ?? stripped as? NavigationLink
         }
-        let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context) ?? listOf()
+        let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context, options: 0) ?? listOf()
         let messageText = messageRenderables.mapNotNull {
             $0.strip() as? Text
         }.firstOrNull()
@@ -287,7 +300,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 continue
             }
             ConfirmationDialogButton(action: { isPresented.set(false); button.action() }) {
-                let text = button.label.Evaluate(context: context).mapNotNull {
+                let text = button.label.Evaluate(context: context, options: 0).mapNotNull {
                     $0.strip() as? Text
                 }.firstOrNull()
                 let color = button.role == .destructive ? Color.red.colorImpl() : tint
@@ -296,7 +309,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         } else if let navigationLink = actionRenderable.strip() as? NavigationLink {
             let navigationAction = navigationLink.navigationAction()
             ConfirmationDialogButton(action: { isPresented.set(false); navigationAction() }) {
-                let text = navigationLink.label.Evaluate(context: context).mapNotNull {
+                let text = navigationLink.label.Evaluate(context: context, options: 0).mapNotNull {
                     $0.strip() as? Text
                 }.firstOrNull()
                 androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
@@ -306,7 +319,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
     if let cancelButton {
         ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
-            let text = cancelButton.label.Evaluate(context: context).mapNotNull {
+            let text = cancelButton.label.Evaluate(context: context, options: 0).mapNotNull {
                 $0.strip() as? Text
             }.firstOrNull()
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
@@ -330,7 +343,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         return
     }
     // Collect buttons and message text
-    let actionRenderables = actions.Evaluate(context: context)
+    let actionRenderables = actions.Evaluate(context: context, options: 0)
     let textFields: kotlin.collections.List<TextField> = actionRenderables.mapNotNull {
         let stripped = $0.strip()
         return stripped as? TextField ?? (stripped as? SecureField)?.textField
@@ -339,7 +352,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         let stripped = $0.strip()
         return stripped as? Button ?? stripped as? NavigationLink ?? stripped as? Link
     }
-    let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context) ?? listOf()
+    let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context, options: 0) ?? listOf()
     let messageText = messageRenderables.mapNotNull {
         $0.strip() as? Text
     }.firstOrNull()
@@ -388,7 +401,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         let stripped = renderable.strip()
         let button = stripped as? Button ?? (stripped as? Link)?.content
         let label = button?.label ?? (stripped as? NavigationLink)?.label
-        let text = label?.Evaluate(context: context).mapNotNull {
+        let text = label?.Evaluate(context: context, options: 0).mapNotNull {
             $0.strip() as? Text
         }.firstOrNull()
         let color = button?.role == .destructive ? Color.red.colorImpl() : tint
@@ -935,7 +948,7 @@ extension View {
     // SKIP @bridge
     public func backDismissDisabled(_ isDisabled: Bool = true) -> any View {
         #if SKIP
-        return preference(key: BackDismissDisabledPreferenceKey.self, value: isDisabled)
+        return ModifiedContent(content: self, modifier: BackDismissDisabledModifier(disabled: isDisabled))
         #else
         return self
         #endif
@@ -1077,15 +1090,12 @@ final class PresentationModifier: SideEffectModifier {
 }
 
 /// Used to disable the back button from dismissing a presentation.
-struct BackDismissDisabledPreferenceKey: PreferenceKey {
-    typealias Value = Bool
+final class BackDismissDisabledModifier: RenderModifier {
+    let disabled: Bool
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = false
-        func reduce(value: inout Bool, nextValue: () -> Bool) {
-            value = nextValue()
-        }
+    init(disabled: Bool) {
+        self.disabled = disabled
+        super.init()
     }
 }
 

@@ -55,7 +55,7 @@ public struct VStack : View, Renderable {
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
 
-        let renderables = content.Evaluate(context: context).filter { !$0.isSwiftUIEmptyView }
+        let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
         let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
         let ids = renderables.mapNotNull(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }

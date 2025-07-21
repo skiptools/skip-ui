@@ -41,7 +41,7 @@ extension View {
             }
             return composer.Compose(self, composerContext)
         } else {
-            for renderable in Evaluate(context: context) {
+            for renderable in Evaluate(context: context, options: 0) {
                 renderable.Render(context: context)
             }
             return ComposeResult.ok
@@ -49,7 +49,10 @@ extension View {
     }
 
     /// Evaluate renderable content.
-    @Composable public func Evaluate(context: ComposeContext, options: Int = 0) -> kotlin.collections.List<Renderable> {
+    ///
+    /// - Warning: Do not give `options` a default value in this function signature. We have seen it cause bugs in which
+    ///     the default version of the function is always invoked, ignoring implementor overrides.
+    @Composable public func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         if let renderable = self as? Renderable {
             return listOf(self)
         } else {
@@ -68,7 +71,7 @@ extension View {
     }
 }
 
-private final class ViewRenderable: Renderable {
+final class ViewRenderable: Renderable {
     let view: View
 
     init(view: View) {

@@ -75,7 +75,7 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to gather
         // our content before entering the LazyColumn body, then use LazyColumn's LazyListScope functions to compose
         // individual items
-        let columnSpecs = self.columnSpecs.Evaluate(context: context)
+        let columnSpecs = self.columnSpecs.Evaluate(context: context, options: 0)
         let modifier = context.modifier.fillMaxWidth()
 
         let listState = rememberLazyListState()
@@ -192,7 +192,7 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
                     } in: {
                         let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : modifier(for: tableColumn.columnWidth, defaultWeight: Modifier.weight(Float(1.0)))
                         let itemContext = context.content()
-                        let itemRenderable = tableColumn.cellContent(data[index]).Evaluate(context: itemContext).firstOrNull() ?? EmptyView()
+                        let itemRenderable = tableColumn.cellContent(data[index]).Evaluate(context: itemContext, options: 0).firstOrNull() ?? EmptyView()
                         List.RenderItemContent(item: itemRenderable, context: itemContext, modifier: itemContentModifier)
                     }
                 }
@@ -293,7 +293,7 @@ public func Table<ObjectType, ID>(_ data: any RandomAccessCollection<ObjectType>
 }
 #endif
 
-public struct TableColumn : View {
+public struct TableColumn : View, Renderable {
     let columnHeader: Text
     let columnWidth: WidthSpec
     let cellContent: (Any) -> any View
@@ -304,7 +304,10 @@ public struct TableColumn : View {
         self.cellContent = cellContent
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+    }
+    #else
     public var body: some View {
         stubView()
     }
