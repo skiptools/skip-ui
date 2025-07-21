@@ -39,24 +39,7 @@ import kotlinx.coroutines.launch
 extension View {
     public func searchable(text: Binding<String>, placement: SearchFieldPlacement = .automatic, prompt: Text? = nil) -> any View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
-            let submitState = EnvironmentValues.shared._onSubmitState
-            let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
-            let isModifierOnNavigationStack = view.strippingModifiers { $0 is NavigationStack }
-            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isModifierOnNavigationStack: isModifierOnNavigationStack)
-            // Bubble the search state to the navigation stack if root, else down to the component
-            if view.strippingModifiers(perform: { $0 is NavigationStack}) || LocalNavigator.current?.isRoot != true {
-                EnvironmentValues.shared.setValues {
-                    $0.set_searchableState(state)
-                    return ComposeResult.ok
-                } in: {
-                    view.Compose(context: context)
-                }
-            } else {
-                PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
-                view.Compose(context: context)
-            }
-        }
+        return ModifiedContent(content: self, modifier: SearchableModifier(text: text, prompt: prompt))
         #else
         return self
         #endif
@@ -166,10 +149,69 @@ let searchFieldHeight = 56.0
             }
         }, textStyle: animatable.value, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, singleLine: true, colors: colors, shape: Capsule().asComposeShape(density: LocalDensity.current))
         AnimatedVisibility(visible: state.isSearching.value == true) {
-            Button.ComposeTextButton(label: Text(verbatim: stringResource(android.R.string.cancel)), context: contentContext) {
+            Button.RenderTextButton(label: Text(verbatim: stringResource(android.R.string.cancel)), context: contentContext) {
                 state.text.wrappedValue = ""
                 focusManager.clearFocus()
                 state.isSearching.value = false
+            }
+        }
+    }
+}
+
+final class SearchableModifier: ModifierProtocol {
+    let text: Binding<String>
+    let prompt: Text?
+
+    init(text: Binding<String>, prompt: Text?) {
+        self.text = text
+        self.prompt = prompt
+    }
+
+    override var role: ModifierRole {
+        return .unspecified
+    }
+
+    @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        let isSearching = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
+        let renderables = EnvironmentValues.shared.setValuesWithReturn {
+            $0.set_isSearching(isSearching)
+            return ComposeResult.ok
+        } in: {
+            return ModifiedContent.Evaluate(content: content, context: context, options: options)
+        }
+        var ret: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        for i in 0..<renderables.size {
+            ret.add(ModifiedContent(content: renderables[i], modifier: SearchableStateModifier(text: text, prompt: prompt, isSearching: isSearching, isFirstRenderable: i == 0)))
+        }
+        return ret
+    }
+
+    @Composable override func Render(content: Renderable, context: ComposeContext) {
+        content.Render(context: context)
+    }
+}
+
+final class SearchableStateModifier: RenderModifier {
+    init(text: Binding<String>, prompt: Text?, isSearching: MutableState<Bool>, isFirstRenderable: Bool) {
+        super.init()
+        self.action = { renderable, context in
+            let submitState = EnvironmentValues.shared._onSubmitState
+            let isModifierOnNavigationStack = renderable.strip() is NavigationStack
+            let isNavigationRoot = EnvironmentValues.shared._isNavigationRoot == true
+            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isNavigationRoot == true)
+            // Bubble the search state to the navigation stack if root, else down to the component
+            if isModifierOnNavigationStack || isNavigationRoot != true {
+                EnvironmentValues.shared.setValues {
+                    $0.set_searchableState(state)
+                    return ComposeResult.ok
+                } in: {
+                    renderable.Render(context: context)
+                }
+            } else {
+                if isFirstRenderable {
+                    PreferenceValues.shared.contribute(context: context, key: SearchableStatePreferenceKey.self, value: state)
+                }
+                renderable.Render(context: context)
             }
         }
     }
@@ -193,25 +235,11 @@ struct SearchableState: Equatable {
     let prompt: Text?
     let submitState: OnSubmitState?
     let isSearching: MutableState<Bool>
-    let isModifierOnNavigationStack: Bool
-
-    /// Whether the search bar will be rendered in the navigation stack header.
-    @Composable func isOnNavigationStack() -> Bool {
-        return isModifierOnNavigationStack || LocalNavigator.current?.isRoot == true
-    }
-
-    /// Whether the calling list, etc is being filtered.
-    @Composable func isFiltering() -> Bool {
-        guard isSearching.value else {
-            return false
-        }
-        // We must be filtering unless the searchable modifier is on the nav stack but this is not the root view
-        return !(isModifierOnNavigationStack && LocalNavigator.current?.isRoot == false)
-    }
+    let isOnNavigationStack: Bool
 
     static func ==(lhs: SearchableState, rhs: SearchableState) -> Bool {
         // Most of this state can't be compared, and search bars handle the mutability internally
-        return lhs.prompt == rhs.prompt && lhs.isModifierOnNavigationStack == rhs.isModifierOnNavigationStack
+        return lhs.prompt == rhs.prompt && lhs.isOnNavigationStack == rhs.isOnNavigationStack
     }
 }
 
@@ -249,7 +277,7 @@ final class SearchFieldScrollConnection: NestedScrollConnection {
 }
 #endif
 
-#if false
+/*
 /// The ways that searchable modifiers can show or hide search scopes.
 @available(iOS 16.4, macOS 13.3, tvOS 16.4, watchOS 9.4, *)
 public struct SearchScopeActivation {
@@ -1284,6 +1312,5 @@ extension View {
     public func searchDictationBehavior(_ dictationBehavior: TextInputDictationBehavior) -> some View { return stubView() }
 
 }
-
-#endif
+*/
 #endif

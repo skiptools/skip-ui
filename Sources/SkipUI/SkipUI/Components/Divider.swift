@@ -10,13 +10,13 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct Divider : View {
+public struct Divider : View, Renderable {
     // SKIP @bridge
     public init() {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let dividerColor = Color.separator.colorImpl()
         let modifier: Modifier
         switch EnvironmentValues.shared._layoutAxis {

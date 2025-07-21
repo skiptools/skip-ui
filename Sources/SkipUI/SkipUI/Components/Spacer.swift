@@ -12,7 +12,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 // SKIP @bridge
-public struct Spacer : View {
+public struct Spacer : View, Renderable {
     private let minLength: CGFloat?
 
     // SKIP @bridge
@@ -21,7 +21,7 @@ public struct Spacer : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         // We haven't found a way that works to get a minimum size and expanding behavior on a spacer, so use two spacers: the
         // first to enforce the minimum, and the second to expand. Note that this will cause some modifiers to behave incorrectly
 

@@ -6,54 +6,152 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-/// Adopted by views that generate lazy items.
+/// Adopted by `Renderables` that produce lazy items.
 protocol LazyItemFactory {
     #if SKIP
-    /// Append views and view factories representing lazy items to the given composer.
-    ///
-    /// - Parameter appendingContext: Pass this context to the `Compose` function of a `ComposableView` to append all its child views.
-    /// - Returns A `ComposeResult` to force the calling container to be fully re-evaluated on state change. Otherwise if only this
-    ///   function were called again, it could continue appending to the given mutable list.
-    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult
+    /// Whether to produce this factory's content as lazy items or to use the standard pipeline.
+    func shouldProduceLazyItems() -> Bool
 
-    /// Use the given context to compose individual lazy items and ranges of items.
-    func composeLazyItems(context: LazyItemFactoryContext, level: Int)
+    /// Use the given collector to add individual lazy items and ranges of items.
+    func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int)
     #endif
 }
 
 #if SKIP
-/// Allows `LazyItemFactory` instances to define the lazy content.
-public final class LazyItemFactoryContext {
-    private(set) var item: (View, Int) -> Void = { _, _ in }
-    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Int) -> View) -> Void = { _, _, _, _, _, _ in  }
-    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Any) -> View) -> Void = { _, _, _, _, _, _ in }
-    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void = { _, _, _, _, _, _, _ in }
-    private(set) var sectionHeader: (View) -> Void = { _ in }
-    private(set) var sectionFooter: (View) -> Void = { _ in }
+extension LazyItemFactory {
+    func shouldProduceLazyItems() -> Bool {
+        return true
+    }
+}
+
+extension View {
+    /// Expands views with the given lazy item level set in the environment.
+    @Composable public func EvaluateLazyItems(level: Int = 0, context: ComposeContext) -> kotlin.collections.List<Renderable> {
+        let renderables = Evaluate(context: context, options: EvaluateOptions(lazyItemLevel: level).value)
+        guard level > 0 else {
+            return renderables
+        }
+        return renderables.map { renderable in
+            if !(renderable.strip() is LazyLevelRenderable) {
+                return LazyLevelRenderable(content: renderable, level: level)
+            } else {
+                return renderable
+            }
+        }
+    }
+}
+
+/// Use to render lazy items at the appropriate level.
+final class LazyLevelRenderable: Renderable, LazyItemFactory {
+    let content: Renderable
+    let level: Int
+
+    init(content: Renderable, level: Int) {
+        // Do not copy view
+        // SKIP REPLACE: this.content = content
+        self.content = content
+        self.level = level
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        content.Render(context: context)
+    }
+
+    override func strip() -> Renderable {
+        return content.strip()
+    }
+
+    override func forEachModifier<R>(perform action: (ModifierProtocol) -> R?) -> R? {
+        return content.forEachModifier(perform: action)
+    }
+
+    override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
+        if let lazyItemFactory = content as? LazyItemFactory, lazyItemFactory.shouldProduceLazyItems() {
+            lazyItemFactory.produceLazyItems(collector: collector, modifiers: modifiers, level: self.level)
+        } else {
+            collector.item(ModifiedContent.apply(modifiers: modifiers, to: content), self.level)
+        }
+    }
+}
+
+/// Add to lazy items to render a section header.
+final class LazySectionHeader: Renderable, LazyItemFactory {
+    let content: Renderable
+
+    init(content: Renderable) {
+        // Do not copy view
+        // SKIP REPLACE: this.content = content
+        self.content = content
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        content.Render(context: context)
+    }
+
+    override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
+        collector.sectionHeader(content)
+    }
+}
+
+/// Add to lazy items to render a section footer.
+final class LazySectionFooter: Renderable, LazyItemFactory {
+    let content: Renderable
+
+    init(content: Renderable) {
+        // Do not copy view
+        // SKIP REPLACE: this.content = content
+        self.content = content
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        content.Render(context: context)
+    }
+
+    override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
+        collector.sectionFooter(content)
+    }
+}
+
+extension ModifiedContent: LazyItemFactory {
+    override func shouldProduceLazyItems() -> Bool {
+        return (renderable as? LazyItemFactory)?.shouldProduceLazyItems() == true
+    }
+
+    override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
+        (renderable as? LazyItemFactory)?.produceLazyItems(collector: collector, modifiers: modifiers.plus(modifier), level: level)
+    }
+}
+
+/// Collect lazy content added by `LazyItemFactory` instances.
+public final class LazyItemCollector {
+    private(set) var item: (Renderable, Int) -> Void = { _, _ in }
+    private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
+    private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in }
+    private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _, _ in }
+    private(set) var sectionHeader: (Renderable) -> Void = { _ in }
+    private(set) var sectionFooter: (Renderable) -> Void = { _ in }
     private var startItemIndex = 0
 
     /// Initialize the content factories.
     func initialize(
-        isTagging: Bool = false,
         startItemIndex: Int,
-        item: (View, Int) -> Void,
-        indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Int) -> View) -> Void,
-        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Any) -> View) -> Void,
-        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, (Binding<RandomAccessCollection<Any>>, Int) -> View) -> Void,
-        sectionHeader: (View) -> Void,
-        sectionFooter: (View) -> Void
+        item: (Renderable, Int) -> Void,
+        indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void,
+        objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void,
+        objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void,
+        sectionHeader: (Renderable) -> Void,
+        sectionFooter: (Renderable) -> Void
     ) {
-        self.isTagging = isTagging
         self.startItemIndex = startItemIndex
 
         content.removeAll()
-        self.item = { view, level in
+        self.item = { renderable, level in
             // If this is an item after a section, add a header before it
             if case .sectionFooter = content.last {
                 self.sectionHeader(EmptyView())
             }
-            item(view, level)
-            let id = TagModifierView.strip(from: view, role: .id)?.value
+            item(renderable, level)
+            let id = TagModifier.on(content: renderable, role: .id)?.value
             content.append(.items(0, 1, { _ in id }, nil))
         }
         self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
@@ -77,7 +175,7 @@ public final class LazyItemFactoryContext {
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
             content.append(.objectBindingItems(binding, identifier, onMove))
         }
-        self.sectionHeader = { view in
+        self.sectionHeader = { renderable in
             // If this is a header after an item, add a section footer before it
             switch content.last {
             case .sectionFooter, nil:
@@ -85,17 +183,14 @@ public final class LazyItemFactoryContext {
             default:
                 self.sectionFooter(EmptyView())
             }
-            sectionHeader(view)
+            sectionHeader(renderable)
             content.append(.sectionHeader)
         }
-        self.sectionFooter = { view in
-            sectionFooter(view)
+        self.sectionFooter = { renderable in
+            sectionFooter(renderable)
             content.append(.sectionFooter)
         }
     }
-
-    /// Whether we're in a tagging view placement.
-    private(set) var isTagging = false
 
     /// The current number of content items.
     var count: Int {
@@ -291,72 +386,6 @@ public final class LazyItemFactoryContext {
         case sectionFooter
     }
     private var content: [Content] = []
-}
-
-/// Used to collect lazy items.
-public final class LazyItemCollectingComposer: SideEffectComposer, ForEachComposer {
-    let views: MutableList<Tuple2<View, Int>> = mutableListOf() // Use MutableList to avoid copies
-    var level = 0
-
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
-        if let factory = view as? LazyItemFactory {
-            factory.appendLazyItemViews(to: self, appendingContext: context(true))
-        } else {
-            views.add(Tuple2(view, level))
-        }
-        return ComposeResult.ok
-    }
-
-    /// Add a lazy item.
-    func append(_ view: View) {
-        let _ = views.add(Tuple2(view, level))
-    }
-
-    /// Increase the nesting level, which creates indentation in the presented views.
-    func pushLevel() {
-        level += 1
-    }
-
-    /// Decrease the nesting level, which removes indentation in the presented views.
-    func popLevel() {
-        level -= 1
-    }
-}
-
-/// Add to lazy items to render a section header.
-struct LazySectionHeader: View, LazyItemFactory {
-    let content: View
-
-    @Composable override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
-    }
-
-    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
-        composer.append(self)
-        return ComposeResult.ok
-    }
-
-    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
-        context.sectionHeader(content)
-    }
-}
-
-/// Add to lazy items to render a section footer.
-struct LazySectionFooter: View, LazyItemFactory {
-    let content: View
-
-    @Composable override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
-    }
-
-    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
-        composer.append(self)
-        return ComposeResult.ok
-    }
-
-    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
-        context.sectionFooter(content)
-    }
 }
 
 #endif

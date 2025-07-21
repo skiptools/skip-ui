@@ -49,11 +49,11 @@ public enum ColorScheme : Int, CaseIterable, Hashable {
 extension View {
     public func colorScheme(_ colorScheme: ColorScheme) -> any View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             MaterialTheme(colorScheme: colorScheme.asMaterialTheme()) {
-                view.Compose(context: context)
+                renderable.Render(context: context)
             }
-        }
+        })
         #else
         return self
         #endif
@@ -83,7 +83,7 @@ extension View {
     }
 
     public func material3ColorScheme(_ scheme:  (@Composable (androidx.compose.material3.ColorScheme, Bool) -> androidx.compose.material3.ColorScheme)?) -> some View {
-        return environment(\._material3ColorScheme, scheme)
+        return environment(\._material3ColorScheme, scheme, affectsEvaluate: true)
     }
     #endif
 }

@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGFloat
 
 /// A view that provides a shape that you can use for drawing operations.
@@ -149,4 +149,4 @@ extension ShapeView where Self.Content : InsettableShape {
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
-#endif
+*/

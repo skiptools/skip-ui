@@ -42,7 +42,7 @@ public struct TextInputFormattingControlPlacement {
     }
 }
 
-#if false
+/*
 @available(iOS 17.0, *)
 @available(macOS, unavailable)
 @available(watchOS, unavailable)
@@ -94,6 +94,5 @@ public struct TextInputDictationBehavior : Equatable, Sendable {
 
     
 }
-
-#endif
+*/
 #endif

@@ -31,7 +31,7 @@ import struct CoreGraphics.CGRect
 #endif
 
 // SKIP @bridge
-public struct ScrollView : View {
+public struct ScrollView : View, Renderable {
     let content: ComposeBuilder
     let axes: Axis.Set
 
@@ -50,7 +50,7 @@ public struct ScrollView : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         // Some components in Compose have their own scrolling built in
         let builtinScrollAxisSet = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Axis.Set>, Any>) { mutableStateOf(Preference<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self)) }
         let builtinScrollAxisSetCollector = PreferenceCollector<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self, state: builtinScrollAxisSet)
@@ -113,7 +113,7 @@ public struct ScrollView : View {
                     Column(modifier: scrollModifier) {
                         if isVerticalScroll {
                             let searchableState = EnvironmentValues.shared._searchableState
-                            let isSearchable = searchableState?.isOnNavigationStack() == false
+                            let isSearchable = searchableState?.isOnNavigationStack == false
                             if isSearchable {
                                 SearchField(state: searchableState, context: context.content(modifier: Modifier.padding(horizontal: 16.dp, vertical: 8.dp)))
                             }
@@ -167,7 +167,7 @@ public struct ScrollViewProxy {
 }
 
 // SKIP @bridge
-public struct ScrollViewReader : View {
+public struct ScrollViewReader : View, Renderable {
     public let content: (ScrollViewProxy) -> any View
 
     // SKIP @bridge
@@ -176,7 +176,7 @@ public struct ScrollViewReader : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let scrollToID = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToIDAction>, Any>) { mutableStateOf(Preference<ScrollToIDAction>(key: ScrollToIDPreferenceKey.self)) }
         let scrollToIDCollector = PreferenceCollector<ScrollToIDAction>(key: ScrollToIDPreferenceKey.self, state: scrollToID)
         let scrollProxy = ScrollViewProxy(scrollToID: scrollToID.value.reduced.action)
@@ -328,7 +328,7 @@ extension View {
 
     public func scrollContentBackground(_ visibility: Visibility) -> any View {
         #if SKIP
-        return environment(\._scrollContentBackground, visibility)
+        return environment(\._scrollContentBackground, visibility, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -392,7 +392,7 @@ extension View {
     // SKIP @bridge
     public func scrollTargetBehavior(_ behavior: any ScrollTargetBehavior) -> any View {
         #if SKIP
-        return environment(\._scrollTargetBehavior, behavior)
+        return environment(\._scrollTargetBehavior, behavior, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -473,7 +473,7 @@ extension ScrollTargetBehavior where Self == ViewAlignedScrollTargetBehavior {
     }
 }
 
-#if false
+/*
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector
 
@@ -711,6 +711,5 @@ public struct PagingScrollTargetBehavior : ScrollTargetBehavior {
     /// than it would otherwise.
     public func updateTarget(_ target: inout ScrollTarget, context: PagingScrollTargetBehavior.TargetContext) { fatalError() }
 }
-
-#endif
+*/
 #endif

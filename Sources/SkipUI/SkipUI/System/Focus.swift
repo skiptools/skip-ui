@@ -10,8 +10,9 @@ import androidx.compose.ui.focus.FocusRequester
 extension View {
     public func focused<Value>(_ binding: Binding<Value>, equals value: Value) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self) { context in
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let focusRequester = remember { FocusRequester() }
+            var context = context
             context.modifier = context.modifier
                 .focusRequester(focusRequester)
                 .onFocusChanged {
@@ -28,8 +29,8 @@ extension View {
             if value == binding.wrappedValue {
                 SideEffect { focusRequester.requestFocus() }
             }
-            return ComposeResult.ok
-        }
+            renderable.Render(context: context)
+        })
         #else
         return self
         #endif
@@ -50,7 +51,7 @@ extension View {
     }
 }
 
-#if false
+/*
 import protocol Combine.ObservableObject
 
 /// Values describe different focus interactions that a view can support.
@@ -822,6 +823,5 @@ extension View {
     public func focusedSceneObject<T>(_ object: T?) -> some View where T : ObservableObject { return stubView() }
 
 }
-
-#endif
+*/
 #endif

@@ -45,8 +45,8 @@ extension CustomizableToolbarContent {
 // only allowed toolbar content are types that conform to `ToolbarContent`
 
 // SKIP @bridge
-public struct ToolbarItem : View, CustomizableToolbarContent {
-    let placement: ToolbarItemPlacement
+public struct ToolbarItem : View, Renderable, CustomizableToolbarContent {
+    var placement: ToolbarItemPlacement
     let content: ComposeBuilder
 
     public init(placement: ToolbarItemPlacement = .automatic, @ViewBuilder content: () -> any View) {
@@ -66,7 +66,7 @@ public struct ToolbarItem : View, CustomizableToolbarContent {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         EnvironmentValues.shared.setValues {
             if placement == .confirmationAction {
                 var textEnvironment = $0._textEnvironment
@@ -90,10 +90,7 @@ public struct DefaultToolbarItem : View, ToolbarContent {
     public init(kind: ToolbarDefaultItemKind, placement: ToolbarItemPlacement = .automatic) {
     }
 
-    #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-    }
-    #else
+    #if !SKIP
     public var body: some View {
         stubView()
     }
@@ -122,8 +119,28 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let renderables = EnvironmentValues.shared.setValuesWithReturn {
+            if placement == .confirmationAction {
+                var textEnvironment = $0._textEnvironment
+                textEnvironment.fontWeight = Font.Weight.bold
+                $0.set_textEnvironment(textEnvironment)
+            }
+            return ComposeResult.ok
+        } in: {
+            return content.Evaluate(context: context, options: options)
+        }
+        return renderables.map { renderable in
+            if var toolbarItem = renderable as? ToolbarItem {
+                if toolbarItem.placement == .automatic {
+                    toolbarItem.placement = placement
+                }
+                return toolbarItem
+            } else {
+                let renderableView = renderable as? View ?? ComposeView { renderable.Render($0) }
+                return ToolbarItem(placement: placement, content: { renderableView })
+            }
+        }
     }
     #else
     public var body: some View {
@@ -149,7 +166,7 @@ public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
 }
 
 // SKIP @bridge
-public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View {
+public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View, Renderable {
     let sizing: SpacerSizing
     let placement: ToolbarItemPlacement
 
@@ -165,7 +182,7 @@ public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let modifier: Modifier
         if sizing == .fixed {
             modifier = Modifier.width(8.dp)
@@ -584,93 +601,43 @@ struct ToolbarItems {
     let content: [View]
 
     /// Proces our content items, dividing them into the locations at which they should render.
-    @Composable func process(context: ComposeContext) -> (topLeading: [View], topTrailing: [View], bottom: [View]) {
-        let items = gather(context: context)
-        var leading: [View] = []
-        var trailing: [View] = []
-        var principal: View? = nil
-        var bottom: [View] = []
-        for (view, placement) in items {
-            switch placement {
-            case .principal:
-                principal = view
-            case .topBarLeading, .navigationBarLeading, .cancellationAction:
-                leading.append(view)
-            case .bottomBar:
-                bottom.append(view)
-            default:
-                trailing.append(view)
+    @Composable func Evaluate(context: ComposeContext) -> (topLeading: kotlin.collections.List<Renderable>, topTrailing: kotlin.collections.List<Renderable>, bottom: kotlin.collections.List<Renderable>) {
+        let leading: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        let trailing: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        var principal: Renderable? = nil
+        let bottom: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        for view in content {
+            let renderables = view.Evaluate(context: context)
+            for renderable in renderables {
+                let placement = (renderable as? ToolbarItem)?.placement ?? ToolbarItemPlacement.automatic
+                switch placement {
+                case .principal:
+                    principal = renderable
+                case .topBarLeading, .navigationBarLeading, .cancellationAction:
+                    leading.add(renderable)
+                case .bottomBar:
+                    bottom.add(renderable)
+                default:
+                    trailing.add(renderable)
+                }
             }
         }
         if let principal {
-            leading.append(principal)
+            leading.add(principal)
         }
         // SwiftUI inserts a spacer before the last bottom item
-        if bottom.count > 1 && !bottom.contains(where: { $0.strippingModifiers { $0 is Spacer || $0 is ToolbarSpacer } }) {
-            bottom.insert(Spacer(), at: bottom.count - 1)
+        if bottom.size > 1 && !bottom.any({
+            let stripped = $0.strip()
+            return stripped is Spacer || stripped is ToolbarSpacer
+        }) {
+            bottom.add(bottom.size - 1, Spacer())
         }
         return (leading, trailing, bottom)
-    }
-
-    @Composable private func gather(context: ComposeContext) -> [(View, ToolbarItemPlacement)] {
-        let items = mutableListOf<(View, ToolbarItemPlacement)>()
-        let context = context.content(composer: ToolbarContentGatheringComposer(items: items))
-        content.forEach { $0.Compose(context: context) }
-        return Array(items, nocopy: true)
-    }
-}
-
-/// Helper to gather toolbar items and extract their palcements.
-final class ToolbarContentGatheringComposer : SideEffectComposer {
-    let items: MutableList<(View, ToolbarItemPlacement)>
-    let defaultPlacement: ToolbarItemPlacement
-
-    init(items: MutableList<(View, ToolbarItemPlacement)>, defaultPlacement: ToolbarItemPlacement = .automatic) {
-        super.init()
-        self.items = items
-        self.defaultPlacement = defaultPlacement
-    }
-
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) -> ComposeResult {
-        if let composeBuilder = view as? ComposeBuilder {
-            composeBuilder.ComposeContent(context: context(true))
-        } else if let itemGroup = view as? ToolbarItemGroup {
-            // We have to recurse into groups on the bottom bar in order to properly insert spacers between items
-            // to match iOS
-            let placement = itemGroup.placement == .automatic ? defaultPlacement : itemGroup.placement
-            if placement == .bottomBar {
-                // Recurse with a composer that also defaults to this placement
-                let filterComposer = ToolbarContentGatheringComposer(items: items, defaultPlacement: placement)
-                let context = context(false).content(composer: filterComposer)
-                itemGroup.ComposeContent(context: context)
-            } else {
-                items.add((itemGroup, placement))
-            }
-        } else if let item = view as? ToolbarItem {
-            let placement = item.placement == .automatic ? defaultPlacement : item.placement
-            items.add((item, placement))
-        } else if let spacer = view as? ToolbarSpacer {
-            let placement = spacer.placement == .automatic ? defaultPlacement : spacer.placement
-            items.add((spacer, placement))
-        } else if let toolbarContent = view as? ToolbarContent {
-            // Gather the custom content items to check their placement. We have to then add the custom content as
-            // a single item in a single place, because attempting to compose its individual items or compose it
-            // multiple times breaks updates on recompose
-            let content = mutableListOf<(View, ToolbarItemPlacement)>()
-            let composer = ToolbarContentGatheringComposer(items: content, defaultPlacement: defaultPlacement)
-            toolbarContent.ComposeContent(context: context(false).content(composer: composer))
-            if let (_, placement) = content.firstOrNull() {
-                items.add((toolbarContent, placement))
-            }
-        } else if !view.isSwiftUIEmptyView {
-            items.add((view, defaultPlacement))
-        }
-        return ComposeResult.ok
     }
 }
 #endif
 
-#if false
+/*
 /// A built-in set of commands for manipulating window toolbars.
 ///
 /// These commands are optional and can be explicitly requested by passing a
@@ -724,6 +691,5 @@ public struct ToolbarCommands : Commands {
 //    public var body: some CustomizableToolbarContent { stubToolbar() }
 //
 //}
-
-#endif
+*/
 #endif

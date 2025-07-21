@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 #endif
 
 // SKIP @bridge
-public struct Toggle : View {
+public struct Toggle : View, Renderable {
     let isOn: Binding<Bool>
     let label: any View
 
@@ -61,8 +61,8 @@ public struct Toggle : View {
     public init(_ title: String, isOn: Binding<Bool>) {
         self.init(isOn: isOn, label: { Text(verbatim: title) })
     }
-    
-    @Composable public override func ComposeContent(context: ComposeContext) {
+
+    @Composable override func Render(context: ComposeContext) {
         let colors: SwitchColors
         if let tint = EnvironmentValues.shared._tint {
             let tintColor = tint.colorImpl()
@@ -117,7 +117,7 @@ extension View {
     }
 }
 
-#if false
+/*
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 //extension Toggle where Label == ToggleStyleConfiguration.Label {
 
@@ -265,6 +265,5 @@ public struct ToggleStyleConfiguration {
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     public var isMixed: Bool { get { fatalError() } }
 }
-
-#endif
+*/
 #endif

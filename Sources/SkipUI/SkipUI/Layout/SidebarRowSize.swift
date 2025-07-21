@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// The standard sizes of sidebar rows.
 ///
 /// On macOS, sidebar rows have three different sizes: small, medium, and large.
@@ -29,4 +29,4 @@ public enum SidebarRowSize : Sendable {
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 extension SidebarRowSize : Hashable {
 }
-#endif
+*/

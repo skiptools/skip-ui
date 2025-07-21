@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given frame.
-@Composable func FrameLayout(view: View, context: ComposeContext, width: CGFloat?, height: CGFloat?, alignment: Alignment) {
+@Composable func FrameLayout(content: Renderable, context: ComposeContext, width: CGFloat?, height: CGFloat?, alignment: Alignment) {
     var modifier = context.modifier
     if let width {
         modifier = modifier.requiredWidth(width.dp)
@@ -34,20 +34,18 @@ import androidx.compose.ui.unit.dp
 
     // If our content has a zIndex, we need to pull it into our modifiers so that it applies within the original
     // parent container. Otherwise the Box we use below would hide it
-    if let zIndex = view.strippingModifiers(until: { $0 is ZIndexModifierView }, perform: { $0 as? ZIndexModifierView }) {
-        modifier = zIndex.consume(with: modifier)
-    }
+    modifier = ZIndexModifier.consume(for: content, with: modifier)
 
     ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
         let contentContext = context.content()
         Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-            view.Compose(context: contentContext)
+            content.Render(context: contentContext)
         }
     }
 }
 
 /// Compose a view with the given frame.
-@Composable func FrameLayout(view: View, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
+@Composable func FrameLayout(content: Renderable, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
     var thenModifier: Modifier = Modifier
     if maxWidth == .infinity {
         if let minWidth, minWidth > 0.0 {
@@ -66,19 +64,19 @@ import androidx.compose.ui.unit.dp
     ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, minWidth: minWidth != nil && minWidth != Double.infinity && minWidth! > 0.0, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, minHeight: minHeight != nil && minHeight != Double.infinity && minHeight! > 0.0, then: thenModifier) { modifier in
         let contentContext = context.content()
         Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-            view.Compose(context: contentContext)
+            content.Render(context: contentContext)
         }
     }
 }
 
 /// Compose a view with the given background.
-@Composable func BackgroundLayout(view: View, context: ComposeContext, background: View, alignment: Alignment) {
-    TargetViewLayout(context: context, isOverlay: false, alignment: alignment, target: { view.Compose(context: $0) }, dependent: { background.Compose(context: $0) })
+@Composable func BackgroundLayout(content: Renderable, context: ComposeContext, background: View, alignment: Alignment) {
+    TargetViewLayout(context: context, isOverlay: false, alignment: alignment, target: { content.Render(context: $0) }, dependent: { background.Compose(context: $0) })
 }
 
 /// Compose a view with the given overlay.
-@Composable func OverlayLayout(view: View, context: ComposeContext, overlay: View, alignment: Alignment) {
-    TargetViewLayout(context: context, isOverlay: true, alignment: alignment, target: { view.Compose(context: $0) }, dependent: { overlay.Compose(context: $0) })
+@Composable func OverlayLayout(content: Renderable, context: ComposeContext, overlay: View, alignment: Alignment) {
+    TargetViewLayout(context: context, isOverlay: true, alignment: alignment, target: { content.Render(context: $0) }, dependent: { overlay.Compose(context: $0) })
 }
 
 @Composable func TargetViewLayout(context: ComposeContext, isOverlay: Bool, alignment: Alignment, target: @Composable (ComposeContext) -> Void, dependent: @Composable (ComposeContext) -> Void) {
@@ -101,14 +99,14 @@ import androidx.compose.ui.unit.dp
             layout(width: targetPlaceable.width, height: targetPlaceable.height) {
                 if !isOverlay {
                     for dependentPlaceable in dependentPlaceables {
-                        let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                        let (x, y) = placeContent(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
                         dependentPlaceable.placeRelative(x: x, y: y)
                     }
                 }
                 targetPlaceable.placeRelative(x: 0, y: 0)
                 if isOverlay {
                     for dependentPlaceable in dependentPlaceables {
-                        let (x, y) = placeView(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
+                        let (x, y) = placeContent(width: dependentPlaceable.width, height: dependentPlaceable.height, inWidth: targetPlaceable.width, inHeight: targetPlaceable.height, alignment: alignment)
                         dependentPlaceable.placeRelative(x: x, y: y)
                     }
                 }
@@ -118,10 +116,10 @@ import androidx.compose.ui.unit.dp
 }
 
 /// Layout the given view to ignore the given safe areas.
-@Composable func IgnoresSafeAreaLayout(view: View, context: ComposeContext, expandInto: Edge.Set) {
+@Composable func IgnoresSafeAreaLayout(content: Renderable, context: ComposeContext, expandInto: Edge.Set) {
     ComposeContainer(modifier: context.modifier) { modifier in
         IgnoresSafeAreaLayout(expandInto: expandInto, modifier: modifier) { _, _ in
-            view.Compose(context.content())
+            content.Render(context.content())
         }
     }
 }
@@ -234,8 +232,8 @@ private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool
 }
 
 /// Layout the given view with the given padding.
-@Composable func PaddingLayout(view: View, padding: EdgeInsets, context: ComposeContext) {
-    PaddingLayout(padding: padding, context: context) { view.Compose($0) }
+@Composable func PaddingLayout(content: Renderable, padding: EdgeInsets, context: ComposeContext) {
+    PaddingLayout(padding: padding, context: context) { content.Render($0) }
 }
 
 @Composable func PaddingLayout(padding: EdgeInsets, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
@@ -263,8 +261,8 @@ private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool
 }
 
 /// Layout the given view with the given position.
-@Composable func PositionLayout(view: View, x: CGFloat, y: CGFloat, context: ComposeContext) {
-    PositionLayout(x: x, y: y, context: context) { view.Compose($0) }
+@Composable func PositionLayout(content: Renderable, x: CGFloat, y: CGFloat, context: ComposeContext) {
+    PositionLayout(x: x, y: y, context: context) { content.Render($0) }
 }
 
 @Composable func PositionLayout(x: CGFloat, y: CGFloat, context: ComposeContext, target: @Composable (ComposeContext) -> Void) {
@@ -296,7 +294,7 @@ private func constraint(_ value: Int, subtracting: Int) -> Int {
     return max(0, value - subtracting)
 }
 
-private func placeView(width: Int, height: Int, inWidth: Int, inHeight: Int, alignment: Alignment) -> (Int, Int) {
+private func placeContent(width: Int, height: Int, inWidth: Int, inHeight: Int, alignment: Alignment) -> (Int, Int) {
     let centerX = (inWidth - width) / 2
     let centerY = (inHeight - height) / 2
     switch alignment {

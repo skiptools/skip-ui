@@ -6,6 +6,7 @@ import Foundation
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,12 +66,12 @@ let listSectionCornerRadius = 8.0
 
 // SKIP @bridge
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
-public final class List : View {
+public final class List : View, Renderable {
     let fixedContent: ComposeBuilder?
     let forEach: ForEach?
-    let itemTransformer: ((any View) -> any View)?
+    let itemTransformer: ((any Renderable) -> any Renderable)?
 
-    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, itemTransformer: ((any View) -> any View)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
+    init(fixedContent: (any View)? = nil, identifier: ((Any) -> AnyHashable?)? = nil, itemTransformer: ((any Renderable) -> any Renderable)? = nil, indexRange: Range<Int>? = nil, indexedContent: ((Int) -> any View)? = nil, objects: (any RandomAccessCollection<Any>)? = nil, objectContent: ((Any) -> any View)? = nil, objectsBinding: Binding<any RandomAccessCollection<Any>>? = nil, objectsBindingContent: ((Binding<any RandomAccessCollection<Any>>, Int) -> any View)? = nil, editActions: EditActions = []) {
         if let fixedContent {
             self.fixedContent = fixedContent as? ComposeBuilder ?? ComposeBuilder(view: fixedContent)
         } else {
@@ -111,7 +112,7 @@ public final class List : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable public override func Render(context: ComposeContext) {
         let style = EnvironmentValues.shared._listStyle ?? ListStyle.automatic
         let backgroundVisibility = EnvironmentValues.shared._scrollContentBackground ?? Visibility.visible
         let styling = ListStyling(style: style, backgroundVisibility: backgroundVisibility)
@@ -146,7 +147,7 @@ public final class List : View {
                     let density = LocalDensity.current
                     let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
                     let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
-                    ComposeList(context: itemContext, styling: styling, arguments: ListArguments(headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges))
+                    RenderList(context: itemContext, styling: styling, arguments: ListArguments(headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight, safeAreaEdges: safeAreaEdges))
                     if let refreshState {
                         PullRefreshIndicator(refreshing.value, refreshState, Modifier.align(androidx.compose.ui.Alignment.TopCenter))
                     }
@@ -156,16 +157,14 @@ public final class List : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
-        // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
-        // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
-        // LazyListScope functions to compose individual items
-        let collectingComposer = LazyItemCollectingComposer()
-        let viewsCollector = context.content(composer: collectingComposer)
+    @Composable private func RenderList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
+        let renderables: kotlin.collections.List<Renderable>
         if let forEach {
-            forEach.appendLazyItemViews(to: collectingComposer, appendingContext: viewsCollector)
+            renderables = forEach.EvaluateLazyItems(context: context)
         } else if let fixedContent {
-            fixedContent.Compose(context: viewsCollector)
+            renderables = fixedContent.EvaluateLazyItems(context: context)
+        } else {
+            renderables = listOf()
         }
 
         var modifier = context.modifier
@@ -175,22 +174,23 @@ public final class List : View {
         modifier = modifier.fillMaxSize()
 
         let searchableState = EnvironmentValues.shared._searchableState
-        let isSearchable = searchableState?.isOnNavigationStack() == false
+        let isSearchable = searchableState?.isOnNavigationStack == false
 
         let hasHeader = styling.style != ListStyle.plain || (!isSearchable && arguments.headerSafeAreaHeight.value > 0)
         let hasFooter = styling.style != ListStyle.plain || arguments.footerSafeAreaHeight.value > 0
 
         // Remember the factory because we use it in the remembered reorderable state
-        let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
+        let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         let moveTrigger = remember { mutableStateOf(0) }
         let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable && arguments.headerSafeAreaHeight.value <= 0 ? 1 : 0)
+        android.util.Log.e("", "LISTSTATE: \(listState) ===========================") //~~~
         let reorderableState = rememberReorderableLazyListState(listState: listState, onMove: { from, to in
             // Trigger recompose on move, but don't read the trigger state until we're inside the list content to limit its scope
-            factoryContext.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
+            itemCollector.value.move(from: from.index, to: to.index, trigger: { moveTrigger.value = $0 })
         }, onDragEnd: { _, _ in
-            factoryContext.value.commitMove()
+            itemCollector.value.commitMove()
         }, canDragOver: { candidate, dragging in
-            factoryContext.value.canMove(from: dragging.index, to: candidate.index)
+            itemCollector.value.canMove(from: dragging.index, to: candidate.index)
         })
         modifier = modifier.reorderable(reorderableState)
 
@@ -202,7 +202,7 @@ public final class List : View {
             }
         })
         let scrollToID = ScrollToIDAction(key: reorderableState.listState) { id in
-            if let itemIndex = factoryContext.value.index(for: id) {
+            if let itemIndex = itemCollector.value.index(for: id) {
                 coroutineScope.launch {
                     if Animation.isInWithAnimation {
                         reorderableState.listState.animateScrollToItem(itemIndex)
@@ -241,23 +241,13 @@ public final class List : View {
             forceUnanimatedItems.value = false
         }
 
-        let isTagging = EnvironmentValues.shared._placement.contains(ViewPlacement.tagged)
+        let itemContext = context.content()
         LazyColumn(state: reorderableState.listState, modifier: modifier) {
-            let sectionHeaderContext = context.content(composer: RenderingComposer { view, context in
-                ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: false)
-            })
-            let topSectionHeaderContext = context.content(composer: RenderingComposer { view, context in
-                ComposeSectionHeader(view: view, context: context(false), styling: styling, isTop: true)
-            })
-            let sectionFooterContext = context.content(composer: RenderingComposer { view, context in
-                ComposeSectionFooter(view: view, context: context(false), styling: styling)
-            })
-
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable () -> Bool = {
                 // We disable animation to prevent filtered items from animating when they return
-                let animate = !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isFiltering() != true
+                let animate = !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
                 return animate
             }
 
@@ -266,96 +256,86 @@ public final class List : View {
             if isSearchable {
                 startItemIndex += 1 // Search field
             }
-            factoryContext.value.initialize(
-                isTagging: isTagging,
+            itemCollector.value.initialize(
                 startItemIndex: startItemIndex,
-                item: { view, level in
+                item: { renderable, level in
                     item {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                        let itemContext = context.content(composer: RenderingComposer { view, context in
-                            ComposeItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling)
-                        })
-                        view.Compose(context: itemContext)
+                        RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
                     }
                 },
                 indexedItems: { range, identifier, offset, onDelete, onMove, level, factory in
                     let count = range.endExclusive - range.start
-                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + factoryContext.value.remapIndex($0, from: offset))) }
+                    let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!(range.start + itemCollector.value.remapIndex($0, from: offset))) }
                     items(count: count, key: key) { index in
                         let keyValue = key?(index) // Key closure already remaps index
-                        let index = factoryContext.value.remapIndex(index, from: offset)
+                        let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
-                            ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
-                        })
-                        factory(index + range.start).Compose(context: editableItemContext)
+                        let renderable = factory(index + range.start, itemContext)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
-                    let key: (Int) -> String = { composeBundleString(for: identifier(objects[factoryContext.value.remapIndex($0, from: offset)])) }
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objects[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objects.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
-                        let index = factoryContext.value.remapIndex(index, from: offset)
+                        let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
-                            ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
-                        })
-                        factory(objects[index]).Compose(context: editableItemContext)
+                        let renderable = factory(objects[index], itemContext)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
-                    let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[factoryContext.value.remapIndex($0, from: offset)])) }
+                    let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[itemCollector.value.remapIndex($0, from: offset)])) }
                     items(count: objectsBinding.wrappedValue.count, key: key) { index in
                         let keyValue = key(index) // Key closure already remaps index
-                        let index = factoryContext.value.remapIndex(index, from: offset)
+                        let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                        let editableItemContext = context.content(composer: RenderingComposer { view, context in
-                            ComposeEditableItem(view: view, level: level, context: context(false), modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
-                        })
-                        factory(objectsBinding, index).Compose(context: editableItemContext)
+                        let renderable = factory(objectsBinding, index, itemContext)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                     }
                 },
-                sectionHeader: { view in
-                    let context = view === collectingComposer.views.firstOrNull() ? topSectionHeaderContext : sectionHeaderContext
+                sectionHeader: { renderable in
+                    let isTop = renderable === renderables.firstOrNull()
                     if styling.style == .plain {
                         stickyHeader { _ in
-                            view.Compose(context: context)
+                            RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
                         }
                     } else {
                         item {
-                            view.Compose(context: context)
+                            RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
                         }
                     }
                 },
-                sectionFooter: { view in
+                sectionFooter: { renderable in
                     item {
-                        view.Compose(context: sectionFooterContext)
+                        RenderSectionFooter(content: renderable, context: itemContext, styling: styling)
                     }
                 }
             )
 
             if isSearchable {
                 item {
-                    ComposeSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
+                    RenderSearchField(state: searchableState!, context: context, styling: styling, safeAreaHeight: arguments.headerSafeAreaHeight)
                 }
             }
             if hasHeader {
-                let hasTopSection = collectingComposer.views.firstOrNull() is LazySectionHeader
+                let hasTopSection = renderables.firstOrNull() is LazySectionHeader
                 item {
-                    ComposeHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
+                    RenderHeader(styling: styling, safeAreaHeight: isSearchable ? 0.dp : arguments.headerSafeAreaHeight, hasTopSection: hasTopSection)
                 }
             }
-            for (view, level) in collectingComposer.views {
-                if let factory = view as? LazyItemFactory {
-                    factory.composeLazyItems(context: factoryContext.value, level: level)
+            for renderable in renderables {
+                if let factory = renderable as? LazyItemFactory, factory.shouldProduceLazyItems() {
+                    factory.produceLazyItems(collector: itemCollector.value, modifiers: listOf(), level: 0)
                 } else {
-                    factoryContext.value.item(view, level)
+                    itemCollector.value.item(renderable, 0)
                 }
             }
             if hasFooter {
-                let hasBottomSection = collectingComposer.views.lastOrNull() is LazySectionFooter
+                let hasBottomSection = renderables.lastOrNull() is LazySectionFooter
                 item {
-                    ComposeFooter(styling: styling, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
+                    RenderFooter(styling: styling, safeAreaHeight: arguments.footerSafeAreaHeight, hasBottomSection: hasBottomSection)
                 }
             }
         }
@@ -372,62 +352,84 @@ public final class List : View {
         return Modifier.padding(start: (horizontalItemInset + level * levelInset).dp, end: horizontalItemInset.dp, top: verticalItemInset.dp, bottom: verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: minimumItemHeight.dp)
     }
 
-    @Composable static func ComposeSeparator(level: Int) {
+    @Composable static func RenderSeparator(level: Int) {
         androidx.compose.material3.Divider(modifier: Modifier.padding(start: (horizontalItemInset + level * levelInset).dp).fillMaxWidth(), color: Color.separator.colorImpl())
     }
 
-    @Composable private func ComposeItem(view: View, level: Int, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
-        guard !view.isSwiftUIEmptyView else {
+    @Composable static func RenderItemContent(item: Renderable, context: ComposeContext, modifier: Modifier) {
+        let (isListItem, listItemAction) = item.shouldRenderListItem(context: context)
+        if isListItem {
+            let actionModifier: Modifier
+            if let listItemAction {
+                let isDisabled = !EnvironmentValues.shared.isEnabled || item.forEachModifier { ($0 as? DisabledModifier)?.disabled } == true
+                actionModifier = Modifier.clickable(onClick: listItemAction, enabled: !isDisabled)
+            } else {
+                actionModifier = Modifier
+            }
+            Box(modifier: actionModifier.then(modifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                item.RenderListItem(context: context, modifiers: listOf())
+            }
+        } else {
+            Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                item.Render(context: context)
+            }
+        }
+    }
+
+    @Composable private func RenderItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isItem: Bool = true) {
+        guard !content.isSwiftUIEmptyView else {
             return
         }
 
-        let itemModifierView = view.strippingModifiers(until: { $0 is ListItemModifierView }, perform: { $0 as? ListItemModifierView })
+        let itemRenderable = itemTransformer?(content) ?? content
+        let listItemModifier = ListItemModifier.combined(for: itemRenderable)
         var itemModifier: Modifier = Modifier
-        if itemModifierView?.background == nil {
+        if listItemModifier?.background == nil {
             itemModifier = itemModifier.background(BackgroundColor(styling: styling.withStyle(ListStyle.plain), isItem: isItem))
         }
 
         // The given modifiers include elevation shadow for dragging, etc that need to go before the others
         let containerContext = context.content(modifier: modifier.then(itemModifier).then(context.modifier))
-        let composeContainer: @Composable (ComposeContext) -> Void = { context in
+        let contentContext = context.content()
+        let contentModifier = Self.contentModifier(level: level)
+        let renderContainer: @Composable (ComposeContext) -> Void = { context in
             Column(modifier: context.modifier) {
                 let placement = EnvironmentValues.shared._placement
                 EnvironmentValues.shared.setValues {
                     $0.set_placement(placement.union(ViewPlacement.listItem))
                     return ComposeResult.ok
                 } in: {
-                    // Note that we're calling the same view's Compose function again with a new context
-                    view.Compose(context: context.content(composer: ListItemComposer(contentModifier: Self.contentModifier(level: level), itemTransformer: itemTransformer)))
+                    Self.RenderItemContent(item: itemRenderable, context: contentContext, modifier: contentModifier)
                 }
-                if itemModifierView?.separator != Visibility.hidden {
-                    Self.ComposeSeparator(level: level)
+                if listItemModifier?.separator != Visibility.hidden {
+                    Self.RenderSeparator(level: level)
                 }
             }
         }
 
-        if let background = itemModifierView?.background {
-            TargetViewLayout(context: containerContext, isOverlay: false, alignment: Alignment.center, target: composeContainer, dependent: {
+        if let background = listItemModifier?.background {
+            TargetViewLayout(context: containerContext, isOverlay: false, alignment: Alignment.center, target: renderContainer, dependent: {
                 background.Compose(context: $0)
             })
         } else {
-            composeContainer(containerContext)
+            renderContainer(containerContext)
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeEditableItem(view: View, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
-        guard !view.isSwiftUIEmptyView else {
+    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
+        guard !content.isSwiftUIEmptyView else {
             return
         }
         guard let key else {
-            ComposeItem(view: view, level: level, context: context, modifier: modifier, styling: styling)
+            RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
             return
         }
-        let editActionsModifiers = EditActionsModifierView.unwrap(view: view)
-        let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifiers?.isDeleteDisabled != true
-        let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifiers?.isMoveDisabled != true
+        let editActionsModifier = EditActionsModifier.combined(for: content)
+        let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifier.isDeleteDisabled != true
+        let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifier.isMoveDisabled != true
         guard isDeleteEnabled || isMoveEnabled else {
-            ComposeItem(view: view, level: level, context: context, modifier: modifier, styling: styling)
+            RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
             return
         }
 
@@ -450,29 +452,29 @@ public final class List : View {
                 return false
             }, positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold)
 
-            let content: @Composable (Modifier) -> Void = {
+            let itemContent: @Composable (Modifier) -> Void = {
                 SwipeToDismissBox(state: dismissState, enableDismissFromEndToStart: true, enableDismissFromStartToEnd: false, modifier: $0, backgroundContent: {
                     let trashVector = Image.composeImageVector(named: "trash")!
                     Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
                         Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
                     }
                 }, content: {
-                    ComposeItem(view: view, level: level, context: context, styling: styling)
+                    RenderItem(content: content, level: level, context: context, styling: styling)
                 })
             }
             if isMoveEnabled {
-                ComposeReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: content)
+                RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
             } else {
-                content(modifier)
+                itemContent(modifier)
             }
         } else {
-            ComposeReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier) {
-                ComposeItem(view: view, level: level, context: context, modifier: $0, styling: styling)
+            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier) {
+                RenderItem(content: content, level: level, context: context, modifier: $0, styling: styling)
             }
         }
     }
 
-    @Composable private func ComposeReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, content: @Composable (Modifier) -> Void) {
+    @Composable private func RenderReorderableItem(reorderableState: ReorderableLazyListState, key: String, modifier: Modifier, content: @Composable (Modifier) -> Void) {
         ReorderableItem(state: reorderableState, key: key, defaultDraggingModifier: modifier) { dragging in
             var itemModifier = Modifier.detectReorderAfterLongPress(reorderableState)
             if dragging {
@@ -483,10 +485,10 @@ public final class List : View {
         }
     }
 
-    @Composable private func ComposeSectionHeader(view: View, context: ComposeContext, styling: ListStyling, isTop: Bool) {
+    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, styling: ListStyling, isTop: Bool) {
         if !isTop && styling.style != ListStyle.plain {
             // Vertical padding
-            ComposeFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
+            RenderFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
         let modifier = Modifier
@@ -505,18 +507,18 @@ public final class List : View {
                     $0.set_listSectionHeaderStyle(styling.style)
                     return ComposeResult.ok
                 } in: {
-                    view.Compose(context: context.content(modifier: contentModifier))
+                    content.Render(context: context.content(modifier: contentModifier))
                 }
             }
             if styling.style != ListStyle.plain {
-                ComposeRoundedCorners(isTop: true, fill: backgroundColor)
+                RenderRoundedCorners(isTop: true, fill: backgroundColor)
             }
         }
     }
 
-    @Composable private func ComposeSectionFooter(view: View, context: ComposeContext, styling: ListStyling) {
+    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, styling: ListStyling) {
         if styling.style == .plain {
-            ComposeItem(view: view, level: 0, context: context, styling: styling, isItem: false)
+            RenderItem(content: content, level: 0, context: context, styling: styling, isItem: false)
         } else {
             let backgroundColor = BackgroundColor(styling: styling, isItem: false)
             let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
@@ -530,17 +532,17 @@ public final class List : View {
                         $0.set_listSectionFooterStyle(styling.style)
                         return ComposeResult.ok
                     } in: {
-                        view.Compose(context: context.content(modifier: contentModifier))
+                        content.Render(context: context.content(modifier: contentModifier))
                     }
                 }
-                ComposeRoundedCorners(isTop: false, fill: backgroundColor)
+                RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
         }
     }
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeHeader(styling: ListStyling, safeAreaHeight: Dp, hasTopSection: Bool) {
+    @Composable private func RenderHeader(styling: ListStyling, safeAreaHeight: Dp, hasTopSection: Bool) {
         var height = safeAreaHeight
         if styling.style != .plain {
             height += Self.verticalInset.dp
@@ -552,14 +554,14 @@ public final class List : View {
             .background(backgroundColor)
         Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
             if !hasTopSection && styling.style != .plain {
-                ComposeRoundedCorners(isTop: true, fill: backgroundColor)
+                RenderRoundedCorners(isTop: true, fill: backgroundColor)
             }
         }
     }
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func ComposeFooter(styling: ListStyling, safeAreaHeight: Dp, hasBottomSection: Bool) {
+    @Composable private func RenderFooter(styling: ListStyling, safeAreaHeight: Dp, hasBottomSection: Bool) {
         var height = safeAreaHeight
         var offset = 0.dp
         if styling.style != .plain {
@@ -574,12 +576,12 @@ public final class List : View {
             .background(backgroundColor)
         Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
             if !hasBottomSection && styling.style != .plain {
-                ComposeRoundedCorners(isTop: false, fill: backgroundColor)
+                RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
         }
     }
 
-    @Composable private func ComposeRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color) {
+    @Composable private func RenderRoundedCorners(isTop: Bool, fill: androidx.compose.ui.graphics.Color) {
         let shape = GenericShape { size, _ in
             let rect = Rect(left: Float(0.0), top: Float(0.0), right: size.width, bottom: size.height)
             let rectPath = androidx.compose.ui.graphics.Path()
@@ -605,7 +607,7 @@ public final class List : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
+    @Composable private func RenderSearchField(state: SearchableState, context: ComposeContext, styling: ListStyling, safeAreaHeight: Dp) {
         var modifier = Modifier.background(BackgroundColor(styling: styling, isItem: false))
         if styling.style == ListStyle.plain {
             modifier = modifier.padding(top: Self.verticalInset.dp + safeAreaHeight, start: Self.horizontalInset.dp, end: Self.horizontalInset.dp, bottom: Self.verticalInset.dp)
@@ -682,45 +684,7 @@ struct ListStyling: Equatable {
     }
 }
 
-/// Adopted by views that adapt when used as a list item.
-protocol ListItemAdapting {
-    #if SKIP
-    /// Whether to compose this view as a list item or to use the standard compose pipeline.
-    @Composable func shouldComposeListItem() -> Bool
-
-    /// Compose this view as a list item.
-    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier)
-    #endif
-}
-
 #if SKIP
-final class ListItemComposer: RenderingComposer {
-    let contentModifier: Modifier
-    let itemTransformer: ((View) -> View)?
-
-    init(contentModifier: Modifier, itemTransformer: ((View) -> View)? = nil) {
-        self.contentModifier = contentModifier
-        self.itemTransformer = itemTransformer
-    }
-
-    @Composable override func Compose(view: View, context: (Bool) -> ComposeContext) {
-        let view = itemTransformer?(view) ?? view
-        if let listItemAdapting = view as? ListItemAdapting, listItemAdapting.shouldComposeListItem() {
-            listItemAdapting.ComposeListItem(context: context(false), contentModifier: contentModifier)
-        } else if view is ComposeModifierView || view is ComposeBuilder || !view.isSwiftUIModuleView {
-            // Allow content of modifier views and custom views to adapt to list item rendering
-            var contentContext = context(true)
-            // Erase item transformer, as we've already applied it
-            contentContext.composer = ListItemComposer(contentModifier: contentModifier)
-            view.ComposeContent(context: contentContext)
-        } else {
-            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                view.ComposeContent(context: context(false))
-            }
-        }
-    }
-}
-
 @Stable struct ListArguments: Equatable {
     let headerSafeAreaHeight: Dp
     let footerSafeAreaHeight: Dp
@@ -768,7 +732,7 @@ extension View {
     // SKIP @bridge
     public func listRowBackground(_ view: (any View)?) -> any View {
         #if SKIP
-        return ListItemModifierView(view: self, background: view)
+        return ModifiedContent(content: self, modifier: ListItemModifier(background: view))
         #else
         return self
         #endif
@@ -776,7 +740,7 @@ extension View {
     
     public func listRowSeparator(_ visibility: Visibility, edges: VerticalEdge.Set = .all) -> some View {
         #if SKIP
-        return ListItemModifierView(view: self, separator: visibility)
+        return ModifiedContent(content: self, modifier: ListItemModifier(separator: visibility))
         #else
         return self
         #endif
@@ -809,7 +773,7 @@ extension View {
 
     public func listStyle(_ style: ListStyle) -> some View {
         #if SKIP
-        return environment(\._listStyle, style)
+        return environment(\._listStyle, style, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -823,7 +787,7 @@ extension View {
     // SKIP @bridge
     public func listItemTint(_ tint: Color?) -> any View {
         #if SKIP
-        return environment(\._listItemTint, tint)
+        return environment(\._listItemTint, tint, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -861,28 +825,33 @@ extension View {
 }
 
 #if SKIP
-final class ListItemModifierView: ComposeModifierView, ListItemAdapting {
-    var background: View?
-    var separator: Visibility?
+final class ListItemModifier: RenderModifier {
+    let background: View?
+    let separator: Visibility?
 
-    init(view: View, background: View? = nil, separator: Visibility? = nil) {
-        let modifierView = view.strippingModifiers(until: { $0 is ListItemModifierView }, perform: { $0 as? ListItemModifierView })
-        self.background = background ?? modifierView?.background
-        self.separator = separator ?? modifierView?.separator
-        super.init(view: view)
+    init(background: View? = nil, separator: Visibility? = nil) {
+        self.background = background
+        self.separator = separator
+        super.init()
     }
 
-    @Composable func shouldComposeListItem() -> Bool {
-        return (view as? ListItemAdapting)?.shouldComposeListItem() == true
-    }
-
-    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        (view as? ListItemAdapting)?.ComposeListItem(context: context, contentModifier: contentModifier)
+    static func combined(for renderable: Renderable) -> ListItemModifier {
+        var background: View? = nil
+        var separator: Visibility? = nil
+        renderable.forEachModifier {
+            if let listItemModifier = $0 as? ListItemModifier {
+                background = background ?? listItemModifier.background
+                separator = separator ?? listItemModifier.separator
+            }
+            return nil
+        }
+        return ListItemModifier(background: background, separator: separator)
     }
 }
 #endif
 
 #if false
+/*
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension List {
 
@@ -1411,6 +1380,6 @@ extension List {
 //    @available(watchOS, unavailable)
 //    @MainActor public init<Data, ID, RowContent>(_ data: Binding<Data>, id: KeyPath<Data.Element, ID>, editActions: EditActions /* <Data> */, selection: Binding<SelectionValue?>?, @ViewBuilder rowContent: @escaping (Binding<Data.Element>) -> RowContent) where Content == ForEach<IndexedIdentifierCollection<Data, ID>, ID, EditableCollectionContent<RowContent, Data>>, Data : MutableCollection, Data : RandomAccessCollection, ID : Hashable, RowContent : View, Data.Index : Hashable { fatalError() }
 }
-
+ */
 #endif
 #endif

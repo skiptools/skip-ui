@@ -67,7 +67,7 @@ import kotlinx.coroutines.launch
 #endif
 
 // SKIP @bridge
-public struct TabView : View {
+public struct TabView : View, Renderable {
     let selection: Binding<Any>?
     let content: ComposeBuilder
 
@@ -93,43 +93,43 @@ public struct TabView : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         if let pageTabViewStyle = EnvironmentValues.shared._tabViewStyle as? PageTabViewStyle {
-            ComposePageViewContent(indexDisplayMode: pageTabViewStyle.indexDisplayMode, context: context)
+            RenderPageViewContent(indexDisplayMode: pageTabViewStyle.indexDisplayMode, context: context)
         } else {
-            ComposeTabViewContent(context: context)
+            RenderTabViewContent(context: context)
         }
     }
 
-    @Composable private func ComposePageViewContent(indexDisplayMode: PageTabViewStyle.IndexDisplayMode, context: ComposeContext) {
+    @Composable private func RenderPageViewContent(indexDisplayMode: PageTabViewStyle.IndexDisplayMode, context: ComposeContext) {
         // WARNING: This function is a potential recomposition hotspot
         let contentContext = context.content()
-        let tabViews = content.collectViews(context: contentContext).filter { !$0.isSwiftUIEmptyView }
-        let tags = tabViews.map { tabTagValue(for: $0) }
+        let tabRenderables = EvaluateContent(context: contentContext)
+        let tags = tabRenderables.map { tabTagValue(for: $0) }
         let coroutineScope = rememberCoroutineScope()
         let isSyncingToSelection = remember { mutableStateOf(false) }
-        let pagerState = rememberPagerState(pageCount: { tabViews.count })
+        let pagerState = rememberPagerState(pageCount: { tabRenderables.size })
         ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
             Box(modifier: modifier) {
                 syncPagerStateToSelection(pagerState, tags: tags, isSyncingToSelection: isSyncingToSelection, coroutineScope: coroutineScope)
-                ComposePageViewPager(pagerState: pagerState, tabViews: tabViews, tags: tags, isSyncingToSelection: isSyncingToSelection, context: contentContext)
-                if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabViews.count > 1) {
+                RenderPageViewPager(pagerState: pagerState, tabRenderables: tabRenderables, tags: tags, isSyncingToSelection: isSyncingToSelection, context: contentContext)
+                if indexDisplayMode == .always || (indexDisplayMode == .automatic && tabRenderables.size > 1) {
                     let modifier = Modifier
                         .wrapContentHeight()
                         .fillMaxWidth()
                         .align(androidx.compose.ui.Alignment.BottomCenter)
                         .padding(bottom: 16.dp)
-                    ComposePageViewIndicator(pagerState: pagerState, modifier: modifier, coroutineScope: coroutineScope, context: contentContext)
+                    RenderPageViewIndicator(pagerState: pagerState, modifier: modifier, coroutineScope: coroutineScope, context: contentContext)
                 }
             }
         }
     }
 
-    @Composable private func ComposePageViewPager(pagerState: PagerState, tabViews: [View], tags: [Any?], isSyncingToSelection: MutableState<Bool>, context: ComposeContext) {
+    @Composable private func RenderPageViewPager(pagerState: PagerState, tabRenderables: kotlin.collections.List<Renderable>, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, context: ComposeContext) {
         HorizontalPager(state: pagerState, modifier: Modifier.fillMaxSize()) { page in
-            if page >= 0 && page < tabViews.count {
+            if page >= 0 && page < tabRenderables.size {
                 Box(modifier: Modifier.fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    tabViews[page].Compose(context: context)
+                    tabRenderables[page].Render(context: context)
                 }
                 // We don't get a callback when the user scrolls the pager, so use the rendering callback to sync any
                 // user-initiated navigation to the selection binding
@@ -138,12 +138,13 @@ public struct TabView : View {
         }
     }
 
-    @Composable private func syncPagerStateToSelection(_ pagerState: PagerState, tags: [Any?], isSyncingToSelection: MutableState<Bool>, coroutineScope: CoroutineScope) {
+    @Composable private func syncPagerStateToSelection(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>, coroutineScope: CoroutineScope) {
         guard let selectedTag = selection?.wrappedValue else {
             return
         }
-        let selectedPageState = rememberUpdatedState(tags.firstIndex { $0 == selectedTag })
-        guard let selectedPage = selectedPageState.value, selectedPage != pagerState.targetPage else {
+        let selectedPageState = rememberUpdatedState(tags.indexOfFirst { $0 == selectedTag })
+        let selectedPage = selectedPageState.value
+        guard selectedPage != -1 && selectedPage != pagerState.targetPage else {
             return
         }
         // Don't attempt to sync to the selection while the user is scrolling
@@ -155,7 +156,8 @@ public struct TabView : View {
         // the coroutine to launch, or confuse the resulting scrolling with user scrolling
         isSyncingToSelection.value = true
         coroutineScope.launch {
-            if let selectedPage = selectedPageState.value {
+            let selectedPage = selectedPageState.value
+            if selectedPage != -1 {
                 if pagerState.isScrollInProgress || isWithAnimationState.value {
                     pagerState.animateScrollToPage(selectedPage)
                 } else {
@@ -166,12 +168,12 @@ public struct TabView : View {
         }
     }
 
-    @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: [Any?], isSyncingToSelection: MutableState<Bool>) {
+    @Composable private func syncSelectionToPagerState(_ pagerState: PagerState, tags: kotlin.collections.List<Any?>, isSyncingToSelection: MutableState<Bool>) {
         // Don't confuse our own programmatic scrolling with user scrolling
         guard !isSyncingToSelection.value else {
             return
         }
-        guard pagerState.targetPage >= 0 && pagerState.targetPage < tags.count else {
+        guard pagerState.targetPage >= 0 && pagerState.targetPage < tags.size else {
             return
         }
         guard let targetTag = tags[pagerState.targetPage], let selectedTag = selection?.wrappedValue, selectedTag != targetTag else {
@@ -181,7 +183,7 @@ public struct TabView : View {
     }
 
     // https://developer.android.com/develop/ui/compose/layouts/pager#add-page
-    @Composable private func ComposePageViewIndicator(pagerState: PagerState, modifier: Modifier, coroutineScope: CoroutineScope, context: ComposeContext) {
+    @Composable private func RenderPageViewIndicator(pagerState: PagerState, modifier: Modifier, coroutineScope: CoroutineScope, context: ComposeContext) {
         Row(modifier: modifier, horizontalArrangement: Arrangement.Center) {
             for indicatorPage in 0..<pagerState.pageCount {
                 let isCurrentPage = pagerState.targetPage == indicatorPage
@@ -202,35 +204,26 @@ public struct TabView : View {
         }
     }
 
-    @Composable private func ComposeTabViewContent(context: ComposeContext) {
+    @Composable private func RenderTabViewContent(context: ComposeContext) {
         // WARNING: This function is a potential recomposition hotspot. It should not need to be called on every tab
         // change. Test after any modification
 
         let tabContext = context.content()
-        var tabViews: [View] = []
-        EnvironmentValues.shared.setValues {
-            $0.set_placement(ViewPlacement.tagged)
-            return ComposeResult.ok
-        } in: {
-            tabViews = content.collectViews(context: tabContext).filter { !$0.isSwiftUIEmptyView }
-        }
-        let tabs: [Tab?] = tabViews.map { view in
-            view.strippingModifiers(until: {
-                $0 is Tab || $0 is TabItemModifierView
-            }, perform: {
-                if let tab = $0 as? Tab {
-                    return tab
-                } else if let modifier = $0 as? TabItemModifierView {
-                    return Tab(content: { modifier.view }, label: { modifier.label })
-                } else {
-                    return nil
-                }
-            })
+        let tabRenderables = EvaluateContent(context: tabContext)
+        let tabs: kotlin.collections.List<Tab?> = tabRenderables.map {
+            let renderable = $0 as Renderable // Let transpiler understand type
+            if let tab = renderable.strip() as? Tab {
+                return tab
+            } else if let tabItemModifier = renderable.forEachModifier(perform: { $0 as? TabItemModifier }) as? TabItemModifier {
+                return Tab(content: { renderable.asView() }, label: { tabItemModifier.label })
+            } else {
+                return nil
+            }
         }
 
         let navController = rememberNavController()
         // Isolate access to current route within child Composable so route nav does not force us to recompose
-        navigateToCurrentRoute(controller: navController, tabViews: tabViews)
+        navigateToCurrentRoute(controller: navController, tabRenderables: tabRenderables)
 
         let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ToolbarBarPreferences>, Any>) { mutableStateOf(Preference<ToolbarBarPreferences>(key: TabBarPreferenceKey.self)) }
         let tabBarPreferencesCollector = PreferenceCollector<ToolbarBarPreferences>(key: TabBarPreferenceKey.self, state: tabBarPreferences)
@@ -253,7 +246,7 @@ public struct TabView : View {
         // when the bottom bar recomposes
         let reducedTabBarPreferences = tabBarPreferences.value.reduced
         let bottomBar: @Composable () -> Void = {
-            guard tabs.contains(where: { $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
+            guard tabs.any({ $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
@@ -326,7 +319,7 @@ public struct TabView : View {
                     let containerColor = showScrolledBackground ? tabBarBackgroundColor : unscrolledTabBarBackgroundColor
                     let onItemClick: (Int) -> Void = { tabIndex in
                         let route = String(describing: tabIndex)
-                        if let selection, let tagValue = tagValue(route: route, in: tabViews) {
+                        if let selection, let tagValue = tagValue(route: route, in: tabRenderables) {
                             selection.wrappedValue = tagValue
                         } else {
                             navigate(controller: navController, route: route)
@@ -334,18 +327,18 @@ public struct TabView : View {
                     }
                     let itemIcon: @Composable (Int) -> Void = { tabIndex in
                         let tab = tabsState.value[tabIndex]
-                        tab?.ComposeImage(context: tabContext)
+                        tab?.RenderImage(context: tabContext)
                     }
                     let itemLabel: @Composable (Int) -> Void = { tabIndex in
                         let tab = tabsState.value[tabIndex]
-                        tab?.ComposeTitle(context: tabContext)
+                        tab?.RenderTitle(context: tabContext)
                     }
                     var options = Material3NavigationBarOptions(modifier: context.modifier.then(tabBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), onItemClick: onItemClick, itemIcon: itemIcon, itemLabel: itemLabel, itemColors: tabBarItemColors)
                     if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
                         options = updateOptions(options)
                     }
                     NavigationBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
-                        for tabIndex in 0..<tabViews.count {
+                        for tabIndex in 0..<tabRenderables.size {
                             if tabs[tabIndex]?.isHidden == true {
                                 continue
                             }
@@ -410,7 +403,7 @@ public struct TabView : View {
                                     // recomposing when called with the same values
                                     let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
                                     PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
-                                        ComposeEntry(with: arguments, context: entryContext)
+                                        RenderEntry(with: arguments, context: entryContext)
                                     }
                                 }
                             }
@@ -422,7 +415,7 @@ public struct TabView : View {
         }
     }
 
-    @Composable private func ComposeEntry(with arguments: TabEntryArguments, context: ComposeContext) {
+    @Composable private func RenderEntry(with arguments: TabEntryArguments, context: ComposeContext) {
         // WARNING: This function is a potential recomposition hotspot. It should not need to be called
         // multiple times for the same tab on tab change. Test after modifications
         Box(modifier: arguments.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
@@ -432,24 +425,31 @@ public struct TabView : View {
                 }
                 return ComposeResult.ok
             } in: {
-                let views = content.collectViews(context: context).filter { !$0.isSwiftUIEmptyView }
-                if views.count > arguments.tabIndex {
-                    views[arguments.tabIndex].Compose(context: context)
+                let renderables = EvaluateContent(context: context)
+                if renderables.size > arguments.tabIndex {
+                    renderables[arguments.tabIndex].Render(context: context)
                 }
             }
         }
     }
 
-    private func tagValue(route: String, in tabViews: [View]) -> Any? {
-        guard let tabIndex = Int(string: route), tabIndex >= 0, tabIndex < tabViews.count else {
-            return nil
-        }
-        return tabTagValue(for: tabViews[tabIndex])
+    @Composable private func EvaluateContent(context: ComposeContext) -> kotlin.collections.List<Renderable> {
+        // Evaluate our content without recursively evaluating every custom tab view. We only want to fully
+        // evaluate views when we render them
+        return content.Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
+            .filter { !$0.isSwiftUIEmptyView }
     }
 
-    private func route(tagValue: Any, in tabViews: [View]) -> String? {
-        for tabIndex in 0..<tabViews.count {
-            let tabTagValue = tabTagValue(for: tabViews[tabIndex])
+    private func tagValue(route: String, in tabRenderables: kotlin.collections.List<Renderable>) -> Any? {
+        guard let tabIndex = Int(string: route), tabIndex >= 0, tabIndex < tabRenderables.size else {
+            return nil
+        }
+        return tabTagValue(for: tabRenderables[tabIndex])
+    }
+
+    private func route(tagValue: Any, in tabRenderables: kotlin.collections.List<Renderable>) -> String? {
+        for tabIndex in 0..<tabRenderables.size {
+            let tabTagValue = tabTagValue(for: tabRenderables[tabIndex])
             if tagValue == tabTagValue {
                 return String(describing: tabIndex)
             }
@@ -457,11 +457,11 @@ public struct TabView : View {
         return nil
     }
 
-    private func tabTagValue(for view: View) -> Any? {
-        if let tab = view.strippingModifiers(perform: { $0 as? Tab }), let value = tab.value {
+    private func tabTagValue(for renderable: Renderable) -> Any? {
+        if let tab = renderable.strip() as? Tab, let value = tab.value {
             return value
         } else {
-            return TagModifierView.strip(from: view, role: ComposeModifierRole.tag)?.value
+            return TagModifier.on(content: renderable, role: .tag)?.value
         }
     }
 
@@ -480,10 +480,10 @@ public struct TabView : View {
         }
     }
 
-    @Composable private func navigateToCurrentRoute(controller navController: NavHostController, tabViews: [View]) {
+    @Composable private func navigateToCurrentRoute(controller navController: NavHostController, tabRenderables: kotlin.collections.List<Renderable>) {
         let currentRoute = currentRoute(for: navController)
-        if let selection, let currentRoute, selection.wrappedValue != tagValue(route: currentRoute, in: tabViews) {
-            if let route = route(tagValue: selection.wrappedValue, in: tabViews) {
+        if let selection, let currentRoute, selection.wrappedValue != tagValue(route: currentRoute, in: tabRenderables) {
+            if let route = route(tagValue: selection.wrappedValue, in: tabRenderables) {
                 navigate(controller: navController, route: route)
             }
         }
@@ -519,16 +519,12 @@ struct TabBarPreferenceKey: PreferenceKey {
     }
 }
 
-struct TabItemModifierView: ComposeModifierView {
+final class TabItemModifier: RenderModifier {
     let label: ComposeBuilder
 
-    init(view: View, @ViewBuilder label: () -> any View) {
+    init(@ViewBuilder label: () -> any View) {
         self.label = ComposeBuilder.from(label)
-        super.init(view: view)
-    }
-
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        view.Compose(context: context)
+        super.init()
     }
 }
 #endif
@@ -617,7 +613,7 @@ public protocol TabContent : View {
 }
 
 // SKIP @bridge
-public struct Tab : TabContent {
+public struct Tab : TabContent, Renderable {
     let label: ComposeBuilder
     let content: ComposeBuilder
     let value: Any?
@@ -723,30 +719,28 @@ public struct Tab : TabContent {
     public var isDisabled = false
 
     #if SKIP
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         content.Compose(context: context)
     }
 
-    @Composable func ComposeTitle(context: ComposeContext) {
-        label.Compose(context: context.content(composer: RenderingComposer { view, context in
-            let stripped = view.strippingModifiers { $0 }
-            if let label = stripped as? Label {
-                label.ComposeTitle(context: context(false))
-            } else if stripped is Text {
-                view.ComposeContent(context: context(false))
-            }
-        }))
+    @Composable func RenderTitle(context: ComposeContext) {
+        let renderable = label.Evaluate(context: context).firstOrNull() ?? EmptyView()
+        let stripped = renderable.strip()
+        if let label = stripped as? Label {
+            label.RenderTitle(context: context)
+        } else if stripped is Text {
+            renderable.Render(context: context)
+        }
     }
 
-    @Composable func ComposeImage(context: ComposeContext) {
-        label.Compose(context: context.content(composer: RenderingComposer { view, context in
-            let stripped = view.strippingModifiers { $0 }
-            if let label = stripped as? Label {
-                label.ComposeImage(context: context(false))
-            } else if stripped is Image {
-                view.ComposeContent(context: context(false))
-            }
-        }))
+    @Composable func RenderImage(context: ComposeContext) {
+        let renderable = label.Evaluate(context: context).firstOrNull() ?? EmptyView()
+        let stripped = renderable.strip()
+        if let label = stripped as? Label {
+            label.RenderImage(context: context)
+        } else if stripped is Image {
+            renderable.Render(context: context)
+        }
     }
     #else
     public var body: some View {
@@ -804,15 +798,17 @@ public struct TabSection : TabContent {
     public var isDisabled = false
 
     #if SKIP
-    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
-        // We ignore tab sections, so we pass through the composer
-        ComposeContent(context: context)
-        return ComposeResult.ok
-    }
-
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        // Collect the views so that our ComposeBuilder doesn't reset any RenderingComposer like the TabIndexComposer
-        content.collectViews(context: context).forEach { $0.Compose(context: context) }
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let renderables = content.Evaluate(context: context, options: options)
+        for renderable in renderables {
+            if isHidden {
+                (renderable as? TabContent)?.isHidden = true
+            }
+            if isDisabled {
+                (renderable as? TabContent)?.isDisabled = true
+            }
+        }
+        return renderables
     }
     #else
     public var body: some View {
@@ -997,7 +993,7 @@ extension TabContent {
 extension View {
     public func tabItem(@ViewBuilder _ label: () -> any View) -> some View {
         #if SKIP
-        return TabItemModifierView(view: self, label: label)
+        return ModifiedContent(content: self, modifier: TabItemModifier(label: label))
         #else
         return self
         #endif
@@ -1015,7 +1011,7 @@ extension View {
 
     public func tabViewStyle(_ style: any TabViewStyle) -> some View {
         #if SKIP
-        return environment(\._tabViewStyle, style)
+        return environment(\._tabViewStyle, style, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -1066,7 +1062,7 @@ extension View {
 
     #if SKIP
     public func material3NavigationBar(_ options: @Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions) -> View {
-        return environment(\._material3NavigationBar, options)
+        return environment(\._material3NavigationBar, options, affectsEvaluate: false)
     }
     #endif
 }

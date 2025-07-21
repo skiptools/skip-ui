@@ -20,8 +20,8 @@ public struct Form : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = list.Compose(context: context)
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        return list.Evaluate(context: context, options: options)
     }
     #else
     public var body: some View {
@@ -52,15 +52,15 @@ extension View {
     }
 }
 
-#if false
-//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//extension Form where Content == FormStyleConfiguration.Content {
-//
-//    /// Creates a form based on a form style configuration.
-//    ///
-//    /// - Parameter configuration: The properties of the form.
-//    public init(_ configuration: FormStyleConfiguration) { fatalError() }
-//}
+/*
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Form where Content == FormStyleConfiguration.Content {
+
+    /// Creates a form based on a form style configuration.
+    ///
+    /// - Parameter configuration: The properties of the form.
+    public init(_ configuration: FormStyleConfiguration) { fatalError() }
+}
 
 /// The properties of a form instance.
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
@@ -80,6 +80,5 @@ public struct FormStyleConfiguration {
     /// A view that is the content of the form.
     public let content: FormStyleConfiguration.Content = { fatalError() }()
 }
-
-#endif
+*/
 #endif

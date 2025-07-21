@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A type-erased widget configuration.
 ///
 /// You don't use this type directly. Instead SkipUI creates this type on
@@ -17,4 +17,4 @@
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
-#endif
+*/

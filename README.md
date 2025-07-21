@@ -2964,16 +2964,15 @@ As you can see, the `Text` type is defined just as it is in SwiftUI. We then use
 
 ### Modifiers
 
-Modifiers, on the other hand, use the `ComposeModifierView` to perform actions, including changing the `context` passed to the modified view. Here is the `.opacity` modifier:
+Modifiers, on the other hand, use the `ModifierView` to perform actions, including changing the `androidx.compose.ui.Modifier` passed to the modified view. Here is the `.opacity` modifier:
 
 ```swift
 extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self) { context in
-            context.modifier = context.modifier.alpha(Float(opacity))
-            return ComposeResult.ok
-        }
+        return ModifierView(view: self, modifier: RenderModifier { context in
+            return context.modifier.alpha(Float(opacity))
+        })
         #else
         return self
         #endif
@@ -2981,13 +2980,13 @@ extension View {
 }
 ```
 
-Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
+Some modifiers have their own rendering logic. These modifiers use a different `RenderModifier` constructor that defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
 
 ```swift
 extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ModifierView(view: self, modifier: RenderModifier { view, context in
             var modifier = context.modifier
             if let width {
                 modifier = modifier.width(width.dp)
@@ -3001,13 +3000,15 @@ extension View {
                     view.Compose(context: contentContext)
                 }
             }
-        }
+        })
         #else
         return self
         #endif
     }
 }
 ```
+
+Still other modifiers don't affect rendering at all, but perform side effects. Pass a `SideEffectModifier` to the `ModifierView` in these cases.
 
 Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 

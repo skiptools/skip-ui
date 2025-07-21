@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 
 // Use a class to be able to update our openURL action on compose by reference.
 // SKIP @bridge
-public final class Link : View {
+public final class Link : View, Renderable {
     let content: Button
     var openURL = OpenURLAction.default
 
@@ -42,7 +42,7 @@ public final class Link : View {
     }
 
     #if SKIP
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         ComposeAction()
         content.Compose(context: context)
     }

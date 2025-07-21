@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// An interface for a stored variable that updates an external property of a
 /// view.
 ///
@@ -27,4 +27,4 @@ extension DynamicProperty {
     /// value.
     public mutating func update() { fatalError() }
 }
-#endif
+*/

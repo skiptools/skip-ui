@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// An index view style that places a page index view over its content.
 ///
 /// You can also use ``IndexViewStyle/page`` to construct this style.
@@ -32,4 +32,4 @@ public struct PageIndexViewStyle : IndexViewStyle {
     /// page index views receiving this style
     public init(backgroundDisplayMode: PageIndexViewStyle.BackgroundDisplayMode = .automatic) { fatalError() }
 }
-#endif
+*/

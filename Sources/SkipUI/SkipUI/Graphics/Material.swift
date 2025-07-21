@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A background material type.
 ///
 /// You can apply a blur effect to a view that appears behind another view by
@@ -112,4 +112,4 @@ extension Material {
     /// A material matching the style of system toolbars.
     public static let bar: Material = { fatalError() }()
 }
-#endif
+*/

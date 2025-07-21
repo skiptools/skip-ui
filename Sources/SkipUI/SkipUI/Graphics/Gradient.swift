@@ -79,7 +79,7 @@ public struct Gradient : ShapeStyle, Hashable {
     }
 }
 
-public struct AnyGradient : ShapeStyle {
+public struct AnyGradient : ShapeStyle, Renderable {
     let gradient: LinearGradient
 
     public init(gradient: Gradient) {
@@ -87,8 +87,8 @@ public struct AnyGradient : ShapeStyle {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = gradient.Compose(context: context)
+    @Composable override func Render(context: ComposeContext) {
+        gradient.Compose(context: context)
     }
 
     // MARK: - ShapeStyle
@@ -104,7 +104,7 @@ public struct AnyGradient : ShapeStyle {
 }
 
 // SKIP @bridge
-public struct LinearGradient : ShapeStyle {
+public struct LinearGradient : ShapeStyle, Renderable {
     let gradient: Gradient
     let startPoint: UnitPoint
     let endPoint: UnitPoint
@@ -132,7 +132,7 @@ public struct LinearGradient : ShapeStyle {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize()
         Box(modifier: modifier)
     }
@@ -169,7 +169,7 @@ public struct LinearGradient : ShapeStyle {
 }
 
 // SKIP @bridge
-public struct EllipticalGradient : ShapeStyle {
+public struct EllipticalGradient : ShapeStyle, Renderable {
     let gradient: Gradient
     let center: UnitPoint
     let startFraction: CGFloat
@@ -200,7 +200,7 @@ public struct EllipticalGradient : ShapeStyle {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         // Trick to scale our (circular) radial brush into an ellipse when this gradient is used as a view
         BoxWithConstraints(modifier: context.modifier.fillSize().clipToBounds()) {
             let aspectRatio = maxWidth / maxHeight
@@ -239,7 +239,7 @@ public struct EllipticalGradient : ShapeStyle {
 }
 
 // SKIP @bridge
-public struct RadialGradient : ShapeStyle {
+public struct RadialGradient : ShapeStyle, Renderable {
     let gradient: Gradient
     let center: UnitPoint
     let startRadius: CGFloat
@@ -270,7 +270,7 @@ public struct RadialGradient : ShapeStyle {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize()
         Box(modifier: modifier)
     }

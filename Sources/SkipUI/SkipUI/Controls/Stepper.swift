@@ -91,7 +91,7 @@ public struct Stepper : View {
     #endif
 }
 
-#if false
+/*
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 
@@ -394,6 +394,5 @@ extension Stepper {
     ///       the gesture.
     public init<S, F>(_ title: S, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where S : StringProtocol, F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 }
-
-#endif
+*/
 #endif

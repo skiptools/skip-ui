@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 // Use a class to avoid copying so that we can update our toggleMenu action on the current instance
 // SKIP @bridge
-public final class Menu : View {
+public final class Menu : View, Renderable {
     let content: ComposeBuilder
     let label: ComposeBuilder
     let primaryAction: (() -> Void)?
@@ -89,7 +89,7 @@ public final class Menu : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let isEnabled = EnvironmentValues.shared.isEnabled
         ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
@@ -100,7 +100,7 @@ public final class Menu : View {
                         onLongClick = { toggleMenu() },
                         onClick = primaryAction
                     )
-                    Button.ComposeTextButton(label: label, context: context.content(modifier: primaryActionModifier))
+                    Button.RenderTextButton(label: label, context: context.content(modifier: primaryActionModifier))
                 } else {
                     label.Compose(context: contentContext)
                 }
@@ -139,8 +139,8 @@ public final class Menu : View {
                             $0.set_placement(placement)
                             return ComposeResult.ok
                         } in: {
-                            let itemViews = (nestedMenu.value?.content ?? content).collectViews(context: context)
-                            Self.ComposeDropdownMenuItems(for: itemViews, context: contentContext, replaceMenu: replaceMenu)
+                            let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context)
+                            Self.RenderDropdownMenuItems(for: renderables, context: contentContext, replaceMenu: replaceMenu)
                         }
                     }
                 } else {
@@ -150,52 +150,52 @@ public final class Menu : View {
         }
     }
 
-    @Composable static func ComposeDropdownMenuItems(for itemViews: [View], selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
-        for itemView in itemViews {
-            if var strippedItemView = itemView.strippingModifiers(perform: { $0 }) {
-                if let shareLink = strippedItemView as? ShareLink {
-                    shareLink.ComposeAction()
-                    strippedItemView = shareLink.content
-                } else if let link = strippedItemView as? Link {
-                    link.ComposeAction()
-                    strippedItemView = link.content
-                }
-                if let button = strippedItemView as? Button {
-                    let isSelected: Bool?
-                    if let tagView = itemView as? TagModifierView, tagView.role == ComposeModifierRole.tag {
-                        isSelected = tagView.value == selection
-                    } else {
-                        isSelected = nil
-                    }
-                    ComposeDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
-                        button.action()
-                        replaceMenu(nil)
-                    }
-                } else if let text = strippedItemView as? Text {
-                    DropdownMenuItem(text: { text.Compose(context: context) }, onClick: {}, enabled: false)
-                } else if let section = strippedItemView as? Section {
-                    if let header = section.header {
-                        DropdownMenuItem(text: { header.Compose(context: context) }, onClick: {}, enabled: false)
-                    }
-                    let sectionViews = section.content.collectViews(context: context)
-                    ComposeDropdownMenuItems(for: sectionViews, context: context, replaceMenu: replaceMenu)
-                    Divider().Compose(context: context)
-                } else if let menu = strippedItemView as? Menu {
-                    if let button = menu.label.collectViews(context: context).first?.strippingModifiers(perform: { $0 as? Button }) {
-                        ComposeDropdownMenuItem(for: button.label, context: context) {
-                            replaceMenu(menu)
-                        }
-                    }
+    @Composable static func RenderDropdownMenuItems(for renderables: kotlin.collections.List<Renderable>, selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
+        for renderable in renderables {
+            var stripped = renderable.strip()
+            if let shareLink = stripped as? ShareLink {
+                shareLink.ComposeAction()
+                stripped = shareLink.content
+            } else if let link = stripped as? Link {
+                link.ComposeAction()
+                stripped = link.content
+            }
+            if let button = stripped as? Button {
+                let isSelected: Bool?
+                if let tagModifier = TagModifier.on(content: renderable, role: .tag) {
+                    isSelected = tagModifier.value == selection
                 } else {
-                    // Dividers are also supported... maybe other view types?
-                    itemView.Compose(context: context)
+                    isSelected = nil
                 }
+                RenderDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
+                    button.action()
+                    replaceMenu(nil)
+                }
+            } else if let text = stripped as? Text {
+                DropdownMenuItem(text: { text.Render(context: context) }, onClick: {}, enabled: false)
+            } else if let section = stripped as? Section {
+                if let header = section.header {
+                    DropdownMenuItem(text: { header.Compose(context: context) }, onClick: {}, enabled: false)
+                }
+                let sectionRenderables = section.content.Evaluate(context: context)
+                RenderDropdownMenuItems(for: sectionRenderables, context: context, replaceMenu: replaceMenu)
+                Divider().Compose(context: context)
+            } else if let menu = stripped as? Menu {
+                if let button = menu.label.Evaluate(context: context).firstOrNull()?.strip() as? Button {
+                    RenderDropdownMenuItem(for: button.label, context: context) {
+                        replaceMenu(menu)
+                    }
+                }
+            } else {
+                // Dividers are also supported... maybe other view types?
+                renderable.Render(context: context)
             }
         }
     }
 
-    @Composable private static func ComposeDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
-        let label = view.collectViews(context: context).first?.strippingModifiers { $0 as? Label }
+    @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
+        let renderables = view.Evaluate(context: context)
+        let label = renderables.firstOrNull()?.strip() as? Label
         if let isSelected {
             let selectedIcon: @Composable () -> Void
             if isSelected {
@@ -204,15 +204,23 @@ public final class Menu : View {
                 selectedIcon = {}
             }
             if let label {
-                DropdownMenuItem(text: { label.ComposeTitle(context: context) }, leadingIcon: selectedIcon, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
+                DropdownMenuItem(text: { label.RenderTitle(context: context) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context) }, onClick: action)
             } else {
-                DropdownMenuItem(text: { view.Compose(context: context) }, leadingIcon: selectedIcon, onClick: action)
+                DropdownMenuItem(text: {
+                    for renderable in renderables {
+                        renderable.Render(context: context)
+                    }
+                }, leadingIcon: selectedIcon, onClick: action)
             }
         } else {
             if let label {
-                DropdownMenuItem(text: { label.ComposeTitle(context: context) }, trailingIcon: { label.ComposeImage(context: context) }, onClick: action)
+                DropdownMenuItem(text: { label.RenderTitle(context: context) }, trailingIcon: { label.RenderImage(context: context) }, onClick: action)
             } else {
-                DropdownMenuItem(text: { view.Compose(context: context) }, onClick: action)
+                DropdownMenuItem(text: {
+                    for renderable in renderables {
+                        renderable.Render(context: context)
+                    }
+                }, onClick: action)
             }
         }
     }
@@ -294,7 +302,7 @@ extension View {
     }
 }
 
-#if false
+/*
 //@available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
 //@available(watchOS, unavailable)
 //extension Menu where Label == MenuStyleConfiguration.Label, Content == MenuStyleConfiguration.Content {
@@ -384,6 +392,5 @@ public struct MenuStyleConfiguration {
         public var body: Body { fatalError() }
     }
 }
-
-#endif
+*/
 #endif

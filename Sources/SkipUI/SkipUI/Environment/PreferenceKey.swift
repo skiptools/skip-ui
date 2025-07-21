@@ -169,17 +169,17 @@ struct PreferenceNode<Value>: Equatable {
 extension View {
     public func preference(key: Any.Type, value: Any) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self) {
-            PreferenceValues.shared.contribute(context: $0, key: key, value: value)
+        return ModifiedContent(content: self, modifier: SideEffectModifier { context in
+            PreferenceValues.shared.contribute(context: context, key: key, value: value)
             return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
     }
 }
 
-#if false
+/*
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension PreferenceKey where Self.Value : ExpressibleByNilLiteral {
 
@@ -343,6 +343,5 @@ extension View {
     public func transformPreference<K>(_ key: K.Type = K.self, _ callback: @escaping (inout K.Value) -> Void) -> some View where K : PreferenceKey { return stubView() }
 
 }
-
-#endif
+*/
 #endif

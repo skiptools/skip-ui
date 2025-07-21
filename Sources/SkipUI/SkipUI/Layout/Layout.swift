@@ -14,7 +14,7 @@ public enum LayoutDirectionBehavior : Hashable {
     public static var mirrors = LayoutDirectionBehavior.mirrors(in: .rightToLeft)
 }
 
-#if false
+/*
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGRect
@@ -1647,6 +1647,5 @@ extension View {
     public func layoutValue<K>(key: K.Type, value: K.Value) -> some View where K : LayoutValueKey { return stubView() }
 
 }
-
-#endif
+*/
 #endif

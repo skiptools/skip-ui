@@ -22,7 +22,7 @@ import okio.source
 #endif
 
 // SKIP @bridge
-public struct AsyncImage : View {
+public struct AsyncImage : View, Renderable {
     let url: URL?
     let scale: CGFloat
     let content: (AsyncImagePhase) -> any View
@@ -93,7 +93,7 @@ public struct AsyncImage : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable public func Render(context: ComposeContext) {
         guard let url else {
             let _ = self.content(AsyncImagePhase.empty).Compose(context)
             return

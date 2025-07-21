@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGSize
 
 /// An effect that changes the visual appearance of a view, largely without
@@ -26,4 +26,4 @@ extension GeometryEffect {
     /// performing its layout calculations.
 //    public func ignoredByLayout() -> _IgnoredByLayoutEffect<Self> { fatalError() }
 }
-#endif
+*/

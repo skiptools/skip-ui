@@ -15,8 +15,8 @@ public struct EquatableView : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        content.Compose(context: context)
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        return content.Evaluate(context: context, options: options)
     }
     #else
     public var body: some View {

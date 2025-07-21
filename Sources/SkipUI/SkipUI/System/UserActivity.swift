@@ -32,7 +32,7 @@ extension View {
 
     public func onOpenURL(perform action: @escaping (URL) -> Void) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self) { context in
+        return ModifiedContent(content: self, modifier: SideEffectModifier { context in
             guard let activity = LocalContext.current as? AppCompatActivity else {
                 return ComposeResult.ok
             }
@@ -63,7 +63,7 @@ extension View {
                 activity.intent = nil
             }
             return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -89,7 +89,7 @@ struct OnNewIntentListener : Consumer<Intent> {
 }
 #endif
 
-#if false
+/*
 #if canImport(Foundation)
 import class Foundation.NSUserActivity
 
@@ -120,8 +120,6 @@ extension NSUserActivity {
     /// - Parameter payload: the instance to be converted to userInfo
     public func setTypedPayload<T>(_ payload: T) throws where T : Decodable, T : Encodable { fatalError() }
 }
-
 #endif
-
-#endif
+*/
 #endif

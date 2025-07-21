@@ -53,7 +53,7 @@ import struct CoreGraphics.CGSize
 #endif
 
 // SKIP @bridge
-public struct Image : View, Equatable {
+public struct Image : View, Renderable, Equatable {
     let image: ImageType
     var resizingMode: ResizingMode?
     let scale = 1.0
@@ -109,7 +109,7 @@ public struct Image : View, Equatable {
         self.image = .painter(painter: painter, scale: scale)
     }
 
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let aspect = EnvironmentValues.shared._aspectRatio
         let colorScheme = EnvironmentValues.shared.colorScheme
 
@@ -117,28 +117,28 @@ public struct Image : View, Equatable {
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
             switch image {
             case .bitmap(let bitmap, let scale):
-                ComposeBitmap(bitmap: bitmap, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+                RenderBitmap(bitmap: bitmap, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .painter(let painter, let scale):
-                ComposePainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+                RenderPainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
             case .system(let systemName):
-                ComposeSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
+                RenderSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
             case .named(let name, let bundle, let label):
-                ComposeNamedImage(name: name, bundle: bundle, label: label, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
+                RenderNamedImage(name: name, bundle: bundle, label: label, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
             case .decorative(let name, let bundle):
-                ComposeNamedImage(name: name, bundle: bundle, label: nil, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
+                RenderNamedImage(name: name, bundle: bundle, label: nil, aspectRatio: aspect?.0, contentMode: aspect?.1, colorScheme: colorScheme, context: context)
             }
         }
     }
 
-    @Composable private func ComposeNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
+    @Composable private func RenderNamedImage(name: String, bundle: Bundle?, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, colorScheme: ColorScheme, context: ComposeContext) {
         if let assetImageInfo = rememberCachedAsset(assetImageCache, AssetKey(name: name, bundle: bundle, colorScheme: colorScheme)) { _ in assetImageInfo(name: name, colorScheme: colorScheme, bundle: bundle ?? Bundle.main) } {
-            ComposeAssetImage(asset: assetImageInfo, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            RenderAssetImage(asset: assetImageInfo, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         } else if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: name, bundle: bundle)) { _ in symbolResourceURL(name: name, bundle: bundle ?? Bundle.main) } {
-            ComposeSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            RenderSymbolImage(name: name, url: symbolResourceURL, label: label, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
-    @Composable private func ComposeAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+    @Composable private func RenderAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let url = asset.url
         let model = ImageRequest.Builder(LocalContext.current)
             .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
@@ -154,12 +154,12 @@ public struct Image : View, Equatable {
         let tintColor = asset.isTemplateImage ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
         }, success: { state in
-            ComposePainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
+            RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
         }, error: { state in
         })
     }
 
-    @Composable private func ComposeSymbolImage(name: String, url: URL, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+    @Composable private func RenderSymbolImage(name: String, url: URL, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
 
         func symbolToImageVector(_ symbol: SymbolInfo, tintColor: androidx.compose.ui.graphics.Color) -> ImageVector {
             // this is the default size for material icons (24f), defined in the internal MaterialIconDimension variable with the comment "All Material icons (currently) are 24dp by 24dp, with a viewport size of 24 by 24" at:
@@ -308,17 +308,17 @@ public struct Image : View, Equatable {
 
         if let symbolInfo = weightPriority.compactMap({ symbolInfos[$0] }).first {
             let imageVector = symbolToImageVector(symbolInfo, tintColor: tintColor)
-            ComposeScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            RenderScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }
     }
 
-    @Composable private func ComposeBitmap(bitmap: Bitmap, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func RenderBitmap(bitmap: Bitmap, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
         let imageBitmap = bitmap.asImageBitmap()
         let painter = BitmapPainter(imageBitmap)
-        ComposePainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
+        RenderPainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
     }
 
-    @Composable private func ComposePainter(painter: Painter, scale: CGFloat = 1.0, tintColor: androidx.compose.ui.graphics.Color? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func RenderPainter(painter: Painter, scale: CGFloat = 1.0, tintColor: androidx.compose.ui.graphics.Color? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
         let isPlaceholder = EnvironmentValues.shared.redactionReasons.contains(.placeholder)
         let colorFilter: ColorFilter?
         if let tintColor {
@@ -347,11 +347,11 @@ public struct Image : View, Equatable {
         }
     }
 
-    @Composable private func ComposeSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+    @Composable private func RenderSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         // we first check to see if there is a bundled symbol with the name in any of the asset catalogs, in which case we will use that symbol
         // note that we can only use the `main` (i.e., top-level) bundle to look up image resources, since Image(systemName:) does not accept a bundle
         if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: systemName)) { _ in symbolResourceURL(name: systemName, bundle: Bundle.main) } {
-            ComposeSymbolImage(name: systemName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            RenderSymbolImage(name: systemName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
             return
        }
 
@@ -362,16 +362,16 @@ public struct Image : View, Equatable {
             return
         }
 
-        ComposeScaledImageVector(image: image, name: systemName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+        RenderScaledImageVector(image: image, name: systemName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
     }
 
-    @Composable private func ComposeScaledImageVector(image: ImageVector, name: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+    @Composable private func RenderScaledImageVector(image: ImageVector, name: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
 
         let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
         switch resizingMode {
         case .stretch:
             let painter = rememberVectorPainter(image)
-            ComposePainter(painter: painter, tintColor: tintColor, aspectRatio: aspectRatio, contentMode: contentMode)
+            RenderPainter(painter: painter, tintColor: tintColor, aspectRatio: aspectRatio, contentMode: contentMode)
         default: // TODO: .tile
             let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
             var modifier: Modifier

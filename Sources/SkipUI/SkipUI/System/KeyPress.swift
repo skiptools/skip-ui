@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct Foundation.CharacterSet
 
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
@@ -255,4 +255,4 @@ extension View {
     public func onKeyPress(phases: KeyPress.Phases = [.down, .repeat], action: @escaping (KeyPress) -> KeyPress.Result) -> some View { return stubView() }
 
 }
-#endif
+*/

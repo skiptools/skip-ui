@@ -130,7 +130,7 @@ public struct RefreshAction {
     }
 }
 
-#if false
+/*
 /// An action that presents a window.
 ///
 /// Use the ``EnvironmentValues/openWindow`` environment value to get the
@@ -528,5 +528,5 @@ public struct DismissWindowAction {
     ///   - value: The value which is currently presented.
     public func callAsFunction<D>(id: String, value: D) where D : Decodable, D : Encodable, D : Hashable { fatalError() }
 }
-#endif
+*/
 #endif

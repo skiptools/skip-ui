@@ -17,8 +17,8 @@ public struct AnyView : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        let _ = view.Compose(context: context)
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        return view.Evaluate(context: context, options: options)
     }
     #else
     public var body: some View {

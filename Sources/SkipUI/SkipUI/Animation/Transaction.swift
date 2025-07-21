@@ -97,7 +97,7 @@ public protocol TransactionKey {
 
 #endif
 
-#if false
+/*
 @available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
@@ -411,5 +411,5 @@ extension View {
     public func animation<V>(_ animation: Animation?, @ViewBuilder body: (PlaceholderContentView<Self>) -> V) -> some View where V : View { return stubView() }
 
 }
-#endif
+*/
 #endif

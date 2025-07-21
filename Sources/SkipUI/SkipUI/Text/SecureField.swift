@@ -6,7 +6,7 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-public struct SecureField : View {
+public struct SecureField : View, Renderable {
     let textField: TextField
 
     public init(text: Binding<String>, prompt: Text? = nil, @ViewBuilder label: () -> any View) {
@@ -26,7 +26,7 @@ public struct SecureField : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         textField.Compose(context: context)
     }
     #else

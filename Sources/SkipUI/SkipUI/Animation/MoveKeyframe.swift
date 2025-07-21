@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A keyframe that immediately moves to the given value without interpolating.
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
 public struct MoveKeyframe<Value> : KeyframeTrackContent where Value : Animatable {
@@ -15,4 +15,4 @@ public struct MoveKeyframe<Value> : KeyframeTrackContent where Value : Animatabl
     public typealias Body = MoveKeyframe<Value>
     public var body: Body { fatalError() }
 }
-#endif
+*/

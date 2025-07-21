@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 ///
 /// - Seealso: `ComposeBuilder`
 // SKIP @bridge
-public struct ComposeView: View {
+public struct ComposeView: View, Renderable {
     #if SKIP
     private let content: @Composable (ComposeContext) -> Void
 
@@ -30,7 +30,7 @@ public struct ComposeView: View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         content(context)
     }
     #else
@@ -56,10 +56,9 @@ extension View {
     #if SKIP
     /// Add the given modifier to the underlying Compose view.
     public func composeModifier(_ modifier: (Modifier) -> Modifier) -> View {
-        return ComposeModifierView(targetView: self) {
-            $0.modifier = modifier($0.modifier)
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return modifier($0.modifier)
+        })
     }
     #endif
 

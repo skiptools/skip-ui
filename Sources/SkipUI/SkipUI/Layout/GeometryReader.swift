@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 #endif
 
 // SKIP @bridge
-public struct GeometryReader : View {
+public struct GeometryReader : View, Renderable {
     public let content: (GeometryProxy) -> any View
 
     // SKIP @bridge
@@ -23,7 +23,7 @@ public struct GeometryReader : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let rememberedGlobalFramePx = remember { mutableStateOf<Rect?>(nil) }
         Box(modifier: context.modifier.fillSize().onGloballyPositionedInRoot {
             rememberedGlobalFramePx.value = $0

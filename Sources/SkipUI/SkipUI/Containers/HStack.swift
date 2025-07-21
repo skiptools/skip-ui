@@ -23,7 +23,7 @@ import struct CoreGraphics.CGSize
 #endif
 
 // SKIP @bridge
-public struct HStack : View {
+public struct HStack : View, Renderable {
     let alignment: VerticalAlignment
     let spacing: CGFloat?
     let content: ComposeBuilder
@@ -45,22 +45,22 @@ public struct HStack : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
 
-        let views = content.collectViews(context: context).filter { !($0 is EmptyView) }
-        let idMap: (View) -> Any? = { TagModifierView.strip(from: $0, role: ComposeModifierRole.id)?.value }
-        let ids = views.compactMap(idMap)
+        let renderables = content.Evaluate(context: context).filter { !$0.isSwiftUIEmptyView }
+        let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
+        let ids = renderables.mapNotNull(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
-        let newIds = ids.filter { !rememberedIds.contains(it) }
+        let newIds = ids.filter { !rememberedIds.contains($0) }
         let rememberedNewIds = remember { mutableSetOf<Any>() }
 
         rememberedNewIds.addAll(newIds)
         rememberedIds.clear()
         rememberedIds.addAll(ids)
 
-        if ids.count < views.count {
+        if ids.size < renderables.size {
             rememberedNewIds.clear()
             let contentContext = context.content()
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
@@ -70,21 +70,23 @@ public struct HStack : View {
                         $0.set_fillWidthModifier(fillWidthModifier)
                         return ComposeResult.ok
                     } in: {
-                        views.forEach { $0.Compose(context: contentContext) }
+                        for renderable in renderables {
+                            renderable.Render(context: contentContext)
+                        }
                     }
                 }
             }
         } else {
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-                let arguments = AnimatedContentArguments(views: views, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
-                ComposeAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement)
+                let arguments = AnimatedContentArguments(renderables: renderables, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
+                RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement)
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
-    @Composable private func ComposeAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, rowAlignment: androidx.compose.ui.Alignment.Vertical, rowArrangement: Arrangement.Horizontal) {
-        AnimatedContent(modifier: modifier, targetState: arguments.views, transitionSpec: {
+    @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, rowAlignment: androidx.compose.ui.Alignment.Vertical, rowArrangement: Arrangement.Horizontal) {
+        AnimatedContent(modifier: modifier, targetState: arguments.renderables, transitionSpec: {
             EnterTransition.None.togetherWith(ExitTransition.None).using(SizeTransform(clip: false) { initialSize, targetSize in
                  if initialSize.width <= 0 || initialSize.height <= 0 {
                      // When starting at zero size, immediately go to target size so views animate into proper place
@@ -110,17 +112,17 @@ public struct HStack : View {
                     $0.set_fillWidthModifier(fillWidthModifier)
                     return ComposeResult.ok
                 } in: {
-                    for view in state {
-                        let id = arguments.idMap(view)
+                    for renderable in state {
+                        let id = arguments.idMap(renderable)
                         var modifier: Modifier = Modifier
                         if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
-                            let transition = TransitionModifierView.transition(for: view) ?? OpacityTransition.shared
+                            let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
                             let spec = animation.asAnimationSpec()
                             let enter = transition.asEnterTransition(spec: spec)
                             let exit = transition.asExitTransition(spec: spec)
                             modifier = modifier.animateEnterExit(enter: enter, exit: exit)
                         }
-                        view.Compose(context: context.content(modifier: modifier))
+                        renderable.Render(context: context.content(modifier: modifier))
                     }
                 }
             }
@@ -133,7 +135,7 @@ public struct HStack : View {
     #endif
 }
 
-#if false
+/*
 /// A horizontal container that you can use in conditional layouts.
 ///
 /// This layout container behaves like an ``HStack``, but conforms to the
@@ -189,5 +191,5 @@ public struct HStack : View {
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension HStackLayout : Sendable {
 }
-#endif
+*/
 #endif

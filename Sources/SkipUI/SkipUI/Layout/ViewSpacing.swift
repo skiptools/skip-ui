@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGFloat
 
 /// for each of the top, bottom, leading, and trailing edges,
@@ -106,4 +106,4 @@ public struct ViewSpacing : Sendable {
     ///   of both this view and the adjacent views on their shared edge.
     public func distance(to next: ViewSpacing, along axis: Axis) -> CGFloat { fatalError() }
 }
-#endif
+*/

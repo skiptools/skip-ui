@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGAffineTransform
 import class CoreGraphics.CGContext
 import struct CoreGraphics.CGFloat
@@ -1676,4 +1676,4 @@ extension GraphicsContext.FilterOptions : Sendable {
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension GraphicsContext.GradientOptions : Sendable {
 }
-#endif
+*/

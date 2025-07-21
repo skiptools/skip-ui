@@ -6,9 +6,8 @@ import Foundation
 import androidx.compose.runtime.Composable
 #endif
 
-// Erase generics to facilitate specialized constructor support.
 // SKIP @bridge
-public struct Section : View, LazyItemFactory {
+public struct Section : View {
     let header: ComposeBuilder?
     let footer: ComposeBuilder?
     let content: ComposeBuilder
@@ -83,25 +82,27 @@ public struct Section : View, LazyItemFactory {
     }
 
     #if SKIP
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let isLazy = EvaluateOptions(options).lazyItemLevel != nil
+        var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         if let header {
-            header.Compose(context: context)
+            let headerRenderables = header.Evaluate(context: context)
+            if isLazy {
+                renderables.add(LazySectionHeader(content: headerRenderables.firstOrNull() ?? EmptyView()))
+            } else if let header {
+                renderables.addAll(headerRenderables)
+            }
         }
-        content.Compose(context: context)
+        renderables.addAll(content.Evaluate(context: context, options: options))
         if let footer {
-            footer.Compose(context: context)
+            let footerRenderables = footer.Evaluate(context: context)
+            if isLazy {
+                renderables.add(LazySectionFooter(content: footerRenderables.firstOrNull() ?? EmptyView()))
+            } else if let footer {
+                renderables.addAll(footerRenderables)
+            }
         }
-    }
-
-    @Composable func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
-        composer.append(LazySectionHeader(content: header ?? EmptyView()))
-        content.Compose(context: appendingContext)
-        composer.append(LazySectionFooter(content: footer ?? EmptyView()))
-        return ComposeResult.ok
-    }
-
-    override func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
-        // Not called because the section does not append itself as a list item view
+        return renderables
     }
     #else
     public var body: some View {

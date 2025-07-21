@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// No-op
 func stubDynamicViewContent() -> some DynamicViewContent {
     //return never() // raises warning: “A call to a never-returning function”
@@ -30,4 +30,4 @@ extension Never : DynamicViewContent {
     /// The collection of underlying data.
     public var data: Self.Data { fatalError() }
 }
-#endif
+*/

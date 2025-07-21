@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import protocol CoreTransferable.Transferable
 import struct Foundation.URL
 import class Foundation.NSItemProvider
@@ -1479,4 +1479,4 @@ extension View {
     public func onDrag<V>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View where V : View { return stubView() }
 
 }
-#endif
+*/

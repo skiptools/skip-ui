@@ -51,7 +51,7 @@ extension View {
     // SKIP @bridge
     public func animation(_ animation: Animation?, value: Any?) -> any View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let rememberedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Any?, Any>) { mutableStateOf(value) }
             let hasChangedValue = rememberSaveable(stateSaver: context.stateSaver as! Saver<Bool, Any>) { mutableStateOf(false) }
             let isValueChange = rememberedValue.value != value
@@ -66,9 +66,9 @@ extension View {
                 }
                 return ComposeResult.ok
             } in: {
-                view.Compose(context: context)
+                renderable.Render(context: context)
             }
-        }
+        })
         #else
         return self
         #endif
@@ -76,7 +76,7 @@ extension View {
 
     public func animation(_ animation: Animation?) -> some View {
         #if SKIP
-        return environment(\._animation, animation)
+        return environment(\._animation, animation, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -598,10 +598,7 @@ public protocol Animatable {
 
     /// The dot-product of this animatable data instance with itself.
     @inlinable public var magnitudeSquared: Double { get { fatalError() } }
-
-
 }
-
 
 /// A pair of animatable values, which is itself animatable.
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -686,13 +683,10 @@ public protocol Animatable {
 
     /// The dot-product of this animated pair with itself.
     public var magnitudeSquared: Double { get { fatalError() } }
-
-
 }
-
 #endif
 
-#if false
+/*
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGRect
@@ -2099,6 +2093,5 @@ extension Never : Keyframes {
 extension Never : KeyframeTrackContent {
     public typealias Value = Never
 }
-
-#endif
+*/
 #endif

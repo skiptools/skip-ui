@@ -26,7 +26,7 @@ import struct CoreGraphics.CGSize
 #endif
 
 // SKIP @bridge
-public protocol Shape: View {
+public protocol Shape: View, Renderable {
     func path(in rect: CGRect) -> Path
     var layoutDirectionBehavior: LayoutDirectionBehavior { get }
     func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize
@@ -108,8 +108,8 @@ extension Shape {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        fill().ComposeContent(context: context)
+    @Composable public override func Render(context: ComposeContext) {
+        fill().Compose(context: context)
     }
 
     public var modified: ModifiedShape {
@@ -161,7 +161,7 @@ public struct ModifiedShape : Shape {
         self.shape = shape
     }
 
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let modifier = context.modifier.fillSize()
         let density = LocalDensity.current
 
@@ -517,7 +517,7 @@ public final class AnyShape : Shape {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         shape.Compose(context: context)
     }
 
@@ -706,7 +706,7 @@ extension Shape {
     }
 }
 
-#if false
+/*
 /// No-op
 func stubShape() -> some Shape {
     //return never() // raises warning: “A call to a never-returning function”
@@ -1324,6 +1324,5 @@ extension Never : InsettableShape {
         fatalError()
     }
 }
-
-#endif
+*/
 #endif

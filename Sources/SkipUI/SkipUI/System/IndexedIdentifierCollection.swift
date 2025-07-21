@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A collection wrapper that iterates over the indices and identifiers of a
 /// collection together.
 ///
@@ -108,4 +108,4 @@ extension IndexedIdentifierCollection : BidirectionalCollection where Base : Bid
 @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
 extension IndexedIdentifierCollection : RandomAccessCollection where Base : RandomAccessCollection {
 }
-#endif
+*/

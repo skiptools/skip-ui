@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// The selection effect to apply to a palette item.
 ///
 /// You can configure the selection effect of a palette item by using the
@@ -84,4 +84,4 @@ extension View {
     /// - Parameter effect: The type of effect to apply when a palette item is selected.
     public func paletteSelectionEffect(_ effect: PaletteSelectionEffect) -> some View { return stubView() }
 }
-#endif
+*/

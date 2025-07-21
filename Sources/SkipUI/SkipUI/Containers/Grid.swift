@@ -57,7 +57,7 @@ public struct GridItem {
     #endif
 }
 
-#if false
+/*
 import struct CoreGraphics.CGRect
 import struct CoreGraphics.CGSize
 
@@ -1212,5 +1212,5 @@ extension View {
     public func gridCellUnsizedAxes(_ axes: Axis.Set) -> some View { return stubView() }
 
 }
-#endif
+*/
 #endif

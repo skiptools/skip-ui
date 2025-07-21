@@ -72,11 +72,13 @@ let overlayPresentationCornerRadius = 16.0
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
     let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
     let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
+    let backDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: BackDismissDisabledPreferenceKey.self)) }
+    let backDismissDisabledCollector = PreferenceCollector<Bool>(key: BackDismissDisabledPreferenceKey.self, state: backDismissDisabledPreference)
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
     if isPresentedValue || sheetState.isVisible {
-        let contentViews = ComposeBuilder.from(content).collectViews(context: context)
+        let contentView = ComposeBuilder.from(content)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
         let handleHeight = isFullScreen ? 0.dp : 8.dp
@@ -89,10 +91,11 @@ let overlayPresentationCornerRadius = 16.0
             addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
         }
         let interactiveDismissDisabled = isFullScreen || interactiveDismissDisabledPreference.value.reduced
-        let backDismissDisabled = contentViews.first?.strippingModifiers(until: { $0 is BackDismissDisabledModifierView }) { ($0 as? BackDismissDisabledModifierView)?.isDisabled == true } ?? false
+        let backDismissDisabled = backDismissDisabledPreference.value.reduced
         let onDismissRequest = {
             isPresented.set(false)
         }
+        //~~~ backDismissDisabled not working since switching to Preference. I vaguely remember updates to these properties not properly triggering a recompose. Compose bug?
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
@@ -161,8 +164,8 @@ let overlayPresentationCornerRadius = 16.0
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                         return ComposeResult.ok
                     } in: {
-                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
-                            contentViews.forEach { $0.Compose(context: context) }
+                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, backDismissDisabledCollector, detentPreferencesCollector]) {
+                            contentView.Compose(context: context)
                         }
                     }
                 }
@@ -208,26 +211,15 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
         // Collect buttons and message text
-        let actionViews: [View]
-        if let composeBuilder = actions as? ComposeBuilder {
-            actionViews = composeBuilder.collectViews(context: context)
-        } else {
-            actionViews = [actions]
+        let actionRenderables = actions.Evaluate(context: context)
+        let composableActions: kotlin.collections.List<Renderable> = actionRenderables.mapNotNull {
+            let stripped = $0.strip()
+            return stripped as? Button ?? stripped as? Link ?? stripped as? NavigationLink
         }
-        let composableActions: [View] = actionViews.compactMap {
-            $0.strippingModifiers { $0 as? Button ?? $0 as? Link ?? $0 as? NavigationLink }
-        }
-        let messageViews: [View]
-        if let composeBuilder = message as? ComposeBuilder {
-            messageViews = composeBuilder.collectViews(context: context)
-        } else if let message {
-            messageViews = [message]
-        } else {
-            messageViews = []
-        }
-        let messageText = messageViews.compactMap {
-            $0.strippingModifiers { $0 as? Text }
-        }.first
+        let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context) ?? listOf()
+        let messageText = messageRenderables.mapNotNull {
+            $0.strip() as? Text
+        }.firstOrNull()
 
         ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
             // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
@@ -247,7 +239,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 .verticalScroll(scrollState)
             let contentContext = context.content(stateSaver: stateSaver)
             Column(modifier: modifier, horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                ComposeConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, actionViews: composableActions, message: messageText)
+                RenderConfirmationDialog(title: title, context: contentContext, isPresented: isPresented, actionRenderables: composableActions, message: messageText)
             }
         }
     }
@@ -260,7 +252,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 }
 
-@Composable func ComposeConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, actionViews: [View], message: Text?) {
+@Composable func RenderConfirmationDialog(title: Text?, context: ComposeContext, isPresented: Binding<Bool>, actionRenderables: kotlin.collections.List<Renderable>, message: Text?) {
     let padding = 16.dp
     if let title {
         androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.secondary.colorImpl(), text: title.localizedTextString(), style: Font.callout.bold().fontImpl())
@@ -275,7 +267,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: padding)
     let buttonFont = Font.title3
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-    guard !actionViews.isEmpty else {
+    guard actionRenderables.size > 0 else {
         ConfirmationDialogButton(action: { isPresented.set(false) }) {
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
         }
@@ -283,9 +275,9 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 
     var cancelButton: Button? = nil
-    for actionView in actionViews {
-        var button = actionView as? Button
-        if let link = actionView as? Link {
+    for actionRenderable in actionRenderables {
+        var button = actionRenderable.strip() as? Button
+        if let link = actionRenderable.strip() as? Link {
             link.ComposeAction()
             button = link.content
         }
@@ -295,18 +287,18 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 continue
             }
             ConfirmationDialogButton(action: { isPresented.set(false); button.action() }) {
-                let text = button.label.collectViews(context: context).compactMap {
-                    $0.strippingModifiers { $0 as? Text }
-                }.first
+                let text = button.label.Evaluate(context: context).mapNotNull {
+                    $0.strip() as? Text
+                }.firstOrNull()
                 let color = button.role == .destructive ? Color.red.colorImpl() : tint
                 androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
             }
-        } else if let navigationLink = actionView as? NavigationLink {
+        } else if let navigationLink = actionRenderable.strip() as? NavigationLink {
             let navigationAction = navigationLink.navigationAction()
             ConfirmationDialogButton(action: { isPresented.set(false); navigationAction() }) {
-                let text = navigationLink.label.collectViews(context: context).compactMap {
-                    $0.strippingModifiers { $0 as? Text }
-                }.first
+                let text = navigationLink.label.Evaluate(context: context).mapNotNull {
+                    $0.strip() as? Text
+                }.firstOrNull()
                 androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.fontImpl())
             }
         }
@@ -314,9 +306,9 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
     if let cancelButton {
         ConfirmationDialogButton(action: { isPresented.set(false); cancelButton.action() }) {
-            let text = cancelButton.label.collectViews(context: context).compactMap {
-                $0.strippingModifiers { $0 as? Text }
-            }.first
+            let text = cancelButton.label.Evaluate(context: context).mapNotNull {
+                $0.strip() as? Text
+            }.firstOrNull()
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: text?.localizedTextString() ?? "", maxLines: 1, style: buttonFont.bold().fontImpl())
         }
     } else {
@@ -338,42 +330,32 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         return
     }
     // Collect buttons and message text
-    let actionViews: [View]
-    if let composeBuilder = actions as? ComposeBuilder {
-        actionViews = composeBuilder.collectViews(context: context)
-    } else {
-        actionViews = [actions]
+    let actionRenderables = actions.Evaluate(context: context)
+    let textFields: kotlin.collections.List<TextField> = actionRenderables.mapNotNull {
+        let stripped = $0.strip()
+        return stripped as? TextField ?? (stripped as? SecureField)?.textField
     }
-    let textFields: [TextField] = actionViews.compactMap {
-        $0.strippingModifiers { ($0 as? TextField) ?? ($0 as? SecureField)?.textField }
+    let optionRenderables: kotlin.collections.List<Renderable> = actionRenderables.mapNotNull {
+        let stripped = $0.strip()
+        return stripped as? Button ?? stripped as? NavigationLink ?? stripped as? Link
     }
-    let optionViews: [View] = actionViews.compactMap {
-        $0.strippingModifiers { $0 as? Button ?? $0 as? NavigationLink ?? $0 as? Link }
-    }
-    let messageViews: [View]
-    if let composeBuilder = message as? ComposeBuilder {
-        messageViews = composeBuilder.collectViews(context: context)
-    } else if let message {
-        messageViews = [message]
-    } else {
-        messageViews = []
-    }
-    let messageText = messageViews.compactMap {
-        $0.strippingModifiers { $0 as? Text }
-    }.first
+    let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context) ?? listOf()
+    let messageText = messageRenderables.mapNotNull {
+        $0.strip() as? Text
+    }.firstOrNull()
 
     BasicAlertDialog(onDismissRequest: { isPresented.set(false) }) {
         let modifier = Modifier.wrapContentWidth().wrapContentHeight().then(context.modifier)
         Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
             let contentContext = context.content()
             Column(modifier: Modifier.padding(top: 16.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                ComposeAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionViews: optionViews, message: messageText)
+                RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
             }
         }
     }
 }
 
-@Composable func ComposeAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: [TextField], actionViews: [View], message: Text?) {
+@Composable func RenderAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: kotlin.collections.List<TextField>, actionRenderables: kotlin.collections.List<Renderable>, message: Text?) {
     let padding = 16.dp
     if let title {
         androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.primary.colorImpl(), text: title.localizedTextString(), style: Font.title3.bold().fontImpl(), textAlign: TextAlign.Center)
@@ -385,7 +367,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 
     for textField in textFields {
-        let topPadding = textField == textFields.first ? 16.dp : 8.dp
+        let topPadding = textField == textFields.firstOrNull() ? 16.dp : 8.dp
         let textFieldContext = context.content(modifier: Modifier.padding(top: topPadding, start: padding, end: padding))
         textField.Compose(context: textFieldContext)
     }
@@ -395,47 +377,49 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
     let buttonFont = Font.title3
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-    guard !actionViews.isEmpty else {
-        AlertButton(modifier: Modifier.fillMaxWidth(), view: nil, isPresented: isPresented) {
+    guard actionRenderables.size > 0 else {
+        AlertButton(modifier: Modifier.fillMaxWidth(), renderable: nil, isPresented: isPresented) {
             androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
         }
         return
     }
 
-    let buttonContent: @Composable (View, Bool) -> Void = { view, isCancel in
-        let button = view as? Button ?? (view as? Link)?.content
-        let label = button?.label ?? (view as? NavigationLink)?.label
-        let text = label?.collectViews(context: context).compactMap {
-            $0.strippingModifiers { $0 as? Text }
-        }.first
+    let buttonContent: @Composable (Renderable, Bool) -> Void = { renderable, isCancel in
+        let stripped = renderable.strip()
+        let button = stripped as? Button ?? (stripped as? Link)?.content
+        let label = button?.label ?? (stripped as? NavigationLink)?.label
+        let text = label?.Evaluate(context: context).mapNotNull {
+            $0.strip() as? Text
+        }.firstOrNull()
         let color = button?.role == .destructive ? Color.red.colorImpl() : tint
         let style = isCancel ? buttonFont.bold().fontImpl() : buttonFont.fontImpl()
         androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: style)
     }
 
-    let optionViews = actionViews.filter {
-        if let button = $0 as? Button {
+    let optionRenderables = actionRenderables.filter {
+        let stripped = $0.strip()
+        if let button = stripped as? Button {
             return button.role != .cancel
         }
-        return $0 is Link || $0 is NavigationLink
+        return stripped is Link || stripped is NavigationLink
     }
-    let cancelButton = actionViews.first {
-        guard let button = $0 as? Button else { return false }
+    let cancelButton = actionRenderables.firstOrNull {
+        guard let button = $0.strip() as? Button else { return false }
         return button.role == .cancel
     }
     let cancelCount = cancelButton == nil ? 0 : 1
-    if optionViews.count + cancelCount == 2 {
+    if optionRenderables.size + cancelCount == 2 {
         // Horizontal layout for two buttons //TODO: Should revert to vertical when text is too long
         Row(modifier: Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             let modifier = Modifier.weight(Float(1.0))
-            if let view = cancelButton ?? optionViews.first {
-                AlertButton(modifier: modifier, view: view, isPresented: isPresented) {
-                    buttonContent(view, view === cancelButton)
+            if let renderable = cancelButton ?? optionRenderables.firstOrNull() {
+                AlertButton(modifier: modifier, renderable: renderable, isPresented: isPresented) {
+                    buttonContent(renderable, renderable === cancelButton)
                 }
                 androidx.compose.material3.VerticalDivider()
             }
-            if let button = optionViews.last {
-                AlertButton(modifier: modifier, view: button, isPresented: isPresented) {
+            if let button = optionRenderables.lastOrNull() {
+                AlertButton(modifier: modifier, renderable: button, isPresented: isPresented) {
                     buttonContent(button, false)
                 }
             }
@@ -443,30 +427,31 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     } else {
         // Vertical layout
         let modifier = Modifier.fillMaxWidth()
-        for actionView in optionViews {
-            AlertButton(modifier: modifier, view: actionView, isPresented: isPresented) {
-                buttonContent(actionView, false)
+        for actionRenderable in optionRenderables {
+            AlertButton(modifier: modifier, renderable: actionRenderable, isPresented: isPresented) {
+                buttonContent(actionRenderable, false)
             }
-            if actionView !== optionViews.last || cancelButton != nil {
+            if actionRenderable !== optionRenderables.lastOrNull() || cancelButton != nil {
                 androidx.compose.material3.Divider()
             }
         }
         if let cancelButton {
-            AlertButton(modifier: modifier, view: cancelButton, isPresented: isPresented) {
+            AlertButton(modifier: modifier, renderable: cancelButton, isPresented: isPresented) {
                 buttonContent(cancelButton, true)
             }
         }
     }
 }
 
-@Composable func AlertButton(modifier: Modifier, view: View?, isPresented: Binding<Bool>, content: @Composable () -> Void) {
+@Composable func AlertButton(modifier: Modifier, renderable: Renderable?, isPresented: Binding<Bool>, content: @Composable () -> Void) {
     var action: (() -> Void)?
-    if let button = view as? Button {
+    let stripped = renderable?.strip()
+    if let button = stripped as? Button {
         action = button.action
-    } else if let link = view as? Link {
+    } else if let link = stripped as? Link {
         link.ComposeAction()
         action = link.content.action
-    } else if let navigationLink = view as? NavigationLink {
+    } else if let navigationLink = stripped as? NavigationLink {
         action = navigationLink.navigationAction()
     }
     Box(modifier: modifier.clickable(onClick: { isPresented.set(false); action?() }), contentAlignment: androidx.compose.ui.Alignment.Center) {
@@ -644,9 +629,9 @@ extension View {
 
     public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: true) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions())
-        }
+        })
         #else
         return self
         #endif
@@ -672,9 +657,9 @@ extension View {
 
     public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: true) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions(), message: message())
-        }
+        })
         #else
         return self
         #endif
@@ -755,9 +740,9 @@ extension View {
 //            titleResource = android.R.string.dialog_alert_title
 //            actions = EmptyView()
 //        }
-//        return PresentationModifierView(view: self, providesNavigation: true) { context in
+//        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
 //            AlertPresentation(title: titleText, titleResource: titleResource, isPresented: isPresented, context: context, actions: actions)
-//        }
+//        })
 //        #else
 //        return self
 //        #endif
@@ -780,9 +765,9 @@ extension View {
 //            actions = EmptyView()
 //            message = EmptyView()
 //        }
-//        return PresentationModifierView(view: self, providesNavigation: true) { context in
+//        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
 //            AlertPresentation(title: titleText, titleResource: titleResource, isPresented: isPresented, context: context, actions: actions, message: message)
-//        }
+//        })
 //        #else
 //        return self
 //        #endif
@@ -802,9 +787,9 @@ extension View {
 
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: true) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions())
-        }
+        })
         #else
         return self
         #endif
@@ -830,9 +815,9 @@ extension View {
 
     public func confirmationDialog(_ title: Text, isPresented: Binding<Bool>, titleVisibility: Visibility = .automatic, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> some View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: true) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             ConfirmationDialogPresentation(title: titleVisibility != .visible ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
-        }
+        })
         #else
         return self
         #endif
@@ -924,9 +909,9 @@ extension View {
 
     public func fullScreenCover(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> any View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: false) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: false) { context in
             SheetPresentation(isPresented: isPresented, isFullScreen: true, context: context, content: content, onDismiss: onDismiss)
-        }
+        })
         #else
         return self
         #endif
@@ -950,7 +935,7 @@ extension View {
     // SKIP @bridge
     public func backDismissDisabled(_ isDisabled: Bool = true) -> any View {
         #if SKIP
-        return BackDismissDisabledModifierView(view: self, isDisabled: isDisabled)
+        return preference(key: BackDismissDisabledPreferenceKey.self, value: isDisabled)
         #else
         return self
         #endif
@@ -1050,9 +1035,9 @@ extension View {
 
     public func sheet(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View {
         #if SKIP
-        return PresentationModifierView(view: self, providesNavigation: false) { context in
+        return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: false) { context in
             SheetPresentation(isPresented: isPresented, isFullScreen: false, context: context, content: content, onDismiss: onDismiss)
-        }
+        })
         #else
         return self
         #endif
@@ -1066,39 +1051,41 @@ extension View {
 }
 
 #if SKIP
-final class PresentationModifierView: ComposeModifierView {
+final class PresentationModifier: SideEffectModifier {
     private let presentation: @Composable (ComposeContext) -> Void
     private let providesNavigation: Bool
 
-    init(view: View, providesNavigation: Bool, presentation: @Composable (ComposeContext) -> Void) {
-        super.init(view: view)
+    init(providesNavigation: Bool, presentation: @Composable (ComposeContext) -> Void) {
+        super.init()
         self.providesNavigation = providesNavigation
         self.presentation = presentation
-    }
-
-    @Composable override func ComposeContent(context: ComposeContext) {
-        // Clear environment state that should not transfer to presentations
-        // SKIP INSERT: val providedNavigator = LocalNavigator provides if (providesNavigation) LocalNavigator.current else null
-        CompositionLocalProvider(providedNavigator) {
-            EnvironmentValues.shared.setValues {
-                $0.set_animation(nil)
-                $0.set_searchableState(nil)
-                return ComposeResult.ok
-            } in: {
-                presentation(context.content())
+        self.action = { context in
+            // Clear environment state that should not transfer to presentations
+            // SKIP INSERT: val providedNavigator = LocalNavigator provides if (providesNavigation) LocalNavigator.current else null
+            CompositionLocalProvider(providedNavigator) {
+                EnvironmentValues.shared.setValues {
+                    $0.set_animation(nil)
+                    $0.set_searchableState(nil)
+                    return ComposeResult.ok
+                } in: {
+                    presentation(context.content())
+                }
             }
+            return ComposeResult.ok
         }
-        view.Compose(context: context)
     }
 }
 
-/// Used disable the back button from dismissing a presentation.
-struct BackDismissDisabledModifierView: ComposeModifierView {
-    let isDisabled: Bool
+/// Used to disable the back button from dismissing a presentation.
+struct BackDismissDisabledPreferenceKey: PreferenceKey {
+    typealias Value = Bool
 
-    init(view: View, isDisabled: Bool) {
-        self.isDisabled = isDisabled
-        super.init(view: view)
+    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
+    final class Companion: PreferenceKeyCompanion {
+        let defaultValue = false
+        func reduce(value: inout Bool, nextValue: () -> Bool) {
+            value = nextValue()
+        }
     }
 }
 

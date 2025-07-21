@@ -32,7 +32,7 @@ import androidx.compose.ui.window.DialogProperties
 #endif
 
 // SKIP @bridge
-public struct DatePicker : View {
+public struct DatePicker : View, Renderable {
     public typealias Components = DatePickerComponents
 
     let selection: Binding<Date>
@@ -100,12 +100,12 @@ public struct DatePicker : View {
     }
 
     #if SKIP
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let horizontalArrangement = Arrangement.spacedBy(8.dp)
         if EnvironmentValues.shared._labelsHidden {
             Row(modifier: context.modifier, horizontalArrangement: horizontalArrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                ComposePickerContent(context: contentContext)
+                RenderPickerContent(context: contentContext)
             }
         } else {
             ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
@@ -113,13 +113,13 @@ public struct DatePicker : View {
                     Box(modifier: Modifier.weight(Float(1.0))) {
                         label.Compose(context: contentContext)
                     }
-                    ComposePickerContent(context: contentContext)
+                    RenderPickerContent(context: contentContext)
                 }
             }
         }
     }
 
-    @Composable private func ComposePickerContent(context: ComposeContext) {
+    @Composable private func RenderPickerContent(context: ComposeContext) {
         let isDatePickerPresented = remember { mutableStateOf(false) }
         let isTimePickerPresented = remember { mutableStateOf(false) }
         let isEnabled = EnvironmentValues.shared.isEnabled
@@ -131,7 +131,7 @@ public struct DatePicker : View {
         if let dateString = dateFormatter?.string(from: date) {
             let text = Text(verbatim: dateString)
             if isEnabled {
-                Button.ComposeTextButton(label: text, context: context) {
+                Button.RenderTextButton(label: text, context: context) {
                     isDatePickerPresented.value = true
                 }
             } else {
@@ -142,7 +142,7 @@ public struct DatePicker : View {
         if let timeString = timeFormatter?.string(from: date) {
             let text = Text(verbatim: timeString)
             if isEnabled {
-                Button.ComposeTextButton(label: text, context: context) {
+                Button.RenderTextButton(label: text, context: context) {
                     isTimePickerPresented.value = true
                 }
             } else {
@@ -151,16 +151,16 @@ public struct DatePicker : View {
         }
 
         let tintColor = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-        ComposeDatePicker(context: context, isPresented: isDatePickerPresented, tintColor: tintColor) {
+        RenderDatePicker(context: context, isPresented: isDatePickerPresented, tintColor: tintColor) {
             didSelect(date: $0, hour: hour, minute: minute)
         }
-        ComposeTimePicker(context: context, isPresented: isTimePickerPresented, tintColor: tintColor, hour: hour, minute: minute) {
+        RenderTimePicker(context: context, isPresented: isTimePickerPresented, tintColor: tintColor, hour: hour, minute: minute) {
             didSelect(date: date, hour: $0, minute: $1)
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, dateSelected: (Date) -> Void) {
+    @Composable private func RenderDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, dateSelected: (Date) -> Void) {
         guard isPresented.value else {
             return
         }
@@ -177,7 +177,7 @@ public struct DatePicker : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable private func ComposeTimePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, hour: Int, minute: Int, timeSelected: (Int, Int) -> Void) {
+    @Composable private func RenderTimePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, hour: Int, minute: Int, timeSelected: (Int, Int) -> Void) {
         guard isPresented.value else {
             return
         }
@@ -275,7 +275,7 @@ extension View {
     }
 }
 
-#if false
+/*
 import struct Foundation.Date
 import struct Foundation.DateComponents
 import struct Foundation.DateInterval
@@ -503,6 +503,5 @@ extension MultiDatePicker where Label == Text {
     ///   - bounds: The open range before some end date.
     public init<S>(_ title: S, selection: Binding<Set<DateComponents>>, in bounds: PartialRangeUpTo<Date>) where S : StringProtocol { fatalError() }
 }
-
-#endif
+*/
 #endif
