@@ -52,11 +52,23 @@ public struct ComposeBuilder: View {
         self.content = content
     }
 
-    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
-        return content(context)
+    @Composable override func Compose(context: ComposeContext) -> ComposeResult {
+        // If there is a composer, allow its result to escape. Otherwise compose in a non-escaping context
+        // to avoid unneeded recomposes
+        if context.composer != nil {
+            return content(context)
+        } else {
+            _ComposeContent(context)
+            return ComposeResult.ok
+        }
     }
 
-    @Composable public override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+    /// Create a non-escaping context to avoid unnecessary recomposition.
+    @Composable private func _ComposeContent(context: ComposeContext) {
+        content(context)
+    }
+
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         let renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let isKeepNonModified = EvaluateOptions(options).isKeepNonModified
         let evalContext = context.content(composer: Composer { view, context in

@@ -28,10 +28,6 @@ extension View {
         return Compose(context: ComposeContext())
     }
 
-    /// DEPRECATED
-    @Composable public func ComposeContent(context: ComposeContext) {
-    }
-
     /// Compose this view's content.
     ///
     /// Calls to `Compose` are added by the transpiler.
@@ -47,10 +43,20 @@ extension View {
             }
             return composer.Compose(self, composerContext)
         } else {
-            for renderable in Evaluate(context: context, options: 0) {
-                renderable.Render(context: context)
-            }
+            _ComposeContent(context: context)
             return ComposeResult.ok
+        }
+    }
+
+    /// DEPRECATED
+    @Composable public func ComposeContent(context: ComposeContext) {
+    }
+
+    /// This function provides a non-escaping compose context to avoid excessive recompositions when the calling code
+    /// does not need to access the underlying `Renderables`.
+    @Composable private func _ComposeContent(context: ComposeContext) {
+        for renderable in Evaluate(context: context, options: 0) {
+            renderable.Render(context: context)
         }
     }
 
