@@ -98,7 +98,7 @@ public struct LazyHGrid: View, Renderable {
                         },
                         indexedItems: { range, identifier, _, _, _, _, factory in
                             let count = range.endExclusive - range.start
-                            let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
+                            let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0 + range.start)) }
                             items(count: count, key: key) { index in
                                 Box(contentAlignment: boxAlignment) {
                                     factory(index + range.start, itemContext).Render(context: itemContext)

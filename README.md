@@ -2719,9 +2719,7 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
 - Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
-- `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
 - Nesting of `ForEach` and `Section` views is limited.
-- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
 - See also the `ForEach` view [topic](#foreach).
 
 ### Navigation
