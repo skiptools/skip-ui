@@ -137,6 +137,8 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
                     toolbarItem.placement = placement
                 }
                 return toolbarItem
+            } else if renderable is Spacer {
+                return ToolbarSpacer(placement: placement)
             } else {
                 return ToolbarItem(placement: placement, content: { renderable.asView() })
             }
@@ -609,7 +611,7 @@ struct ToolbarItems {
         for view in content {
             let renderables = view.Evaluate(context: context, options: 0)
             for renderable in renderables {
-                let placement = (renderable as? ToolbarItem)?.placement ?? ToolbarItemPlacement.automatic
+                let placement = (renderable as? ToolbarItem)?.placement ?? (renderable as? ToolbarSpacer)?.placement ?? ToolbarItemPlacement.automatic
                 switch placement {
                 case .principal:
                     principal = renderable
