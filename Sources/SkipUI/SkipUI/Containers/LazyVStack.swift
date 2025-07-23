@@ -25,7 +25,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 // SKIP @bridge
-public struct LazyVStack : View {
+public struct LazyVStack : View, Renderable {
     let alignment: HorizontalAlignment
     let spacing: CGFloat?
     let content: ComposeBuilder
@@ -44,7 +44,7 @@ public struct LazyVStack : View {
     }
 
     #if SKIP
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         // Let any parent scroll view know about our builtin scrolling. If there is a parent scroll
         // view that didn't already know, abort and wait for recompose to avoid fatal nested scroll error
         PreferenceValues.shared.contribute(context: context, key: BuiltinScrollAxisSetPreferenceKey.self, value: Axis.Set.vertical)
@@ -58,18 +58,12 @@ public struct LazyVStack : View {
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.vertical : []
         let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
-        // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to execute
-        // our content's Compose function to collect its views before entering the LazyColumn body, then use LazyColumn's
-        // LazyListScope functions to compose individual items
-        let collectingComposer = LazyItemCollectingComposer()
-        let viewsCollector = context.content(composer: collectingComposer)
-        content.Compose(context: viewsCollector)
-
         let searchableState = EnvironmentValues.shared._searchableState
-        let isSearchable = searchableState?.isOnNavigationStack() == false
+        let isSearchable = searchableState?.isOnNavigationStack == false
 
+        let renderables = content.EvaluateLazyItems(context: context)
         let itemContext = context.content()
-        let factoryContext = remember { mutableStateOf(LazyItemFactoryContext()) }
+        let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
                 // Integrate with our scroll-to-top and ScrollViewReader
@@ -82,7 +76,7 @@ public struct LazyVStack : View {
                     }
                 })
                 let scrollToID = ScrollToIDAction(key: listState) { id in
-                    if let itemIndex = factoryContext.value.index(for: id) {
+                    if let itemIndex = itemCollector.value.index(for: id) {
                         coroutineScope.launch {
                             if Animation.isInWithAnimation {
                                 listState.animateScrollToItem(itemIndex)
@@ -103,40 +97,40 @@ public struct LazyVStack : View {
                     return ComposeResult.ok
                 } in: {
                     LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
-                        factoryContext.value.initialize(
+                        itemCollector.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
-                            item: { view, _ in
+                            item: { renderable, _ in
                                 item {
-                                    view.Compose(context: itemContext)
+                                    renderable.Render(context: itemContext)
                                 }
                             },
                             indexedItems: { range, identifier, _, _, _, _, factory in
                                 let count = range.endExclusive - range.start
-                                let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0)) }
+                                let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0 + range.start)) }
                                 items(count: count, key: key) { index in
-                                    factory(index + range.start).Compose(context: itemContext)
+                                    factory(index + range.start, itemContext).Render(context: itemContext)
                                 }
                             },
                             objectItems: { objects, identifier, _, _, _, _, factory in
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                                 items(count: objects.count, key: key) { index in
-                                    factory(objects[index]).Compose(context: itemContext)
+                                    factory(objects[index], itemContext).Render(context: itemContext)
                                 }
                             },
                             objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                                 items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                                    factory(objectsBinding, index).Compose(context: itemContext)
+                                    factory(objectsBinding, index, itemContext).Render(context: itemContext)
                                 }
                             },
-                            sectionHeader: { view in
+                            sectionHeader: { renderable in
                                 item {
-                                    view.Compose(context: itemContext)
+                                    renderable.Render(context: itemContext)
                                 }
                             },
-                            sectionFooter: { view in
+                            sectionFooter: { renderable in
                                 item {
-                                    view.Compose(context: itemContext)
+                                    renderable.Render(context: itemContext)
                                 }
                             }
                         )
@@ -146,11 +140,11 @@ public struct LazyVStack : View {
                                 SearchField(state: searchableState!, context: context.content(modifier: modifier))
                             }
                         }
-                        for (view, level) in collectingComposer.views {
-                            if let factory = view as? LazyItemFactory {
-                                factory.composeLazyItems(context: factoryContext.value, level: level)
+                        for renderable in renderables {
+                            if let factory = renderable as? LazyItemFactory, factory.shouldProduceLazyItems() {
+                                factory.produceLazyItems(collector: itemCollector.value, modifiers: listOf(), level: 0)
                             } else {
-                                factoryContext.value.item(view, level)
+                                itemCollector.value.item(renderable, 0)
                             }
                         }
                     }

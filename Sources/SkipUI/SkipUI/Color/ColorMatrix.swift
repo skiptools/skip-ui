@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A matrix to use in an RGBA color transformation.
 ///
 /// The matrix has five columns, each with a red, green, blue, and alpha
@@ -59,4 +59,4 @@
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension ColorMatrix : Sendable {
 }
-#endif
+*/

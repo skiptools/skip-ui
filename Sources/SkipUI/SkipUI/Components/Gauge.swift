@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A view that shows a value within a range.
 ///
 /// A gauge is a view that shows a current level of a value in relation
@@ -582,4 +582,4 @@ public struct DefaultGaugeStyle : GaugeStyle {
     /// A view representing the body of a gauge.
 //    public typealias Body = some View
 }
-#endif
+*/

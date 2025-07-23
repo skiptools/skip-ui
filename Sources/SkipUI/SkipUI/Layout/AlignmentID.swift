@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGFloat
 
 /// A type that you use to create custom alignment guides.
@@ -131,4 +131,4 @@ public protocol AlignmentID {
     ///   view's coordinate space.
     static func defaultValue(in context: ViewDimensions) -> CGFloat
 }
-#endif
+*/

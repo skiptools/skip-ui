@@ -59,30 +59,30 @@ extension View {
     }
 }
 
-#if false
-//@available(watchOS, unavailable)
-//extension ControlGroup where Content == ControlGroupStyleConfiguration.Content {
-//
-//    /// Creates a control group based on a style configuration.
-//    ///
-//    /// Use this initializer within the
-//    /// ``ControlGroupStyle/makeBody(configuration:)`` method of a
-//    /// ``ControlGroupStyle`` instance to create an instance of the control group
-//    /// being styled. This is useful for custom control group styles that modify
-//    /// the current control group style.
-//    ///
-//    /// For example, the following code creates a new, custom style that places a
-//    /// red border around the current control group:
-//    ///
-//    ///     struct RedBorderControlGroupStyle: ControlGroupStyle {
-//    ///         func makeBody(configuration: Configuration) -> some View {
-//    ///             ControlGroup(configuration)
-//    ///                 .border(Color.red)
-//    ///         }
-//    ///     }
-//    ///
-//    public init(_ configuration: ControlGroupStyleConfiguration) { fatalError() }
-//}
+/*
+@available(watchOS, unavailable)
+extension ControlGroup where Content == ControlGroupStyleConfiguration.Content {
+
+    /// Creates a control group based on a style configuration.
+    ///
+    /// Use this initializer within the
+    /// ``ControlGroupStyle/makeBody(configuration:)`` method of a
+    /// ``ControlGroupStyle`` instance to create an instance of the control group
+    /// being styled. This is useful for custom control group styles that modify
+    /// the current control group style.
+    ///
+    /// For example, the following code creates a new, custom style that places a
+    /// red border around the current control group:
+    ///
+    ///     struct RedBorderControlGroupStyle: ControlGroupStyle {
+    ///         func makeBody(configuration: Configuration) -> some View {
+    ///             ControlGroup(configuration)
+    ///                 .border(Color.red)
+    ///         }
+    ///     }
+    ///
+    public init(_ configuration: ControlGroupStyleConfiguration) { fatalError() }
+}
 
 /// The properties of a control group.
 @available(iOS 15.0, macOS 12.0, tvOS 17.0, *)
@@ -119,6 +119,5 @@ public struct ControlGroupStyleConfiguration {
     @available(iOS 16.0, macOS 13.0, *)
     public let label: ControlGroupStyleConfiguration.Label = { fatalError() }()
 }
-
-#endif
+*/
 #endif

@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct Foundation.Data
 import struct Foundation.URL
 
@@ -238,4 +238,4 @@ extension SceneStorage {
     /// - Parameter key: a key used to save and restore the value.
     public init<R>(_ key: String) where Value == R?, R : RawRepresentable, R.RawValue == Int { fatalError() }
 }
-#endif
+*/

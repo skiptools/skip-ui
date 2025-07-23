@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A stylized view, with an optional label, that visually collects a logical
 /// grouping of content.
 ///
@@ -229,4 +229,4 @@ public struct DefaultGroupBoxStyle : GroupBoxStyle {
     /// A view that represents the body of a group box.
 //    public typealias Body = some View
 }
-#endif
+*/

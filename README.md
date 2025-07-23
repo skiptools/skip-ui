@@ -2719,9 +2719,7 @@ You can also enable editing by using a `ForEach` with the `.onDelete` and `.onMo
 
 - Compose requires that every `id` value in a `List` is unique. This applies even if your list consists of multiple `Sections` or uses multiple `ForEach` components to define its content.
 - Additionally, `id` values must follow our [Restrictions on Identifiers](#restrictions-on-identifiers).
-- `Section` and `ForEach` views must be defined inline within their owning `List`. In other words, if your `List` contains `MyView`, `MyView` will be rendered as a single list row even if it contains `Section` or `ForEach` content.
 - Nesting of `ForEach` and `Section` views is limited.
-- SkipUI does not support placing modifiers on `Section` or `ForEach` views within lists, other than `ForEach.onDelete` and `ForEach.onMove`.
 - See also the `ForEach` view [topic](#foreach).
 
 ### Navigation
@@ -2932,10 +2930,10 @@ Note that SkipUI should remain buildable throughout this process. Being able to 
 
 Before implementing a component, familiarize yourself with SkipUI's `View` protocol in `Sources/View/View.swift` as well as the files in the `Sources/Compose` directory. It is also helpful to browse the source code for components and modifiers that have already been ported. See the table of [Supported SwiftUI](#supported-swiftui).
 
-The `Text` view exemplifies a typical SwiftUI component implementation. Here is an abbreviated code sample:
+This simplified `Text` view exemplifies a typical SwiftUI component implementation:
 
 ```swift
-public struct Text: View, Equatable, Sendable {
+public struct Text: View, Renderable Equatable, Sendable {
     let text: String
 
     public init(_ text: String) {
@@ -2945,7 +2943,7 @@ public struct Text: View, Equatable, Sendable {
     ...
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let modifier = context.modifier
         let font = EnvironmentValues.shared.font ?? Font(fontImpl: { LocalTextStyle.current })
         ...
@@ -2960,20 +2958,19 @@ public struct Text: View, Equatable, Sendable {
 
 ```
 
-As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `View.ComposeContent` function for Android, while we stub the `body` var to satisfy the Swift compiler. `ComposeContent` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `ComposeContent` would call `child.Compose(context: context.content())` to compose its child content. (Note that `View.Compose(context:)` delegates to `View.ComposeContent(context:)` after performing other bookkeeping operations, which is why we override `ComposeContent` rather than `Compose`.)
+As you can see, the `Text` type is defined just as it is in SwiftUI. We then use an `#if SKIP` block to implement the composable `Renderable.Render` function for Android, while we stub the `body` var to satisfy the Swift compiler. `Render` makes the necessary Compose calls to render the component, applying the modifier from the given `context` as well as any applicable environment values. If `Text` had any child views, `Render` would call `child.Compose(context: context.content())` to compose its child content.
 
 ### Modifiers
 
-Modifiers, on the other hand, use the `ComposeModifierView` to perform actions, including changing the `context` passed to the modified view. Here is the `.opacity` modifier:
+Modifiers, on the other hand, use the `ModifiedContent` to perform actions, including changing the `androidx.compose.ui.Modifier` passed to the modified view. Here is the `.opacity` modifier:
 
 ```swift
 extension View {
     public func opacity(_ opacity: Double) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self) { context in
-            context.modifier = context.modifier.alpha(Float(opacity))
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            return context.modifier.alpha(Float(opacity))
+        })
         #else
         return self
         #endif
@@ -2981,13 +2978,13 @@ extension View {
 }
 ```
 
-Some modifiers have their own composition logic. These modifiers use a different `ComposeModifierView` constructor whose block defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
+Some modifiers have their own rendering logic. These modifiers use a different `RenderModifier` constructor that defines the composition. Here, for example, `.frame` composes the view within a Compose `Box` with the proper dimensions and alignment:
 
 ```swift
 extension View {
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             var modifier = context.modifier
             if let width {
                 modifier = modifier.width(width.dp)
@@ -2998,16 +2995,18 @@ extension View {
             let contentContext = context.content()
             ComposeContainer(modifier: modifier, fixedWidth: width != nil, fixedHeight: height != nil) { modifier in
                 Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    view.Compose(context: contentContext)
+                    renderable.Render(context: contentContext)
                 }
             }
-        }
+        })
         #else
         return self
         #endif
     }
 }
 ```
+
+Still other modifiers don't affect rendering at all, but perform side effects or the environment. Pass a `SideEffectModifier` or `EnvironmentModifier` to the `ModifiedContent` in these cases.
 
 Like other SwiftUI components, modifiers use `#if SKIP ... #else ...` to stub the Swift implementation and keep SkipUI buildable in Xcode.
 

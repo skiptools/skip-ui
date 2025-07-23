@@ -25,12 +25,13 @@ extension View {
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityIdentifier(_ identifier: String, isEnabled: Bool = true) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
-                $0.modifier = $0.modifier.semantics { testTagsAsResourceId = true }.testTag(identifier)
+                return $0.modifier.semantics { testTagsAsResourceId = true }.testTag(identifier)
+            } else {
+                return $0.modifier
             }
-            return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -39,13 +40,14 @@ extension View {
     // SKIP @bridge
     public func accessibilityLabel(_ label: Text, isEnabled: Bool = true) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
                 let description = label.localizedTextString()
-                $0.modifier = $0.modifier.semantics { contentDescription = description }
+                return $0.modifier.semantics { contentDescription = description }
+            } else {
+                return $0.modifier
             }
-            return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -53,12 +55,13 @@ extension View {
 
     public func accessibilityLabel(_ label: String, isEnabled: Bool = true) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
-                $0.modifier = $0.modifier.semantics { contentDescription = label }
+                return $0.modifier.semantics { contentDescription = label }
+            } else {
+                return $0.modifier
             }
-            return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -135,11 +138,10 @@ extension View {
 
     public func accessibilityHint(_ hint: Text) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             let label = hint.localizedTextString()
-            $0.modifier = $0.modifier.semantics { onClick(label: label, action: nil ) }
-            return ComposeResult.ok
-        }
+            return $0.modifier.semantics { onClick(label: label, action: nil ) }
+        })
         #else
         return self
         #endif
@@ -155,10 +157,9 @@ extension View {
 
     public func accessibilityHint(_ hint: String) -> some View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { onClick(label: hint, action: nil ) }
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
+            return $0.modifier.semantics { onClick(label: hint, action: nil ) }
+        })
         #else
         return self
         #endif
@@ -313,12 +314,13 @@ extension View {
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityHidden(_ hidden: Bool, isEnabled: Bool = true) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
-                $0.modifier = $0.modifier.semantics { if hidden { invisibleToUser() } }
+                return $0.modifier.semantics { if hidden { invisibleToUser() } }
+            } else {
+                return $0.modifier
             }
-            return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -381,27 +383,28 @@ extension View {
 
     public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
+            var modifier = $0.modifier
             if traits.contains(.isButton) {
-                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Button }
+                modifier = modifier.semantics { role = androidx.compose.ui.semantics.Role.Button }
             }
             if traits.contains(.isHeader) {
-                $0.modifier = $0.modifier.semantics { heading() }
+                modifier = modifier.semantics { heading() }
             }
             if traits.contains(.isSelected) {
-                $0.modifier = $0.modifier.semantics { selected = true }
+                modifier = modifier.semantics { selected = true }
             }
             if traits.contains(.isImage) {
-                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Image }
+                modifier = modifier.semantics { role = androidx.compose.ui.semantics.Role.Image }
             }
             if traits.contains(.isModal) {
-                $0.modifier = $0.modifier.semantics { popup() }
+                modifier = modifier.semantics { popup() }
             }
             if traits.contains(.isToggle) {
-                $0.modifier = $0.modifier.semantics { role = androidx.compose.ui.semantics.Role.Switch }
+                modifier = modifier.semantics { role = androidx.compose.ui.semantics.Role.Switch }
             }
-            return ComposeResult.ok
-        }
+            return modifier
+        })
         #else
         return self
         #endif
@@ -444,10 +447,9 @@ extension View {
 
     public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { heading() }
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
+            return $0.modifier.semantics { heading() }
+        })
         #else
         return self
         #endif
@@ -461,13 +463,14 @@ extension View {
     // SKIP @bridge
     public func accessibilityValue(_ value: Text, isEnabled: Bool = true) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
             if isEnabled {
                 let description = value.localizedTextString()
-                $0.modifier = $0.modifier.semantics { stateDescription = description }
+                return $0.modifier.semantics { stateDescription = description }
+            } else {
+                return $0.modifier
             }
-            return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -475,10 +478,9 @@ extension View {
 
     public func accessibilityValue(_ value: String) -> any View {
         #if SKIP
-        return ComposeModifierView(targetView: self, role: .accessibility) {
-            $0.modifier = $0.modifier.semantics { stateDescription = value }
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
+            return $0.modifier.semantics { stateDescription = value }
+        })
         #else
         return self
         #endif
@@ -698,7 +700,7 @@ public struct AccessibilityZoomGestureAction {
     }
 }
 
-#if false
+/*
 @available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *)
 extension Never : AccessibilityRotorContent {
 }
@@ -1100,6 +1102,5 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     ///   instead replace the previous value and importance.
     public func accessibilityCustomContent<V>(_ labelKey: LocalizedStringKey, _ value: V, importance: AXCustomContent.Importance = .default) -> ModifiedContent<Content, Modifier> where V : StringProtocol { fatalError() }
 }
-
-#endif
+*/
 #endif

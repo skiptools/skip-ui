@@ -1,7 +1,10 @@
 // Copyright 2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
-#if canImport(CoreGraphics)
+#if SKIP
+import androidx.compose.runtime.Composable
+import skip.model.StateTracking
+#elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 

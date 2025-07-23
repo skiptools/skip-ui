@@ -126,7 +126,7 @@ public enum SpringLoadingBehavior : Hashable {
     case disabled
 }
 
-#if false
+/*
 extension Spring {
     /// The estimated duration required for the spring system to be considered
     /// at rest.
@@ -207,5 +207,5 @@ public struct SpringKeyframe<Value> : KeyframeTrackContent where Value : Animata
     public typealias Body = SpringKeyframe<Value>
 //    @KeyframeTrackContentBuilder<Self.Value> public var body: Body { fatalError() }
 }
-#endif
+ */
 #endif

@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGFloat
 
 /// A view's size and alignment guides in its own coordinate space.
@@ -254,4 +254,4 @@ extension View {
     ///   according to the computation performed in the method's closure.
     public func alignmentGuide(_ g: VerticalAlignment, computeValue: @escaping (ViewDimensions) -> CGFloat) -> some View { return stubView() }
 }
-#endif
+*/

@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// An opaque wrapper view that adds editing capabilities to a row in a list.
 ///
 /// You don't use this type directly. Instead SkipUI creates this type on
@@ -16,4 +16,4 @@ extension EditableCollectionContent : View where Content : View {
 
 //    public typealias Body = some View
 }
-#endif
+*/

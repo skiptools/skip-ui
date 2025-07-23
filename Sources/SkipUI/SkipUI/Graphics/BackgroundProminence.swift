@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// The prominence of backgrounds underneath other views.
 ///
 /// Background prominence should influence foreground styling to maintain
@@ -29,4 +29,4 @@ public struct BackgroundProminence : Hashable, Sendable {
     /// have greater contrast against the background.
     public static let increased: BackgroundProminence = { fatalError() }()
 }
-#endif
+*/

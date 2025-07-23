@@ -24,12 +24,10 @@ import struct CoreGraphics.CGSize
 
 // SKIP @bridge
 public protocol Transition {
-    #if false
-    associatedtype Body : View
-    @ViewBuilder func body(content: Self.Content, phase: TransitionPhase) -> Self.Body
-    static var properties: TransitionProperties { get }
-    typealias Content = PlaceholderContentView<Self>
-    #endif
+//    associatedtype Body : View
+//    @ViewBuilder func body(content: Self.Content, phase: TransitionPhase) -> Self.Body
+//    static var properties: TransitionProperties { get }
+//    typealias Content = PlaceholderContentView<Self>
 
     #if SKIP
     @Composable func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition
@@ -78,6 +76,7 @@ extension Transition {
 
 public struct ContentTransition : RawRepresentable, Equatable {
     public let rawValue: Int
+
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
@@ -199,10 +198,8 @@ public struct AsymmetricTransition<Insertion, Removal> : Transition {
         self.removal = removal
     }
 
-    #if false
-    public func body(content: AsymmetricTransition<Insertion, Removal>.Content, phase: TransitionPhase) -> some View { return stubView() }
-    public static var properties: TransitionProperties { get { fatalError() } }
-    #endif
+//    public func body(content: AsymmetricTransition<Insertion, Removal>.Content, phase: TransitionPhase) -> some View { return stubView() }
+//    public static var properties: TransitionProperties { get { fatalError() } }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -250,9 +247,7 @@ public struct PushTransition : Transition {
         self.init(edge: Edge(rawValue: bridgedEdge) ?? .leading)
     }
 
-    #if false
-    public func body(content: PushTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    #endif
+//    public func body(content: PushTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -290,9 +285,7 @@ public struct ScaleTransition : Transition {
         self.init(scale, anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
-    #if false
-    public func body(content: ScaleTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    #endif
+//    public func body(content: ScaleTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -319,9 +312,7 @@ public struct SlideTransition : Transition {
     public init() {
     }
 
-    #if false
-    public func body(content: SlideTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    #endif
+//    public func body(content: SlideTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -350,10 +341,8 @@ public struct IdentityTransition : Transition {
     public init () {
     }
 
-    #if false
-    public func body(content: IdentityTransition.Content, phase: TransitionPhase) -> Body { fatalError() }
-    public static let properties: TransitionProperties = { fatalError() }()
-    #endif
+//    public func body(content: IdentityTransition.Content, phase: TransitionPhase) -> Body { fatalError() }
+//    public static let properties: TransitionProperties = { fatalError() }()
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -379,9 +368,7 @@ public struct MoveTransition : Transition {
         self.init(edge: Edge(rawValue: bridgedEdge) ?? .leading)
     }
 
-    #if false
-    public func body(content: MoveTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    #endif
+//    public func body(content: MoveTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -417,9 +404,7 @@ public struct OffsetTransition : Transition {
         self.init(CGSize(width: offsetWidth, height: height))
     }
 
-    #if false
-    public func body(content: OffsetTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    #endif
+//    public func body(content: OffsetTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
 
     #if SKIP
     @Composable public func asEnterTransition(spec: AnimationSpec<Any>) -> EnterTransition {
@@ -450,10 +435,8 @@ public struct OpacityTransition : Transition {
     public init() {
     }
 
-    #if false
-    public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
-    public static let properties: TransitionProperties = { fatalError() }()
-    #endif
+//    public func body(content: OpacityTransition.Content, phase: TransitionPhase) -> some View { return stubView() }
+//    public static let properties: TransitionProperties = { fatalError() }()
 }
 
 extension View {
@@ -467,7 +450,7 @@ extension View {
     // SKIP @bridge
     public func transition(_ t: AnyTransition) -> any View {
         #if SKIP
-        return TransitionModifierView(view: self, transition: t.transition)
+        return ModifiedContent(content: self, modifier: TransitionModifier(transition: t.transition))
         #else
         return self
         #endif
@@ -480,20 +463,20 @@ extension View {
 }
 
 #if SKIP
-struct TransitionModifierView: ComposeModifierView {
+
+final class TransitionModifier: RenderModifier {
     let transition: Transition
 
-    init(view: View, transition: Transition) {
+    init(transition: Transition) {
         self.transition = transition
-        super.init(view: view)
+        super.init()
     }
 
     /// Extract the transition from the given view's modifiers.
-    static func transition(for view: View) -> Transition? {
-        guard let modifierView = view.strippingModifiers(until: { $0 is TransitionModifierView }, perform: { $0 as? TransitionModifierView }) else {
-            return nil
+    static func transition(for renderable: Renderable) -> Transition? {
+        return renderable.forEachModifier {
+            return ($0 as? TransitionModifier)?.transition
         }
-        return modifierView.transition
     }
 }
 

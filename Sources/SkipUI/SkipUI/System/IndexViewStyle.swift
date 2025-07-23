@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// Defines the implementation of all `IndexView` instances within a view
 /// hierarchy.
 ///
@@ -35,4 +35,4 @@ extension View {
     public func indexViewStyle<S>(_ style: S) -> some View where S : IndexViewStyle { return stubView() }
 
 }
-#endif
+*/

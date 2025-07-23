@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import class CoreGraphics.CGColor
 
 /// A control used to select a color from the system color picker UI.
@@ -145,4 +145,4 @@ extension ColorPicker where Label == Text {
     ///     default is `true`.
     public init<S>(_ title: S, selection: Binding<CGColor>, supportsOpacity: Bool = true) where S : StringProtocol { fatalError() }
 }
-#endif
+*/

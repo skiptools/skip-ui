@@ -12,7 +12,7 @@ extension View {
     // SKIP DECLARE: fun <P, Output> onReceive(publisher: P, perform: (Output) -> Unit): View where P: Publisher<Output, *>
     public func onReceive<P>(_ publisher: P, perform action: @escaping (P.Output) -> Void) -> some View where P : Publisher {
         #if SKIP
-        return ComposeModifierView(targetView: self) { _ in
+        return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let latestAction = rememberUpdatedState(action)
             let subscription = remember {
                 publisher.sink { output in
@@ -25,7 +25,7 @@ extension View {
                 }
             }
             return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif

@@ -55,7 +55,7 @@ public struct KeyEquivalent : Hashable {
     public static let `return` = KeyEquivalent("\u{000D}")
 }
 
-#if false
+/*
 @available(iOS 14.0, macOS 11.0, tvOS 17.0, *)
 @available(watchOS, unavailable)
 extension KeyEquivalent : ExpressibleByExtendedGraphemeClusterLiteral {
@@ -77,6 +77,5 @@ extension KeyEquivalent : ExpressibleByExtendedGraphemeClusterLiteral {
     /// `Character`, `String`, and `StaticString`.
     public typealias UnicodeScalarLiteralType = Character
 }
-
-#endif
+*/
 #endif

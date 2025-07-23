@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct Label : View {
+public struct Label : View, Renderable {
     let title: ComposeBuilder
     let image: ComposeBuilder
 
@@ -56,7 +56,7 @@ public struct Label : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         var style = EnvironmentValues.shared._labelStyle ?? LabelStyle.automatic
         let placement = EnvironmentValues.shared._placement
         if style == .automatic {
@@ -81,30 +81,30 @@ public struct Label : View {
         }
         switch style {
         case .titleOnly:
-            ComposeTitle(context: context)
+            RenderTitle(context: context)
         case .iconOnly:
-            ComposeImage(context: context, imageColor: imageColor)
+            RenderImage(context: context, imageColor: imageColor)
         default:
-            ComposeLabel(context: context, imageColor: imageColor, titlePadding: titlePadding)
+            RenderLabel(context: context, imageColor: imageColor, titlePadding: titlePadding)
         }
     }
 
-    @Composable private func ComposeLabel(context: ComposeContext, imageColor: Color?, titlePadding: Double) {
+    @Composable private func RenderLabel(context: ComposeContext, imageColor: Color?, titlePadding: Double) {
         Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            ComposeImage(context: context.content(), imageColor: imageColor)
+            RenderImage(context: context.content(), imageColor: imageColor)
             Box(modifier: Modifier.padding(start: titlePadding.dp)) {
-                ComposeTitle(context: context.content())
+                RenderTitle(context: context.content())
             }
         }
     }
 
-    /// Compose only the title of this label.
-    @Composable func ComposeTitle(context: ComposeContext) -> ComposeResult {
-        return title.Compose(context: context)
+    /// Render only the title of this label.
+    @Composable func RenderTitle(context: ComposeContext) {
+        title.Compose(context: context)
     }
 
-    /// Compose only the image of this label.
-    @Composable func ComposeImage(context: ComposeContext, imageColor: Color? = nil) {
+    /// Render only the image of this label.
+    @Composable func RenderImage(context: ComposeContext, imageColor: Color? = nil) {
         if let imageColor {
             EnvironmentValues.shared.setValues {
                 $0.set_foregroundStyle(imageColor)
@@ -179,7 +179,7 @@ public struct LabeledContentStyle: RawRepresentable, Equatable {
 extension View {
     public func labelStyle(_ style: LabelStyle) -> some View {
         #if SKIP
-        return environment(\._labelStyle, style)
+        return environment(\._labelStyle, style, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -205,7 +205,7 @@ extension View {
     }
 }
 
-#if false
+/*
 import protocol Foundation.ParseableFormatStyle
 import protocol Foundation.FormatStyle
 import protocol Foundation.ReferenceConvertible
@@ -405,6 +405,5 @@ public struct LabeledToolbarItemGroupContent<Content, Label> : View where Conten
 
 //    public typealias Body = some View
 }
-
-#endif
+*/
 #endif

@@ -343,7 +343,7 @@ extension View {
 
     public func gesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> any View {
         #if SKIP
-        return GestureModifierView(view: self, gesture: gesture as! Gesture<Any>, isEnabled: isEnabled)
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
         #else
         return self
         #endif
@@ -352,7 +352,7 @@ extension View {
     // SKIP @bridge
     public func bridgedGesture(_ gesture: Any, isEnabled: Bool) -> any View {
         #if SKIP
-        return GestureModifierView(view: self, gesture: gesture as! Gesture<Any>, isEnabled: isEnabled)
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
         #else
         return self
         #endif
@@ -475,37 +475,49 @@ public struct ModifiedGesture<V> : Gesture {
 }
 
 /// Modifier view that collects and executes gestures.
-final class GestureModifierView: ComposeModifierView {
-    var gestures: [ModifiedGesture<Any>]
+final class GestureModifier: RenderModifier {
+    let gesture: ModifiedGesture<Any>?
+    var isConsumed = false
 
-    init(view: View, gesture: Gesture<Any>, isEnabled: Bool) {
-        super.init(view: view)
-        gestures = isEnabled ? [gesture.modified] : []
-
-        // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
-        if let wrappedGestureView = view.strippingModifiers(until: { $0 is GestureModifierView }, perform: { $0 as? GestureModifierView }) {
-            gestures += wrappedGestureView.gestures
-            wrappedGestureView.gestures = []
-        }
-        self.action = {
-            $0.modifier = addGestures(to: $0.modifier)
-            return ComposeResult.ok
+    init(gesture: Gesture<Any>, isEnabled: Bool) {
+        self.gesture = isEnabled ? gesture.modified : nil
+        super.init()
+        self.action = { renderable, context in
+            var context = context
+            context.modifier = addGestures(for: renderable, to: context.modifier)
+            renderable.Render(context: context)
         }
     }
 
-    @Composable private func addGestures(to modifier: Modifier) -> Modifier {
-        guard !gestures.isEmpty else {
+    @Composable private func addGestures(for renderable: Renderable, to modifier: Modifier) -> Modifier {
+        guard !isConsumed else {
             return modifier
         }
         guard EnvironmentValues.shared.isEnabled else {
             return modifier
         }
 
+        // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
+        let gestures: kotlin.collections.MutableList<ModifiedGesture<Any>> = mutableListOf()
+        if let gesture {
+            gestures.add(gesture)
+        }
+        renderable.forEachModifier {
+            guard let gestureModifier = $0 as? GestureModifier else {
+                return nil
+            }
+            if let gesture = gestureModifier.gesture {
+                gestures.add(gesture)
+            }
+            gestureModifier.isConsumed = true
+            return nil
+        }
+
         let density = LocalDensity.current
         var ret = modifier
         
         // If the gesture is placed directly on a shape, we attempt to constrain hits to the shape
-        if let shape = view.strippingModifiers(until: { $0.role != .accessibility }, perform: { $0 as? ModifiedShape }), let touchShape = shape.asComposeTouchShape(density: density) {
+        if let shape = renderable.strip() as? ModifiedShape, renderable.forEachModifier(perform: { $0.role != .accessibility && !($0 is GestureModifier) ? true : nil }) == nil, let touchShape = shape.asComposeTouchShape(density: density) {
             ret = ret.clip(touchShape)
         }
 
@@ -515,10 +527,10 @@ final class GestureModifierView: ComposeModifierView {
         let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
         let doubleTapGestures = rememberUpdatedState(gestures.filter { $0.isDoubleTapGesture })
         let longPressGestures = rememberUpdatedState(gestures.filter { $0.isLongPressGesture })
-        if !tapGestures.value.isEmpty || !doubleTapGestures.value.isEmpty || !longPressGestures.value.isEmpty {
+        if tapGestures.value.size > 0 || doubleTapGestures.value.size > 0 || longPressGestures.value.size > 0 {
             ret = ret.pointerInput(true) {
                 let onDoubleTap: ((Offset) -> Void)?
-                if !doubleTapGestures.value.isEmpty {
+                if doubleTapGestures.value.size > 0 {
                     onDoubleTap = { offsetPx in
                         let x = with(density) { offsetPx.x.toDp() }
                         let y = with(density) { offsetPx.y.toDp() }
@@ -529,7 +541,7 @@ final class GestureModifierView: ComposeModifierView {
                     onDoubleTap = nil
                 }
                 let onLongPress: ((Offset) -> Void)?
-                if !longPressGestures.value.isEmpty {
+                if longPressGestures.value.size > 0 {
                     onLongPress = { _ in
                         longPressGestures.value.forEach { $0.onLongPressEnd() }
                     }
@@ -554,11 +566,11 @@ final class GestureModifierView: ComposeModifierView {
         }
 
         let dragGestures = rememberUpdatedState(gestures.filter { $0.isDragGesture })
-        if !dragGestures.value.isEmpty {
+        if dragGestures.value.size > 0 {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
             let dragPositionPx = remember { mutableStateOf(Offset(x: Float(0.0), y: Float(0.0))) }
-            let noMinimumDistance = dragGestures.value.contains { $0.minimumDistance <= 0.0 }
+            let noMinimumDistance = dragGestures.value.any { $0.minimumDistance <= 0.0 }
             let scrollAxes = EnvironmentValues.shared._scrollAxes
             ret = ret.pointerInput(scrollAxes) {
                 let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
@@ -652,7 +664,7 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
 }
 #endif
 
-#if false
+/*
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
@@ -842,6 +854,5 @@ extension Optional : Gesture where Wrapped : Gesture {
     /// The type representing the gesture's value.
     public typealias V = Wrapped.V
 }
-
-#endif
+*/
 #endif

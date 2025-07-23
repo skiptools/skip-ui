@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct Foundation.Date
 import typealias Foundation.TimeInterval
 
@@ -626,4 +626,4 @@ public struct ExplicitTimelineSchedule<Entries> : TimelineSchedule where Entries
     /// - Returns: The sequence of dates that you provided at initialization.
     public func entries(from startDate: Date, mode: TimelineScheduleMode) -> Entries { fatalError() }
 }
-#endif
+*/

@@ -47,39 +47,41 @@ public struct ComposeBuilder: View {
     /// that `body`, as well as within other `@ViewBuilders`.
     ///
     /// - Note: Returning a result from `content` is important. This prevents Compose from recomposing `content` on its own. Instead, a change that would recompose
-    ///   `content` elevates to our void `ComposeContent` function. This allows us to prepare for recompositions, e.g. making the proper callbacks to the context's `composer`.
+    ///   `content` elevates to our void `Renderable.Render`. This allows us to prepare for recompositions, e.g. making the proper callbacks to the context's `composer`.
     public init(content: @Composable (ComposeContext) -> ComposeResult) {
         self.content = content
     }
 
-    @Composable public override func Compose(context: ComposeContext) -> ComposeResult {
-        // If there is a composer that should recompose its caller, we execute it here so that its result escapes.
-        // Otherwise we wait for ComposeContent where recomposes don't affect the caller
-        if let composer = context.composer as? SideEffectComposer {
+    @Composable override func Compose(context: ComposeContext) -> ComposeResult {
+        // If there is a composer, allow its result to escape. Otherwise compose in a non-escaping context
+        // to avoid unneeded recomposes
+        if context.composer != nil {
             return content(context)
         } else {
-            ComposeContent(context)
+            _ComposeContent(context)
             return ComposeResult.ok
         }
     }
 
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    /// Create a non-escaping context to avoid unnecessary recomposition.
+    @Composable private func _ComposeContent(context: ComposeContext) {
         content(context)
     }
 
-    /// Use a custom composer to collect the views composed within this view.
-    @Composable public func collectViews(context: ComposeContext) -> [View] {
-        var views: [View] = []
-        let viewCollectingContext = context.content(composer: SideEffectComposer { view, context in
-            if let builder = view as? ComposeBuilder {
-                views += builder.collectViews(context: context(false))
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
+        let isKeepNonModified = EvaluateOptions(options).isKeepNonModified
+        let evalContext = context.content(composer: Composer { view, context in
+            // This logic is also in `ModifiedContent`, but we need to check here as well in case no modifiers are used
+            if isKeepNonModified && !(view is ModifiedContent) {
+                renderables.add(view.asRenderable())
             } else {
-                views.append(view)
+                renderables.addAll(view.Evaluate(context: context(false), options: options))
             }
             return ComposeResult.ok
         })
-        content(viewCollectingContext)
-        return views
+        content(evalContext)
+        return renderables
     }
     #else
     public var body: some View {
@@ -87,5 +89,4 @@ public struct ComposeBuilder: View {
     }
     #endif
 }
-
 #endif

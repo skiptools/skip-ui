@@ -115,7 +115,7 @@ extension View {
     }
 }
 
-#if false
+/*
 @available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
@@ -265,6 +265,5 @@ extension AppStorage {
     ///     of `nil` will use the user default store from the environment.
     public convenience init<R>(_ key: String, store: UserDefaults? = nil) where Value == R?, R : RawRepresentable, R.RawValue == Int { fatalError() }
 }
-
-#endif
+*/
 #endif

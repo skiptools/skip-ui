@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct Color: ShapeStyle, Hashable {
+public struct Color: ShapeStyle, Renderable, Hashable {
     #if SKIP
     public let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 
@@ -22,7 +22,7 @@ public struct Color: ShapeStyle, Hashable {
         self.colorImpl = colorImpl
     }
 
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable public override func Render(context: ComposeContext) {
         let animatable = colorImpl().asAnimatable(context: context)
         let modifier = context.modifier.background(animatable.value).fillSize()
         Box(modifier: modifier)
@@ -627,69 +627,65 @@ private struct ColorSet : Decodable {
 
 #endif
 
-#if !SKIP
+/*
+#if canImport(CoreTransferable)
+import protocol CoreTransferable.Transferable
+import protocol CoreTransferable.TransferRepresentation
 
-// Unneeded stubs:
+@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+extension Color : Transferable {
 
-//#if canImport(CoreTransferable)
-//import protocol CoreTransferable.Transferable
-//import protocol CoreTransferable.TransferRepresentation
-//
-//@available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//extension Color : Transferable {
-//
-//    /// One group of colors–constant colors–created with explicitly specified
-//    /// component values are transferred as is.
-//    ///
-//    /// Another group of colors–standard colors, like `Color.mint`,
-//    /// and semantic colors, like `Color.accentColor`–are rendered on screen
-//    /// differently depending on the current ``SkipUI/Environment``. For transferring,
-//    /// they are resolved against the default environment and might produce
-//    /// a slightly different result at the destination if the source of drag
-//    /// or copy uses a non-default environment.
-//    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-//    public static var transferRepresentation: some TransferRepresentation { get { return stubTransferRepresentation() } }
-//
-//    /// The type of the representation used to import and export the item.
-//    ///
-//    /// Swift infers this type from the return value of the
-//    /// ``transferRepresentation`` property.
-//    //public typealias Representation = Never // some TransferRepresentation
-//}
-//#endif
+    /// One group of colors–constant colors–created with explicitly specified
+    /// component values are transferred as is.
+    ///
+    /// Another group of colors–standard colors, like `Color.mint`,
+    /// and semantic colors, like `Color.accentColor`–are rendered on screen
+    /// differently depending on the current ``SkipUI/Environment``. For transferring,
+    /// they are resolved against the default environment and might produce
+    /// a slightly different result at the destination if the source of drag
+    /// or copy uses a non-default environment.
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
+    public static var transferRepresentation: some TransferRepresentation { get { return stubTransferRepresentation() } }
 
-//@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-//extension Color.Resolved : Animatable {
-//
-//    /// The type defining the data to animate.
-//    public typealias AnimatableData = AnimatablePair<Float, AnimatablePair<Float, AnimatablePair<Float, Float>>>
-//
-//    /// The data to animate.
-//    public var animatableData: AnimatableData { get { fatalError() } set { } }
-//}
-
-//@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
-//extension Color.Resolved : Codable {
-//
-//    /// Encodes this value into the given encoder.
-//    ///
-//    /// If the value fails to encode anything, `encoder` will encode an empty
-//    /// keyed container in its place.
-//    ///
-//    /// This function throws an error if any values are invalid for the given
-//    /// encoder's format.
-//    ///
-//    /// - Parameter encoder: The encoder to write data to.
-//    public func encode(to encoder: Encoder) throws { fatalError() }
-//
-//    /// Creates a new instance by decoding from the given decoder.
-//    ///
-//    /// This initializer throws an error if reading from the decoder fails, or
-//    /// if the data read is corrupted or otherwise invalid.
-//    ///
-//    /// - Parameter decoder: The decoder to read data from.
-//    public init(from decoder: Decoder) throws { fatalError() }
-//}
-
+    /// The type of the representation used to import and export the item.
+    ///
+    /// Swift infers this type from the return value of the
+    /// ``transferRepresentation`` property.
+    //public typealias Representation = Never // some TransferRepresentation
+}
 #endif
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Color.Resolved : Animatable {
+
+    /// The type defining the data to animate.
+    public typealias AnimatableData = AnimatablePair<Float, AnimatablePair<Float, AnimatablePair<Float, Float>>>
+
+    /// The data to animate.
+    public var animatableData: AnimatableData { get { fatalError() } set { } }
+}
+
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
+extension Color.Resolved : Codable {
+
+    /// Encodes this value into the given encoder.
+    ///
+    /// If the value fails to encode anything, `encoder` will encode an empty
+    /// keyed container in its place.
+    ///
+    /// This function throws an error if any values are invalid for the given
+    /// encoder's format.
+    ///
+    /// - Parameter encoder: The encoder to write data to.
+    public func encode(to encoder: Encoder) throws { fatalError() }
+
+    /// Creates a new instance by decoding from the given decoder.
+    ///
+    /// This initializer throws an error if reading from the decoder fails, or
+    /// if the data read is corrupted or otherwise invalid.
+    ///
+    /// - Parameter decoder: The decoder to read data from.
+    public init(from decoder: Decoder) throws { fatalError() }
+}
+*/
 #endif

@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
+public struct DisclosureGroup : View, Renderable {
     let label: ComposeBuilder
     let content: ComposeBuilder
     let expandedBinding: Binding<Bool>
@@ -96,13 +96,24 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
     }
 
     #if SKIP
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        guard let level = EvaluateOptions(options).lazyItemLevel else {
+            return listOf(self)
+        }
+        guard expandedBinding.wrappedValue else {
+            return listOf(self)
+        }
+        let renderables = content.EvaluateLazyItems(level: level + 1, context: context)
+        return listOf(self) + renderables
+    }
+
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
-    @Composable override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let columnArrangement = Arrangement.spacedBy(8.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         let contentContext = context.content()
         ComposeContainer(axis: .vertical, modifier: context.modifier, fillWidth: true) { modifier in
             Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: androidx.compose.ui.Alignment.Start) {
-                ComposeLabel(context: contentContext)
+                RenderLabel(context: contentContext)
                 // Note: we can't seem to turn *off* animation when in AnimatedContent, so we've removed the code that
                 // tries. We could take a separate code path to avoid AnimatedContent, but then a change in animation
                 // status could cause us to lose state
@@ -117,33 +128,27 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
         }
     }
 
-    @Composable override func shouldComposeListItem() -> Bool {
-        return true
+    @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
+        // Attempting to animate the list expansion and contraction doesn't work well and causes artifacts
+        // in other list items
+        return (true, { expandedBinding.wrappedValue = !expandedBinding.wrappedValue })
     }
 
-    @Composable override func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        ComposeLabel(context: context, listItemModifier: contentModifier)
+    @Composable public func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
+        ModifiedContent.RenderWithModifiers(modifiers, context: context) {
+            RenderLabel(context: $0, isListItem: true)
+        }
     }
 
-    @Composable private func ComposeLabel(context: ComposeContext, listItemModifier: Modifier? = nil) {
+    @Composable func RenderLabel(context: ComposeContext, isListItem: Bool = false) {
         let contentContext = context.content()
-        let isListItem = rememberUpdatedState(listItemModifier != nil)
         let isEnabled = EnvironmentValues.shared.isEnabled
-        let (foregroundStyle, accessoryColor) = ComposeStyles(isEnabled: isEnabled, isListItem: isListItem.value)
+        let (foregroundStyle, accessoryColor) = composeStyles(isEnabled: isEnabled, isListItem: isListItem)
         let rotationAngle = Float(expandedBinding.wrappedValue ? 90 : 0).asAnimatable(context: contentContext)
         let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
-        var modifier: Modifier = isEnabled ? Modifier.clickable(onClick: {
-            if isListItem.value {
-                // Attempting to animate the list expansion and contraction doesn't work well and causes artifacts
-                // in other list items
-                expandedBinding.wrappedValue = !expandedBinding.wrappedValue
-            } else {
-                withAnimation { expandedBinding.wrappedValue = !expandedBinding.wrappedValue }
-            }
-        }) : Modifier
-        if let listItemModifier {
-            modifier = modifier.then(listItemModifier)
-        }
+        let modifier: Modifier = isEnabled && !isListItem ? context.modifier.clickable(onClick: {
+            withAnimation { expandedBinding.wrappedValue = !expandedBinding.wrappedValue }
+        }) : context.modifier
         Row(modifier: modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
             Box(modifier: Modifier.padding(end: 8.dp).weight(Float(1.0))) {
                 EnvironmentValues.shared.setValues {
@@ -159,7 +164,7 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
         }
     }
 
-    @Composable private func ComposeStyles(isEnabled: Bool, isListItem: Bool) -> (ShapeStyle?, androidx.compose.ui.graphics.Color) {
+    @Composable private func composeStyles(isEnabled: Bool, isListItem: Bool) -> (ShapeStyle?, androidx.compose.ui.graphics.Color) {
         var foregroundStyle: ShapeStyle? = nil
         if !isListItem {
             foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? EnvironmentValues.shared._tint ?? Color.accentColor
@@ -177,20 +182,6 @@ public struct DisclosureGroup : View, ListItemAdapting, LazyItemFactory {
             }
         }
         return (foregroundStyle, accessoryColor)
-    }
-
-    @Composable override func appendLazyItemViews(to composer: LazyItemCollectingComposer, appendingContext: ComposeContext) -> ComposeResult {
-        composer.append(self)
-        if expandedBinding.wrappedValue {
-            composer.pushLevel()
-            content.Compose(context: appendingContext)
-            composer.popLevel()
-        }
-        return ComposeResult.ok
-    }
-
-    func composeLazyItems(context: LazyItemFactoryContext, level: Int) {
-        context.item(self, level)
     }
     #else
     public var body: some View {
@@ -216,7 +207,7 @@ extension View {
     }
 }
 
-#if false
+/*
 /// The properties of a disclosure group instance.
 @available(iOS 16.0, macOS 13.0, *)
 @available(tvOS, unavailable)
@@ -257,6 +248,5 @@ public struct DisclosureGroupStyleConfiguration {
 
 //    public var $isExpanded: Binding<Bool> { get { fatalError() } }
 }
-
-#endif
+*/
 #endif

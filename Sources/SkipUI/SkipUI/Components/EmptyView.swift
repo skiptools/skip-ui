@@ -6,13 +6,13 @@ import androidx.compose.runtime.Composable
 #endif
 
 // SKIP @bridge
-public struct EmptyView : View {
+public struct EmptyView: View, Renderable {
     // SKIP @bridge
     public init() {
     }
     
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
     }
     #else
     public var body: some View {

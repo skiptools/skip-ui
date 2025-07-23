@@ -1,6 +1,273 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+#if SKIP
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+
+/// Types of built-in modifiers.
+public enum ModifierRole {
+    case accessibility
+    case id
+    case spacing
+    case tag
+    case unspecified
+}
+
+/// Common protocol for modifiers.
+///
+/// - Seealso: `ViewModifier`
+public protocol ModifierProtocol {
+    var role: ModifierRole { get }
+
+    /// - Seealso: `View.Evaluate(context:options:)`
+    @Composable func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>?
+
+    /// - Seealso: `Renderable.Render(context:options:)`
+    @Composable func Render(content: Renderable, context: ComposeContext)
+
+    /// - Seealso: `Renderable.shouldRenderListItem(context:)`
+    @Composable func shouldRenderListItem(content: Renderable, context: ComposeContext) -> (Bool, (() -> Void)?)
+
+    /// - Seealso: `Renderable.RenderListItem(context:modifiers:)`
+    @Composable func RenderListItem(content: Renderable, context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>)
+}
+
+extension ModifierProtocol {
+    @Composable public func shouldRenderListItem(content: Renderable, context: ComposeContext) -> (Bool, (() -> Void)?) {
+        return content.shouldRenderListItem(context: context)
+    }
+
+    @Composable public func RenderListItem(content: Renderable, context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
+        content.RenderListItem(context: context, modifiers: modifiers.plus(self))
+    }
+}
+
+/// A modifier that applies a side effect.
+class SideEffectModifier: ModifierProtocol {
+    let role: ModifierRole
+    var action: (@Composable (ComposeContext) -> ComposeResult)?
+
+    init(role: ModifierRole = .unspecified, action: (@Composable (ComposeContext) -> ComposeResult)? = nil) {
+        self.role = role
+        self.action = action
+    }
+
+    @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        // Attach actions to the first renderable
+        let renderables = ModifiedContent.Evaluate(content: content, context: context, options: options)
+        if renderables.size == 0 {
+            action?(context)
+            return listOf()
+        } else if renderables.size == 1 && renderables[0] === content {
+            return nil
+        } else {
+            let actionRenderable = ModifiedContent(content: renderables[0] as Renderable, modifier: self)
+            return listOf(actionRenderable) + renderables.drop(1)
+        }
+    }
+
+    @Composable func Render(content: Renderable, context: ComposeContext) {
+        action?(context)
+        content.Render(context: context)
+    }
+}
+
+/// A modifier that affects the render phase.
+class RenderModifier: ModifierProtocol {
+    let role: ModifierRole
+    var action: (@Composable (Renderable, ComposeContext) -> Void)?
+
+    init(role: ModifierRole = .unspecified, action: (@Composable (Renderable, ComposeContext) -> Void)? = nil) {
+        self.role = role
+        self.action = action
+    }
+
+    init(role: ModifierRole = .unspecified, action: @Composable (ComposeContext) -> Modifier) {
+        self.role = role
+        self.action = { content, context in
+            var context = context
+            context.modifier = action(context)
+            content.Render(context: context)
+        }
+    }
+
+    @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        let renderables = ModifiedContent.Evaluate(content: content, context: context, options: options)
+        if renderables.size == 1 && renderables[0] === content {
+            return nil
+        }
+        return renderables.map { ModifiedContent(content: $0, modifier: self) }
+    }
+
+    @Composable override func Render(content: Renderable, context: ComposeContext) -> Void {
+        if let action {
+            action(content, context)
+        } else {
+            content.Render(context: context)
+        }
+    }
+}
+
+/// A modifier that sets an environment value.
+class EnvironmentModifier: ModifierProtocol {
+    let role: ModifierRole
+    let affectsEvaluate: Bool
+    var action: (@Composable (EnvironmentValues) -> ComposeResult)?
+
+    init(role: ModifierRole = .unspecified, affectsEvaluate: Bool = true, action: (@Composable (EnvironmentValues) -> ComposeResult)? = nil) {
+        self.role = role
+        self.affectsEvaluate = affectsEvaluate
+        self.action = action
+    }
+
+    @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        guard let action else {
+            return ModifiedContent.Evaluate(content: content, context: context, options: options)
+        }
+        if affectsEvaluate {
+            return EnvironmentValues.shared.setValuesWithReturn(action, in: {
+                return EvaluateInternal(content: content, context: context, options: options)
+            })
+        } else {
+            return EvaluateInternal(content: content, context: context, options: options)
+        }
+    }
+
+    @Composable private func EvaluateInternal(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        // Copy this modifier to make sure environment is set during render
+        let renderables = ModifiedContent.Evaluate(content: content, context: context, options: options)
+        if renderables.size == 1 && renderables[0] === content {
+            return nil
+        }
+        return renderables.map { ModifiedContent(content: $0, modifier: self) }
+    }
+
+    @Composable override func Render(content: Renderable, context: ComposeContext) -> Void {
+        guard let action else {
+            content.Render(context: context)
+            return
+        }
+        EnvironmentValues.shared.setValues(action, in: {
+            content.Render(context: context)
+        })
+    }
+}
+
+/// Applies a modifier to a target `View` or `Renderable`.
+///
+/// - Note: This type conforms to both `View` and `Renderable` so that it can efficiently modify builtin view types that do the same.
+final class ModifiedContent: View, Renderable {
+    let view: View?
+    let renderable: Renderable?
+    let modifier: ModifierProtocol
+
+    init(content: View, modifier: ModifierProtocol = RenderModifier()) {
+        // Don't copy
+        // SKIP REPLACE: this.view = content
+        self.view = content
+        // SKIP REPLACE: this.renderable = content as? Renderable
+        self.renderable = content as? Renderable
+        self.modifier = modifier
+    }
+
+    init(content: Renderable, modifier: ModifierProtocol = RenderModifier()) {
+        // Don't copy
+        // SKIP REPLACE: this.renderable = content
+        self.renderable = content
+        // SKIP REPLACE: this.view = content as? View
+        self.view = content as? View
+        self.modifier = modifier
+    }
+
+    /// Apply the given modifiers to a `View`.
+    static func apply(modifiers: kotlin.collections.List<ModifierProtocol>, to view: View) -> View {
+        guard modifiers.size > 0 else {
+            return view
+        }
+        let modifiedView = apply(modifiers: modifiers.drop(1), to: view)
+        return ModifiedContent(content: modifiedView, modifier: modifiers[0])
+    }
+
+    /// Apply the given modifiers to a `Renderable`.
+    static func apply(modifiers: kotlin.collections.List<ModifierProtocol>, to renderable: Renderable) -> Renderable {
+        guard modifiers.size > 0 else {
+            return renderable
+        }
+        let modifiedRenderable = apply(modifiers: modifiers.drop(1), to: renderable)
+        return ModifiedContent(content: modifiedRenderable, modifier: modifiers[0])
+    }
+
+    /// Apply the given modifiers to a render.
+    @Composable static func RenderWithModifiers(_ modifiers: kotlin.collections.List<ModifierProtocol>, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+        guard modifiers.size > 0 else {
+            content(context)
+            return
+        }
+        // This works because `ComposeView` is a `Renderable`
+        apply(modifiers: modifiers, to: ComposeView(content: content) as Renderable).Render(context: context)
+    }
+
+    /// Helper for modifiers to use internally to evaluate views, respecting the `EvaluateOptions.isKeepNonModified` option.
+    @Composable static func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let isKeepNonModified = EvaluateOptions(options).isKeepNonModified
+        if isKeepNonModified && !(content is ModifiedContent) {
+            return listOf(content.asRenderable())
+        } else {
+            return content.Evaluate(context: context, options: options)
+        }
+    }
+
+    @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        guard let view else {
+            return listOf(self)
+        }
+        if let renderables = modifier.Evaluate(content: view, context: context, options: options) {
+            return renderables
+        } else {
+            // Optimization to avoid copying when our target view doesn't change, which modifiers will signal with nil
+            return listOf(self)
+        }
+    }
+
+    @Composable override func Render(context: ComposeContext) {
+        guard let renderable else {
+            return
+        }
+        modifier.Render(content: renderable, context: context)
+    }
+
+    @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
+        guard let renderable else {
+            return (false, nil)
+        }
+        return modifier.shouldRenderListItem(content: renderable, context: context)
+    }
+
+    @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
+        guard let renderable else {
+            return
+        }
+        modifier.RenderListItem(content: renderable, context: context, modifiers: modifiers)
+    }
+
+    override func strip() -> Renderable {
+        return renderable?.strip() ?? EmptyView()
+    }
+
+    override func forEachModifier<R>(perform action: (ModifierProtocol) -> R?) -> R? {
+        guard let renderable else {
+            return nil
+        }
+        if let ret = action(modifier) {
+            return ret
+        } else {
+            return renderable.forEachModifier(perform: action)
+        }
+    }
+}
+#endif
+
+/*
 import struct CoreGraphics.CGPoint
 
 /// A value with a modifier applied to it.
@@ -100,7 +367,7 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ModifiedContent : Equatable where Content : Equatable, Modifier : Equatable {
 
-    
+
 }
 
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
@@ -606,4 +873,4 @@ extension ModifiedContent where Modifier == AccessibilityAttachmentModifier {
     @available(watchOS, introduced: 6, deprecated: 100000.0, renamed: "accessibilityValue(_:)")
     public func accessibility(value: Text) -> ModifiedContent<Content, Modifier> { fatalError() }
 }
-#endif
+*/

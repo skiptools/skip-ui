@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 #endif
 
 // SKIP @bridge
-public struct Slider : View {
+public struct Slider : View, Renderable {
     let value: Binding<Double>
     let bounds: ClosedRange<Double>
     let step: Double?
@@ -66,7 +66,7 @@ public struct Slider : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         var steps = 0
         if let step, step > 0.0 {
             steps = max(0, Int(ceil(bounds.endInclusive - bounds.start) / step) - 1)

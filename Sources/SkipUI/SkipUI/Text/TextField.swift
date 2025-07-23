@@ -29,7 +29,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
 // SKIP @bridge
-public struct TextField : View {
+public struct TextField : View, Renderable {
     let text: Binding<String>
     let label: ComposeBuilder
     let prompt: Text?
@@ -99,7 +99,7 @@ public struct TextField : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let textEnvironment = EnvironmentValues.shared._textEnvironment
         let redaction = EnvironmentValues.shared.redactionReasons
@@ -223,16 +223,12 @@ extension View {
 
     public func onSubmit(of triggers: SubmitTriggers = .text, _ action: @escaping () -> Void) -> some View {
         #if SKIP
-        return ComposeModifierView(contentView: self) { view, context in
-            let state = EnvironmentValues.shared._onSubmitState
+        return ModifiedContent(content: self, modifier: EnvironmentModifier(affectsEvaluate: false) { environment in
+            let state = environment._onSubmitState
             let updatedState = state == nil ? OnSubmitState(triggers: triggers, action: action) : state!.appending(triggers: triggers, action: action)
-            EnvironmentValues.shared.setValues {
-                $0.set_onSubmitState(updatedState)
-                return ComposeResult.ok
-            } in: {
-                view.Compose(context: context)
-            }
-        }
+            environment.set_onSubmitState(updatedState)
+            return ComposeResult.ok
+        })
         #else
         return self
         #endif
@@ -267,12 +263,9 @@ extension View {
     public func textContentType(_ textContentType: UITextContentType?) -> some View {
         #if SKIP
         guard let ctype = textContentType?._contentType else { return self }
-        return ComposeModifierView(targetView: self) {
-            $0.modifier = $0.modifier.semantics {
-                contentType = ctype
-            }
-            return ComposeResult.ok
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.semantics { contentType = ctype }
+        })
         #else
         return self
         #endif
@@ -285,7 +278,7 @@ extension View {
 
     public func textFieldStyle(_ style: TextFieldStyle) -> any View {
         #if SKIP
-        return environment(\._textFieldStyle, style)
+        return environment(\._textFieldStyle, style, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -321,21 +314,17 @@ extension View {
     #if SKIP
     /// Return a modifier view that updates the environment's keyboard options.
     public func keyboardOptionsModifierView(update: (KeyboardOptions?) -> KeyboardOptions) -> View {
-        return ComposeModifierView(contentView: self) { view, context in
-            let options = EnvironmentValues.shared._keyboardOptions
+        return ModifiedContent(content: self, modifier: EnvironmentModifier { environment in
+            let options = environment._keyboardOptions
             let updatedOptions = update(options)
-            EnvironmentValues.shared.setValues {
-                $0.set_keyboardOptions(updatedOptions)
-                return ComposeResult.ok
-            } in: {
-                view.Compose(context: context)
-            }
-        }
+            environment.set_keyboardOptions(updatedOptions)
+            return ComposeResult.ok
+        })
     }
 
     /// Compose text field customization.
     public func material3TextField(_ options: @Composable (Material3TextFieldOptions) -> Material3TextFieldOptions) -> View {
-        return environment(\._material3TextField, options)
+        return environment(\._material3TextField, options, affectsEvaluate: false)
     }
     #endif
 }
@@ -450,7 +439,7 @@ func KeyboardActions(submitState: OnSubmitState?, clearFocusWith: FocusManager? 
 }
 #endif
 
-#if false
+/*
 import class Foundation.Formatter
 import protocol Foundation.ParseableFormatStyle
 
@@ -1041,6 +1030,5 @@ extension TextField {
 //    @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 //    public init<S, V>(_ title: S, value: Binding<V>, formatter: Formatter) where S : StringProtocol { fatalError() }
 //}
-
-#endif
+*/
 #endif

@@ -179,7 +179,7 @@ public enum RoundedCornerStyle : Int, Hashable {
     case continuous = 1 // For bridging
 }
 
-#if false
+/*
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
 
@@ -872,6 +872,5 @@ extension Never : ShapeStyle {
     /// from your implementation of the required `resolve` function.
     public typealias Resolved = Never
 }
-
-#endif
+*/
 #endif

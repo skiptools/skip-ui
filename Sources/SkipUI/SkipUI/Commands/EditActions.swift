@@ -19,7 +19,7 @@ extension View {
     // SKIP @bridge
     public func deleteDisabled(_ isDisabled: Bool) -> any View {
         #if SKIP
-        return EditActionsModifierView(view: self, isDeleteDisabled: isDisabled)
+        return ModifiedContent(content: self, modifier: EditActionsModifier(isDeleteDisabled: isDisabled))
         #else
         return self
         #endif
@@ -28,7 +28,7 @@ extension View {
     // SKIP @bridge
     public func moveDisabled(_ isDisabled: Bool) -> any View {
         #if SKIP
-        return EditActionsModifierView(view: self, isMoveDisabled: isDisabled)
+        return ModifiedContent(content: self, modifier: EditActionsModifier(isMoveDisabled: isDisabled))
         #else
         return self
         #endif
@@ -36,20 +36,28 @@ extension View {
 }
 
 #if SKIP
-final class EditActionsModifierView: ComposeModifierView {
-    var isDeleteDisabled: Bool?
-    var isMoveDisabled: Bool?
+final class EditActionsModifier: RenderModifier {
+    let isDeleteDisabled: Bool?
+    let isMoveDisabled: Bool?
 
-    init(view: View, isDeleteDisabled: Bool? = nil, isMoveDisabled: Bool? = nil) {
-        super.init(view: view)
-        let wrappedEditActionsView = Self.unwrap(view: view)
-        self.isDeleteDisabled = isDeleteDisabled ?? wrappedEditActionsView?.isDeleteDisabled
-        self.isMoveDisabled = isMoveDisabled ?? wrappedEditActionsView?.isMoveDisabled
+    init(isDeleteDisabled: Bool? = nil, isMoveDisabled: Bool? = nil) {
+        self.isDeleteDisabled = isDeleteDisabled
+        self.isMoveDisabled = isMoveDisabled
+        super.init()
     }
 
     /// Return the edit actions modifier information for the given view.
-    static func unwrap(view: View) -> EditActionsModifierView? {
-        return view.strippingModifiers(until: { $0 is EditActionsModifierView }, perform: { $0 as? EditActionsModifierView })
+    static func combined(for renderable: Renderable) -> EditActionsModifier {
+        var isDeleteDisabled: Bool? = nil
+        var isMoveDisabled: Bool? = nil
+        renderable.forEachModifier {
+            if let editActionsModifier = $0 as? EditActionsModifier {
+                isDeleteDisabled = isDeleteDisabled ?? editActionsModifier.isDeleteDisabled
+                isMoveDisabled = isMoveDisabled ?? editActionsModifier.isMoveDisabled
+            }
+            return nil
+        }
+        return EditActionsModifier(isDeleteDisabled: isDeleteDisabled, isMoveDisabled: isMoveDisabled)
     }
 }
 

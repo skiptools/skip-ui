@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// A structure that computes views and disclosure groups on demand from an
 /// underlying collection of tree-structured, identified data.
 ///
@@ -493,4 +493,4 @@ public struct OutlineSubgroupChildren : View {
     public typealias Body = NeverView
     public var body: Body { fatalError() }
 }
-#endif
+*/

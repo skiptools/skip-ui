@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 #if canImport(UIKit)
 import protocol Combine.ObservableObject
 import protocol UIKit.UIApplicationDelegate
@@ -1319,6 +1319,5 @@ extension Label /* where Title == Text, Icon == Image */ {
     ///    - image: The image resource to lookup.
     public init<S>(_ title: S, image resource: ImageResource) where S : StringProtocol { fatalError() }
 }
-
 #endif
-#endif
+*/

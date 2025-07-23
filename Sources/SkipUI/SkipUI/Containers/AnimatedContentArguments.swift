@@ -7,17 +7,17 @@ import androidx.compose.ui.Modifier
 /// Used in our containers to prevent recomposing animated content unnecessarily.
 @Stable
 struct AnimatedContentArguments: Equatable {
-    let views: Array<View>
-    let idMap: (View) -> Any?
-    let ids: Array<Any>
+    let renderables: kotlin.collections.List<Renderable>
+    let idMap: (Renderable) -> Any?
+    let ids: kotlin.collections.List<Any>
     let rememberedIds: MutableSet<Any>
-    let newIds: Array<Any>
+    let newIds: kotlin.collections.List<Any>
     let rememberedNewIds: MutableSet<Any>
     let isBridged: Bool
 
     static func ==(lhs: AnimatedContentArguments, rhs: AnimatedContentArguments) -> Bool {
-        // In bridged mode there are cases where a content view (e.g. List/ForEach) will not recompose on its own
-        // when the view's state changes, so shortcutting the AnimatedContent when the IDs compare equal results in
+        // In bridged mode there are cases where a content renderable (e.g. List/ForEach) will not recompose on its own
+        // when the renderable's state changes, so shortcutting the AnimatedContent when the IDs compare equal results in
         // showing stale content. We have to shortcut in non-bridged mode, however, because otherwise we may see glitches
         // in animated content when the keyboard hides/shows. The reason for this is unknown, as is the reason we do
         // not see these glitches in bridged mode

@@ -90,7 +90,7 @@ import kotlinx.coroutines.delay
 #endif
 
 // SKIP @bridge
-public struct NavigationStack : View {
+public struct NavigationStack : View, Renderable {
     let root: ComposeBuilder
     let path: Binding<[Any]>?
     let navigationPath: Binding<NavigationPath>?
@@ -131,7 +131,7 @@ public struct NavigationStack : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable public override func Render(context: ComposeContext) {
         // Have to use rememberSaveable for e.g. a nav stack in each tab
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>) { mutableStateOf(Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self))
         }
@@ -159,7 +159,7 @@ public struct NavigationStack : View {
                             guard let state = navigator.value.state(for: entry) else {
                                 return
                             }
-                            // These preferences are per-entry, but if we put them in ComposeEntry then their initial values don't show
+                            // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                             // during the navigation animation. We have to collect them here
                             let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
                             let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
@@ -169,7 +169,7 @@ public struct NavigationStack : View {
                             let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
                             let arguments = NavigationEntryArguments(isRoot: true, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                             PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
-                                ComposeEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
+                                RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                     root.Compose(context: context)
                                 }
                             }
@@ -184,7 +184,7 @@ public struct NavigationStack : View {
                                 guard let state = navigator.value.state(for: entry), let targetValue = state.targetValue else {
                                     return
                                 }
-                                // These preferences are per-entry, but if we put them in ComposeEntry then their initial values don't show
+                                // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                                 // during the navigation animation. We have to collect them here
                                 let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
                                 let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
@@ -198,9 +198,9 @@ public struct NavigationStack : View {
                                 } in: {
                                     let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                                     PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
-                                        ComposeEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
+                                        RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                             let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
-                                            ComposeDestination(state.destination, arguments: destinationArguments, context: context)
+                                            RenderDestination(state.destination, arguments: destinationArguments, context: context)
                                         }
                                     }
                                 }
@@ -213,7 +213,7 @@ public struct NavigationStack : View {
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
-    @Composable private func ComposeEntry(navigator: MutableState<Navigator>, toolbarContent: MutableState<Preference<ToolbarContentPreferences>>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
+    @Composable private func RenderEntry(navigator: MutableState<Navigator>, toolbarContent: MutableState<Preference<ToolbarContentPreferences>>, arguments: NavigationEntryArguments, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
         let state = arguments.state
         let context = context.content(stateSaver: state.stateSaver)
 
@@ -228,7 +228,7 @@ public struct NavigationStack : View {
         // custom ToolbarContent multiple times (in order to process the placement of the items in its body
         // content for each bar) prevents it from updating properly on recompose
         let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-        let (topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.process(context: context)
+        let (topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
 
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -250,7 +250,7 @@ public struct NavigationStack : View {
         modifier = modifier.then(context.modifier)
 
         // Intercept system back button to keep our state in sync
-        BackHandler(enabled: !navigator.value.isRoot) {
+        BackHandler(enabled: !arguments.isRoot) {
             if arguments.toolbarPreferences.backButtonHidden != true {
                 navigator.value.navigateBack()
             }
@@ -273,7 +273,7 @@ public struct NavigationStack : View {
                 return
             }
 
-            guard !arguments.isRoot || hasTitle || !topLeadingItems.isEmpty || !topTrailingItems.isEmpty || topBarPreferences?.visibility == Visibility.visible else {
+            guard !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0 || topBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     topBarHidden.value = true
                     topBarBottomPx.value = Float(0.0)
@@ -349,7 +349,7 @@ public struct NavigationStack : View {
                     }
                     let topBarNavigationIcon: @Composable () -> Void = {
                         let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
-                        if hasBackButton || !topLeadingItems.isEmpty {
+                        if hasBackButton || topLeadingItems.size > 0 {
                             let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
                             Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                                 if hasBackButton {
@@ -360,13 +360,17 @@ public struct NavigationStack : View {
                                         Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
                                     }
                                 }
-                                topLeadingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                                for renderable in topLeadingItems {
+                                    renderable.Render(context: toolbarItemContext)
+                                }
                             }
                         }
                     }
                     let topBarActions: @Composable () -> Void = {
                         let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                        topTrailingItems.forEach { $0.Compose(context: toolbarItemContext) }
+                        for renderable in topTrailingItems {
+                            renderable.Render(context: toolbarItemContext)
+                        }
                     }
                     var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
                     if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
@@ -405,7 +409,7 @@ public struct NavigationStack : View {
                 }
                 return
             }
-            guard !bottomItems.isEmpty || bottomBarPreferences?.visibility == Visibility.visible else {
+            guard bottomItems.size > 0 || bottomBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
                     bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
@@ -474,9 +478,10 @@ public struct NavigationStack : View {
                         BottomAppBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation, contentPadding: options.contentPadding, windowInsets: windowInsets) {
                             // Use an HStack so that it sets up the environment for bottom toolbar Spacers
                             HStack(spacing: 24.0) {
-                                ComposeBuilder { itemContext in
-                                    bottomItems.forEach { $0.Compose(context: itemContext) }
-                                    return ComposeResult.ok
+                                ComposeView { context in
+                                    for renderable in bottomItems {
+                                        renderable.Render(context: context)
+                                    }
                                 }
                             }.Compose(context)
                         }
@@ -523,9 +528,8 @@ public struct NavigationStack : View {
                     if let contentSafeArea {
                         $0.set_safeArea(contentSafeArea)
                     }
-                    if arguments.isRoot {
-                        $0.set_searchableState(searchableState)
-                    }
+                    $0.set_searchableState(searchableState)
+                    $0.set_isNavigationRoot(arguments.isRoot)
                     return ComposeResult.ok
                 } in: {
                     // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
@@ -540,7 +544,7 @@ public struct NavigationStack : View {
         }
     }
 
-    @Composable private func ComposeDestination(_ destination: ((Any) -> View)?, arguments: NavigationDestinationArguments, context: ComposeContext) {
+    @Composable private func RenderDestination(_ destination: ((Any) -> View)?, arguments: NavigationDestinationArguments, context: ComposeContext) {
         // Break out this function to give it stable arguments and avoid recomosition on push/pop
         destination?(arguments.targetValue).Compose(context: context)
     }
@@ -970,7 +974,7 @@ extension View {
     public func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination: () -> any View) -> any View {
         #if SKIP
         let destinationView = ComposeBuilder.from(destination)
-        return ComposeModifierView(targetView: self) { context in
+        return ModifiedContent(content: self, modifier: SideEffectModifier { context in
             let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<String?, Any>) { mutableStateOf<String?>(nil) }
             guard let navigator = LocalNavigator.current else {
                 return ComposeResult.ok
@@ -986,7 +990,7 @@ extension View {
                 id.value = nil
             }
             return ComposeResult.ok
-        }
+        })
         #else
         return self
         #endif
@@ -1082,11 +1086,11 @@ extension View {
 
     #if SKIP
     public func material3TopAppBar(_ options: @Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions) -> View {
-        return environment(\._material3TopAppBar, options)
+        return environment(\._material3TopAppBar, options, affectsEvaluate: false)
     }
 
     public func material3BottomAppBar(_ options: @Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions) -> View {
-        return environment(\._material3BottomAppBar, options)
+        return environment(\._material3BottomAppBar, options, affectsEvaluate: false)
     }
     #endif
 }
@@ -1161,7 +1165,7 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
 #endif
 
 // SKIP @bridge
-public struct NavigationLink : View, ListItemAdapting {
+public struct NavigationLink : View, Renderable {
     let value: Any?
     let destination: ComposeBuilder?
     let label: ComposeBuilder
@@ -1213,34 +1217,43 @@ public struct NavigationLink : View, ListItemAdapting {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        Button.ComposeButton(label: label, context: context, isEnabled: isNavigationEnabled(), action: navigationAction())
+    @Composable override func Render(context: ComposeContext) {
+        let isEnabled = (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled
+        Button.RenderButton(label: label, context: context, isEnabled: isEnabled, action: navigationAction())
     }
 
-    @Composable func shouldComposeListItem() -> Bool {
+    @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
-        return buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain
+        guard buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain else {
+            return (false, nil)
+        }
+        let action: (() -> Void)? = value != nil || destination != nil ? navigationAction() : nil
+        return (true, action)
     }
 
-    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        let isEnabled = isNavigationEnabled()
-        let modifier = Modifier.clickable(onClick: navigationAction(), enabled: isEnabled).then(contentModifier)
-        Row(modifier: modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-            Box(modifier: Modifier.weight(Float(1.0))) {
-                // Continue to specialize for list rendering within the content (e.g. Label)
-                label.Compose(context: context.content(composer: ListItemComposer(contentModifier: Modifier)))
+    @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
+        ModifiedContent.RenderWithModifiers(modifiers, context: context) { context in
+            let renderables = label.Evaluate(context: context, options: 0)
+            Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                Box(modifier: Modifier.weight(Float(1.0))) {
+                    let labelContext = context.content()
+                    // Continue to specialize for list rendering within the content (e.g. Label)
+                    if renderables.size == 1, renderables[0].shouldRenderListItem(context: context).0 {
+                        renderables[0].RenderListItem(context: labelContext, modifiers: listOf())
+                    } else {
+                        for renderable in renderables {
+                            renderable.Render(context: labelContext)
+                        }
+                    }
+                }
+                Self.RenderChevron()
             }
-            Self.ComposeChevron()
         }
     }
 
-    @Composable static func ComposeChevron() {
+    @Composable static func RenderChevron() {
         let isRTL = EnvironmentValues.shared.layoutDirection == .rightToLeft
         Icon(imageVector: isRTL ? Icons.Outlined.KeyboardArrowLeft : Icons.Outlined.KeyboardArrowRight, contentDescription: nil, tint: MaterialTheme.colorScheme.outlineVariant)
-    }
-
-    @Composable private func isNavigationEnabled() -> Bool {
-        return (value != nil || destination != nil) && EnvironmentValues.shared.isEnabled
     }
 
     @Composable internal func navigationAction() -> () -> Void {
@@ -1321,7 +1334,7 @@ public struct NavigationPath: Equatable {
     }
 }
 
-#if false
+/*
 import struct CoreGraphics.CGFloat
 import struct Foundation.URL
 
@@ -1691,6 +1704,5 @@ public struct NavigationSplitViewVisibility : Equatable, Codable, Sendable {
     /// - Parameter decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws { fatalError() }
 }
-
-#endif
+*/
 #endif

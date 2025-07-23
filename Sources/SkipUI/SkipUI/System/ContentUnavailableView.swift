@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// An interface, consisting of a label and additional content, that you
 /// display when the content of your app is unavailable to users.
 ///
@@ -180,4 +180,4 @@ extension ContentUnavailableView where LabelX == SearchUnavailableContent.Label,
     /// - Parameter text: The search text query.
     public static func search(text: String) -> ContentUnavailableView<LabelX, Description, Actions> { fatalError() }
 }
-#endif
+*/

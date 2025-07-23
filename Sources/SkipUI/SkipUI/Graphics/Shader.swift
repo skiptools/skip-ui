@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct CoreGraphics.CGPoint
 import struct CoreGraphics.CGSize
 import struct CoreGraphics.CGVector
@@ -308,4 +308,4 @@ extension View {
     public func layerEffect(_ shader: Shader, maxSampleOffset: CGSize, isEnabled: Bool = true) -> some View { return stubView() }
 
 }
-#endif
+*/

@@ -13,7 +13,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 #endif
 
 // SKIP @bridge
-public struct TextEditor : View {
+public struct TextEditor : View, Renderable {
     let text: Binding<String>
 
     public init(text: Binding<String>) {
@@ -41,7 +41,7 @@ public struct TextEditor : View {
 
     #if SKIP
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let textEnvironment = EnvironmentValues.shared._textEnvironment
         let redaction = EnvironmentValues.shared.redactionReasons
@@ -99,13 +99,12 @@ extension View {
     }
 }
 
-#if false
+/*
 /// The properties of a text editor.
 @available(iOS 17.0, macOS 14.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 public struct TextEditorStyleConfiguration {
 }
-
-#endif
+*/
 #endif

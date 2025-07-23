@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 #endif
 
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
-public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<ID> {
+public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Identifiable<ID> {
     let data: any RandomAccessCollection<ObjectType>
     var selection: Binding<Any?>?
     let columnSpecs: ComposeBuilder
@@ -53,7 +53,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         // When we layout, extend into safe areas that are due to system bars, not into any app chrome. We'll add
         // blank head
         let safeArea = EnvironmentValues.shared._safeArea
@@ -65,17 +65,17 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                 let density = LocalDensity.current
                 let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
                 let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }
-                ComposeTable(context: itemContext, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
+                RenderTable(context: itemContext, headerSafeAreaHeight: headerSafeAreaHeight, footerSafeAreaHeight: footerSafeAreaHeight)
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
-    @Composable private func ComposeTable(context: ComposeContext, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
+    @Composable private func RenderTable(context: ComposeContext, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to gather
         // our content before entering the LazyColumn body, then use LazyColumn's LazyListScope functions to compose
         // individual items
-        let columnSpecs = self.columnSpecs.collectViews(context: context)
+        let columnSpecs = self.columnSpecs.Evaluate(context: context, options: 0)
         let modifier = context.modifier.fillMaxWidth()
 
         let listState = rememberLazyListState()
@@ -101,7 +101,7 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
 
         let shouldAnimateItems: @Composable () -> Bool = {
             // We disable animation to prevent filtered items from animating when they return
-            !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isFiltering() != true
+            !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
         }
 
         let key: (Int) -> String = { composeBundleString(for: data[$0].id) }
@@ -109,28 +109,28 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         LazyColumn(state: listState, modifier: modifier) {
             if headerSafeAreaHeight.value > 0 {
                 item {
-                    ComposeHeaderFooter(safeAreaHeight: headerSafeAreaHeight)
+                    RenderHeaderFooter(safeAreaHeight: headerSafeAreaHeight)
                 }
             }
             if !isCompact {
                 item {
                     let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                    ComposeHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
+                    RenderHeadersRow(columnSpecs: columnSpecs, context: context, animationModifier: animationModifier)
                 }
             }
             items(count: data.count, key: key) { index in
                 let animationModifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
-                ComposeRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
+                RenderRow(columnSpecs: columnSpecs, index: index, context: context, isCompact: isCompact, animationModifier: animationModifier)
             }
             if footerSafeAreaHeight.value > 0.0 {
                 item {
-                    ComposeHeaderFooter(safeAreaHeight: footerSafeAreaHeight)
+                    RenderHeaderFooter(safeAreaHeight: footerSafeAreaHeight)
                 }
             }
         }
     }
 
-    @Composable private func ComposeHeadersRow(columnSpecs: [View], context: ComposeContext, animationModifier: Modifier) {
+    @Composable private func RenderHeadersRow(columnSpecs: kotlin.collections.List<Renderable>, context: ComposeContext, animationModifier: Modifier) {
         let modifier = Modifier.fillMaxWidth().then(animationModifier)
         let foregroundStyle: ShapeStyle = EnvironmentValues.shared._foregroundStyle ?? Color.accentColor
         EnvironmentValues.shared.setValues {
@@ -143,17 +143,17 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                         guard let tableColumn = columnSpec as? TableColumn else {
                             continue
                         }
-                        let itemContentModifier = modifier(for: tableColumn.columnWidth, defaultWeight:  Modifier.weight(Float(1.0)))
+                        let itemContentModifier = modifier(for: tableColumn.columnWidth, defaultWeight: Modifier.weight(Float(1.0)))
                         let itemContext = context.content(modifier: itemContentModifier)
                         tableColumn.columnHeader.Compose(context: itemContext)
                     }
                 }
-                List.ComposeSeparator(level: 0)
+                List.RenderSeparator(level: 0)
             }
         }
     }
 
-    @Composable private func ComposeRow(columnSpecs: [View], index: Int, context: ComposeContext, isCompact: Bool, animationModifier: Modifier) {
+    @Composable private func RenderRow(columnSpecs: kotlin.collections.List<Renderable>, index: Int, context: ComposeContext, isCompact: Bool, animationModifier: Modifier) {
         var modifier = Modifier.fillMaxWidth()
         let itemID = rememberUpdatedState(data[index].id)
         let isSelected = isSelected(id: itemID.value)
@@ -171,15 +171,11 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
         let foregroundStyle = EnvironmentValues.shared._foregroundStyle
         Column(modifier: modifier) {
             Row(modifier: List.contentModifier(level: 0), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                let count = isCompact ? 1 : columnSpecs.count
-                for i in 0..<min(count, columnSpecs.count) {
+                let count = isCompact ? 1 : columnSpecs.size
+                for i in 0..<min(count, columnSpecs.size) {
                     guard let tableColumn = columnSpecs[i] as? TableColumn else {
                         continue
                     }
-                    let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : modifier(for: tableColumn.columnWidth, defaultWeight: Modifier.weight(Float(1.0)))
-                    let itemComposer = ListItemComposer(contentModifier: itemContentModifier)
-                    let itemContext = context.content(composer: itemComposer)
-
                     var itemForegroundStyle: ShapeStyle? = foregroundStyle
                     if itemForegroundStyle == nil {
                         if isSelected && !isCompact {
@@ -194,17 +190,20 @@ public final class Table<ObjectType, ID> : View where ObjectType: Identifiable<I
                         $0.set_placement(placement.union(ViewPlacement.listItem))
                         return ComposeResult.ok
                     } in: {
-                        tableColumn.cellContent(data[index]).Compose(context: itemContext)
+                        let itemContentModifier = isCompact ? Modifier.fillMaxWidth() : modifier(for: tableColumn.columnWidth, defaultWeight: Modifier.weight(Float(1.0)))
+                        let itemContext = context.content()
+                        let itemRenderable = tableColumn.cellContent(data[index]).Evaluate(context: itemContext, options: 0).firstOrNull() ?? EmptyView()
+                        List.RenderItemContent(item: itemRenderable, context: itemContext, modifier: itemContentModifier)
                     }
                 }
             }
-            List.ComposeSeparator(level: 0)
+            List.RenderSeparator(level: 0)
         }
     }
 
     /// - Warning: Only call with a positive safe area height. This is distinct from having this function detect
     /// and return without rendering. That causes a weird rubber banding effect on overscroll.
-    @Composable private func ComposeHeaderFooter(safeAreaHeight: Dp) {
+    @Composable private func RenderHeaderFooter(safeAreaHeight: Dp) {
         let modifier = Modifier.fillMaxWidth()
             .height(safeAreaHeight)
             .zIndex(Float(0.5))
@@ -294,7 +293,7 @@ public func Table<ObjectType, ID>(_ data: any RandomAccessCollection<ObjectType>
 }
 #endif
 
-public struct TableColumn : View {
+public struct TableColumn : View, Renderable {
     let columnHeader: Text
     let columnWidth: WidthSpec
     let cellContent: (Any) -> any View
@@ -305,7 +304,10 @@ public struct TableColumn : View {
         self.cellContent = cellContent
     }
 
-    #if !SKIP
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+    }
+    #else
     public var body: some View {
         stubView()
     }

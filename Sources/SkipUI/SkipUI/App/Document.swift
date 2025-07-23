@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct UniformTypeIdentifiers.UTType
 import class Foundation.FileWrapper
 import struct Foundation.URL
@@ -746,4 +746,4 @@ extension View {
     public func fileExporter<C>(isPresented: Binding<Bool>, documents: C, contentType: UTType, onCompletion: @escaping (_ result: Result<[URL], Error>) -> Void) -> some View where C : Collection, C.Element : ReferenceFileDocument { return stubView() }
 
 }
-#endif
+*/

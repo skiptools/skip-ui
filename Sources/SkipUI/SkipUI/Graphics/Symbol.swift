@@ -98,7 +98,7 @@ public struct SymbolColorRenderingMode : Equatable, Sendable {
     public static let gradient = SymbolColorRenderingMode()
 }
 
-#if false
+/*
 import protocol Symbols.SymbolEffect
 import struct Symbols.SymbolEffectOptions
 import protocol Symbols.TransitionSymbolEffect
@@ -199,5 +199,5 @@ extension EnvironmentValues {
     /// second is outlined.](SymbolVariants-none-1)
     public var symbolVariants: SymbolVariants { get { fatalError() } }
 }
-#endif
+*/
 #endif

@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 /// The contrast between the app's foreground and background colors.
 ///
 /// You receive a contrast value when you read the
@@ -49,4 +49,4 @@ extension ColorSchemeContrast : Equatable {
 @available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 extension ColorSchemeContrast : Hashable {
 }
-#endif
+*/

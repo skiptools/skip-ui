@@ -27,7 +27,7 @@ import struct CoreGraphics.CGRect
 #endif
 
 // SKIP @bridge
-public struct Button : View, ListItemAdapting {
+public struct Button : View, Renderable {
     let action: () -> Void
     let label: ComposeBuilder
     let role: ButtonRole?
@@ -109,25 +109,27 @@ public struct Button : View, ListItemAdapting {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
-        Self.ComposeButton(label: label, context: context, role: role, action: action)
+    @Composable override func Render(context: ComposeContext) {
+        Self.RenderButton(label: label, context: context, role: role, action: action)
     }
 
-    @Composable func shouldComposeListItem() -> Bool {
+    @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
-        return buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain
+        guard buttonStyle == nil || buttonStyle == .automatic || buttonStyle == .plain else {
+            return (false, nil)
+        }
+        return (true, action)
     }
 
-    @Composable func ComposeListItem(context: ComposeContext, contentModifier: Modifier) {
-        let isEnabled = EnvironmentValues.shared.isEnabled
-        let modifier = Modifier.clickable(onClick: action, enabled: isEnabled).then(contentModifier)
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-            Self.ComposeTextButton(label: label, context: context, isPlain: EnvironmentValues.shared._buttonStyle == .plain, role: role, isEnabled: isEnabled)
+    @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
+        ModifiedContent.RenderWithModifiers(modifiers, context: context) { context in
+            let style = EnvironmentValues.shared._buttonStyle
+            Self.RenderTextButton(label: label, context: context, isPlain: style == .plain, role: role)
         }
     }
 
-    /// Compose a button in the current style.
-    @Composable static func ComposeButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: () -> Void) {
+    /// Render a button in the current style.
+    @Composable static func RenderButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: () -> Void) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
@@ -183,9 +185,9 @@ public struct Button : View, ListItemAdapting {
                     }
                 }
             case .plain:
-                ComposeTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, isEnabled: isEnabled, action: action)
+                RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, isEnabled: isEnabled, action: action)
             default:
-                ComposeTextButton(label: label, context: context.content(modifier: modifier), role: role, isEnabled: isEnabled, action: action)
+                RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isEnabled: isEnabled, action: action)
             }
         }
     }
@@ -194,7 +196,7 @@ public struct Button : View, ListItemAdapting {
     ///
     /// - Parameters:
     ///   - action: Pass nil if the given modifier already includes `clickable`
-    @Composable static func ComposeTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: (() -> Void)? = nil) {
+    @Composable static func RenderTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: (() -> Void)? = nil) {
         var foregroundStyle: ShapeStyle
         if role == .destructive {
             foregroundStyle = Color.red
@@ -272,7 +274,7 @@ public struct ButtonSizing : RawRepresentable, Hashable {
 extension View {
     public func buttonStyle(_ style: ButtonStyle) -> any View {
         #if SKIP
-        return environment(\._buttonStyle, style)
+        return ModifiedContent(content: self, modifier: ButtonStyleModifier(style: style))
         #else
         return self
         #endif
@@ -301,12 +303,12 @@ extension View {
     #if SKIP
     /// Compose button customization.
     public func material3Button(_ options: @Composable (Material3ButtonOptions) -> Material3ButtonOptions) -> View {
-        return environment(\._material3Button, options)
+        return environment(\._material3Button, options, affectsEvaluate: false)
     }
 
     public func material3Ripple(_ options: @Composable (Material3RippleOptions?) -> Material3RippleOptions?) -> View {
         // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
-        return ComposeModifierView(contentView: self) { view, context in
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let rippleConfiguration = LocalRippleConfiguration.current
             let rippleOptions: Material3RippleOptions?
             if let rippleConfiguration {
@@ -315,13 +317,33 @@ extension View {
                 rippleOptions = options(nil)
             }
             // SKIP INSERT: val provided = LocalRippleConfiguration provides rippleOptions?.asConfiguration()
-            CompositionLocalProvider(provided) { view.Compose(context: context) }
-        }
+            CompositionLocalProvider(provided) { renderable.Render(context: context) }
+        })
     }
     #endif
 }
 
 #if SKIP
+final class ButtonStyleModifier: EnvironmentModifier {
+    let style: ButtonStyle
+
+    init(style: ButtonStyle) {
+        self.style = style
+        super.init()
+        self.action = { environment in
+            environment.set_buttonStyle(style)
+            return ComposeResult.ok
+        }
+    }
+
+    @Composable override func shouldRenderListItem(content: Renderable, context: ComposeContext) -> (Bool, (() -> Void)?) {
+        // The button style matters when deciding whether to render buttons and navigation links as list items
+        return EnvironmentValues.shared.setValuesWithReturn(action!, in: {
+            return content.shouldRenderListItem(context: context)
+        })
+    }
+}
+
 public struct Material3ButtonOptions {
     public var onClick: () -> Void
     public var modifier: Modifier = Modifier
@@ -377,7 +399,7 @@ public struct Material3RippleOptions {
 }
 #endif
 
-#if false
+/*
 //@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
 //extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
 
@@ -579,6 +601,5 @@ public struct PrimitiveButtonStyleConfiguration {
     /// Performs the button's action.
     public func trigger() { fatalError() }
 }
-
-#endif
+*/
 #endif

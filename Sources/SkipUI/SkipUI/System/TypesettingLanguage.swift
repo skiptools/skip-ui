@@ -1,6 +1,6 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
-#if false
+/*
 import struct Foundation.Locale
 
 /// Defines how typesetting language is determined for text.
@@ -79,4 +79,4 @@ extension View {
     @available(iOS 17.0, macOS 14.0, tvOS 17.0, watchOS 10.0, *)
     public func typesettingLanguage(_ language: TypesettingLanguage, isEnabled: Bool = true) -> some View { return stubView() }
 }
-#endif
+*/

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct ProgressView : View {
+public struct ProgressView : View, Renderable {
     let value: Double?
     let total: Double?
     let label: ComposeBuilder?
@@ -76,7 +76,7 @@ public struct ProgressView : View {
     }
 
     #if SKIP
-    @Composable public override func ComposeContent(context: ComposeContext) {
+    @Composable override func Render(context: ComposeContext) {
         var style = EnvironmentValues.shared._progressViewStyle ?? ProgressViewStyle.automatic
         if style == .automatic {
             style = value == nil ? .circular : .linear
@@ -86,27 +86,27 @@ public struct ProgressView : View {
                 let contentContext = context.content()
                 Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(3.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
                     label.Compose(context: contentContext)
-                    ComposeLinearProgress(context: contentContext)
+                    RenderLinearProgress(context: contentContext)
                 }
             } else {
-                ComposeLinearProgress(context: context)
+                RenderLinearProgress(context: context)
             }
         } else {
             if let label, !EnvironmentValues.shared._labelsHidden {
                 let contentContext = context.content()
                 Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                    ComposeCircularProgress(context: contentContext)
+                    RenderCircularProgress(context: contentContext)
                     Row(horizontalArrangement: Arrangement.spacedBy(4.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
                         label.Compose(context: contentContext)
                     }
                 }
             } else {
-                ComposeCircularProgress(context: context)
+                RenderCircularProgress(context: context)
             }
         }
     }
 
-    @Composable private func ComposeLinearProgress(context: ComposeContext) {
+    @Composable private func RenderLinearProgress(context: ComposeContext) {
         let modifier = Modifier.fillWidth().then(context.modifier)
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
         if value == nil || total == nil {
@@ -116,7 +116,7 @@ public struct ProgressView : View {
         }
     }
 
-    @Composable private func ComposeCircularProgress(context: ComposeContext) {
+    @Composable private func RenderCircularProgress(context: ComposeContext) {
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.circularColor
         // Reduce size to better match SwiftUI
         let indicatorModifier = Modifier.size(20.dp)
@@ -150,7 +150,7 @@ public struct ProgressViewStyle: RawRepresentable, Equatable {
 extension View {
     public func progressViewStyle(_ style: ProgressViewStyle) -> any View {
         #if SKIP
-        return environment(\._progressViewStyle, style)
+        return environment(\._progressViewStyle, style, affectsEvaluate: false)
         #else
         return self
         #endif
@@ -162,7 +162,7 @@ extension View {
     }
 }
 
-#if false
+/*
 import struct Foundation.Date
 import class Foundation.Progress
 
@@ -422,7 +422,5 @@ public struct DefaultDateProgressLabel : View {
 
 //    public typealias Body = some View
 }
-
-
-#endif
+*/
 #endif
