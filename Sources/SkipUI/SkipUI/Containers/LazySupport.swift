@@ -26,7 +26,7 @@ extension LazyItemFactory {
 
 extension View {
     /// Expands views with the given lazy item level set in the environment.
-    @Composable public func EvaluateLazyItems(level: Int = 0, context: ComposeContext) -> kotlin.collections.List<Renderable> {
+    @Composable public final func EvaluateLazyItems(level: Int, context: ComposeContext) -> kotlin.collections.List<Renderable> {
         let renderables = Evaluate(context: context, options: EvaluateOptions(lazyItemLevel: level).value)
         guard level > 0 else {
             return renderables
