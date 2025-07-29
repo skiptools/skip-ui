@@ -160,9 +160,9 @@ public final class List : View, Renderable {
     @Composable private func RenderList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
         let renderables: kotlin.collections.List<Renderable>
         if let forEach {
-            renderables = forEach.EvaluateLazyItems(context: context)
+            renderables = forEach.EvaluateLazyItems(level: 0, context: context)
         } else if let fixedContent {
-            renderables = fixedContent.EvaluateLazyItems(context: context)
+            renderables = fixedContent.EvaluateLazyItems(level: 0, context: context)
         } else {
             renderables = listOf()
         }
