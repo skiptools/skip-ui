@@ -2652,7 +2652,16 @@ Image(systemName: "Icons.Filled.Settings")
 SkipUI fully supports SwiftUI's various layout mechanisms, including `HStack`, `VStack`, `ZStack`, and the `.frame` modifier. If you discover layout edge cases where the result on Android does not match the result on iOS, please file an Issue. The following is a list of known cases where results may not match:
 
 - Skip never places content in an implicit `VStack`, like SwiftUI sometimes does. Always place multiple views in an explicit stack of the desired type.
-- When multiple elements in a `HStack` use `.frame(maxWidth: .infinity)` or multiple elements in a `VStack` use `.frame(maxHeight: .infinity)`, your Android layout will always divide the available space evenly between them. If any `.infinity` element *also* specifies a `minWidth` or `minHeight` larger than its evenly-divided slice of space, it may overlap neighboring elements rather than force them to use less space.
+- Expanding elements such as `Spacer` or `.frame(maxWidth: .infinity)` within nested `HStacks` or `VStacks` may measure differently. Try un-nesting stacks to get more SwiftUI-like layout.
+
+Note: if your app was developed under an earlier version of Skip and it relies on nuances of older layout behavior, you can apply the Android-only `.layoutImplementationVersion()` modifier. Set this modifier on a `View` hierarchy to simulate the previous behavior:
+
+```swift
+SomeRootView()
+    #if os(Android)
+    .layoutImplementationVersion(0)
+    #endif
+```
 
 ### Lists
 
