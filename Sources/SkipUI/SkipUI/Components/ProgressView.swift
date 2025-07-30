@@ -84,9 +84,11 @@ public struct ProgressView : View, Renderable {
         if style == .linear {
             if let label, !EnvironmentValues.shared._labelsHidden {
                 let contentContext = context.content()
-                Column(modifier: context.modifier, verticalArrangement: Arrangement.spacedBy(3.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
-                    label.Compose(context: contentContext)
-                    RenderLinearProgress(context: contentContext)
+                ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
+                    Column(modifier: modifier, verticalArrangement: Arrangement.spacedBy(3.dp), horizontalAlignment: androidx.compose.ui.Alignment.Start) {
+                        label.Compose(context: contentContext)
+                        RenderLinearProgress(context: contentContext)
+                    }
                 }
             } else {
                 RenderLinearProgress(context: context)
@@ -107,7 +109,7 @@ public struct ProgressView : View, Renderable {
     }
 
     @Composable private func RenderLinearProgress(context: ComposeContext) {
-        let modifier = Modifier.flexibleWidth().then(context.modifier)
+        let modifier = Modifier.fillWidth().then(context.modifier)
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
         if value == nil || total == nil {
             LinearProgressIndicator(modifier: modifier, color: color)
