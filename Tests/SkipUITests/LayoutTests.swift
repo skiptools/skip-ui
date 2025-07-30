@@ -577,19 +577,6 @@ final class LayoutTests: XCSnapshotTestCase {
 
         . . . . . . . . . . . .
         . . . . . . . . . . . .
-        """, android: """
-
-
-
-
-
-
-
-
-        . . . . . . . . . . . .
-        . . . . . . . . . . . .
-
-        . . . . . . . . . . . .
         """))
     }
 
@@ -614,19 +601,6 @@ final class LayoutTests: XCSnapshotTestCase {
         . .                 . .
         . .                 . .
         . .                 . .
-        """, android: """
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
-                        . . . .
         """))
     }
 

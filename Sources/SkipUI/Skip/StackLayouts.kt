@@ -36,7 +36,6 @@ import androidx.compose.ui.util.fastRoundToInt
 import kotlin.collections.List
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 
 /**
  * This file contains heavily modified versions of Compose's `Row` and `Column` layouts to provide
@@ -173,10 +172,11 @@ internal data class RowMeasurePolicy(
         mainAxisPositions: IntArray,
         measureScope: MeasureScope,
     ) {
+        val mainAxisSizes = children.map { it.mainAxisSize(measureScope.density) }.toIntArray()
         with(horizontalArrangement) {
             measureScope.arrange(
                 mainAxisLayoutSize,
-                children.map { it.mainAxisMeasuredSize }.toIntArray(),
+                mainAxisSizes,
                 measureScope.layoutDirection,
                 mainAxisPositions,
             )
@@ -184,7 +184,7 @@ internal data class RowMeasurePolicy(
         // The arrange function will center the difference when any child's measured size is not the
         // same as its constrained size. We want each child to actually align to its assigned position
         for (i in 0..<children.size) {
-            val diff = children[i].mainAxisMeasuredSize - children[i].mainAxisConstrainedSize
+            val diff = mainAxisSizes[i] - children[i].mainAxisConstrainedSize
             mainAxisPositions[i] += diff / 2
         }
     }
@@ -419,17 +419,18 @@ internal data class ColumnMeasurePolicy(
         mainAxisPositions: IntArray,
         measureScope: MeasureScope,
     ) {
+        val mainAxisSizes = children.map { it.mainAxisSize(measureScope.density) }.toIntArray()
         with(verticalArrangement) {
             measureScope.arrange(
                 mainAxisLayoutSize,
-                children.map { it.mainAxisMeasuredSize }.toIntArray(),
+                mainAxisSizes,
                 mainAxisPositions
             )
         }
         // The arrange function will center the difference when any child's measured size is not the
         // same as its constrained size. We want each child to actually align to its assigned position
         for (i in 0..<children.size) {
-            val diff = children[i].mainAxisMeasuredSize - children[i].mainAxisConstrainedSize
+            val diff = mainAxisSizes[i] - children[i].mainAxisConstrainedSize
             mainAxisPositions[i] += diff / 2
         }
     }
@@ -661,7 +662,17 @@ internal interface RowColumnMeasurePolicy {
     ): Constraints
 }
 
-internal data class RowColumnChildInfo(val index: Int, var mainAxisConstrainedSize: Int = 0, var mainAxisMeasuredSize: Int = 0, var intrinsic: Int? = null, var measured: Boolean = false)
+internal data class RowColumnChildInfo(val index: Int, val parentData: RowColumnParentData?, var mainAxisConstrainedSize: Int = 0, var mainAxisMeasuredSize: Int = 0, var intrinsic: Int? = null, var measured: Boolean = false) {
+    fun mainAxisSize(density: Float): Int {
+        val max = max(mainAxisMeasuredSize, mainAxisConstrainedSize)
+        if (parentData == null || parentData.flexibleMax == null || parentData.flexibleMax!! < 0) {
+            return max
+        } else {
+            val flexibleMaxPx = (parentData.flexibleMax!! * density).fastRoundToInt()
+            return min(flexibleMaxPx, max)
+        }
+    }
+}
 
 internal data class RowColumnMeasureInfo(var anyAlignBy: Boolean = false, var crossAxisMeasuredSize: Int = 0, var remainingFlexibleChildrenCount: Int = 0, var flexibleSize: Int = 0)
 
@@ -679,7 +690,7 @@ internal fun RowColumnMeasurePolicy.measure(
     crossAxisOffset: IntArray? = null,
     currentLineIndex: Int = 0
 ): MeasureResult {
-    val children = (startIndex until endIndex).map { RowColumnChildInfo(it) }
+    val children = (startIndex until endIndex).map { RowColumnChildInfo(it, parentData = measurables[it].rowColumnParentData) }
     val measureInfo = RowColumnMeasureInfo()
     val totalSpacing = arrangementSpacing * (children.size - 1)
 
@@ -689,13 +700,13 @@ internal fun RowColumnMeasurePolicy.measure(
     var spaceChildrenCount = 0
     for (child in children) {
         val measurable = measurables[child.index]
-        val parentData = measurable.rowColumnParentData
+        val parentData = child.parentData
         if (parentData?.flexibleMax != null) {
             measureInfo.remainingFlexibleChildrenCount++
             if (parentData.flexibleMax == Float.flexibleSpace) {
                 spaceChildrenCount++
                 if (parentData.flexibleMin != null && parentData.flexibleMin!! > 0f) {
-                    spaceChildrenMinSize += (parentData.flexibleMin!! * measureScope.density).roundToInt()
+                    spaceChildrenMinSize += (parentData.flexibleMin!! * measureScope.density).fastRoundToInt()
                 }
             }
             continue
@@ -724,14 +735,15 @@ internal fun RowColumnMeasurePolicy.measure(
         child.measured = true
         child.mainAxisConstrainedSize = placeable.mainAxisConstrainedSize()
         child.mainAxisMeasuredSize = placeable.mainAxisMeasuredSize()
-        fixedSize += child.mainAxisMeasuredSize
+        fixedSize += child.mainAxisSize(measureScope.density)
         measureInfo.crossAxisMeasuredSize = max(measureInfo.crossAxisMeasuredSize, placeable.crossAxisMeasuredSize())
     }
 
     // Measure children with a max that may be under the unit size so that we can allocate the
     // unused space to other children
-    while (true) {
+    while (measureInfo.remainingFlexibleChildrenCount > 1) {
         val measuredChildrenCount = measureFlexible(
+            measureScope = measureScope,
             children = children,
             measurables = measurables,
             placeables = placeables,
@@ -744,17 +756,17 @@ internal fun RowColumnMeasurePolicy.measure(
             totalSpacing = totalSpacing,
             spaceChildrenCount = spaceChildrenCount,
             spaceChildrenMinSize = spaceChildrenMinSize
-        ) l@{ child, measurable, parentData, flexibleUnitSize ->
-            if (flexibleUnitSize <= 0 || parentData?.flexibleMax?.isFlexibleNonExpandingMax != true) {
+        ) l@{ child, measurable, flexibleUnitSize ->
+            if (flexibleUnitSize <= 0 || child.parentData?.flexibleMax?.isFlexibleNonExpandingMax != true) {
                 return@l false
             }
             var flexibleMaxPx: Int? = null
-            if (parentData.flexibleMax!! >= 0f) {
-                flexibleMaxPx = (parentData.flexibleMax!! * measureScope.density).roundToInt()
-            } else if (parentData.flexibleMax == Float.flexibleUnknownNonExpanding) {
+            if (child.parentData.flexibleMax!! >= 0f) {
+                flexibleMaxPx = (child.parentData.flexibleMax!! * measureScope.density).fastRoundToInt()
+            } else if (child.parentData.flexibleMax == Float.flexibleUnknownNonExpanding) {
                 if (child.intrinsic == null) {
                     val crossAxisDesiredSize = if (crossAxisMax == Constraints.Infinity) null else {
-                        parentData.flowLayoutData?.let {
+                        child.parentData.flowLayoutData?.let {
                             (it.fillCrossAxisFraction * crossAxisMax).fastRoundToInt()
                         }
                     }
@@ -771,6 +783,7 @@ internal fun RowColumnMeasurePolicy.measure(
 
     // Measure remaining non-expanding children
     measureFlexible(
+        measureScope = measureScope,
         children = children,
         measurables = measurables,
         placeables = placeables,
@@ -783,12 +796,13 @@ internal fun RowColumnMeasurePolicy.measure(
         totalSpacing = totalSpacing,
         spaceChildrenCount = spaceChildrenCount,
         spaceChildrenMinSize = spaceChildrenMinSize
-    ) { _, _, parentData, _ ->
-        parentData?.flexibleMax?.isFlexibleExpanding != true
+    ) { child, _, _ ->
+        child.parentData?.flexibleMax?.isFlexibleExpanding != true
     }
 
     // Measure non-space children
     measureFlexible(
+        measureScope = measureScope,
         children = children,
         measurables = measurables,
         placeables = placeables,
@@ -801,26 +815,45 @@ internal fun RowColumnMeasurePolicy.measure(
         totalSpacing = totalSpacing,
         spaceChildrenCount = spaceChildrenCount,
         spaceChildrenMinSize = spaceChildrenMinSize
-    ) { _, _, parentData, _ ->
-        parentData?.flexibleMax != Float.flexibleSpace
+    ) { child, _, _ ->
+        child.parentData?.flexibleMax != Float.flexibleSpace
     }
 
-    // Measure remaining (space) children
-    measureFlexible(
-        children = children,
-        measurables = measurables,
-        placeables = placeables,
-        measureInfo = measureInfo,
-        mainAxisMin = mainAxisMin,
-        mainAxisMax = mainAxisMax,
-        crossAxisMax = crossAxisMax,
-        fixedSize = fixedSize,
-        includeSpacers = true,
-        totalSpacing = totalSpacing,
-        spaceChildrenCount = spaceChildrenCount,
-        spaceChildrenMinSize = spaceChildrenMinSize
-    ) { _, _, _, _ ->
-        true
+    // Measure Spacers
+    while (measureInfo.remainingFlexibleChildrenCount > 0) {
+        // We continue to only measure the Spacers with the greatest min length until the remaining
+        // unit size is under the min length of all remaining Spacers, at which point we can use it.
+        var maximumMinLength = 0f
+        for (child in children) {
+            if (!child.measured && child.parentData?.flexibleMin != null && child.parentData.flexibleMin!! > maximumMinLength) {
+                maximumMinLength = child.parentData.flexibleMin!!
+            }
+        }
+        val maximumMinLengthPx = (maximumMinLength * measureScope.density).fastRoundToInt()
+        val measuredChildren = measureFlexible(
+            measureScope = measureScope,
+            children = children,
+            measurables = measurables,
+            placeables = placeables,
+            measureInfo = measureInfo,
+            mainAxisMin = mainAxisMin,
+            mainAxisMax = mainAxisMax,
+            crossAxisMax = crossAxisMax,
+            fixedSize = fixedSize,
+            includeSpacers = true,
+            totalSpacing = totalSpacing,
+            spaceChildrenCount = spaceChildrenCount,
+            spaceChildrenMinSize = spaceChildrenMinSize
+        ) { child, measurable, flexibleUnitSize ->
+            if (flexibleUnitSize >= maximumMinLengthPx) {
+                true
+            } else {
+                child.parentData != null && child.parentData.flexibleMin != null && child.parentData.flexibleMin!! >= maximumMinLength - .001 // Slop
+            }
+        }
+        if (measuredChildren == 0) {
+            break
+        }
     }
 
     var beforeCrossAxisAlignmentLine = 0
@@ -874,6 +907,7 @@ internal fun RowColumnMeasurePolicy.measure(
 }
 
 private fun RowColumnMeasurePolicy.measureFlexible(
+    measureScope: MeasureScope,
     children: List<RowColumnChildInfo>,
     measurables: List<Measurable>,
     placeables: Array<Placeable?>,
@@ -886,14 +920,14 @@ private fun RowColumnMeasurePolicy.measureFlexible(
     includeSpacers: Boolean,
     spaceChildrenCount: Int,
     spaceChildrenMinSize: Int,
-    shouldMeasure: (RowColumnChildInfo, Measurable, RowColumnParentData?, Int) -> Boolean
+    shouldMeasure: (RowColumnChildInfo, Measurable, Int) -> Boolean
 ): Int {
     val childrenCount = if (includeSpacers) measureInfo.remainingFlexibleChildrenCount else measureInfo.remainingFlexibleChildrenCount - spaceChildrenCount
     if (childrenCount <= 0) {
         return 0
     }
     val targetSize = if (mainAxisMax != Constraints.Infinity) mainAxisMax else mainAxisMin
-    val remainingSize = (targetSize - totalSpacing - fixedSize - measureInfo.flexibleSize - spaceChildrenMinSize).fastCoerceAtLeast(0)
+    val remainingSize = (targetSize - totalSpacing - fixedSize - measureInfo.flexibleSize - (if (includeSpacers) 0 else spaceChildrenMinSize)).fastCoerceAtLeast(0)
     val roundedUnitSize = remainingSize / childrenCount
     val roundSlopCount = remainingSize - (roundedUnitSize * childrenCount)
     var measuredChildren = 0
@@ -902,12 +936,12 @@ private fun RowColumnMeasurePolicy.measureFlexible(
             continue
         }
         val measurable = measurables[child.index]
-        val parentData = measurable.rowColumnParentData
+        val parentData = child.parentData
         var flexibleUnitSize = roundedUnitSize
         if (measuredChildren < roundSlopCount) {
             flexibleUnitSize += 1
         }
-        if (!shouldMeasure(child, measurables[child.index], parentData, flexibleUnitSize)) {
+        if (!shouldMeasure(child, measurables[child.index], flexibleUnitSize)) {
             continue
         }
 
@@ -942,7 +976,7 @@ private fun RowColumnMeasurePolicy.measureFlexible(
         child.measured = true
         child.mainAxisConstrainedSize = placeable.mainAxisConstrainedSize()
         child.mainAxisMeasuredSize = placeable.mainAxisMeasuredSize()
-        measureInfo.flexibleSize += child.mainAxisMeasuredSize
+        measureInfo.flexibleSize += child.mainAxisSize(measureScope.density)
         measureInfo.crossAxisMeasuredSize = max(measureInfo.crossAxisMeasuredSize, placeable.crossAxisMeasuredSize())
 
         ++measuredChildren

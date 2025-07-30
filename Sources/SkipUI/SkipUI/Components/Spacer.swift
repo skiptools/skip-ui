@@ -12,8 +12,9 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
+// We use a class rather than struct to be able to mutate the `positionalMinLength` for layout.
 // SKIP @bridge
-public struct Spacer : View, Renderable {
+public final class Spacer : View, Renderable {
     let minLength: CGFloat?
 
     // SKIP @bridge
@@ -22,19 +23,23 @@ public struct Spacer : View, Renderable {
     }
 
     #if SKIP
+    /// When we layout an `HStack` or `VStack` we apply a positional min length to spacers between elements.
+    var positionalMinLength: CGFloat?
+
     @Composable override func Render(context: ComposeContext) {
-        let axis = EnvironmentValues.shared._layoutAxis
-        let minLength: Float? = minLength != nil && minLength! > 0.0 ? Float(minLength!) : nil
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
+        let axis = EnvironmentValues.shared._layoutAxis
+        let effectiveMinLength = minLength ?? positionalMinLength
+        let minLengthFloat: Float? = effectiveMinLength != nil && effectiveMinLength! > 0.0 ? Float(effectiveMinLength!) : nil
         if layoutImplementationVersion == 0 {
             // Maintain previous layout behavior for users who opt in
-            if let minLength, minLength > 0.0 {
+            if let minLengthFloat {
                 let minModifier: Modifier
                 switch axis {
                 case .horizontal:
-                    minModifier = Modifier.width(minLength.dp)
+                    minModifier = Modifier.width(minLengthFloat.dp)
                 case .vertical:
-                    minModifier = Modifier.height(minLength.dp)
+                    minModifier = Modifier.height(minLengthFloat.dp)
                 case nil:
                     minModifier = Modifier
                 }
@@ -56,13 +61,13 @@ public struct Spacer : View, Renderable {
             switch axis {
             case .horizontal:
                 if let flexibleWidth = EnvironmentValues.shared._flexibleWidth {
-                    modifier = flexibleWidth(nil, minLength, Float.flexibleSpace)
+                    modifier = flexibleWidth(nil, minLengthFloat, Float.flexibleSpace)
                 } else {
                     modifier = Modifier
                 }
             case .vertical:
                 if let flexibleHeight = EnvironmentValues.shared._flexibleHeight {
-                    modifier = flexibleHeight(nil, minLength, Float.flexibleSpace)
+                    modifier = flexibleHeight(nil, minLengthFloat, Float.flexibleSpace)
                 } else {
                     modifier = Modifier
                 }

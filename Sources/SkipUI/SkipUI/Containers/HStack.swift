@@ -30,6 +30,8 @@ public struct HStack : View, Renderable {
     let content: ComposeBuilder
     let isBridged: Bool
 
+    private static let defaultSpacing = 8.0
+
     public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
         self.spacing = spacing
@@ -50,15 +52,29 @@ public struct HStack : View, Renderable {
         let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
 
+        var hasSpacers = false
+        if layoutImplementationVersion > 0 {
+            // Assign positional default spacing to any Spacer between non-Spacers
+            let firstNonSpacerIndex = renderables.indexOfFirst { !($0.strip() is Spacer) }
+            let lastNonSpacerIndex = renderables.indexOfLast { !($0.strip() is Spacer) }
+            for i in (firstNonSpacerIndex + 1)..<lastNonSpacerIndex {
+                if let spacer = renderables[i].strip() as? Spacer {
+                    hasSpacers = true
+                    spacer.positionalMinLength = Self.defaultSpacing
+                }
+            }
+            hasSpacers = hasSpacers || firstNonSpacerIndex > 0 || (lastNonSpacerIndex > 0 && lastNonSpacerIndex < renderables.size - 1)
+        }
+
         let rowAlignment = alignment.asComposeAlignment()
         let rowArrangement: Arrangement.Horizontal
         // Compose's internal arrangement code puts space between all elements, but we do not want to add space
         // around `Spacers`. So we arrange with no spacing and add our own spacing elements
-        let adaptiveSpacing = spacing != 0.0 && layoutImplementationVersion != 0 && renderables.any { $0.strip() is Spacer }
+        let adaptiveSpacing = spacing != 0.0 && hasSpacers
         if adaptiveSpacing {
             rowArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
         } else {
-            rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+            rowArrangement = Arrangement.spacedBy((spacing ?? Self.defaultSpacing).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
         }
 
         let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
@@ -207,13 +223,13 @@ public struct HStack : View, Renderable {
             return nil
         }
 
-        // Add spacing before any non-Spacer or Spacer without a minLength
-        let spacer = renderable.strip() as? Spacer
-        if spacer?.minLength == nil, lastWasSpacer == false || (lastWasSpacer == nil && spacer != nil) {
-            androidx.compose.foundation.layout.Spacer(modifier: Modifier.width((spacing ?? 8.0).dp))
+        // Add spacing before any non-Spacer
+        let isSpacer = renderable.strip() is Spacer
+        if let lastWasSpacer, !lastWasSpacer && !isSpacer {
+            androidx.compose.foundation.layout.Spacer(modifier: Modifier.width((spacing ?? Self.defaultSpacing).dp))
         }
         renderable.Render(context: context)
-        return spacer != nil
+        return isSpacer
     }
     #else
     public var body: some View {
