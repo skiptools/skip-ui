@@ -54,7 +54,7 @@ extension View {
 
     /// This function provides a non-escaping compose context to avoid excessive recompositions when the calling code
     /// does not need to access the underlying `Renderables`.
-    @Composable private func _ComposeContent(context: ComposeContext) {
+    @Composable public func _ComposeContent(context: ComposeContext) {
         for renderable in Evaluate(context: context, options: 0) {
             renderable.Render(context: context)
         }

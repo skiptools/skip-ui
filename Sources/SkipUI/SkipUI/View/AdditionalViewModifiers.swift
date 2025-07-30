@@ -623,6 +623,16 @@ extension View {
         return self
     }
 
+    /// Allow users to revert to previous layout versions.
+    // SKIP @bridge
+    public func layoutImplementationVersion(_ version: Int) -> any View {
+        #if SKIP
+        return environment(\._layoutImplementationVersion, version)
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func luminanceToAlpha() -> some View {
         return self

@@ -12,6 +12,7 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -28,6 +29,8 @@ public struct HStack : View, Renderable {
     let spacing: CGFloat?
     let content: ComposeBuilder
     let isBridged: Bool
+
+    private static let defaultSpacing = 8.0
 
     public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> any View) {
         self.alignment = alignment
@@ -46,10 +49,34 @@ public struct HStack : View, Renderable {
 
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
-        let rowAlignment = alignment.asComposeAlignment()
-        let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
-
         let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
+        let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
+
+        var hasSpacers = false
+        if layoutImplementationVersion > 0 {
+            // Assign positional default spacing to any Spacer between non-Spacers
+            let firstNonSpacerIndex = renderables.indexOfFirst { !($0.strip() is Spacer) }
+            let lastNonSpacerIndex = renderables.indexOfLast { !($0.strip() is Spacer) }
+            for i in (firstNonSpacerIndex + 1)..<lastNonSpacerIndex {
+                if let spacer = renderables[i].strip() as? Spacer {
+                    hasSpacers = true
+                    spacer.positionalMinLength = Self.defaultSpacing
+                }
+            }
+            hasSpacers = hasSpacers || firstNonSpacerIndex > 0 || (lastNonSpacerIndex > 0 && lastNonSpacerIndex < renderables.size - 1)
+        }
+
+        let rowAlignment = alignment.asComposeAlignment()
+        let rowArrangement: Arrangement.Horizontal
+        // Compose's internal arrangement code puts space between all elements, but we do not want to add space
+        // around `Spacers`. So we arrange with no spacing and add our own spacing elements
+        let adaptiveSpacing = spacing != 0.0 && hasSpacers
+        if adaptiveSpacing {
+            rowArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+        } else {
+            rowArrangement = Arrangement.spacedBy((spacing ?? Self.defaultSpacing).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+        }
+
         let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
         let ids = renderables.mapNotNull(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
@@ -64,14 +91,39 @@ public struct HStack : View, Renderable {
             rememberedNewIds.clear()
             let contentContext = context.content()
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
-                Row(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
-                    let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
-                    EnvironmentValues.shared.setValues {
-                        $0.set_fillWidthModifier(fillWidthModifier)
-                        return ComposeResult.ok
-                    } in: {
-                        for renderable in renderables {
-                            renderable.Render(context: contentContext)
+                if layoutImplementationVersion == 0 {
+                    // Maintain previous layout behavior for users who opt in
+                    Row(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                        let flexibleWidthModifier: (Float?, Float?, Float?) -> Modifier = { ideal, min, max in
+                            var modifier: Modifier = Modifier
+                            if max?.isFlexibleExpanding == true {
+                                modifier = modifier.weight(Float(1)) // Only available in Row context
+                            }
+                            return modifier.applyNonExpandingFlexibleWidth(ideal: ideal, min: min, max: max)
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                            return ComposeResult.ok
+                        } in: {
+                            var lastWasSpacer: Bool? = nil
+                            for renderable in renderables {
+                                lastWasSpacer = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                            }
+                        }
+                    }
+                } else {
+                    HStackRow(modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                        let flexibleWidthModifier: (Float?, Float?, Float?) -> Modifier = {
+                            return Modifier.flexible($0, $1, $2) // Only available in HStackRow context
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                            return ComposeResult.ok
+                        } in: {
+                            var lastWasSpacer: Bool? = nil
+                            for renderable in renderables {
+                                lastWasSpacer = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                            }
                         }
                     }
                 }
@@ -79,13 +131,13 @@ public struct HStack : View, Renderable {
         } else {
             ComposeContainer(axis: .horizontal, modifier: context.modifier) { modifier in
                 let arguments = AnimatedContentArguments(renderables: renderables, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
-                RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement)
+                RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, rowAlignment: rowAlignment, rowArrangement: rowArrangement, adaptiveSpacing: adaptiveSpacing, layoutImplementationVersion: layoutImplementationVersion)
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
-    @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, rowAlignment: androidx.compose.ui.Alignment.Vertical, rowArrangement: Arrangement.Horizontal) {
+    @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, rowAlignment: androidx.compose.ui.Alignment.Vertical, rowArrangement: Arrangement.Horizontal, adaptiveSpacing: Bool, layoutImplementationVersion: Int) {
         AnimatedContent(modifier: modifier, targetState: arguments.renderables, transitionSpec: {
             EnterTransition.None.togetherWith(ExitTransition.None).using(SizeTransform(clip: false) { initialSize, targetSize in
                  if initialSize.width <= 0 || initialSize.height <= 0 {
@@ -106,27 +158,78 @@ public struct HStack : View, Renderable {
             if animation == nil {
                 arguments.rememberedNewIds.clear()
             }
-            Row(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
-                let fillWidthModifier = Modifier.weight(Float(1.0)) // Only available in Row context
-                EnvironmentValues.shared.setValues {
-                    $0.set_fillWidthModifier(fillWidthModifier)
-                    return ComposeResult.ok
-                } in: {
-                    for renderable in state {
-                        let id = arguments.idMap(renderable)
+            if layoutImplementationVersion == 0 {
+                // Maintain previous layout behavior for users who opt in
+                Row(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                    let flexibleWidthModifier: (Float?, Float?, Float?) -> Modifier = { ideal, min, max in
                         var modifier: Modifier = Modifier
-                        if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
-                            let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
-                            let spec = animation.asAnimationSpec()
-                            let enter = transition.asEnterTransition(spec: spec)
-                            let exit = transition.asExitTransition(spec: spec)
-                            modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        if max?.isFlexibleExpanding == true {
+                            modifier = modifier.weight(Float(1)) // Only available in Row context
                         }
-                        renderable.Render(context: context.content(modifier: modifier))
+                        return modifier.applyNonExpandingFlexibleWidth(ideal: ideal, min: min, max: max)
+                    }
+                    EnvironmentValues.shared.setValues {
+                        $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                        return ComposeResult.ok
+                    } in: {
+                        var lastWasSpacer: Bool? = nil
+                        for renderable in state {
+                            let id = arguments.idMap(renderable)
+                            var modifier: Modifier = Modifier
+                            if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                                let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
+                                let spec = animation.asAnimationSpec()
+                                let enter = transition.asEnterTransition(spec: spec)
+                                let exit = transition.asExitTransition(spec: spec)
+                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                            }
+                            let contentContext = context.content(modifier: modifier)
+                            lastWasSpacer = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                        }
+                    }
+                }
+            } else {
+                HStackRow(horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment) {
+                    let flexibleWidthModifier: (Float?, Float?, Float?) -> Modifier = {
+                        return Modifier.flexible($0, $1, $2) // Only available in HStackRow context
+                    }
+                    EnvironmentValues.shared.setValues {
+                        $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                        return ComposeResult.ok
+                    } in: {
+                        var lastWasSpacer: Bool? = nil
+                        for renderable in state {
+                            let id = arguments.idMap(renderable)
+                            var modifier: Modifier = Modifier
+                            if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                                let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
+                                let spec = animation.asAnimationSpec()
+                                let enter = transition.asEnterTransition(spec: spec)
+                                let exit = transition.asExitTransition(spec: spec)
+                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                            }
+                            let contentContext = context.content(modifier: modifier)
+                            lastWasSpacer = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                        }
                     }
                 }
             }
         }, label: "HStack")
+    }
+
+    @Composable private func RenderSpaced(renderable: Renderable, adaptiveSpacing: Bool, lastWasSpacer: Bool?, layoutImplementationVersion: Int, context: ComposeContext) -> Bool? {
+        guard adaptiveSpacing else {
+            renderable.Render(context: context)
+            return nil
+        }
+
+        // Add spacing before any non-Spacer
+        let isSpacer = renderable.strip() is Spacer
+        if let lastWasSpacer, !lastWasSpacer && !isSpacer {
+            androidx.compose.foundation.layout.Spacer(modifier: Modifier.width((spacing ?? Self.defaultSpacing).dp))
+        }
+        renderable.Render(context: context)
+        return isSpacer
     }
     #else
     public var body: some View {
