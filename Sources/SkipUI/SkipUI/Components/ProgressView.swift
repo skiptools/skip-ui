@@ -107,7 +107,7 @@ public struct ProgressView : View, Renderable {
     }
 
     @Composable private func RenderLinearProgress(context: ComposeContext) {
-        let modifier = Modifier.fillWidth().then(context.modifier)
+        let modifier = Modifier.flexibleWidth().then(context.modifier)
         let color = EnvironmentValues.shared._tint?.colorImpl() ?? ProgressIndicatorDefaults.linearColor
         if value == nil || total == nil {
             LinearProgressIndicator(modifier: modifier, color: color)

@@ -3,9 +3,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +17,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given frame.
@@ -46,27 +43,19 @@ import androidx.compose.ui.unit.dp
 
 /// Compose a view with the given frame.
 @Composable func FrameLayout(content: Renderable, context: ComposeContext, minWidth: CGFloat?, idealWidth: CGFloat?, maxWidth: CGFloat?, minHeight: CGFloat?, idealHeight: CGFloat?, maxHeight: CGFloat?, alignment: Alignment) {
-    var thenModifier: Modifier = Modifier
-    if maxWidth == .infinity {
-        if let minWidth, minWidth > 0.0 {
-            thenModifier = thenModifier.requiredWidthIn(min: minWidth.dp)
-        }
-    } else if minWidth != nil || maxWidth != nil {
-        thenModifier = thenModifier.requiredWidthIn(min: minWidth != nil ? minWidth!.dp : Dp.Unspecified, max: maxWidth != nil ? maxWidth!.dp : Dp.Unspecified)
-    }
-    if maxHeight == .infinity {
-        if let minHeight, minHeight > 0.0 {
-            thenModifier = thenModifier.requiredHeightIn(min: minHeight.dp)
-        }
-    } else if minHeight != nil || maxHeight != nil {
-        thenModifier = thenModifier.requiredHeightIn(min: minHeight != nil ? minHeight!.dp : Dp.Unspecified, max: maxHeight != nil ? maxHeight!.dp : Dp.Unspecified)
-    }
-    ComposeContainer(modifier: context.modifier, fillWidth: maxWidth == Double.infinity, fixedWidth: maxWidth != nil && maxWidth != Double.infinity, minWidth: minWidth != nil && minWidth != Double.infinity && minWidth! > 0.0, fillHeight: maxHeight == Double.infinity, fixedHeight: maxHeight != nil && maxHeight != Double.infinity, minHeight: minHeight != nil && minHeight != Double.infinity && minHeight! > 0.0, then: thenModifier) { modifier in
+    ComposeFlexibleContainer(modifier: context.modifier, flexibleWidthIdeal: flexibleLayoutFloat(idealWidth), flexibleWidthMin: flexibleLayoutFloat(minWidth), flexibleWidthMax: flexibleLayoutFloat(maxWidth), flexibleHeightIdeal: flexibleLayoutFloat(idealHeight), flexibleHeightMin: flexibleLayoutFloat(minHeight), flexibleHeightMax: flexibleLayoutFloat(maxHeight)) { modifier in
         let contentContext = context.content()
         Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
             content.Render(context: contentContext)
         }
     }
+}
+
+private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
+    guard let value else {
+        return nil
+    }
+    return value == Double.infinity ? Float.flexibleFill : Float(value)
 }
 
 /// Compose a view with the given background.

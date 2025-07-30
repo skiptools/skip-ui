@@ -609,24 +609,24 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentPadding", value: newValue, defaultValue: { EdgeInsets() }) }
     }
 
-    var _fillHeight: (@Composable () -> Modifier)? {
-        get { builtinValue(key: "_fillHeight", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
-        set { setBuiltinValue(key: "_fillHeight", value: newValue, defaultValue: { nil }) }
+    var _flexibleHeight: (@Composable (Float?, Float?, Float?) -> Modifier)? {
+        get { builtinValue(key: "_flexibleHeight", defaultValue: { nil }) as! (@Composable (Float?, Float?, Float?) -> Modifier)? }
+        set { setBuiltinValue(key: "_flexibleHeight", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillWidth: (@Composable () -> Modifier)? {
-        get { builtinValue(key: "_fillWidth", defaultValue: { nil }) as! (@Composable () -> Modifier)? }
-        set { setBuiltinValue(key: "_fillWidth", value: newValue, defaultValue: { nil }) }
+    var _flexibleWidth: (@Composable (Float?, Float?, Float?) -> Modifier)? {
+        get { builtinValue(key: "_flexibleWidth", defaultValue: { nil }) as! (@Composable (Float?, Float?, Float?) -> Modifier)? }
+        set { setBuiltinValue(key: "_flexibleWidth", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillHeightModifier: Modifier? {
-        get { builtinValue(key: "_fillHeightModifier", defaultValue: { nil }) as! Modifier? }
-        set { setBuiltinValue(key: "_fillHeightModifier", value: newValue, defaultValue: { nil }) }
+    var _flexibleHeightModifier: ((Float?, Float?, Float?) -> Modifier)? {
+        get { builtinValue(key: "_flexibleHeightModifier", defaultValue: { nil }) as! ((Float?, Float?, Float?) -> Modifier)? }
+        set { setBuiltinValue(key: "_flexibleHeightModifier", value: newValue, defaultValue: { nil }) }
     }
 
-    var _fillWidthModifier: Modifier? {
-        get { builtinValue(key: "_fillWidthModifier", defaultValue: { nil }) as! Modifier? }
-        set { setBuiltinValue(key: "_fillWidthModifier", value: newValue, defaultValue: { nil }) }
+    var _flexibleWidthModifier: ((Float?, Float?, Float?) -> Modifier)? {
+        get { builtinValue(key: "_flexibleWidthModifier", defaultValue: { nil }) as! ((Float?, Float?, Float?) -> Modifier)? }
+        set { setBuiltinValue(key: "_flexibleWidthModifier", value: newValue, defaultValue: { nil }) }
     }
 
     var _foregroundStyle: ShapeStyle? {
@@ -677,6 +677,12 @@ extension EnvironmentValues {
     var _layoutScrollAxes: Axis.Set {
         get { builtinValue(key: "_layoutScrollAxes", defaultValue: { Axis.Set(rawValue: 0) }) as! Axis.Set }
         set { setBuiltinValue(key: "_layoutScrollAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
+    }
+
+    /// Allow users to revert to previous layout behavior.
+    var _layoutImplementationVersion: Int {
+        get { builtinValue(key: "_layoutImplementationVersion", defaultValue: { 1 }) as! Int }
+        set { setBuiltinValue(key: "_layoutImplementationVersion", value: newValue, defaultValue: { 1 }) }
     }
 
     var _lineLimitReservesSpace: Bool? {

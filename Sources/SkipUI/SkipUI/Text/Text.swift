@@ -395,6 +395,7 @@ struct _Text: View, Renderable, Equatable {
         let redaction = EnvironmentValues.shared.redactionReasons
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
+        var modifier = Modifier.flexibleWidth(max: Float.flexibleUnknownNonExpanding).then(context.modifier)
         var options: Material3TextOptions
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
@@ -405,7 +406,6 @@ struct _Text: View, Renderable, Equatable {
             }
             let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
             let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
-            var modifier = context.modifier
             if !links.isEmpty() {
                 let currentText = rememberUpdatedState(annotatedText)
                 let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
@@ -431,7 +431,7 @@ struct _Text: View, Renderable, Equatable {
             } else if styleInfo.isLowercased {
                 text = text.lowercased()
             }
-            options = Material3TextOptions(text: text, modifier: context.modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
+            options = Material3TextOptions(text: text, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)

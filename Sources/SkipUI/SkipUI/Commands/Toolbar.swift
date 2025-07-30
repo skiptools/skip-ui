@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 #if SKIP
 import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -189,7 +190,7 @@ public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View, 
         if sizing == .fixed {
             modifier = Modifier.width(8.dp)
         } else {
-            modifier = EnvironmentValues.shared._fillWidth?() ?? Modifier
+            modifier = EnvironmentValues.shared._flexibleWidth?(nil, nil, Float.flexibleSpace) ?? Modifier
         }
         androidx.compose.foundation.layout.Spacer(modifier: modifier)
     }

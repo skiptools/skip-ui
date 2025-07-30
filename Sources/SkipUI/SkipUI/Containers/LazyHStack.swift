@@ -56,7 +56,7 @@ public struct LazyHStack : View, Renderable {
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
-        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true, fillHeight: false) { modifier in
+        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
             // Integrate with ScrollViewReader
             let listState = rememberLazyListState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()

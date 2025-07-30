@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -13,39 +15,82 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 
 extension Modifier {
-    /// Fill available remaining width.
+    /// Fill available width similar to `.frame(maxWidth: .infinity)`.
     ///
-    /// This is a replacement for `fillMaxWidth` designed for situations when the composable may be in an `HStack` and does not want to push other items out.
-    ///
-    /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
+    /// - Seealso: `flexibleWidth(ideal:min:max:)`
     @Composable public func fillWidth() -> Modifier {
-        guard let fill = EnvironmentValues.shared._fillWidth else {
-            return fillMaxWidth()
-        }
-        return then(fill())
+        return flexibleWidth(max: Float.flexibleFill)
     }
 
-    /// Fill available remaining height.
+    /// Fill available height similar to `.frame(maxHeight: .infinity)`.
     ///
-    /// This is a replacement for `fillMaxHeight` designed for situations when the composable may be in an `VStack` and does not want to push other items out.
-    ///
-    /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
+    /// - Seealso: `flexibleHeight(ideal:min:max:)`
     @Composable public func fillHeight() -> Modifier {
-        guard let fill = EnvironmentValues.shared._fillHeight else {
-            return fillMaxHeight()
-        }
-        return then(fill())
+        return flexibleHeight(max: Float.flexibleFill)
     }
 
-    /// Fill available remaining size.
+    /// Fill available size similar to `.frame(maxWidth: .infinity, maxHeight: .infinity)`.
     ///
-    /// This is a replacement for `fillMaxSize` designed for situations when the composable may be in an `HStack` or `VStack` and does not want to push other items out.
-    ///
-    /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
+    /// - Seealso: `flexibleWidth(ideal:min:max:)`
+    /// - Seealso: `flexibleHeight(ideal:min:max:)`
     @Composable public func fillSize() -> Modifier {
         return fillWidth().fillHeight()
+    }
+
+    /// SwiftUI-like flexible layout.
+    ///
+    /// - Seealso: `.frame(minWidth:idealWidth:maxWidth:)`
+    /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
+    @Composable public func flexibleWidth(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
+        if let flexible = EnvironmentValues.shared._flexibleWidth {
+            return then(flexible(ideal, min, max))
+        } else {
+            let modifier = max == Float.flexibleFill ? fillMaxWidth() : self
+            return modifier.applyNonExpandingFlexibleWidth(ideal: ideal, min: min, max: max)
+        }
+    }
+
+    /// SwiftUI-like flexible layout.
+    ///
+    ///
+    /// - Seealso: `.frame(minHeight:idealHeight:maxHeight:)`
+    /// - Warning: Containers with child content should use the `ComposeContainer` composable instead.
+    @Composable public func flexibleHeight(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
+        if let flexible = EnvironmentValues.shared._flexibleHeight {
+            return then(flexible(ideal, min, max))
+        } else {
+            let modifier = max == Float.flexibleFill ? fillMaxHeight() : self
+            return modifier.applyNonExpandingFlexibleHeight(ideal: ideal, min: min, max: max)
+        }
+    }
+
+    /// For internal use.
+    func applyNonExpandingFlexibleWidth(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
+        if let min, min! > Float(0), let max, max! >= Float(0) {
+            return requiredWidthIn(min: min!.dp, max: max!.dp)
+        } else if let min, min! > Float(0) {
+            return requiredWidthIn(min: min!.dp)
+        } else if let max, max! >= Float(0) {
+            return requiredWidthIn(max: max!.dp)
+        } else {
+            return self
+        }
+    }
+
+    /// For internal use.
+    func applyNonExpandingFlexibleHeight(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
+        if let min, min! > Float(0), let max, max! >= Float(0) {
+            return requiredHeightIn(min: min!.dp, max: max!.dp)
+        } else if let min, min! > Float(0) {
+            return requiredHeightIn(min: min!.dp)
+        } else if let max, max! >= Float(0) {
+            return requiredHeightIn(max: max!.dp)
+        } else {
+            return self
+        }
     }
 
     /// Add padding equivalent to the given safe area.

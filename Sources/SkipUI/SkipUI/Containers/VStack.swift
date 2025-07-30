@@ -47,15 +47,21 @@ public struct VStack : View, Renderable {
 
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
+        let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
+        let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
+
         let columnAlignment = alignment.asComposeAlignment()
         let columnArrangement: Arrangement.Vertical
-        if let spacing {
-            columnArrangement = Arrangement.spacedBy(spacing.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
-        } else {
+        // Compose's internal arrangement code puts space between all elements, but we do not want to add space
+        // around `Spacers`. So we arrange with no spacing and add our own spacing elements. Additionally, we space
+        // adaptively between adjacent Text elements
+        let adaptiveSpacing = spacing != 0.0 && ((spacing == nil && renderables.any { $0.strip() is Text }) || (layoutImplementationVersion != 0 && renderables.any { $0.strip() is Spacer }))
+        if adaptiveSpacing {
             columnArrangement = Arrangement.spacedBy(0.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
+        } else {
+            columnArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         }
 
-        let renderables = content.Evaluate(context: context, options: 0).filter { !$0.isSwiftUIEmptyView }
         let idMap: (Renderable) -> Any? = { TagModifier.on(content: $0, role: .id)?.value }
         let ids = renderables.mapNotNull(idMap)
         let rememberedIds = remember { mutableSetOf<Any>() }
@@ -70,15 +76,41 @@ public struct VStack : View, Renderable {
             rememberedNewIds.clear()
             let contentContext = context.content()
             ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
-                Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
-                    let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
-                    EnvironmentValues.shared.setValues {
-                        $0.set_fillHeightModifier(fillHeightModifier)
-                        return ComposeResult.ok
-                    } in: {
-                        var lastWasText: Bool? = nil
-                        for renderable in renderables {
-                            lastWasText = RenderSpaced(renderable: renderable, lastWasText: lastWasText, context: contentContext)
+                if layoutImplementationVersion == 0 {
+                    // Maintain previous layout behavior for users who opt in
+                    Column(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                        let flexibleHeightModifier: (Float?, Float?, Float?) -> Modifier = { ideal, min, max in
+                            var modifier: Modifier = Modifier
+                            if max?.isFlexibleExpanding == true {
+                                modifier = modifier.weight(Float(1)) // Only available in Column context
+                            }
+                            return modifier.applyNonExpandingFlexibleHeight(ideal: ideal, min: min, max: max)
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_flexibleHeightModifier(flexibleHeightModifier)
+                            return ComposeResult.ok
+                        } in: {
+                            var lastWasText: Bool? = nil
+                            var lastWasSpacer: Bool? = nil
+                            for renderable in renderables {
+                                (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                            }
+                        }
+                    }
+                } else {
+                    VStackColumn(modifier: modifier, verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                        let flexibleHeightModifier: (Float?, Float?, Float?) -> Modifier = {
+                            return Modifier.flexible($0, $1, $2) // Only available in VStackColumn context
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_flexibleHeightModifier(flexibleHeightModifier)
+                            return ComposeResult.ok
+                        } in: {
+                            var lastWasText: Bool? = nil
+                            var lastWasSpacer: Bool? = nil
+                            for renderable in renderables {
+                                (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, context: contentContext, layoutImplementationVersion: layoutImplementationVersion)
+                            }
                         }
                     }
                 }
@@ -86,13 +118,13 @@ public struct VStack : View, Renderable {
         } else {
             ComposeContainer(axis: .vertical, modifier: context.modifier) { modifier in
                 let arguments = AnimatedContentArguments(renderables: renderables, idMap: idMap, ids: ids, rememberedIds: rememberedIds, newIds: newIds, rememberedNewIds: rememberedNewIds, isBridged: isBridged)
-                RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement)
+                RenderAnimatedContent(context: context, modifier: modifier, arguments: arguments, columnAlignment: columnAlignment, columnArrangement: columnArrangement, adaptiveSpacing: adaptiveSpacing, layoutImplementationVersion: layoutImplementationVersion)
             }
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
-    @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, columnAlignment: androidx.compose.ui.Alignment.Horizontal, columnArrangement: Arrangement.Vertical) {
+    @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, columnAlignment: androidx.compose.ui.Alignment.Horizontal, columnArrangement: Arrangement.Vertical, adaptiveSpacing: Bool, layoutImplementationVersion: Int) {
         AnimatedContent(modifier: modifier, targetState: arguments.renderables, transitionSpec: {
             EnterTransition.None.togetherWith(ExitTransition.None).using(SizeTransform(clip: false) { initialSize, targetSize in
                  if initialSize.width <= 0 || initialSize.height <= 0 {
@@ -113,51 +145,93 @@ public struct VStack : View, Renderable {
             if animation == nil {
                 arguments.rememberedNewIds.clear()
             }
-            Column(verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
-                let fillHeightModifier = Modifier.weight(Float(1.0)) // Only available in Column context
-                EnvironmentValues.shared.setValues {
-                    $0.set_fillHeightModifier(fillHeightModifier)
-                    return ComposeResult.ok
-                } in: {
-                    var lastWasText: Bool? = nil
-                    for renderable in state {
-                        let id = arguments.idMap(renderable)
+            if layoutImplementationVersion == 0 {
+                // Maintain previous layout behavior for users who opt in
+                Column(verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                    let flexibleHeightModifier: (Float?, Float?, Float?) -> Modifier = { ideal, min, max in
                         var modifier: Modifier = Modifier
-                        if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
-                            let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
-                            let spec = animation.asAnimationSpec()
-                            let enter = transition.asEnterTransition(spec: spec)
-                            let exit = transition.asExitTransition(spec: spec)
-                            modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                        if max?.isFlexibleExpanding == true {
+                            modifier = modifier.weight(Float(1)) // Only available in Column context
                         }
-                        let contentContext = context.content(modifier: modifier)
-                        lastWasText = RenderSpaced(renderable: renderable, lastWasText: lastWasText, context: contentContext)
+                        return modifier.applyNonExpandingFlexibleHeight(ideal: ideal, min: min, max: max)
+                    }
+                    EnvironmentValues.shared.setValues {
+                        $0.set_flexibleHeightModifier(flexibleHeightModifier)
+                        return ComposeResult.ok
+                    } in: {
+                        var lastWasText: Bool? = nil
+                        var lastWasSpacer: Bool? = nil
+                        for renderable in state {
+                            let id = arguments.idMap(renderable)
+                            var modifier: Modifier = Modifier
+                            if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                                let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
+                                let spec = animation.asAnimationSpec()
+                                let enter = transition.asEnterTransition(spec: spec)
+                                let exit = transition.asExitTransition(spec: spec)
+                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                            }
+                            let contentContext = context.content(modifier: modifier)
+                            (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                        }
+                    }
+                }
+            } else {
+                VStackColumn(verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment) {
+                    let flexibleHeightModifier: (Float?, Float?, Float?) -> Modifier = {
+                        Modifier.flexible($0, $1, $2) // Only available in VStackColumn context
+                    }
+                    EnvironmentValues.shared.setValues {
+                        $0.set_flexibleHeightModifier(flexibleHeightModifier)
+                        return ComposeResult.ok
+                    } in: {
+                        var lastWasText: Bool? = nil
+                        var lastWasSpacer: Bool? = nil
+                        for renderable in state {
+                            let id = arguments.idMap(renderable)
+                            var modifier: Modifier = Modifier
+                            if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
+                                let transition = TransitionModifier.transition(for: renderable) ?? OpacityTransition.shared
+                                let spec = animation.asAnimationSpec()
+                                let enter = transition.asEnterTransition(spec: spec)
+                                let exit = transition.asExitTransition(spec: spec)
+                                modifier = modifier.animateEnterExit(enter: enter, exit: exit)
+                            }
+                            let contentContext = context.content(modifier: modifier)
+                            (lastWasText, lastWasSpacer) = RenderSpaced(renderable: renderable, adaptiveSpacing: adaptiveSpacing, lastWasText: lastWasText, lastWasSpacer: lastWasSpacer, layoutImplementationVersion: layoutImplementationVersion, context: contentContext)
+                        }
                     }
                 }
             }
         }, label: "VStack")
     }
 
-    @Composable private func RenderSpaced(renderable: Renderable, lastWasText: Bool?, context: ComposeContext) -> Bool? {
-        guard !renderable.isSwiftUIEmptyView else {
-            return lastWasText
-        }
-        guard spacing == nil else {
+    @Composable private func RenderSpaced(renderable: Renderable, adaptiveSpacing: Bool, lastWasText: Bool?, lastWasSpacer: Bool?, layoutImplementationVersion: Int, context: ComposeContext) -> (Bool?, Bool?) {
+        guard adaptiveSpacing else {
             renderable.Render(context: context)
-            return lastWasText
+            return (nil, nil)
         }
 
-        let defaultSpacing = 8.0
-        // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our defaultSpacing
+        // SwiftUI spaces adaptively based on font, etc, but this is at least closer to SwiftUI than our default spacing
         let textSpacing = 3.0
         // If the Text has spacing modifiers, no longer special case its spacing
-        let isText = renderable.strip() is Text && renderable.forEachModifier { $0.role == .spacing ? true : nil } == true
-        if let lastWasText {
-            let spacing = lastWasText && isText ? textSpacing : defaultSpacing
-            androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
+        let stripped = renderable.strip()
+        let isText = stripped is Text && renderable.forEachModifier { $0.role == .spacing ? true : nil } == true
+        let spacer = stripped as? Spacer
+        if layoutImplementationVersion == 0 {
+            if let lastWasText {
+                let spacing = lastWasText && isText ? (spacing ?? textSpacing) : (spacing ?? 8.0)
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
+            }
+        } else {
+            // Add spacing before any non-Spacer or Spacer without a minLength
+            if spacer?.minLength == nil, lastWasSpacer == false || (lastWasSpacer == nil && spacer != nil) {
+                let spacing = lastWasText == true && isText ? (spacing ?? textSpacing) : (spacing ?? 8.0)
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(spacing.dp))
+            }
         }
         renderable.Render(context: context)
-        return isText
+        return (isText, spacer != nil)
     }
     #else
     public var body: some View {
