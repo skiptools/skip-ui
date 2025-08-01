@@ -72,8 +72,8 @@ public struct ComposeBuilder: View {
         let renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let isKeepNonModified = EvaluateOptions(options).isKeepNonModified
         let evalContext = context.content(composer: Composer { view, context in
-            // This logic is also in `ModifiedContent`, but we need to check here as well in case no modifiers are used
-            if isKeepNonModified && !(view is ModifiedContent) {
+            // Note: this logic is also in `ModifiedContent`, but we need to check here as well in case no modifiers are used
+            if isKeepNonModified && !(view is ModifiedContent) && !(view is ForEach) && !(view is Group) {
                 renderables.add(view.asRenderable())
             } else {
                 renderables.addAll(view.Evaluate(context: context(false), options: options))

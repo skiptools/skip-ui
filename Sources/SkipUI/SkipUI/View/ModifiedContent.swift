@@ -210,7 +210,8 @@ final class ModifiedContent: View, Renderable {
     /// Helper for modifiers to use internally to evaluate views, respecting the `EvaluateOptions.isKeepNonModified` option.
     @Composable static func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         let isKeepNonModified = EvaluateOptions(options).isKeepNonModified
-        if isKeepNonModified && !(content is ModifiedContent) {
+        // Note: this logic is also in `ComposeBuilder` for cases when there are no modifiers
+        if isKeepNonModified && !(content is ModifiedContent) && !(content is ForEach) && !(content is Group) {
             return listOf(content.asRenderable())
         } else {
             return content.Evaluate(context: context, options: options)
