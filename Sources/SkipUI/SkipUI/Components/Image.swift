@@ -115,13 +115,6 @@ public struct Image : View, Renderable, Equatable {
         let aspect = EnvironmentValues.shared._aspectRatio
         let colorScheme = EnvironmentValues.shared.colorScheme
 
-        logger.info(
-            """
-            SkipUI.Image.Render
-            TemplateRenderingMode: \(self.templateRenderingMode),
-            ImageType: \(self.image)
-            """
-        )
         // Put given modifiers on the containing Box so that the image can scale itself without affecting them
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
             switch image {
@@ -822,7 +815,6 @@ public struct Image : View, Renderable, Equatable {
     // SKIP @bridge
     public func renderingMode(_ renderingMode: TemplateRenderingMode?) -> Image {
         var image = self
-        logger.log("SKIP UI Image renderingMode \(String(describing: renderingMode))")
         image.templateRenderingMode = renderingMode
         return image
     }
