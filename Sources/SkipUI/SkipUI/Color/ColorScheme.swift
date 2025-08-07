@@ -103,14 +103,10 @@ extension View {
 }
 
 struct PreferredColorSchemePreferenceKey: PreferenceKey {
-    typealias Value = PreferredColorScheme
+    static let defaultValue = PreferredColorScheme(colorScheme: nil)
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<PreferredColorScheme>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = PreferredColorScheme(colorScheme: nil)
-        func reduce(value: inout PreferredColorScheme, nextValue: () -> PreferredColorScheme) {
-            value = nextValue()
-        }
+    static func reduce(value: inout PreferredColorScheme, nextValue: () -> PreferredColorScheme) {
+        value = nextValue()
     }
 }
 

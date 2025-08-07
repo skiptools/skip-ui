@@ -218,14 +218,10 @@ final class SearchableStateModifier: RenderModifier {
 }
 
 struct SearchableStatePreferenceKey: PreferenceKey {
-    typealias Value = SearchableState?
+    static let defaultValue: SearchableState? = nil
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<SearchableState?>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue: SearchableState? = nil
-        func reduce(value: inout SearchableState?, nextValue: () -> SearchableState?) {
-            value = nextValue()
-        }
+    static func reduce(value: inout SearchableState?, nextValue: () -> SearchableState?) {
+        value = nextValue()
     }
 }
 

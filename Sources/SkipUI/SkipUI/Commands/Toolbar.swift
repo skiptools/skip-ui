@@ -483,14 +483,10 @@ extension View {
 
 #if SKIP
 struct ToolbarPreferenceKey: PreferenceKey {
-    typealias Value = ToolbarPreferences
+    static let defaultValue = ToolbarPreferences()
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ToolbarPreferences>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue = ToolbarPreferences()
-        func reduce(value: inout ToolbarPreferences, nextValue: () -> ToolbarPreferences) {
-            value = value.reduce(nextValue())
-        }
+    static func reduce(value: inout ToolbarPreferences, nextValue: () -> ToolbarPreferences) {
+        value = value.reduce(nextValue())
     }
 }
 
@@ -563,14 +559,10 @@ struct ToolbarBarPreferences: Equatable {
 }
 
 struct ToolbarContentPreferenceKey: PreferenceKey {
-    typealias Value = ToolbarContentPreferences
+    static let defaultValue = ToolbarContentPreferences()
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ToolbarContentPreferences>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue = ToolbarContentPreferences()
-        func reduce(value: inout ToolbarContentPreferences, nextValue: () -> ToolbarContentPreferences) {
-            value = value.reduce(nextValue())
-        }
+    static func reduce(value: inout ToolbarContentPreferences, nextValue: () -> ToolbarContentPreferences) {
+        value = value.reduce(nextValue())
     }
 }
 

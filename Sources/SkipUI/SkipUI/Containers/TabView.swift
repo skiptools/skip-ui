@@ -518,14 +518,10 @@ public struct TabView : View, Renderable {
 }
 
 struct TabBarPreferenceKey: PreferenceKey {
-    typealias Value = ToolbarBarPreferences
+    static let defaultValue = ToolbarBarPreferences()
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ToolbarBarPreferences>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue = ToolbarBarPreferences()
-        func reduce(value: inout ToolbarBarPreferences, nextValue: () -> ToolbarBarPreferences) {
-            value = value.reduce(nextValue())
-        }
+    static func reduce(value: inout ToolbarBarPreferences, nextValue: () -> ToolbarBarPreferences) {
+        value = value.reduce(nextValue())
     }
 }
 

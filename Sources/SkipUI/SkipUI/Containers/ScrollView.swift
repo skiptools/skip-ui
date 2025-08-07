@@ -193,14 +193,10 @@ public struct ScrollViewReader : View, Renderable {
 
 #if SKIP
 struct ScrollToTopPreferenceKey: PreferenceKey {
-    typealias Value = ScrollToTopAction
+    static let defaultValue = ScrollToTopAction(key: nil, action: { })
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ScrollToTopAction>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = ScrollToTopAction(key: nil, action: { })
-        func reduce(value: inout ScrollToTopAction, nextValue: () -> ScrollToTopAction) {
-            value = nextValue()
-        }
+    static func reduce(value: inout ScrollToTopAction, nextValue: () -> ScrollToTopAction) {
+        value = nextValue()
     }
 }
 
@@ -216,14 +212,10 @@ struct ScrollToTopAction : Equatable {
 }
 
 struct ScrollToIDPreferenceKey: PreferenceKey {
-    typealias Value = ScrollToIDAction
+    static let defaultValue = ScrollToIDAction(key: nil, action: { _ in })
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<ScrollToIDAction>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = ScrollToIDAction(key: nil, action: { _ in })
-        func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
-            value = nextValue()
-        }
+    static func reduce(value: inout ScrollToIDAction, nextValue: () -> ScrollToIDAction) {
+        value = nextValue()
     }
 }
 
@@ -239,14 +231,10 @@ struct ScrollToIDAction : Equatable {
 }
 
 struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
-    typealias Value = Axis.Set
+    static let defaultValue: Axis.Set = []
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Axis.Set>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue: Axis.Set = []
-        func reduce(value: inout Axis.Set, nextValue: () -> Axis.Set) {
-            value.formUnion(nextValue())
-        }
+    static func reduce(value: inout Axis.Set, nextValue: () -> Axis.Set) {
+        value.formUnion(nextValue())
     }
 }
 #endif
