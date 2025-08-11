@@ -1138,28 +1138,20 @@ public struct Material3BottomAppBarOptions {
 }
 
 struct NavigationDestinationsPreferenceKey: PreferenceKey {
-    typealias Value = NavigationDestinations
+    static let defaultValue: NavigationDestinations = [:]
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<NavigationDestinations>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue: NavigationDestinations = [:]
-        func reduce(value: inout NavigationDestinations, nextValue: () -> NavigationDestinations) {
-            for (type, destination) in nextValue() {
-                value[type] = destination
-            }
+    static func reduce(value: inout NavigationDestinations, nextValue: () -> NavigationDestinations) {
+        for (type, destination) in nextValue() {
+            value[type] = destination
         }
     }
 }
 
 struct NavigationTitlePreferenceKey: PreferenceKey {
-    typealias Value = Text
+    static let defaultValue = Text("")
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Text>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = Text("")
-        func reduce(value: inout Text, nextValue: () -> Text) {
-            value = nextValue()
-        }
+    static func reduce(value: inout Text, nextValue: () -> Text) {
+        value = nextValue()
     }
 }
 #endif

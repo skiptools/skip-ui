@@ -1686,6 +1686,11 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.onPreferenceChange</code></td>
+    </tr>
+   <tr>
+    <tr>
+      <td>✅</td>
       <td><code>.onReceive</code></td>
     </tr>
     <tr>
@@ -1733,6 +1738,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.position</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.preference</code></td>
     </tr>
    <tr>
       <td>✅</td>

@@ -5,18 +5,23 @@
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import kotlin.reflect.full.companionObjectInstance
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 #endif
 
 public protocol PreferenceKey {
@@ -40,9 +45,8 @@ final class PreferenceValues {
     static let shared = PreferenceValues()
 
     /// Return a preference collector for the given `PreferenceKey` type.
-    // SKIP DECLARE: @Composable internal fun collector(key: KClass<*>): PreferenceCollector<Any>?
-    @Composable func collector(key: Any.Type) -> PreferenceCollector? {
-        return EnvironmentValues.shared.compositionLocals[key]?.current as? PreferenceCollector<Any>
+    @Composable func collector(key: Any) -> PreferenceCollector<Any?>? {
+        return EnvironmentValues.shared.compositionLocals[key]?.current as? PreferenceCollector<Any?>
     }
 
     /// Collect the values of the given preferences while composing the given content.
@@ -64,7 +68,7 @@ final class PreferenceValues {
     }
 
     /// Update the value of the given preference, as if by calling .preference(key:value:).
-    @Composable func contribute(context: ComposeContext, key: Any.Type, value: Any) {
+    @Composable func contribute(context: ComposeContext, key: Any, value: Any?) {
         // Use a saveable value because the preferences themselves and their node IDs are saved
         let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<Int?, Any>) { mutableStateOf<Int?>(nil) }
         let collector = rememberUpdatedState(PreferenceValues.shared.collector(key: key))
@@ -84,11 +88,11 @@ final class PreferenceValues {
 
 /// Used internally by our preferences system to collect preferences and recompose on change.
 struct PreferenceCollector<Value> {
-    let key: Any.Type
+    let key: Any
     let state: MutableState<Preference<Value>>
     let isErasable: Bool
 
-    init(key: Any.Type, state: MutableState<Preference<Value>>, isErasable: Bool = true) {
+    init(key: Any, state: MutableState<Preference<Value>>, isErasable: Bool = true) {
         self.key = key
         self.state = state
         self.isErasable = isErasable
@@ -133,17 +137,30 @@ struct PreferenceCollector<Value> {
 
     init(key: Any.Type, initialValue: Value? = nil) {
         self.key = key
-        self.initialValue = initialValue ?? (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).defaultValue
+        let companion = key.companionObjectInstance as! PreferenceKeyCompanion<Value>
+        self.initialValue = initialValue ?? companion.defaultValue
+        self.reducer = { value, nextValue in
+            var updatedValue = value
+            companion.reduce(value: &updatedValue, nextValue: { nextValue })
+            return updatedValue
+        }
     }
 
-    let key: Any.Type
+    init(key: Any, initialValue: Value, reducer: (Value, Value) -> Value) {
+        self.key = key
+        self.initialValue = initialValue
+        self.reducer = reducer
+    }
+
+    let key: Any
     let initialValue: Value
+    let reducer: (Value, Value) -> Value
 
     /// The reduced preference value.
     var reduced: Value {
         var value = initialValue
         for node in nodes {
-            (key.companionObjectInstance as! PreferenceKeyCompanion<Value>).reduce(value: &value, nextValue: { node.value as! Value })
+            value = reducer(value, node.value as! Value)
         }
         return value
     }
@@ -167,11 +184,58 @@ struct PreferenceNode<Value>: Equatable {
 #endif
 
 extension View {
-    public func preference(key: Any.Type, value: Any) -> any View {
+    // SKIP @bridge
+    public func preference(key: Any, value: Any?) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { context in
             PreferenceValues.shared.contribute(context: context, key: key, value: value)
             return ComposeResult.ok
+        })
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP DECLARE: public fun <K: PreferenceKey<V>, V> onPreferenceChange(key: KClass<K>, perform: (V) -> Unit): View
+    public func onPreferenceChange<K>(_ key: K.Type /* = K.self */, perform action: @escaping (K.Value) -> Void) -> any View where K : PreferenceKey {
+        #if SKIP
+        // Work around transpiler bug
+        // SKIP REPLACE: val companion = key.companionObjectInstance as PreferenceKeyCompanion<V>
+        let companion = key.companionObjectInstance as! PreferenceKeyCompanion<V>
+        return onPreferenceChange(key: key, defaultValue: companion.defaultValue, reducer: { value, nextValue in
+            var updatedValue = value as! V
+            companion.reduce(value: &updatedValue, nextValue: { nextValue as! V })
+            return updatedValue
+        }, action: { value in
+            action(value as! V)
+        })
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func onPreferenceChange(key: Any, defaultValue: Any?, reducer: @escaping (Any?, Any?) -> Any?, action: @escaping (Any?) -> Void) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let preference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Any?>, Any>) {
+                mutableStateOf(Preference<Any?>(key: key, initialValue: defaultValue, reducer: reducer))
+            }
+            let preferenceCollector = PreferenceCollector<Any?>(key: key, state: preference)
+            let currentAction = rememberUpdatedState(action)
+            LaunchedEffect(true) {
+                snapshotFlow {
+                    preference.value.reduced
+                }
+                .distinctUntilChanged()
+                .collect { newValue in
+                    currentAction.value(newValue)
+                }
+            }
+
+            PreferenceValues.shared.collectPreferences([preferenceCollector]) {
+                renderable.Render(context: context)
+            }
         })
         #else
         return self
@@ -316,23 +380,6 @@ extension View {
     ///
     /// - Returns: a new version of the view that writes the preference.
     public func anchorPreference<A, K>(key _: K.Type = K.self, value: Anchor<A>.Source, transform: @escaping (Anchor<A>) -> K.Value) -> some View where K : PreferenceKey { return stubView() }
-
-}
-
-@available(iOS 13.0, macOS 10.15, tvOS 13.0, watchOS 6.0, *)
-extension View {
-
-    /// Adds an action to perform when the specified preference key's value
-    /// changes.
-    ///
-    /// - Parameters:
-    ///   - key: The key to monitor for value changes.
-    ///   - action: The action to perform when the value for `key` changes. The
-    ///     `action` closure passes the new value as its parameter.
-    ///
-    /// - Returns: A view that triggers `action` when the value for `key`
-    ///   changes.
-    public func onPreferenceChange<K>(_ key: K.Type = K.self, perform action: @escaping (K.Value) -> Void) -> some View where K : PreferenceKey, K.Value : Equatable { return stubView() }
 
 }
 

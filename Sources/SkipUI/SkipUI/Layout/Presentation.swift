@@ -599,14 +599,10 @@ public protocol CustomPresentationDetent {
 
 #if SKIP
 struct PresentationDetentPreferenceKey: PreferenceKey {
-    typealias Value = PresentationDetentPreferences
+    static let defaultValue = PresentationDetentPreferences()
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<PresentationDetentPreferences>
-    class Companion: PreferenceKeyCompanion {
-        let defaultValue = PresentationDetentPreferences()
-        func reduce(value: inout PresentationDetentPreferences, nextValue: () -> PresentationDetentPreferences) {
-            value = value.reduce(nextValue())
-        }
+    static func reduce(value: inout PresentationDetentPreferences, nextValue: () -> PresentationDetentPreferences) {
+        value = value.reduce(nextValue())
     }
 }
 
@@ -1100,14 +1096,10 @@ final class BackDismissDisabledModifier: RenderModifier {
 }
 
 struct InteractiveDismissDisabledPreferenceKey: PreferenceKey {
-    typealias Value = Bool
+    static let defaultValue = false
 
-    // SKIP DECLARE: companion object: PreferenceKeyCompanion<Boolean>
-    final class Companion: PreferenceKeyCompanion {
-        let defaultValue = false
-        func reduce(value: inout Bool, nextValue: () -> Bool) {
-            value = nextValue()
-        }
+    static func reduce(value: inout Bool, nextValue: () -> Bool) {
+        value = nextValue()
     }
 }
 #endif
