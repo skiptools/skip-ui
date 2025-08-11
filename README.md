@@ -1688,7 +1688,6 @@ Support levels:
       <td>✅</td>
       <td><code>.onPreferenceChange</code></td>
     </tr>
-   <tr>
     <tr>
       <td>✅</td>
       <td><code>.onReceive</code></td>
