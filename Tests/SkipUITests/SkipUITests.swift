@@ -647,12 +647,12 @@ extension SemanticsNode {
 #endif
 
 // Used in `testCustomEnvironmentValue`
-private struct EnvironmentValueTestKey: EnvironmentKey {
-    static let defaultValue = "default"
+public struct EnvironmentValueTestKey: EnvironmentKey {
+    public static let defaultValue = "default"
 }
 
 extension EnvironmentValues {
-    fileprivate var testValue: String {
+    public var testValue: String {
         get { self[EnvironmentValueTestKey.self] }
         set { self[EnvironmentValueTestKey.self] = newValue }
     }
