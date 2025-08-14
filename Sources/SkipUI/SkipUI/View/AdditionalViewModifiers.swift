@@ -671,6 +671,7 @@ extension View {
     // SKIP @bridge
     public func onAppear(perform action: (() -> Void)? = nil) -> any View {
         #if SKIP
+        // TODO: would it be better to use the (new) onFirstVisible and onVisibilityChanged APIs here?
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let hasAppeared = remember { mutableStateOf(false) }
             if !hasAppeared.value {
