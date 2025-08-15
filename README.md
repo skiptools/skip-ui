@@ -1227,6 +1227,10 @@ Support levels:
       <td><code>ToolbarSpacer</code></td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>ToolbarTitleMenu</code></td>
+    </tr>
+    <tr>
       <td>🟠</td>
       <td>
           <details>
@@ -2046,6 +2050,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.toolbarTitleDisplayMode</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.toolbarTitleMenu</code></td>
     </tr>
     <tr>
       <td>🟢</td>
