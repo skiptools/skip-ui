@@ -152,16 +152,29 @@ public struct ToolbarItemGroup : CustomizableToolbarContent, View  {
     #endif
 }
 
-public struct ToolbarTitleMenu : CustomizableToolbarContent, View {
-    @available(*, unavailable)
+// SKIP @bridge
+public final class ToolbarTitleMenu : CustomizableToolbarContent, View, Renderable {
+    let content: ComposeBuilder
+    var toggleMenu: () -> Void = {}
+
     public init() {
+        self.content = ComposeBuilder(view: EmptyView())
     }
 
-    @available(*, unavailable)
     public init(@ViewBuilder content: () -> any View) {
+        self.content = ComposeBuilder.from(content)
     }
 
-    #if !SKIP
+    // SKIP @bridge
+    public init(bridgedContent: any View) {
+        self.content = ComposeBuilder.from({ bridgedContent })
+    }
+
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+        self.toggleMenu = Menu.RenderDropdownMenu(content: content, context: context)
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -466,10 +479,18 @@ extension View {
         return toolbarTitleDisplayMode(ToolbarTitleDisplayMode(rawValue: bridgedMode) ?? .automatic)
     }
 
-    @available(*, unavailable)
-    public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> some View {
+    public func toolbarTitleMenu(@ViewBuilder content: () -> any View) -> any View {
         #if SKIP
-        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(titleMenu: content()))
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(content: [ToolbarTitleMenu(content: content)]))
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func toolbarTitleMenu(bridgedContent: any View) -> any View {
+        #if SKIP
+        return preference(key: ToolbarContentPreferenceKey.self, value: ToolbarContentPreferences(content: [ToolbarTitleMenu(bridgedContent: bridgedContent)]))
         #else
         return self
         #endif
@@ -568,11 +589,9 @@ struct ToolbarContentPreferenceKey: PreferenceKey {
 
 struct ToolbarContentPreferences: Equatable {
     let content: [View]?
-    let titleMenu: View?
 
-    init(content: [View]? = nil, titleMenu: View? = nil) {
+    init(content: [View]? = nil) {
         self.content = content
-        self.titleMenu = titleMenu
     }
 
     func reduce(_ next: ToolbarContentPreferences) -> ToolbarContentPreferences {
@@ -582,13 +601,13 @@ struct ToolbarContentPreferences: Equatable {
         } else {
             rcontent = next.content ?? content
         }
-        return ToolbarContentPreferences(content: rcontent, titleMenu: next.titleMenu ?? titleMenu)
+        return ToolbarContentPreferences(content: rcontent)
     }
 
     public static func ==(lhs: ToolbarContentPreferences, rhs: ToolbarContentPreferences) -> Bool {
         // Views are not going to compare equal most of the time, even if they are logically the same.
         // That's why we isolate content from other preferences, so we can only access it in the bars themselves
-        return lhs.content == rhs.content && lhs.titleMenu == rhs.titleMenu
+        return lhs.content == rhs.content
     }
 }
 
@@ -596,7 +615,8 @@ struct ToolbarItems {
     let content: [View]
 
     /// Proces our content items, dividing them into the locations at which they should render.
-    @Composable func Evaluate(context: ComposeContext) -> (topLeading: kotlin.collections.List<Renderable>, topTrailing: kotlin.collections.List<Renderable>, bottom: kotlin.collections.List<Renderable>) {
+    @Composable func Evaluate(context: ComposeContext) -> (titleMenu: ToolbarTitleMenu?, topLeading: kotlin.collections.List<Renderable>, topTrailing: kotlin.collections.List<Renderable>, bottom: kotlin.collections.List<Renderable>) {
+        var titleMenu: ToolbarTitleMenu? = nil
         let leading: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let trailing: kotlin.collections.MutableList<Renderable> = mutableListOf()
         var principal: Renderable? = nil
@@ -604,16 +624,20 @@ struct ToolbarItems {
         for view in content {
             let renderables = view.Evaluate(context: context, options: 0)
             for renderable in renderables {
-                let placement = (renderable as? ToolbarItem)?.placement ?? (renderable as? ToolbarSpacer)?.placement ?? ToolbarItemPlacement.automatic
-                switch placement {
-                case .principal:
-                    principal = renderable
-                case .topBarLeading, .navigationBarLeading, .cancellationAction:
-                    leading.add(renderable)
-                case .bottomBar:
-                    bottom.add(renderable)
-                default:
-                    trailing.add(renderable)
+                if let menu = renderable as? ToolbarTitleMenu {
+                    titleMenu = menu
+                } else {
+                    let placement = (renderable as? ToolbarItem)?.placement ?? (renderable as? ToolbarSpacer)?.placement ?? ToolbarItemPlacement.automatic
+                    switch placement {
+                    case .principal:
+                        principal = renderable
+                    case .topBarLeading, .navigationBarLeading, .cancellationAction:
+                        leading.add(renderable)
+                    case .bottomBar:
+                        bottom.add(renderable)
+                    default:
+                        trailing.add(renderable)
+                    }
                 }
             }
         }
@@ -627,7 +651,7 @@ struct ToolbarItems {
         }) {
             bottom.add(1, Spacer())
         }
-        return (leading, trailing, bottom)
+        return (titleMenu, leading, trailing, bottom)
     }
 }
 #endif
