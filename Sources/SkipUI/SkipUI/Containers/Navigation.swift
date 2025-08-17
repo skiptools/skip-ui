@@ -227,8 +227,9 @@ public struct NavigationStack : View, Renderable {
         // We would like to only process toolbar content in our topBar/bottomBar Composables, but composing
         // custom ToolbarContent multiple times (in order to process the placement of the items in its body
         // content for each bar) prevents it from updating properly on recompose
-        let toolbarItems = ToolbarItems(content: toolbarContent.value.reduced.content ?? [])
-        let (topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
+        let toolbarContentReduced = toolbarContent.value.reduced
+        let toolbarItems = ToolbarItems(content: toolbarContentReduced.content ?? [])
+        let (titleMenu, topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
 
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -345,7 +346,19 @@ public struct NavigationStack : View, Renderable {
                         titleContentColor: MaterialTheme.colorScheme.onSurface
                     )
                     let topBarTitle: @Composable () -> Void = {
-                        androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        if let titleMenu {
+                            let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                                titleMenu.toggleMenu()
+                            })
+                            let arrangement = Arrangement.spacedBy(2.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+                            Row(modifier: menuModifier, horizontalArrangement: arrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                                Image(systemName: "chevron.down").accessibilityHidden(true).Compose(context: context)
+                            }
+                            titleMenu.Render(context: context)
+                        } else {
+                            androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                        }
                     }
                     let topBarNavigationIcon: @Composable () -> Void = {
                         let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true

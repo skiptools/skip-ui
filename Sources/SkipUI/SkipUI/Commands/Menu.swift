@@ -105,49 +105,54 @@ public final class Menu : View, Renderable {
                     label.Compose(context: contentContext)
                 }
                 if isEnabled {
-                    // We default to displaying our own content, but if the user selects a nested menu we can present
-                    // that instead. The nested menu selection is cleared on dismiss
-                    let isMenuExpanded = remember { mutableStateOf(false) }
-                    let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
-                    let coroutineScope = rememberCoroutineScope()
-                    toggleMenu = {
-                        nestedMenu.value = nil
-                        isMenuExpanded.value = !isMenuExpanded.value
-                    }
-                    let replaceMenu: (Menu?) -> Void = { menu in
-                        coroutineScope.launch {
-                            delay(200) // Allow menu item selection animation to be visible
-                            isMenuExpanded.value = false
-                            delay(100) // Otherwise we see a flash of the primary menu on nested menu dismiss
-                            nestedMenu.value = nil
-                            if let menu {
-                                nestedMenu.value = menu
-                                isMenuExpanded.value = true
-                            }
-                        }
-                    }
-                    DropdownMenu(expanded: isMenuExpanded.value, onDismissRequest: {
-                        isMenuExpanded.value = false
-                        coroutineScope.launch {
-                            delay(100) // Otherwise we see a flash of the primary menu on nested menu dismiss
-                            nestedMenu.value = nil
-                        }
-                    }) {
-                        var placement = EnvironmentValues.shared._placement
-                        EnvironmentValues.shared.setValues {
-                            placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
-                            $0.set_placement(placement)
-                            return ComposeResult.ok
-                        } in: {
-                            let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context, options: 0)
-                            Self.RenderDropdownMenuItems(for: renderables, context: contentContext, replaceMenu: replaceMenu)
-                        }
-                    }
+                    toggleMenu = Self.RenderDropdownMenu(content: content, context: contentContext)
                 } else {
                     toggleMenu = {}
                 }
             }
         }
+    }
+
+    @Composable static func RenderDropdownMenu(content: ComposeBuilder, context: ComposeContext) -> () -> Void {
+        // We default to displaying our own content, but if the user selects a nested menu we can present
+        // that instead. The nested menu selection is cleared on dismiss
+        let isMenuExpanded = remember { mutableStateOf(false) }
+        let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
+        let coroutineScope = rememberCoroutineScope()
+        let toggleMenu = {
+            nestedMenu.value = nil
+            isMenuExpanded.value = !isMenuExpanded.value
+        }
+        let replaceMenu: (Menu?) -> Void = { menu in
+            coroutineScope.launch {
+                delay(200) // Allow menu item selection animation to be visible
+                isMenuExpanded.value = false
+                delay(100) // Otherwise we see a flash of the primary menu on nested menu dismiss
+                nestedMenu.value = nil
+                if let menu {
+                    nestedMenu.value = menu
+                    isMenuExpanded.value = true
+                }
+            }
+        }
+        DropdownMenu(expanded: isMenuExpanded.value, onDismissRequest: {
+            isMenuExpanded.value = false
+            coroutineScope.launch {
+                delay(100) // Otherwise we see a flash of the primary menu on nested menu dismiss
+                nestedMenu.value = nil
+            }
+        }) {
+            var placement = EnvironmentValues.shared._placement
+            EnvironmentValues.shared.setValues {
+                placement.remove(ViewPlacement.toolbar) // Menus popovers are displayed outside the toolbar context
+                $0.set_placement(placement)
+                return ComposeResult.ok
+            } in: {
+                let renderables = (nestedMenu.value?.content ?? content).Evaluate(context: context, options: 0)
+                Self.RenderDropdownMenuItems(for: renderables, context: context, replaceMenu: replaceMenu)
+            }
+        }
+        return toggleMenu
     }
 
     @Composable static func RenderDropdownMenuItems(for renderables: kotlin.collections.List<Renderable>, selection: Hashable? = nil, context: ComposeContext, replaceMenu: (Menu?) -> Void) {
