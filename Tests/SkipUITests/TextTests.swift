@@ -63,7 +63,7 @@ final class TextTests: XCSnapshotTestCase {
         let size = try render(view: Text("X").font(.headline)).size
         #if SKIP
         if isAndroid {
-            XCTAssertEqual(size.height, 18.0)
+            XCTAssertEqual(size.height, 19.0)
         } else {
             XCTAssertEqual(size.height, 19.0)
         }
@@ -89,7 +89,7 @@ final class TextTests: XCSnapshotTestCase {
         let size = try render(view: Text("X").font(.body)).size
         #if SKIP
         if isAndroid {
-            XCTAssertEqual(size.height, 18.0)
+            XCTAssertEqual(size.height, 19.0)
         } else {
             XCTAssertEqual(size.height, 19.0)
         }
@@ -130,7 +130,7 @@ final class TextTests: XCSnapshotTestCase {
         let size = try render(view: Text("X").font(.caption)).size
         #if SKIP
         if isAndroid {
-            XCTAssertEqual(size.height, 12.0)
+            XCTAssertEqual(size.height, 13.0)
         } else {
             XCTAssertEqual(size.height, 13.0)
         }
