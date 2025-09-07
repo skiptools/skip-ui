@@ -6,6 +6,7 @@ import Foundation
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -136,6 +137,30 @@ extension BridgedGesture {
     }
 
     // SKIP @bridge
+    public func onChangedMagnifyGestureValue(bridgedAction: @escaping (MagnifyGestureValue) -> Void) -> any BridgedGesture {
+        let action: (MagnifyGesture.Value) -> Void = { bridgedAction(MagnifyGestureValue($0)) }
+        return (self as! any Gesture<MagnifyGesture.Value>).onChanged(action)
+    }
+
+    // SKIP @bridge
+    public func onEndedMagnifyGestureValue(bridgedAction: @escaping (MagnifyGestureValue) -> Void) -> any BridgedGesture {
+        let action: (MagnifyGesture.Value) -> Void = { bridgedAction(MagnifyGestureValue($0)) }
+        return (self as! any Gesture<MagnifyGesture.Value>).onEnded(action)
+    }
+
+    // SKIP @bridge
+    public func onChangedRotateGestureValue(bridgedAction: @escaping (RotateGestureValue) -> Void) -> any BridgedGesture {
+        let action: (RotateGesture.Value) -> Void = { bridgedAction(RotateGestureValue($0)) }
+        return (self as! any Gesture<RotateGesture.Value>).onChanged(action)
+    }
+
+    // SKIP @bridge
+    public func onEndedRotateGestureValue(bridgedAction: @escaping (RotateGestureValue) -> Void) -> any BridgedGesture {
+        let action: (RotateGesture.Value) -> Void = { bridgedAction(RotateGestureValue($0)) }
+        return (self as! any Gesture<RotateGesture.Value>).onEnded(action)
+    }
+
+    // SKIP @bridge
     public func onChangedVoid(bridgedAction: @escaping () -> Void) -> any BridgedGesture {
         #if SKIP
         let action: (Unit) -> Void = { _ in bridgedAction() }
@@ -252,7 +277,8 @@ public struct LongPressGesture : Gesture, BridgedGesture {
     }
 }
 
-public struct MagnifyGesture : Gesture {
+// SKIP @bridge
+public struct MagnifyGesture : Gesture, BridgedGesture {
     public typealias V = MagnifyGesture.Value
 
     public struct Value : Equatable {
@@ -265,13 +291,42 @@ public struct MagnifyGesture : Gesture {
 
     public var minimumScaleDelta: CGFloat
 
-    @available(*, unavailable)
+    // SKIP @bridge
     public init(minimumScaleDelta: CGFloat = 0.01) {
         self.minimumScaleDelta = minimumScaleDelta
     }
 }
 
-public struct RotateGesture : Gesture {
+// SKIP @bridge
+public struct MagnifyGestureValue {
+    // SKIP @bridge
+    public let time: Double
+    // SKIP @bridge
+    public let magnification: CGFloat
+    // SKIP @bridge
+    public let velocity: CGFloat
+    // SKIP @bridge
+    public let startAnchorX: Double
+    // SKIP @bridge
+    public let startAnchorY: Double
+    // SKIP @bridge
+    public let startLocationX: CGFloat
+    // SKIP @bridge
+    public let startLocationY: CGFloat
+
+    init(_ value: MagnifyGesture.Value) {
+        self.time = value.time.timeIntervalSinceReferenceDate
+        self.magnification = value.magnification
+        self.velocity = value.velocity
+        self.startAnchorX = value.startAnchor.x
+        self.startAnchorY = value.startAnchor.y
+        self.startLocationX = value.startLocation.x
+        self.startLocationY = value.startLocation.y
+    }
+}
+
+// SKIP @bridge
+public struct RotateGesture : Gesture, BridgedGesture {
     public typealias V = RotateGesture.Value
 
     public struct Value : Equatable {
@@ -284,9 +339,41 @@ public struct RotateGesture : Gesture {
 
     public var minimumAngleDelta: Angle
 
-    @available(*, unavailable)
     public init(minimumAngleDelta: Angle = .degrees(1.0)) {
         self.minimumAngleDelta = minimumAngleDelta
+    }
+
+    // SKIP @bridge
+    public init(minimumAngleDegreesDelta: Double) {
+        self.minimumAngleDelta = .degrees(minimumAngleDegreesDelta)
+    }
+}
+
+// SKIP @bridge
+public struct RotateGestureValue {
+    // SKIP @bridge
+    public let time: Double
+    // SKIP @bridge
+    public let rotationDegrees: Double
+    // SKIP @bridge
+    public let velocityDegrees: Double
+    // SKIP @bridge
+    public let startAnchorX: Double
+    // SKIP @bridge
+    public let startAnchorY: Double
+    // SKIP @bridge
+    public let startLocationX: CGFloat
+    // SKIP @bridge
+    public let startLocationY: CGFloat
+
+    init(_ value: RotateGesture.Value) {
+        self.time = value.time.timeIntervalSinceReferenceDate
+        self.rotationDegrees = value.rotation.degrees
+        self.velocityDegrees = value.velocity.degrees
+        self.startAnchorX = value.startAnchor.x
+        self.startAnchorY = value.startAnchor.y
+        self.startLocationX = value.startLocation.x
+        self.startLocationY = value.startLocation.y
     }
 }
 
@@ -469,6 +556,42 @@ public struct ModifiedGesture<V> : Gesture {
         return DragGesture.Value(time: Date(), location: location, startLocation: CGPoint(x: location.x - translation.width, y: location.y - translation.height), translation: translation, velocity: .zero, predictedEndLocation: location, predictedEndTranslation: translation)
     }
 
+    var isMagnifyGesture: Bool {
+        return gesture is MagnifyGesture
+    }
+
+    func onMagnifyChange(magnification: CGFloat, location: CGPoint, translation: CGSize) {
+        let value = magnifyValue(magnification: magnification, location: location, translation: translation)
+        onChanged.forEach { $0(value as! V) }
+    }
+
+    func onMagnifyEnd(magnification: CGFloat, location: CGPoint, translation: CGSize) {
+        let value = magnifyValue(magnification: magnification, location: location, translation: translation)
+        onEnded.forEach { $0(value as! V) }
+    }
+
+    private func magnifyValue(magnification: CGFloat, location: CGPoint, translation: CGSize) -> MagnifyGesture.Value {
+        return MagnifyGesture.Value(time: Date(), magnification: magnification, velocity: 0.0, startAnchor: UnitPoint(x: 0.0, y: 0.0), startLocation: CGPoint(x: location.x - translation.width, y: location.y - translation.height))
+    }
+
+    var isRotateGesture: Bool {
+        return gesture is RotateGesture
+    }
+
+    func onRotateChange(rotation: Double, location: CGPoint, translation: CGSize) {
+        let value = rotateValue(rotation: rotation, location: location, translation: translation)
+        onChanged.forEach { $0(value as! V) }
+    }
+
+    func onRotateEnd(rotation: Double, location: CGPoint, translation: CGSize) {
+        let value = rotateValue(rotation: rotation, location: location, translation: translation)
+        onEnded.forEach { $0(value as! V) }
+    }
+
+    private func rotateValue(rotation: Double, location: CGPoint, translation: CGSize) -> RotateGesture.Value {
+        return RotateGesture.Value(time: Date(), rotation: .degrees(rotation), velocity: .degrees(0.0), startAnchor: UnitPoint(x: 0.0, y: 0.0), startLocation: CGPoint(x: location.x - translation.width, y: location.y - translation.height))
+    }
+
     override var modified: ModifiedGesture {
         return self
     }
@@ -608,6 +731,78 @@ final class GestureModifier: RenderModifier {
                     }
                 }
                 detectDragGesturesWithScrollAxes(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragEnd, shouldAwaitTouchSlop: { !noMinimumDistance }, scrollAxes: scrollAxes)
+            }
+        }
+
+        let magnifyGestures = rememberUpdatedState(gestures.filter { $0.isMagnifyGesture })
+        let rotateGestures = rememberUpdatedState(gestures.filter { $0.isRotateGesture })
+        if magnifyGestures.value.size > 0 || rotateGestures.value.size > 0 {
+            let magnification = remember { mutableStateOf(Float(1.0)) }
+            let rotation = remember { mutableStateOf(Float(0.0)) }
+            let panOffsetX = remember { mutableStateOf(Float(0.0)) }
+            let panOffsetY = remember { mutableStateOf(Float(0.0)) }
+            let locationX = remember { mutableStateOf(Float(0.0)) }
+            let locationY = remember { mutableStateOf(Float(0.0)) }
+            let hasMagnified = remember { mutableStateOf(false) }
+            let hasRotated = remember { mutableStateOf(false) }
+            ret = ret.pointerInput(true) {
+                detectTransformGesturesWithGestureEnd(panZoomLock: false, onGesture: { centroidPx, panPx, zoom, rotate in
+                    if zoom != Float(1.0) {
+                        hasMagnified.value = true
+                    }
+                    if rotate != Float(0.0) {
+                        hasRotated.value = true
+                    }
+                    if !hasMagnified.value && !hasRotated.value {
+                        return
+                    }
+
+                    panOffsetX.value = (with(density) { panPx.x.toDp() }).value
+                    panOffsetY.value = (with(density) { panPx.y.toDp() }).value
+                    let translation = CGSize(width: CGFloat(panOffsetX.value), height: CGFloat(panOffsetY.value))
+
+                    locationX.value = (with(density) { centroidPx.x.toDp() }).value
+                    locationY.value = (with(density) { centroidPx.y.toDp() }).value
+                    let location = CGPoint(x: CGFloat(locationX.value), y: CGFloat(locationY.value))
+
+                    if hasMagnified.value {
+                        magnification.value *= zoom
+                        for magnifyGesture in magnifyGestures.value {
+                            magnifyGesture.onMagnifyChange(magnification: CGFloat(magnification.value), location: location, translation: translation)
+                        }
+                    }
+                    if hasRotated.value {
+                        rotation.value += rotate
+                        for rotateGesture in rotateGestures.value {
+                            rotateGesture.onRotateChange(rotation: Double(rotation.value), location: location, translation: translation)
+                        }
+                    }
+                }, onGestureEnd: {
+                    if !hasMagnified.value && !hasRotated.value {
+                        return
+                    }
+                    let translation = CGSize(width: CGFloat(panOffsetX.value), height: CGFloat(panOffsetY.value))
+                    let location = CGPoint(x: CGFloat(locationX.value), y: CGFloat(locationY.value))
+                    if hasMagnified.value {
+                        for magnifyGesture in magnifyGestures.value {
+                            magnifyGesture.onMagnifyEnd(magnification: CGFloat(magnification.value), location: location, translation: translation)
+                        }
+                    }
+                    if hasRotated.value {
+                        for rotateGesture in rotateGestures.value {
+                            rotateGesture.onRotateEnd(rotation: Double(rotation.value), location: location, translation: translation)
+                        }
+                    }
+
+                    magnification.value = Float(1.0)
+                    rotation.value = Float(0.0)
+                    panOffsetX.value = Float(0.0)
+                    panOffsetY.value = Float(0.0)
+                    locationX.value = Float(0.0)
+                    locationY.value = Float(0.0)
+                    hasMagnified.value = false
+                    hasRotated.value = false
+                })
             }
         }
         return ret
