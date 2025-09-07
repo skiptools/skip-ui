@@ -916,6 +916,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>MagnifyGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>Menu</code> (<a href="https://skip.tools/docs/components/menu/">example</a>)</td>
     </tr>
@@ -993,6 +1004,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>Rectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>RotateGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>      
+       </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2445,9 +2467,9 @@ ForEach([person1, person2, person3], id: \.fullName) { person in
 
 ### Gestures
 
-SkipUI currently supports tap, long press, and drag gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
+SkipUI currently supports tap, long press, drag, magnify, and rotate gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
 
-- `@GestureState` is not yet supported. Use the `Gesture.onEnded` modifier to reset your state.
+- `@GestureState` is only supported in Skip Fuse. Use the `Gesture.onEnded` modifier to reset your state.
 - Tap counts > 2 are not supported.
 - Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
 - Only the `onChanged` and `onEnded` gesture modifiers are supported.
