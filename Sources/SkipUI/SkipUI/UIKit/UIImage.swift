@@ -5,6 +5,9 @@ import Foundation
 #if SKIP
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import androidx.exifinterface.media.ExifInterface
+import java.io.ByteArrayInputStream
 #endif
 
 // SKIP @bridge
@@ -88,7 +91,7 @@ public class UIImage {
 
     public init?(contentsOfFile path: String) {
         #if SKIP
-        guard let bitmap = BitmapFactory.decodeFile(path) else {
+        guard let bitmap = loadImageFromPathAndFixRotation(path: path) else {
             return nil
         }
         self.bitmap = bitmap
@@ -104,7 +107,7 @@ public class UIImage {
     public init?(data: Data, scale: CGFloat = 1.0) {
         #if SKIP
         let bytes = data.kotlin(nocopy: true)
-        guard let bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.count()) else {
+        guard let bitmap = loadImageFromBytesAndFixRotation(bytes: bytes) else {
             return nil
         }
         self.bitmap = bitmap
@@ -295,6 +298,46 @@ public class UIImage {
         return Data(platformValue: bytes)
         #endif
     }
+    
+    #if SKIP
+    private func loadImageFromPathAndFixRotation(path: String) -> Bitmap? {
+        guard let bitmap = BitmapFactory.decodeFile(path) else {
+            return nil
+        }
+        let ei = ExifInterface(path)
+        return fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
+    }
+    
+    private func loadImageFromBytesAndFixRotation(bytes: ByteArray) -> Bitmap? {
+        guard let bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.count()) else {
+            return nil
+        }
+        
+        let ei = ExifInterface(ByteArrayInputStream(bytes))
+        return fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
+    }
+    
+    private func fixImageRotationFromExifData(bitmap: Bitmap, ei: ExifInterface) -> Bitmap {
+        let orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
+        
+        switch(orientation) {
+        case ExifInterface.ORIENTATION_ROTATE_90:
+            return rotateImage(bitmap, 90)
+        case ExifInterface.ORIENTATION_ROTATE_180:
+            return rotateImage(bitmap, 180)
+        case ExifInterface.ORIENTATION_ROTATE_270:
+            return rotateImage(bitmap, 270)
+        default:
+            return bitmap
+        }
+    }
+
+    private func rotateImage(source: Bitmap, angle: Int) -> Bitmap {
+        let matrix: Matrix = Matrix()
+        matrix.postRotate(angle.toFloat())
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true)
+    }
+    #endif
 
     public struct Configuration {
     }

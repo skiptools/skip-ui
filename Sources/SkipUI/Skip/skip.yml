@@ -82,6 +82,7 @@ build:
         - 'api(libs.androidx.appcompat.resources)'
         - 'api(libs.androidx.activity.compose)'
         - 'api(libs.androidx.lifecycle.process)'
+        - 'implementation("androidx.exifinterface:exifinterface:1.4.1")'
         - 'implementation(libs.coil.compose)'
         - 'implementation(libs.coil.network.okhttp)'
         - 'implementation(libs.coil.svg)'
