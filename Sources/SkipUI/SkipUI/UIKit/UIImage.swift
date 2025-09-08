@@ -91,10 +91,11 @@ public class UIImage {
 
     public init?(contentsOfFile path: String) {
         #if SKIP
-        guard let bitmap = loadImageFromPathAndFixRotation(path: path) else {
+        guard let bitmap = BitmapFactory.decodeFile(path), let ei = ExifInterface(path) else {
             return nil
         }
-        self.bitmap = bitmap
+
+        self.bitmap = fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
         #endif
         self.scale = 1.0
     }
@@ -107,10 +108,12 @@ public class UIImage {
     public init?(data: Data, scale: CGFloat = 1.0) {
         #if SKIP
         let bytes = data.kotlin(nocopy: true)
-        guard let bitmap = loadImageFromBytesAndFixRotation(bytes: bytes) else {
+        guard let bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.count()),
+              let ei = ExifInterface(ByteArrayInputStream(bytes)) else {
             return nil
         }
-        self.bitmap = bitmap
+        
+        self.bitmap = fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
         #endif
         self.scale = scale
     }
@@ -299,24 +302,7 @@ public class UIImage {
         #endif
     }
     
-    #if SKIP
-    private func loadImageFromPathAndFixRotation(path: String) -> Bitmap? {
-        guard let bitmap = BitmapFactory.decodeFile(path) else {
-            return nil
-        }
-        let ei = ExifInterface(path)
-        return fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
-    }
-    
-    private func loadImageFromBytesAndFixRotation(bytes: ByteArray) -> Bitmap? {
-        guard let bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.count()) else {
-            return nil
-        }
-        
-        let ei = ExifInterface(ByteArrayInputStream(bytes))
-        return fixImageRotationFromExifData(bitmap: bitmap, ei: ei)
-    }
-    
+    #if SKIP   
     private func fixImageRotationFromExifData(bitmap: Bitmap, ei: ExifInterface) -> Bitmap {
         let orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
         
