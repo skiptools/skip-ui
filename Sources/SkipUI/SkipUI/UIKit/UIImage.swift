@@ -8,7 +8,6 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import java.nio.ByteBuffer
 import android.graphics.Bitmap
-import java.io.ByteArrayInputStream
 #endif
 
 // SKIP @bridge
