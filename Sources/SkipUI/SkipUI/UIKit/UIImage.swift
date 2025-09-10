@@ -3,8 +3,11 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import android.content.Context
+import android.graphics.ImageDecoder
+import android.net.Uri
+import java.nio.ByteBuffer
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 #endif
 
 // SKIP @bridge
@@ -88,9 +91,14 @@ public class UIImage {
 
     public init?(contentsOfFile path: String) {
         #if SKIP
-        guard let bitmap = BitmapFactory.decodeFile(path) else {
+        let contentResolver = ProcessInfo.processInfo.androidContext.getContentResolver()
+        let uri = Uri.parse(path)
+        let source = ImageDecoder.createSource(contentResolver, uri)
+        
+        guard let bitmap = ImageDecoder.decodeBitmap(source) else {
             return nil
         }
+
         self.bitmap = bitmap
         #endif
         self.scale = 1.0
@@ -103,11 +111,19 @@ public class UIImage {
 
     public init?(data: Data, scale: CGFloat = 1.0) {
         #if SKIP
-        let bytes = data.kotlin(nocopy: true)
-        guard let bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.count()) else {
+        do {
+            let bytes = data.kotlin(nocopy: true)
+            let source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
+            
+            guard let bitmap = ImageDecoder.decodeBitmap(source) else {
+                return nil
+            }
+            
+            self.bitmap = bitmap
+            
+        } catch {
             return nil
         }
-        self.bitmap = bitmap
         #endif
         self.scale = scale
     }
