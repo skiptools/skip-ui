@@ -6,6 +6,7 @@ import OSLog
 #if SKIP
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.provider.Settings
 import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -178,11 +179,22 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         fatalError()
     }
 
+    #if SKIP
+    public static let openSettingsURLString = "intent://" + Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+    public static let openDefaultApplicationsSettingsURLString = "intent://android.settings.APP_OPEN_BY_DEFAULT_SETTINGS" // ACTION_APP_OPEN_BY_DEFAULT_SETTINGS added in API 31
+    public static let openNotificationSettingsURLString = "intent://" + Settings.ACTION_APP_NOTIFICATION_SETTINGS
+    #endif
+
     public func open(_ url: URL, options: [OpenExternalURLOptionsKey : Any] = [:]) async -> Bool {
         #if SKIP
         let context = ProcessInfo.processInfo.androidContext
         do {
-            let intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url.absoluteString))
+            let intent: Intent
+            if url.scheme == "intent" {
+                intent = Intent(url.host(), android.net.Uri.parse("package:" + context.getPackageName()))
+            } else {
+                intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url.absoluteString))
+            }
             // needed or else: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
@@ -296,10 +308,6 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     public func activateSceneSession(for request: Any /* UISceneSessionActivationRequest */, errorHandler: ((Error) -> Void)? = nil) {
     }
     @available(*, unavailable)
-    public static var openNotificationSettingsURLString: String {
-        fatalError()
-    }
-    @available(*, unavailable)
     public func registerForRemoteNotifications() {
     }
     @available(*, unavailable)
@@ -387,10 +395,6 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     }
     @available(*, unavailable)
     public static var protectedDataDidBecomeAvailableNotification: Notification.Name {
-        fatalError()
-    }
-    @available(*, unavailable)
-    public static var openSettingsURLString: String {
         fatalError()
     }
     @available(*, unavailable)
