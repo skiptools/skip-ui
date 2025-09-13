@@ -1904,6 +1904,18 @@ Support levels:
       <td><code>.scrollContentBackground</code></td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.scrollDismissesKeyboard</code></summary>
+              <ul>
+				  <li>In Compose, the default behavior (<code>.automatic</code>) is to never dismiss on scroll</li>
+                  <li><code>.interactively</code> behaves like <code>.immediately</code></li>
+              </ul>
+          </details>      
+       </td>
+    </tr>	  
+    <tr>
       <td>🟠</td>
       <td>
           <details>
