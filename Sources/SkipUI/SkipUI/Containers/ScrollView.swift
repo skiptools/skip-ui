@@ -77,6 +77,7 @@ public struct ScrollView : View, Renderable {
             scrollModifier = scrollModifier.horizontalScroll(scrollState)
             effectiveScrollAxes.insert(Axis.Set.horizontal)
         }
+
         let contentContext = context.content()
         ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical)) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
@@ -108,6 +109,7 @@ public struct ScrollView : View, Renderable {
                 } else {
                     refreshState = nil
                 }
+                containerModifier = containerModifier.scrollDismissesKeyboardMode(EnvironmentValues.shared.scrollDismissesKeyboardMode)
 
                 Box(modifier: containerModifier) {
                     Column(modifier: scrollModifier) {
@@ -245,11 +247,11 @@ public enum ScrollBounceBehavior {
     case basedOnSize
 }
 
-public enum ScrollDismissesKeyboardMode {
-    case automatic
-    case immediately
-    case interactively
-    case never
+public enum ScrollDismissesKeyboardMode: Int {
+    case automatic = 1 // For bridging
+    case immediately = 2 // For bridging
+    case interactively = 3 // For bridging
+    case never = 4 // For bridging
 }
 
 public enum ScrollEdgeEffectStyle : Hashable {
@@ -327,9 +329,17 @@ extension View {
         return scrollContentBackground(Visibility(rawValue: bridgedVisibility) ?? .automatic)
     }
 
-    @available(*, unavailable)
-    public func scrollDismissesKeyboard(_ mode: ScrollDismissesKeyboardMode) -> some View {
+    public func scrollDismissesKeyboard(_ mode: ScrollDismissesKeyboardMode) -> any View {
+        #if SKIP
+        return environment(\.scrollDismissesKeyboardMode, mode, affectsEvaluate: false)
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func scrollDismissesKeyboard(bridgedMode: Int) -> any View {
+        return scrollDismissesKeyboard(ScrollDismissesKeyboardMode(rawValue: bridgedMode) ?? .automatic)
     }
 
     @available(*, unavailable)

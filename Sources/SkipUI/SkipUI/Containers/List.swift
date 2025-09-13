@@ -124,7 +124,7 @@ public final class List : View, Renderable {
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
             IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.bottom], modifier: modifier) { safeAreaExpansion, safeAreaEdges in
-                let containerModifier: Modifier
+                var containerModifier: Modifier
                 let refreshing = remember { mutableStateOf(false) }
                 let refreshAction = EnvironmentValues.shared.refresh
                 let refreshState: PullRefreshState?
@@ -143,6 +143,8 @@ public final class List : View, Renderable {
                     refreshState = nil
                     containerModifier = modifier
                 }
+                containerModifier = containerModifier.scrollDismissesKeyboardMode(EnvironmentValues.shared.scrollDismissesKeyboardMode)
+                
                 Box(modifier: containerModifier) {
                     let density = LocalDensity.current
                     let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }

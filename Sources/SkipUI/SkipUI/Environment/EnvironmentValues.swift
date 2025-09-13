@@ -315,6 +315,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: refresh)
         case "scenePhase":
             return EnvironmentSupport(builtinValue: scenePhase.rawValue)
+        case "scrollDismissesKeyboardMode":
+            return EnvironmentSupport(builtinValue: scrollDismissesKeyboardMode.rawValue)
         case "timeZone":
             return EnvironmentSupport(builtinValue: timeZone.identifier)
         case "verticalSizeClass":
@@ -367,6 +369,10 @@ extension EnvironmentValues {
             return true
         case "scenePhase":
             return false
+        case "scrollDismissesKeyboardMode":
+            let rawValue = value?.builtinValue as? Int ?? 0
+            setscrollDismissesKeyboardMode(ScrollDismissesKeyboardMode(rawValue: rawValue) ?? ScrollDismissesKeyboardMode.automatic)
+            return true
         case "timeZone":
             if let identifier = value?.builtinValue as? String, let timeZone = TimeZone(identifier: identifier) {
                 settimeZone(timeZone)
@@ -481,6 +487,11 @@ extension EnvironmentValues {
         }
     }
 
+    public var scrollDismissesKeyboardMode: ScrollDismissesKeyboardMode {
+        get { builtinValue(key: "scrollDismissesKeyboardMode", defaultValue: { ScrollDismissesKeyboardMode.automatic }) as! ScrollDismissesKeyboardMode }
+        set { setBuiltinValue(key: "scrollDismissesKeyboardMode", value: newValue, defaultValue: { ScrollDismissesKeyboardMode.automatic }) }
+    }
+
     public var timeZone: TimeZone {
         get { builtinValue(key: "timeZone", defaultValue: { TimeZone.current }) as! TimeZone }
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
@@ -542,7 +553,6 @@ extension EnvironmentValues {
     var isScrollEnabled: Bool
     var horizontalScrollIndicatorVisibility: ScrollIndicatorVisibility
     var verticalScrollIndicatorVisibility: ScrollIndicatorVisibility
-    var scrollDismissesKeyboardMode: ScrollDismissesKeyboardMode
     var horizontalScrollBounceBehavior: ScrollBounceBehavior
     var verticalScrollBounceBehavior: ScrollBounceBehavior
 
@@ -1440,17 +1450,6 @@ extension EnvironmentValues {
     /// modifier to configure this property.
     @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
     public var isScrollEnabled: Bool { get { fatalError() } }
-}
-
-extension EnvironmentValues {
-
-    /// The way that scrollable content interacts with the software keyboard.
-    ///
-    /// The default value is ``ScrollDismissesKeyboardMode/automatic``. Use the
-    /// ``View/scrollDismissesKeyboard(_:)`` modifier to configure this
-    /// property.
-    @available(iOS 16.0, macOS 13.0, tvOS 16.0, watchOS 9.0, *)
-    public var scrollDismissesKeyboardMode: ScrollDismissesKeyboardMode { get { fatalError() } }
 }
 
 extension EnvironmentValues {
