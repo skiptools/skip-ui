@@ -2,19 +2,26 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if SKIP
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 
 extension Modifier {
@@ -125,6 +132,20 @@ extension Modifier {
             }
         }
     }
+
+    @Composable func scrollDismissesKeyboardMode(_ mode: ScrollDismissesKeyboardMode) -> Modifier {
+        guard mode == .immediately || mode == .interactively else {
+            return self
+        }
+        let keyboardController = rememberUpdatedState(LocalSoftwareKeyboardController.current)
+        let focusManager = rememberUpdatedState(LocalFocusManager.current)
+        let imeInsets = WindowInsets.ime
+        let density = LocalDensity.current
+        let nestedScrollConnection = remember {
+            KeyboardDismissingNestedScrollConnection(keyboardController: keyboardController, focusManager: focusManager, imeInsets: imeInsets, density: density)
+        }
+        return self.nestedScroll(nestedScrollConnection)
+    }
 }
 
 extension PaddingValues {
@@ -138,4 +159,5 @@ extension PaddingValues {
         return EdgeInsets(top: top, leading: left, bottom: bottom, trailing: right)
     }
 }
+
 #endif

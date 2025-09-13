@@ -2446,6 +2446,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `openURL`
 - `refresh`
 - `scenePhase`
+- `scrollDismissesKeyboardMode`
 - `timeZone`
 - `verticalSizeClass`
 
