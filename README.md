@@ -2898,6 +2898,33 @@ ScrollView(.horizontal) {
 .scrollTargetBehavior(.viewAligned)
 ```
 
+### Custom Intents
+
+The implementation for `UIApplication.open(_ url: URL, options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:])` uses the [Android Intents](https://developer.android.com/guide/components/intents-filters#Types) system to launch the service associated with the given URL.
+
+As well as handling the standard link types like "https://", "tel:", and "sms:", Skip also enables specifying a custom intent name as the special `OpenExternalURLOptionsKey` value "intent", so that you can easily launch a particular intent on Android. For example:
+
+```swift
+#if os(Android)
+Button("Send Email") {
+    let mailto = URL(string: "mailto:hello@example.com")!
+
+    var options: [UIApplication.OpenExternalURLOptionsKey : Any] = [:]
+    // specify the exact intent to use
+    options[UIApplication.OpenExternalURLOptionsKey(rawValue: "intent")] = "android.intent.action.SENDTO"
+    // add values for the keys supported by the intent
+    // https://developer.android.com/reference/android/content/Intent#EXTRA_SUBJECT
+    options[UIApplication.OpenExternalURLOptionsKey(rawValue: "android.intent.extra.SUBJECT")] = "Email Subject Line"
+    options[UIApplication.OpenExternalURLOptionsKey(rawValue: "android.intent.extra.TEXT")] = "Email body"
+
+    Task {
+        await UIApplication.shared.open(mailto, options: options)
+    }
+}
+#endif
+```
+
+
 ## Contributing
 
 We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 

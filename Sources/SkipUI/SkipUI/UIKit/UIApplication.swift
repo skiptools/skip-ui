@@ -190,14 +190,32 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         let context = ProcessInfo.processInfo.androidContext
         do {
             let intent: Intent
-            if url.scheme == "intent" {
+            let uri = android.net.Uri.parse(url.absoluteString)
+            // adding the Android-specific URL key "intent" will use the custom intent name
+            if let intentName = options[OpenExternalURLOptionsKey.intent] as? String {
+                intent = Intent(intentName, uri)
+            } else if url.scheme == "intent" {
                 intent = Intent(url.host(), android.net.Uri.parse("package:" + context.getPackageName()))
+            } else if url.scheme == "tel" {
+                intent = Intent(Intent.ACTION_DIAL, uri)
+            } else if url.scheme == "sms" || url.scheme == "mailto" {
+                intent = Intent(Intent.ACTION_SENDTO, uri)
             } else {
-                intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url.absoluteString))
+                intent = Intent(Intent.ACTION_VIEW, uri)
             }
-            // needed or else: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
+            for (key, value) in options {
+                if key.rawValue == OpenExternalURLOptionsKey.intent.rawValue { continue }
+                if let valueString = value as? String {
+                    intent.putExtra(key.rawValue, valueString)
+                }
+            }
+            if let androidActivity {
+                androidActivity.startActivity(intent)
+            } else {
+                // needed or else: android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }
             return true
         } catch {
             logger.warning("UIApplication.launch error: \(error)")
@@ -430,6 +448,9 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
 
         public static let universalLinksOnly = OpenExternalURLOptionsKey(rawValue: "universalLinksOnly")
         public static let eventAttribution = OpenExternalURLOptionsKey(rawValue: "eventAttribution")
+
+        // Android-specific keys
+        public static let intent = OpenExternalURLOptionsKey(rawValue: "intent")
     }
 }
 
