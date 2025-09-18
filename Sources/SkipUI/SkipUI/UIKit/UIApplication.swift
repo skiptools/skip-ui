@@ -198,13 +198,13 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
                 intent = Intent(url.host(), android.net.Uri.parse("package:" + context.getPackageName()))
             } else if url.scheme == "tel" {
                 intent = Intent(Intent.ACTION_DIAL, uri)
-            } else if url.scheme == "sms" {
+            } else if url.scheme == "sms" || url.scheme == "mailto" {
                 intent = Intent(Intent.ACTION_SENDTO, uri)
             } else {
                 intent = Intent(Intent.ACTION_VIEW, uri)
             }
             for (key, value) in options {
-                if key.rawValue == "intent" { continue }
+                if key.rawValue == OpenExternalURLOptionsKey.intent.rawValue { continue }
                 if let valueString = value as? String {
                     intent.putExtra(key.rawValue, valueString)
                 }
