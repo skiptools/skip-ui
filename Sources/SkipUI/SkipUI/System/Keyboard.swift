@@ -22,13 +22,10 @@ struct KeyboardDismissingNestedScrollConnection: NestedScrollConnection {
     override func onPreScroll(available: Offset, source: NestedScrollSource) -> Offset {
         if source == NestedScrollSource.Drag {
             let keyboardIsVisible = imeInsets.getBottom(density) > 0
-            android.util.Log.e("", "KEYBOARD IS VISIBLE: \(keyboardIsVisible)") //~~~
             if keyboardIsVisible {
                 keyboardController.value?.hide()
                 focusManager.value?.clearFocus()
             }
-        } else {
-            android.util.Log.e("", "NOT A DRAG") //~~~
         }
         return Offset.Zero
     }
