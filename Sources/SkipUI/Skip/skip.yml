@@ -19,20 +19,13 @@ settings:
                 - 'version("androidx-lifecycle-process", "2.9.2")'
                 - 'version("androidx-material3-adaptive", "1.1.0")'
 
-                # The androidx-compose-bom version is inherited from skip-model's skip.yml
-                #- 'version("androidx-compose-bom", "2025.08.00")'
-                #- 'library("androidx-compose-bom", "androidx.compose", "compose-bom").versionRef("androidx-compose-bom")'
-
-                #  beta version of androidx.compose.material3 needed for backDismissDisabled()
-                #- 'library("androidx-compose-material3", "androidx.compose.material3", "material3").withoutVersion()'
-                - 'library("androidx-compose-material3", "androidx.compose.material3", "material3").version("1.4.0-rc01")'
-
                 # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
                 - 'library("androidx-core-ktx", "androidx.core", "core-ktx").withoutVersion()'
                 - 'library("androidx-compose-ui", "androidx.compose.ui", "ui").withoutVersion()'
                 - 'library("androidx-compose-ui-tooling", "androidx.compose.ui", "ui-tooling").withoutVersion()'
                 - 'library("androidx-compose-animation", "androidx.compose.animation", "animation").withoutVersion()'
                 - 'library("androidx-compose-material", "androidx.compose.material", "material").withoutVersion()'
+                - 'library("androidx-compose-material3", "androidx.compose.material3", "material3").withoutVersion()'
                 - 'library("androidx-compose-material-icons-extended", "androidx.compose.material", "material-icons-extended").withoutVersion()'
                 - 'library("androidx-compose-foundation", "androidx.compose.foundation", "foundation").withoutVersion()'
                 - 'library("androidx-appcompat", "androidx.appcompat", "appcompat").versionRef("androidx-appcompat")'
