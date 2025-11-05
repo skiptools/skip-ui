@@ -3,7 +3,7 @@
 #if SKIP
 import android.content.Context
 import android.content.ContextWrapper
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -95,9 +95,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 @Composable func launchUIApplicationActivity() {
     // Modern Skip projects will set the launch activity in Main.kt. This function exists for older projects
     var context: Context? = LocalContext.current
-    var activity: AppCompatActivity? = nil
+    var activity: ComponentActivity? = nil
     while context != nil {
-        if let a = context as? AppCompatActivity {
+        if let a = context as? ComponentActivity {
             activity = a
             break
         } else if let w = context as? ContextWrapper {
