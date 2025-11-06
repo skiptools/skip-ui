@@ -3,8 +3,8 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
@@ -33,7 +33,7 @@ extension View {
     public func onOpenURL(perform action: @escaping (URL) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { context in
-            guard let activity = LocalContext.current as? AppCompatActivity else {
+            guard let activity = LocalContext.current as? ComponentActivity else {
                 return ComposeResult.ok
             }
             let newIntent = remember { mutableStateOf<Intent?>(nil) }

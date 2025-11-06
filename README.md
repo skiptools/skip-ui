@@ -2,6 +2,28 @@
 
 SwiftUI support for [Skip](https://skip.tools) apps.
 
+## Setup
+
+To include this framework in your project, add the following
+dependency to your `Package.swift` file:
+
+```swift
+let package = Package(
+    name: "my-package",
+    products: [
+        .library(name: "MyProduct", targets: ["MyTarget"]),
+    ],
+    dependencies: [
+        .package(url: "https://source.skip.tools/skip-ui.git", from: "1.0.0"),
+    ],
+    targets: [
+        .target(name: "MyTarget", dependencies: [
+            .product(name: "SkipUI", package: "skip-ui")
+        ])
+    ]
+)
+```
+
 ## About SkipUI
 
 SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI for Kotlin on Android using Jetpack Compose. Its goal is to mirror as much of SwiftUI as possible, allowing Skip developers to use SwiftUI with confidence.

@@ -11,10 +11,10 @@ import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.registerForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -51,7 +51,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     /// This API mirrors `ProcessInfo.androidContext` for the application context.
     ///
     // SKIP @bridge
-    public private(set) var androidActivity: androidx.appcompat.app.AppCompatActivity? {
+    public private(set) var androidActivity: androidx.activity.ComponentActivity? {
         get {
             let activity = androidActivityReference?.get()
             return activity?.isDestroyed == false ? activity : nil
@@ -67,12 +67,12 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             }
         }
     }
-    private var androidActivityReference: WeakReference<androidx.appcompat.app.AppCompatActivity>?
+    private var androidActivityReference: WeakReference<androidx.activity.ComponentActivity>?
 
     /// Setup the Android main activity.
     ///
     /// This API mirrors `ProcessInfo.launch` for the application context.
-    public static func launch(_ activity: androidx.appcompat.app.AppCompatActivity) {
+    public static func launch(_ activity: androidx.activity.ComponentActivity) {
         if activity !== shared.androidActivity {
             shared.androidActivity = activity
 
