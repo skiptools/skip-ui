@@ -56,6 +56,8 @@ import struct CoreGraphics.CGSize
 public struct Image : View, Renderable, Equatable {
     let image: ImageType
     var resizingMode: ResizingMode?
+    // SKIP @bridge
+    public var templateRenderingMode: TemplateRenderingMode?
     let scale = 1.0
 
     enum ImageType : Equatable {
@@ -117,9 +119,9 @@ public struct Image : View, Renderable, Equatable {
         Box(modifier: context.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
             switch image {
             case .bitmap(let bitmap, let scale):
-                RenderBitmap(bitmap: bitmap, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+                RenderBitmap(bitmap: bitmap, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
             case .painter(let painter, let scale):
-                RenderPainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1)
+                RenderPainter(painter: painter, scale: scale, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
             case .system(let systemName):
                 RenderSystem(systemName: systemName, aspectRatio: aspect?.0, contentMode: aspect?.1, context: context)
             case .named(let name, let bundle, let label):
@@ -151,10 +153,13 @@ public struct Image : View, Renderable, Equatable {
             .diskCacheKey(url.description)
             .build()
 
-        let tintColor = asset.isTemplateImage ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
+        let shouldTint = (templateRenderingMode == .template) || (templateRenderingMode == nil && asset.isTemplateImage)
+        let tintColor = shouldTint ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
+
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
+
         }, success: { state in
-            RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
+            RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }, error: { state in
         })
     }
@@ -312,16 +317,22 @@ public struct Image : View, Renderable, Equatable {
         }
     }
 
-    @Composable private func RenderBitmap(bitmap: Bitmap, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func RenderBitmap(bitmap: Bitmap, scale: CGFloat, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let imageBitmap = bitmap.asImageBitmap()
         let painter = BitmapPainter(imageBitmap)
-        RenderPainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode)
+        RenderPainter(painter: painter, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
     }
 
-    @Composable private func RenderPainter(painter: Painter, scale: CGFloat = 1.0, tintColor: androidx.compose.ui.graphics.Color? = nil, aspectRatio: Double?, contentMode: ContentMode?) {
+    @Composable private func RenderPainter(painter: Painter, scale: CGFloat = 1.0, tintColor: androidx.compose.ui.graphics.Color? = nil, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let isPlaceholder = EnvironmentValues.shared.redactionReasons.contains(.placeholder)
         let colorFilter: ColorFilter?
-        if let tintColor {
+
+        var templateColor: androidx.compose.ui.graphics.Color?
+        if self.templateRenderingMode == .template {
+            templateColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context)
+        }
+
+        if let tintColor = tintColor ?? templateColor {
             colorFilter = isPlaceholder ? placeholderColorFilter(color: tintColor.copy(alpha: Float(Color.placeholderOpacity))) : ColorFilter.tint(tintColor)
         } else if isPlaceholder {
             colorFilter = placeholderColorFilter(color: Color.placeholder.colorImpl())
@@ -371,7 +382,7 @@ public struct Image : View, Renderable, Equatable {
         switch resizingMode {
         case .stretch:
             let painter = rememberVectorPainter(image)
-            RenderPainter(painter: painter, tintColor: tintColor, aspectRatio: aspectRatio, contentMode: contentMode)
+            RenderPainter(painter: painter, tintColor: tintColor, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         default: // TODO: .tile
             let textStyle = EnvironmentValues.shared.font?.fontImpl() ?? LocalTextStyle.current
             var modifier: Modifier
@@ -386,9 +397,15 @@ public struct Image : View, Renderable, Equatable {
             }
             let isPlaceholder = EnvironmentValues.shared.redactionReasons.contains(RedactionReasons.placeholder)
             if isPlaceholder {
-                modifier = modifier.paint(ColorPainter(tintColor.copy(alpha: Float(Color.placeholderOpacity))))
+                let placeholderColor = tintColor ?? Color.primary.colorImpl()
+                modifier = modifier.paint(ColorPainter(placeholderColor.copy(alpha: Float(Color.placeholderOpacity))))
             }
-            Icon(imageVector: image, contentDescription: name, modifier: modifier, tint: isPlaceholder ? androidx.compose.ui.graphics.Color.Transparent : tintColor)
+            let iconTint = if isPlaceholder {
+                androidx.compose.ui.graphics.Color.Transparent
+            } else {
+                tintColor ?? Color.primary.colorImpl()
+            }
+            Icon(imageVector: image, contentDescription: name, modifier: modifier, tint: iconTint)
         }
     }
 
@@ -789,14 +806,17 @@ public struct Image : View, Renderable, Equatable {
         case high
     }
 
+    // SKIP @bridge
     public enum TemplateRenderingMode : Hashable {
         case template
         case original
     }
 
-    @available(*, unavailable)
+    // SKIP @bridge
     public func renderingMode(_ renderingMode: TemplateRenderingMode?) -> Image {
-        return self
+        var image = self
+        image.templateRenderingMode = renderingMode
+        return image
     }
 
     public enum Orientation : UInt8, CaseIterable, Hashable {
