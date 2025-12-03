@@ -5,7 +5,6 @@
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.snap
@@ -141,7 +140,6 @@ public struct VStack : View, Renderable {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable private func RenderAnimatedContent(context: ComposeContext, modifier: Modifier, arguments: AnimatedContentArguments, columnAlignment: androidx.compose.ui.Alignment.Horizontal, columnArrangement: Arrangement.Vertical, adaptiveSpacing: Bool, layoutImplementationVersion: Int) {
         AnimatedContent(modifier: modifier, targetState: arguments.renderables, transitionSpec: {
             EnterTransition.None.togetherWith(ExitTransition.None).using(SizeTransform(clip: false) { initialSize, targetSize in

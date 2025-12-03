@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonColors
@@ -143,7 +142,6 @@ public final class Picker<SelectionValue> : View, Renderable {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func RenderSegmentedValue(context: ComposeContext) {
         let (_, tagged) = processPickerContent(content: content, selection: selection, context: context, requireTaggedRenderables: true)
         let selectedIndex = tagged?.indexOfFirst { TagModifier.on(content: $0, role: .tag)?.value == selection.wrappedValue } ?? -1

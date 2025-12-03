@@ -3,7 +3,6 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.invisibleToUser
@@ -22,7 +21,6 @@ import struct CoreGraphics.CGPoint
 
 extension View {
     // SKIP @bridge
-    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityIdentifier(_ identifier: String, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {
@@ -311,7 +309,6 @@ extension View {
     }
 
     // SKIP @bridge
-    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     public func accessibilityHidden(_ hidden: Bool, isEnabled: Bool = true) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier(role: .accessibility) {

@@ -12,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
@@ -106,7 +105,6 @@ public enum SearchToolbarBehavior: Hashable {
 let searchFieldHeight = 56.0
 
 /// Renders a search field.
-// SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SearchField(state: SearchableState, context: ComposeContext) {
     let textEnvironment = EnvironmentValues.shared._textEnvironment
     let redaction = EnvironmentValues.shared.redactionReasons

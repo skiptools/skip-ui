@@ -159,7 +159,6 @@ public struct DatePicker : View, Renderable {
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable private func RenderDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, dateSelected: (Date) -> Void) {
         guard isPresented.value else {
             return

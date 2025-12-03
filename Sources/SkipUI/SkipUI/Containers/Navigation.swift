@@ -62,7 +62,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
@@ -130,7 +129,6 @@ public struct NavigationStack : View, Renderable {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
     @Composable public override func Render(context: ComposeContext) {
         // Have to use rememberSaveable for e.g. a nav stack in each tab
         let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>) { mutableStateOf(Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self))
@@ -602,7 +600,6 @@ struct NavigationDestination {
     }
 }
 
-// SKIP INSERT: @OptIn(ExperimentalComposeUiApi::class)
 @Stable final class Navigator {
     /// Route for the root of the navigation stack.
     static let rootRoute = "navigationroot"

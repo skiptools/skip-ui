@@ -6,7 +6,6 @@ import Foundation
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -107,7 +106,6 @@ public struct DisclosureGroup : View, Renderable {
         return listOf(self) + renderables
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalAnimationApi::class)
     @Composable override func Render(context: ComposeContext) {
         let columnArrangement = Arrangement.spacedBy(8.dp, alignment: androidx.compose.ui.Alignment.CenterVertically)
         let contentContext = context.content()
