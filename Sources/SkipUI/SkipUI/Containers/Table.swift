@@ -3,7 +3,6 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -70,7 +69,6 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
         }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
     @Composable private func RenderTable(context: ComposeContext, headerSafeAreaHeight: Dp, footerSafeAreaHeight: Dp) {
         // Collect all top-level views to compose. The LazyColumn itself is not a composable context, so we have to gather
         // our content before entering the LazyColumn body, then use LazyColumn's LazyListScope functions to compose

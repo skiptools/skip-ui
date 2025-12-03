@@ -14,7 +14,6 @@ import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.RippleConfiguration
@@ -307,7 +306,6 @@ extension View {
     }
 
     public func material3Ripple(_ options: @Composable (Material3RippleOptions?) -> Material3RippleOptions?) -> View {
-        // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let rippleConfiguration = LocalRippleConfiguration.current
             let rippleOptions: Material3RippleOptions?
@@ -379,7 +377,6 @@ public struct Material3RippleOptions {
         self.rippleAlpha = rippleAlpha
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     init(configuration: RippleConfiguration) {
         self.color = configuration.color
         self.rippleAlpha = configuration.rippleAlpha
@@ -392,7 +389,6 @@ public struct Material3RippleOptions {
         return Material3RippleOptions(color: color, rippleAlpha: rippleAlpha)
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     func asConfiguration() -> RippleConfiguration {
         return RippleConfiguration(color: color, rippleAlpha: rippleAlpha)
     }

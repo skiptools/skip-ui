@@ -5,7 +5,6 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,7 +39,6 @@ public struct TextEditor : View, Renderable {
 //    }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let textEnvironment = EnvironmentValues.shared._textEnvironment

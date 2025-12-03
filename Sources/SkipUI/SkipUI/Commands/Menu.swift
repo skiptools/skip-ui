@@ -3,7 +3,6 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
@@ -88,7 +87,6 @@ public final class Menu : View, Renderable {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalFoundationApi::class)
     @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let isEnabled = EnvironmentValues.shared.isEnabled

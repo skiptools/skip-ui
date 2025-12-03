@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -415,7 +414,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "font", value: newValue, defaultValue: { nil }) }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
     public var horizontalSizeClass: UserInterfaceSizeClass? {
         UserInterfaceSizeClass.fromWindowWidthSizeClass(currentWindowAdaptiveInfo().windowSizeClass.windowWidthSizeClass)
     }
@@ -497,7 +495,6 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3AdaptiveApi::class)
     public var verticalSizeClass: UserInterfaceSizeClass? {
         UserInterfaceSizeClass.fromWindowHeightSizeClass(currentWindowAdaptiveInfo().windowSizeClass.windowHeightSizeClass)
     }

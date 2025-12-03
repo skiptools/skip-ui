@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -98,7 +97,6 @@ public struct TextField : View, Renderable {
     }
 
     #if SKIP
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
         let textEnvironment = EnvironmentValues.shared._textEnvironment
@@ -139,7 +137,6 @@ public struct TextField : View, Renderable {
         return enabled ? color : color.copy(alpha: ContentAlpha.disabled)
     }
 
-    // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
     @Composable static func colors(styleInfo: TextStyleInfo, outline: Color? = nil) -> TextFieldColors {
         let textColor = textColor(styleInfo: styleInfo, enabled: true)
         let disabledTextColor = textColor(styleInfo: styleInfo, enabled: false)
