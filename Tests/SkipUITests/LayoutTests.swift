@@ -41,6 +41,30 @@ final class LayoutTests: XCSnapshotTestCase {
         """)
     }
 
+    func testViewThatFitsChoosesFirstFittingCandidate() throws {
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 12.0)
+            ViewThatFits {
+                // The empty view should be ignored by SkipUI's ViewThatFits implementation.
+                EmptyView()
+                Color.white.frame(width: 4.0, height: 4.0)
+            }
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . .         . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
     func testRenderWhiteSquare() throws {
         XCTAssertEqual(try render(compact: 1, view: Color.white.frame(width: 4.0, height: 4.0)).pixmap, """
         F F F F
