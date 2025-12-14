@@ -241,6 +241,8 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let borderedProminent = ButtonStyle(rawValue: 4) // For bridging
     @available(*, unavailable)
     public static let glass = ButtonStyle(rawValue: 5) // For bridging
+    @available(*, unavailable)
+    public static let glassProminent = ButtonStyle(rawValue: 6) // For bridging
 }
 
 public enum ButtonRepeatBehavior : Hashable {
