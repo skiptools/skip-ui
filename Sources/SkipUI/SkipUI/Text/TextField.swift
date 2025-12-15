@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
@@ -118,12 +119,16 @@ public struct TextField : View, Renderable {
         if currentTextFieldValue.text != currentText {
             currentTextFieldValue = defaultTextFieldValue
         }
+
+        let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
+        let alignedTextStyle = animatable.value.merge(TextStyle(textAlign: textAlign))
+        
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: {
             textFieldValue.value = $0
             text.wrappedValue = $0.text
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), textStyle: animatable.value, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
+        }, modifier: context.modifier.fillWidth(), textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
@@ -164,7 +169,9 @@ public struct TextField : View, Renderable {
         guard let prompt else {
             return
         }
+        
         EnvironmentValues.shared.setValues {
+            $0.set_material3Text { options in options.copy(modifier: options.modifier.fillMaxWidth()) }
             $0.set_foregroundStyle(Color(colorImpl: { Color.primary.colorImpl().copy(alpha: ContentAlpha.disabled) }))
             return ComposeResult.ok
         } in: {
