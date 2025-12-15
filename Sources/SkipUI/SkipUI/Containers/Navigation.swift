@@ -907,6 +907,33 @@ struct NavigationDestination {
     }
 }
 
+struct NavigationDestinationItemWrapper<D: Hashable>: View {
+    @Environment(\.dismiss) var dismiss
+    let item: Binding<D?>
+    let isBeingDismissedByNavigator: MutableState<Bool>
+    let navigationId: MutableState<String?>
+    let destination: (D) -> any View
+    
+    var body: some View {
+        Group {
+            if let itemValue = item.wrappedValue {
+                destination(itemValue)
+            } else {
+                EmptyView()
+            }
+        }
+        .onChange(of: item.wrappedValue, initial: true) { oldValue, newValue in
+            if newValue == nil {
+                if !isBeingDismissedByNavigator.value {
+                    dismiss()
+                }
+                navigationId.value = nil
+            }
+            isBeingDismissedByNavigator.value = false
+        }
+    }
+}
+
 let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
 
@@ -1011,9 +1038,55 @@ extension View {
         return navigationDestination(isPresented: Binding(get: getIsPresented, set: setIsPresented), destination: { bridgedDestination })
     }
 
-    @available(*, unavailable)
-    public func navigationDestination<D, C>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D : Hashable {
+    public func navigationDestination<D>(item: Binding<D?>, @ViewBuilder destination: @escaping (D) -> any View) -> some View where D : Hashable {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SideEffectModifier { context in
+            let id = rememberSaveable(stateSaver: context.stateSaver as! Saver<String?, Any>) { mutableStateOf<String?>(nil) }
+            let isBeingDismissedByNavigator = remember { mutableStateOf(false) }
+            guard let navigator = LocalNavigator.current else {
+                return ComposeResult.ok
+            }
+            
+            if let itemValue = item.wrappedValue {
+                let isPresented = id.value != nil ? navigator.isViewPresented(id: id.value!) : false
+                if id.value == nil || !isPresented {
+                    var consumed = false
+                    let binding = Binding<Bool>(
+                        get: { item.wrappedValue != nil },
+                        set: {
+                            if !$0 {
+                                if !consumed {
+                                    consumed = true
+                                    isBeingDismissedByNavigator.value = true
+                                    item.wrappedValue = nil
+                                }
+                            }
+                        }
+                    )
+                    let destinationView = NavigationDestinationItemWrapper(item: item, isBeingDismissedByNavigator: isBeingDismissedByNavigator, navigationId: id, destination: destination)
+                    let newId = navigator.navigateToView(destinationView, binding: binding)
+                    id.value = newId
+                }
+            } else {
+                if let idValue = id.value, navigator.isViewPresented(id: idValue, asTop: true) {
+                    navigator.navigateBack()
+                }
+                id.value = nil
+            }
+            return ComposeResult.ok
+        })
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func navigationDestination(getItem: @escaping () -> Any?, setItem: @escaping (Any?) -> Void, bridgedDestination: @escaping (Any) -> any View) -> any View {
+        let binding: Binding<AnyHashable?> = Binding(
+            get: { getItem() as? AnyHashable },
+            set: { setItem($0) }
+        )
+        return navigationDestination(item: binding, destination: bridgedDestination)
     }
 
     @available(*, unavailable)
