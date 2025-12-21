@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -98,86 +100,89 @@ let overlayPresentationCornerRadius = 16.0
         let onDismissRequest = {
             isPresented.set(false)
         }
-        let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
-        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
-            let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
-            let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
-            let sheetDepth = EnvironmentValues.shared._sheetDepth
-            var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
+        let dark = MaterialTheme.colorScheme.background.luminance() < 0.5
+        key(dark) {
+            let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled, isAppearanceLightStatusBars = !dark, isAppearanceLightNavigationBars = !dark)
+            ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+                let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
+                let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
+                let sheetDepth = EnvironmentValues.shared._sheetDepth
+                var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
 
-            let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
-            let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
-            let reducedDetentPreferences = detentPreferences.value.reduced
+                let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
+                let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
+                let reducedDetentPreferences = detentPreferences.value.reduced
 
-            if !isFullScreen && verticalSizeClass != .compact {
-                systemBarEdges.remove(.top)
-                if !isEdgeToEdge {
+                if !isFullScreen && verticalSizeClass != .compact {
+                    systemBarEdges.remove(.top)
+                    if !isEdgeToEdge {
+                        systemBarEdges.remove(.bottom)
+                    }
+
+                    // TODO: add custom cases
+                    // Add inset depending on the presentation detent
+                    let inset: Dp
+                    let screenHeight = LocalConfiguration.current.screenHeightDp.dp
+                    let detent: PresentationDetent = reducedDetentPreferences.detent
+                    switch detent {
+                    case .medium:
+                        inset = screenHeight / 2
+                    case let .height(h):
+                        inset = screenHeight - h.dp
+                    case let .fraction(f):
+                        inset = screenHeight * Float(1 - f)
+                    default:
+                        // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
+                        let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                        // Add 44 for draggable area in case content is not draggable
+                        inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
+                    }
+
+                    topInset.value = inset
+                    // Draw the drag handle and the presentation root content area below it
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
+                    Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
+                        Capsule().fill(Color.primary.opacity(0.4)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
+                    }
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handlePadding))
+                } else if !isEdgeToEdge {
+                    systemBarEdges.remove(.top)
                     systemBarEdges.remove(.bottom)
+                    let inset = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                    topInset.value = inset
+                    // Push the presentation root content area below the top bar
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+                } else {
+                    topInset.value = 0.dp
                 }
 
-                // TODO: add custom cases
-                // Add inset depending on the presentation detent
-                let inset: Dp
-                let screenHeight = LocalConfiguration.current.screenHeightDp.dp
-                let detent: PresentationDetent = reducedDetentPreferences.detent
-                switch detent {
-                case .medium:
-                    inset = screenHeight / 2
-                case let .height(h):
-                    inset = screenHeight - h.dp
-                case let .fraction(f):
-                    inset = screenHeight * Float(1 - f)
-                default:
-                    // We have to delay access to WindowInsets until inside the ModalBottomSheet composable to get accurate values
-                    let topBarHeight = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                    // Add 44 for draggable area in case content is not draggable
-                    inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
-                }
-
-                topInset.value = inset
-                // Draw the drag handle and the presentation root content area below it
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
-                Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
-                    Capsule().fill(Color.primary.opacity(0.4)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
-                }
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handlePadding))
-            } else if !isEdgeToEdge {
-                systemBarEdges.remove(.top)
-                systemBarEdges.remove(.bottom)
-                let inset = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                topInset.value = inset
-                // Push the presentation root content area below the top bar
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
-            } else {
-                topInset.value = 0.dp
-            }
-
-            let clipShape = RoundedCornerShape(topStart: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp, topEnd: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp)
-            Box(modifier: Modifier.weight(Float(1.0)).clip(clipShape).nestedScroll(DisableScrollToDismissConnection())) {
-                // Place outside of PresentationRoot recomposes
-                let stateSaver = remember { ComposeStateSaver() }
-                let presentationContext = context.content(stateSaver: stateSaver)
-                // Place inside of ModalBottomSheet, which renders content async
-                PresentationRoot(context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
-                    EnvironmentValues.shared.setValues {
-                        if !isFullScreen {
-                            $0.set_sheetDepth(sheetDepth + 1)
-                        }
-                        $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
-                        return ComposeResult.ok
-                    } in: {
-                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
-                            for renderable in contentRenderables {
-                                renderable.Render(context: context)
+                let clipShape = RoundedCornerShape(topStart: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp, topEnd: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp)
+                Box(modifier: Modifier.weight(Float(1.0)).clip(clipShape).nestedScroll(DisableScrollToDismissConnection())) {
+                    // Place outside of PresentationRoot recomposes
+                    let stateSaver = remember { ComposeStateSaver() }
+                    let presentationContext = context.content(stateSaver: stateSaver)
+                    // Place inside of ModalBottomSheet, which renders content async
+                    PresentationRoot(context: presentationContext, absoluteSystemBarEdges: systemBarEdges) { context in
+                        EnvironmentValues.shared.setValues {
+                            if !isFullScreen {
+                                $0.set_sheetDepth(sheetDepth + 1)
+                            }
+                            $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
+                            return ComposeResult.ok
+                        } in: {
+                            PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
+                                for renderable in contentRenderables {
+                                    renderable.Render(context: context)
+                                }
                             }
                         }
                     }
                 }
-            }
-            if !isEdgeToEdge {
-                // Move the presentation root content area above the bottom bar
-                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+                if !isEdgeToEdge {
+                    // Move the presentation root content area above the bottom bar
+                    let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                    androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
+                }
             }
         }
     }
