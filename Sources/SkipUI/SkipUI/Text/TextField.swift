@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -31,35 +32,38 @@ import androidx.compose.ui.text.input.VisualTransformation
 // SKIP @bridge
 public struct TextField : View, Renderable {
     let text: Binding<String>
+    let selection: Binding<TextSelection?>?
     let label: ComposeBuilder
     let prompt: Text?
     let isSecure: Bool
 
-    public init(text: Binding<String>, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
         self.text = text
+        self.selection = selection
         self.label = ComposeBuilder.from(label)
         self.prompt = prompt
         self.isSecure = isSecure
     }
 
     // SKIP @bridge
-    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, prompt: Text?, isSecure: Bool, bridgedLabel: any View) {
+    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, getSelection: @escaping () -> TextSelection?, setSelection: @escaping (TextSelection?) -> Void, prompt: Text?, isSecure: Bool, bridgedLabel: any View) {
         self.text = Binding(get: getText, set: setText)
+        self.selection = Binding(get: getSelection, set: setSelection)
         self.label = ComposeBuilder.from { bridgedLabel }
         self.prompt = prompt
         self.isSecure = isSecure
     }
 
-    public init(_ title: String, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(verbatim: title) })
+    public init(_ title: String, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
+        self.init(text: text, selection: selection, prompt: prompt, label: { Text(verbatim: title) })
     }
 
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(titleKey) })
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
+        self.init(text: text, selection: selection, prompt: prompt, label: { Text(titleKey) })
     }
 
-    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, prompt: Text? = nil) {
-        self.init(text: text, prompt: prompt, label: { Text(titleResource) })
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
+        self.init(text: text, selection: selection, prompt: prompt, label: { Text(titleResource) })
     }
 
     @available(*, unavailable)
@@ -107,25 +111,40 @@ public struct TextField : View, Renderable {
         let colors = Self.colors(styleInfo: styleInfo)
         let keyboardOptions = isSecure ? KeyboardOptions(keyboardType = KeyboardType.Password) : EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
-
+        
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
+        
         let currentText = text.wrappedValue
-        let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
+        let currentSelection = selection?.wrappedValue?.asComposeTextRange()
+        let defaultTextFieldValue = TextFieldValue(text: currentText)
         let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
-        var currentTextFieldValue = textFieldValue.value
-        // If the text has been updated externally, use the default value for the current text,
-        // which also places the cursor at the end. This mimics SwiftUI behavior for external modifications,
-        // such as when applying formatting to the user input
-        if currentTextFieldValue.text != currentText {
-            currentTextFieldValue = defaultTextFieldValue
+        
+        LaunchedEffect(currentText) {
+            var value = textFieldValue.value
+            if (value.text != currentText) {
+                let selection = currentSelection ?? TextRange(currentText.count)
+                textFieldValue.value = TextFieldValue(text = currentText, selection = selection)
+            }
         }
-
+        
+        LaunchedEffect(currentSelection) {
+            guard let currentSelection = currentSelection else { return }
+            var value = textFieldValue.value
+            if (value.selection != currentSelection) {
+                textFieldValue.value = value.copy(selection = currentSelection)
+            }
+        }
+        
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let alignedTextStyle = animatable.value.merge(TextStyle(textAlign: textAlign))
         
-        var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: {
-            textFieldValue.value = $0
-            text.wrappedValue = $0.text
+        var options = Material3TextFieldOptions(value: textFieldValue.value, onValueChange: { value in
+            text.wrappedValue = value.text
+            selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
+            
+            let currentText = text.wrappedValue
+            let currentSelection = selection?.wrappedValue?.asComposeTextRange() ?? value.selection
+            textFieldValue.value = TextFieldValue(text: currentText, selection: currentSelection)
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
         }, modifier: context.modifier.fillWidth(), textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
