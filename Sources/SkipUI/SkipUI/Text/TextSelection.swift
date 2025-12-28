@@ -31,7 +31,7 @@ public struct TextSelection : Equatable, Hashable {
     }
     
     public static func == (lhs: TextSelection, rhs: TextSelection) -> Bool {
-        return lhs.indices == rhs.indices
+        return false
     }
     
     #if SKIP
