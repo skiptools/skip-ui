@@ -121,16 +121,15 @@ public struct TextField : View, Renderable {
         
         LaunchedEffect(currentText) {
             var value = textFieldValue.value
-            if (value.text != currentText) {
+            if value.text != currentText {
                 let selection = currentSelection ?? TextRange(currentText.count)
                 textFieldValue.value = TextFieldValue(text = currentText, selection = selection)
             }
         }
         
         LaunchedEffect(currentSelection) {
-            guard let currentSelection = currentSelection else { return }
             var value = textFieldValue.value
-            if (value.selection != currentSelection) {
+            if let currentSelection = currentSelection, value.selection != currentSelection {
                 textFieldValue.value = value.copy(selection = currentSelection)
             }
         }
