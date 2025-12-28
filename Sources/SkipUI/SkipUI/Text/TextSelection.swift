@@ -7,23 +7,27 @@ import androidx.compose.ui.text.TextRange
 #endif
 
 // SKIP @bridge
-public struct TextSelection: Equatable, Hashable {
+public struct TextSelection : Equatable, Hashable {
+    public enum Indices : Equatable, Hashable {
+        case selection(Range<String.Index>)
+    }
     
     public var indices: TextSelection.Indices
     
+    public var affinity: TextSelectionAffinity {
+        return .automatic
+    }
+    
+    public let isInsertion: Bool
+    
     public init(range: Range<String.Index>) {
-        self.indices = Indices.selection(range)
+        self.indices = .selection(range)
+        self.isInsertion = false
     }
     
     public init(insertionPoint: String.Index) {
-        self.init(range: insertionPoint..<insertionPoint)
-    }
-    
-    public enum Indices : Equatable, Hashable {
-        case selection(Range<String.Index>)
-        public static func == (lhs: Indices, rhs: Indices) -> Bool {
-            return false
-        }
+        self.indices = .selection(insertionPoint..<insertionPoint)
+        self.isInsertion = true
     }
     
     public static func == (lhs: TextSelection, rhs: TextSelection) -> Bool {
@@ -31,7 +35,7 @@ public struct TextSelection: Equatable, Hashable {
     }
     
     #if SKIP
-
+    
     /// Return the equivalent Compose text range.
     public func asComposeTextRange() -> TextRange {
         switch self.indices {
@@ -39,8 +43,14 @@ public struct TextSelection: Equatable, Hashable {
             return TextRange(range.lowerBound, range.upperBound)
         }
     }
-
+    
     #endif
+}
+
+public enum TextSelectionAffinity : Equatable, Hashable {
+    case automatic
+    case upstream
+    case downstream
 }
 
 #endif
