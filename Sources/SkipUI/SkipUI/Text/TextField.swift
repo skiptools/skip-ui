@@ -13,7 +13,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -111,33 +110,30 @@ public struct TextField : View, Renderable {
         let colors = Self.colors(styleInfo: styleInfo)
         let keyboardOptions = isSecure ? KeyboardOptions(keyboardType = KeyboardType.Password) : EnvironmentValues.shared._keyboardOptions ?? KeyboardOptions.Default
         let keyboardActions = KeyboardActions(EnvironmentValues.shared._onSubmitState, LocalFocusManager.current)
-        
         let visualTransformation = isSecure ? PasswordVisualTransformation() : VisualTransformation.None
         
         let currentText = text.wrappedValue
         let currentSelection = selection?.wrappedValue?.asComposeTextRange()
-        let defaultTextFieldValue = TextFieldValue(text: currentText)
+        let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
         let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
+        var currentTextFieldValue = textFieldValue.value
         
-        LaunchedEffect(currentText) {
-            var value = textFieldValue.value
-            if value.text != currentText {
-                let selection = currentSelection ?? TextRange(currentText.count)
-                textFieldValue.value = TextFieldValue(text = currentText, selection = selection)
-            }
+        // If the text has been updated externally, use the default value for the current text,
+        // which also places the cursor at the end. This mimics SwiftUI behavior for external modifications,
+        // such as when applying formatting to the user input.
+        if currentTextFieldValue.text != currentText {
+            currentTextFieldValue = defaultTextFieldValue
         }
         
-        LaunchedEffect(currentSelection) {
-            var value = textFieldValue.value
-            if let currentSelection = currentSelection, value.selection != currentSelection {
-                textFieldValue.value = value.copy(selection = currentSelection)
-            }
+        // If the selection has been updated externally, update just the selection value.
+        if let currentSelection, currentTextFieldValue.selection != currentSelection {
+            currentTextFieldValue = currentTextFieldValue.copy(selection = currentSelection)
         }
         
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let alignedTextStyle = animatable.value.merge(TextStyle(textAlign: textAlign))
         
-        var options = Material3TextFieldOptions(value: textFieldValue.value, onValueChange: { value in
+        var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             
