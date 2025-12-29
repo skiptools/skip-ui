@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.sp
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -250,9 +251,8 @@ public struct Text: View, Renderable, Equatable {
         return self
     }
 
-    @available(*, unavailable)
     public func tracking(_ tracking: CGFloat) -> Text {
-        return self
+        return Text(textView: textView, modifiedView: modifiedView.tracking(tracking))
     }
 
     @available(*, unavailable)
@@ -433,6 +433,9 @@ struct _Text: View, Renderable, Equatable {
             }
             options = Material3TextOptions(text: text, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         }
+        if let tracking = textEnvironment.tracking {
+            options = options.copy(letterSpacing: tracking.sp)
+        }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
         }
@@ -543,6 +546,7 @@ struct TextEnvironment: Equatable {
     var isUnderline: Bool?
     var isStrikethrough: Bool?
     var textCase: Text.Case?
+    var tracking: CGFloat?
 
     var textDecoration: TextDecoration? {
         if isUnderline == true, isStrikethrough == true {
@@ -798,9 +802,13 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func tracking(_ tracking: CGFloat) -> some View {
+    // SKIP @bridge
+    public func tracking(_ tracking: CGFloat) -> any View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.tracking = tracking }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
