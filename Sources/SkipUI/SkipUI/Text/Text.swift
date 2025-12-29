@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.TextAutoSize
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
@@ -444,13 +445,27 @@ struct _Text: View, Renderable, Equatable {
             let lineHeightEm = 1.0 + (lineSpacing / 16.0)  // Approximate: 16pt = 1em
             options = options.copy(lineHeight: lineHeightEm.em)
         }
+        if let factor = textEnvironment.minimumScaleFactor {
+            // Calculate minFontSize based on current style's fontSize
+            // TextAutoSize.StepBased finds the LARGEST font that fits, so we need to set both
+            // minFontSize (based on factor) and maxFontSize (current size) to constrain the range
+            let currentFontSize = options.style.fontSize
+            if currentFontSize != TextUnit.Unspecified {
+                let minFontSize = currentFontSize * Float(factor)
+                options = options.copy(autoSize: TextAutoSize.StepBased(minFontSize: minFontSize, maxFontSize: currentFontSize))
+            } else {
+                // Use default 14sp as base if no fontSize specified (Compose default body text size)
+                let defaultSize = 14.0.sp
+                options = options.copy(autoSize: TextAutoSize.StepBased(minFontSize: (14.0 * factor).sp, maxFontSize: defaultSize))
+            }
+        }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
         }
         if let annotatedText = options.annotatedText, let onTextLayout = options.onTextLayout {
-            androidx.compose.material3.Text(text: annotatedText, modifier: options.modifier, color: options.color, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: onTextLayout, style: options.style)
+            androidx.compose.material3.Text(text: annotatedText, modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: onTextLayout, style: options.style)
         } else {
-            androidx.compose.material3.Text(text: options.text ?? "", modifier: options.modifier, color: options.color, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: options.onTextLayout, style: options.style)
+            androidx.compose.material3.Text(text: options.text ?? "", modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: options.onTextLayout, style: options.style)
         }
     }
 
@@ -556,6 +571,7 @@ struct TextEnvironment: Equatable {
     var textCase: Text.Case?
     var tracking: CGFloat?
     var lineSpacing: CGFloat?
+    var minimumScaleFactor: CGFloat?
 
     var textDecoration: TextDecoration? {
         if isUnderline == true, isStrikethrough == true {
@@ -719,9 +735,13 @@ extension View {
         return fontDesign(isActive ? Font.Design.monospaced : nil)
     }
 
-    @available(*, unavailable)
-    public func minimumScaleFactor(_ factor: CGFloat) -> some View {
+    // SKIP @bridge
+    public func minimumScaleFactor(_ factor: CGFloat) -> any View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.minimumScaleFactor = factor }
+        #else
         return self
+        #endif
     }
 
     public func multilineTextAlignment(_ alignment: TextAlignment) -> some View {
@@ -879,6 +899,7 @@ public struct Material3TextOptions {
     public var minLines = 1
     public var onTextLayout: ((TextLayoutResult) -> Void)? = nil
     public var style: TextStyle
+    public var autoSize: TextAutoSize? = nil
 
     public func copy(
         text: String? = self.text,
@@ -898,9 +919,10 @@ public struct Material3TextOptions {
         maxLines: Int = self.maxLines,
         minLines: Int = self.minLines,
         onTextLayout: ((TextLayoutResult) -> Void)? = self.onTextLayout,
-        style: TextStyle = self.style
+        style: TextStyle = self.style,
+        autoSize: TextAutoSize? = self.autoSize
     ) -> Material3TextOptions {
-        return Material3TextOptions(text: text, annotatedText: annotatedText, modifier: modifier, color: color, fontSize: fontSize, fontStyle: fontStyle, fontWeight: fontWeight, fontFamily: fontFamily, letterSpacing: letterSpacing, textDecoration: textDecoration, textAlign: textAlign, lineHeight: lineHeight, overflow: overflow, softWrap: softWrap, maxLines: maxLines, minLines: minLines, onTextLayout: onTextLayout, style: style)
+        return Material3TextOptions(text: text, annotatedText: annotatedText, modifier: modifier, color: color, fontSize: fontSize, fontStyle: fontStyle, fontWeight: fontWeight, fontFamily: fontFamily, letterSpacing: letterSpacing, textDecoration: textDecoration, textAlign: textAlign, lineHeight: lineHeight, overflow: overflow, softWrap: softWrap, maxLines: maxLines, minLines: minLines, onTextLayout: onTextLayout, style: style, autoSize: autoSize)
     }
 }
 #endif
