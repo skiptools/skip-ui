@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
@@ -436,6 +437,13 @@ struct _Text: View, Renderable, Equatable {
         if let tracking = textEnvironment.tracking {
             options = options.copy(letterSpacing: tracking.sp)
         }
+        if let lineSpacing = textEnvironment.lineSpacing {
+            // SwiftUI lineSpacing adds extra space between lines (in points)
+            // Compose lineHeight is total height - we approximate by converting lineSpacing to em
+            // and adding to a base of 1.0em (normal line height)
+            let lineHeightEm = 1.0 + (lineSpacing / 16.0)  // Approximate: 16pt = 1em
+            options = options.copy(lineHeight: lineHeightEm.em)
+        }
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
         }
@@ -547,6 +555,7 @@ struct TextEnvironment: Equatable {
     var isStrikethrough: Bool?
     var textCase: Text.Case?
     var tracking: CGFloat?
+    var lineSpacing: CGFloat?
 
     var textDecoration: TextDecoration? {
         if isUnderline == true, isStrikethrough == true {
@@ -692,9 +701,13 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func lineSpacing(_ lineSpacing: CGFloat) -> some View {
+    // SKIP @bridge
+    public func lineSpacing(_ lineSpacing: CGFloat) -> any View {
+        #if SKIP
+        return textEnvironment(for: self) { $0.lineSpacing = lineSpacing }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
