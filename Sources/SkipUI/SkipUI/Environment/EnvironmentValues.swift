@@ -318,6 +318,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: scrollDismissesKeyboardMode.rawValue)
         case "timeZone":
             return EnvironmentSupport(builtinValue: timeZone.identifier)
+        case "truncationMode":
+            return EnvironmentSupport(builtinValue: truncationMode?.rawValue)
         case "verticalSizeClass":
             return EnvironmentSupport(builtinValue: verticalSizeClass?.rawValue)
         default:
@@ -375,6 +377,11 @@ extension EnvironmentValues {
         case "timeZone":
             if let identifier = value?.builtinValue as? String, let timeZone = TimeZone(identifier: identifier) {
                 settimeZone(timeZone)
+            }
+            return true
+        case "truncationMode":
+            if let rawValue = value?.builtinValue as? Int {
+                settruncationMode(Text.TruncationMode(rawValue: rawValue))
             }
             return true
         case "verticalSizeClass":
@@ -436,7 +443,7 @@ extension EnvironmentValues {
         get { builtinValue(key: "lineLimit", defaultValue: { nil }) as! Int? }
         set { setBuiltinValue(key: "lineLimit", value: newValue, defaultValue: { nil }) }
     }
-
+    
     public var locale: Locale {
         get { Locale(LocalConfiguration.current.locales[0]) }
         set {
@@ -493,6 +500,11 @@ extension EnvironmentValues {
     public var timeZone: TimeZone {
         get { builtinValue(key: "timeZone", defaultValue: { TimeZone.current }) as! TimeZone }
         set { setBuiltinValue(key: "timeZone", value: newValue, defaultValue: { TimeZone.current }) }
+    }
+    
+    public var truncationMode: Text.TruncationMode? {
+        get { builtinValue(key: "truncationMode", defaultValue: { nil }) as! Text.TruncationMode? }
+        set { setBuiltinValue(key: "truncationMode", value: newValue, defaultValue: { nil }) }
     }
 
     public var verticalSizeClass: UserInterfaceSizeClass? {
@@ -570,7 +582,6 @@ extension EnvironmentValues {
     var lineSpacing: CGFloat
     var minimumScaleFactor: CGFloat
     var textCase: Text.Case?
-    var truncationMode: Text.TruncationMode
 
     var allowedDynamicRange: Image.DynamicRange?
     var backgroundMaterial: Material?
