@@ -136,10 +136,7 @@ public struct TextField : View, Renderable {
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
-            
-            let currentText = text.wrappedValue
-            let currentSelection = selection?.wrappedValue?.asComposeTextRange() ?? value.selection
-            textFieldValue.value = TextFieldValue(text: currentText, selection: currentSelection)
+            textFieldValue.value = value
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
         }, modifier: context.modifier.fillWidth(), textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
