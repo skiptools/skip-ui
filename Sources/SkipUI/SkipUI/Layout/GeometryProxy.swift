@@ -15,6 +15,7 @@ public struct GeometryProxy {
     #if SKIP
     let globalFramePx: Rect
     let density: Density
+    let safeArea: SafeArea?
     #endif
 
     public var size: CGSize {
@@ -33,14 +34,35 @@ public struct GeometryProxy {
         return (size.width, size.height)
     }
 
+    // SKIP @bridge
+    public var bridgedSafeAreaInsets: (CGFloat, CGFloat, CGFloat, CGFloat) {
+        let insets = self.safeAreaInsets
+        return (insets.top, insets.leading, insets.bottom, insets.trailing)
+    }
+
     @available(*, unavailable)
     public subscript<T>(anchor: Any /* Anchor<T> */) -> T {
         fatalError()
     }
 
-    @available(*, unavailable)
     public var safeAreaInsets: EdgeInsets {
-        fatalError()
+        #if SKIP
+        guard let safeArea = safeArea else {
+            return EdgeInsets()
+        }
+        return with(density) {
+            let presentation = safeArea.presentationBoundsPx
+            let safe = safeArea.safeBoundsPx
+            return EdgeInsets(
+                top: Double((safe.top - presentation.top).toDp().value),
+                leading: Double((safe.left - presentation.left).toDp().value),
+                bottom: Double((presentation.bottom - safe.bottom).toDp().value),
+                trailing: Double((presentation.right - safe.right).toDp().value)
+            )
+        }
+        #else
+        return EdgeInsets()
+        #endif
     }
 
     @available(*, unavailable)
