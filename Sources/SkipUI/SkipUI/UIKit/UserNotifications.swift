@@ -64,7 +64,7 @@ public final class UNUserNotificationCenter {
         guard Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU else {
             return true
         }
-        let granted = await UIApplication.shared.requestPermission(Manifest.permission.POST_NOTIFICATIONS)
+        let granted = UIApplication.shared.requestPermission(Manifest.permission.POST_NOTIFICATIONS)
         let defaults = UserDefaults.standard
         if granted {
             defaults.removeObject(forKey: "UNNotificationPermissionDenied")
