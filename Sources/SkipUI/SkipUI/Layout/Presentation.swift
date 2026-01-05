@@ -361,7 +361,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         let modifier = Modifier.wrapContentWidth().wrapContentHeight().then(context.modifier)
         Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
             let contentContext = context.content()
-            Column(modifier: Modifier.padding(top: 16.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+            let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
+            Column(modifier: Modifier.padding(top: hasTopContent ? 16.dp : 4.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
                 RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
             }
         }
@@ -385,7 +386,10 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         textField.Compose(context: textFieldContext)
     }
 
-    androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
+    let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
+    if hasTopContent {
+        androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
+    }
 
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
     let buttonFont = Font.title3
@@ -625,18 +629,18 @@ struct PresentationDetentPreferences: Equatable {
 
 extension View {
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
-        return alert(Text(titleKey), isPresented: isPresented, actions: actions)
+        return alert(titleKey.patternFormat.isEmpty ? nil : Text(titleKey), isPresented: isPresented, actions: actions)
     }
 
     public func alert(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
-        return alert(Text(titleResource), isPresented: isPresented, actions: actions)
+        return alert(titleResource.key.isEmpty ? nil : Text(titleResource), isPresented: isPresented, actions: actions)
     }
 
     public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
-        return alert(Text(verbatim: title), isPresented: isPresented, actions: actions)
+        return alert(title.isEmpty ? nil : Text(verbatim: title), isPresented: isPresented, actions: actions)
     }
 
-    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
+    public func alert(_ title: Text?, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions())
@@ -653,18 +657,18 @@ extension View {
     }
 
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(Text(titleKey), isPresented: isPresented, actions: actions, message: message)
+        return alert(titleKey.patternFormat.isEmpty ? nil : Text(titleKey), isPresented: isPresented, actions: actions, message: message)
     }
 
     public func alert(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(Text(titleResource), isPresented: isPresented, actions: actions, message: message)
+        return alert(titleResource.key.isEmpty ? nil : Text(titleResource), isPresented: isPresented, actions: actions, message: message)
     }
 
     public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(Text(verbatim: title), isPresented: isPresented, actions: actions, message: message)
+        return alert(title.isEmpty ? nil : Text(verbatim: title), isPresented: isPresented, actions: actions, message: message)
     }
 
-    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
+    public func alert(_ title: Text?, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
             AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions(), message: message())
@@ -681,18 +685,18 @@ extension View {
     }
 
     public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
-        return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions)
+        return alert(titleKey.patternFormat.isEmpty ? nil : Text(titleKey), isPresented: isPresented, presenting: data, actions: actions)
     }
 
     public func alert<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
-        return alert(Text(titleResource), isPresented: isPresented, presenting: data, actions: actions)
+        return alert(titleResource.key.isEmpty ? nil : Text(titleResource), isPresented: isPresented, presenting: data, actions: actions)
     }
 
     public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
-        return alert(Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions)
+        return alert(title.isEmpty ? nil :Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions)
     }
 
-    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
+    public func alert<T>(_ title: Text?, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View) -> any View {
         #if SKIP
         let actionsWithData: () -> any View
         if let data {
@@ -707,18 +711,18 @@ extension View {
     }
 
     public func alert<T>(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
-        return alert(Text(titleKey), isPresented: isPresented, presenting: data, actions: actions, message: message)
+        return alert(titleKey.patternFormat.isEmpty ? nil : Text(titleKey), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
     public func alert<T>(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
-        return alert(Text(titleResource), isPresented: isPresented, presenting: data, actions: actions, message: message)
+        return alert(titleResource.key.isEmpty ? nil : Text(titleResource), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
     public func alert<T>(_ title: String, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
-        return alert(Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions, message: message)
+        return alert(title.isEmpty ? nil : Text(verbatim: title), isPresented: isPresented, presenting: data, actions: actions, message: message)
     }
 
-    public func alert<T>(_ title: Text, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
+    public func alert<T>(_ title: Text?, isPresented: Binding<Bool>, presenting data: T?, @ViewBuilder actions: (T) -> any View, @ViewBuilder message: (T) -> any View) -> any View {
         #if SKIP
         let actionsWithData: () -> any View
         let messageWithData: () -> any View
