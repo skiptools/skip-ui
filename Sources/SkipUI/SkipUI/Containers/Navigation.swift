@@ -241,7 +241,17 @@ public struct NavigationStack : View, Renderable {
         let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>) { mutableStateOf(Preference<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self)) }
         let scrollToTopCollector = PreferenceCollector<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
 
-        let scrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        let initialScrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        // Determine the final scrollBehavior early by checking if the environment value would modify it
+        // We need to do this before we create the nestedScroll modifier so we attach the correct nestedScrollConnection
+        let scrollBehavior: TopAppBarScrollBehavior
+        if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
+            let tempOptions = Material3TopAppBarOptions(title: {}, modifier: Modifier, navigationIcon: {}, colors: TopAppBarDefaults.topAppBarColors(), scrollBehavior: initialScrollBehavior)
+            let updatedOptions = updateOptions(tempOptions)
+            scrollBehavior = updatedOptions.scrollBehavior ?? initialScrollBehavior
+        } else {
+            scrollBehavior = initialScrollBehavior
+        }
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
         if !topBarHidden.value {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -387,6 +397,8 @@ public struct NavigationStack : View, Renderable {
                     if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
                         options = updateOptions(options)
                     }
+                    // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
+                    options = options.copy(scrollBehavior: scrollBehavior)
                     if isInlineTitleDisplayMode {
                         if options.preferCenterAlignedStyle {
                             CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
