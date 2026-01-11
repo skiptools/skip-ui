@@ -22,6 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -638,9 +640,23 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func mask(alignment: Alignment = .center, @ViewBuilder _ mask: () -> any View) -> some View {
+    public func mask(_ mask: any View, alignment: Alignment = .center) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            MaskLayout(content: renderable, context: context, mask: mask, alignment: alignment)
+        })
+        #else
         return self
+        #endif
+    }
+
+    public func mask(alignment: Alignment = .center, @ViewBuilder _ mask: () -> any View) -> any View {
+        return self.mask(mask(), alignment: alignment)
+    }
+
+    // SKIP @bridge
+    public func mask(horizontalAlignmentKey: String, verticalAlignmentKey: String, bridgedMask: any View) -> any View {
+        return mask(bridgedMask, alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)))
     }
 
     @available(*, unavailable)

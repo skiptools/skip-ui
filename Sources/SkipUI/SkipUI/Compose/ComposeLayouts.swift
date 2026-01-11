@@ -11,6 +11,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -66,6 +69,40 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
 /// Compose a view with the given overlay.
 @Composable func OverlayLayout(content: Renderable, context: ComposeContext, overlay: View, alignment: Alignment) {
     TargetViewLayout(context: context, isOverlay: true, alignment: alignment, target: { content.Render(context: $0) }, dependent: { overlay.Compose(context: $0) })
+}
+
+/// Compose a view with the given mask.
+/// The mask view's alpha channel is used to clip the content.
+@Composable func MaskLayout(content: Renderable, context: ComposeContext, mask: View, alignment: Alignment) {
+    // We use CompositingStrategy.Offscreen to render content and mask into an offscreen buffer
+    // Then apply BlendMode.DstIn which keeps the destination (content) only where the source (mask) has alpha
+    ComposeContainer(modifier: context.modifier) { modifier in
+        Layout(modifier: modifier.graphicsLayer(compositingStrategy: CompositingStrategy.Offscreen), content: {
+            // First render the content
+            content.Render(context: context.content())
+            // Then render the mask with DstIn blend mode - this will use mask's alpha to clip content
+            ComposeContainer(fixedWidth: true, fixedHeight: true) { maskModifier in
+                Box(modifier: maskModifier.graphicsLayer(compositingStrategy: CompositingStrategy.Offscreen, blendMode: BlendMode.DstIn)) {
+                    mask.Compose(context: context.content())
+                }
+            }
+        }) { measurables, constraints in
+            guard !measurables.isEmpty() else {
+                return layout(width: 0, height: 0) {}
+            }
+            // Base layout entirely on the content view size
+            let contentPlaceable = measurables[0].measure(constraints)
+            let maskConstraints = Constraints(maxWidth: contentPlaceable.width, maxHeight: contentPlaceable.height)
+            let maskPlaceables = measurables.drop(1).map { $0.measure(maskConstraints) }
+            layout(width: contentPlaceable.width, height: contentPlaceable.height) {
+                contentPlaceable.placeRelative(x: 0, y: 0)
+                for maskPlaceable in maskPlaceables {
+                    let (x, y) = placeContent(width: maskPlaceable.width, height: maskPlaceable.height, inWidth: contentPlaceable.width, inHeight: contentPlaceable.height, alignment: alignment)
+                    maskPlaceable.placeRelative(x: x, y: y)
+                }
+            }
+        }
+    }
 }
 
 @Composable func TargetViewLayout(context: ComposeContext, isOverlay: Bool, alignment: Alignment, target: @Composable (ComposeContext) -> Void, dependent: @Composable (ComposeContext) -> Void) {
