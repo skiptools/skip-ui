@@ -515,20 +515,36 @@ public struct NavigationStack : View, Renderable {
 
         // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        Column(modifier: modifier.background(Color.background.colorImpl())) {
-            // Calculate safe area for content
+        
+        Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+            // Calculate safe area for content by insetting by topBar and bottomBar heights
             let contentSafeArea = arguments.safeArea?
                 .insetting(.top, to: topBarBottomPx.value)
                 .insetting(.bottom, to: bottomBarTopPx.value)
-            // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-            let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-            var bottomPadding = 0.dp
-            if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+            
+            // Top bar aligned to top
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+                topBar()
             }
-            let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+            
+            // Bottom bar aligned to bottom
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                bottomBar()
+            }
 
-            topBar()
+            // We only need to add top/bottom padding for the safe area if the embedded content ignores the safe area at that edge.
+            // We add padding just so that IgnoresSafeAreaLayout will undo the padding we just added.
+            var contentModifier = Modifier.fillMaxSize()
+            if let contentSafeArea {
+                if arguments.ignoresSafeAreaEdges.contains(.top) {
+                    let topPadding = with(LocalDensity.current) { (contentSafeArea.safeBoundsPx.top - contentSafeArea.presentationBoundsPx.top).toDp() }
+                    contentModifier = contentModifier.padding(top: topPadding)
+                }
+                if arguments.ignoresSafeAreaEdges.contains(.bottom) {
+                    let bottomPadding = with(LocalDensity.current) { (contentSafeArea.presentationBoundsPx.bottom - contentSafeArea.safeBoundsPx.bottom).toDp() }
+                    contentModifier = contentModifier.padding(bottom: bottomPadding)
+                }
+            }
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 var topPadding = 0.dp
                 let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
@@ -563,7 +579,6 @@ public struct NavigationStack : View, Renderable {
                     }
                 }
             }
-            bottomBar()
         }
     }
 
