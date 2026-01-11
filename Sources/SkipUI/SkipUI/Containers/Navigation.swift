@@ -265,11 +265,15 @@ public struct NavigationStack : View, Renderable {
             }
         }
 
+        let defaultTopBarHeight = 112.dp
         let topBarBottomPx = remember {
             // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
             // recompose with adjusted layouts
             let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
-            mutableStateOf(with(density) { safeAreaTopPx + 112.dp.toPx() })
+            mutableStateOf(with(density) { safeAreaTopPx + defaultTopBarHeight.toPx() })
+        }
+        let topBarHeightPx = remember {
+            mutableStateOf(with(density) { defaultTopBarHeight.toPx() })
         }
 
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
@@ -278,6 +282,7 @@ public struct NavigationStack : View, Renderable {
                 SideEffect {
                     topBarHidden.value = true
                     topBarBottomPx.value = Float(0.0)
+                    topBarHeightPx.value = Float(0.0)
                 }
                 return
             }
@@ -286,6 +291,7 @@ public struct NavigationStack : View, Renderable {
                 SideEffect {
                     topBarHidden.value = true
                     topBarBottomPx.value = Float(0.0)
+                    topBarHeightPx.value = Float(0.0)
                 }
                 return
             }
@@ -338,8 +344,9 @@ public struct NavigationStack : View, Renderable {
                         .clickable(interactionSource: interactionSource, indication: nil, onClick: {
                             scrollToTop.value.reduced.action()
                         })
-                        .onGloballyPositionedInWindow {
-                            topBarBottomPx.value = $0.bottom
+                        .onGloballyPositionedInWindow { bounds in
+                            topBarBottomPx.value = bounds.bottom
+                            topBarHeightPx.value = bounds.bottom - bounds.top
                         }
                     if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
                         let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
@@ -515,20 +522,36 @@ public struct NavigationStack : View, Renderable {
 
         // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        Column(modifier: modifier.background(Color.background.colorImpl())) {
-            // Calculate safe area for content
+        
+        Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+            // Calculate safe area for content by insetting by topBar and bottomBar heights
             let contentSafeArea = arguments.safeArea?
                 .insetting(.top, to: topBarBottomPx.value)
                 .insetting(.bottom, to: bottomBarTopPx.value)
-            // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-            let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-            var bottomPadding = 0.dp
-            if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+            
+            // Top bar aligned to top
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+                topBar()
             }
-            let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+            
+            // Bottom bar aligned to bottom
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                bottomBar()
+            }
 
-            topBar()
+            // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
+            // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
+            // measured topBarBottomPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
+            // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
+            // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
+            // indicator.
+            var contentModifier = Modifier.fillMaxSize()
+            // Use top bar height (not absolute bottom) for padding so content starts directly under the bar (LIV 2 Box layout).
+            let topPadding = topBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
+                    WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : with(density) { topBarHeightPx.value.toDp() }
+            let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
+                    max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
+            contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 var topPadding = 0.dp
                 let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
@@ -563,7 +586,6 @@ public struct NavigationStack : View, Renderable {
                     }
                 }
             }
-            bottomBar()
         }
     }
 
