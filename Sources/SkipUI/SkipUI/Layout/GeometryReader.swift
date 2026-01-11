@@ -29,7 +29,7 @@ public struct GeometryReader : View, Renderable {
             rememberedGlobalFramePx.value = $0
         }) {
             if let globalFramePx = rememberedGlobalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current)
+                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current, safeArea: EnvironmentValues.shared._safeArea)
                 content(proxy).Compose(context.content())
             }
         }

@@ -11,7 +11,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -32,9 +34,25 @@ public final class UNUserNotificationCenter {
         return shared
     }
 
-    @available(*, unavailable)
-    public func getNotificationSettings() async -> Any /* UNNotificationSettings */ {
+    // SKIP @bridge
+    public func notificationSettings() async -> UNNotificationSettings {
+        #if SKIP
+        guard Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU else {
+            return UNNotificationSettings(authorizationStatus: .authorized)
+        }
+        let status: UNAuthorizationStatus
+        if let activity = UIApplication.shared.androidActivity,
+           ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED {
+            status = .authorized
+        } else if UserDefaults.standard.bool(forKey: "UNNotificationPermissionDenied") {
+            status = .denied
+        } else {
+            status = .notDetermined
+        }
+        return UNNotificationSettings(authorizationStatus: status)
+        #else
         fatalError()
+        #endif
     }
 
     @available(*, unavailable)
@@ -46,7 +64,14 @@ public final class UNUserNotificationCenter {
         guard Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU else {
             return true
         }
-        UIApplication.shared.requestPermission(Manifest.permission.POST_NOTIFICATIONS)
+        let granted = UIApplication.shared.requestPermission(Manifest.permission.POST_NOTIFICATIONS)
+        let defaults = UserDefaults.standard
+        if granted {
+            defaults.removeObject(forKey: "UNNotificationPermissionDenied")
+        } else {
+            defaults.set(true, forKey: "UNNotificationPermissionDenied")
+        }
+        return granted
         #else
         fatalError()
         #endif
@@ -522,6 +547,128 @@ public final class UNLocationNotificationTrigger: UNNotificationTrigger {
 public final class UNPushNotificationTrigger: UNNotificationTrigger {
     public override init(repeats: Bool) {
         super.init(repeats: repeats)
+    }
+}
+
+// SKIP @bridge
+public enum UNAuthorizationStatus : Int, @unchecked Sendable {
+    case notDetermined = 0
+    case denied = 1
+    case authorized = 2
+    @available(iOS 12.0, *)
+    case provisional = 3
+    @available(iOS 14.0, *)
+    case ephemeral = 4
+}
+
+@available(iOS 11.0, *)
+public enum UNShowPreviewsSetting : Int, @unchecked Sendable {
+    case always = 0
+    case whenAuthenticated = 1
+    case never = 2
+}
+
+public enum UNNotificationSetting : Int, @unchecked Sendable {
+    case notSupported = 0
+    case disabled = 1
+    case enabled = 2
+}
+
+public enum UNAlertStyle : Int, @unchecked Sendable {
+    case none = 0
+    case banner = 1
+    case alert = 2
+}
+
+// SKIP @bridge
+public class UNNotificationSettings : NSObject {
+    private let _authorizationStatus: UNAuthorizationStatus
+    
+    // SKIP @bridge
+    public var authorizationStatus: UNAuthorizationStatus {
+        return _authorizationStatus
+    }
+    
+    public init(authorizationStatus: UNAuthorizationStatus) {
+        self._authorizationStatus = authorizationStatus
+        super.init()
+    }
+
+    @available(*, unavailable)
+    public var soundSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var badgeSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var alertSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var notificationCenterSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var lockScreenSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var carPlaySetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(*, unavailable)
+    public var alertStyle: UNAlertStyle {
+        fatalError()
+    }
+
+    @available(iOS 11.0, *)
+    @available(*, unavailable)
+    public var showPreviewsSetting: UNShowPreviewsSetting {
+        fatalError()
+    }
+
+    @available(iOS 12.0, *)
+    @available(*, unavailable)
+    public var criticalAlertSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(iOS 12.0, *)
+    @available(*, unavailable)
+    public var providesAppNotificationSettings: Bool {
+        fatalError()
+    }
+
+    @available(iOS 13.0, *)
+    @available(*, unavailable)
+    public var announcementSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(iOS 15.0, *)
+    @available(*, unavailable)
+    public var timeSensitiveSetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(iOS 15.0, *)
+    @available(*, unavailable)
+    public var scheduledDeliverySetting: UNNotificationSetting {
+        fatalError()
+    }
+
+    @available(iOS 15.0, *)
+    @available(*, unavailable)
+    public var directMessagesSetting: UNNotificationSetting {
+        fatalError()
     }
 }
 

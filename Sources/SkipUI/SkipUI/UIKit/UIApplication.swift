@@ -195,7 +195,14 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             if let intentName = options[OpenExternalURLOptionsKey.intent] as? String {
                 intent = Intent(intentName, uri)
             } else if url.scheme == "intent" {
-                intent = Intent(url.host(), android.net.Uri.parse("package:" + context.getPackageName()))
+                let action = url.host()
+                // ACTION_APP_NOTIFICATION_SETTINGS requires the package name as an extra, not in the data URI
+                if action == Settings.ACTION_APP_NOTIFICATION_SETTINGS {
+                    intent = Intent(action)
+                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName())
+                } else {
+                    intent = Intent(action, android.net.Uri.parse("package:" + context.getPackageName()))
+                }
             } else if url.scheme == "tel" {
                 intent = Intent(Intent.ACTION_DIAL, uri)
             } else if url.scheme == "sms" || url.scheme == "mailto" {

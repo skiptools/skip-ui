@@ -32,7 +32,7 @@ public enum UIKeyboardType: Int {
         case .URL:
             return KeyboardType.Uri
         case .numberPad:
-            return KeyboardType.Number
+            return KeyboardType.NumberPassword
         case .phonePad:
             return KeyboardType.Phone
         case .namePhonePad:

@@ -292,10 +292,10 @@ public struct Text: View, Renderable, Equatable {
         case secondary
     }
 
-    public enum TruncationMode {
-        case head
-        case tail
-        case middle
+    public enum TruncationMode: Int {
+        case head = 1 // For bridging
+        case tail = 2 // For bridging
+        case middle = 3 // For bridging
     }
 
     public struct DateStyle {
@@ -392,6 +392,8 @@ struct _Text: View, Renderable, Equatable {
         let textDecoration = textEnvironment.textDecoration
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let maxLines = max(1, EnvironmentValues.shared.lineLimit ?? Int.MAX_VALUE)
+        let truncationMode = EnvironmentValues.shared.truncationMode
+        let hasLineLimit = (EnvironmentValues.shared.lineLimit != nil)
         let reservesSpace = EnvironmentValues.shared._lineLimitReservesSpace ?? false
         let minLines = reservesSpace ? maxLines : 1
         let redaction = EnvironmentValues.shared.redactionReasons
@@ -459,6 +461,25 @@ struct _Text: View, Renderable, Equatable {
                 options = options.copy(autoSize: TextAutoSize.StepBased(minFontSize: (14.0 * factor).sp, maxFontSize: defaultSize))
             }
         }
+        
+        if hasLineLimit {
+            options = options.copy(
+                overflow: {
+                    let singleLine = (maxLines == 1) || options.softWrap == false
+                    switch truncationMode {
+                    case .tail:
+                        return TextOverflow.Ellipsis
+                    case .head:
+                        return singleLine ? TextOverflow.StartEllipsis : TextOverflow.Ellipsis
+                    case .middle:
+                        return singleLine ? TextOverflow.MiddleEllipsis : TextOverflow.Ellipsis
+                    default:
+                        return TextOverflow.Clip
+                    }
+                }()
+            )
+        }
+        
         if let updateOptions = EnvironmentValues.shared._material3Text {
             options = updateOptions(options)
         }
@@ -843,10 +864,13 @@ extension View {
         return self
         #endif
     }
-
-    @available(*, unavailable)
+    
     public func truncationMode(_ mode: Text.TruncationMode) -> some View {
+        #if SKIP
+        return environment(\.truncationMode, mode, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     public func underline(_ isActive: Bool = true, pattern: Text.LineStyle.Pattern = .solid, color: Color? = nil) -> some View {
