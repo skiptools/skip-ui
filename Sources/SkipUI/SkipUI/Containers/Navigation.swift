@@ -515,20 +515,35 @@ public struct NavigationStack : View, Renderable {
 
         // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        Column(modifier: modifier.background(Color.background.colorImpl())) {
-            // Calculate safe area for content
+        
+        Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+            // Calculate safe area for content by insetting by topBar and bottomBar heights
             let contentSafeArea = arguments.safeArea?
                 .insetting(.top, to: topBarBottomPx.value)
                 .insetting(.bottom, to: bottomBarTopPx.value)
-            // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-            let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-            var bottomPadding = 0.dp
-            if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+            
+            // Top bar aligned to top
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+                topBar()
             }
-            let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+            
+            // Bottom bar aligned to bottom
+            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                bottomBar()
+            }
 
-            topBar()
+            // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
+            // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
+            // measured topBarBottomPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
+            // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
+            // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
+            // indicator.
+            var contentModifier = Modifier.fillMaxSize()
+            let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
+                WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+            let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
+                max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : 0.dp
+            contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
             Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 var topPadding = 0.dp
                 let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
@@ -563,7 +578,6 @@ public struct NavigationStack : View, Renderable {
                     }
                 }
             }
-            bottomBar()
         }
     }
 
