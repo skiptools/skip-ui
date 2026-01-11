@@ -38,6 +38,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,16 +50,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
@@ -100,6 +105,9 @@ let overlayPresentationCornerRadius = 16.0
         }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
+            
+            SyncSystemBarsWithTheme()
+            
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
             let sheetDepth = EnvironmentValues.shared._sheetDepth
@@ -197,6 +205,20 @@ let overlayPresentationCornerRadius = 16.0
                 onDismissState.value?()
             }
         }
+    }
+}
+
+@Composable private func SyncSystemBarsWithTheme() {
+    let view = LocalView.current
+    let dark = MaterialTheme.colorScheme.background.luminance() < 0.5
+    DisposableEffect(dark) {
+        if let window = (view.parent as? DialogWindowProvider)?.window {
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = !dark
+                isAppearanceLightNavigationBars = !dark
+            }
+        }
+        onDispose { }
     }
 }
 
