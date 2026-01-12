@@ -26,6 +26,11 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -1201,6 +1206,32 @@ extension View {
 }
 
 #if SKIP
+extension Modifier {
+    /// Log layout constraints for debugging purposes.
+    ///
+    /// - Parameter tag: The log tag to use (default: "LogLayout").
+    /// - Returns: A modifier that logs layout constraints.
+    func logLayout(tag: String = "LogLayout") -> Modifier {
+        return self.layout { measurable, constraints in
+            android.util.Log.d(
+                tag,
+                "Constraints: minWidth=\(constraints.minWidth), maxWidth=\(constraints.maxWidth), " +
+                    "minHeight=\(constraints.minHeight), maxHeight=\(constraints.maxHeight)"
+            )
+            let placeable = measurable.measure(constraints)
+            return layout(width: placeable.width, height: placeable.height) {
+                placeable.place(0, 0)
+            }
+        }.onGloballyPositioned {
+            let bounds = $0.boundsInWindow()
+            android.util.Log.d(
+                tag,
+                "Bounds: (top=\(bounds.top), left=\(bounds.left), bottom=\(bounds.bottom), right=\(bounds.right), width=\(bounds.width), height=\(bounds.height))"
+            )
+        }
+    }
+}
+
 final class AspectRatioModifier: RenderModifier {
     let ratio: Double?
     let contentMode: ContentMode
