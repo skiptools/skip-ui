@@ -808,6 +808,7 @@ Support levels:
               <ul>
                   <li><code>var size: CGSize</code></li>
                   <li><code>func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect</code></li>
+                  <li><code>var safeAreaInsets: EdgeInsets</code></li>
                   <li>Only <code>.local</code> and <code>.global</code> coordinate spaces are supported</li>
               </ul>
           </details>      
@@ -1231,7 +1232,7 @@ Support levels:
           <details>
               <summary><code>TextField</code> (<a href="https://skip.tools/docs/components/textfield/">example</a>)</summary>
               <ul>
-                  <li><code>init(_ title: String, text: Binding&lt;String>, prompt: Text? = nil)</code></li>
+                  <li><code>init(_ title: String, text: Binding&lt;String>, selection: Binding&lt;TextSelection?>? = nil, prompt: Text? = nil)</code></li>
               </ul>
           </details>      
        </td>
@@ -1296,6 +1297,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td>Custom <code>ViewModifiers</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td>Custom <code>ViewThatFits</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1630,6 +1635,10 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.linespacing</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.listItemTint</code></td>
     </tr>
     <tr>
@@ -1643,6 +1652,14 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.listStyle</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.mask</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.minimumScaleFactor</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1669,17 +1686,8 @@ Support levels:
       <td><code>.navigationBarTitleDisplayMode</code></td>
     </tr>
     <tr>
-      <td>🟢</td>
-      <td>
-          <details>
-              <summary><code>.navigationDestination</code></summary>
-              <ul>
-                  <li><code>func navigationDestination&lt;D&gt;(for data: D.Type, @ViewBuilder destination: @escaping (D) -> any View) -> some View</code></li>
-                  <li><code>func navigationDestination(isPresented: Binding&lt;Bool&gt;, @ViewBuilder destination: () -> any View) -> some View</code></li>
-                  <li>See <a href="#navigation">Navigation</a></li>
-              </ul>
-          </details>      
-       </td>
+      <td>✅</td>
+      <td><code>.navigationDestination</code></td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1931,7 +1939,7 @@ Support levels:
           <details>
               <summary><code>.scrollDismissesKeyboard</code></summary>
               <ul>
-				  <li>In Compose, the default behavior (<code>.automatic</code>) is to never dismiss on scroll</li>
+		    <li>In Compose, the default behavior (<code>.automatic</code>) is to never dismiss on scroll</li>
                   <li><code>.interactively</code> behaves like <code>.immediately</code></li>
               </ul>
           </details>      
@@ -2112,6 +2120,10 @@ Support levels:
       <td><code>.toolbarTitleMenu</code></td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>.tracking</code></td>
+    </tr>
+    <tr>
       <td>🟢</td>
       <td>
             <details>
@@ -2132,6 +2144,10 @@ Support levels:
               </ul>
           </details>      
        </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.truncationMode</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2482,6 +2498,7 @@ SwiftUI has many built-in environment keys. These keys are defined in `Environme
 - `scenePhase`
 - `scrollDismissesKeyboardMode`
 - `timeZone`
+- `truncationMode`
 - `verticalSizeClass`
 
 ### ForEach
