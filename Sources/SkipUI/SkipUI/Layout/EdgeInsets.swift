@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import struct CoreGraphics.CGFloat
 #endif
 
-public struct EdgeInsets : Equatable {
+public struct EdgeInsets : Equatable, CustomStringConvertible {
     public var top: CGFloat
     public var leading: CGFloat
     public var bottom: CGFloat
@@ -27,6 +27,10 @@ public struct EdgeInsets : Equatable {
         return PaddingValues(start: leading.dp, top: top.dp, end: trailing.dp, bottom: bottom.dp)
     }
     #endif
+
+    public var description: String {
+        return "EdgeInsets(top: \(top), leading: \(leading), bottom: \(bottom), trailing: \(trailing))"
+    }
 }
 
 #endif
