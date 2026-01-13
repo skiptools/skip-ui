@@ -516,64 +516,121 @@ public struct NavigationStack : View, Renderable {
         // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
         // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
         
-        Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
-            // Calculate safe area for content by insetting by topBar and bottomBar heights
-            let contentSafeArea = arguments.safeArea?
-                .insetting(.top, to: topBarBottomPx.value)
-                .insetting(.bottom, to: bottomBarTopPx.value)
-            
-            // Top bar aligned to top
-            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+        let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
+        if layoutImplementationVersion < 2 {
+            // Old Column layout (version < 2)
+            Column(modifier: modifier.background(Color.background.colorImpl())) {
+                let _ = android.util.Log.d("Navigation Column", "layoutImplementationVersion \(layoutImplementationVersion)")
+                // Calculate safe area for content
+                let contentSafeArea = arguments.safeArea?
+                    .insetting(.top, to: topBarBottomPx.value)
+                    .insetting(.bottom, to: bottomBarTopPx.value)
+                // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
+                let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                var bottomPadding = 0.dp
+                if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
+                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                }
+                let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+
                 topBar()
-            }
-            
-            // Bottom bar aligned to bottom
-            Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    var topPadding = 0.dp
+                    let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
+                    if let searchableState {
+                        let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                        let searchFieldFadeOffset = searchFieldHeightPx / 3
+                        let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
+                            .align(androidx.compose.ui.Alignment.TopCenter)
+                            .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
+                            .background(searchFieldBackground)
+                            .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
+                            // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
+                            .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
+                            .fillMaxWidth()
+                        SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
+                        let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
+                        topPadding = searchFieldPlaceholderPadding
+                    }
+                    EnvironmentValues.shared.setValues {
+                        if let contentSafeArea {
+                            $0.set_safeArea(contentSafeArea)
+                        }
+                        $0.set_searchableState(searchableState)
+                        $0.set_isNavigationRoot(arguments.isRoot)
+                        return ComposeResult.ok
+                    } in: {
+                        // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
+                        Box(modifier: Modifier.padding(top: topPadding)) {
+                            PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
+                                content(context.content())
+                            }
+                        }
+                    }
+                }
                 bottomBar()
             }
-
-            // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
-            // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
-            // measured topBarBottomPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
-            // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
-            // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
-            // indicator.
-            var contentModifier = Modifier.fillMaxSize()
-            let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
-                WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-            let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
-                max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : 0.dp
-            contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
-            Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                var topPadding = 0.dp
-                let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
-                if let searchableState {
-                    let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                    let searchFieldFadeOffset = searchFieldHeightPx / 3
-                    let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
-                        .align(androidx.compose.ui.Alignment.TopCenter)
-                        .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
-                        .background(searchFieldBackground)
-                        .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
-                        // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
-                        .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
-                        .fillMaxWidth()
-                    SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
-                    let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
-                    topPadding = searchFieldPlaceholderPadding
+        } else {
+            // New Box layout (version >= 2)
+            Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+                // Calculate safe area for content by insetting by topBar and bottomBar heights
+                let contentSafeArea = arguments.safeArea?
+                    .insetting(.top, to: topBarBottomPx.value)
+                    .insetting(.bottom, to: bottomBarTopPx.value)
+                
+                // Top bar aligned to top
+                Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+                    topBar()
                 }
-                EnvironmentValues.shared.setValues {
-                    if let contentSafeArea {
-                        $0.set_safeArea(contentSafeArea)
+                
+                // Bottom bar aligned to bottom
+                Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                    bottomBar()
+                }
+
+                // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
+                // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
+                // measured topBarBottomPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
+                // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
+                // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
+                // indicator.
+                var contentModifier = Modifier.fillMaxSize()
+                let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
+                    WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
+                    max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : 0.dp
+                contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
+                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                    var topPadding = 0.dp
+                    let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
+                    if let searchableState {
+                        let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                        let searchFieldFadeOffset = searchFieldHeightPx / 3
+                        let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
+                            .align(androidx.compose.ui.Alignment.TopCenter)
+                            .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
+                            .background(searchFieldBackground)
+                            .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
+                            // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
+                            .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
+                            .fillMaxWidth()
+                        SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
+                        let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
+                        topPadding = searchFieldPlaceholderPadding
                     }
-                    $0.set_searchableState(searchableState)
-                    $0.set_isNavigationRoot(arguments.isRoot)
-                    return ComposeResult.ok
-                } in: {
-                    // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
-                    Box(modifier: Modifier.padding(top: topPadding)) {
-                        PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
-                            content(context.content())
+                    EnvironmentValues.shared.setValues {
+                        if let contentSafeArea {
+                            $0.set_safeArea(contentSafeArea)
+                        }
+                        $0.set_searchableState(searchableState)
+                        $0.set_isNavigationRoot(arguments.isRoot)
+                        return ComposeResult.ok
+                    } in: {
+                        // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
+                        Box(modifier: Modifier.padding(top: topPadding)) {
+                            PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
+                                content(context.content())
+                            }
                         }
                     }
                 }
