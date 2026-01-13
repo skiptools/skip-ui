@@ -8,7 +8,7 @@ public enum Edge : Int, Hashable, CaseIterable {
     case bottom = 4 // For bridging
     case trailing = 8 // For bridging
 
-    public struct Set : OptionSet, Equatable {
+    public struct Set : OptionSet, Equatable, CustomStringConvertible {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -26,6 +26,26 @@ public enum Edge : Int, Hashable, CaseIterable {
 
         public init(_ e: Edge) {
             self.rawValue = e.rawValue
+        }
+        
+        public var description: String {
+            var edges: [String] = []
+            if self.contains(Edge.Set.top) {
+                edges.append("top")
+            }
+            if self.contains(Edge.Set.leading) {
+                edges.append("leading")
+            }
+            if self.contains(Edge.Set.bottom) {
+                edges.append("bottom")
+            }
+            if self.contains(Edge.Set.trailing) {
+                edges.append("trailing")
+            }
+            if edges.isEmpty {
+                return "[]"
+            }
+            return "[\(edges.joined(separator: ","))]"
         }
     }
 }
