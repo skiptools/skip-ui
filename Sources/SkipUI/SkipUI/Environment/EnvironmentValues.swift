@@ -699,8 +699,8 @@ extension EnvironmentValues {
 
     /// Allow users to revert to previous layout behavior.
     var _layoutImplementationVersion: Int {
-        get { builtinValue(key: "_layoutImplementationVersion", defaultValue: { 1 }) as! Int }
-        set { setBuiltinValue(key: "_layoutImplementationVersion", value: newValue, defaultValue: { 1 }) }
+        get { builtinValue(key: "_layoutImplementationVersion", defaultValue: { 2 }) as! Int }
+        set { setBuiltinValue(key: "_layoutImplementationVersion", value: newValue, defaultValue: { 2 }) }
     }
 
     var _lineLimitReservesSpace: Bool? {
