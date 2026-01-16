@@ -208,9 +208,15 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func brightness(_ amount: Double) -> some View {
+    // SKIP @bridge
+    public func brightness(_ amount: Double) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.then(BrightnessModifier(amount: amount))
+        })
+        #else
         return self
+        #endif
     }
 
     public func clipShape(_ shape: any Shape, style: FillStyle = FillStyle()) -> any View {
@@ -250,9 +256,15 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func colorMultiply(_ color: Color) -> some View {
+    // SKIP @bridge
+    public func colorMultiply(_ color: Color) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            return context.modifier.then(ColorMultiplyModifier(color: color.colorImpl()))
+        })
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
@@ -315,9 +327,15 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func contrast(_ amount: Double) -> some View {
+    // SKIP @bridge
+    public func contrast(_ amount: Double) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.then(ContrastModifier(amount: amount))
+        })
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -543,10 +561,19 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func hueRotation(_ angle: Angle) -> some View {
-        // NOTE: animatable property
+    public func hueRotation(_ angle: Angle) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.then(HueRotationModifier(degrees: angle.degrees))
+        })
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func hueRotation(bridgedAngle: Double) -> any View {
+        return hueRotation(.radians(bridgedAngle))
     }
 
     // SKIP @bridge
@@ -1012,9 +1039,15 @@ extension View {
         return rotation3DEffect(.radians(bridgedAngle), axis: axis, anchor: UnitPoint(x: anchorX, y: anchorY), anchorZ: anchorZ, perspective: perspective)
     }
 
-    @available(*, unavailable)
-    public func saturation(_ amount: Double) -> some View {
+    // SKIP @bridge
+    public func saturation(_ amount: Double) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.then(SaturationModifier(amount: amount))
+        })
+        #else
         return self
+        #endif
     }
 
     // No need to @bridge because we define in terms of `.aspectRatio`
