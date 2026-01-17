@@ -1364,6 +1364,10 @@ Support levels:
       <td><code>.alert</code></td>
     </tr>
     <tr>
+      <td>✅</td>
+      <td><code>.allowsHitTesting</code></td>
+    </tr>
+    <tr>
       <td>🟡</td>
       <td>
             <details>
@@ -1408,6 +1412,17 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
+              <summary><code>.blendMode</code></summary>
+              <ul>
+                  <li><code>.plusDarker</code> and <code>.plusLighter</code> both map to Compose <code>Plus</code></li>
+              </ul>
+          </details>
+       </td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
               <summary><code>.blur</code></summary>
               <ul>
                   <li><code>opaque</code> parameter is ignored</li>
@@ -1422,6 +1437,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.border</code> (<a href="https://skip.tools/docs/components/border/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.brightness</code></td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1462,12 +1481,20 @@ Support levels:
               <ul>
                   <li>See also <a href="#colorscheme">ColorScheme</a></li>
               </ul>
-          </details> 
+          </details>
       </td>
     </tr>
     <tr>
       <td>✅</td>
+      <td><code>.colorMultiply</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
       <td><code>.confirmationDialog</code> (<a href="https://skip.tools/docs/components/confirmationdialog/">example</a>)</td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.contrast</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1493,6 +1520,17 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.disabled</code></td>
+    </tr>
+    <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.drawingGroup</code></summary>
+              <ul>
+                  <li><code>opaque</code> and <code>colorMode</code> parameters are ignored</li>
+              </ul>
+          </details>
+       </td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1567,6 +1605,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.hidden</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.hueRotation</code></td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1652,6 +1694,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.listStyle</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.luminanceToAlpha</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1879,8 +1925,12 @@ Support levels:
               <ul>
                   <li><code>func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), perspective: CGFloat = 1.0) -> some View</code></li>
               </ul>
-          </details>      
+          </details>
        </td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.saturation</code></td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1891,7 +1941,7 @@ Support levels:
                   <li><code>func scale(_ scale: CGFloat) -> any Shape</code></li>
                   <li><code>func scale(x: CGFloat = 1.0, y: CGFloat = 1.0) -> any Shape</code></li>
               </ul>
-          </details>      
+          </details>
        </td>
     </tr>
     <tr>

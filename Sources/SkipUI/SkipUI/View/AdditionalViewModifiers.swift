@@ -22,7 +22,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -47,9 +46,19 @@ import struct Foundation.URL
 #endif
 
 extension View {
-    @available(*, unavailable)
-    public func allowsHitTesting(_ enabled: Bool) -> some View {
+    // SKIP @bridge
+    public func allowsHitTesting(_ enabled: Bool) -> any View {
+        #if SKIP
+        if enabled {
+            return self
+        } else {
+            return ModifiedContent(content: self, modifier: RenderModifier {
+                return $0.modifier.clickable(enabled: false, onClick: {})
+            })
+        }
+        #else
         return self
+        #endif
     }
 
     public func aspectRatio(_ ratio: CGFloat? = nil, contentMode: ContentMode) -> any View {
@@ -175,9 +184,22 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func blendMode(_ blendMode: BlendMode) -> some View {
+    public func blendMode(_ blendMode: BlendMode) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.graphicsLayer(
+                compositingStrategy: CompositingStrategy.Offscreen,
+                blendMode: blendMode.asComposeBlendMode()
+            )
+        })
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func blendMode(bridgedRawValue: Int) -> any View {
+        return blendMode(BlendMode(rawValue: bridgedRawValue) ?? .normal)
     }
 
     // SKIP @bridge
@@ -397,9 +419,21 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> some View {
+    public func drawingGroup(opaque: Bool = false, colorMode: ColorRenderingMode = .nonLinear) -> any View {
+        #if SKIP
+        // Android ignores opaque and colorMode
+        // drawingGroup forces offscreen rendering - Compose equivalent is CompositingStrategy.Offscreen
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.graphicsLayer(compositingStrategy: CompositingStrategy.Offscreen)
+        })
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func drawingGroup() -> any View {
+        return drawingGroup(opaque: false, colorMode: .nonLinear)
     }
 
     // No need to @bridge
@@ -667,9 +701,15 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func luminanceToAlpha() -> some View {
+    // SKIP @bridge
+    public func luminanceToAlpha() -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.then(LuminanceToAlphaModifier())
+        })
+        #else
         return self
+        #endif
     }
 
     public func mask(_ mask: any View, alignment: Alignment = .center) -> any View {
