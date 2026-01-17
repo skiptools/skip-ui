@@ -699,6 +699,7 @@ Support levels:
               <ul>
                   <li><code>init(selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ title: String, selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
+                  <li>Date range constraints (<code>in: ClosedRange&lt;Date></code>) are supported via Skip Fuse bridging</li>
               </ul>
           </details>      
        </td>
@@ -1113,6 +1114,9 @@ Support levels:
               <summary><code>Slider</code> (<a href="https://skip.tools/docs/components/slider/">example</a>)</summary>
               <ul>
                   <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil)</code></li>
+                  <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil, onEditingChanged: (Bool) -> Void)</code></li>
+                  <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View, onEditingChanged: (Bool) -> Void)</code></li>
               </ul>
           </details>      
        </td>
@@ -1125,7 +1129,27 @@ Support levels:
               <ul>
                   <li>In Compose, when multiple elements want to expand they will share the available space equally</li>
               </ul>
-          </details>      
+          </details>
+       </td>
+    </tr>
+    <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>Stepper</code></summary>
+              <ul>
+                  <li><code>init(value: Binding&lt;Int>, step: Int = 1, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(value: Binding&lt;Int>, in bounds: ClosedRange&lt;Int>, step: Int = 1, @ViewBuilder label: () -> any View)</code> (Fuse bridging)</li>
+                  <li><code>init(value: Binding&lt;Double>, step: Double = 1.0, @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double>, step: Double = 1.0, @ViewBuilder label: () -> any View)</code> (Fuse bridging)</li>
+                  <li><code>init(_ title: String, value: Binding&lt;Int>, step: Int = 1)</code></li>
+                  <li><code>init(_ title: String, value: Binding&lt;Int>, in bounds: ClosedRange&lt;Int>, step: Int = 1)</code> (Fuse bridging)</li>
+                  <li><code>init(_ title: String, value: Binding&lt;Double>, step: Double = 1.0)</code></li>
+                  <li><code>init(_ title: String, value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double>, step: Double = 1.0)</code> (Fuse bridging)</li>
+                  <li><code>init(_ title: String, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?)</code></li>
+                  <li><code>init(@ViewBuilder label: () -> any View, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?)</code></li>
+              </ul>
+          </details>
        </td>
     </tr>
     <tr>
