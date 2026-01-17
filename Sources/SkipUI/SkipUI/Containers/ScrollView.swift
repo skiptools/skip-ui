@@ -57,14 +57,15 @@ public struct ScrollView : View, Renderable {
 
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
-        let isVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
-        let isHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
+        let isScrollDisabled = EnvironmentValues.shared._scrollDisabled
+        let wantsVerticalScroll = axes.contains(.vertical) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.vertical)
+        let wantsHorizontalScroll = axes.contains(.horizontal) && !builtinScrollAxisSet.value.reduced.contains(Axis.Set.horizontal)
         var scrollModifier: Modifier = Modifier
         var effectiveScrollAxes: Axis.Set = []
-        if isVerticalScroll {
-            scrollModifier = scrollModifier.verticalScroll(scrollState)
+        if wantsVerticalScroll {
+            scrollModifier = scrollModifier.verticalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.vertical)
-            if !axes.contains(.horizontal) {
+            if !axes.contains(.horizontal) && !isScrollDisabled {
                 // Integrate with our scroll-to-top navigation bar taps
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: scrollState) {
                     coroutineScope.launch {
@@ -73,8 +74,8 @@ public struct ScrollView : View, Renderable {
                 })
             }
         }
-        if isHorizontalScroll {
-            scrollModifier = scrollModifier.horizontalScroll(scrollState)
+        if wantsHorizontalScroll {
+            scrollModifier = scrollModifier.horizontalScroll(scrollState, enabled: !isScrollDisabled)
             effectiveScrollAxes.insert(Axis.Set.horizontal)
         }
 
@@ -82,14 +83,14 @@ public struct ScrollView : View, Renderable {
         ComposeContainer(scrollAxes: effectiveScrollAxes, modifier: context.modifier, fillWidth: axes.contains(.horizontal), fillHeight: axes.contains(.vertical)) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
                 var containerModifier: Modifier = Modifier
-                if isVerticalScroll {
+                if wantsVerticalScroll {
                     containerModifier = containerModifier.fillMaxHeight()
-                    if safeAreaEdges.contains(Edge.Set.bottom) {
+                    if !isScrollDisabled && safeAreaEdges.contains(Edge.Set.bottom) {
                         PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: scrollState, for: [ToolbarPlacement.bottomBar]))
                         PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: scrollState))
                     }
                 }
-                if isHorizontalScroll {
+                if wantsHorizontalScroll {
                     containerModifier = containerModifier.fillMaxWidth()
                 }
 
@@ -113,7 +114,7 @@ public struct ScrollView : View, Renderable {
 
                 Box(modifier: containerModifier) {
                     Column(modifier: scrollModifier) {
-                        if isVerticalScroll {
+                        if wantsVerticalScroll {
                             let searchableState = EnvironmentValues.shared._searchableState
                             let isSearchable = searchableState?.isOnNavigationStack == false
                             if isSearchable {
@@ -260,11 +261,11 @@ public enum ScrollEdgeEffectStyle : Hashable {
     case soft
 }
 
-public enum ScrollIndicatorVisibility : Equatable {
-    case automatic
-    case visible
-    case hidden
-    case never
+public enum ScrollIndicatorVisibility : Int, Equatable {
+    case automatic = 0 // For bridging
+    case visible = 1 // For bridging
+    case hidden = 2 // For bridging
+    case never = 3 // For bridging
 }
 
 public struct ScrollTarget {
@@ -342,9 +343,13 @@ extension View {
         return scrollDismissesKeyboard(ScrollDismissesKeyboardMode(rawValue: bridgedMode) ?? .automatic)
     }
 
-    @available(*, unavailable)
-    public func scrollDisabled(_ disabled: Bool) -> some View {
+    // SKIP @bridge
+    public func scrollDisabled(_ disabled: Bool) -> any View {
+        #if SKIP
+        return environment(\._scrollDisabled, disabled, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -357,9 +362,23 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> some View {
+    // Note: Android Compose does not display scroll indicators by default with verticalScroll/horizontalScroll,
+    // so this modifier is effectively a no-op on Android. The value is stored in the environment for API completeness.
+    public func scrollIndicators(_ visibility: ScrollIndicatorVisibility, axes: Axis.Set = [.vertical, .horizontal]) -> any View {
+        #if SKIP
+        return environment(\._scrollIndicatorVisibility, visibility, affectsEvaluate: false)
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func scrollIndicators(bridgedVisibility: Int, bridgedAxes: Int) -> any View {
+        #if SKIP
+        return environment(\._scrollIndicatorVisibility, ScrollIndicatorVisibility(rawValue: bridgedVisibility) ?? .automatic, affectsEvaluate: false)
+        #else
+        return self
+        #endif
     }
 
     @available(*, unavailable)
