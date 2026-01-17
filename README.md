@@ -1861,14 +1861,15 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟢</td>
+      <td>✅</td>
        <td>
           <details>
               <summary><code>.rotationEffect</code></summary>
               <ul>
                   <li><code>func rotationEffect(_ angle: Angle) -> some View</code></li>
+                  <li><code>func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> some View</code></li>
               </ul>
-          </details>      
+          </details>
        </td>
     </tr>
     <tr>
@@ -1917,16 +1918,16 @@ Support levels:
        </td>
     </tr>
     <tr>
-      <td>🟡</td>
+      <td>✅</td>
       <td>
           <details>
               <summary><code>.scaleEffect</code></summary>
               <ul>
-                  <li><code>func scaleEffect(_ scale: CGSize) -> some View</code></li>
-                  <li><code>func scaleEffect(_ s: CGFloat) -> some View</code></li>
-                  <li><code>func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> some View</code></li>
+                  <li><code>func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> some View</code></li>
+                  <li><code>func scaleEffect(_ s: CGFloat, anchor: UnitPoint = .center) -> some View</code></li>
+                  <li><code>func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> some View</code></li>
               </ul>
-          </details>      
+          </details>
        </td>
     </tr>
     <tr>
