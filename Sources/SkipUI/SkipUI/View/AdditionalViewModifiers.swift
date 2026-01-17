@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -291,7 +292,13 @@ extension View {
 
     // SKIP @bridge
     public func compositingGroup() -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier {
+            return $0.modifier.graphicsLayer(compositingStrategy: CompositingStrategy.Offscreen)
+        })
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -471,9 +478,23 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> some View {
+    // SKIP @bridge
+    public func flipsForRightToLeftLayoutDirection(_ enabled: Bool) -> any View {
+        #if SKIP
+        if !enabled {
+            return self
+        }
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+            if isRTL {
+                return context.modifier.scale(scaleX: Float(-1), scaleY: Float(1))
+            } else {
+                return context.modifier
+            }
+        })
+        #else
         return self
+        #endif
     }
 
     // SKIP @bridge
