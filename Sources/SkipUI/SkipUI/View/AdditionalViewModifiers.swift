@@ -992,10 +992,15 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
     public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> any View {
         #if SKIP
-        fatalError()
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatable = Float(angle.degrees).asAnimatable(context: context)
+            return context.modifier.graphicsLayer(
+                transformOrigin: TransformOrigin(pivotFractionX: Float(anchor.x), pivotFractionY: Float(anchor.y)),
+                rotationZ: animatable.value
+            )
+        })
         #else
         return self
         #endif
@@ -1003,8 +1008,7 @@ extension View {
 
     // SKIP @bridge
     public func rotationEffect(bridgedAngle: Double, anchorX: CGFloat, anchorY: CGFloat) -> any View {
-        // Note: anchor is currently ignored
-        return rotationEffect(.radians(bridgedAngle))
+        return rotationEffect(.radians(bridgedAngle), anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
     public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> any View {
@@ -1060,29 +1064,23 @@ extension View {
         return aspectRatio(nil, contentMode: .fill)
     }
 
-    public func scaleEffect(_ scale: CGSize) -> any View {
-        return scaleEffect(x: scale.width, y: scale.height)
+    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint = .center) -> any View {
+        return scaleEffect(x: scale.width, y: scale.height, anchor: anchor)
     }
 
-    @available(*, unavailable)
-    public func scaleEffect(_ scale: CGSize, anchor: UnitPoint) -> any View {
-        return scaleEffect(x: scale.width, y: scale.height)
+    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint = .center) -> any View {
+        return scaleEffect(x: s, y: s, anchor: anchor)
     }
 
-    public func scaleEffect(_ s: CGFloat) -> any View {
-        return scaleEffect(x: s, y: s)
-    }
-
-    @available(*, unavailable)
-    public func scaleEffect(_ s: CGFloat, anchor: UnitPoint) -> any View {
-        return scaleEffect(x: s, y: s)
-    }
-
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0) -> any View {
+    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { context in
             let animatable = (Float(x), Float(y)).asAnimatable(context: context)
-            return context.modifier.scale(scaleX: animatable.value.0, scaleY: animatable.value.1)
+            return context.modifier.graphicsLayer(
+                transformOrigin: TransformOrigin(pivotFractionX: Float(anchor.x), pivotFractionY: Float(anchor.y)),
+                scaleX: animatable.value.0,
+                scaleY: animatable.value.1
+            )
         })
         #else
         return self
@@ -1091,13 +1089,7 @@ extension View {
 
     // SKIP @bridge
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchorX: CGFloat, anchorY: CGFloat) -> any View {
-        // Note: anchor is currently ignored
-        return scaleEffect(x: x, y: y)
-    }
-
-    @available(*, unavailable)
-    public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint) -> any View {
-        return scaleEffect(x: x, y: y)
+        return scaleEffect(x: x, y: y, anchor: UnitPoint(x: anchorX, y: anchorY))
     }
 
     @available(*, unavailable)
