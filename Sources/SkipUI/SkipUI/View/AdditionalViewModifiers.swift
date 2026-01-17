@@ -292,13 +292,9 @@ extension View {
 
     // SKIP @bridge
     public func compositingGroup() -> any View {
-        #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.graphicsLayer(compositingStrategy: CompositingStrategy.Offscreen)
-        })
-        #else
+        // Android: Not currently working - would require opacity modifier to detect
+        // compositingGroup and use saveLayer with alpha instead of graphicsLayer
         return self
-        #endif
     }
 
     @available(*, unavailable)
