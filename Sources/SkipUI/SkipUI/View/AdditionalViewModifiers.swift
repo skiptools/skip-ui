@@ -155,19 +155,30 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func badge(_ count: Int) -> some View {
+    // SKIP @bridge
+    public func badge(_ count: Int) -> any View {
+        #if SKIP
+        if count == 0 {
+            return ModifiedContent(content: self, modifier: BadgeModifier(badge: nil))
+        } else {
+            return ModifiedContent(content: self, modifier: BadgeModifier(badge: Text(verbatim: String(count))))
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func badge(_ label: Text?) -> some View {
+    // SKIP @bridge
+    public func badge(_ label: Text?) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: BadgeModifier(badge: label))
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func badge(_ key: LocalizedStringKey) -> some View {
-        return self
+    public func badge(_ key: LocalizedStringKey) -> any View {
+        return badge(Text(key))
     }
 
     @available(*, unavailable)
@@ -175,14 +186,22 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func badge(_ label: String) -> some View {
-        return self
+    // SKIP @bridge
+    public func badge(_ label: String) -> any View {
+        return badge(Text(verbatim: label))
     }
 
-    @available(*, unavailable)
-    public func badgeProminence(_ prominence: BadgeProminence) -> some View {
+    public func badgeProminence(_ prominence: BadgeProminence) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: BadgeModifier(prominence: prominence))
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func badgeProminence(bridgedRawValue: Int) -> any View {
+        return badgeProminence(BadgeProminence(rawValue: bridgedRawValue) ?? .standard)
     }
 
     public func blendMode(_ blendMode: BlendMode) -> any View {

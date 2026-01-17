@@ -17,10 +17,18 @@ extension View {
     public func symbolRenderingMode(_ mode: SymbolRenderingMode?) -> some View {
         return self
     }
-    
-    @available(*, unavailable)
-    public func symbolVariant(_ variant: SymbolVariants) -> some View {
+
+    public func symbolVariant(_ variant: SymbolVariants) -> any View {
+        #if SKIP
+        return environment(\._symbolVariants, variant, affectsEvaluate: false)
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func symbolVariant(bridgedRawValue: Int) -> any View {
+        return symbolVariant(SymbolVariants(rawValue: bridgedRawValue))
     }
 
     @available(*, unavailable)
@@ -51,44 +59,94 @@ extension Image {
     }
 }
 
-public enum SymbolRenderingMode {
-    case monochrome, multicolor, hierarchical, palette
+public enum SymbolRenderingMode : Int, Sendable {
+    case monochrome = 0
+    case multicolor = 1
+    case hierarchical = 2
+    case palette = 3
 }
 
-public struct SymbolVariants : Hashable {
-    public static let none = SymbolVariants()
-    public static let circle = SymbolVariants()
-    public static let square = SymbolVariants()
-    public static let rectangle = SymbolVariants()
+/// Symbol variants that can be applied to SF Symbols.
+/// Uses a bit flag internally to combine variants.
+public struct SymbolVariants : RawRepresentable, Hashable, Sendable {
+    public let rawValue: Int
 
-    public var circle: SymbolVariants {
-        return self
-    }
-    public var square: SymbolVariants {
-        return self
-    }
-    public var rectangle: SymbolVariants {
-        return self
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
     }
 
-    public static let fill = SymbolVariants()
+    // Bit flags for each variant type
+    private static let fillBit = 1 << 0      // 1
+    private static let circleBit = 1 << 1    // 2
+    private static let squareBit = 1 << 2    // 4
+    private static let rectangleBit = 1 << 3 // 8
+    private static let slashBit = 1 << 4     // 16
 
+    public static let none = SymbolVariants(rawValue: 0)
+    public static let fill = SymbolVariants(rawValue: fillBit)
+    public static let circle = SymbolVariants(rawValue: circleBit)
+    public static let square = SymbolVariants(rawValue: squareBit)
+    public static let rectangle = SymbolVariants(rawValue: rectangleBit)
+    public static let slash = SymbolVariants(rawValue: slashBit)
+
+    /// Combine with fill variant
     public var fill: SymbolVariants {
-        return self
+        return SymbolVariants(rawValue: rawValue | Self.fillBit)
     }
 
-    public static let slash = SymbolVariants()
+    /// Combine with circle variant
+    public var circle: SymbolVariants {
+        return SymbolVariants(rawValue: rawValue | Self.circleBit)
+    }
 
+    /// Combine with square variant
+    public var square: SymbolVariants {
+        return SymbolVariants(rawValue: rawValue | Self.squareBit)
+    }
+
+    /// Combine with rectangle variant
+    public var rectangle: SymbolVariants {
+        return SymbolVariants(rawValue: rawValue | Self.rectangleBit)
+    }
+
+    /// Combine with slash variant
     public var slash: SymbolVariants {
-        return self
+        return SymbolVariants(rawValue: rawValue | Self.slashBit)
     }
 
+    /// Check if this variant contains another variant
     public func contains(_ other: SymbolVariants) -> Bool {
-        fatalError()
+        return (rawValue & other.rawValue) == other.rawValue
+    }
+
+    /// Apply the symbol variants to a symbol name, returning the modified name.
+    public func applied(to symbolName: String) -> String {
+        var name = symbolName
+
+        // Apply shape variants first (circle, square, rectangle)
+        if contains(.circle) && !name.contains(".circle") {
+            name = name + ".circle"
+        } else if contains(.square) && !name.contains(".square") {
+            name = name + ".square"
+        } else if contains(.rectangle) && !name.contains(".rectangle") {
+            name = name + ".rectangle"
+        }
+
+        // Apply fill variant
+        if contains(.fill) && !name.contains(".fill") {
+            name = name + ".fill"
+        }
+
+        // Apply slash variant
+        if contains(.slash) && !name.contains(".slash") {
+            name = name + ".slash"
+        }
+
+        return name
     }
 }
 
-public struct SymbolVariableValueMode : Equatable {
+public struct SymbolVariableValueMode : Equatable, Sendable {
     public static let color = SymbolVariableValueMode()
     public static let draw = SymbolVariableValueMode()
 }
