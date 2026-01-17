@@ -6,6 +6,9 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 #endif
 
@@ -14,18 +17,20 @@ public struct Slider : View, Renderable {
     let value: Binding<Double>
     let bounds: ClosedRange<Double>
     let step: Double?
+    let onEditingChanged: ((Bool) -> Void)?
 
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil) {
         self.value = value
         self.bounds = Self.bounds(for: bounds)
         self.step = step
+        self.onEditingChanged = nil
     }
 
-    @available(*, unavailable)
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, onEditingChanged: @escaping (Bool) -> Void) {
         self.value = value
         self.bounds = Self.bounds(for: bounds)
         self.step = step
+        self.onEditingChanged = onEditingChanged
     }
 
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View) {
@@ -33,25 +38,25 @@ public struct Slider : View, Renderable {
     }
 
     // SKIP @bridge
-    public init(getValue: @escaping () -> Double, setValue: @escaping (Double) -> Void, min: Double, max: Double, step: Double?, bridgedLabel: (any View)?) {
+    public init(getValue: @escaping () -> Double, setValue: @escaping (Double) -> Void, min: Double, max: Double, step: Double?, bridgedOnEditingChanged: ((Bool) -> Void)?, bridgedLabel: (any View)?) {
         self.value = Binding(get: getValue, set: setValue)
         self.bounds = min...max
         self.step = step
-        // Note: label is ignored
+        self.onEditingChanged = bridgedOnEditingChanged
     }
 
-    @available(*, unavailable)
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void) {
         self.value = value
         self.bounds = Self.bounds(for: bounds)
         self.step = step
+        self.onEditingChanged = onEditingChanged
     }
 
-    @available(*, unavailable)
     public init(value: Binding<Double>, in bounds: Any? = nil, step: Double? = nil, @ViewBuilder label: () -> any View, @ViewBuilder minimumValueLabel: () -> any View, @ViewBuilder maximumValueLabel: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
         self.value = value
         self.bounds = Self.bounds(for: bounds)
         self.step = step
+        self.onEditingChanged = onEditingChanged
     }
 
     private static func bounds(for bounds: Any?) -> ClosedRange<Double> {
@@ -80,7 +85,29 @@ public struct Slider : View, Renderable {
             colors = SliderDefaults.colors()
         }
         let modifier = Modifier.fillWidth().then(context.modifier)
-        androidx.compose.material3.Slider(modifier: modifier, value: Float(value.get()), onValueChange: { value.set(Double($0)) }, enabled: EnvironmentValues.shared.isEnabled, valueRange: Float(bounds.start)...Float(bounds.endInclusive), steps: steps, colors: colors)
+
+        let onEditingChangedState = rememberUpdatedState(onEditingChanged)
+        let isEditing = remember { mutableStateOf(false) }
+
+        androidx.compose.material3.Slider(
+            modifier: modifier,
+            value: Float(value.get()),
+            onValueChange: { newValue in
+                if !isEditing.value {
+                    isEditing.value = true
+                    onEditingChangedState.value?(true)
+                }
+                value.set(Double(newValue))
+            },
+            onValueChangeFinished: {
+                isEditing.value = false
+                onEditingChangedState.value?(false)
+            },
+            enabled: EnvironmentValues.shared.isEnabled,
+            valueRange: Float(bounds.start)...Float(bounds.endInclusive),
+            steps: steps,
+            colors: colors
+        )
     }
     #else
     public var body: some View {

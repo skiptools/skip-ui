@@ -15,6 +15,7 @@ import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
@@ -39,10 +40,14 @@ public struct DatePicker : View, Renderable {
     let label: ComposeBuilder
     let dateFormatter: DateFormatter?
     let timeFormatter: DateFormatter?
+    let minDate: Date?
+    let maxDate: Date?
 
     public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
         self.selection = selection
         self.label = ComposeBuilder.from(label)
+        self.minDate = nil
+        self.maxDate = nil
         if displayedComponents.contains(.date) {
             dateFormatter = DateFormatter()
             dateFormatter?.dateStyle = .medium
@@ -64,12 +69,27 @@ public struct DatePicker : View, Renderable {
         self.init(selection: Binding(get: getSelection, set: setSelection), displayedComponents: DatePickerComponents(rawValue: bridgedDisplayedComponents), label: { bridgedLabel })
     }
 
-    @available(*, unavailable)
-    public init(selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
-        self.selection = selection
-        self.dateFormatter = nil
-        self.timeFormatter = nil
-        self.label = ComposeBuilder.from(label)
+    // SKIP @bridge
+    public init(getSelection: @escaping () -> Date, setSelection: @escaping (Date) -> Void, bridgedMinDate: Date, bridgedMaxDate: Date, bridgedDisplayedComponents: Int, bridgedLabel: any View) {
+        self.selection = Binding(get: getSelection, set: setSelection)
+        self.label = ComposeBuilder.from({ bridgedLabel })
+        self.minDate = bridgedMinDate
+        self.maxDate = bridgedMaxDate
+        let displayedComponents = DatePickerComponents(rawValue: bridgedDisplayedComponents)
+        if displayedComponents.contains(.date) {
+            dateFormatter = DateFormatter()
+            dateFormatter?.dateStyle = .medium
+            dateFormatter?.timeStyle = .none
+        } else {
+            dateFormatter = nil
+        }
+        if displayedComponents.contains(.hourAndMinute) {
+            timeFormatter = DateFormatter()
+            timeFormatter?.dateStyle = .none
+            timeFormatter?.timeStyle = .short
+        } else {
+            timeFormatter = nil
+        }
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
@@ -80,22 +100,7 @@ public struct DatePicker : View, Renderable {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleResource) })
     }
 
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleKey) })
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(titleResource) })
-    }
-
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
-        self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
-    }
-
-    @available(*, unavailable)
-    public init(_ title: String, selection: Binding<Date>, in range: Range<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
@@ -165,7 +170,20 @@ public struct DatePicker : View, Renderable {
         }
         let timeZoneOffset = Double(TimeZone.current.secondsFromGMT())
         let initialSeconds = selection.wrappedValue.timeIntervalSince1970 + timeZoneOffset
-        let state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: EnvironmentValues.shared.verticalSizeClass == .compact ? DisplayMode.Input : DisplayMode.Picker)
+        let displayMode = EnvironmentValues.shared.verticalSizeClass == .compact ? DisplayMode.Input : DisplayMode.Picker
+
+        // Create selectable dates filter if range is specified
+        let minMillis: Long? = minDate != nil ? Long((minDate!.timeIntervalSince1970 + timeZoneOffset) * 1000.0) : nil
+        let maxMillis: Long? = maxDate != nil ? Long((maxDate!.timeIntervalSince1970 + timeZoneOffset) * 1000.0) : nil
+
+        let state: DatePickerState
+        if minMillis != nil || maxMillis != nil {
+            // SKIP INSERT: val selectableDates = object : SelectableDates { override fun isSelectableDate(utcTimeMillis: Long): Boolean { val min = minMillis; val max = maxMillis; if (min != null && utcTimeMillis < min) return false; if (max != null && utcTimeMillis > max) return false; return true } override fun isSelectableYear(year: Int): Boolean { return true } }
+            state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: displayMode, selectableDates: selectableDates)
+        } else {
+            state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: displayMode)
+        }
+
         let colors = DatePickerDefaults.colors(selectedDayContainerColor: tintColor, selectedYearContainerColor: tintColor, todayDateBorderColor: tintColor, currentYearContentColor: tintColor)
         SimpleDatePickerDialog(onDismissRequest: { isPresented.value = false }) {
             DatePicker(modifier: context.modifier, state: state, colors: colors)
