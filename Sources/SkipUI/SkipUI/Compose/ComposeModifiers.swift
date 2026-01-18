@@ -222,4 +222,28 @@ class ColorMultiplyModifier : DrawModifier {
         }
     }
 }
+
+class LuminanceToAlphaModifier : DrawModifier {
+    // SKIP DECLARE: override fun ContentDrawScope.draw()
+    override func draw() {
+        // Luminance to alpha matrix: converts RGB luminance to alpha channel
+        // Formula: alpha = 0.2126*R + 0.7152*G + 0.0722*B (standard luminance coefficients)
+        // The matrix sets RGB to 0 and moves luminance to alpha
+        let luminanceMatrix = ColorMatrix(floatArrayOf(
+            Float(0), Float(0), Float(0), Float(0), Float(0),
+            Float(0), Float(0), Float(0), Float(0), Float(0),
+            Float(0), Float(0), Float(0), Float(0), Float(0),
+            Float(0.2126), Float(0.7152), Float(0.0722), Float(0), Float(0)
+        ))
+        let luminanceFilter = ColorFilter.colorMatrix(luminanceMatrix)
+        let paint = Paint().apply {
+            colorFilter = luminanceFilter
+        }
+        drawIntoCanvas {
+            $0.saveLayer(Rect(Float(0.0), Float(0.0), size.width, size.height), paint)
+            drawContent()
+            $0.restore()
+        }
+    }
+}
 #endif

@@ -359,21 +359,25 @@ public struct Image : View, Renderable, Equatable {
     }
 
     @Composable private func RenderSystem(systemName: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
+        // Apply symbol variants from the environment
+        let symbolVariants = EnvironmentValues.shared._symbolVariants
+        let effectiveName = symbolVariants.applied(to: systemName)
+
         // we first check to see if there is a bundled symbol with the name in any of the asset catalogs, in which case we will use that symbol
         // note that we can only use the `main` (i.e., top-level) bundle to look up image resources, since Image(systemName:) does not accept a bundle
-        if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: systemName)) { _ in symbolResourceURL(name: systemName, bundle: Bundle.main) } {
-            RenderSymbolImage(name: systemName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+        if let symbolResourceURL = rememberCachedAsset(contentsCache, AssetKey(name: effectiveName)) { _ in symbolResourceURL(name: effectiveName, bundle: Bundle.main) } {
+            RenderSymbolImage(name: effectiveName, url: symbolResourceURL, label: nil, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
             return
        }
 
         // fall back to default symbol names
-        guard let image = Self.composeImageVector(named: systemName) else {
-            logger.warning("Unable to find system image named: \(systemName)")
+        guard let image = Self.composeImageVector(named: effectiveName) else {
+            logger.warning("Unable to find system image named: \(effectiveName)")
             Icon(imageVector: Icons.Default.Warning, contentDescription: "missing icon")
             return
         }
 
-        RenderScaledImageVector(image: image, name: systemName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+        RenderScaledImageVector(image: image, name: effectiveName, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
     }
 
     @Composable private func RenderScaledImageVector(image: ImageVector, name: String, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {

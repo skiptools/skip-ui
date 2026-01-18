@@ -844,6 +844,21 @@ extension EnvironmentValues {
         get { builtinValue(key: "_tint", defaultValue: { nil }) as! Color? }
         set { setBuiltinValue(key: "_tint", value: newValue, defaultValue: { nil }) }
     }
+
+    var _badge: Text? {
+        get { builtinValue(key: "_badge", defaultValue: { nil }) as! Text? }
+        set { setBuiltinValue(key: "_badge", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _badgeProminence: BadgeProminence {
+        get { builtinValue(key: "_badgeProminence", defaultValue: { BadgeProminence.standard }) as! BadgeProminence }
+        set { setBuiltinValue(key: "_badgeProminence", value: newValue, defaultValue: { BadgeProminence.standard }) }
+    }
+
+    var _symbolVariants: SymbolVariants {
+        get { builtinValue(key: "_symbolVariants", defaultValue: { SymbolVariants.none }) as! SymbolVariants }
+        set { setBuiltinValue(key: "_symbolVariants", value: newValue, defaultValue: { SymbolVariants.none }) }
+    }
 }
 #endif
 
