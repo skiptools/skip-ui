@@ -1409,6 +1409,18 @@ Support levels:
       <td><code>.backgroundStyle</code></td>
     </tr>
     <tr>
+      <td>🟡</td>
+      <td>
+          <details>
+              <summary><code>.badge</code></summary>
+              <ul>
+                  <li>Supported on <code>List</code> items</li>
+                  <li>Not yet supported on <code>TabView</code></li>
+              </ul>
+          </details>
+      </td>
+    </tr>
+    <tr>
       <td>🟢</td>
       <td>
           <details>
@@ -1547,6 +1559,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.focused</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.flipsForRightToLeftLayoutDirection</code></td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2075,6 +2091,10 @@ Support levels:
     <tr>
       <td>✅</td>
       <td><code>.submitLabel</code></td>
+    </tr>
+    <tr>
+      <td>✅</td>
+      <td><code>.symbolVariant</code></td>
     </tr>
     <tr>
       <td>✅</td>
