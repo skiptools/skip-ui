@@ -657,21 +657,21 @@ extension View {
     }
 
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(titleKey.patternFormat.isEmpty ? nil : Text(titleKey), isPresented: isPresented, actions: actions, message: message)
+        return alert(Text(titleKey), isPresented: isPresented, actions: actions, message: message)
     }
 
     public func alert(_ titleResource: LocalizedStringResource, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(titleResource.key.isEmpty ? nil : Text(titleResource), isPresented: isPresented, actions: actions, message: message)
+        return alert(Text(titleResource), isPresented: isPresented, actions: actions, message: message)
     }
 
     public func alert(_ title: String, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
-        return alert(title.isEmpty ? nil : Text(verbatim: title), isPresented: isPresented, actions: actions, message: message)
+        return alert(Text(verbatim: title), isPresented: isPresented, actions: actions, message: message)
     }
 
-    public func alert(_ title: Text?, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
+    public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
-            AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions(), message: message())
+            AlertPresentation(title: title.localizedTextString().isEmpty ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
         })
         #else
         return self
