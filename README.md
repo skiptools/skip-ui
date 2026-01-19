@@ -1300,7 +1300,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td>Custom <code>ViewThatFits</code></td>
+      <td><code>ViewThatFits</code></td>
     </tr>
     <tr>
       <td>✅</td>
