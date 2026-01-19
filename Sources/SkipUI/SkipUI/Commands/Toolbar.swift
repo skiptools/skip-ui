@@ -344,7 +344,7 @@ extension View {
         var view = self
         var bars = placements
         if bars.isEmpty {
-            bars = [.bottomBar, .navigationBar, .tabBar]
+            bars = [.automatic]
         }
         if bars.contains(ToolbarPlacement.tabBar) {
             view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility))
