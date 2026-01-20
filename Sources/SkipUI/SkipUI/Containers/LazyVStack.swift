@@ -61,7 +61,12 @@ public struct LazyVStack : View, Renderable {
         let searchableState = EnvironmentValues.shared._searchableState
         let isSearchable = searchableState?.isOnNavigationStack == false
 
-        let renderables = content.EvaluateLazyItems(level: 0, context: context)
+        let renderables = EnvironmentValues.shared.setValuesWithReturn({
+            $0.set_lazySectionStackAxis(Axis.vertical)
+            return ComposeResult.ok
+        }, in: {
+            content.EvaluateLazyItems(level: 0, context: context)
+        })
         let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in

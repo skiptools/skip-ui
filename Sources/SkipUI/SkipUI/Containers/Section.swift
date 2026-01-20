@@ -83,18 +83,37 @@ public struct Section : View {
 
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
+        let stackAxis = EnvironmentValues.shared._lazySectionStackAxis ?? Axis.vertical
+        func combined(_ list: kotlin.collections.List<Renderable>?, stackAxis: Axis) -> Renderable {
+            let filtered = (list ?? listOf()).filter { !$0.isSwiftUIEmptyView }
+            if filtered.size == 0 {
+                return EmptyView()
+            }
+            if filtered.size == 1 {
+                return filtered[0]
+            }
+            if stackAxis == Axis.horizontal {
+                return HStack(alignment: .center, spacing: 0) {
+                    ForEach(0..<filtered.size) { i in ComposeView { ctx in filtered[i].Render(context: ctx) } }
+                }
+            } else {
+                return VStack(alignment: .center, spacing: 0) {
+                    ForEach(0..<filtered.size) { i in ComposeView { ctx in filtered[i].Render(context: ctx) } }
+                }
+            }
+        }
         let isLazy = EvaluateOptions(options).lazyItemLevel != nil
         var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let headerRenderables = header?.Evaluate(context: context, options: 0)
         if isLazy {
-            renderables.add(LazySectionHeader(content: headerRenderables?.firstOrNull() ?? EmptyView()))
+            renderables.add(LazySectionHeader(content: combined(headerRenderables, stackAxis: stackAxis)))
         } else if let headerRenderables {
             renderables.addAll(headerRenderables)
         }
         renderables.addAll(content.Evaluate(context: context, options: options))
         let footerRenderables = footer?.Evaluate(context: context, options: 0)
         if isLazy {
-            renderables.add(LazySectionFooter(content: footerRenderables?.firstOrNull() ?? EmptyView()))
+            renderables.add(LazySectionFooter(content: combined(footerRenderables, stackAxis: stackAxis)))
         } else if let footerRenderables {
             renderables.addAll(footerRenderables)
         }

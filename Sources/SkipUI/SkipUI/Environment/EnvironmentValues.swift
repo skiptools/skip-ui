@@ -728,6 +728,13 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_listStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    /// Axis for stacking multiple views in a Section header/footer when in a lazy container.
+    /// LazyVGrid/LazyVStack/List use .vertical (VStack); LazyHGrid/LazyHStack use .horizontal (HStack).
+    var _lazySectionStackAxis: Axis? {
+        get { builtinValue(key: "_lazySectionStackAxis", defaultValue: { nil }) as! Axis? }
+        set { setBuiltinValue(key: "_lazySectionStackAxis", value: newValue, defaultValue: { nil }) }
+    }
+
     var _material3BottomAppBar: (@Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions)? {
         get { builtinValue(key: "_material3BottomAppBar", defaultValue: { nil }) as! (@Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions)? }
         set { setBuiltinValue(key: "_material3BottomAppBar", value: newValue, defaultValue: { nil }) }

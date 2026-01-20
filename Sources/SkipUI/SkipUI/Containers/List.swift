@@ -157,14 +157,18 @@ public final class List : View, Renderable {
     }
 
     @Composable private func RenderList(context: ComposeContext, styling: ListStyling, arguments: ListArguments) {
-        let renderables: kotlin.collections.List<Renderable>
-        if let forEach {
-            renderables = forEach.EvaluateLazyItems(level: 0, context: context)
-        } else if let fixedContent {
-            renderables = fixedContent.EvaluateLazyItems(level: 0, context: context)
-        } else {
-            renderables = listOf()
-        }
+        let renderables = EnvironmentValues.shared.setValuesWithReturn({
+            $0.set_lazySectionStackAxis(Axis.vertical)
+            return ComposeResult.ok
+        }, in: {
+            if let forEach {
+                return forEach.EvaluateLazyItems(level: 0, context: context)
+            } else if let fixedContent {
+                return fixedContent.EvaluateLazyItems(level: 0, context: context)
+            } else {
+                return listOf()
+            }
+        })
 
         var modifier = context.modifier
         if styling.style != .plain {
