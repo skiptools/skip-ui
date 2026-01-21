@@ -48,7 +48,7 @@ public struct LazyHStack : View, Renderable {
         }
 
         let rowAlignment = alignment.asComposeAlignment()
-        let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+        let rowArrangement = Arrangement.spacedBy((spacing ?? 8.0).dp, alignment: androidx.compose.ui.Alignment.Start)
         let isScrollEnabled = EnvironmentValues.shared._scrollViewAxes.contains(.horizontal)
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.horizontal : []
         let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
@@ -56,7 +56,7 @@ public struct LazyHStack : View, Renderable {
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
-        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
+        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillHeight: true) { modifier in
             // Integrate with ScrollViewReader
             let listState = rememberLazyListState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
