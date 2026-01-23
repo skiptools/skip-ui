@@ -2,89 +2,262 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if !SKIP_BRIDGE
 import Foundation
+#if SKIP
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+#endif
 
-public struct Stepper : View {
-    @available(*, unavailable)
+// SKIP @bridge
+public struct Stepper : View, Renderable {
+    let value: Binding<Double>?
+    let label: ComposeBuilder
+    let step: Double
+    let minValue: Double?
+    let maxValue: Double?
+    let onIncrement: (() -> Void)?
+    let onDecrement: (() -> Void)?
+    let onEditingChanged: ((Bool) -> Void)?
+
+    // MARK: - Custom increment/decrement initializers
+
     public init(@ViewBuilder label: () -> any View, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.value = nil
+        self.label = ComposeBuilder.from(label)
+        self.step = 1.0
+        self.minValue = nil
+        self.maxValue = nil
+        self.onIncrement = onIncrement
+        self.onDecrement = onDecrement
+        self.onEditingChanged = onEditingChanged
     }
 
-    @available(*, unavailable)
-    public init(value: Binding<Int>, step: Int = 1, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
-    public init(value: Binding<Double>, step: Double = 1.0, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
-    public init(value: Binding<Int>, in bounds: Range<Int>, step: Int = 1, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
-    public init(value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
     public init(_ titleKey: LocalizedStringKey, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(label: { Text(titleKey) }, onIncrement: onIncrement, onDecrement: onDecrement, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
     public init(_ titleResource: LocalizedStringResource, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(label: { Text(titleResource) }, onIncrement: onIncrement, onDecrement: onDecrement, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
     public init(_ title: String, onIncrement: (() -> Void)?, onDecrement: (() -> Void)?, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(label: { Text(verbatim: title) }, onIncrement: onIncrement, onDecrement: onDecrement, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
+    // MARK: - Int value initializers (no bounds)
+
+    public init(value intValue: Binding<Int>, step: Int = 1, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        var capturedBinding = intValue
+        self.value = Binding(get: { Double(capturedBinding.wrappedValue) }, set: { capturedBinding.wrappedValue = Int($0) })
+        self.label = ComposeBuilder.from(label)
+        self.step = Double(step)
+        self.minValue = nil
+        self.maxValue = nil
+        self.onIncrement = nil
+        self.onDecrement = nil
+        self.onEditingChanged = onEditingChanged
+    }
+
     public init(_ titleKey: LocalizedStringKey, value: Binding<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
     public init(_ titleResource: LocalizedStringResource, value: Binding<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleResource) }, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
-    }
-
-    @available(*, unavailable)
     public init(_ title: String, value: Binding<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(verbatim: title) }, onEditingChanged: onEditingChanged)
     }
 
-    @available(*, unavailable)
+    // MARK: - Double value initializers (no bounds)
+
+    public init(value: Binding<Double>, step: Double = 1.0, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.value = value
+        self.label = ComposeBuilder.from(label)
+        self.step = step
+        self.minValue = nil
+        self.maxValue = nil
+        self.onIncrement = nil
+        self.onDecrement = nil
+        self.onEditingChanged = onEditingChanged
+    }
+
+    public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
+    }
+
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleResource) }, onEditingChanged: onEditingChanged)
+    }
+
     public init(_ title: String, value: Binding<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(verbatim: title) }, onEditingChanged: onEditingChanged)
+    }
+
+    // MARK: - Int value initializers (with bounds) - Available via Fuse bridging
+
+    @available(*, unavailable)
+    public init(value intValue: Binding<Int>, in bounds: ClosedRange<Int>, step: Int = 1, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: intValue, step: step, label: label, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, value: Binding<Int>, in bounds: Range<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ titleKey: LocalizedStringKey, value: Binding<Int>, in bounds: ClosedRange<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, value: Binding<Int>, in bounds: Range<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Int>, in bounds: ClosedRange<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleResource) }, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ title: String, value: Binding<Int>, in bounds: ClosedRange<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(verbatim: title) }, onEditingChanged: onEditingChanged)
+    }
+
+    // MARK: - Double value initializers (with bounds) - Available via Fuse bridging
+
+    @available(*, unavailable)
+    public init(value: Binding<Double>, in bounds: ClosedRange<Double>, step: Double = 1.0, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: label, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ titleKey: LocalizedStringKey, value: Binding<Double>, in bounds: ClosedRange<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleKey) }, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ title: String, value: Binding<Int>, in bounds: Range<Int>, step: Int = 1, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ titleResource: LocalizedStringResource, value: Binding<Double>, in bounds: ClosedRange<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(titleResource) }, onEditingChanged: onEditingChanged)
     }
 
     @available(*, unavailable)
-    public init(_ title: String, value: Binding<Double>, in bounds: Range<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+    public init(_ title: String, value: Binding<Double>, in bounds: ClosedRange<Double>, step: Double = 1.0, onEditingChanged: @escaping (Bool) -> Void = { _ in }) {
+        self.init(value: value, step: step, label: { Text(verbatim: title) }, onEditingChanged: onEditingChanged)
     }
 
-    #if !SKIP
+    // SKIP @bridge
+    public init(getValue: @escaping () -> Double, setValue: @escaping (Double) -> Void, step: Double, minValue: Double?, maxValue: Double?, bridgedOnEditingChanged: ((Bool) -> Void)?, bridgedLabel: any View) {
+        self.value = Binding(get: getValue, set: setValue)
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.step = step
+        self.minValue = minValue
+        self.maxValue = maxValue
+        self.onIncrement = nil
+        self.onDecrement = nil
+        self.onEditingChanged = bridgedOnEditingChanged
+    }
+
+    // SKIP @bridge
+    public init(bridgedOnIncrement: (() -> Void)?, bridgedOnDecrement: (() -> Void)?, bridgedOnEditingChanged: ((Bool) -> Void)?, bridgedLabel: any View) {
+        self.value = nil
+        self.label = ComposeBuilder.from { bridgedLabel }
+        self.step = 1.0
+        self.minValue = nil
+        self.maxValue = nil
+        self.onIncrement = bridgedOnIncrement
+        self.onDecrement = bridgedOnDecrement
+        self.onEditingChanged = bridgedOnEditingChanged
+    }
+
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+        let isEnabled = EnvironmentValues.shared.isEnabled
+        let tint = EnvironmentValues.shared._tint ?? Color.accentColor
+        let tintColor = tint.colorImpl()
+        let disabledColor = tintColor.copy(alpha: ContentAlpha.disabled)
+
+        let currentValue = value?.wrappedValue ?? 0.0
+        let canDecrement = isEnabled && (onDecrement != nil || (minValue == nil || currentValue > minValue!))
+        let canIncrement = isEnabled && (onIncrement != nil || (maxValue == nil || currentValue + step <= maxValue!))
+
+        let contentContext = context.content()
+
+        if EnvironmentValues.shared._labelsHidden {
+            Row(modifier: context.modifier, horizontalArrangement: Arrangement.spacedBy(4.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                RenderButtons(canDecrement: canDecrement, canIncrement: canIncrement, tintColor: tintColor, disabledColor: disabledColor)
+            }
+        } else {
+            ComposeContainer(modifier: context.modifier, fillWidth: true) { modifier in
+                Row(modifier: modifier, horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                    Box(modifier: Modifier.weight(Float(1.0))) {
+                        label.Compose(context: contentContext)
+                    }
+                    RenderButtons(canDecrement: canDecrement, canIncrement: canIncrement, tintColor: tintColor, disabledColor: disabledColor)
+                }
+            }
+        }
+    }
+
+    @Composable private func RenderButtons(canDecrement: Bool, canIncrement: Bool, tintColor: androidx.compose.ui.graphics.Color, disabledColor: androidx.compose.ui.graphics.Color) {
+        let borderColor = tintColor.copy(alpha: Float(0.3))
+        let shape = RoundedCornerShape(8.dp)
+
+        Row(
+            modifier: Modifier
+                .height(36.dp)
+                .border(width: 1.dp, color: borderColor, shape: shape)
+                .clip(shape),
+            verticalAlignment: Alignment.CenterVertically
+        ) {
+            IconButton(onClick: { performDecrement() }, enabled: canDecrement, modifier: Modifier.size(36.dp)) {
+                Icon(imageVector: Icons.Filled.Remove, contentDescription: "Decrement", tint: canDecrement ? tintColor : disabledColor)
+            }
+            HorizontalDivider(modifier: Modifier.width(1.dp).height(20.dp), color: borderColor)
+            IconButton(onClick: { performIncrement() }, enabled: canIncrement, modifier: Modifier.size(36.dp)) {
+                Icon(imageVector: Icons.Filled.Add, contentDescription: "Increment", tint: canIncrement ? tintColor : disabledColor)
+            }
+        }
+    }
+
+    private func performIncrement() {
+        onEditingChanged?(true)
+        if let onIncrement {
+            onIncrement()
+        } else if let value {
+            var newValue = value.wrappedValue + step
+            if let maxValue, newValue > maxValue {
+                newValue = maxValue
+            }
+            value.wrappedValue = newValue
+        }
+        onEditingChanged?(false)
+    }
+
+    private func performDecrement() {
+        onEditingChanged?(true)
+        if let onDecrement {
+            onDecrement()
+        } else if let value {
+            var newValue = value.wrappedValue - step
+            if let minValue, newValue < minValue {
+                newValue = minValue
+            }
+            value.wrappedValue = newValue
+        }
+        onEditingChanged?(false)
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -102,104 +275,11 @@ extension Stepper {
     /// Creates a stepper configured to increment or decrement a binding to a
     /// value using a step value you provide, displaying its value with an
     /// applied format style.
-    ///
-    /// Use this initializer to create a stepper that increments or decrements
-    /// a bound value by a specific amount each time the user clicks or taps
-    /// the stepper's increment or decrement buttons, while displaying the
-    /// current value.
-    ///
-    /// In the example below, a stepper increments or decrements `value` by the
-    /// `step` value of 5 at each click or tap of the control's increment or
-    /// decrement button:
-    ///
-    ///     struct StepperView: View {
-    ///         @State private var value = 1
-    ///         let step = 5
-    ///         var body: some View {
-    ///             Stepper(value: $value,
-    ///                     step: step,
-    ///                     format: .number) {
-    ///                 Text("Current value: \(value), step: \(step)")
-    ///             }
-    ///                 .padding(10)
-    ///         }
-    ///     }
-    ///
-    /// ![A view displaying a stepper that increments or decrements a value by
-    ///   a specified amount each time the user clicks or taps the stepper's
-    ///   increment or decrement buttons.](SkipUI-Stepper-value-step.png)
-    ///
-    /// - Parameters:
-    ///   - value: The ``Binding`` to a value that you provide.
-    ///   - step: The amount to increment or decrement `value` each time the
-    ///     user clicks or taps the stepper's increment or decrement buttons.
-    ///     Defaults to `1`.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the
-    ///     stepper leaves `value` unchanged. If the user stops editing the
-    ///     text in an invalid state, the stepper updates the text to the last
-    ///     known valid value.
-    ///   - label: A view describing the purpose of this stepper.
-    ///   - onEditingChanged: A closure that's called when editing begins and
-    ///     ends. For example, on iOS, the user may touch and hold the increment
-    ///     or decrement buttons on a stepper which causes the execution
-    ///     of the `onEditingChanged` closure at the start and end of
-    ///     the gesture.
     public init<F>(value: Binding<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 
     /// Creates a stepper configured to increment or decrement a binding to a
     /// value using a step value and within a range of values you provide,
     /// displaying its value with an applied format style.
-    ///
-    /// Use this initializer to create a stepper that increments or decrements
-    /// a binding to value by the step size you provide within the given bounds.
-    /// By setting the bounds, you ensure that the value never goes below or
-    /// above the lowest or highest value, respectively.
-    ///
-    /// The example below shows a stepper that displays the effect of
-    /// incrementing or decrementing a value with the step size of `step`
-    /// with the bounds defined by `range`:
-    ///
-    ///     struct StepperView: View {
-    ///         @State private var value = 0
-    ///         let step = 5
-    ///         let range = 1...50
-    ///
-    ///         var body: some View {
-    ///             Stepper(value: $value,
-    ///                     in: range,
-    ///                     step: step,
-    ///                     format: .number) {
-    ///                 Text("Current: \(value) in \(range.description) " +
-    ///                      "stepping by \(step)")
-    ///             }
-    ///                 .padding(10)
-    ///         }
-    ///     }
-    ///
-    /// ![A view displaying a stepper with a step size of five, and a
-    /// prescribed range of 1 though 50.](SkipUI-Stepper-value-step-range.png)
-    ///
-    /// - Parameters:
-    ///   - value: A ``Binding`` to a value that you provide.
-    ///   - bounds: A closed range that describes the upper and lower bounds
-    ///     permitted by the stepper.
-    ///   - step: The amount to increment or decrement the stepper when the
-    ///     user clicks or taps the stepper's increment or decrement buttons,
-    ///     respectively.
-    ///   - format: A format style of type `F` to use when converting between
-    ///     the string the user edits and the underlying value of type
-    ///     `F.FormatInput`. If `format` can't perform the conversion, the
-    ///     stepper leaves `value` unchanged. If the user stops editing the
-    ///     text in an invalid state, the stepper updates the text to the last
-    ///     known valid value.
-    ///   - label: A view describing the purpose of this stepper.
-    ///   - onEditingChanged: A closure that's called when editing begins and
-    ///     ends. For example, on iOS, the user may touch and hold the increment
-    ///     or decrement buttons on a stepper which causes the execution
-    ///     of the `onEditingChanged` closure at the start and end of
-    ///     the gesture.
     public init<F>(value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, @ViewBuilder label: () -> any View, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 }
 
@@ -210,188 +290,21 @@ extension Stepper {
     /// Creates a stepper with a title key and configured to increment and
     /// decrement a binding to a value and step amount you provide,
     /// displaying its value with an applied format style.
-    ///
-    /// Use `Stepper(_:value:step:onEditingChanged:)` to create a stepper with a
-    /// custom title that increments or decrements a binding to value by the
-    /// step size you specify, while displaying the current value.
-    ///
-    /// In the example below, the stepper increments or decrements the binding
-    /// value by `5` each time the user clicks or taps on the control's
-    /// increment or decrement buttons, respectively:
-    ///
-    ///     struct StepperView: View {
-    ///         @State private var value = 1
-    ///
-    ///         var body: some View {
-    ///             Stepper("Stepping by \(step)",
-    ///                 value: $value,
-    ///                 step: 5,
-    ///                 format: .number
-    ///             )
-    ///             .padding(10)
-    ///         }
-    ///     }
-    ///
-    /// ![A view displaying a stepper that increments or decrements by 5 each
-    ///   time the user clicks or taps on the control's increment or decrement
-    ///   buttons, respectively.](SkipUI-Stepper-value-step.png)
-    ///
-    /// - Parameters:
-    ///     - titleKey: The key for the stepper's localized title describing
-    ///       the purpose of the stepper.
-    ///     - value: A ``Binding`` to a value that you provide.
-    ///     - step: The amount to increment or decrement `value` each time the
-    ///       user clicks or taps the stepper's plus or minus button,
-    ///       respectively.  Defaults to `1`.
-    ///     - format: A format style of type `F` to use when converting between
-    ///       the string the user edits and the underlying value of type
-    ///       `F.FormatInput`. If `format` can't perform the conversion, the
-    ///       stepper leaves `value` unchanged. If the user stops editing the
-    ///       text in an invalid state, the stepper updates the text to the last
-    ///       known valid value.
-    ///     - onEditingChanged: A closure that's called when editing begins and
-    ///       ends. For example, on iOS, the user may touch and hold the
-    ///       increment or decrement buttons on a `Stepper` which causes the
-    ///       execution of the `onEditingChanged` closure at the start and end
-    ///       of the gesture.
     public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 
     /// Creates a stepper with a title and configured to increment and
     /// decrement a binding to a value and step amount you provide,
     /// displaying its value with an applied format style.
-    ///
-    /// Use `Stepper(_:value:step:format:onEditingChanged:)` to create a stepper
-    /// with a custom title that increments or decrements a binding to value by
-    /// the step size you specify, while displaying the current value.
-    ///
-    /// In the example below, the stepper increments or decrements the binding
-    /// value by `5` each time one of the user clicks or taps the control's
-    /// increment or decrement buttons:
-    ///
-    ///     struct StepperView: View {
-    ///         let title: String
-    ///         @State private var value = 1
-    ///
-    ///         var body: some View {
-    ///             Stepper(title, value: $value, step: 5, format: .number)
-    ///                 .padding(10)
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///     - title: A string describing the purpose of the stepper.
-    ///     - value: The ``Binding`` to a value that you provide.
-    ///     - step: The amount to increment or decrement `value` each time the
-    ///       user clicks or taps the stepper's increment or decrement button,
-    ///       respectively. Defaults to `1`.
-    ///     - format: A format style of type `F` to use when converting between
-    ///       the string the user edits and the underlying value of type
-    ///       `F.FormatInput`. If `format` can't perform the conversion, the
-    ///       stepper leaves `value` unchanged. If the user stops editing the
-    ///       text in an invalid state, the stepper updates the text to the last
-    ///       known valid value.
-    ///     - onEditingChanged: A closure that's called when editing begins and
-    ///       ends. For example, on iOS, the user may touch and hold the
-    ///       increment or decrement buttons on a `Stepper` which causes the
-    ///       execution of the `onEditingChanged` closure at the start and end
-    ///       of the gesture.
     public init<S, F>(_ title: S, value: Binding<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where S : StringProtocol, F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 
     /// Creates a stepper instance that increments and decrements a binding to
     /// a value, by a step size and within a closed range that you provide,
     /// displaying its value with an applied format style.
-    ///
-    /// Use `Stepper(_:value:in:step:format:onEditingChanged:)` to create a
-    /// stepper that increments or decrements a value within a specific range
-    /// of values by a specific step size, while displaying the current value.
-    /// In the example below, a stepper increments or decrements a binding to
-    /// value over a range of `1...50` by `5` each time the user clicks or taps
-    /// the stepper's increment or decrement buttons:
-    ///
-    ///     struct StepperView: View {
-    ///         @State private var value = 0
-    ///
-    ///         var body: some View {
-    ///             Stepper("Stepping by \(step) in \(range.description)",
-    ///                 value: $value,
-    ///                 in: 1...50,
-    ///                 step: 5,
-    ///                 format: .number
-    ///             )
-    ///             .padding()
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///     - titleKey: The key for the stepper's localized title describing
-    ///       the purpose of the stepper.
-    ///     - value: A ``Binding`` to a value that your provide.
-    ///     - bounds: A closed range that describes the upper and lower bounds
-    ///       permitted by the stepper.
-    ///     - step: The amount to increment or decrement `value` each time the
-    ///       user clicks or taps the stepper's increment or decrement button,
-    ///       respectively. Defaults to `1`.
-    ///     - format: A format style of type `F` to use when converting between
-    ///       the string the user edits and the underlying value of type
-    ///       `F.FormatInput`. If `format` can't perform the conversion, the
-    ///       stepper leaves `value` unchanged. If the user stops editing the
-    ///       text in an invalid state, the stepper updates the text to the last
-    ///       known valid value.
-    ///     - onEditingChanged: A closure that's called when editing begins and
-    ///       ends. For example, on iOS, the user may touch and hold the increment
-    ///       or decrement buttons on a `Stepper` which causes the execution
-    ///       of the `onEditingChanged` closure at the start and end of
-    ///       the gesture.
     public init<F>(_ titleKey: LocalizedStringKey, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 
     /// Creates a stepper instance that increments and decrements a binding to
     /// a value, by a step size and within a closed range that you provide,
     /// displaying its value with an applied format style.
-    ///
-    /// Use `Stepper(_:value:in:step:format:onEditingChanged:)` to create a
-    /// stepper that increments or decrements a value within a specific range
-    /// of values by a specific step size, while displaying the current value.
-    /// In the example below, a stepper increments or decrements a binding to
-    /// value over a range of `1...50` by `5` each time the user clicks or taps
-    /// the stepper's increment or decrement buttons:
-    ///
-    ///     struct StepperView: View {
-    ///         let title: String
-    ///         @State private var value = 0
-    ///
-    ///         let step = 5
-    ///         let range = 1...50
-    ///
-    ///         var body: some View {
-    ///             Stepper(title,
-    ///                 value: $value,
-    ///                 in: 1...50,
-    ///                 step: 5,
-    ///                 format: .number
-    ///             )
-    ///             .padding()
-    ///         }
-    ///     }
-    ///
-    /// - Parameters:
-    ///     - title: A string describing the purpose of the stepper.
-    ///     - value: A ``Binding`` to a value that your provide.
-    ///     - bounds: A closed range that describes the upper and lower bounds
-    ///       permitted by the stepper.
-    ///     - step: The amount to increment or decrement `value` each time the
-    ///       user clicks or taps the stepper's increment or decrement button,
-    ///       respectively. Defaults to `1`.
-    ///     - format: A format style of type `F` to use when converting between
-    ///       the string the user edits and the underlying value of type
-    ///       `F.FormatInput`. If `format` can't perform the conversion, the
-    ///       stepper leaves `value` unchanged. If the user stops editing the
-    ///       text in an invalid state, the stepper updates the text to the last
-    ///       known valid value.
-    ///     - onEditingChanged: A closure that's called when editing begins and
-    ///       ends. For example, on iOS, the user may touch and hold the increment
-    ///       or decrement buttons on a `Stepper` which causes the execution
-    ///       of the `onEditingChanged` closure at the start and end of
-    ///       the gesture.
     public init<S, F>(_ title: S, value: Binding<F.FormatInput>, in bounds: ClosedRange<F.FormatInput>, step: F.FormatInput.Stride = 1, format: F, onEditingChanged: @escaping (Bool) -> Void = { _ in }) where S : StringProtocol, F : ParseableFormatStyle, F.FormatInput : BinaryFloatingPoint, F.FormatOutput == String { fatalError() }
 }
 */
