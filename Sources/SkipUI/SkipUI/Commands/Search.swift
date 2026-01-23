@@ -196,7 +196,11 @@ final class SearchableStateModifier: RenderModifier {
             let submitState = EnvironmentValues.shared._onSubmitState
             let isModifierOnNavigationStack = renderable.strip() is NavigationStack
             let isNavigationRoot = EnvironmentValues.shared._isNavigationRoot == true
-            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isNavigationRoot == true)
+            // When searchable is on NavigationStack, we run before RenderEntry sets _isNavigationRoot,
+            // so isNavigationRoot is not yet true. Treat "modifier on NavigationStack" as on-stack
+            // so only Navigation shows the search bar; ScrollView/List/etc. must not show a second one.
+            let isOnNavigationStack = isModifierOnNavigationStack || isNavigationRoot
+            let state = SearchableState(text: text, prompt: prompt, submitState: submitState, isSearching: isSearching, isOnNavigationStack: isOnNavigationStack)
             // Bubble the search state to the navigation stack if root, else down to the component
             if isModifierOnNavigationStack || isNavigationRoot != true {
                 EnvironmentValues.shared.setValues {
