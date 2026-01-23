@@ -6,8 +6,10 @@ import Foundation
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -355,6 +357,8 @@ public final class List : View, Renderable {
     }
 
     @Composable static func RenderItemContent(item: Renderable, context: ComposeContext, modifier: Modifier) {
+        let badgeModifier = BadgeModifier.combined(for: item)
+        let badge = badgeModifier.badge
         let (isListItem, listItemAction) = item.shouldRenderListItem(context: context)
         if isListItem {
             let actionModifier: Modifier
@@ -364,13 +368,49 @@ public final class List : View, Renderable {
             } else {
                 actionModifier = Modifier
             }
-            Box(modifier: actionModifier.then(modifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                item.RenderListItem(context: context, modifiers: listOf())
+            if let badge {
+                Row(modifier: actionModifier.then(modifier), horizontalArrangement: Arrangement.SpaceBetween, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                    Box(modifier: Modifier.weight(Float(1.0)), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                        item.RenderListItem(context: context, modifiers: listOf())
+                    }
+                    RenderBadge(badge: badge, prominence: badgeModifier.prominence ?? .standard, context: context)
+                }
+            } else {
+                Box(modifier: actionModifier.then(modifier), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    item.RenderListItem(context: context, modifiers: listOf())
+                }
             }
         } else {
-            Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                item.Render(context: context)
+            if let badge {
+                Row(modifier: modifier, horizontalArrangement: Arrangement.SpaceBetween, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                    Box(modifier: Modifier.weight(Float(1.0)), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                        item.Render(context: context)
+                    }
+                    RenderBadge(badge: badge, prominence: badgeModifier.prominence ?? .standard, context: context)
+                }
+            } else {
+                Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    item.Render(context: context)
+                }
             }
+        }
+    }
+
+    @Composable private static func RenderBadge(badge: Text, prominence: BadgeProminence, context: ComposeContext) {
+        let badgeColor: androidx.compose.ui.graphics.Color
+        switch prominence {
+        case .increased:
+            badgeColor = Color.red.colorImpl()
+        case .decreased:
+            badgeColor = Color.secondary.colorImpl()
+        default:
+            badgeColor = Color.secondary.colorImpl()
+        }
+        EnvironmentValues.shared.setValues {
+            $0.set_foregroundStyle(Color(colorImpl: { badgeColor }))
+            return ComposeResult.ok
+        } in: {
+            badge.Compose(context: context)
         }
     }
 
@@ -842,6 +882,30 @@ final class ListItemModifier: RenderModifier {
             return nil
         }
         return ListItemModifier(background: background, separator: separator)
+    }
+}
+
+final class BadgeModifier: RenderModifier {
+    let badge: Text?
+    let prominence: BadgeProminence?
+
+    init(badge: Text? = nil, prominence: BadgeProminence? = nil) {
+        self.badge = badge
+        self.prominence = prominence
+        super.init()
+    }
+
+    static func combined(for renderable: Renderable) -> BadgeModifier {
+        var badge: Text? = nil
+        var prominence: BadgeProminence? = nil
+        renderable.forEachModifier {
+            if let badgeModifier = $0 as? BadgeModifier {
+                badge = badge ?? badgeModifier.badge
+                prominence = prominence ?? badgeModifier.prominence
+            }
+            return nil
+        }
+        return BadgeModifier(badge: badge, prominence: prominence)
     }
 }
 #endif
