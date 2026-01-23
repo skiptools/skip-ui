@@ -1,6 +1,6 @@
 # SkipUI
 
-SwiftUI support for [Skip](https://skip.tools) apps.
+SwiftUI support for [Skip](https://skip.dev) apps.
 
 ## Setup
 
@@ -14,7 +14,7 @@ let package = Package(
         .library(name: "MyProduct", targets: ["MyTarget"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip-ui.git", from: "1.0.0"),
+        .package(url: "https://source.skip.dev/skip-ui.git", from: "1.0.0"),
     ],
     targets: [
         .target(name: "MyTarget", dependencies: [
@@ -28,14 +28,14 @@ let package = Package(
 
 SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI for Kotlin on Android using Jetpack Compose. Its goal is to mirror as much of SwiftUI as possible, allowing Skip developers to use SwiftUI with confidence.
 
-![SkipUI Diagram](https://assets.skip.tools/diagrams/skip-diagrams-ui.svg)
+![SkipUI Diagram](https://assets.skip.dev/diagrams/skip-diagrams-ui.svg)
 {: .diagram-vector }
 
-SkipUI is used directly by [Skip Lite](https://skip.tools/docs/status/#skip_fuse) transpiled Swift, and it is used indirectly by [Skip Fuse](https://skip.tools/docs/status/#skip_fuse) compiled Swift through the SkipFuseUI native framework.
+SkipUI is used directly by [Skip Lite](https://skip.dev/docs/status/#skip_fuse) transpiled Swift, and it is used indirectly by [Skip Fuse](https://skip.dev/docs/status/#skip_fuse) compiled Swift through the SkipFuseUI native framework.
 
 ## Dependencies
 
-SkipUI depends on the [skip](https://source.skip.tools/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
+SkipUI depends on the [skip](https://source.skip.dev/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
 SkipUI is part of the core *SkipStack* and is not intended to be imported directly.
 The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
@@ -133,7 +133,7 @@ struct MessageComposer : ContentComposer {
 
 ```
 
-See the [bridging](https://skip.tools/docs/modes/#bridging) documentation for information on bridging your own data types.
+See the [bridging](https://skip.dev/docs/modes/#bridging) documentation for information on bridging your own data types.
 
 ### Skip Lite
 
@@ -573,7 +573,7 @@ Support levels:
       <td>🟢</td>
       <td>
             <details>
-              <summary><code>@AppStorage</code> (<a href="https://skip.tools/docs/components/storage/">example</a>)</summary>
+              <summary><code>@AppStorage</code> (<a href="https://skip.dev/docs/components/storage/">example</a>)</summary>
               <ul>
                   <li>Optional values are not supported</li>
               </ul>
@@ -586,13 +586,13 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@Binding</code> (<a href="https://skip.tools/docs/components/state/">example</a>)</td>
+      <td><code>@Binding</code> (<a href="https://skip.dev/docs/components/state/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
       <td>
          <details>
-              <summary><code>@Environment</code> (<a href="https://skip.tools/docs/components/modifier/">example</a>)</summary>
+              <summary><code>@Environment</code> (<a href="https://skip.dev/docs/components/modifier/">example</a>)</summary>
               <ul>
                   <li>See <a href="#environment-keys">Environment Keys</a></li>
               </ul>
@@ -601,7 +601,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@EnvironmentObject</code> (<a href="https://skip.tools/docs/components/observable/">example</a>)</td>
+      <td><code>@EnvironmentObject</code> (<a href="https://skip.dev/docs/components/observable/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -627,37 +627,37 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@ObservedObject</code> (<a href="https://skip.tools/docs/components/observable/">example</a>)</td>
+      <td><code>@ObservedObject</code> (<a href="https://skip.dev/docs/components/observable/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@State</code> (<a href="https://skip.tools/docs/components/state/">example</a>)</td>
+      <td><code>@State</code> (<a href="https://skip.dev/docs/components/state/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>@StateObject</code> (<a href="https://skip.tools/docs/components/state/">example</a>)</td>
+      <td><code>@StateObject</code> (<a href="https://skip.dev/docs/components/state/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>AsyncImage</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</td>
+      <td><code>AsyncImage</code> (<a href="https://skip.dev/docs/components/image/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Button</code> (<a href="https://skip.tools/docs/components/button/">example</a>)</td>
+      <td><code>Button</code> (<a href="https://skip.dev/docs/components/button/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Capsule</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>Capsule</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Circle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>Circle</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Color</code> (<a href="https://skip.tools/docs/components/color/">example</a>)</summary>
+              <summary><code>Color</code> (<a href="https://skip.dev/docs/components/color/">example</a>)</summary>
               <ul>
                   <li><code>init(red: Double, green: Double, blue: Double, opacity: Double = 1.0)</code></li>
                   <li><code>init(white: Double, opacity: Double = 1.0)</code></li>
@@ -695,7 +695,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>DatePicker</code> (<a href="https://skip.tools/docs/components/datepicker/">example</a>)</summary>
+              <summary><code>DatePicker</code> (<a href="https://skip.dev/docs/components/datepicker/">example</a>)</summary>
               <ul>
                   <li><code>init(selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ title: String, selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
@@ -708,7 +708,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>DisclosureGroup</code> (<a href="https://skip.tools/docs/components/disclosuregroup/">example</a>)</summary>
+              <summary><code>DisclosureGroup</code> (<a href="https://skip.dev/docs/components/disclosuregroup/">example</a>)</summary>
               <ul>
                   <li><code>init(isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View, @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ titleKey: LocalizedStringKey, isExpanded: Binding&lt;Bool&gt;, @ViewBuilder content: @escaping () -> any View)</code></li>
@@ -722,13 +722,13 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Divider</code> (<a href="https://skip.tools/docs/components/divider/">example</a>)</td>
+      <td><code>Divider</code> (<a href="https://skip.dev/docs/components/divider/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>DragGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>DragGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -739,7 +739,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>EllipticalGradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</summary>
+              <summary><code>EllipticalGradient</code> (<a href="https://skip.dev/docs/components/gradient/">example</a>)</summary>
               <ul>
                   <li>Fills as a circular gradient instead of elliptical unless the gradient is used as its own <code>View</code></li>
               </ul>
@@ -799,7 +799,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Form</code> (<a href="https://skip.tools/docs/components/form/">example</a>)</td>
+      <td><code>Form</code> (<a href="https://skip.dev/docs/components/form/">example</a>)</td>
     </tr>
     <tr>
       <td>🟡</td>
@@ -832,13 +832,13 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>HStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
+      <td><code>HStack</code> (<a href="https://skip.dev/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Image</code> (<a href="https://skip.tools/docs/components/image/">example</a>)</summary>
+              <summary><code>Image</code> (<a href="https://skip.dev/docs/components/image/">example</a>)</summary>
               <ul>
                   <li><code>init(_ name: String, bundle: Bundle? = Bundle.main)</code></li>
                   <li><code>init(_ name: String, bundle: Bundle? = Bundle.main, label: Text)</code></li>
@@ -853,7 +853,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Label</code> (<a href="https://skip.tools/docs/components/label/">example</a>)</summary>
+              <summary><code>Label</code> (<a href="https://skip.dev/docs/components/label/">example</a>)</summary>
               <ul>
                   <li><code>init(@ViewBuilder title: () -> any View, @ViewBuilder icon: () -> any View)</code></li>
                   <li><code>init(_ title: String, systemImage: String)</code></li>
@@ -911,17 +911,17 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>LinearGradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</td>
+      <td><code>LinearGradient</code> (<a href="https://skip.dev/docs/components/gradient/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Link</code> (<a href="https://skip.tools/docs/components/link/">example</a>)</td>
+      <td><code>Link</code> (<a href="https://skip.dev/docs/components/link/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>List</code> (<a href="https://skip.tools/docs/components/list/">example</a>)</summary>
+              <summary><code>List</code> (<a href="https://skip.dev/docs/components/list/">example</a>)</summary>
               <ul>
                   <li>See <a href="#lists">Lists</a></li>
               </ul>
@@ -932,7 +932,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>LongPressGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>LongPressGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -943,7 +943,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>MagnifyGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>MagnifyGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -952,13 +952,13 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Menu</code> (<a href="https://skip.tools/docs/components/menu/">example</a>)</td>
+      <td><code>Menu</code> (<a href="https://skip.dev/docs/components/menu/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>NavigationLink</code> (<a href="https://skip.tools/docs/components/list/">example</a>)</summary>
+              <summary><code>NavigationLink</code> (<a href="https://skip.dev/docs/components/list/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
@@ -986,7 +986,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>NavigationStack</code> (<a href="https://skip.tools/docs/components/navigationstack/">example</a>)</summary>
+              <summary><code>NavigationStack</code> (<a href="https://skip.dev/docs/components/navigationstack/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
@@ -995,17 +995,17 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Oval</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>Oval</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Picker</code> (<a href="https://skip.tools/docs/components/picker/">example</a>)</td>
+      <td><code>Picker</code> (<a href="https://skip.dev/docs/components/picker/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>ProgressView</code> (<a href="https://skip.tools/docs/components/progressview/">example</a>)</summary>
+              <summary><code>ProgressView</code> (<a href="https://skip.dev/docs/components/progressview/">example</a>)</summary>
               <ul>
                   <li><code>init()</code></li>
                   <li><code>init(value: Double?, total: Double = 1.0)</code></li>
@@ -1023,17 +1023,17 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>RadialGradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</td>
+      <td><code>RadialGradient</code> (<a href="https://skip.dev/docs/components/gradient/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>Rectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>Rectangle</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>RotateGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>RotateGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -1042,11 +1042,11 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>RoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>RoundedRectangle</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>ScrollView</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</td>
+      <td><code>ScrollView</code> (<a href="https://skip.dev/docs/components/frame/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1085,7 +1085,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Section</code> (<a href="https://skip.tools/docs/components/list/">example</a>)</summary>
+              <summary><code>Section</code> (<a href="https://skip.dev/docs/components/list/">example</a>)</summary>
               <ul>
                   <li>See <a href="#lists">Lists</a></li>
               </ul>
@@ -1094,13 +1094,13 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>SecureField</code> (<a href="https://skip.tools/docs/components/securefield/">example</a>)</td>
+      <td><code>SecureField</code> (<a href="https://skip.dev/docs/components/securefield/">example</a>)</td>
     </tr>
     <tr>
       <td>🟠</td>
       <td>
           <details>
-              <summary><code>ShareLink</code> (<a href="https://skip.tools/docs/components/sharelink/">example</a>)</summary>
+              <summary><code>ShareLink</code> (<a href="https://skip.dev/docs/components/sharelink/">example</a>)</summary>
               <ul>
                   <li>Supports sharing <code>String</code> or <code>URL</code> data only</li>
               </ul>
@@ -1111,7 +1111,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>Slider</code> (<a href="https://skip.tools/docs/components/slider/">example</a>)</summary>
+              <summary><code>Slider</code> (<a href="https://skip.dev/docs/components/slider/">example</a>)</summary>
               <ul>
                   <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil)</code></li>
                   <li><code>init(value: Binding&lt;Double>, in bounds: ClosedRange&lt;Double> = 0.0...1.0, step: Double? = nil, @ViewBuilder label: () -> any View)</code></li>
@@ -1125,7 +1125,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Spacer</code> (<a href="https://skip.tools/docs/components/border/">example</a>)</summary>
+              <summary><code>Spacer</code> (<a href="https://skip.dev/docs/components/border/">example</a>)</summary>
               <ul>
                   <li>In Compose, when multiple elements want to expand they will share the available space equally</li>
               </ul>
@@ -1156,7 +1156,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Tab</code> (<a href="https://skip.tools/docs/components/tabview/">example</a>)</summary>
+              <summary><code>Tab</code> (<a href="https://skip.dev/docs/components/tabview/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
@@ -1209,7 +1209,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>TabView</code> (<a href="https://skip.tools/docs/components/tabview/">example</a>)</summary>
+              <summary><code>TabView</code> (<a href="https://skip.dev/docs/components/tabview/">example</a>)</summary>
               <ul>
                   <li>See <a href="#navigation">Navigation</a></li>
               </ul>
@@ -1220,7 +1220,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>TapGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>TapGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -1231,7 +1231,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>Text</code> (<a href="https://skip.tools/docs/components/text/">example</a>)</summary>
+              <summary><code>Text</code> (<a href="https://skip.dev/docs/components/text/">example</a>)</summary>
               <ul>
                   <li><code>Text(...) + Text(...)</code> is not supported</li>
                   <li>For formatters, only <code>Text.DateStyle.date</code> and <code>Text.DateStyle.time</code> are supported</li>
@@ -1254,7 +1254,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>TextField</code> (<a href="https://skip.tools/docs/components/textfield/">example</a>)</summary>
+              <summary><code>TextField</code> (<a href="https://skip.dev/docs/components/textfield/">example</a>)</summary>
               <ul>
                   <li><code>init(_ title: String, text: Binding&lt;String>, selection: Binding&lt;TextSelection?>? = nil, prompt: Text? = nil)</code></li>
               </ul>
@@ -1265,7 +1265,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>Toggle</code> (<a href="https://skip.tools/docs/components/toggle/">example</a>)</summary>
+              <summary><code>Toggle</code> (<a href="https://skip.dev/docs/components/toggle/">example</a>)</summary>
               <ul>
                   <li><code>init(isOn: Binding&lt;Bool>, @ViewBuilder label: () -> any View)</code></li>
               </ul>
@@ -1285,11 +1285,11 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>ToolbarItem</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
+      <td><code>ToolbarItem</code> (<a href="https://skip.dev/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>ToolbarItemGroup</code> (<a href="https://skip.tools/docs/components/toolbar/">example</a>)</td>
+      <td><code>ToolbarItemGroup</code> (<a href="https://skip.dev/docs/components/toolbar/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1312,7 +1312,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.tools/docs/components/shape/">example</a>)</td>
+      <td><code>UnevenRoundedRectangle</code> (<a href="https://skip.dev/docs/components/shape/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1330,7 +1330,7 @@ Support levels:
       <td>✅</td>
       <td>
           <details>
-              <summary><code>VStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</summary>
+              <summary><code>VStack</code> (<a href="https://skip.dev/docs/components/stack/">example</a>)</summary>
               <ul>
                   <li>See <a href="#layout">Layout</a></li>
               </ul>
@@ -1350,7 +1350,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>ZStack</code> (<a href="https://skip.tools/docs/components/stack/">example</a>)</td>
+      <td><code>ZStack</code> (<a href="https://skip.dev/docs/components/stack/">example</a>)</td>
     </tr>
     <tr>
       <td>🟢</td>
@@ -1421,7 +1421,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.background</code> (<a href="https://skip.tools/docs/components/background/">example</a>)</summary>
+              <summary><code>.background</code> (<a href="https://skip.dev/docs/components/background/">example</a>)</summary>
               <ul>
                   <li>See <a href="#safe-area">Safe Area</a></li>
               </ul>
@@ -1472,7 +1472,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.border</code> (<a href="https://skip.tools/docs/components/border/">example</a>)</td>
+      <td><code>.border</code> (<a href="https://skip.dev/docs/components/border/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1526,7 +1526,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.confirmationDialog</code> (<a href="https://skip.tools/docs/components/confirmationdialog/">example</a>)</td>
+      <td><code>.confirmationDialog</code> (<a href="https://skip.dev/docs/components/confirmationdialog/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1590,7 +1590,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.font</code> (<a href="https://skip.tools/docs/components/text/">example</a>)</td>
+      <td><code>.font</code> (<a href="https://skip.dev/docs/components/text/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1604,7 +1604,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.frame</code> (<a href="https://skip.tools/docs/components/frame/">example</a>)</summary>
+              <summary><code>.frame</code> (<a href="https://skip.dev/docs/components/frame/">example</a>)</summary>
               <ul>
                   <li>See <a href="#layout">Layout</a></li>
               </ul>
@@ -1627,7 +1627,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.gesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>.gesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -1636,7 +1636,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.gradient</code> (<a href="https://skip.tools/docs/components/gradient/">example</a>)</td>
+      <td><code>.gradient</code> (<a href="https://skip.dev/docs/components/gradient/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1682,7 +1682,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.keyboardType</code> (<a href="https://skip.tools/docs/components/keyboard/">example</a>)</td>
+      <td><code>.keyboardType</code> (<a href="https://skip.dev/docs/components/keyboard/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1749,7 +1749,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.modifier</code> (<a href="https://skip.tools/docs/components/modifier/">example</a>)</td>
+      <td><code>.modifier</code> (<a href="https://skip.dev/docs/components/modifier/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1789,7 +1789,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.offset</code> (<a href="https://skip.tools/docs/components/offset/">example</a>)</td>
+      <td><code>.offset</code> (<a href="https://skip.dev/docs/components/offset/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -1811,7 +1811,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.onLongPressGesture</code> (<a href="https://skip.tools/docs/components/gesture/">example</a>)</summary>
+              <summary><code>.onLongPressGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
               <ul>
                   <li>See <a href="#gestures">Gestures</a></li>
               </ul>
@@ -1855,7 +1855,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.overlay</code> (<a href="https://skip.tools/docs/components/overlay/">example</a>)</td>
+      <td><code>.overlay</code> (<a href="https://skip.dev/docs/components/overlay/">example</a>)</td>
     </tr>
     <tr>
       <td>✅</td>
@@ -2063,7 +2063,7 @@ Support levels:
       <td>🟡</td>
       <td>
           <details>
-              <summary><code>.searchable</code> (<a href="https://skip.tools/docs/components/searchable/">example</a>)</summary>
+              <summary><code>.searchable</code> (<a href="https://skip.dev/docs/components/searchable/">example</a>)</summary>
               <ul>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: Text? = nil) -> some View</code></li>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: String) -> some View</code></li>
@@ -2075,7 +2075,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.shadow</code> (<a href="https://skip.tools/docs/components/shadow/">example</a>)</summary>
+              <summary><code>.shadow</code> (<a href="https://skip.dev/docs/components/shadow/">example</a>)</summary>
               <ul>
                   <li>Place this modifier before <code>.background</code>, <code>.overlay</code> modifiers</li>
               </ul>
@@ -2086,7 +2086,7 @@ Support levels:
       <td>🟢</td>
       <td>
           <details>
-              <summary><code>.sheet</code> (<a href="https://skip.tools/docs/components/sheet/">example</a>)</summary>
+              <summary><code>.sheet</code> (<a href="https://skip.dev/docs/components/sheet/">example</a>)</summary>
               <ul>
                   <li><code>func sheet(isPresented: Binding&lt;Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> any View) -> some View</code></li>
                   <li>See <a href="#modals">Modals</a></li>
@@ -2246,7 +2246,7 @@ Support levels:
     </tr>
     <tr>
       <td>✅</td>
-      <td><code>.zIndex</code> (<a href="https://skip.tools/docs/components/zindex/">example</a>)</td>
+      <td><code>.zIndex</code> (<a href="https://skip.dev/docs/components/zindex/">example</a>)</td>
     </tr>
   </tbody>
 </table>
@@ -2539,7 +2539,7 @@ Color("WarningYellow", bundle: .module)
 Your named colors must use Xcode's "Floating point (0.0-1.0)" input method. You can convert named colors using other methods by selecting them in Xcode and using the UI picker to update the input method. The values will be preserved.
 {: class="callout warning"}
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
 When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
 Note that you also **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
@@ -2572,7 +2572,7 @@ Custom fonts are embedded differently for each platform. On Android you should c
 
 For iOS, you must add the font by adding to the Xcode project's app target and ensure the font file is included in the file list in the app target's "Build Phases" tab's "Copy Bundle Resources" phase. In addition, iOS needs to have the font explicitly listed in the Xcode project target's "Info" tab under "Custom Application Target Properties" by adding a new key for the "Fonts provided by application" (whose raw name is "UIAppFonts") and adding each font's file name to the string array.
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `TextPlayground` for a concrete example of using a custom font, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Custom_Font.png)) to see how the font is included on both the iOS and Android sides of the app.
 
 ### Environment Keys
 
@@ -2695,12 +2695,12 @@ Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
 When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
 {: class="callout warning"}
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
 Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 {: class="callout info"}
 
-In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.tools/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
+In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.dev/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
 ```swift
 Image("baseball-icon", bundle: .module, label: Text("Baseball Icon"))
@@ -2734,7 +2734,7 @@ The `Image(systemName:)` constructor is used to display a standard system symbol
 When exporting from the SF Symbols app, selecting "Export for: Xcode 12" may result in sharper rendering on Android.  
 {: class="callout info"}
 
-See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with an exported symbol image, and see that project's Xcode project file ([screenshot](https://assets.skip.tools/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
+See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with an exported symbol image, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
 
 SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to customize the color and weight of the symbol, but other symbol modifiers such as `symbolVariant` and `symbolRenderingMode` are currently unsupported. 
 {: class="callout warning"}
@@ -3061,7 +3061,7 @@ Button("Send Email") {
 
 ## Contributing
 
-We welcome contributions to SkipUI. The Skip product [documentation](https://skip.tools/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
+We welcome contributions to SkipUI. The Skip product [documentation](https://skip.dev/docs/contributing/) includes helpful instructions and tips on local Skip library development. 
 
 The most pressing need is to implement more core components and view modifiers. View modifiers in particular are a ripe source of low-hanging fruit. The Compose `Modifier` type often has built-in functions that replicate SwiftUI modifiers, making these SwiftUI modifiers easy to implement.
 To help fill in unimplemented API in SkipUI:
@@ -3082,7 +3082,7 @@ The most common way to test SkipUI's support for a SwiftUI component is through 
 
 ### SkipLite Code Transformations
 
-SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://source.skip.tools/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
+SkipUI does not work in isolation. When used from Skip Lite transpiled Swift, it depends on transformations the [skip](https://source.skip.dev/skip) plugin makes to SwiftUI code. And while Skip generally strives to write Kotlin that is similar to hand-crafted code, these SwiftUI transformations are not something you'd want to write yourself. Before discussing SkipUI's implementation, let's explore them.
 
 Both SwiftUI and Compose are declarative UI frameworks. Both have mechanisms to track state and automatically re-render when state changes. SwiftUI models user interface elements with `View` objects, however, while Compose models them with `@Composable` functions. The Skip transpiler must therefore translate your code defining a `View` graph into `@Composable` function calls. This involves two primary transformations:
 
