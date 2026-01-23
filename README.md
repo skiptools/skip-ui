@@ -37,7 +37,7 @@ SkipUI is used directly by [Skip Lite](https://skip.dev/docs/status/#skip_fuse) 
 
 SkipUI depends on the [skip](https://source.skip.dev/skip) transpiler plugin. The transpiler must transpile SkipUI's own source code, and SkipUI relies on the transpiler's transformation of SwiftUI code. See [Implementation Strategy](#implementation-strategy) for details. SkipUI also depends on the [SkipFoundation](https://github.com/skiptools/skip-foundation) and [SkipModel](https://github.com/skiptools/skip-model) packages.
 
-SkipUI is part of the core *SkipStack* and is not intended to be imported directly.
+SkipUI is part of the core *Core Skip Frameworks* and is not intended to be imported directly.
 The module is transparently adopted by importing SwiftUI in compiled Swift, and through the translation of `import SwiftUI` into `import skip.ui.*` for transpiled code.
 
 ### Android Libraries
@@ -349,8 +349,8 @@ In addition to the `.material3ColorScheme` modifier detailed above, Skip include
 - The modifiers place your closure into the SwiftUI `Environment`. This means that you can apply the modifier on a root view, and it will affect all subviews. While you may be used to placing navigation and tab bar modifiers on the views *within* the `NavigationStack` or `TabView`, the `.material3` family of modifiers always go *on or outside* the views you want to affect.
 - Because they are designed to reach beneath Skip's SwiftUI covers, the modifiers use Compose terminology and types. In fact the properties of the supplied `Material3<Component>Options` structs typically exactly match the corresponding `androidx.compose.material3` component function parameters.
 
-You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary).
-{: class="callout info"}
+> [!NOTE]
+> You can find details on Material 3 component API in [this Android API documentation](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary).
 
 Here is an example of changing the selected indicator color on your Android tab bar, which is implemented by the Material 3 `NavigationBar` component:
 
@@ -2536,14 +2536,15 @@ Once an asset catalog is added to your `Resources` folder, any named colors can 
 Color("WarningYellow", bundle: .module)
 ```
 
-Your named colors must use Xcode's "Floating point (0.0-1.0)" input method. You can convert named colors using other methods by selecting them in Xcode and using the UI picker to update the input method. The values will be preserved.
-{: class="callout warning"}
+> [!TIP]
+> Your named colors must use Xcode's "Floating point (0.0-1.0)" input method. You can convert named colors using other methods by selecting them in Xcode and using the UI picker to update the input method. The values will be preserved.
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ColorPlayground` for a concrete example of using a named color in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
 When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
-Note that you also **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
-{: class="callout warning"}
+
+> [!NOTE]
+> Note that you also **must** specify the `bundle` parameter for colors explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 
 For Android, Skip only uses named colors that you've set for "Universal" devices. You can define the color using RGB values or use any of the "Universal System Color" constants.
 
@@ -2660,8 +2661,8 @@ UINotificationFeedbackGenerator().notificationOccurred(.error)
 UISelectionFeedbackGenerator().selectionChanged()
 ```
 
-Android requires adding a permission in order to be able to utilize the device's haptic feedback service (`android.content.Context.VIBRATOR_MANAGER_SERVICE`) by adding to the `Android/app/src/main/AndroidMetadata.xml` file's manifest section: `<uses-permission android:name="android.permission.VIBRATE"/>`
-{: class="callout warning"}
+> [!TIP]
+> Android requires adding a permission in order to be able to utilize the device's haptic feedback service (`android.content.Context.VIBRATOR_MANAGER_SERVICE`) by adding to the `Android/app/src/main/AndroidMetadata.xml` file's manifest section: `<uses-permission android:name="android.permission.VIBRATE"/>`
 
 
 ### Images
@@ -2692,13 +2693,13 @@ Once an asset catalog is added to your `Resources` folder, any bundled images ca
 Image("Cat", bundle: .module, label: Text("Cat JPEG image"))
 ```
 
-When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
-{: class="callout warning"}
+> [!WARNING]
+> When an app project is first created with `skip init`, it will contain two separate asset catalogs: a project-level `Assets.xcassets` catalog that contains the app's icons, and an empty module-level `Module.xcassets` catalog. **Add your assets to `Module.xcassets`.** Only the module-level catalog will be transpiled, since the project-level catalog is not processed by the skip transpiler.
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a bundled image in an asset catalog, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Asset_Image.png)) to see the configuration of the `.xcassets` file for the app module.
 
-Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
-{: class="callout info"}
+> [!NOTE]
+> Note that you **must** specify the `bundle` parameter for images explicitly, since a Skip project uses per-module resources, rather than the default `Bundle.main` bundle that would be assumed of the parameter were omitted.
 
 In addition to raster image formats like .png and .jpg, vector images in the .svg and .pdf formats are also supported in asset catalogs. This can be useful for providing images that can scale up or down with losing quality, and are commonly used for icons. Supported .svg sources are discussed in the [System Symbols](#system-symbols) documentation below. PDF images must have the "Preserve Vector Data" flag set in the asset in Xcode ([screenshot](https://assets.skip.dev/screens/SkipUI_PDF_Image.png)) in order to support tinting with the `.foregroundStyle(color)` modifier. Otherwise, the colors set in the PDF itself will always be used when displaying the image.
 
@@ -2710,8 +2711,8 @@ Image("baseball-icon", bundle: .module, label: Text("Baseball Icon"))
     .frame(width: 30, height: 30)
 ```
 
-Skip currently supports Light and Dark variants of images in an asset catalog, and will display the appropriate image depending on the active color scheme. Other image asset variants like size classes are currently unsupported.
-{: class="callout warning"}
+> [!IMPORTANT]
+> Skip currently supports Light and Dark variants of images in an asset catalog, and will display the appropriate image depending on the active color scheme. Other image asset variants like size classes are currently unsupported.
 
 
 #### Bundled Images
@@ -2731,13 +2732,13 @@ The `Image(systemName:)` constructor is used to display a standard system symbol
 1. Give the downloaded symbol file the same name as the iOS symbol you want it to represent on Android. Keep the `.svg` file extension.
 1. Drag the file to your `Module.xcassets` asset catalog.
 
-When exporting from the SF Symbols app, selecting "Export for: Xcode 12" may result in sharper rendering on Android.  
-{: class="callout info"}
+> [!NOTE]
+> When exporting from the SF Symbols app, selecting "Export for: Xcode 12" may result in sharper rendering on Android.  
 
 See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `ImagePlayground` for a concrete example of using a system symbol with an exported symbol image, and see that project's Xcode project file ([screenshot](https://assets.skip.dev/screens/SkipUI_Custom_Symbol.png)) to see how the symbol is included in the `.xcassets` file for the app module.
 
-SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to customize the color and weight of the symbol, but other symbol modifiers such as `symbolVariant` and `symbolRenderingMode` are currently unsupported. 
-{: class="callout warning"}
+> [!WARNING]
+> SkipUI currently supports using the view's `foregroundStyle` and `fontWeight` to customize the color and weight of the symbol, but other symbol modifiers such as `symbolVariant` and `symbolRenderingMode` are currently unsupported. 
 
 Downloaded symbols can be used directly, or they can be edited using an SVG editor to provide custom vector symbols for you app, as described at [Creating custom symbol images for your app](https://developer.apple.com/documentation/uikit/uiimage/creating_custom_symbol_images_for_your_app). You use `Image(systemName:)` to load a system symbol image and `Image(_:bundle)` to load your custom symbol, as the following code shows:
 
@@ -2968,8 +2969,8 @@ SomeContentView()
     }
 ```
 
-Due to Compose limitations, changing the value passed to `.backDismissDisabled(_: Bool = true)` while the modal is presented has no effect. Only the value at the time of presentation is considered.
-{: class="callout warning"}
+> [!WARNING]
+> Due to Compose limitations, changing the value passed to `.backDismissDisabled(_: Bool = true)` while the modal is presented has no effect. Only the value at the time of presentation is considered.
 
 Note that you might want to pair `backDismissDisabled` with SwiftUI's `.interactiveDismissDisabled` modifier to also disable dismissing via dragging the sheet down.
 
