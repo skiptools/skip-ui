@@ -808,6 +808,16 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_scrollContentBackground", value: newValue, defaultValue: { nil }) }
     }
 
+    var _scrollDisabled: Bool {
+        get { builtinValue(key: "_scrollDisabled", defaultValue: { false }) as! Bool }
+        set { setBuiltinValue(key: "_scrollDisabled", value: newValue, defaultValue: { false }) }
+    }
+
+    var _scrollIndicatorVisibility: ScrollIndicatorVisibility {
+        get { builtinValue(key: "_scrollIndicatorVisibility", defaultValue: { ScrollIndicatorVisibility.automatic }) as! ScrollIndicatorVisibility }
+        set { setBuiltinValue(key: "_scrollIndicatorVisibility", value: newValue, defaultValue: { ScrollIndicatorVisibility.automatic }) }
+    }
+
     var _scrollTargetBehavior: ScrollTargetBehavior? {
         get { builtinValue(key: "_scrollTargetBehavior", defaultValue: { nil }) as! ScrollTargetBehavior? }
         set { setBuiltinValue(key: "_scrollTargetBehavior", value: newValue, defaultValue: { nil }) }
