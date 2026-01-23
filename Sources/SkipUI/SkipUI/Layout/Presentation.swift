@@ -383,7 +383,8 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         let modifier = Modifier.wrapContentWidth().wrapContentHeight().then(context.modifier)
         Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
             let contentContext = context.content()
-            Column(modifier: Modifier.padding(top: 16.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
+            let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
+            Column(modifier: Modifier.padding(top: hasTopContent ? 16.dp : 4.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
                 RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
             }
         }
@@ -407,7 +408,10 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         textField.Compose(context: textFieldContext)
     }
 
-    androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
+    let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
+    if hasTopContent {
+        androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
+    }
 
     let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
     let buttonFont = Font.title3
@@ -661,7 +665,7 @@ extension View {
     public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
-            AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions())
+            AlertPresentation(title: title.localizedTextString().isEmpty ? nil : title, isPresented: isPresented, context: context, actions: actions())
         })
         #else
         return self
@@ -689,7 +693,7 @@ extension View {
     public func alert(_ title: Text, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View, @ViewBuilder message: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: PresentationModifier(providesNavigation: true) { context in
-            AlertPresentation(title: title, isPresented: isPresented, context: context, actions: actions(), message: message())
+            AlertPresentation(title: title.localizedTextString().isEmpty ? nil : title, isPresented: isPresented, context: context, actions: actions(), message: message())
         })
         #else
         return self
