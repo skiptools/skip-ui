@@ -114,7 +114,7 @@ public struct ProgressView : View, Renderable {
         if value == nil || total == nil {
             LinearProgressIndicator(modifier: modifier, color: color)
         } else {
-            LinearProgressIndicator(progress: Float(value! / total!), modifier: modifier, color: color)
+            LinearProgressIndicator(progress: { Float(value! / total!) }, modifier: modifier, color: color)
         }
     }
 
@@ -126,7 +126,7 @@ public struct ProgressView : View, Renderable {
             if value == nil || total == nil {
                 CircularProgressIndicator(modifier: indicatorModifier, color: color)
             } else {
-                CircularProgressIndicator(progress: Float(value! / total!), modifier: indicatorModifier, color: color)
+                CircularProgressIndicator(progress: { Float(value! / total!) }, modifier: indicatorModifier, color: color)
             }
         }
     }
