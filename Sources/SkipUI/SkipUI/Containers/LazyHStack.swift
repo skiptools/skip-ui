@@ -53,7 +53,12 @@ public struct LazyHStack : View, Renderable {
         let scrollAxes: Axis.Set = isScrollEnabled ? Axis.Set.horizontal : []
         let scrollTargetBehavior = EnvironmentValues.shared._scrollTargetBehavior
 
-        let renderables = content.EvaluateLazyItems(level: 0, context: context)
+        let renderables = EnvironmentValues.shared.setValuesWithReturn({
+            $0.set_lazySectionStackAxis(Axis.horizontal)
+            return ComposeResult.ok
+        }, in: {
+            content.EvaluateLazyItems(level: 0, context: context)
+        })
         let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
