@@ -75,6 +75,54 @@ private class LogLayoutModifierNode(
         }
     }
 
+    override fun IntrinsicMeasureScope.maxIntrinsicWidth(
+        measurable: IntrinsicMeasurable,
+        height: Int
+    ): Int {
+        val result = measurable.maxIntrinsicWidth(height)
+        Log.d(
+            tag,
+            "maxIntrinsicWidth: height=$height, result=$result"
+        )
+        return result
+    }
+
+    override fun IntrinsicMeasureScope.maxIntrinsicHeight(
+        measurable: IntrinsicMeasurable,
+        width: Int
+    ): Int {
+        val result = measurable.maxIntrinsicHeight(width)
+        Log.d(
+            tag,
+            "maxIntrinsicHeight: width=$width, result=$result"
+        )
+        return result
+    }
+    
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(
+        measurable: IntrinsicMeasurable,
+        height: Int
+    ): Int {
+        val result = measurable.minIntrinsicWidth(height)
+        Log.d(
+            tag,
+            "minIntrinsicWidth: height=$height, result=$result"
+        )
+        return result
+    }
+
+    override fun IntrinsicMeasureScope.minIntrinsicHeight(
+        measurable: IntrinsicMeasurable,
+        width: Int
+    ): Int {
+        val result = measurable.minIntrinsicHeight(width)
+        Log.d(
+            tag,
+            "minIntrinsicHeight: width=$width, result=$result"
+        )
+        return result
+    }
+
     override fun onGloballyPositioned(coordinates: LayoutCoordinates) {
         val bounds = coordinates.boundsInWindow()
         Log.d(
