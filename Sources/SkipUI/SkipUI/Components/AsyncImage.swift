@@ -94,8 +94,16 @@ public struct AsyncImage : View, Renderable {
 
     #if SKIP
     @Composable public func Render(context: ComposeContext) {
+        // Skip's aspectRatio modifier doesn't apply androidx.compose.foundation.layout.aspectRatio to AsyncImage
+        // Instead, we set it in the environment, so the Image can consume it
+        // If we're showing a placeholder, and the aspectRatio is in the environment, we need to apply it to the placeholder
         guard let url else {
-            let _ = self.content(AsyncImagePhase.empty).Compose(context)
+            let placeholderView = self.content(AsyncImagePhase.empty)
+            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
+                let _ = placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context)
+            } else {
+                let _ = placeholderView.Compose(context)
+            }
             return
         }
 
@@ -118,13 +126,23 @@ public struct AsyncImage : View, Renderable {
             .build()
 
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
-            content(AsyncImagePhase.empty).Compose(context: context)
+            let placeholderView = content(AsyncImagePhase.empty)
+            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
+                placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context: context)
+            } else {
+                placeholderView.Compose(context: context)
+            }
         }, success: { state in
             let image = Image(painter: self.painter, scale: scale)
             let content = content(AsyncImagePhase.success(image))
             content.Compose(context: context)
         }, error: { state in
-            content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable))).Compose(context: context)
+            let placeholderView = content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable)))
+            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
+                placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context: context)
+            } else {
+                placeholderView.Compose(context: context)
+            }
         })
     }
     #else
