@@ -55,7 +55,11 @@ public struct LazyHStack : View, Renderable {
 
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
-        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
+        // If we're in a vertical scrolling layout, attempting to fill height uses the intrinsic size
+        // instead. But Compose crashes if you attempt to get the intrinsic height for components like
+        // lists, so turn off fill behavior if vertically scrolling
+        let fillHeight = !EnvironmentValues.shared._layoutScrollAxes.contains(.vertical)
+        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillHeight: fillHeight) { modifier in
             // Integrate with ScrollViewReader
             let listState = rememberLazyListState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
