@@ -1314,25 +1314,10 @@ extension Modifier {
     /// Log layout constraints for debugging purposes.
     ///
     /// - Parameter tag: The log tag to use (default: "LogLayout").
-    /// - Returns: A modifier that logs layout constraints.
-    func logLayout(tag: String = "LogLayout") -> Modifier {
-        return self.layout { measurable, constraints in
-            android.util.Log.d(
-                tag,
-                "Constraints: minWidth=\(constraints.minWidth), maxWidth=\(constraints.maxWidth), " +
-                    "minHeight=\(constraints.minHeight), maxHeight=\(constraints.maxHeight)"
-            )
-            let placeable = measurable.measure(constraints)
-            return layout(width: placeable.width, height: placeable.height) {
-                placeable.place(0, 0)
-            }
-        }.onGloballyPositioned {
-            let bounds = $0.boundsInWindow()
-            android.util.Log.d(
-                tag,
-                "Bounds: (top=\(bounds.top), left=\(bounds.left), bottom=\(bounds.bottom), right=\(bounds.right), width=\(bounds.width), height=\(bounds.height))"
-            )
-        }
+    /// - Returns: A modifier that logs layout constraints and bounds.
+    ///
+    public func logLayout(tag: String = "LogLayout") -> Modifier {
+        return self.logLayoutModifier(tag: tag)
     }
 }
 
