@@ -66,6 +66,10 @@ private class LogLayoutModifierNode(
                 "minHeight=${constraints.minHeight}, maxHeight=${constraints.maxHeight}"
         )
         val placeable = measurable.measure(constraints)
+        Log.d(
+            tag,
+            "Measured: width=${placeable.width}, height=${placeable.height}"
+        )
         return layout(width = placeable.width, height = placeable.height) {
             placeable.placeRelative(x = 0, y = 0)
         }
