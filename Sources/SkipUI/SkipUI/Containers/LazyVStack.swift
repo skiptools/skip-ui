@@ -62,7 +62,6 @@ public struct LazyVStack : View, Renderable {
         let isSearchable = searchableState?.isOnNavigationStack == false
 
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
-        let itemContext = context.content()
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
             IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
@@ -101,36 +100,39 @@ public struct LazyVStack : View, Renderable {
                             startItemIndex: isSearchable ? 1 : 0,
                             item: { renderable, _ in
                                 item {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             },
                             indexedItems: { range, identifier, _, _, _, _, factory in
                                 let count = range.endExclusive - range.start
                                 let key: ((Int) -> String)? = identifier == nil ? nil : { composeBundleString(for: identifier!($0 + range.start)) }
                                 items(count: count, key: key) { index in
-                                    factory(index + range.start, itemContext).Render(context: itemContext)
+                                    let scopedContext = context.content(scope: self)
+                                    factory(index + range.start, scopedContext).Render(context: scopedContext)
                                 }
                             },
                             objectItems: { objects, identifier, _, _, _, _, factory in
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objects[$0])) }
                                 items(count: objects.count, key: key) { index in
-                                    factory(objects[index], itemContext).Render(context: itemContext)
+                                    let scopedContext = context.content(scope: self)
+                                    factory(objects[index], scopedContext).Render(context: scopedContext)
                                 }
                             },
                             objectBindingItems: { objectsBinding, identifier, _, _, _, _, _, factory in
                                 let key: (Int) -> String = { composeBundleString(for: identifier(objectsBinding.wrappedValue[$0])) }
                                 items(count: objectsBinding.wrappedValue.count, key: key) { index in
-                                    factory(objectsBinding, index, itemContext).Render(context: itemContext)
+                                    let scopedContext = context.content(scope: self)
+                                    factory(objectsBinding, index, scopedContext).Render(context: scopedContext)
                                 }
                             },
                             sectionHeader: { renderable in
                                 item {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             },
                             sectionFooter: { renderable in
                                 item {
-                                    renderable.Render(context: itemContext)
+                                    renderable.Render(context: context.content(scope: self))
                                 }
                             }
                         )
