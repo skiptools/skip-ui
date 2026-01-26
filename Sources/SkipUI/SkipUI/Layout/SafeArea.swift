@@ -24,7 +24,7 @@ public struct SafeAreaRegions : OptionSet {
 import androidx.compose.ui.geometry.Rect
 
 /// Track safe area.
-struct SafeArea: Equatable {
+struct SafeArea: Equatable, CustomStringConvertible {
     /// Total bounds of presentation root.
     let presentationBoundsPx: Rect
 
@@ -62,6 +62,10 @@ struct SafeArea: Equatable {
             systemBarEdges.remove(.trailing)
         }
         return SafeArea(presentation: presentationBoundsPx, safe: Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight), absoluteSystemBars: systemBarEdges)
+    }
+    
+    var description: String {
+        "SafeArea(presentationBoundsPx: \(presentationBoundsPx), safeBoundsPx: \(safeBoundsPx), absoluteSystemBarEdges: \(absoluteSystemBarEdges))"
     }
 }
 #endif
