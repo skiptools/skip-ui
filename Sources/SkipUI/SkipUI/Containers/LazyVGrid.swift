@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.layout
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -102,7 +104,8 @@ public struct LazyVGrid: View, Renderable {
                     $0.set_scrollTargetBehavior(nil)
                     return ComposeResult.ok
                 } in: {
-                    LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxWidth(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                    let contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
+                    LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxWidth(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: contentPadding, userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         itemCollector.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
                             item: { renderable, _ in
@@ -157,7 +160,13 @@ public struct LazyVGrid: View, Renderable {
                         )
                         if isSearchable {
                             item(span: { GridItemSpan(maxLineSpan) }) {
-                                let modifier = Modifier.padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp).fillMaxWidth()
+                                let modifier = Modifier
+                                    .ignoreHorizontalContentPadding(
+                                        start: contentPadding.asEdgeInsets().leading.dp,
+                                        end: contentPadding.asEdgeInsets().trailing.dp
+                                    )
+                                    .padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp)
+                                    .fillMaxWidth()
                                 SearchField(state: searchableState!, context: context.content(modifier: modifier, scope: self))
                             }
                         }
@@ -180,4 +189,17 @@ public struct LazyVGrid: View, Renderable {
     #endif
 }
 
+#if SKIP
+private extension Modifier {
+    func ignoreHorizontalContentPadding(start leadingPadding: Dp, end trailingPadding: Dp) -> Modifier {
+        self.layout { measurable, constraints in
+            let overriddenWidth = constraints.maxWidth + leadingPadding.roundToPx() + trailingPadding.roundToPx()
+            let placeable = measurable.measure(constraints.copy(maxWidth: overriddenWidth))
+            return layout(width: placeable.width, height: placeable.height) {
+                placeable.place(x: 0, y: 0)
+            }
+        }
+    }
+}
+#endif
 #endif
