@@ -12,6 +12,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
@@ -141,6 +143,7 @@ enum ShapeModification {
     case inset(CGFloat)
     case scale(CGPoint, UnitPoint)
     case rotation(Angle, UnitPoint)
+    case trim(CGFloat, CGFloat)
 }
 
 /// Strokes on a shape.
@@ -291,6 +294,19 @@ public struct ModifiedShape : Shape {
                 let additionalOffsetX = Float(centerX - rotatedCenterX)
                 let additionalOffsetY = Float(-(centerY - rotatedCenterY))
                 path.translate(Offset(additionalOffsetX, additionalOffsetY))
+            case .trim(let startFraction, let endFraction):
+                // Use Android's PathMeasure to extract a segment of the path
+                let androidPath = path.asAndroidPath()
+                let pathMeasure = android.graphics.PathMeasure(androidPath, false)
+                let totalLength = pathMeasure.getLength()
+                if totalLength > 0 {
+                    let startDistance = Float(startFraction) * totalLength
+                    let endDistance = Float(endFraction) * totalLength
+                    let trimmedAndroidPath = android.graphics.Path()
+                    pathMeasure.getSegment(startDistance, endDistance, trimmedAndroidPath, true)
+                    path.reset()
+                    path.addPath(trimmedAndroidPath.asComposePath())
+                }
             }
         }
         return path
@@ -704,6 +720,18 @@ extension Shape {
         return self
         #endif
     }
+
+    // SKIP @bridge
+    /// Trims this shape by a fractional amount based on its representation as a path.
+    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.trim(startFraction, endFraction))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
 }
 
 /*
@@ -891,7 +919,15 @@ extension Shape {
     ///   - endFraction: The fraction of the way through drawing this shape
     ///     where drawing ends.
     /// - Returns: A shape built by capturing a portion of this shape's path.
-    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { stubShape() }
+    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.trim(startFraction, endFraction))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
     // NOTE: animatable property
 
 }
