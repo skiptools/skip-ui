@@ -168,6 +168,18 @@ public struct ModifiedShape : Shape {
         let modifier = context.modifier.fillSize()
         let density = LocalDensity.current
 
+        // Animate trim modifications if present
+        var animatedModifications: [ShapeModification] = []
+        for mod in modifications {
+            if case let .trim(startFraction, endFraction) = mod {
+                let animatedStart = Float(startFraction).asAnimatable(context: context).value
+                let animatedEnd = Float(endFraction).asAnimatable(context: context).value
+                animatedModifications.append(.trim(CGFloat(animatedStart), CGFloat(animatedEnd)))
+            } else {
+                animatedModifications.append(mod)
+            }
+        }
+
         let fillBrush: Brush?
         if let fill {
             fillBrush = fill.asBrush(opacity: 1.0, animationContext: context) ?? Color.primary.asBrush(opacity: 1.0, animationContext: nil)
@@ -187,7 +199,7 @@ public struct ModifiedShape : Shape {
 
         Canvas(modifier: modifier) {
             let scope = self
-            let path = asComposePath(size: scope.size, density: density)
+            let path = asComposePath(size: scope.size, density: density, strokeOutset: 0.0, animatedModifications: animatedModifications)
             if let fillBrush {
                 scope.drawPath(path, fillBrush)
             }
@@ -198,7 +210,7 @@ public struct ModifiedShape : Shape {
                 } else {
                     // Insetting to a negative size causes a crash
                     scope.inset(min(scope.size.width / 2, min(scope.size.height / 2, strokeInset))) {
-                        let strokePath = asComposePath(size: scope.size, density: density)
+                        let strokePath = asComposePath(size: scope.size, density: density, strokeOutset: 0.0, animatedModifications: animatedModifications)
                         scope.drawPath(strokePath, brush: strokeBrush.0, style: strokeBrush.1)
                     }
                 }
@@ -211,7 +223,7 @@ public struct ModifiedShape : Shape {
     }
 
     override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        return asComposePath(size: size, density: density, strokeOutset: 0.0)
+        return asComposePath(size: size, density: density, strokeOutset: 0.0, animatedModifications: modifications)
     }
 
     /// If this shape can be expressed as a touchable area, return it.
@@ -232,15 +244,15 @@ public struct ModifiedShape : Shape {
             return nil
         }
         return GenericShape { size, _ in
-            self.addPath(asComposePath(size: size, density: density, strokeOutset: strokeOutset))
+            self.addPath(asComposePath(size: size, density: density, strokeOutset: strokeOutset, animatedModifications: modifications))
         }
     }
 
-    private func asComposePath(size: Size, density: Density, strokeOutset: Double) -> androidx.compose.ui.graphics.Path {
+    private func asComposePath(size: Size, density: Density, strokeOutset: Double, animatedModifications: [ShapeModification]) -> androidx.compose.ui.graphics.Path {
         let path = shape.asComposePath(size: size, density: density)
         var scaledSize = size
         var totalOffset = Offset(Float(0.0), Float(0.0))
-        var modifications = self.modifications
+        var modifications = animatedModifications
         if strokeOutset > 0.0 {
             modifications.append(.inset(-strokeOutset))
         }
