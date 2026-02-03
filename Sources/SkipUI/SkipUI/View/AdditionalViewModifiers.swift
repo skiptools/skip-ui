@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,9 +21,15 @@ import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Measurable
@@ -225,8 +232,9 @@ extension View {
     // SKIP @bridge
     public func blur(radius: CGFloat, opaque: Bool = false) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.blur(radiusX: radius.dp, radiusY: radius.dp, edgeTreatment: BlurredEdgeTreatment.Unbounded)
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedRadius = Float(radius).asAnimatable(context: context).value
+            return context.modifier.blur(radiusX: animatedRadius.dp, radiusY: animatedRadius.dp, edgeTreatment: BlurredEdgeTreatment.Unbounded)
         })
         #else
         return self
@@ -236,15 +244,7 @@ extension View {
     // SKIP @bridge
     public func border(_ style: any ShapeStyle, width: CGFloat = 1.0) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            if let color = style.asColor(opacity: 1.0, animationContext: context) {
-                return context.modifier.border(width: width.dp, color: color)
-            } else if let brush = style.asBrush(opacity: 1.0, animationContext: context) {
-                return context.modifier.border(BorderStroke(width: width.dp, brush: brush))
-            } else {
-                return context.modifier
-            }
-        })
+        return ModifiedContent(content: self, modifier: AnimatedBorderModifier(style: style, width: width))
         #else
         return self
         #endif
@@ -253,8 +253,9 @@ extension View {
     // SKIP @bridge
     public func brightness(_ amount: Double) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.then(BrightnessModifier(amount: amount))
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedAmount = Float(amount).asAnimatable(context: context).value
+            return context.modifier.then(BrightnessModifier(amount: Double(animatedAmount)))
         })
         #else
         return self
@@ -374,8 +375,9 @@ extension View {
     // SKIP @bridge
     public func contrast(_ amount: Double) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.then(ContrastModifier(amount: amount))
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedAmount = Float(amount).asAnimatable(context: context).value
+            return context.modifier.then(ContrastModifier(amount: Double(animatedAmount)))
         })
         #else
         return self
@@ -393,6 +395,7 @@ extension View {
     }
 
     // No need to @bridge because we define it in terms of `clipShape`
+    // Note: cornerRadius clipping does not animate in Skip due to Compose limitations
     public func cornerRadius(_ radius: CGFloat, antialiased: Bool = true) -> any View {
         return clipShape(RoundedRectangle(cornerRadius: radius))
     }
@@ -574,8 +577,9 @@ extension View {
     // SKIP @bridge
     public func grayscale(_ amount: Double) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.then(GrayscaleModifier(amount: amount))
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedAmount = Float(amount).asAnimatable(context: context).value
+            return context.modifier.then(GrayscaleModifier(amount: Double(animatedAmount)))
         })
         #else
         return self
@@ -633,8 +637,9 @@ extension View {
 
     public func hueRotation(_ angle: Angle) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.then(HueRotationModifier(degrees: angle.degrees))
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedDegrees = Float(angle.degrees).asAnimatable(context: context).value
+            return context.modifier.then(HueRotationModifier(degrees: Double(animatedDegrees)))
         })
         #else
         return self
@@ -1122,8 +1127,9 @@ extension View {
     // SKIP @bridge
     public func saturation(_ amount: Double) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            return $0.modifier.then(SaturationModifier(amount: amount))
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            let animatedAmount = Float(amount).asAnimatable(context: context).value
+            return context.modifier.then(SaturationModifier(amount: Double(animatedAmount)))
         })
         #else
         return self
@@ -1457,5 +1463,33 @@ final class ZIndexModifier: RenderModifier {
         }
     }
 }
+
+/// Animated border modifier that animates both the shape style and border width.
+final class AnimatedBorderModifier: RenderModifier {
+    let style: any ShapeStyle
+    let width: CGFloat
+
+    init(style: any ShapeStyle, width: CGFloat) {
+        self.style = style
+        self.width = width
+        super.init()
+    }
+
+    @Composable override func Render(content: Renderable, context: ComposeContext) {
+        // Animate the border width
+        let animatedWidth = Float(width).asAnimatable(context: context).value
+
+        // Apply the border with animated width
+        // ShapeStyle animation is handled by asBrush/asColor via animationContext
+        var context = context
+        if let color = style.asColor(opacity: 1.0, animationContext: context) {
+            context.modifier = context.modifier.border(width: animatedWidth.dp, color: color)
+        } else if let brush = style.asBrush(opacity: 1.0, animationContext: context) {
+            context.modifier = context.modifier.border(BorderStroke(width: animatedWidth.dp, brush: brush))
+        }
+        content.Render(context: context)
+    }
+}
+
 #endif
 #endif
