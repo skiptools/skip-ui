@@ -2635,7 +2635,22 @@ SwiftUI automatically applies a mask to shapes and paths so that touches outside
 SkipUI renders SwiftUI grid views using native Compose grids. This provides maximum performance and a native feel on Android. The different capabilities of SwiftUI and Compose grids, however, imposes restrictions on SwiftUI grid support in Android:
 
 - Pinned headers and footers are not supported.
-- When you place a `LazyHGrid` or `LazyVGrid` in a `ScrollView`, it must be the only child of that view.
+- When you place a `LazyHGrid` or `LazyVGrid` in a `ScrollView`, it must be the only child of that view. (This is because Compose grids implement their own internal scroll containers.) To simulate having other non-grid items in your `ScrollView`, put your non-grid content in the `header`s of empty `Section` containers inside the grid.
+    ```swift
+    ScrollView {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))]) {
+            Section {} header: {
+                Text("Insert non-grid content here")
+            }
+            ForEach(0..<50) { index in
+                Text("Grid Cell \(index)")
+            }
+            Section {} header: {
+                Text("More non-grid content here")
+            }
+        }
+    }
+    ```
 - When you define your grid with an array of `GridItem` specs, your Android grid is **based on the first `GridItem`**. Compose does not support different specs for different rows or columns, so SkipUI applies the first spec to all of them.
 - Maximum `GridItem` sizes are ignored.
 - Also see the `ForEach` [topic](#foreach).
