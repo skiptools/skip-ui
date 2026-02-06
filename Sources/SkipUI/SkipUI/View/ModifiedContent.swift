@@ -234,7 +234,13 @@ final class ModifiedContent: View, Renderable {
         guard let renderable else {
             return
         }
-        modifier.Render(content: renderable, context: context)
+        if let tagModifier = modifier as? TagModifier, tagModifier.role == .id, let value = tagModifier.value {
+            androidx.compose.runtime.key(value) {
+                renderable.Render(context: context)
+            }
+        } else {
+            modifier.Render(content: renderable, context: context)
+        }
     }
 
     @Composable override func shouldRenderListItem(context: ComposeContext) -> (Bool, (() -> Void)?) {
