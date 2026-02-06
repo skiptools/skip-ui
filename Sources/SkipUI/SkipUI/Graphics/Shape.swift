@@ -12,6 +12,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.inset
@@ -141,6 +143,7 @@ enum ShapeModification {
     case inset(CGFloat)
     case scale(CGPoint, UnitPoint)
     case rotation(Angle, UnitPoint)
+    case trim(CGFloat, CGFloat)
 }
 
 /// Strokes on a shape.
@@ -165,6 +168,18 @@ public struct ModifiedShape : Shape {
         let modifier = context.modifier.fillSize()
         let density = LocalDensity.current
 
+        // Animate trim modifications if present
+        var animatedModifications: [ShapeModification] = []
+        for mod in modifications {
+            if case let .trim(startFraction, endFraction) = mod {
+                let animatedStart = Float(startFraction).asAnimatable(context: context).value
+                let animatedEnd = Float(endFraction).asAnimatable(context: context).value
+                animatedModifications.append(.trim(CGFloat(animatedStart), CGFloat(animatedEnd)))
+            } else {
+                animatedModifications.append(mod)
+            }
+        }
+
         let fillBrush: Brush?
         if let fill {
             fillBrush = fill.asBrush(opacity: 1.0, animationContext: context) ?? Color.primary.asBrush(opacity: 1.0, animationContext: nil)
@@ -184,7 +199,7 @@ public struct ModifiedShape : Shape {
 
         Canvas(modifier: modifier) {
             let scope = self
-            let path = asComposePath(size: scope.size, density: density)
+            let path = asComposePath(size: scope.size, density: density, strokeOutset: 0.0, animatedModifications: animatedModifications)
             if let fillBrush {
                 scope.drawPath(path, fillBrush)
             }
@@ -195,7 +210,7 @@ public struct ModifiedShape : Shape {
                 } else {
                     // Insetting to a negative size causes a crash
                     scope.inset(min(scope.size.width / 2, min(scope.size.height / 2, strokeInset))) {
-                        let strokePath = asComposePath(size: scope.size, density: density)
+                        let strokePath = asComposePath(size: scope.size, density: density, strokeOutset: 0.0, animatedModifications: animatedModifications)
                         scope.drawPath(strokePath, brush: strokeBrush.0, style: strokeBrush.1)
                     }
                 }
@@ -208,7 +223,7 @@ public struct ModifiedShape : Shape {
     }
 
     override func asComposePath(size: Size, density: Density) -> androidx.compose.ui.graphics.Path {
-        return asComposePath(size: size, density: density, strokeOutset: 0.0)
+        return asComposePath(size: size, density: density, strokeOutset: 0.0, animatedModifications: modifications)
     }
 
     /// If this shape can be expressed as a touchable area, return it.
@@ -229,15 +244,15 @@ public struct ModifiedShape : Shape {
             return nil
         }
         return GenericShape { size, _ in
-            self.addPath(asComposePath(size: size, density: density, strokeOutset: strokeOutset))
+            self.addPath(asComposePath(size: size, density: density, strokeOutset: strokeOutset, animatedModifications: modifications))
         }
     }
 
-    private func asComposePath(size: Size, density: Density, strokeOutset: Double) -> androidx.compose.ui.graphics.Path {
+    private func asComposePath(size: Size, density: Density, strokeOutset: Double, animatedModifications: [ShapeModification]) -> androidx.compose.ui.graphics.Path {
         let path = shape.asComposePath(size: size, density: density)
         var scaledSize = size
         var totalOffset = Offset(Float(0.0), Float(0.0))
-        var modifications = self.modifications
+        var modifications = animatedModifications
         if strokeOutset > 0.0 {
             modifications.append(.inset(-strokeOutset))
         }
@@ -291,6 +306,19 @@ public struct ModifiedShape : Shape {
                 let additionalOffsetX = Float(centerX - rotatedCenterX)
                 let additionalOffsetY = Float(-(centerY - rotatedCenterY))
                 path.translate(Offset(additionalOffsetX, additionalOffsetY))
+            case .trim(let startFraction, let endFraction):
+                // Use Android's PathMeasure to extract a segment of the path
+                let androidPath = path.asAndroidPath()
+                let pathMeasure = android.graphics.PathMeasure(androidPath, false)
+                let totalLength = pathMeasure.getLength()
+                if totalLength > 0 {
+                    let startDistance = Float(startFraction) * totalLength
+                    let endDistance = Float(endFraction) * totalLength
+                    let trimmedAndroidPath = android.graphics.Path()
+                    pathMeasure.getSegment(startDistance, endDistance, trimmedAndroidPath, true)
+                    path.reset()
+                    path.addPath(trimmedAndroidPath.asComposePath())
+                }
             }
         }
         return path
@@ -704,6 +732,18 @@ extension Shape {
         return self
         #endif
     }
+
+    // SKIP @bridge
+    /// Trims this shape by a fractional amount based on its representation as a path.
+    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> any Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.trim(startFraction, endFraction))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
 }
 
 /*
@@ -891,7 +931,15 @@ extension Shape {
     ///   - endFraction: The fraction of the way through drawing this shape
     ///     where drawing ends.
     /// - Returns: A shape built by capturing a portion of this shape's path.
-    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape { stubShape() }
+    public func trim(from startFraction: CGFloat = 0, to endFraction: CGFloat = 1) -> some Shape {
+        #if SKIP
+        var modifiedShape = self.modified
+        modifiedShape.modifications.append(.trim(startFraction, endFraction))
+        return modifiedShape
+        #else
+        return self
+        #endif
+    }
     // NOTE: animatable property
 
 }
