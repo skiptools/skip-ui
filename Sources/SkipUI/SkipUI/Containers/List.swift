@@ -295,21 +295,28 @@ public final class List : View, Renderable {
                         RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
                     }
                 },
-                sectionHeader: { renderable in
-                    let isTop = renderable === renderables.firstOrNull()
-                    if styling.style == .plain {
-                        stickyHeader { _ in
-                            RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
-                        }
-                    } else {
-                        item {
-                            RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                sectionHeader: { content in
+                    let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
+                    let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
+                    let isTop = firstRenderable === headerRenderables.firstOrNull()
+                    for renderable in headerRenderables {
+                        if styling.style == .plain {
+                            stickyHeader { _ in
+                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                            }
+                        } else {
+                            item {
+                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                            }
                         }
                     }
                 },
-                sectionFooter: { renderable in
-                    item {
-                        RenderSectionFooter(content: renderable, context: itemContext, styling: styling)
+                sectionFooter: { content in
+                    let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
+                    for renderable in footerRenderables {
+                        item {
+                            RenderSectionFooter(content: renderable, context: itemContext, styling: styling)
+                        }
                     }
                 }
             )
@@ -555,7 +562,14 @@ public final class List : View, Renderable {
 
     @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, styling: ListStyling) {
         if styling.style == .plain {
-            RenderItem(content: content, level: 0, context: context, styling: styling, isItem: false)
+            let footerContent: Renderable
+            if let lazySectionFooter = content as? LazySectionFooter, !lazySectionFooter.content.any({ !$0.isSwiftUIEmptyView }) {
+                // Replace an empty footer with an empty view for RenderItem handling
+                footerContent = EmptyView()
+            } else {
+                footerContent = content
+            }
+            RenderItem(content: footerContent, level: 0, context: context, styling: styling, isItem: false)
         } else {
             let backgroundColor = BackgroundColor(styling: styling, isItem: false)
             let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider

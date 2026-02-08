@@ -76,39 +76,37 @@ final class LazyLevelRenderable: Renderable, LazyItemFactory {
 
 /// Add to lazy items to render a section header.
 final class LazySectionHeader: Renderable, LazyItemFactory {
-    let content: Renderable
+    let content: kotlin.collections.List<Renderable>
 
-    init(content: Renderable) {
-        // Do not copy view
-        // SKIP REPLACE: this.content = content
+    init(content: kotlin.collections.List<Renderable>) {
         self.content = content
     }
 
     @Composable override func Render(context: ComposeContext) {
-        content.Render(context: context)
+        content.forEach { $0.Render(context: context) }
     }
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
-        collector.sectionHeader(content)
+        let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
+        collector.sectionHeader(modified)
     }
 }
 
 /// Add to lazy items to render a section footer.
 final class LazySectionFooter: Renderable, LazyItemFactory {
-    let content: Renderable
+    let content: kotlin.collections.List<Renderable>
 
-    init(content: Renderable) {
-        // Do not copy view
-        // SKIP REPLACE: this.content = content
+    init(content: kotlin.collections.List<Renderable>) {
         self.content = content
     }
 
     @Composable override func Render(context: ComposeContext) {
-        content.Render(context: context)
+        content.forEach { $0.Render(context: context) }
     }
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
-        collector.sectionFooter(content)
+        let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
+        collector.sectionFooter(modified)
     }
 }
 
@@ -128,8 +126,8 @@ public final class LazyItemCollector {
     private(set) var indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in  }
     private(set) var objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _ in }
     private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _, _ in }
-    private(set) var sectionHeader: (Renderable) -> Void = { _ in }
-    private(set) var sectionFooter: (Renderable) -> Void = { _ in }
+    private(set) var sectionHeader: (kotlin.collections.List<Renderable>) -> Void = { _ in }
+    private(set) var sectionFooter: (kotlin.collections.List<Renderable>) -> Void = { _ in }
     private var startItemIndex = 0
 
     /// Initialize the content factories.
@@ -139,8 +137,8 @@ public final class LazyItemCollector {
         indexedItems: (Range<Int>, ((Any) -> AnyHashable?)?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Int, ComposeContext) -> Renderable) -> Void,
         objectItems: (RandomAccessCollection<Any>, (Any) -> AnyHashable?, Int, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Any, ComposeContext) -> Renderable) -> Void,
         objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, Int, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void,
-        sectionHeader: (Renderable) -> Void,
-        sectionFooter: (Renderable) -> Void
+        sectionHeader: (kotlin.collections.List<Renderable>) -> Void,
+        sectionFooter: (kotlin.collections.List<Renderable>) -> Void
     ) {
         self.startItemIndex = startItemIndex
 
@@ -148,7 +146,7 @@ public final class LazyItemCollector {
         self.item = { renderable, level in
             // If this is an item after a section, add a header before it
             if case .sectionFooter = content.last {
-                self.sectionHeader(EmptyView())
+                self.sectionHeader(listOf())
             }
             item(renderable, level)
             let id = TagModifier.on(content: renderable, role: .id)?.value
@@ -156,39 +154,39 @@ public final class LazyItemCollector {
         }
         self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
-                self.sectionHeader(EmptyView())
+                self.sectionHeader(listOf())
             }
             indexedItems(range, identifier, count, onDelete, onMove, level, factory)
             content.append(.items(range.start, range.endExclusive - range.start, identifier, onMove))
         }
         self.objectItems = { objects, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
-                self.sectionHeader(EmptyView())
+                self.sectionHeader(listOf())
             }
             objectItems(objects, identifier, count, onDelete, onMove, level, factory)
             content.append(.objectItems(objects, identifier, onMove))
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
-                self.sectionHeader(EmptyView())
+                self.sectionHeader(listOf())
             }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
             content.append(.objectBindingItems(binding, identifier, onMove))
         }
-        self.sectionHeader = { renderable in
+        self.sectionHeader = { renderables in
             // If this is a header after an item, add a section footer before it
             switch content.last {
             case .sectionFooter, nil:
                 break
             default:
-                self.sectionFooter(EmptyView())
+                self.sectionFooter(listOf())
             }
-            sectionHeader(renderable)
-            content.append(.sectionHeader)
+            sectionHeader(renderables)
+            content.append(.sectionHeader(max(1, renderables.size)))
         }
-        self.sectionFooter = { renderable in
-            sectionFooter(renderable)
-            content.append(.sectionFooter)
+        self.sectionFooter = { renderables in
+            sectionFooter(renderables)
+            content.append(.sectionFooter(max(1, renderables.size)))
         }
     }
 
@@ -200,7 +198,8 @@ public final class LazyItemCollector {
             case .items(_, let count, _, _): itemCount += count
             case .objectItems(let objects, _, _): itemCount += objects.count
             case .objectBindingItems(let binding, _, _): itemCount += binding.wrappedValue.count
-            case .sectionHeader, .sectionFooter: itemCount += 1
+            case .sectionHeader(let count): itemCount += count
+            case .sectionFooter(let count): itemCount += count
             }
         }
         return itemCount
@@ -240,7 +239,8 @@ public final class LazyItemCollector {
                     }
                     index += 1
                 }
-            case .sectionHeader, .sectionFooter: index += 1
+            case .sectionHeader(let count): index += count
+            case .sectionFooter(let count): index += count
             }
         }
         return nil
@@ -318,8 +318,12 @@ public final class LazyItemCollector {
                 }) {
                     return
                 }
-            case .sectionHeader, .sectionFooter:
-                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: 1, onMove: nil) {
+            case .sectionHeader(let count):
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: nil) {
+                    return
+                }
+            case .sectionFooter(let count):
+                if performMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count, onMove: nil) {
                     return
                 }
             }
@@ -360,8 +364,12 @@ public final class LazyItemCollector {
                 if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: binding.wrappedValue.count) {
                     return ret
                 }
-            case .sectionHeader, .sectionFooter:
-                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: 1) {
+            case .sectionHeader(let count):
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
+                    return ret
+                }
+            case .sectionFooter(let count):
+                if let ret = canMove(fromIndex: fromIndex, toIndex: toIndex, itemIndex: &itemIndex, count: count) {
                     return ret
                 }
             }
@@ -382,8 +390,8 @@ public final class LazyItemCollector {
         case items(Int, Int, ((Int) -> AnyHashable?)?, ((IndexSet, Int) -> Void)?)
         case objectItems(RandomAccessCollection<Any>, (Any) -> AnyHashable?, ((IndexSet, Int) -> Void)?)
         case objectBindingItems(Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, ((IndexSet, Int) -> Void)?)
-        case sectionHeader
-        case sectionFooter
+        case sectionHeader(Int)
+        case sectionFooter(Int)
     }
     private var content: [Content] = []
 }

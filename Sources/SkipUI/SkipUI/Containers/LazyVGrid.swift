@@ -140,17 +140,21 @@ public struct LazyVGrid: View, Renderable {
                                     }
                                 }
                             },
-                            sectionHeader: { renderable in
-                                item(span: { GridItemSpan(maxLineSpan) }) {
-                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                        renderable.Render(context: context.content(scope: self))
+                            sectionHeader: { content in
+                                for renderable in content {
+                                    item(span: { GridItemSpan(maxLineSpan) }) {
+                                        Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                            renderable.Render(context: context.content(scope: self))
+                                        }
                                     }
                                 }
                             },
-                            sectionFooter: { renderable in
-                                item(span: { GridItemSpan(maxLineSpan) }) {
-                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                        renderable.Render(context: context.content(scope: self))
+                            sectionFooter: { content in
+                                for renderable in content {
+                                    item(span: { GridItemSpan(maxLineSpan) }) {
+                                        Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                            renderable.Render(context: context.content(scope: self))
+                                        }
                                     }
                                 }
                             }
