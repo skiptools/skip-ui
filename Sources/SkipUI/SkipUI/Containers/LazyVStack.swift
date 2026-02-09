@@ -95,6 +95,7 @@ public struct LazyVStack : View, Renderable {
                     $0.set_scrollTargetBehavior(nil)
                     return ComposeResult.ok
                 } in: {
+                    let contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
                     LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         itemCollector.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
@@ -138,8 +139,15 @@ public struct LazyVStack : View, Renderable {
                         )
                         if isSearchable {
                             item {
-                                let modifier = Modifier.padding(16.dp).fillMaxWidth()
-                                SearchField(state: searchableState!, context: context.content(modifier: modifier))
+                                // We use the same logic in LazyVGrid
+                                let modifier = Modifier
+                                    .ignoreHorizontalContentPadding(
+                                        start: contentPadding.asEdgeInsets().leading.dp,
+                                        end: contentPadding.asEdgeInsets().trailing.dp
+                                    )
+                                    .padding(start: 16.dp, end: 16.dp, top: 16.dp, bottom: 8.dp)
+                                    .fillMaxWidth()
+                                SearchField(state: searchableState!, context: context.content(modifier: modifier, scope: self))
                             }
                         }
                         for renderable in renderables {
