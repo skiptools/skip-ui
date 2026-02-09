@@ -125,14 +125,18 @@ public struct LazyVStack : View, Renderable {
                                     factory(objectsBinding, index, scopedContext).Render(context: scopedContext)
                                 }
                             },
-                            sectionHeader: { renderable in
-                                item {
-                                    renderable.Render(context: context.content(scope: self))
+                            sectionHeader: { content in
+                                for renderable in content {
+                                    item {
+                                        renderable.Render(context: context.content(scope: self))
+                                    }
                                 }
                             },
-                            sectionFooter: { renderable in
-                                item {
-                                    renderable.Render(context: context.content(scope: self))
+                            sectionFooter: { content in
+                                for renderable in content {
+                                    item {
+                                        renderable.Render(context: context.content(scope: self))
+                                    }
                                 }
                             }
                         )

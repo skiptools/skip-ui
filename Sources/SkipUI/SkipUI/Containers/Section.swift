@@ -87,14 +87,14 @@ public struct Section : View {
         var renderables: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let headerRenderables = header?.Evaluate(context: context, options: 0)
         if isLazy {
-            renderables.add(LazySectionHeader(content: headerRenderables?.firstOrNull() ?? EmptyView()))
+            renderables.add(LazySectionHeader(content: headerRenderables ?? listOf()))
         } else if let headerRenderables {
             renderables.addAll(headerRenderables)
         }
         renderables.addAll(content.Evaluate(context: context, options: options))
         let footerRenderables = footer?.Evaluate(context: context, options: 0)
         if isLazy {
-            renderables.add(LazySectionFooter(content: footerRenderables?.firstOrNull() ?? EmptyView()))
+            renderables.add(LazySectionFooter(content: footerRenderables ?? listOf()))
         } else if let footerRenderables {
             renderables.addAll(footerRenderables)
         }

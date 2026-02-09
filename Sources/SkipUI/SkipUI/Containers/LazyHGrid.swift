@@ -63,7 +63,7 @@ public struct LazyHGrid: View, Renderable {
 
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
-        ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
+        ComposeContainer(axis: .horizontal, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
             // Integrate with our scroll-to-top and ScrollViewReader
             let gridState = rememberLazyGridState()
             let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
@@ -123,17 +123,21 @@ public struct LazyHGrid: View, Renderable {
                                 }
                             }
                         },
-                        sectionHeader: { renderable in
-                            item(span: { GridItemSpan(maxLineSpan) }) {
-                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    renderable.Render(context: context.content(scope: self))
+                        sectionHeader: { content in
+                            for renderable in content {
+                                item(span: { GridItemSpan(maxLineSpan) }) {
+                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                        renderable.Render(context: context.content(scope: self))
+                                    }
                                 }
                             }
                         },
-                        sectionFooter: { renderable in
-                            item(span: { GridItemSpan(maxLineSpan) }) {
-                                Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    renderable.Render(context: context.content(scope: self))
+                        sectionFooter: { content in
+                            for renderable in content {
+                                item(span: { GridItemSpan(maxLineSpan) }) {
+                                    Box(contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                        renderable.Render(context: context.content(scope: self))
+                                    }
                                 }
                             }
                         }
