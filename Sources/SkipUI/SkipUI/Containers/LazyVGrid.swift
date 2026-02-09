@@ -20,8 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.layout.layout
 import kotlinx.coroutines.launch
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -164,6 +162,7 @@ public struct LazyVGrid: View, Renderable {
                         )
                         if isSearchable {
                             item(span: { GridItemSpan(maxLineSpan) }) {
+                                // We use the same logic in LazyVStack
                                 let modifier = Modifier
                                     .ignoreHorizontalContentPadding(
                                         start: contentPadding.asEdgeInsets().leading.dp,
@@ -193,17 +192,4 @@ public struct LazyVGrid: View, Renderable {
     #endif
 }
 
-#if SKIP
-private extension Modifier {
-    func ignoreHorizontalContentPadding(start leadingPadding: Dp, end trailingPadding: Dp) -> Modifier {
-        self.layout { measurable, constraints in
-            let overriddenWidth = constraints.maxWidth + leadingPadding.roundToPx() + trailingPadding.roundToPx()
-            let placeable = measurable.measure(constraints.copy(maxWidth: overriddenWidth))
-            return layout(width: placeable.width, height: placeable.height) {
-                placeable.place(x: 0, y: 0)
-            }
-        }
-    }
-}
-#endif
 #endif

@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 extension Modifier {
@@ -97,6 +99,17 @@ extension Modifier {
             return requiredHeightIn(max: max!.dp)
         } else {
             return self
+        }
+    }
+
+    /// For internal use.
+    func ignoreHorizontalContentPadding(start leadingPadding: Dp, end trailingPadding: Dp) -> Modifier {
+        self.layout { measurable, constraints in
+            let overriddenWidth = constraints.maxWidth + leadingPadding.roundToPx() + trailingPadding.roundToPx()
+            let placeable = measurable.measure(constraints.copy(maxWidth: overriddenWidth))
+            return layout(width: placeable.width, height: placeable.height) {
+                placeable.place(x: 0, y: 0)
+            }
         }
     }
 
