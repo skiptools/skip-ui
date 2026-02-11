@@ -13,7 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.BlurredEdgeTreatment
@@ -1400,11 +1403,55 @@ final class PaddingModifier: RenderModifier {
 
 /// Used to mark views with a tag or ID.
 final class TagModifier: RenderModifier {
+    static let defaultIdValue = "<TagModifier.defaultIdValue>"
+
     let value: Any?
+    var stateSaver: ComposeStateSaver?
 
     init(value: Any?, role: ModifierRole) {
         self.value = value
         super.init(role: role)
+    }
+
+    @Composable override func Evaluate(content: View, context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable>? {
+        if let stateSaver = Self.IdStateSaver(for: context, role: role, value: value) {
+            self.stateSaver = stateSaver
+            var context = context
+            context.stateSaver = stateSaver
+            // Use key() to reset remembered values that do not use the state saver
+            return androidx.compose.runtime.key(value ?? Self.defaultIdValue) {
+                return super.Evaluate(content: content, context: context, options: options)
+            }
+        } else {
+            self.stateSaver = nil
+            return super.Evaluate(content: content, context: context, options: options)
+        }
+    }
+
+    @Composable override func Render(content: Renderable, context: ComposeContext) -> Void {
+        if let stateSaver {
+            var context = context
+            context.stateSaver = stateSaver
+            androidx.compose.runtime.key(value ?? Self.defaultIdValue) {
+                super.Render(content: content, context: context)
+            }
+        } else {
+            super.Render(content: content, context: context)
+        }
+    }
+
+    @Composable private static func IdStateSaver(for context: ComposeContext, role: ModifierRole, value: Any?) -> ComposeStateSaver? {
+        guard role == .id else {
+            return nil
+        }
+        // Reset the state saver when the id value changes
+        let idValue = value ?? Self.defaultIdValue
+        let rememberedId = rememberSaveable(stateSaver: context.stateSaver as! Saver<Any, Any>) { mutableStateOf(idValue) }
+        guard rememberedId.value != idValue else {
+            return context.stateSaver as? ComposeStateSaver
+        }
+        rememberedId.value = idValue
+        return ComposeStateSaver()
     }
 
     /// Extract the existing tag modifier view from the given view's modifiers.
