@@ -669,13 +669,22 @@ public final class UNCalendarNotificationTrigger: UNNotificationTrigger {
     public func nextTriggerDate() -> Date? {
         let calendar = Calendar.current
         let now = Date()
-        return calendar.nextDate(
+        
+        guard let nextDate = calendar.nextDate(
             after: now,
             matching: self.dateComponents,
             matchingPolicy: .nextTime,
             repeatedTimePolicy: .first,
             direction: .forward
-        )
+        ) else {
+            return nil
+        }
+        
+        if !self.repeats && nextDate <= now {
+            return nil
+        }
+        
+        return nextDate
     }
 }
 
