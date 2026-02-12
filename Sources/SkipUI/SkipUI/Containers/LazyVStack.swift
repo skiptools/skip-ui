@@ -96,7 +96,11 @@ public struct LazyVStack : View, Renderable {
                     return ComposeResult.ok
                 } in: {
                     let contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
-                    LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                    EnvironmentValues.shared.setValues {
+                        $0.set_contentPadding(EdgeInsets())
+                        return ComposeResult.ok
+                    } in: {
+                    LazyColumn(state: listState, modifier: Modifier.fillMaxWidth(), verticalArrangement: columnArrangement, horizontalAlignment: columnAlignment, contentPadding: contentPadding, userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         itemCollector.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
                             item: { renderable, _ in
@@ -161,6 +165,7 @@ public struct LazyVStack : View, Renderable {
                                 itemCollector.value.item(renderable, 0)
                             }
                         }
+                    }
                     }
                 }
             }

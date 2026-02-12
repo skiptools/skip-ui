@@ -81,7 +81,12 @@ public struct LazyHStack : View, Renderable {
                 $0.set_scrollTargetBehavior(nil)
                 return ComposeResult.ok
             } in: {
-                LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: EnvironmentValues.shared._contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                let contentPadding = EnvironmentValues.shared._contentPadding
+                EnvironmentValues.shared.setValues {
+                    $0.set_contentPadding(EdgeInsets())
+                    return ComposeResult.ok
+                } in: {
+                LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                     itemCollector.value.initialize(
                         startItemIndex: 0,
                         item: { renderable, _ in
@@ -130,6 +135,7 @@ public struct LazyHStack : View, Renderable {
                             itemCollector.value.item(renderable, 0)
                         }
                     }
+                }
                 }
             }
         }
