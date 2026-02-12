@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
@@ -35,6 +36,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -64,6 +66,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalLayoutDirection
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
@@ -72,6 +79,16 @@ import struct CoreGraphics.CGFloat
 
 /// Common corner radius for our overlay presentations.
 let overlayPresentationCornerRadius = 16.0
+
+// Material3 AlertDialog padding and spacing (match AlertDialog.kt).
+private let AlertDialogPadding = PaddingValues(start: 24.dp, top: 24.dp, end: 24.dp, bottom: 24.dp)
+private let AlertIconPadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
+private let AlertTitlePadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
+private let AlertTextPadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 24.dp)
+private let ButtonsMainAxisSpacing = 8.dp
+private let ButtonsCrossAxisSpacing = 12.dp
+private let AlertDialogMinWidth = 280.dp
+private let AlertDialogMaxWidth = 560.dp
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
@@ -359,6 +376,90 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     }
 }
 
+/// Simple clone of FlowRow that arranges its children in a horizontal flow (Material3 AlertDialogFlowRow).
+/// Wraps to new rows when needed; confirming actions appear above dismissive actions.
+@Composable func AlertDialogFlowRow(mainAxisSpacing: Dp, crossAxisSpacing: Dp, content: @Composable () -> Void) {
+    let density = LocalDensity.current
+    let layoutDirection = LocalLayoutDirection.current
+    let mainAxisSpacingPx = with(density) { mainAxisSpacing.roundToPx() }
+    let crossAxisSpacingPx = with(density) { crossAxisSpacing.roundToPx() }
+    Layout(content: content) { measurables, constraints in
+        var sequences: [[Placeable]] = []
+        var crossAxisSizes: [Int] = []
+        var crossAxisPositions: [Int] = []
+        var mainAxisSpace = 0
+        var crossAxisSpace = 0
+        var currentSequence: [Placeable] = []
+        var currentMainAxisSize = 0
+        var currentCrossAxisSize = 0
+        func canAddToCurrentSequence(_ placeable: Placeable) -> Bool {
+            currentSequence.isEmpty || currentMainAxisSize + mainAxisSpacingPx + placeable.width <= constraints.maxWidth
+        }
+        func startNewSequence() {
+            if !sequences.isEmpty {
+                crossAxisSpace += crossAxisSpacingPx
+            }
+            sequences.insert(currentSequence, at: 0)
+            crossAxisSizes.append(currentCrossAxisSize)
+            crossAxisPositions.append(crossAxisSpace)
+            crossAxisSpace += currentCrossAxisSize
+            mainAxisSpace = max(mainAxisSpace, currentMainAxisSize)
+            currentSequence = []
+            currentMainAxisSize = 0
+            currentCrossAxisSize = 0
+        }
+        for measurable in measurables {
+            let placeable = measurable.measure(constraints)
+            if !canAddToCurrentSequence(placeable) {
+                startNewSequence()
+            }
+            if !currentSequence.isEmpty {
+                currentMainAxisSize += mainAxisSpacingPx
+            }
+            currentSequence.append(placeable)
+            currentMainAxisSize += placeable.width
+            currentCrossAxisSize = max(currentCrossAxisSize, placeable.height)
+        }
+        if !currentSequence.isEmpty {
+            startNewSequence()
+        }
+        let mainAxisLayoutSize = max(mainAxisSpace, constraints.minWidth)
+        let crossAxisLayoutSize = max(crossAxisSpace, constraints.minHeight)
+        return layout(width: mainAxisLayoutSize, height: crossAxisLayoutSize) {
+            for i in 0..<sequences.count {
+                let placeables = sequences[i]
+                var childrenMainAxisSizes: [Int] = []
+                for j in 0..<placeables.count {
+                    let w = placeables[j].width
+                    childrenMainAxisSizes.append(j < placeables.count - 1 ? w + mainAxisSpacingPx : w)
+                }
+                var mainAxisPositions: [Int] = Array(repeating: 0, count: placeables.count)
+                var offset = mainAxisLayoutSize
+                if layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl {
+                    for j in 0..<placeables.count {
+                        offset -= placeables[j].width
+                        mainAxisPositions[j] = offset
+                        if j < placeables.count - 1 {
+                            offset -= mainAxisSpacingPx
+                        }
+                    }
+                } else {
+                    for j in (0..<placeables.count).reversed() {
+                        offset -= placeables[j].width
+                        mainAxisPositions[j] = offset
+                        if j > 0 {
+                            offset -= mainAxisSpacingPx
+                        }
+                    }
+                }
+                for j in 0..<placeables.count {
+                    placeables[j].placeRelative(x: mainAxisPositions[j], y: crossAxisPositions[i])
+                }
+            }
+        }
+    }
+}
+
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func AlertPresentation(title: Text? = nil, titleResource: Int? = nil, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
     guard isPresented.get() else {
@@ -379,46 +480,116 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         $0.strip() as? Text
     }.firstOrNull()
 
-    BasicAlertDialog(onDismissRequest: { isPresented.set(false) }) {
-        let modifier = Modifier.wrapContentWidth().wrapContentHeight().then(context.modifier)
-        Surface(modifier: modifier, shape: MaterialTheme.shapes.large, tonalElevation: AlertDialogDefaults.TonalElevation) {
-            let contentContext = context.content()
-            let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
-            Column(modifier: Modifier.padding(top: hasTopContent ? 16.dp : 4.dp, bottom: 4.dp), horizontalAlignment: androidx.compose.ui.Alignment.CenterHorizontally) {
-                RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
+    let contentContext = context.content()
+    let buttonModifier = Modifier.padding(horizontal: 12.dp, vertical: 8.dp)
+    let buttonFont = Font.title3
+    let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
+    let flowRowButtonModifier = Modifier.wrapContentWidth().wrapContentHeight()
+
+    // Use native Material3-style dialog for basic cases (no text fields, at most one confirm + optional cancel, so at most 2 buttons).
+    let isBasicCase = textFields.size == 0 && optionRenderables.size <= 2
+    if isBasicCase {
+        let cancelBtn = actionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .cancel }
+        let confirmRenderable = optionRenderables.firstOrNull()
+        var confirmAction: (() -> Void)?
+        if let r = confirmRenderable {
+            let stripped = r.strip()
+            if let button = stripped as? Button { confirmAction = button.action }
+            else if let link = stripped as? Link { link.ComposeAction(); confirmAction = link.content.action }
+            else if let nav = stripped as? NavigationLink { confirmAction = nav.navigationAction() }
+        }
+        var dismissAction: (() -> Void)?
+        if let c = cancelBtn {
+            let stripped = c.strip()
+            if let button = stripped as? Button { dismissAction = button.action }
+            else if let link = stripped as? Link { link.ComposeAction(); dismissAction = link.content.action }
+            else if let nav = stripped as? NavigationLink { dismissAction = nav.navigationAction() }
+        }
+        SkipAlertDialog(
+            onDismissRequest: { isPresented.set(false) },
+            confirmButton: {
+                if let r = confirmRenderable {
+                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false); confirmAction?() }) {
+                        let stripped = r.strip()
+                        let button = stripped as? Button ?? (stripped as? Link)?.content
+                        let label = button?.label ?? (stripped as? NavigationLink)?.label
+                        let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                        let color = button?.role == .destructive ? MaterialTheme.colorScheme.error : tint
+                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertConfirmText"), color: color, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                    }
+                } else {
+                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false) }) {
+                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertOKText"), color: tint, text: stringResource(android.R.string.ok), style: MaterialTheme.typography.labelLarge)
+                    }
+                }
+            },
+            dismissButton: cancelBtn != nil ? {
+                if let c = cancelBtn {
+                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false); dismissAction?() }) {
+                        let stripped = c.strip()
+                        let button = stripped as? Button
+                        let label = button?.label
+                        let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertCancelText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                    }
+                }
+            } : nil,
+            title: title != nil ? {
+                androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: title!.localizedTextString(), style: MaterialTheme.typography.headlineSmall)
+            } : (titleResource != nil ? {
+                androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: stringResource(titleResource!), style: MaterialTheme.typography.headlineSmall)
+            } : nil),
+            text: messageText != nil ? {
+                androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertMessageText"), text: messageText!.localizedTextString(), style: MaterialTheme.typography.bodyMedium)
+            } : nil,
+            modifier: Modifier.wrapContentHeight().then(context.modifier),
+            containerColor: MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    } else {
+        BasicAlertDialog(onDismissRequest: { isPresented.set(false) }) {
+            let modifier = Modifier.sizeIn(minWidth: AlertDialogMinWidth, maxWidth: AlertDialogMaxWidth).wrapContentWidth().wrapContentHeight().then(context.modifier)
+            Surface(modifier: modifier, shape: AlertDialogDefaults.shape, tonalElevation: AlertDialogDefaults.TonalElevation) {
+                Column(modifier: Modifier.padding(AlertDialogPadding)) {
+                    RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
+                }
             }
         }
     }
 }
 
 @Composable func RenderAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: kotlin.collections.List<TextField>, actionRenderables: kotlin.collections.List<Renderable>, message: Text?) {
-    let padding = 16.dp
     if let title {
-        androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.primary.colorImpl(), text: title.localizedTextString(), style: Font.title3.bold().fontImpl(), textAlign: TextAlign.Center)
+        Box(modifier: Modifier.padding(AlertTitlePadding).fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+            androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: title.localizedTextString(), style: MaterialTheme.typography.headlineSmall)
+        }
     } else if let titleResource {
-        androidx.compose.material3.Text(modifier: Modifier.padding(horizontal: padding, vertical: 8.dp), color: Color.primary.colorImpl(), text: stringResource(titleResource), style: Font.title3.bold().fontImpl(), textAlign: TextAlign.Center)
+        Box(modifier: Modifier.padding(AlertTitlePadding).fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+            androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: stringResource(titleResource), style: MaterialTheme.typography.headlineSmall)
+        }
     }
     if let message {
-        androidx.compose.material3.Text(modifier: Modifier.padding(start: padding, end: padding), color: Color.primary.colorImpl(), text: message.localizedTextString(), style: Font.callout.fontImpl(), textAlign: TextAlign.Center)
+        Box(modifier: Modifier.padding(AlertTextPadding).fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+            androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: message.localizedTextString(), style: Font.callout.fontImpl())
+        }
     }
 
     for textField in textFields {
         let topPadding = textField == textFields.firstOrNull() ? 16.dp : 8.dp
-        let textFieldContext = context.content(modifier: Modifier.padding(top: topPadding, start: padding, end: padding))
+        let textFieldContext = context.content(modifier: Modifier.padding(top: topPadding))
         textField.Compose(context: textFieldContext)
     }
 
-    let hasTopContent = title != nil || titleResource != nil || message != nil || textFields.size > 0
-    if hasTopContent {
-        androidx.compose.material3.Divider(modifier: Modifier.padding(top: 16.dp))
-    }
-
-    let buttonModifier = Modifier.padding(horizontal: padding, vertical: 12.dp)
+    let buttonModifier = Modifier.padding(horizontal: 12.dp, vertical: 8.dp)
     let buttonFont = Font.title3
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
+    let flowRowButtonModifier = Modifier.wrapContentWidth().wrapContentHeight()
     guard actionRenderables.size > 0 else {
-        AlertButton(modifier: Modifier.fillMaxWidth(), renderable: nil, isPresented: isPresented) {
-            androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
+        Box(modifier: Modifier.fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+            AlertDialogFlowRow(mainAxisSpacing: ButtonsMainAxisSpacing, crossAxisSpacing: ButtonsCrossAxisSpacing) {
+                AlertButton(modifier: flowRowButtonModifier, renderable: nil, isPresented: isPresented) {
+                    androidx.compose.material3.Text(modifier: buttonModifier, color: tint, text: stringResource(android.R.string.ok), style: buttonFont.fontImpl())
+                }
+            }
         }
         return
     }
@@ -432,7 +603,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         }.firstOrNull()
         let color = button?.role == .destructive ? Color.red.colorImpl() : tint
         let style = isCancel ? buttonFont.bold().fontImpl() : buttonFont.fontImpl()
-        androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", maxLines: 1, style: style)
+        androidx.compose.material3.Text(modifier: buttonModifier, color: color, text: text?.localizedTextString() ?? "", style: style)
     }
 
     let optionRenderables = actionRenderables.filter {
@@ -446,37 +617,17 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
         guard let button = $0.strip() as? Button else { return false }
         return button.role == .cancel
     }
-    let cancelCount = cancelButton == nil ? 0 : 1
-    if optionRenderables.size + cancelCount == 2 {
-        // Horizontal layout for two buttons //TODO: Should revert to vertical when text is too long
-        Row(modifier: Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            let modifier = Modifier.weight(Float(1.0))
-            if let renderable = cancelButton ?? optionRenderables.firstOrNull() {
-                AlertButton(modifier: modifier, renderable: renderable, isPresented: isPresented) {
-                    buttonContent(renderable, renderable === cancelButton)
-                }
-                androidx.compose.material3.VerticalDivider()
-            }
-            if let button = optionRenderables.lastOrNull() {
-                AlertButton(modifier: modifier, renderable: button, isPresented: isPresented) {
-                    buttonContent(button, false)
+    Box(modifier: Modifier.fillMaxWidth(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+        AlertDialogFlowRow(mainAxisSpacing: ButtonsMainAxisSpacing, crossAxisSpacing: ButtonsCrossAxisSpacing) {
+            if let cancelButton {
+                AlertButton(modifier: flowRowButtonModifier, renderable: cancelButton, isPresented: isPresented) {
+                    buttonContent(cancelButton, true)
                 }
             }
-        }
-    } else {
-        // Vertical layout
-        let modifier = Modifier.fillMaxWidth()
-        for actionRenderable in optionRenderables {
-            AlertButton(modifier: modifier, renderable: actionRenderable, isPresented: isPresented) {
-                buttonContent(actionRenderable, false)
-            }
-            if actionRenderable !== optionRenderables.lastOrNull() || cancelButton != nil {
-                androidx.compose.material3.Divider()
-            }
-        }
-        if let cancelButton {
-            AlertButton(modifier: modifier, renderable: cancelButton, isPresented: isPresented) {
-                buttonContent(cancelButton, true)
+            for actionRenderable in optionRenderables {
+                AlertButton(modifier: flowRowButtonModifier, renderable: actionRenderable, isPresented: isPresented) {
+                    buttonContent(actionRenderable, false)
+                }
             }
         }
     }
