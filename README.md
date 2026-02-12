@@ -31,7 +31,7 @@ SkipUI vends the `skip.ui` Kotlin package. It is a reimplementation of SwiftUI f
 ![SkipUI Diagram](https://assets.skip.dev/diagrams/skip-diagrams-ui.svg)
 {: .diagram-vector }
 
-SkipUI is used directly by [Skip Lite](https://skip.dev/docs/status/#skip_fuse) transpiled Swift, and it is used indirectly by [Skip Fuse](https://skip.dev/docs/status/#skip_fuse) compiled Swift through the SkipFuseUI native framework.
+SkipUI is used directly by [Skip Lite](https://skip.dev/docs/modes/#lite) transpiled Swift, and it is used indirectly by [Skip Fuse](https://skip.dev/docs/modes/#fuse) compiled Swift through the SkipFuseUI native framework.
 
 ## Dependencies
 
