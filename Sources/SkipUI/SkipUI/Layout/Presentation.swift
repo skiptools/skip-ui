@@ -486,11 +486,16 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
     let flowRowButtonModifier = Modifier.wrapContentWidth().wrapContentHeight()
 
-    // Use native Material3-style dialog for basic cases (no text fields, at most one confirm + optional cancel, so at most 2 buttons).
-    let isBasicCase = textFields.size == 0 && optionRenderables.size <= 2
+    // Use native Material3-style dialog for basic cases (no text fields). N buttons supported via neutralButtons.
+    let isBasicCase = textFields.size == 0
     if isBasicCase {
         let cancelBtn = actionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .cancel }
-        let confirmRenderable = optionRenderables.firstOrNull()
+        // Confirm: first destructive, else first non-cancel (primary). Others go to neutralButtons.
+        let confirmRenderable = optionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .destructive }
+            ?? optionRenderables.firstOrNull { ($0.strip() as? Button)?.role != .cancel }
+        let neutralRenderables = optionRenderables.filter { r in
+            (r.strip() as? Button)?.role != .cancel && r !== confirmRenderable
+        }
         var confirmAction: (() -> Void)?
         if let r = confirmRenderable {
             let stripped = r.strip()
@@ -505,8 +510,27 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             else if let link = stripped as? Link { link.ComposeAction(); dismissAction = link.content.action }
             else if let nav = stripped as? NavigationLink { dismissAction = nav.navigationAction() }
         }
+        let neutralButtonsList: kotlin.collections.MutableList<@Composable () -> Void> = mutableListOf()
+        for r in neutralRenderables {
+            let renderable = r
+            var neutralAction: (() -> Void)?
+            let stripped = renderable.strip()
+            if let button = stripped as? Button { neutralAction = button.action }
+            else if let link = stripped as? Link { link.ComposeAction(); neutralAction = link.content.action }
+            else if let nav = stripped as? NavigationLink { neutralAction = nav.navigationAction() }
+            neutralButtonsList.add {
+                androidx.compose.material3.TextButton(onClick: { isPresented.set(false); neutralAction?() }) {
+                    let s = renderable.strip()
+                    let button = s as? Button ?? (s as? Link)?.content
+                    let label = button?.label ?? (s as? NavigationLink)?.label
+                    let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertNeutralText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                }
+            }
+        }
         SkipAlertDialog(
             onDismissRequest: { isPresented.set(false) },
+            neutralButtons: neutralButtonsList,
             confirmButton: {
                 if let r = confirmRenderable {
                     androidx.compose.material3.TextButton(onClick: { isPresented.set(false); confirmAction?() }) {

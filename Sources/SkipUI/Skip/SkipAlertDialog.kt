@@ -61,6 +61,7 @@ fun SkipAlertDialog(
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     dismissButton: @Composable (() -> Unit)? = null,
+    neutralButtons: List<@Composable () -> Unit> = emptyList(),
     icon: @Composable (() -> Unit)? = null,
     title: @Composable (() -> Unit)? = null,
     text: @Composable (() -> Unit)? = null,
@@ -86,6 +87,7 @@ fun SkipAlertDialog(
                         mainAxisSpacing = ButtonsMainAxisSpacing,
                         crossAxisSpacing = ButtonsCrossAxisSpacing,
                     ) {
+                        for (btn in neutralButtons) { btn() }
                         dismissButton?.let { it() }
                         confirmButton()
                     }
@@ -229,7 +231,8 @@ private fun SkipAlertDialogFlowRow(
             if (sequences.isNotEmpty()) {
                 crossAxisSpace += with(density) { crossAxisSpacing.roundToPx() }
             }
-            @Suppress("ListIterator") sequences.add(0, currentSequence.toList())
+            // Append sequences (not prepend) so neutral buttons appear above dismiss/confirm buttons
+            sequences.add(currentSequence.toList())
             crossAxisSizes += currentCrossAxisSize
             crossAxisPositions += crossAxisSpace
 
