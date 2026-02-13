@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -159,13 +161,17 @@ private fun SkipAlertDialogContent(
             }
             text?.let {
                 SideEffect { Log.d("SkipAlertMessageColor", "textContentColor=$textContentColor") }
+                val scrollState = rememberScrollState()
                 ProvideContentColorTextStyle(
                     contentColor = textContentColor,
                     textStyle = MaterialTheme.typography.bodyMedium,
                 ) {
                     Box(
-                        Modifier.weight(weight = 1f, fill = false)
+                        Modifier
+                            .weight(weight = 1f, fill = false)
                             .padding(TextPadding)
+                            .fillMaxWidth()
+                            .verticalScroll(scrollState)
                             .align(Alignment.Start),
                     ) {
                         text()
