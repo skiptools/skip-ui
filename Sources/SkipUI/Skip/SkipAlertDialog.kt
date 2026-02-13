@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.AlertDialogDefaults
@@ -65,6 +66,7 @@ fun SkipAlertDialog(
     icon: @Composable (() -> Unit)? = null,
     title: @Composable (() -> Unit)? = null,
     text: @Composable (() -> Unit)? = null,
+    textFields: @Composable (() -> Unit)? = null,
     shape: Shape = AlertDialogDefaults.shape,
     containerColor: Color = AlertDialogDefaults.containerColor,
     iconContentColor: Color = AlertDialogDefaults.iconContentColor,
@@ -95,6 +97,7 @@ fun SkipAlertDialog(
                 icon = icon,
                 title = title,
                 text = text,
+                textFields = textFields,
                 shape = shape,
                 containerColor = containerColor,
                 tonalElevation = tonalElevation,
@@ -114,6 +117,7 @@ private fun SkipAlertDialogContent(
     icon: (@Composable () -> Unit)?,
     title: (@Composable () -> Unit)?,
     text: @Composable (() -> Unit)?,
+    textFields: @Composable (() -> Unit)? = null,
     shape: Shape,
     containerColor: Color,
     tonalElevation: Dp,
@@ -166,6 +170,15 @@ private fun SkipAlertDialogContent(
                     ) {
                         text()
                     }
+                }
+            }
+            textFields?.let {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Start),
+                ) {
+                    textFields()
                 }
             }
             Box(

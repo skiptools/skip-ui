@@ -486,99 +486,94 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
     let tint = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
     let flowRowButtonModifier = Modifier.wrapContentWidth().wrapContentHeight()
 
-    // Use native Material3-style dialog for basic cases (no text fields). N buttons supported via neutralButtons.
-    let isBasicCase = textFields.size == 0
-    if isBasicCase {
-        let cancelBtn = actionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .cancel }
-        // Confirm: first destructive, else first non-cancel (primary). Others go to neutralButtons.
-        let confirmRenderable = optionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .destructive }
-            ?? optionRenderables.firstOrNull { ($0.strip() as? Button)?.role != .cancel }
-        let neutralRenderables = optionRenderables.filter { r in
-            (r.strip() as? Button)?.role != .cancel && r !== confirmRenderable
-        }
-        var confirmAction: (() -> Void)?
-        if let r = confirmRenderable {
-            let stripped = r.strip()
-            if let button = stripped as? Button { confirmAction = button.action }
-            else if let link = stripped as? Link { link.ComposeAction(); confirmAction = link.content.action }
-            else if let nav = stripped as? NavigationLink { confirmAction = nav.navigationAction() }
-        }
-        var dismissAction: (() -> Void)?
-        if let c = cancelBtn {
-            let stripped = c.strip()
-            if let button = stripped as? Button { dismissAction = button.action }
-            else if let link = stripped as? Link { link.ComposeAction(); dismissAction = link.content.action }
-            else if let nav = stripped as? NavigationLink { dismissAction = nav.navigationAction() }
-        }
-        let neutralButtonsList: kotlin.collections.MutableList<@Composable () -> Void> = mutableListOf()
-        for r in neutralRenderables {
-            let renderable = r
-            var neutralAction: (() -> Void)?
-            let stripped = renderable.strip()
-            if let button = stripped as? Button { neutralAction = button.action }
-            else if let link = stripped as? Link { link.ComposeAction(); neutralAction = link.content.action }
-            else if let nav = stripped as? NavigationLink { neutralAction = nav.navigationAction() }
-            neutralButtonsList.add {
-                androidx.compose.material3.TextButton(onClick: { isPresented.set(false); neutralAction?() }) {
-                    let s = renderable.strip()
-                    let button = s as? Button ?? (s as? Link)?.content
-                    let label = button?.label ?? (s as? NavigationLink)?.label
-                    let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
-                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertNeutralText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
-                }
-            }
-        }
-        SkipAlertDialog(
-            onDismissRequest: { isPresented.set(false) },
-            neutralButtons: neutralButtonsList,
-            confirmButton: {
-                if let r = confirmRenderable {
-                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false); confirmAction?() }) {
-                        let stripped = r.strip()
-                        let button = stripped as? Button ?? (stripped as? Link)?.content
-                        let label = button?.label ?? (stripped as? NavigationLink)?.label
-                        let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
-                        let color = button?.role == .destructive ? MaterialTheme.colorScheme.error : tint
-                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertConfirmText"), color: color, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
-                    }
-                } else {
-                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false) }) {
-                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertOKText"), color: tint, text: stringResource(android.R.string.ok), style: MaterialTheme.typography.labelLarge)
-                    }
-                }
-            },
-            dismissButton: cancelBtn != nil ? {
-                if let c = cancelBtn {
-                    androidx.compose.material3.TextButton(onClick: { isPresented.set(false); dismissAction?() }) {
-                        let stripped = c.strip()
-                        let button = stripped as? Button
-                        let label = button?.label
-                        let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
-                        androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertCancelText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
-                    }
-                }
-            } : nil,
-            title: title != nil ? {
-                androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: title!.localizedTextString(), style: MaterialTheme.typography.headlineSmall)
-            } : (titleResource != nil ? {
-                androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: stringResource(titleResource!), style: MaterialTheme.typography.headlineSmall)
-            } : nil),
-            text: messageText != nil ? {
-                androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertMessageText"), text: messageText!.localizedTextString(), style: MaterialTheme.typography.bodyMedium)
-            } : nil,
-            modifier: Modifier.wrapContentHeight().then(context.modifier),
-            containerColor: MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-    } else {
-        BasicAlertDialog(onDismissRequest: { isPresented.set(false) }) {
-            let modifier = Modifier.sizeIn(minWidth: AlertDialogMinWidth, maxWidth: AlertDialogMaxWidth).wrapContentWidth().wrapContentHeight().then(context.modifier)
-            Surface(modifier: modifier, shape: AlertDialogDefaults.shape, tonalElevation: AlertDialogDefaults.TonalElevation) {
-                Column(modifier: Modifier.padding(AlertDialogPadding)) {
-                    RenderAlert(title: title, titleResource: titleResource, context: contentContext, isPresented: isPresented, textFields: textFields, actionRenderables: optionRenderables, message: messageText)
-                }
+    // Use native Material3-style dialog for all cases. N buttons and text fields supported.
+    let cancelBtn = actionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .cancel }
+    // Confirm: first destructive, else first non-cancel (primary). Others go to neutralButtons.
+    let confirmRenderable = optionRenderables.firstOrNull { ($0.strip() as? Button)?.role == .destructive }
+        ?? optionRenderables.firstOrNull { ($0.strip() as? Button)?.role != .cancel }
+    let neutralRenderables = optionRenderables.filter { r in
+        (r.strip() as? Button)?.role != .cancel && r !== confirmRenderable
+    }
+    var confirmAction: (() -> Void)?
+    if let r = confirmRenderable {
+        let stripped = r.strip()
+        if let button = stripped as? Button { confirmAction = button.action }
+        else if let link = stripped as? Link { link.ComposeAction(); confirmAction = link.content.action }
+        else if let nav = stripped as? NavigationLink { confirmAction = nav.navigationAction() }
+    }
+    var dismissAction: (() -> Void)?
+    if let c = cancelBtn {
+        let stripped = c.strip()
+        if let button = stripped as? Button { dismissAction = button.action }
+        else if let link = stripped as? Link { link.ComposeAction(); dismissAction = link.content.action }
+        else if let nav = stripped as? NavigationLink { dismissAction = nav.navigationAction() }
+    }
+    let neutralButtonsList: kotlin.collections.MutableList<@Composable () -> Void> = mutableListOf()
+    for r in neutralRenderables {
+        let renderable = r
+        var neutralAction: (() -> Void)?
+        let stripped = renderable.strip()
+        if let button = stripped as? Button { neutralAction = button.action }
+        else if let link = stripped as? Link { link.ComposeAction(); neutralAction = link.content.action }
+        else if let nav = stripped as? NavigationLink { neutralAction = nav.navigationAction() }
+        neutralButtonsList.add {
+            androidx.compose.material3.TextButton(onClick: { isPresented.set(false); neutralAction?() }) {
+                let s = renderable.strip()
+                let button = s as? Button ?? (s as? Link)?.content
+                let label = button?.label ?? (s as? NavigationLink)?.label
+                let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertNeutralText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
             }
         }
     }
+    SkipAlertDialog(
+        onDismissRequest: { isPresented.set(false) },
+        neutralButtons: neutralButtonsList,
+        confirmButton: {
+            if let r = confirmRenderable {
+                androidx.compose.material3.TextButton(onClick: { isPresented.set(false); confirmAction?() }) {
+                    let stripped = r.strip()
+                    let button = stripped as? Button ?? (stripped as? Link)?.content
+                    let label = button?.label ?? (stripped as? NavigationLink)?.label
+                    let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                    let color = button?.role == .destructive ? MaterialTheme.colorScheme.error : tint
+                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertConfirmText"), color: color, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                }
+            } else {
+                androidx.compose.material3.TextButton(onClick: { isPresented.set(false) }) {
+                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertOKText"), color: tint, text: stringResource(android.R.string.ok), style: MaterialTheme.typography.labelLarge)
+                }
+            }
+        },
+        dismissButton: cancelBtn != nil ? {
+            if let c = cancelBtn {
+                androidx.compose.material3.TextButton(onClick: { isPresented.set(false); dismissAction?() }) {
+                    let stripped = c.strip()
+                    let button = stripped as? Button
+                    let label = button?.label
+                    let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
+                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertCancelText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                }
+            }
+        } : nil,
+        title: title != nil ? {
+            androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: title!.localizedTextString(), style: MaterialTheme.typography.headlineSmall)
+        } : (titleResource != nil ? {
+            androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: stringResource(titleResource!), style: MaterialTheme.typography.headlineSmall)
+        } : nil),
+        text: messageText != nil ? {
+            androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertMessageText"), text: messageText!.localizedTextString(), style: MaterialTheme.typography.bodyMedium)
+        } : nil,
+        textFields: textFields.size > 0 ? {
+            for textField in textFields {
+                let topPadding = textField == textFields.firstOrNull() ? 16.dp : 8.dp
+                let textFieldContext = contentContext.content(modifier: Modifier.padding(top: topPadding))
+                textField.Compose(context: textFieldContext)
+            }
+        } : nil,
+        modifier: Modifier.wrapContentHeight().then(context.modifier),
+        containerColor: MaterialTheme.colorScheme.surfaceContainerHigh
+    )
 }
 
 @Composable func RenderAlert(title: Text?, titleResource: Int? = nil, context: ComposeContext, isPresented: Binding<Bool>, textFields: kotlin.collections.List<TextField>, actionRenderables: kotlin.collections.List<Renderable>, message: Text?) {
