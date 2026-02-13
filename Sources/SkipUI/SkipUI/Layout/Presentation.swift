@@ -522,7 +522,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                 let button = s as? Button ?? (s as? Link)?.content
                 let label = button?.label ?? (s as? NavigationLink)?.label
                 let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
-                androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertNeutralText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                androidx.compose.material3.Text(color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -537,11 +537,11 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                     let label = button?.label ?? (stripped as? NavigationLink)?.label
                     let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
                     let color = button?.role == .destructive ? MaterialTheme.colorScheme.error : tint
-                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertConfirmText"), color: color, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                    androidx.compose.material3.Text(color: color, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
                 }
             } else {
                 androidx.compose.material3.TextButton(onClick: { isPresented.set(false) }) {
-                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertOKText"), color: tint, text: stringResource(android.R.string.ok), style: MaterialTheme.typography.labelLarge)
+                    androidx.compose.material3.Text(color: tint, text: stringResource(android.R.string.ok), style: MaterialTheme.typography.labelLarge)
                 }
             }
         },
@@ -552,7 +552,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
                     let button = stripped as? Button
                     let label = button?.label
                     let bt = label?.Evaluate(context: contentContext, options: 0).mapNotNull { $0.strip() as? Text }.firstOrNull()
-                    androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertCancelText"), color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
+                    androidx.compose.material3.Text(color: tint, text: bt?.localizedTextString() ?? "", style: MaterialTheme.typography.labelLarge)
                 }
             }
         } : nil,
@@ -562,7 +562,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             androidx.compose.material3.Text(color: Color.primary.colorImpl(), text: stringResource(titleResource!), style: MaterialTheme.typography.headlineSmall)
         } : nil),
         text: messageText != nil ? {
-            androidx.compose.material3.Text(modifier: Modifier.logLayoutModifier(tag: "SkipAlertMessageText"), text: messageText!.localizedTextString(), style: MaterialTheme.typography.bodyMedium)
+            androidx.compose.material3.Text(text: messageText!.localizedTextString(), style: MaterialTheme.typography.bodyMedium)
         } : nil,
         textFields: textFields.size > 0 ? {
             for textField in textFields {

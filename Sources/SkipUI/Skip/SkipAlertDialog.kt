@@ -27,10 +27,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -81,8 +79,7 @@ fun SkipAlertDialog(
         Box(
             modifier = modifier
                 .sizeIn(minWidth = DialogMinWidth, maxWidth = DialogMaxWidth)
-                .then(Modifier.semantics { paneTitle = "Dialog" })
-                .then(Modifier.logLayoutModifier(tag = "SkipAlertDialog")),
+                .then(Modifier.semantics { paneTitle = "Dialog" }),
             propagateMinConstraints = true,
         ) {
             SkipAlertDialogContent(
@@ -128,7 +125,6 @@ private fun SkipAlertDialogContent(
     titleContentColor: Color,
     textContentColor: Color,
 ) {
-    SideEffect { Log.d("SkipAlertDialog", "containerColor=$containerColor") }
     Surface(
         modifier = modifier,
         shape = shape,
@@ -159,9 +155,8 @@ private fun SkipAlertDialogContent(
                     }
                 }
             }
-            text?.let {
-                SideEffect { Log.d("SkipAlertMessageColor", "textContentColor=$textContentColor") }
-                val scrollState = rememberScrollState()
+                    text?.let {
+                        val scrollState = rememberScrollState()
                 ProvideContentColorTextStyle(
                     contentColor = textContentColor,
                     textStyle = MaterialTheme.typography.bodyMedium,
@@ -188,9 +183,7 @@ private fun SkipAlertDialogContent(
                 }
             }
             Box(
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .then(Modifier.logLayoutModifier(tag = "SkipAlertDialogButtonBox")),
+                modifier = Modifier.align(Alignment.End),
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 ProvideContentColorTextStyle(
@@ -227,7 +220,7 @@ private fun SkipAlertDialogFlowRow(
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     Layout(
-        modifier = Modifier.logLayoutModifier(tag = "SkipAlertDialogFlowRow"),
+        modifier = Modifier,
         content = content,
     ) { measurables, constraints ->
         val sequences = mutableListOf<kotlin.collections.List<Placeable>>()
