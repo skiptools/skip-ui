@@ -366,7 +366,8 @@ struct _Text: View, Renderable, Equatable {
         if let interpolations, !interpolations.isEmpty() {
             return locfmt.format(*interpolations.toTypedArray())
         } else {
-            return locfmt
+            // Unescape %% back to % when not using String.format()
+            return locfmt.replacingOccurrences(of: "%%", with: "%")
         }
     }
 
@@ -428,7 +429,8 @@ struct _Text: View, Renderable, Equatable {
             if let interpolations {
                 text = locfmt.format(*interpolations.toTypedArray())
             } else {
-                text = locfmt
+                // Unescape %% back to % when not using String.format()
+                text = locfmt.replacingOccurrences(of: "%%", with: "%")
             }
             if styleInfo.isUppercased {
                 text = text.uppercased()
@@ -496,6 +498,19 @@ struct _Text: View, Renderable, Equatable {
         }
     }
 
+    /// Returns the display string for a markdown node, unescaping %% to % for nodes
+    /// that were not processed through String.format(). Literal % characters in
+    /// LocalizedStringKey patterns are escaped to %% for Java format string safety,
+    /// but nodes without interpolation specifiers bypass String.format() and need
+    /// the %% unescaped back to % for correct display.
+    private func displayString(for markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?) -> String? {
+        guard let text = markdown.formattedString(interpolations) else { return nil }
+        if markdown.interpolationIndexes == nil || markdown.interpolationIndexes!.isEmpty() {
+            return text.replacingOccurrences(of: "%%", with: "%")
+        }
+        return text
+    }
+
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
     private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) {
         func appendChildren() {
@@ -508,7 +523,7 @@ struct _Text: View, Renderable, Equatable {
             appendChildren()
             builder.pop()
         case MarkdownNode.NodeType.code:
-            if let text = markdown.formattedString(interpolations) {
+            if let text = displayString(for: markdown, interpolations: interpolations) {
                 builder.pushStyle(SpanStyle(fontFamily: FontFamily.Monospace))
                 if isUppercased {
                     builder.append(text.uppercased())
@@ -529,7 +544,7 @@ struct _Text: View, Renderable, Equatable {
             } else {
                 builder.pushStyle(SpanStyle(color: linkColor))
             }
-            builder.pushUrlAnnotation(UrlAnnotation(markdown.formattedString(interpolations) ?? ""))
+            builder.pushUrlAnnotation(UrlAnnotation(displayString(for: markdown, interpolations: interpolations) ?? ""))
             appendChildren()
             builder.pop()
             builder.pop()
@@ -545,7 +560,7 @@ struct _Text: View, Renderable, Equatable {
             appendChildren()
             builder.pop()
         case MarkdownNode.NodeType.text:
-            if let text = markdown.formattedString(interpolations) {
+            if let text = displayString(for: markdown, interpolations: interpolations) {
                 if isUppercased {
                     builder.append(text.uppercased())
                 } else if isLowercased {
