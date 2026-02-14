@@ -191,15 +191,17 @@ public final class UNUserNotificationCenter {
         }
         #endif
     }
-    
-    public func pendingNotificationRequests() async -> [UNNotificationRequest] {
+
+    // SKIP @bridge
+    public func pendingNotificationRequests() async -> [Any /* UNNotificationRequest */] {
         #if SKIP
         return getPendingNotificationRequests()
         #else
         fatalError()
         #endif
     }
-    
+
+    // SKIP @bridge
     public func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
         #if SKIP
         guard let activity = UIApplication.shared.androidActivity else { return }
@@ -229,25 +231,28 @@ public final class UNUserNotificationCenter {
         editor.apply()
         #endif
     }
-    
+
+    // SKIP @bridge
     public func removeAllPendingNotificationRequests() {
         #if SKIP
         let pendingNotifications = getPendingNotificationRequests()
-        let identifiers = pendingNotifications.map { $0.identifier }
+        let identifiers = pendingNotifications.compactMap { ($0 as? UNNotificationRequest)?.identifier }
         removePendingNotificationRequests(withIdentifiers: identifiers)
         #else
         fatalError()
         #endif
     }
-    
-    public func deliveredNotifications() async -> [UNNotification] {
+
+    // SKIP @bridge
+    public func deliveredNotifications() async -> [Any /* UNNotification */] {
         #if SKIP
         return getDeliveredNotifications()
         #else
         fatalError()
         #endif
     }
-    
+
+    // SKIP @bridge
     public func removeDeliveredNotifications(withIdentifiers identifiers: [String]) {
         #if SKIP
         guard let activity = UIApplication.shared.androidActivity else { return }
@@ -267,29 +272,30 @@ public final class UNUserNotificationCenter {
         editor.putStringSet("ids", ids)
         editor.apply()
         #else
-        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiers)
+        fatalError()
         #endif
     }
-    
+
+    // SKIP @bridge
     public func removeAllDeliveredNotifications() {
         #if SKIP
         let deliveredNotifications = getDeliveredNotifications()
-        let identifiers = deliveredNotifications.map { $0.request.identifier }
+        let identifiers = deliveredNotifications.compactMap { ($0 as? UNNotification)?.request.identifier }
         removeDeliveredNotifications(withIdentifiers: identifiers)
         #else
         fatalError()
         #endif
     }
-    
+
     @available(*, unavailable)
     public func setNotificationCategories(_ categories: Set<AnyHashable /* UNNotificationCategory */>) {
     }
-    
+
     @available(*, unavailable)
     public func getNotificationCategories() async -> Set<AnyHashable /* UNNotificationCategory */> {
         fatalError()
     }
-    
+
     #if SKIP
     private func getAllNotificationRequests() -> [(id: String, timestamp: Long)] {
         guard let activity = UIApplication.shared.androidActivity else { return [] }
@@ -305,8 +311,8 @@ public final class UNUserNotificationCenter {
         }
         return all
     }
-    
-    private func getPendingNotificationRequests() -> [UNNotificationRequest] {
+
+    private func getPendingNotificationRequests() -> [Any /* UNNotificationRequest */] {
         let now = Date().currentTimeMillis
         return getAllNotificationRequests()
             .filter { $0.timestamp > now }
@@ -314,8 +320,8 @@ public final class UNUserNotificationCenter {
                 UNNotificationRequest(identifier: $0.id, content: UNMutableNotificationContent(), trigger: nil)
             }
     }
-    
-    private func getDeliveredNotifications() -> [UNNotification] {
+
+    private func getDeliveredNotifications() -> [Any /* UNNotification */] {
         let now = Date().currentTimeMillis
         return getAllNotificationRequests()
             .filter { $0.timestamp <= now }
