@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.PathOperation
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 #elseif canImport(CoreGraphics)
@@ -211,7 +212,7 @@ public struct Path : Shape, Equatable {
     public mutating func addRect(_ rect: CGRect, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
-            path.addRect(Rect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY)))
+            path.asAndroidPath().addRect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY), android.graphics.Path.Direction.CW)
         } else {
             path.addPath(Path(rect).applying(transform).path)
         }
@@ -226,7 +227,7 @@ public struct Path : Shape, Equatable {
     public mutating func addRoundedRect(in rect: CGRect, cornerSize: CGSize, style: RoundedCornerStyle = .continuous, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
-            path.addRoundRect(RoundRect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY), Float(cornerSize.width), Float(cornerSize.height)))
+            path.asAndroidPath().addRoundRect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY), Float(cornerSize.width), Float(cornerSize.height), android.graphics.Path.Direction.CW)
         } else {
             path.addPath(Path(roundedRect: rect, cornerSize: cornerSize, style: style).applying(transform).path)
         }
@@ -241,7 +242,7 @@ public struct Path : Shape, Equatable {
     public mutating func addRoundedRect(in rect: CGRect, cornerRadii: RectangleCornerRadii, style: RoundedCornerStyle = .continuous, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
-            path.addRoundRect(RoundRect(Rect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY)), CornerRadius(Float(cornerRadii.topLeading), Float(cornerRadii.topLeading)), CornerRadius(Float(cornerRadii.topTrailing), Float(cornerRadii.topTrailing)), CornerRadius(Float(cornerRadii.bottomTrailing), Float(cornerRadii.bottomTrailing)), CornerRadius(Float(cornerRadii.bottomLeading), Float(cornerRadii.bottomLeading))))
+            path.asAndroidPath().addRoundRect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY), floatArrayOf(Float(cornerRadii.topLeading), Float(cornerRadii.topLeading), Float(cornerRadii.topTrailing), Float(cornerRadii.topTrailing), Float(cornerRadii.bottomTrailing), Float(cornerRadii.bottomTrailing), Float(cornerRadii.bottomLeading), Float(cornerRadii.bottomLeading)), android.graphics.Path.Direction.CW)
         } else {
             path.addPath(Path(roundedRect: rect, cornerRadii: cornerRadii, style: style).applying(transform).path)
         }
@@ -256,7 +257,7 @@ public struct Path : Shape, Equatable {
     public mutating func addEllipse(in rect: CGRect, transform: CGAffineTransform = .identity) {
         #if SKIP
         if transform.isIdentity {
-            path.addOval(Rect(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY)))
+            path.asAndroidPath().addOval(Float(rect.minX), Float(rect.minY), Float(rect.maxX), Float(rect.maxY), android.graphics.Path.Direction.CW)
         } else {
             path.addPath(Path(ellipseIn: rect).applying(transform).path)
         }

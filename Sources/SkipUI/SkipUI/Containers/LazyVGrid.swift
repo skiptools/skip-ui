@@ -103,6 +103,10 @@ public struct LazyVGrid: View, Renderable {
                     return ComposeResult.ok
                 } in: {
                     let contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
+                    EnvironmentValues.shared.setValues {
+                        $0.set_contentPadding(EdgeInsets())
+                        return ComposeResult.ok
+                    } in: {
                     LazyVerticalGrid(state: gridState, modifier: Modifier.fillMaxWidth(), columns: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: contentPadding, userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                         itemCollector.value.initialize(
                             startItemIndex: isSearchable ? 1 : 0,
@@ -180,6 +184,7 @@ public struct LazyVGrid: View, Renderable {
                                 itemCollector.value.item(renderable, 0)
                             }
                         }
+                    }
                     }
                 }
             }
