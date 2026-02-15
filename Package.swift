@@ -9,6 +9,10 @@ let package = Package(
     ],
     dependencies: [ 
         .package(url: "https://source.skip.tools/skip.git", from: "1.6.21"),
+        
+        // TODO: Remove temporary reference to skip foundation after PR has been merged (see: https://github.com/skiptools/skip-foundation/pull/93)
+        .package(path: "/Users/fabian/Desktop/Develop/Contributions/skip-foundation"),
+        
         .package(url: "https://source.skip.tools/skip-model.git", from: "1.6.2"),
     ],
     targets: [
