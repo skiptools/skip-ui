@@ -391,7 +391,8 @@ public final class UNNotificationRequest : @unchecked Sendable {
     // SKIP @bridge
     public let content: UNNotificationContent
     public let trigger: UNNotificationTrigger?
-
+    
+    // SKIP @bridge
     public init(identifier: String, content: UNNotificationContent, trigger: UNNotificationTrigger?) {
         self.identifier = identifier
         self.content = content
@@ -642,43 +643,57 @@ public class UNNotificationAttachment {
     }
 }
 
+// SKIP @bridge
 public class UNNotificationTrigger {
+    
+    // SKIP @bridge
     public let repeats: Bool
 
+    // SKIP @bridge
     public init(repeats: Bool) {
         self.repeats = repeats
     }
 }
 
+// SKIP @bridge
 public final class UNTimeIntervalNotificationTrigger: UNNotificationTrigger {
+    
+    // SKIP @bridge
     public let timeInterval: TimeInterval
 
+    // SKIP @bridge
     public init(timeInterval: TimeInterval, repeats: Bool) {
         self.timeInterval = timeInterval
         super.init(repeats: repeats)
     }
 
+    // SKIP @bridge
     public func nextTriggerDate() -> Date? {
         let now = Date()
         return now.addingTimeInterval(self.timeInterval)
     }
 }
 
+// SKIP @bridge
 public final class UNCalendarNotificationTrigger: UNNotificationTrigger {
-    public let dateComponents: DateComponents
-
-    public init(dateMatching dateComponents: DateComponents, repeats: Bool) {
+    
+    // SKIP @bridge
+    public let dateComponents: Any /* DateComponents */
+    
+    // SKIP @bridge
+    public init(dateMatching dateComponents: Any /* DateComponents */, repeats: Bool) {
         self.dateComponents = dateComponents
         super.init(repeats: repeats)
     }
 
+    // SKIP @bridge
     public func nextTriggerDate() -> Date? {
         let calendar = Calendar.current
         let now = Date()
         
         guard let nextDate = calendar.nextDate(
             after: now,
-            matching: self.dateComponents,
+            matching: self.dateComponents as! DateComponents,
             matchingPolicy: .nextTime,
             repeatedTimePolicy: .first,
             direction: .forward
