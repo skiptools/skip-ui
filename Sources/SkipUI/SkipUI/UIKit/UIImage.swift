@@ -91,15 +91,19 @@ public class UIImage {
 
     public init?(contentsOfFile path: String) {
         #if SKIP
-        let contentResolver = ProcessInfo.processInfo.androidContext.getContentResolver()
-        let uri = Uri.parse(path)
-        let source = ImageDecoder.createSource(contentResolver, uri)
-        
-        guard let bitmap = ImageDecoder.decodeBitmap(source) else {
+        do {
+            let contentResolver = ProcessInfo.processInfo.androidContext.getContentResolver()
+            let uri = Uri.parse(path)
+            let source = ImageDecoder.createSource(contentResolver, uri)
+            
+            guard let bitmap = ImageDecoder.decodeBitmap(source) else {
+                return nil
+            }
+            
+            self.bitmap = bitmap
+        } catch {
             return nil
         }
-
-        self.bitmap = bitmap
         #endif
         self.scale = 1.0
     }
