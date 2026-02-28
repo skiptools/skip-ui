@@ -819,6 +819,9 @@ struct PresentationDetentPreferences: Equatable {
 }
 #endif
 
+
+// It is unfortunate that we have to NOWARN this entire extension just to prevent "This extension will be moved into its extended type definition when translated to Kotlin. It will not be able to access this file's private types or fileprivate members"; ideally, we would be able to squelch that specific warning, but leave on the possibility of warning about other potential issues with the code inside the extension (https://github.com/skiptools/skipstone/issues/198)
+// SKIP NOWARN
 extension View {
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions)
