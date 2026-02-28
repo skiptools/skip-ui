@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.requiredWidthIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -79,11 +81,11 @@ extension Modifier {
     /// For internal use.
     func applyNonExpandingFlexibleWidth(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
         if let min, min! > Float(0), let max, max! >= Float(0) {
-            return requiredWidthIn(min: min!.dp, max: max!.dp)
+            return widthIn(min: min!.dp, max: max!.dp)
         } else if let min, min! > Float(0) {
-            return requiredWidthIn(min: min!.dp)
+            return widthIn(min: min!.dp)
         } else if let max, max! >= Float(0) {
-            return requiredWidthIn(max: max!.dp)
+            return widthIn(max: max!.dp)
         } else {
             return self
         }
@@ -92,11 +94,11 @@ extension Modifier {
     /// For internal use.
     func applyNonExpandingFlexibleHeight(ideal: Float? = nil, min: Float? = nil, max: Float? = nil) -> Modifier {
         if let min, min! > Float(0), let max, max! >= Float(0) {
-            return requiredHeightIn(min: min!.dp, max: max!.dp)
+            return heightIn(min: min!.dp, max: max!.dp)
         } else if let min, min! > Float(0) {
-            return requiredHeightIn(min: min!.dp)
+            return heightIn(min: min!.dp)
         } else if let max, max! >= Float(0) {
-            return requiredHeightIn(max: max!.dp)
+            return heightIn(max: max!.dp)
         } else {
             return self
         }
