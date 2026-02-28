@@ -81,14 +81,14 @@ import struct CoreGraphics.CGFloat
 let overlayPresentationCornerRadius = 16.0
 
 // Material3 AlertDialog padding and spacing (match AlertDialog.kt).
-private let AlertDialogPadding = PaddingValues(start: 24.dp, top: 24.dp, end: 24.dp, bottom: 24.dp)
-private let AlertIconPadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
-private let AlertTitlePadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
-private let AlertTextPadding = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 24.dp)
-private let ButtonsMainAxisSpacing = 8.dp
-private let ButtonsCrossAxisSpacing = 12.dp
-private let AlertDialogMinWidth = 280.dp
-private let AlertDialogMaxWidth = 560.dp
+private let AlertDialogPadding: PaddingValues = PaddingValues(start: 24.dp, top: 24.dp, end: 24.dp, bottom: 24.dp)
+private let AlertIconPadding: PaddingValues = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
+private let AlertTitlePadding: PaddingValues = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 16.dp)
+private let AlertTextPadding: PaddingValues = PaddingValues(start: 0.dp, top: 0.dp, end: 0.dp, bottom: 24.dp)
+private let ButtonsMainAxisSpacing: Dp = 8.dp
+private let ButtonsCrossAxisSpacing: Dp = 12.dp
+private let AlertDialogMinWidth: Dp = 280.dp
+private let AlertDialogMaxWidth: Dp = 560.dp
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
@@ -819,6 +819,9 @@ struct PresentationDetentPreferences: Equatable {
 }
 #endif
 
+
+// It is unfortunate that we have to NOWARN this entire extension just to prevent "This extension will be moved into its extended type definition when translated to Kotlin. It will not be able to access this file's private types or fileprivate members"; ideally, we would be able to squelch that specific warning, but leave on the possibility of warning about other potential issues with the code inside the extension (https://github.com/skiptools/skipstone/issues/198)
+// SKIP NOWARN
 extension View {
     public func alert(_ titleKey: LocalizedStringKey, isPresented: Binding<Bool>, @ViewBuilder actions: () -> any View) -> any View {
         return alert(Text(titleKey), isPresented: isPresented, actions: actions)
