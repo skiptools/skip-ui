@@ -113,7 +113,16 @@ public struct ScrollView : View, Renderable {
                 containerModifier = containerModifier.scrollDismissesKeyboardMode(EnvironmentValues.shared.scrollDismissesKeyboardMode)
 
                 Box(modifier: containerModifier) {
-                    Column(modifier: scrollModifier) {
+                    // Apply content margins as padding to the scrolling content only when this ScrollView is managing scroll
+                    // (when a lazy container is the child, it manages its own scroll and will apply margins itself)
+                    let finalScrollModifier: Modifier
+                    if (wantsVerticalScroll || wantsHorizontalScroll), let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
+                        finalScrollModifier = scrollModifier.padding(contentMargins)
+                    } else {
+                        finalScrollModifier = scrollModifier
+                    }
+
+                    Column(modifier: finalScrollModifier) {
                         if wantsVerticalScroll {
                             let searchableState = EnvironmentValues.shared._searchableState
                             let isSearchable = searchableState?.isOnNavigationStack == false
@@ -292,19 +301,48 @@ public struct PinnedScrollableViews : OptionSet {
 }
 
 extension View {
-    @available(*, unavailable)
     public func contentMargins(_ edges: Edge.Set = .all, _ insets: EdgeInsets, for placement: ContentMarginPlacement = .automatic) -> some View {
+        #if SKIP
+        // Skip does not display scroll indicators, so .scrollIndicators placement is a no-op
+        let margins: ContentMargins
+        switch placement {
+        case .automatic:
+            margins = ContentMargins(automatic: insets)
+        case .scrollContent:
+            margins = ContentMargins(scrollContent: insets)
+        case .scrollIndicators:
+            // No-op: SkipUI doesn't have visible scroll indicators on Android
+            return self
+        }
+        return environment(\._contentMargins, margins, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
     public func contentMargins(_ edges: Edge.Set = .all, _ length: CGFloat?, for placement: ContentMarginPlacement = .automatic) -> some View {
+        #if SKIP
+        guard let length else {
+            return self
+        }
+        let insets = EdgeInsets(top: edges.contains(.top) ? length : 0.0,
+                                leading: edges.contains(.leading) ? length : 0.0,
+                                bottom: edges.contains(.bottom) ? length : 0.0,
+                                trailing: edges.contains(.trailing) ? length : 0.0)
+        return contentMargins(edges, insets, for: placement)
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func contentMargins(_ length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View {
-        return self
+    public func contentMargins(length: CGFloat, for placement: ContentMarginPlacement = .automatic) -> some View {
+        return contentMargins(.all, length, for: placement)
+    }
+
+    // SKIP @bridge
+    public func contentMargins(_ edges: Int, top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, for placement: Int) -> any View {
+        let placementValue = ContentMarginPlacement(rawValue: placement) ?? .automatic
+        return contentMargins(Edge.Set(rawValue: edges), EdgeInsets(top: top, leading: leading, bottom: bottom, trailing: trailing), for: placementValue)
     }
 
     @available(*, unavailable)
