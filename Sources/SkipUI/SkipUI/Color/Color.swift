@@ -208,9 +208,6 @@ public struct Color: ShapeStyle, Renderable, Hashable {
         MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
     })
 
-    /// Use for e.g. grouped table backgrounds, etc.
-    static let systemBackground: Color = systemBarBackground
-
     /// Use for overlays like alerts and action sheets.
     static let overlayBackground: Color = Color(colorImpl: {
         MaterialTheme.colorScheme.surface.copy(alpha: Float(0.9))
