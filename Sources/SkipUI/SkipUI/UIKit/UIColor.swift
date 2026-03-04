@@ -7,10 +7,10 @@ import struct CoreGraphics.CGFloat
 
 // SKIP @bridge
 public final class UIColor {
-    let red: CGFloat
-    let green: CGFloat
-    let blue: CGFloat
-    let alpha: CGFloat
+    public let red: CGFloat
+    public let green: CGFloat
+    public let blue: CGFloat
+    public let alpha: CGFloat
 
     // SKIP @bridge
     public init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
