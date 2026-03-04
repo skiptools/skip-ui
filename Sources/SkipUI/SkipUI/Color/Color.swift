@@ -109,6 +109,12 @@ public struct Color: ShapeStyle, Renderable, Hashable {
 
     // SKIP @bridge
     public init(_ color: UIColor) {
+        #if SKIP
+        if color === UIColor.systemBackground {
+            self = Color.background
+            return
+        }
+        #endif
         self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
     }
 

@@ -19,6 +19,12 @@ public final class UIColor {
         self.blue = blue
         self.alpha = alpha
     }
+
+    #if SKIP
+    // We can't resolve actual RGB values unless we're in a @Composable context.
+    // Use with `Color(.systemBackground)` to get the adaptive semantic color.
+    public static let systemBackground: UIColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+    #endif
 }
 
 #endif
