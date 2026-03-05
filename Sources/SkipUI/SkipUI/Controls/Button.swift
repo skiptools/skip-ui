@@ -13,6 +13,7 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalRippleConfiguration
@@ -133,7 +134,7 @@ public struct Button : View, Renderable {
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
             case .bordered:
-                let tint = role == .destructive ? Color.red : EnvironmentValues.shared._tint
+                let tint = role == .destructive ? Color(colorImpl: { MaterialTheme.colorScheme.error }) : EnvironmentValues.shared._tint
                 let colors: ButtonColors
                 if let tint {
                     let tintColor = tint.colorImpl()
@@ -161,11 +162,21 @@ public struct Button : View, Renderable {
                     }
                 }
             case .borderedProminent:
-                let tint = role == .destructive ? Color.red : EnvironmentValues.shared._tint
+                let tint = role == .destructive ? Color(colorImpl: { MaterialTheme.colorScheme.error }) : EnvironmentValues.shared._tint
                 let colors: ButtonColors
                 if let tint {
                     let tintColor = tint.colorImpl()
-                    colors = ButtonDefaults.buttonColors(containerColor: tintColor, disabledContainerColor: tintColor.copy(alpha: ContentAlpha.disabled))
+                    if role == .destructive {
+                        colors = ButtonDefaults
+                            .buttonColors(
+                                containerColor: MaterialTheme.colorScheme.error,
+                                contentColor: MaterialTheme.colorScheme.onError,
+                                disabledContainerColor: MaterialTheme.colorScheme.error.copy(alpha: ContentAlpha.disabled),
+                                disabledContentColor: MaterialTheme.colorScheme.onError.copy(alpha: ContentAlpha.disabled)
+                            )
+                    } else {
+                        colors = ButtonDefaults.buttonColors(containerColor: tintColor, disabledContainerColor: tintColor.copy(alpha: ContentAlpha.disabled))
+                    }
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
@@ -198,7 +209,7 @@ public struct Button : View, Renderable {
     @Composable static func RenderTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: (() -> Void)? = nil) {
         var foregroundStyle: ShapeStyle
         if role == .destructive {
-            foregroundStyle = Color.red
+            foregroundStyle = Color(colorImpl: { MaterialTheme.colorScheme.error })
         } else {
             foregroundStyle = EnvironmentValues.shared._foregroundStyle ?? (isPlain ? Color.primary : (EnvironmentValues.shared._tint ?? Color.accentColor))
         }
