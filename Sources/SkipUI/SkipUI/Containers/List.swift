@@ -674,7 +674,7 @@ public final class List : View, Renderable {
         } else if styling.style == ListStyle.plain {
             return Color.background.colorImpl()
         } else {
-            return Color.systemBackground.colorImpl()
+            return Color.systemBarBackground.colorImpl()
         }
     }
     #else

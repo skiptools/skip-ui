@@ -109,6 +109,12 @@ public struct Color: ShapeStyle, Renderable, Hashable {
 
     // SKIP @bridge
     public init(_ color: UIColor) {
+        #if SKIP
+        if color === UIColor.systemBackground {
+            self = Color.background
+            return
+        }
+        #endif
         self.init(red: color.red, green: color.green, blue: color.blue, opacity: color.alpha)
     }
 
@@ -197,13 +203,13 @@ public struct Color: ShapeStyle, Renderable, Hashable {
         MaterialTheme.colorScheme.surface
     })
 
+    // SKIP @bridge - public for skip-fuse-ui Color(.systemBackground) support
+    public static let _background = background
+
     /// Matches Android's default bottom bar color.
     static let systemBarBackground: Color = Color(colorImpl: {
         MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
     })
-
-    /// Use for e.g. grouped table backgrounds, etc.
-    static let systemBackground: Color = systemBarBackground
 
     /// Use for overlays like alerts and action sheets.
     static let overlayBackground: Color = Color(colorImpl: {
@@ -314,6 +320,7 @@ public struct Color: ShapeStyle, Renderable, Hashable {
     public static let _purple = Color(white: 1, opacity: 1)
     public static let _pink = Color(white: 1, opacity: 1)
     public static let _brown = Color(white: 1, opacity: 1)
+    public static let _background = Color(white: 1, opacity: 1)
     #endif
 
     // MARK: -
