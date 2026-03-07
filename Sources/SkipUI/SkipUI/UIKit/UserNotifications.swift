@@ -152,7 +152,7 @@ public final class UNUserNotificationCenter {
         
         // Add the notification identifier to the shared preferences to be able to cancel it later.
         if let triggerMillis = nextDate?.currentTimeMillis {
-            let preferences = activity.getSharedPreferences("notifications", Context.MODE_PRIVATE)
+            let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
             let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
             ids.add(request.identifier)
             preferences.edit()
@@ -178,7 +178,7 @@ public final class UNUserNotificationCenter {
         guard let activity = UIApplication.shared.androidActivity else { return }
         
         // Get all notification identifiers from the shared preferences.
-        let preferences = activity.getSharedPreferences("notifications", Context.MODE_PRIVATE)
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
         let editor = preferences.edit()
         let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
         
@@ -230,7 +230,7 @@ public final class UNUserNotificationCenter {
         guard let activity = UIApplication.shared.androidActivity else { return }
         
         // Get all notification identifiers from the shared preferences.
-        let preferences = activity.getSharedPreferences("notifications", Context.MODE_PRIVATE)
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
         let editor = preferences.edit()
         let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
         
@@ -279,7 +279,7 @@ public final class UNUserNotificationCenter {
     #if SKIP
     private func getAllNotificationRequests() -> [(id: String, timestamp: Long)] {
         guard let activity = UIApplication.shared.androidActivity else { return [] }
-        let preferences = activity.getSharedPreferences("notifications", Context.MODE_PRIVATE)
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
         let ids = preferences.getStringSet("ids", nil) ?? java.util.HashSet<String>()
         
         var all: [(id: String, timestamp: Long)] = []
