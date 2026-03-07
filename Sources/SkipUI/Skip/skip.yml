@@ -18,6 +18,7 @@ settings:
                 - 'version("androidx-activity", "1.11.0")'
                 - 'version("androidx-lifecycle-process", "2.9.2")'
                 - 'version("androidx-material3-adaptive", "1.1.0")'
+                - 'version("androidx-work", "2.11.1")'
 
                 # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
                 - 'library("androidx-core-ktx", "androidx.core", "core-ktx").withoutVersion()'
@@ -35,6 +36,8 @@ settings:
                 - 'library("androidx-activity-compose", "androidx.activity", "activity-compose").versionRef("androidx-activity")'
                 - 'library("androidx-lifecycle-process", "androidx.lifecycle", "lifecycle-process").versionRef("androidx-lifecycle-process")'
                 - 'library("androidx-compose-material3-adaptive", "androidx.compose.material3.adaptive", "adaptive").versionRef("androidx-material3-adaptive")'
+
+                - 'library("androidx-work-runtime", "androidx.work", "work-runtime-ktx").versionRef("androidx-work")'
 
                 - 'library("coil-compose", "io.coil-kt.coil3", "coil-compose").versionRef("coil")'
                 - 'library("coil-network-okhttp", "io.coil-kt.coil3", "coil-network-okhttp").versionRef("coil")'
@@ -75,6 +78,7 @@ build:
         - 'api(libs.androidx.appcompat.resources)'
         - 'api(libs.androidx.activity.compose)'
         - 'api(libs.androidx.lifecycle.process)'
+        - 'api(libs.androidx.work.runtime)'
         - 'implementation(libs.coil.compose)'
         - 'implementation(libs.coil.network.okhttp)'
         - 'implementation(libs.coil.svg)'
@@ -86,4 +90,3 @@ build:
         - 'androidTestImplementation(libs.androidx.compose.ui.test.junit4)'
         - 'testImplementation(libs.androidx.compose.ui.test.manifest)'
         - 'androidTestImplementation(libs.androidx.compose.ui.test.manifest)'
-

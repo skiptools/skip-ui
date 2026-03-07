@@ -2466,13 +2466,13 @@ Support levels:
           <details>
               <summary><code>UNNotificationTrigger</code></summary>
               <ul>
-                  <li>Ignored on Android</li>
+                  <li>Only `nextTriggerDate` is evaluated but not the `repeat` value</li>
               </ul>
           </details>      
        </td>
     </tr>
    <tr>
-      <td>🟠</td>
+      <td>🟡</td>
       <td>
           <details>
               <summary><code>UNUserNotificationCenter</code></summary>
@@ -2481,7 +2481,13 @@ Support levels:
                   <li><code>func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool</code></li>
                   <li><code>var delegate: (any UNUserNotificationCenterDelegate)?</code></li>
                   <li><code>func add(_ request: UNNotificationRequest) async throws</code></li>
-                  <li>The `add` function ignores all scheduling and repeat options and simply delivers the notification immediately.</li>
+                  <li>The `add` function ignores all repeat options and and simply delivers the notification either immediately or after the next trigger date is reached.</li>
+                  <li><code>func pendingNotificationRequests() async -> [UNNotificationRequest]</code></li>
+                  <li><code>func removePendingNotificationRequests(withIdentifiers identifiers: [String])</code></li>
+                  <li><code>func removeAllPendingNotificationRequests()</code></li>
+                  <li><code>func deliveredNotifications() async -> [UNNotification]</code></li>
+                  <li><code>func removeDeliveredNotifications(withIdentifiers identifiers: [String])</code></li>
+                  <li><code>func removeAllDeliveredNotifications()</code></li>
               </ul>
           </details>      
        </td>

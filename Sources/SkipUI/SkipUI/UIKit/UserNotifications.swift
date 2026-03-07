@@ -19,6 +19,14 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.work.Data
+import androidx.work.Worker
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import androidx.work.ListenableWorker
+import androidx.work.OneTimeWorkRequestBuilder
+import java.util.HashSet
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 #endif
 
@@ -92,102 +100,171 @@ public final class UNUserNotificationCenter {
 
     // SKIP @bridge
     public func add(_ request: UNNotificationRequest) async throws {
-        guard let delegate else {
-            return
-        }
+        guard let delegate else { return }
+
         let notification = UNNotification(request: request, date: Date.now)
         let options = await delegate.userNotificationCenter(self, willPresent: notification)
-        guard options.contains(.banner) || options.contains(.alert) else {
-            return
-        }
+        guard options.contains(.banner) || options.contains(.alert) else { return }
+
         #if SKIP
-        guard let activity = UIApplication.shared.androidActivity else {
-            return
+        guard let activity = UIApplication.shared.androidActivity else { return }
+        
+        // Build the data which should be displayed in the notification.
+        let dataBuilder = Data.Builder()
+            .putString("title", request.content.title)
+            .putString("body", request.content.body)
+            .putInt("id", request.identifier.hashValue)
+        
+        if let imageAttachment = request.content.attachments.first(where: { $0.type == "public.image" }) {
+            dataBuilder.putString("image_url", imageAttachment.url.absoluteString)
         }
-        let intent = Intent(activity, type(of: activity).java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        let extras = android.os.Bundle()
+        
         for (key, value) in request.content.userInfo {
             if let s = value as? String {
-                extras.putString(key.toString(), s)
+                dataBuilder.putString(key.toString(), s)
             } else if let b = value as? Bool {
-                extras.putBoolean(key.toString(), b)
+                dataBuilder.putBoolean(key.toString(), b)
             } else if let i = value as? Int {
-                extras.putInt(key.toString(), i)
+                dataBuilder.putInt(key.toString(), i)
             } else if let d = value as? Double {
-                extras.putDouble(key.toString(), d)
+                dataBuilder.putDouble(key.toString(), d)
             } else {
-                extras.putString(key.toString(), value.toString())
+                dataBuilder.putString(key.toString(), value.toString())
             }
         }
-        intent.putExtras(extras)
-
-        // SKIP INSERT: val pendingFlags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        let pendingIntent = PendingIntent.getActivity(activity, 0, intent, pendingFlags)
-
-        let channelID = "tools.skip.firebase.messaging" // Match AndroidManifest.xml
-        let notificationBuilder = NotificationCompat.Builder(activity, channelID)
-            .setContentTitle(request.content.title)
-            .setContentText(request.content.body)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-        let application = activity.application
-        if let imageAttachment = request.content.attachments.first(where: { $0.type == "public.image" }) {
-            notificationBuilder.setSmallIcon(IconCompat.createWithContentUri(imageAttachment.url.absoluteString))
-        } else {
-            let packageName = application.getPackageName()
-            
-            // Notification icon: must be a resource with transparent background and white logo
-            // eg: to be used as a default icon must be added in the AndroidManifest.xml with the following code:
-            // <meta-data
-            // android:name="com.google.firebase.messaging.default_notification_icon"
-            // android:resource="@drawable/ic_notification" />
-            
-            let iconNotificationIdentifier = "ic_notification"
-            let resourceFolder = "drawable"
-            
-            var resId = application.resources.getIdentifier(iconNotificationIdentifier, resourceFolder, packageName)
-            
-            // Check if the resource is found, otherwise fallback to use the default app icon (eg. ic_launcher)
-            if resId == 0 {
-                resId = application.resources.getIdentifier("ic_launcher", "mipmap", packageName)
-            }
-            
-            notificationBuilder.setSmallIcon(IconCompat.createWithResource(application, resId))
+        
+        // Get the next trigger date (if any).
+        let nextDate = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() ??
+                       (request.trigger as? UNTimeIntervalNotificationTrigger)?.nextTriggerDate()
+        let delayMillis = nextDate != nil ? max(0, nextDate!.currentTimeMillis - System.currentTimeMillis()) : 0
+        
+        // Get the work manager.
+        let workManager = WorkManager.getInstance(activity)
+        
+        // Add the notification work request to the work manager.
+        let workData = dataBuilder.build()
+        let workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
+            .setInitialDelay(delayMillis, TimeUnit.MILLISECONDS)
+            .setInputData(workData)
+            .addTag(request.identifier)
+            .build()
+        workManager.enqueue(workRequest)
+        
+        // Add the notification identifier to the shared preferences to be able to cancel it later.
+        if let triggerMillis = nextDate?.currentTimeMillis {
+            let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
+            let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
+            ids.add(request.identifier)
+            preferences.edit()
+                .putStringSet("ids", ids)
+                .putLong("date_" + request.identifier, triggerMillis)
+                .apply()
         }
-
-        let manager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as! NotificationManager
-        let appName = application.packageManager.getApplicationLabel(application.applicationInfo)
-        let channel = NotificationChannel(channelID, appName, NotificationManager.IMPORTANCE_DEFAULT)
-        manager.createNotificationChannel(channel)
-        manager.notify(Random.nextInt(), notificationBuilder.build())
         #endif
     }
 
-    @available(*, unavailable)
-    public func getPendingNotificationRequests() async -> [Any /* UNNotificationRequest */] {
+    // SKIP @bridge
+    public func pendingNotificationRequests() async -> [Any /* UNNotificationRequest */] {
+        #if SKIP
+        return getPendingNotificationRequests()
+        #else
         fatalError()
+        #endif
     }
 
-    @available(*, unavailable)
-    public func removePendingNotificationRequests(withIdentifiers: [String]) {
+    // SKIP @bridge
+    public func removePendingNotificationRequests(withIdentifiers identifiers: [String]) {
+        #if SKIP
+        guard let activity = UIApplication.shared.androidActivity else { return }
+        
+        // Get all notification identifiers from the shared preferences.
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
+        let editor = preferences.edit()
+        let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
+        
+        // Get the work manager.
+        let workManager = WorkManager.getInstance(activity)
+        
+        // Cancel all pending notifications using the work manager.
+        let now = System.currentTimeMillis()
+        for identifier in identifiers {
+            let triggerTime = preferences.getLong("date_" + identifier, 0)
+            if triggerTime > now {
+                workManager.cancelAllWorkByTag(identifier)
+                ids.remove(identifier)
+                editor.remove("date_" + identifier)
+            }
+        }
+        
+        // Update the notification identifiers in the shared preferences.
+        editor.putStringSet("ids", ids)
+        editor.apply()
+        #else
+        fatalError()
+        #endif
     }
 
-    @available(*, unavailable)
+    // SKIP @bridge
     public func removeAllPendingNotificationRequests() {
-    }
-
-    @available(*, unavailable)
-    public func getDeliveredNotifications() async -> [Any /* UNNotification */] {
+        #if SKIP
+        let pendingNotifications = getPendingNotificationRequests()
+        let identifiers = pendingNotifications.compactMap { ($0 as? UNNotificationRequest)?.identifier }
+        removePendingNotificationRequests(withIdentifiers: identifiers)
+        #else
         fatalError()
+        #endif
     }
 
-    @available(*, unavailable)
-    public func removeDeliveredNotifications(withIdentifiers: [String]) {
+    // SKIP @bridge
+    public func deliveredNotifications() async -> [Any /* UNNotification */] {
+        #if SKIP
+        return getDeliveredNotifications()
+        #else
+        fatalError()
+        #endif
     }
 
-    @available(*, unavailable)
+    // SKIP @bridge
+    public func removeDeliveredNotifications(withIdentifiers identifiers: [String]) {
+        #if SKIP
+        guard let activity = UIApplication.shared.androidActivity else { return }
+        
+        // Get all notification identifiers from the shared preferences.
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
+        let editor = preferences.edit()
+        let ids = HashSet<String>(preferences.getStringSet("ids", HashSet<String>()) ?? HashSet<String>())
+        
+        // Get the notification manager.
+        let notificationManager = activity.getSystemService(Context.NOTIFICATION_SERVICE) as! NotificationManager
+        
+        // Cancel all delivered notifications using the notification manager.
+        let now = System.currentTimeMillis()
+        for identifier in identifiers {
+            let triggerTime = preferences.getLong("date_" + identifier, 0)
+            if triggerTime < now {
+                notificationManager.cancel(identifier.hashValue)
+                ids.remove(identifier)
+                editor.remove("date_" + identifier)
+            }
+        }
+        
+        // Update the notification identifiers in the shared preferences.
+        editor.putStringSet("ids", ids)
+        editor.apply()
+        #else
+        fatalError()
+        #endif
+    }
+
+    // SKIP @bridge
     public func removeAllDeliveredNotifications() {
+        #if SKIP
+        let deliveredNotifications = getDeliveredNotifications()
+        let identifiers = deliveredNotifications.compactMap { ($0 as? UNNotification)?.request.identifier }
+        removeDeliveredNotifications(withIdentifiers: identifiers)
+        #else
+        fatalError()
+        #endif
     }
 
     @available(*, unavailable)
@@ -198,6 +275,43 @@ public final class UNUserNotificationCenter {
     public func getNotificationCategories() async -> Set<AnyHashable /* UNNotificationCategory */> {
         fatalError()
     }
+
+    #if SKIP
+    private func getAllNotificationRequests() -> [(id: String, timestamp: Long)] {
+        guard let activity = UIApplication.shared.androidActivity else { return [] }
+        let preferences = activity.getSharedPreferences("__skip_usernotifications", Context.MODE_PRIVATE)
+        let ids = preferences.getStringSet("ids", nil) ?? java.util.HashSet<String>()
+        
+        var all: [(id: String, timestamp: Long)] = []
+        let iterator = ids.iterator()
+        while iterator.hasNext() {
+            let id = iterator.next() as! String
+            let time = preferences.getLong("date_" + id, 0)
+            all.append((id: id, timestamp: time))
+        }
+        
+        return all
+    }
+
+    private func getPendingNotificationRequests() -> [Any /* UNNotificationRequest */] {
+        let now = Date().currentTimeMillis
+        return getAllNotificationRequests()
+            .filter { $0.timestamp > now }
+            .map {
+                UNNotificationRequest(identifier: $0.id, content: UNMutableNotificationContent(), trigger: nil)
+            }
+    }
+
+    private func getDeliveredNotifications() -> [Any /* UNNotification */] {
+        let now = Date().currentTimeMillis
+        return getAllNotificationRequests()
+            .filter { $0.timestamp <= now }
+            .map {
+                let request = UNNotificationRequest(identifier: $0.id, content: UNMutableNotificationContent(), trigger: nil)
+                return UNNotification(request: request, date: Date(timeIntervalSince1970: Double($0.timestamp) / 1000.0))
+            }
+    }
+    #endif
 }
 
 // SKIP @bridge
@@ -258,7 +372,8 @@ public final class UNNotificationRequest : @unchecked Sendable {
     // SKIP @bridge
     public let content: UNNotificationContent
     public let trigger: UNNotificationTrigger?
-
+    
+    // SKIP @bridge
     public init(identifier: String, content: UNNotificationContent, trigger: UNNotificationTrigger?) {
         self.identifier = identifier
         self.content = content
@@ -313,21 +428,21 @@ public struct UNNotificationPresentationOptions : OptionSet {
 // SKIP @bridge
 public class UNNotificationContent {
     // SKIP @bridge
-    public internal(set) var title: String
+    public var title: String
     // SKIP @bridge
-    public internal(set) var subtitle: String
+    public var subtitle: String
     // SKIP @bridge
-    public internal(set) var body: String
-    public internal(set) var badge: NSNumber?
+    public var body: String
+    public var badge: NSNumber?
     // SKIP @bridge
     public var bridgedBadge: Int? {
         return badge?.intValue
     }
     // SKIP @bridge
-    public internal(set) var sound: UNNotificationSound?
+    public var sound: UNNotificationSound?
     // SKIP @bridge
-    public internal(set) var launchImageName: String
-    public internal(set) var userInfo: [AnyHashable: Any]
+    public var launchImageName: String
+    public var userInfo: [AnyHashable: Any]
     // SKIP @bridge
     public var bridgedUserInfo: [AnyHashable: Any] {
         return userInfo.filter { entry in
@@ -336,19 +451,19 @@ public class UNNotificationContent {
         }
     }
     // SKIP @bridge
-    public internal(set) var attachments: [UNNotificationAttachment]
+    public var attachments: [UNNotificationAttachment]
     // SKIP @bridge
-    public internal(set) var categoryIdentifier: String
+    public var categoryIdentifier: String
     // SKIP @bridge
-    public internal(set) var threadIdentifier: String
+    public var threadIdentifier: String
     // SKIP @bridge
-    public internal(set) var targetContentIdentifier: String?
+    public var targetContentIdentifier: String?
     // SKIP @bridge
-    public internal(set) var summaryArgument: String
+    public var summaryArgument: String
     // SKIP @bridge
-    public internal(set) var summaryArgumentCount: Int
+    public var summaryArgumentCount: Int
     // SKIP @bridge
-    public internal(set) var filterCriteria: String?
+    public var filterCriteria: String?
 
     public init(title: String = "", subtitle: String = "", body: String = "", badge: NSNumber? = nil, sound: UNNotificationSound? = UNNotificationSound.default, launchImageName: String = "", userInfo: [AnyHashable: Any] = [:], attachments: [UNNotificationAttachment] = [], categoryIdentifier: String = "", threadIdentifier: String = "", targetContentIdentifier: String? = nil, summaryArgument: String = "", summaryArgumentCount: Int = 0, filterCriteria: String? = nil) {
         self.title = title
@@ -509,29 +624,69 @@ public class UNNotificationAttachment {
     }
 }
 
+// SKIP @bridge
 public class UNNotificationTrigger {
+    
+    // SKIP @bridge
     public let repeats: Bool
 
+    // SKIP @bridge
     public init(repeats: Bool) {
         self.repeats = repeats
     }
 }
 
+// SKIP @bridge
 public final class UNTimeIntervalNotificationTrigger: UNNotificationTrigger {
+    
+    // SKIP @bridge
     public let timeInterval: TimeInterval
 
+    // SKIP @bridge
     public init(timeInterval: TimeInterval, repeats: Bool) {
         self.timeInterval = timeInterval
         super.init(repeats: repeats)
     }
+
+    // SKIP @bridge
+    public func nextTriggerDate() -> Date? {
+        let now = Date()
+        return now.addingTimeInterval(self.timeInterval)
+    }
 }
 
+// SKIP @bridge
 public final class UNCalendarNotificationTrigger: UNNotificationTrigger {
-    public let dateComponents: DateComponents
-
-    public init(dateComponents: DateComponents, repeats: Bool) {
+    
+    // SKIP @bridge
+    public let dateComponents: Any /* DateComponents */
+    
+    // SKIP @bridge
+    public init(dateMatching dateComponents: Any /* DateComponents */, repeats: Bool) {
         self.dateComponents = dateComponents
         super.init(repeats: repeats)
+    }
+
+    // SKIP @bridge
+    public func nextTriggerDate() -> Date? {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        guard let nextDate = calendar.nextDate(
+            after: now,
+            matching: self.dateComponents as! DateComponents,
+            matchingPolicy: .nextTime,
+            repeatedTimePolicy: .first,
+            direction: .forward
+        ) else {
+            return nil
+        }
+        
+        if !self.repeats && nextDate <= now {
+            return nil
+        }
+        
+        return nextDate
     }
 }
 
@@ -672,4 +827,77 @@ public class UNNotificationSettings : NSObject {
     }
 }
 
+#if SKIP
+public class NotificationWorker : Worker {
+    public init(context: Context, params: WorkerParameters) {
+        super.init(context, params)
+    }
+    
+    public override func doWork() -> ListenableWorker.Result {
+        // Get the data which should be displayed in the notification.
+        let inputData = getInputData()
+        let id = inputData.getInt("id", 0)
+        let title = inputData.getString("title") ?? ""
+        let body = inputData.getString("body") ?? ""
+        let imageAttachmentUrl = inputData.getString("image_url")
+        
+        let context = getApplicationContext()
+        let intent = context.getPackageManager().getLaunchIntentForPackage(context.getPackageName())
+        intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        
+        let bundle = android.os.Bundle()
+        let allData = inputData.keyValueMap
+        for (key, value) in allData where key != "title" && key != "body" && key != "id" && key != "image_url" {
+            if let s = value as? String {
+                bundle.putString(key, s)
+            } else if let b = value as? Bool {
+                bundle.putBoolean(key, b)
+            } else if let i = value as? Int {
+                bundle.putInt(key, i)
+            } else if let d = value as? Double {
+                bundle.putDouble(key, d)
+            } else {
+                bundle.putString(key, value.toString())
+            }
+        }
+        intent?.putExtras(bundle)
+        
+        // Create the notification channel.
+        let channelID = "tools.skip.firebase.messaging" // Match AndroidManifest.xml
+        let notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as! NotificationManager
+        if Build.VERSION.SDK_INT >= Build.VERSION_CODES.O {
+            let appName = context.getApplicationInfo().loadLabel(context.getPackageManager()).toString()
+            notificationManager.createNotificationChannel(NotificationChannel(channelID, appName, NotificationManager.IMPORTANCE_DEFAULT))
+        }
+        
+        // Build the notification.
+        let pendingIntent = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)
+        let builder = NotificationCompat.Builder(context, channelID)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+        
+        // Update the notification icon.
+        if let url = imageAttachmentUrl {
+            builder.setSmallIcon(IconCompat.createWithContentUri(url))
+        } else {
+            // Notification icon: must be a resource with transparent background and white logo
+            // eg: to be used as a default icon must be added in the AndroidManifest.xml with the following code:
+            // <meta-data
+            // android:name="com.google.firebase.messaging.default_notification_icon"
+            // android:resource="@drawable/ic_notification" />
+            var resId = context.getResources().getIdentifier("ic_notification", "drawable", context.getPackageName())
+            if resId == 0 {
+                resId = context.getResources().getIdentifier("ic_launcher", "mipmap", context.getPackageName())
+            }
+            builder.setSmallIcon(IconCompat.createWithResource(context, resId))
+        }
+        
+        // Display the notification.
+        notificationManager.notify(id, builder.build())
+        return ListenableWorker.Result.success()
+    }
+}
+#endif
 #endif
