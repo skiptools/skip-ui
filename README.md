@@ -2898,6 +2898,7 @@ SkipUI fully supports SwiftUI's various layout mechanisms, including `HStack`, `
 
 - Skip never places content in an implicit `VStack`, like SwiftUI sometimes does. Always place multiple views in an explicit stack of the desired type.
 - Expanding elements such as `Spacer` or `.frame(maxWidth: .infinity)` within nested `HStacks` or `VStacks` may measure differently. Try un-nesting stacks to get more SwiftUI-like layout.
+- Views with `.frame(maxWidth:)` or `.frame(maxHeight:)` set to explicit values larger than the parent's actual size may expand beyond the parent container's bounds on Android. To work around this, use a `GeometryReader` to compute the parent's size and set an explicit `.frame(width:)` or `.frame(height:)` instead of `maxWidth` or `maxHeight`. See [Issue #339](https://github.com/skiptools/skip-ui/issues/339).
 
 Note: if your app was developed under an earlier version of Skip and it relies on nuances of older layout behavior, you can apply the Android-only `.layoutImplementationVersion()` modifier. Set this modifier on a `View` hierarchy to simulate the previous behavior:
 

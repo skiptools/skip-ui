@@ -628,4 +628,29 @@ final class LayoutTests: XCSnapshotTestCase {
         """))
     }
 
+    func testFrameMaxWidthRespectsParentBounds() throws {
+        // Skip on Android until the layout issue is fixed
+        // See: https://github.com/skiptools/skip-ui/issues/339
+        #if SKIP
+        throw XCTSkip("Android: .frame(maxWidth:) may expand beyond parent bounds")
+        #endif
+        
+        // Create a black container (width: 12), put a white rectangle inside with
+        // maxWidth: 20 (larger than parent), and add a red border.
+        // Expected: The white rectangle should be constrained to width 12 (parent bounds).
+        XCTAssertEqual(try pixmap(content: ZStack {
+            Color.black.frame(width: 12.0, height: 6.0)
+            Color.white
+                .frame(maxWidth: 20.0, maxHeight: 4.0)
+                .border(Color.red, width: 1)
+        }), """
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        .                     .
+        .                     .
+        . . . . . . . . . . . .
+        . . . . . . . . . . . .
+        """)
+    }
+
 }
