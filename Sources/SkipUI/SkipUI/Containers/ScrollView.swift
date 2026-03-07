@@ -240,7 +240,25 @@ struct BuiltinScrollAxisSetPreferenceKey: PreferenceKey {
         value.formUnion(nextValue())
     }
 }
+
+/// Holds the current scroll position ID for visible items in a scroll view.
+struct ScrollPositionState {
+    let id: AnyHashable?
+}
+
+struct ScrollPositionPreferenceKey: PreferenceKey {
+    static let defaultValue = ScrollPositionState(id: nil)
+
+    static func reduce(value: inout ScrollPositionState, nextValue: () -> ScrollPositionState) {
+        value = nextValue()
+    }
+}
 #endif
+
+public struct ScrollPosition {
+    @available(*, unavailable)
+    public init() {}
+}
 
 public enum ScrollBounceBehavior {
     case automatic
@@ -391,14 +409,28 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func scrollPosition(id: Binding<(any Hashable)?>) -> some View {
+    public func scrollPosition(id: Binding<(some Hashable)?>, anchor: UnitPoint? = nil) -> some View {
+        #if SKIP
+        guard anchor == nil else {
+            fatalError("scrollPosition(id:anchor:) is only supported on Android with nil anchor")
+        }
+        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
+            id.wrappedValue = newValue.id
+        }
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func scrollPosition(initialAnchor: UnitPoint?) -> some View {
+    // SKIP @bridge
+    public func scrollPosition(getId: @escaping () -> AnyHashable?, setId: @escaping (AnyHashable?) -> Void) -> any View {
+        #if SKIP
+        return onPreferenceChange(ScrollPositionPreferenceKey.self) { newValue in
+            setId(newValue.id)
+        }
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

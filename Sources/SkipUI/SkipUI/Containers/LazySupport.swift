@@ -246,6 +246,49 @@ public final class LazyItemCollector {
         return nil
     }
 
+    /// Return the item ID for the given list index, or nil.
+    func id(for index: Int) -> AnyHashable? {
+        var currentIndex = startItemIndex
+        for content in self.content {
+            switch content {
+            case .items(let start, let count, let idMap, _):
+                if index >= currentIndex && index < currentIndex + count {
+                    let i = start + (index - currentIndex)
+                    if let idMap {
+                        return idMap(i)
+                    } else {
+                        return i
+                    }
+                }
+                currentIndex += count
+            case .objectItems(let objects, let idMap, _):
+                if index >= currentIndex && index < currentIndex + objects.count {
+                    let object = objects[index - currentIndex]
+                    return idMap(object)
+                }
+                currentIndex += objects.count
+            case .objectBindingItems(let binding, let idMap, _):
+                let count = binding.wrappedValue.count
+                if index >= currentIndex && index < currentIndex + count {
+                    let object = binding.wrappedValue[index - currentIndex]
+                    return idMap(object)
+                }
+                currentIndex += count
+            case .sectionHeader(let count):
+                if index >= currentIndex && index < currentIndex + count {
+                    return nil
+                }
+                currentIndex += count
+            case .sectionFooter(let count):
+                if index >= currentIndex && index < currentIndex + count {
+                    return nil
+                }
+                currentIndex += count
+            }
+        }
+        return nil
+    }
+
     private var moving: (fromIndex: Int, toIndex: Int)?
     private var moveTrigger = 0
 
