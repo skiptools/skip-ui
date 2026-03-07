@@ -697,6 +697,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_layoutScrollAxes", value: newValue, defaultValue: { Axis.Set(rawValue: 0) }) }
     }
 
+    var _contentMargins: ContentMargins? {
+        get { builtinValue(key: "_contentMargins", defaultValue: { nil }) as! ContentMargins? }
+        set { setBuiltinValue(key: "_contentMargins", value: newValue, defaultValue: { nil }) }
+    }
+
     /// Allow users to revert to previous layout behavior.
     var _layoutImplementationVersion: Int {
         get { builtinValue(key: "_layoutImplementationVersion", defaultValue: { 2 }) as! Int }

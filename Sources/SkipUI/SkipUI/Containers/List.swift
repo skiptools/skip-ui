@@ -242,7 +242,12 @@ public final class List : View, Renderable {
         }
 
         let itemContext = context.content()
-        LazyColumn(state: reorderableState.listState, modifier: modifier) {
+        // Combine contentPadding with contentMargins additively
+        var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
+        if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
+            contentPadding = contentPadding.adding(contentMargins)
+        }
+        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding) {
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable () -> Bool = {

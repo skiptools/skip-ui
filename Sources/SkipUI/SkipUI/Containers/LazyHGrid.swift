@@ -105,12 +105,16 @@ public struct LazyHGrid: View, Renderable {
                 $0.set_scrollTargetBehavior(nil)
                 return ComposeResult.ok
             } in: {
-                let contentPadding = EnvironmentValues.shared._contentPadding
+                // Combine contentPadding with contentMargins additively
+                var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
+                if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
+                    contentPadding = contentPadding.adding(contentMargins)
+                }
                 EnvironmentValues.shared.setValues {
                     $0.set_contentPadding(EdgeInsets())
                     return ComposeResult.ok
                 } in: {
-                LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: contentPadding.asPaddingValues(), userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
+                LazyHorizontalGrid(state: gridState, modifier: modifier, rows: gridCells, horizontalArrangement: horizontalArrangement, verticalArrangement: verticalArrangement, contentPadding: contentPadding, userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {
                     itemCollector.value.initialize(
                         startItemIndex: 0,
                         item: { renderable, _ in

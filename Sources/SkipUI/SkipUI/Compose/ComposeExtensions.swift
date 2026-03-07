@@ -171,6 +171,18 @@ extension PaddingValues {
         let right = Double(calculateRightPadding(layoutDirection).value)
         return EdgeInsets(top: top, leading: left, bottom: bottom, trailing: right)
     }
+
+    /// Add two PaddingValues together, returning a new PaddingValues with combined insets.
+    @Composable public func adding(_ other: PaddingValues) -> PaddingValues {
+        let insets1 = self.asEdgeInsets()
+        let insets2 = other.asEdgeInsets()
+        return PaddingValues(
+            start: (insets1.leading + insets2.leading).dp,
+            top: (insets1.top + insets2.top).dp,
+            end: (insets1.trailing + insets2.trailing).dp,
+            bottom: (insets1.bottom + insets2.bottom).dp
+        )
+    }
 }
 
 #endif
