@@ -117,6 +117,18 @@ public struct DatePicker : View, Renderable {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
+    public init(_ titleKey: LocalizedStringKey, in range: ClosedRange<Date>, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, in range: ClosedRange<Date>, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(titleResource) })
+    }
+
+    public init(_ title: String, selection: Binding<Date>, in range: ClosedRange<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
+    }
+
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
         let contentContext = context.content()
