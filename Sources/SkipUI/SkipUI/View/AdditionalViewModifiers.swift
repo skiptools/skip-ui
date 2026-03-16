@@ -57,16 +57,27 @@ import struct Foundation.URL
 #endif
 
 extension View {
+    
     // SKIP @bridge
     public func allowsHitTesting(_ enabled: Bool) -> any View {
         #if SKIP
-        if enabled {
-            return self
-        } else {
-            return ModifiedContent(content: self, modifier: RenderModifier {
-                return $0.modifier.clickable(enabled: false, onClick: {})
-            })
-        }
+
+        // `.clickable(enabled: false, onClick: {})` disables the view handlers for touch events,
+        // but the touches will be consumed by the view.
+        // This breaks the contract of allowsHitTesting(false) which should allow touches to pass through.
+        
+        // Keep this as a no-op until we have a true pass-through equivalent for SwiftUI's
+        // `allowsHitTesting(false)` semantics on Android.
+
+        //if enabled {
+        //    return self
+        //} else {
+        //    return ModifiedContent(content: self, modifier: RenderModifier {
+        //        return $0.modifier.clickable(enabled: false, onClick: {})
+        //    })
+        //}
+        
+        return self
         #else
         return self
         #endif

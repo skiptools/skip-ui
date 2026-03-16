@@ -247,6 +247,44 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testAllowsHitTestingFalseOverlayPassesTapThrough() throws {
+        try testUI(view: {
+            AllowsHitTestingOverlayView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "tap-count", hasText: "Taps: 0")
+            #if SKIP
+            rule.onNodeWithTag("tap-area").performTouchInput {
+                click(Offset(Float(100.0), Float(100.0)))
+            }
+            try check(rule, id: "tap-count", hasText: "Taps: 1")
+            #endif
+        })
+    }
+
+    struct AllowsHitTestingOverlayView: View {
+        @State var tapCount = 0
+
+        var body: some View {
+            VStack {
+                ZStack {
+                    Color.yellow
+                        .opacity(0.2)
+                        .onTapGesture {
+                            tapCount += 1
+                        }
+                        .accessibilityIdentifier("tap-area")
+                    Text("HUD")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("hud-overlay")
+                }
+                .frame(width: 200.0, height: 200.0)
+                Text("Taps: \(tapCount)")
+                    .accessibilityIdentifier("tap-count")
+            }
+        }
+    }
+
     func testSlider() throws {
         if isAndroid {
             throw XCTSkip("Test not working on Android emulator")
