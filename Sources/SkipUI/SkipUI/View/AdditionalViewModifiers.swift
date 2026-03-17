@@ -360,14 +360,31 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
     public func contextMenu(@ViewBuilder menuItems: () -> any View) -> some View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: ContextMenuModifier(menuItems: ComposeBuilder.from(menuItems)))
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
+    // SKIP @bridge
+    public func contextMenu(bridgedMenuItems: any View) -> any View {
+        return contextMenu(menuItems: { bridgedMenuItems })
+    }
+
     public func contextMenu(@ViewBuilder menuItems: () -> any View, @ViewBuilder preview: () -> any View) -> some View {
+        #if SKIP
+        // Preview is not supported on Android; fall back to standard context menu
+        return ModifiedContent(content: self, modifier: ContextMenuModifier(menuItems: ComposeBuilder.from(menuItems)))
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func contextMenu(bridgedMenuItems: any View, bridgedPreview: any View) -> any View {
+        return contextMenu(menuItems: { bridgedMenuItems }, preview: { bridgedPreview })
     }
 
     @available(*, unavailable)
