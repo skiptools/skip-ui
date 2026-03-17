@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -170,7 +171,8 @@ public final class Menu : View, Renderable {
                 } else {
                     isSelected = nil
                 }
-                RenderDropdownMenuItem(for: button.label, context: context, isSelected: isSelected) {
+                let tintColor = Color(colorImpl: { button.role == .destructive ? MaterialTheme.colorScheme.error : MaterialTheme.colorScheme.onSurface })
+                RenderDropdownMenuItem(for: button.label, context: context, tintColor: tintColor, isSelected: isSelected) {
                     button.action()
                     replaceMenu(nil)
                 }
@@ -196,7 +198,7 @@ public final class Menu : View, Renderable {
         }
     }
 
-    @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, isSelected: Bool? = nil, action: () -> Void) {
+    @Composable private static func RenderDropdownMenuItem(for view: ComposeBuilder, context: ComposeContext, tintColor: Color? = nil, isSelected: Bool? = nil, action: () -> Void) {
         let renderables = view.Evaluate(context: context, options: 0)
         let label = renderables.firstOrNull()?.strip() as? Label
         if let isSelected {
@@ -207,7 +209,7 @@ public final class Menu : View, Renderable {
                 selectedIcon = {}
             }
             if let label {
-                DropdownMenuItem(text: { label.RenderTitle(context: context) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context) }, onClick: action)
+                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action)
             } else {
                 DropdownMenuItem(text: {
                     for renderable in renderables {
@@ -217,7 +219,7 @@ public final class Menu : View, Renderable {
             }
         } else {
             if let label {
-                DropdownMenuItem(text: { label.RenderTitle(context: context) }, trailingIcon: { label.RenderImage(context: context) }, onClick: action)
+                DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action)
             } else {
                 DropdownMenuItem(text: {
                     for renderable in renderables {

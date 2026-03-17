@@ -99,8 +99,17 @@ public struct Label : View, Renderable {
     }
 
     /// Render only the title of this label.
-    @Composable func RenderTitle(context: ComposeContext) {
-        title.Compose(context: context)
+    @Composable func RenderTitle(context: ComposeContext, titleColor: Color? = nil) {
+        if let titleColor {
+            EnvironmentValues.shared.setValues {
+                $0.set_foregroundStyle(titleColor)
+                return ComposeResult.ok
+            } in: {
+                title.Compose(context: context)
+            }
+        } else {
+            title.Compose(context: context)
+        }
     }
 
     /// Render only the image of this label.
