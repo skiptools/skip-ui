@@ -212,8 +212,13 @@ public final class Menu : View, Renderable {
                 DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, leadingIcon: selectedIcon, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action)
             } else {
                 DropdownMenuItem(text: {
-                    for renderable in renderables {
-                        renderable.Render(context: context)
+                    EnvironmentValues.shared.setValues{
+                        $0.set_foregroundStyle(tintColor)
+                        return ComposeResult.ok
+                    } in: {
+                        for renderable in renderables {
+                            renderable.Render(context: context)
+                        }
                     }
                 }, leadingIcon: selectedIcon, onClick: action)
             }
@@ -222,8 +227,13 @@ public final class Menu : View, Renderable {
                 DropdownMenuItem(text: { label.RenderTitle(context: context, titleColor: tintColor) }, trailingIcon: { label.RenderImage(context: context, imageColor: tintColor) }, onClick: action)
             } else {
                 DropdownMenuItem(text: {
-                    for renderable in renderables {
-                        renderable.Render(context: context)
+                    EnvironmentValues.shared.setValues {
+                        $0.set_foregroundStyle(tintColor)
+                        return ComposeResult.ok
+                    } in: {
+                        for renderable in renderables {
+                            renderable.Render(context: context)
+                        }
                     }
                 }, onClick: action)
             }
