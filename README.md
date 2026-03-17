@@ -1552,6 +1552,10 @@ Support levels:
       <td><code>.confirmationDialog</code> (<a href="https://skip.dev/docs/components/confirmationdialog/">example</a>)</td>
     </tr>
     <tr>
+      <td>🟠</td>
+      <td><code>.contextMenu</code></td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.contrast</code></td>
     </tr>
