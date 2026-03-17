@@ -395,8 +395,7 @@ public struct Image : View, Renderable, Equatable {
                 let textSizeDp = with(LocalDensity.current) {
                     textStyle.fontSize.toDp()
                 }
-                // Apply a multiplier to more closely match SwiftUI's relative text and system image sizes
-                modifier = Modifier.size(textSizeDp * Float(1.5))
+                modifier = Modifier.size(textSizeDp)
             } else {
                 modifier = Modifier
             }
