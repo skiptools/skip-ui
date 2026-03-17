@@ -205,9 +205,9 @@ public struct Image : View, Renderable, Equatable {
                         path(
                             fill: SolidColor(tintColor),
                             fillAlpha: Float(1.0),
-                            stroke: SolidColor(tintColor),
+                            stroke: nil,
                             strokeAlpha: Float(1.0),
-                            strokeLineWidth: Float(1.0),
+                            strokeLineWidth: Float(0.0),
                             strokeLineCap: StrokeCap.Butt,
                             strokeLineJoin: StrokeJoin.Bevel,
                             strokeLineMiter: Float(1.0),
@@ -218,7 +218,7 @@ public struct Image : View, Renderable, Equatable {
                                     let bounds = pathParser.toPath().getBounds()
                                     let pathData = pathParser.toNodes()
                                     //logger.debug("parsed path bounds=\(bounds) nodes=\(pathData)")
-                                    addPath(pathData, fill: SolidColor(tintColor), stroke: SolidColor(tintColor))
+                                    addPath(pathData, fill: SolidColor(tintColor), stroke: nil)
                                 }
                             }
                         )
@@ -311,6 +311,7 @@ public struct Image : View, Renderable, Equatable {
 
         let tintColor = EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl()
 
+        //logger.info("symbolInfos for name=\(name) against weightPriority=\(weightPriority): \(Array(symbolInfos.keys))")
         if let symbolInfo = weightPriority.compactMap({ symbolInfos[$0] }).first {
             let imageVector = symbolToImageVector(symbolInfo, tintColor: tintColor)
             RenderScaledImageVector(image: imageVector, name: name, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
