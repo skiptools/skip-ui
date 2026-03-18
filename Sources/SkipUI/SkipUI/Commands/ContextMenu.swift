@@ -66,7 +66,17 @@ class ContextMenuModifier: RenderModifier {
                             }
                         }
                     } == nil
-                    if longPressed { isMenuExpanded.value = true }
+                    if longPressed {
+                        isMenuExpanded.value = true
+                        // Consume remaining pointer events so the child's tap handler
+                        // does not fire when the finger lifts
+                        var pressed = true
+                        while pressed {
+                            let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                            event.changes.forEach { $0.consume() }
+                            pressed = event.changes.any({ $0.pressed })
+                        }
+                    }
                 }
             }
         }) {
