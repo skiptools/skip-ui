@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if SKIP
 import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -10,15 +9,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
 /// Modifier that wraps content in a long-press-triggered dropdown menu.
 class ContextMenuModifier: RenderModifier {
@@ -34,13 +32,11 @@ class ContextMenuModifier: RenderModifier {
 }
 
 @Composable func RenderContextMenu(content: Renderable, context: ComposeContext, menuItems: ComposeBuilder) {
+    let haptic = LocalHapticFeedback.current
     let isMenuExpanded = remember { mutableStateOf(false) }
     let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
     let coroutineScope = rememberCoroutineScope()
     let contentContext = context.content()
-    let viewConfig = LocalViewConfiguration.current
-    let haptic = LocalHapticFeedback.current
-
     let replaceMenu: (Menu?) -> Void = { menu in
         coroutineScope.launch {
             delay(200)
@@ -53,45 +49,42 @@ class ContextMenuModifier: RenderModifier {
             }
         }
     }
-
-    let gestureModifier = Modifier.pointerInput(Unit) {
-        awaitEachGesture {
-            let down = awaitFirstDown(pass: PointerEventPass.Initial)
-            let longPressTimeout = viewConfig.longPressTimeoutMillis
-            var isCancelled = false
-
-            let success = withTimeoutOrNull(longPressTimeout) {
-                while true {
-                    let event = awaitPointerEvent(pass: PointerEventPass.Initial)
-                    if event.changes.any({ $0.isConsumed || (!$0.pressed && $0.previousPressed) }) {
-                        isCancelled = true
-                        break
-                    }
-
-                    let totalChange = event.changes[0].position.minus(down.position)
-                    if totalChange.getDistance() > viewConfig.touchSlop {
-                        isCancelled = true
-                        break
+    ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
+        // Use pointerInput on the Initial pass to detect long press without consuming
+        // events, so that child clickable handlers (e.g. Buttons) still receive taps.
+        // Standard APIs like combinedClickable consume the down event on the Main pass,
+        // which prevents nested clickables from firing.
+        Box(modifier: modifier.pointerInput(true) {
+            let slop = viewConfiguration.touchSlop
+            awaitEachGesture {
+                let down = awaitPointerEvent(pass: PointerEventPass.Initial)
+                if let start = down.changes.firstOrNull({ $0.pressed })?.position {
+                    let longPressed = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                        var active = true
+                        while active {
+                            if let c = awaitPointerEvent(pass: PointerEventPass.Initial).changes.firstOrNull() {
+                                active = c.pressed && abs(c.position.x - start.x) <= slop && abs(c.position.y - start.y) <= slop
+                            } else {
+                                active = false
+                            }
+                        }
+                    } == nil
+                    if longPressed {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        isMenuExpanded.value = true
+                        // Consume remaining pointer events so the child's tap handler
+                        // does not fire when the finger lifts
+                        var pressed = true
+                        while pressed {
+                            let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                            event.changes.forEach { $0.consume() }
+                            pressed = event.changes.any({ $0.pressed })
+                        }
                     }
                 }
             }
-
-            if success == nil && !isCancelled {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                isMenuExpanded.value = true
-                var event: PointerEvent
-                repeat {
-                    event = awaitPointerEvent(pass: PointerEventPass.Initial)
-                    event.changes.forEach { $0.consume() }
-                } while event.changes.any { $0.pressed }
-            }
-        }
-    }
-
-    ComposeContainer(eraseAxis: true, modifier: context.modifier.then(gestureModifier)) { modifier in
-        Box(modifier: modifier, propagateMinConstraints: true) {
+        }) {
             content.Render(context: contentContext)
-
             DropdownMenu(expanded: isMenuExpanded.value, onDismissRequest: {
                 isMenuExpanded.value = false
                 coroutineScope.launch {
