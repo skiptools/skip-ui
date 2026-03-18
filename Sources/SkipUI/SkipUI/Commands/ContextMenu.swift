@@ -1,7 +1,7 @@
 // Copyright 2023–2025 Skip
 // SPDX-License-Identifier: LGPL-3.0-only WITH LGPL-3.0-linking-exception
 #if SKIP
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -9,8 +9,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
 /// Modifier that wraps content in a long-press-triggered dropdown menu.
 class ContextMenuModifier: RenderModifier {
@@ -43,10 +47,29 @@ class ContextMenuModifier: RenderModifier {
         }
     }
     ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
-        Box(modifier: modifier.combinedClickable(
-            onLongClick: { isMenuExpanded.value = true },
-            onClick: {}
-        )) {
+        // Use pointerInput on the Initial pass to detect long press without consuming
+        // events, so that child clickable handlers (e.g. Buttons) still receive taps.
+        // Standard APIs like combinedClickable consume the down event on the Main pass,
+        // which prevents nested clickables from firing.
+        Box(modifier: modifier.pointerInput(true) {
+            let slop = viewConfiguration.touchSlop
+            awaitEachGesture {
+                let down = awaitPointerEvent(pass: PointerEventPass.Initial)
+                if let start = down.changes.firstOrNull({ $0.pressed })?.position {
+                    let longPressed = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                        var active = true
+                        while active {
+                            if let c = awaitPointerEvent(pass: PointerEventPass.Initial).changes.firstOrNull() {
+                                active = c.pressed && abs(c.position.x - start.x) <= slop && abs(c.position.y - start.y) <= slop
+                            } else {
+                                active = false
+                            }
+                        }
+                    } == nil
+                    if longPressed { isMenuExpanded.value = true }
+                }
+            }
+        }) {
             content.Render(context: contentContext)
             DropdownMenu(expanded: isMenuExpanded.value, onDismissRequest: {
                 isMenuExpanded.value = false
