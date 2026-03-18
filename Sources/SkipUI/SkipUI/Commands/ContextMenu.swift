@@ -56,11 +56,26 @@ class ContextMenuModifier: RenderModifier {
         awaitEachGesture {
             let down = awaitFirstDown(pass: PointerEventPass.Initial)
             let longPressTimeout = viewConfig.longPressTimeoutMillis
+            var isCancelled = false
+
             let success = withTimeoutOrNull(longPressTimeout) {
+                while true {
+                    let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                    if event.changes.any({ $0.isConsumed || (!$0.pressed && $0.previousPressed) }) {
+                        isCancelled = true
+                        break
+                    }
+
+                    let totalChange = event.changes[0].position.minus(down.position)
+                    if totalChange.getDistance() > viewConfig.touchSlop {
+                        isCancelled = true
+                        break
+                    }
+                }
                 waitForUpOrCancellation(pass: PointerEventPass.Initial)
             }
 
-            if success == nil {
+            if success == nil && !isCancelled {
                 isMenuExpanded.value = true
                 var event: PointerEvent
                 repeat {
