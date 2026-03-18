@@ -3,7 +3,6 @@
 #if SKIP
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -15,6 +14,8 @@ import androidx.compose.ui.input.pointer.PointerEvent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -38,6 +39,7 @@ class ContextMenuModifier: RenderModifier {
     let coroutineScope = rememberCoroutineScope()
     let contentContext = context.content()
     let viewConfig = LocalViewConfiguration.current
+    let haptic = LocalHapticFeedback.current
 
     let replaceMenu: (Menu?) -> Void = { menu in
         coroutineScope.launch {
@@ -72,10 +74,10 @@ class ContextMenuModifier: RenderModifier {
                         break
                     }
                 }
-                waitForUpOrCancellation(pass: PointerEventPass.Initial)
             }
 
             if success == nil && !isCancelled {
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 isMenuExpanded.value = true
                 var event: PointerEvent
                 repeat {
