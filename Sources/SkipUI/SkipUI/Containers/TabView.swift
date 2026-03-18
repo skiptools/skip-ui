@@ -50,6 +50,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
@@ -737,12 +738,28 @@ public struct Tab : TabContent, Renderable {
     }
 
     @Composable func RenderImage(context: ComposeContext) {
-        let renderable = label.Evaluate(context: context, options: 0).firstOrNull() ?? EmptyView()
+        let scaledContext = context.content(modifier: context.modifier.graphicsLayer(scaleX: Float(1.5), scaleY: Float(1.5)))
+        let renderable = label.Evaluate(context: scaledContext, options: 0).firstOrNull() ?? EmptyView()
         let stripped = renderable.strip()
-        if let label = stripped as? Label {
-            label.RenderImage(context: context)
-        } else if stripped is Image {
-            renderable.Render(context: context)
+        // Default to a lighter symbol weight so tab icons approximate SwiftUI sizing
+        let renderImage: (@Composable () -> ()) = {
+            if let label = stripped as? Label {
+                label.RenderImage(context: scaledContext)
+            } else if stripped is Image {
+                renderable.Render(context: scaledContext)
+            }
+        }
+        if EnvironmentValues.shared._textEnvironment.fontWeight == nil {
+            EnvironmentValues.shared.setValues {
+                var textEnvironment = $0._textEnvironment
+                textEnvironment.fontWeight = Font.Weight.light
+                $0.set_textEnvironment(textEnvironment)
+                return ComposeResult.ok
+            } in: {
+                renderImage()
+            }
+        } else {
+            renderImage()
         }
     }
     #else
