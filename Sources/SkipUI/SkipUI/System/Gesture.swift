@@ -619,6 +619,9 @@ final class GestureModifier: RenderModifier {
         guard EnvironmentValues.shared.isEnabled else {
             return modifier
         }
+        guard EnvironmentValues.shared._isHitTestingEnabled else {
+            return modifier
+        }
 
         // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
         let gestures: kotlin.collections.MutableList<ModifiedGesture<Any>> = mutableListOf()

@@ -663,6 +663,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_isNavigationRoot", value: newValue, defaultValue: { nil }) }
     }
 
+    var _isHitTestingEnabled: Bool {
+        get { builtinValue(key: "_isHitTestingEnabled", defaultValue: { true }) as! Bool }
+        set { setBuiltinValue(key: "_isHitTestingEnabled", value: newValue, defaultValue: { true }) }
+    }
+
     var _isSearching: MutableState<Bool>? {
         get { builtinValue(key: "_isSearching", defaultValue: { nil }) as! MutableState<Bool>? }
         set { setBuiltinValue(key: "_isSearching", value: newValue, defaultValue: { nil }) }

@@ -46,8 +46,38 @@ public struct DatePicker : View, Renderable {
     public init(selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
         self.selection = selection
         self.label = ComposeBuilder.from(label)
+
         self.minDate = nil
         self.maxDate = nil
+
+        if displayedComponents.contains(.date) {
+            dateFormatter = DateFormatter()
+            dateFormatter?.dateStyle = .medium
+            dateFormatter?.timeStyle = .none
+        } else {
+            dateFormatter = nil
+        }
+        if displayedComponents.contains(.hourAndMinute) {
+            timeFormatter = DateFormatter()
+            timeFormatter?.dateStyle = .none
+            timeFormatter?.timeStyle = .short
+        } else {
+            timeFormatter = nil
+        }
+    }
+
+    public init(selection: Binding<Date>, in range: ClosedRange<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View) {
+        self.selection = selection
+        self.label = ComposeBuilder.from(label)
+
+        #if SKIP
+        self.minDate = range.start
+        self.maxDate = range.endInclusive
+        #else
+        self.minDate = range.lowerBound
+        self.maxDate = range.upperBound
+        #endif
+
         if displayedComponents.contains(.date) {
             dateFormatter = DateFormatter()
             dateFormatter?.dateStyle = .medium
@@ -71,25 +101,8 @@ public struct DatePicker : View, Renderable {
 
     // SKIP @bridge
     public init(getSelection: @escaping () -> Date, setSelection: @escaping (Date) -> Void, bridgedMinDate: Date, bridgedMaxDate: Date, bridgedDisplayedComponents: Int, bridgedLabel: any View) {
-        self.selection = Binding(get: getSelection, set: setSelection)
-        self.label = ComposeBuilder.from({ bridgedLabel })
-        self.minDate = bridgedMinDate
-        self.maxDate = bridgedMaxDate
-        let displayedComponents = DatePickerComponents(rawValue: bridgedDisplayedComponents)
-        if displayedComponents.contains(.date) {
-            dateFormatter = DateFormatter()
-            dateFormatter?.dateStyle = .medium
-            dateFormatter?.timeStyle = .none
-        } else {
-            dateFormatter = nil
-        }
-        if displayedComponents.contains(.hourAndMinute) {
-            timeFormatter = DateFormatter()
-            timeFormatter?.dateStyle = .none
-            timeFormatter?.timeStyle = .short
-        } else {
-            timeFormatter = nil
-        }
+        self.init(selection: Binding(get: getSelection, set: setSelection), in: bridgedMinDate...bridgedMaxDate, displayedComponents: DatePickerComponents(rawValue: bridgedDisplayedComponents), label: { bridgedLabel }
+        )
     }
 
     public init(_ titleKey: LocalizedStringKey, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
@@ -102,6 +115,18 @@ public struct DatePicker : View, Renderable {
 
     public init(_ title: String, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
         self.init(selection: selection, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
+    }
+
+    public init(_ titleKey: LocalizedStringKey, in range: ClosedRange<Date>, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(titleKey) })
+    }
+
+    public init(_ titleResource: LocalizedStringResource, in range: ClosedRange<Date>, selection: Binding<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(titleResource) })
+    }
+
+    public init(_ title: String, selection: Binding<Date>, in range: ClosedRange<Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date]) {
+        self.init(selection: selection, in: range, displayedComponents: displayedComponents, label: { Text(verbatim: title) })
     }
 
     #if SKIP

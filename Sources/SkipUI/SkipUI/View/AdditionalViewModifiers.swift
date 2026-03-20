@@ -60,13 +60,16 @@ extension View {
     // SKIP @bridge
     public func allowsHitTesting(_ enabled: Bool) -> any View {
         #if SKIP
-        if enabled {
-            return self
-        } else {
-            return ModifiedContent(content: self, modifier: RenderModifier {
-                return $0.modifier.clickable(enabled: false, onClick: {})
-            })
-        }
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            var context = context
+            context.modifier = context.modifier.skipHitTesting(enabled: enabled)
+            EnvironmentValues.shared.setValues {
+                $0.set_isHitTestingEnabled(enabled)
+                return ComposeResult.ok
+            } in: {
+                renderable.Render(context: context)
+            }
+        })
         #else
         return self
         #endif

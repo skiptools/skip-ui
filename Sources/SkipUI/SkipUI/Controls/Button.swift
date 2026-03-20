@@ -131,6 +131,7 @@ public struct Button : View, Renderable {
     /// Render a button in the current style.
     @Composable static func RenderButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: () -> Void) {
         let buttonStyle = EnvironmentValues.shared._buttonStyle
+        let isHitTestingEnabled = EnvironmentValues.shared._isHitTestingEnabled
         ComposeContainer(modifier: context.modifier) { modifier in
             switch buttonStyle {
             case .bordered:
@@ -142,7 +143,7 @@ public struct Button : View, Renderable {
                 } else {
                     colors = ButtonDefaults.filledTonalButtonColors()
                 }
-                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled, shape: ButtonDefaults.filledTonalShape, colors: colors, elevation: ButtonDefaults.filledTonalButtonElevation())
+                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled && isHitTestingEnabled, shape: ButtonDefaults.filledTonalShape, colors: colors, elevation: ButtonDefaults.filledTonalButtonElevation())
                 if let updateOptions = EnvironmentValues.shared._material3Button {
                     options = updateOptions(options)
                 }
@@ -180,7 +181,7 @@ public struct Button : View, Renderable {
                 } else {
                     colors = ButtonDefaults.buttonColors()
                 }
-                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled, shape: ButtonDefaults.shape, colors: colors, elevation: ButtonDefaults.buttonElevation())
+                var options = Material3ButtonOptions(onClick: action, modifier: modifier, enabled: isEnabled && isHitTestingEnabled, shape: ButtonDefaults.shape, colors: colors, elevation: ButtonDefaults.buttonElevation())
                 if let updateOptions = EnvironmentValues.shared._material3Button {
                     options = updateOptions(options)
                 }
@@ -207,6 +208,7 @@ public struct Button : View, Renderable {
     /// - Parameters:
     ///   - action: Pass nil if the given modifier already includes `clickable`
     @Composable static func RenderTextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: (() -> Void)? = nil) {
+        let isHitTestingEnabled = EnvironmentValues.shared._isHitTestingEnabled
         var foregroundStyle: ShapeStyle
         if role == .destructive {
             foregroundStyle = Color(colorImpl: { MaterialTheme.colorScheme.error })
@@ -219,7 +221,7 @@ public struct Button : View, Renderable {
         }
 
         var modifier = context.modifier
-        if let action {
+        if let action, isHitTestingEnabled {
             modifier = modifier.clickable(onClick: action, enabled: isEnabled)
         }
         let contentContext = context.content(modifier: modifier)

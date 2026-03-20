@@ -37,6 +37,7 @@ class ContextMenuModifier: RenderModifier {
     let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
     let coroutineScope = rememberCoroutineScope()
     let contentContext = context.content()
+    let isContextMenuEnabled = EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._isHitTestingEnabled
     let replaceMenu: (Menu?) -> Void = { menu in
         coroutineScope.launch {
             delay(200)
@@ -50,40 +51,46 @@ class ContextMenuModifier: RenderModifier {
         }
     }
     ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
-        // Use pointerInput on the Initial pass to detect long press without consuming
-        // events, so that child clickable handlers (e.g. Buttons) still receive taps.
-        // Standard APIs like combinedClickable consume the down event on the Main pass,
-        // which prevents nested clickables from firing.
-        Box(modifier: modifier.pointerInput(true) {
-            let slop = viewConfiguration.touchSlop
-            awaitEachGesture {
-                let down = awaitPointerEvent(pass: PointerEventPass.Initial)
-                if let start = down.changes.firstOrNull({ $0.pressed })?.position {
-                    let longPressed = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
-                        var active = true
-                        while active {
-                            if let c = awaitPointerEvent(pass: PointerEventPass.Initial).changes.firstOrNull() {
-                                active = c.pressed && abs(c.position.x - start.x) <= slop && abs(c.position.y - start.y) <= slop
-                            } else {
-                                active = false
+        let interactionModifier: Modifier
+        if isContextMenuEnabled {
+            // Use pointerInput on the Initial pass to detect long press without consuming
+            // events, so that child clickable handlers (e.g. Buttons) still receive taps.
+            // Standard APIs like combinedClickable consume the down event on the Main pass,
+            // which prevents nested clickables from firing.
+            interactionModifier = modifier.pointerInput(true) {
+                let slop = viewConfiguration.touchSlop
+                awaitEachGesture {
+                    let down = awaitPointerEvent(pass: PointerEventPass.Initial)
+                    if let start = down.changes.firstOrNull({ $0.pressed })?.position {
+                        let longPressed = withTimeoutOrNull(viewConfiguration.longPressTimeoutMillis) {
+                            var active = true
+                            while active {
+                                if let c = awaitPointerEvent(pass: PointerEventPass.Initial).changes.firstOrNull() {
+                                    active = c.pressed && abs(c.position.x - start.x) <= slop && abs(c.position.y - start.y) <= slop
+                                } else {
+                                    active = false
+                                }
                             }
-                        }
-                    } == nil
-                    if longPressed {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        isMenuExpanded.value = true
-                        // Consume remaining pointer events so the child's tap handler
-                        // does not fire when the finger lifts
-                        var pressed = true
-                        while pressed {
-                            let event = awaitPointerEvent(pass: PointerEventPass.Initial)
-                            event.changes.forEach { $0.consume() }
-                            pressed = event.changes.any({ $0.pressed })
+                        } == nil
+                        if longPressed {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            isMenuExpanded.value = true
+                            // Consume remaining pointer events so the child's tap handler
+                            // does not fire when the finger lifts
+                            var pressed = true
+                            while pressed {
+                                let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                                event.changes.forEach { $0.consume() }
+                                pressed = event.changes.any({ $0.pressed })
+                            }
                         }
                     }
                 }
             }
-        }) {
+        } else {
+            interactionModifier = modifier
+        }
+        Box(modifier: interactionModifier) {
             content.Render(context: contentContext)
             DropdownMenu(expanded: isMenuExpanded.value, onDismissRequest: {
                 isMenuExpanded.value = false

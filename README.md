@@ -721,8 +721,8 @@ Support levels:
               <summary><code>DatePicker</code> (<a href="https://skip.dev/docs/components/datepicker/">example</a>)</summary>
               <ul>
                   <li><code>init(selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
+                  <li><code>init(selection: Binding&lt;Date>, in: ClosedRange&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date], @ViewBuilder label: () -> any View)</code></li>
                   <li><code>init(_ title: String, selection: Binding&lt;Date>, displayedComponents: DatePickerComponents = [.hourAndMinute, .date])</code></li>
-                  <li>Date range constraints (<code>in: ClosedRange&lt;Date></code>) are supported via Skip Fuse bridging</li>
               </ul>
           </details>      
        </td>
