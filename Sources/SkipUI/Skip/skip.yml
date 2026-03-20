@@ -12,12 +12,12 @@ settings:
           contents:
             - block: 'create("libs")'
               contents:
-                - 'version("coil", "3.0.4")'
-                - 'version("androidx-navigation", "2.9.4")'
+                - 'version("coil", "3.4.0")'
+                - 'version("androidx-navigation", "2.9.7")'
                 - 'version("androidx-appcompat", "1.7.1")'
-                - 'version("androidx-activity", "1.11.0")'
-                - 'version("androidx-lifecycle-process", "2.9.2")'
-                - 'version("androidx-material3-adaptive", "1.1.0")'
+                - 'version("androidx-activity", "1.13.0")'
+                - 'version("androidx-lifecycle-process", "2.10.0")'
+                - 'version("androidx-material3-adaptive", "1.2.0")'
                 - 'version("androidx-work", "2.11.1")'
 
                 # the version for these libraries is derived from the kotlin-bom declared is skip-model/Sources/SkipModel/Skip/skip.yml
