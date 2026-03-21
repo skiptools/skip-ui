@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.InternalComposeApi
@@ -776,6 +777,12 @@ extension EnvironmentValues {
     var _material3TopAppBar: (@Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions)? {
         get { builtinValue(key: "_material3TopAppBar", defaultValue: { nil }) as! (@Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions)? }
         set { setBuiltinValue(key: "_material3TopAppBar", value: newValue, defaultValue: { nil }) }
+    }
+
+    /// Nested scroll connection for the active `NavigationStack` entry's top app bar
+    public var _nestedScrollConnection: NestedScrollConnection? {
+        get { builtinValue(key: "_nestedScrollConnection", defaultValue: { nil }) as! NestedScrollConnection? }
+        set { setBuiltinValue(key: "_nestedScrollConnection", value: newValue, defaultValue: { nil }) }
     }
 
     var _onSubmitState: OnSubmitState? {

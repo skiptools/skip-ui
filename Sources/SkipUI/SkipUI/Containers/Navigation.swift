@@ -564,6 +564,7 @@ public struct NavigationStack : View, Renderable {
                         }
                         $0.set_searchableState(searchableState)
                         $0.set_isNavigationRoot(arguments.isRoot)
+                        $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
                         return ComposeResult.ok
                     } in: {
                         // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
@@ -631,6 +632,7 @@ public struct NavigationStack : View, Renderable {
                         }
                         $0.set_searchableState(searchableState)
                         $0.set_isNavigationRoot(arguments.isRoot)
+                        $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
                         return ComposeResult.ok
                     } in: {
                         // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
