@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ClipOp
@@ -931,6 +932,61 @@ extension View {
                 }
             }
             return ComposeResult.ok
+        })
+        #else
+        return self
+        #endif
+    }
+
+    #if !SKIP
+    public typealias GeometryChangeType = Equatable
+    #else
+    // needed to get the required "where T: Any" in the signature: fun <T> onGeometryChange(for_: KClass<T>, of: (GeometryProxy) -> T, action: (T) -> Unit): View where T: Any
+    public typealias GeometryChangeType = Any
+    #endif
+
+    public func onGeometryChange<T: GeometryChangeType>(for type: T.Type, of transform: @escaping (GeometryProxy) -> T, action: @escaping (T) -> Void) -> any View {
+        onGeometryChangeErased(of: transform, action: action)
+    }
+
+    public func onGeometryChange<T: GeometryChangeType>(for type: T.Type, of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
+        onGeometryChangeErased(of: transform, action: action)
+    }
+
+    // Skip does not yet support brigding T.Type, create erased variants that will act as the bridged functions
+
+    // SKIP @bridge
+    public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (T) -> Void) -> any View {
+        onGeometryChangeErased(of: transform) { oldValue, newValue in
+            action(newValue)
+        }
+    }
+
+    // SKIP @bridge
+    public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
+            let previousValue = remember { mutableStateOf(nil as Any?) }
+            let density = LocalDensity.current
+
+            if let rect = globalFramePx.value {
+                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
+                let newValue = transform(proxy)
+                let oldValue = previousValue.value as? T
+                if oldValue == nil || oldValue != newValue {
+                    previousValue.value = newValue
+                    if let oldValue {
+                        SideEffect { action(oldValue, newValue) }
+                    }
+                }
+            }
+
+            var updatedContext = context
+            updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
+                globalFramePx.value = rect
+            }
+            renderable.Render(context: updatedContext)
         })
         #else
         return self
