@@ -975,10 +975,9 @@ extension View {
                 let newValue = transform(proxy)
                 let oldValue = previousValue.value as? T
                 if oldValue == nil || oldValue != newValue {
+                    let effectiveOldValue = oldValue ?? newValue
                     previousValue.value = newValue
-                    if let oldValue {
-                        SideEffect { action(oldValue, newValue) }
-                    }
+                    SideEffect { action(effectiveOldValue, newValue) }
                 }
             }
 
