@@ -29,7 +29,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -130,7 +133,7 @@ let searchFieldHeight = 56.0
         let isFocused = remember { mutableStateOf(false) }
         OutlinedTextField(value: state.text.wrappedValue, onValueChange: {
             state.text.wrappedValue = $0
-        }, modifier: Modifier.weight(Float(1.0)).focusRequester(focusRequester).onFocusChanged {
+        }, modifier: Modifier.weight(Float(1.0)).semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_search_field").focusRequester(focusRequester).onFocusChanged {
             if $0.isFocused {
                 state.isSearching.value = true
             }
