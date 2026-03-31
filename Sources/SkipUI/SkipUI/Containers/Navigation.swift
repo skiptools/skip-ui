@@ -1429,6 +1429,7 @@ public struct NavigationLink : View, Renderable {
             // Hack to prevent multiple quick taps from pushing duplicate entries
             let now = CFAbsoluteTimeGetCurrent()
             guard NavigationLink.lastNavigationTime + NavigationLink.minimumNavigationInterval <= now else {
+                logger.debug("navigation throttled; diff: \(now - lastNavigationTime) minimumNavigationInterval: \(NavigationLink.minimumNavigationInterval)")
                 return
             }
             NavigationLink.lastNavigationTime = now
