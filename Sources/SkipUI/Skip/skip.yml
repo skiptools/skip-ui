@@ -13,7 +13,8 @@ settings:
             - block: 'create("libs")'
               contents:
                 - 'version("coil", "3.4.0")'
-                - 'version("androidx-navigation", "2.9.7")'
+                - 'version("androidx-nav3", "1.0.1")'
+                - 'version("kotlinx-serialization-json", "1.8.1")'
                 - 'version("androidx-appcompat", "1.7.1")'
                 - 'version("androidx-activity", "1.13.0")'
                 - 'version("androidx-lifecycle-process", "2.10.0")'
@@ -32,7 +33,10 @@ settings:
                 - 'library("androidx-appcompat", "androidx.appcompat", "appcompat").versionRef("androidx-appcompat")'
                 - 'library("androidx-appcompat-resources", "androidx.appcompat", "appcompat-resources").versionRef("androidx-appcompat")'
 
-                - 'library("androidx-navigation-compose", "androidx.navigation", "navigation-compose").versionRef("androidx-navigation")'
+                - 'library("androidx-navigation3-runtime", "androidx.navigation3", "navigation3-runtime").versionRef("androidx-nav3")'
+                - 'library("androidx-navigation3-ui", "androidx.navigation3", "navigation3-ui").versionRef("androidx-nav3")'
+                - 'library("kotlinx-serialization-json", "org.jetbrains.kotlinx", "kotlinx-serialization-json").versionRef("kotlinx-serialization-json")'
+                - 'plugin("kotlin-serialization", "org.jetbrains.kotlin.plugin.serialization").versionRef("kotlin")'
                 - 'library("androidx-activity-compose", "androidx.activity", "activity-compose").versionRef("androidx-activity")'
                 - 'library("androidx-lifecycle-process", "androidx.lifecycle", "lifecycle-process").versionRef("androidx-lifecycle-process")'
                 - 'library("androidx-compose-material3-adaptive", "androidx.compose.material3.adaptive", "adaptive").versionRef("androidx-material3-adaptive")'
@@ -54,6 +58,7 @@ build:
     - block: 'plugins'
       contents:
         - 'alias(libs.plugins.kotlin.compose)'
+        - 'alias(libs.plugins.kotlin.serialization)'
 
     - block: 'android'
       contents:
@@ -73,7 +78,9 @@ build:
         - 'api(libs.androidx.compose.material3)'
         - 'api(libs.androidx.compose.material3.adaptive)'
         - 'api(libs.androidx.compose.foundation)'
-        - 'api(libs.androidx.navigation.compose)'
+        - 'api(libs.androidx.navigation3.runtime)'
+        - 'api(libs.androidx.navigation3.ui)'
+        - 'api(libs.kotlinx.serialization.json)'
         - 'api(libs.androidx.appcompat)'
         - 'api(libs.androidx.appcompat.resources)'
         - 'api(libs.androidx.activity.compose)'

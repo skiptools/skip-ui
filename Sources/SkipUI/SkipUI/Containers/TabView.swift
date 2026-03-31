@@ -41,6 +41,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -57,13 +58,15 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 #endif
 
 // SKIP @bridge
@@ -220,9 +223,10 @@ public struct TabView : View, Renderable {
             }
         }
 
-        let navController = rememberNavController()
+        let tabBackStacks = rememberSkipTabViewBackStacks()
+        let selectedTabIndex = rememberSaveable(stateSaver: context.stateSaver as! Saver<Int, Any>) { mutableStateOf(0) }
         // Isolate access to current route within child Composable so route nav does not force us to recompose
-        navigateToCurrentRoute(controller: navController, tabRenderables: tabRenderables)
+        navigateToCurrentRoute(tabBackStacks: tabBackStacks, selectedTabIndex: selectedTabIndex, tabRenderables: tabRenderables)
 
         let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ToolbarBarPreferences>, Any>) { mutableStateOf(Preference<ToolbarBarPreferences>(key: TabBarPreferenceKey.self)) }
         let tabBarPreferencesCollector = PreferenceCollector<ToolbarBarPreferences>(key: TabBarPreferenceKey.self, state: tabBarPreferences)
@@ -310,7 +314,7 @@ public struct TabView : View, Renderable {
                     }
                 }
 
-                let currentRoute = currentRoute(for: navController) // Note: forces recompose of this context on tab navigation
+                let currentRoute = String(describing: selectedTabIndex.value) // Note: forces recompose of this context on tab navigation
                 // Pull the tab bar below the keyboard
                 let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                 PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
@@ -321,7 +325,7 @@ public struct TabView : View, Renderable {
                         if let selection, let tagValue = tagValue(route: route, in: tabRenderables) {
                             selection.wrappedValue = tagValue
                         } else {
-                            navigate(controller: navController, route: route)
+                            selectedTabIndex.value = tabIndex
                         }
                     }
                     let itemIcon: @Composable (Int) -> Void = { tabIndex in
@@ -373,41 +377,49 @@ public struct TabView : View, Renderable {
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Column(modifier: modifier.background(Color.background.colorImpl())) {
-                    NavHost(navController,
-                            modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
-                            startDestination: "0",
-                            enterTransition: { fadeIn() },
-                            exitTransition: { fadeOut() }) {
-                        // Use a constant number of routes. Changing routes causes a NavHost to reset its state
-                        let entryContext = context.content()
-                        for tabIndex in 0..<100 {
-                            composable(String(describing: tabIndex)) { _ in
-                                // Inset manually where our container ignored the safe area, but we aren't showing a bar
-                                let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-                                var bottomPadding = 0.dp
-                                if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
-                                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
-                                }
-                                let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
-                                let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
+                    let entryContext = context.content()
+                    let activeStack = tabBackStacks[selectedTabIndex.value]
+                    let tabDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
+                    let tabEntryProvider: (NavKey) -> NavEntry<NavKey> = { key in
+                        let tabKey = key as! SkipTabViewRouteKey
+                        return NavEntry(tabKey, content: { key in
+                            let tabIndex = (key as! SkipTabViewRouteKey).index
+                            // Inset manually where our container ignored the safe area, but we aren't showing a bar
+                            let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                            var bottomPadding = 0.dp
+                            if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
+                                bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                            }
+                            let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
+                            let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
 
-                                // Special-case the first composition to avoid seeing the layout adjust. This is a common
-                                // issue with nav stacks in particular, and they're common enough that we need to cater to them.
-                                // Use an extra container to avoid causing the content itself to recompose
-                                let hasComposed = remember { mutableStateOf(false) }
-                                SideEffect { hasComposed.value = true }
-                                let alpha = hasComposed.value ? Float(1.0) : Float(0.0)
-                                Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                    // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
-                                    // recomposing when called with the same values
-                                    let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
-                                    PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
-                                        RenderEntry(with: arguments, context: entryContext)
-                                    }
+                            // Special-case the first composition to avoid seeing the layout adjust. This is a common
+                            // issue with nav stacks in particular, and they're common enough that we need to cater to them.
+                            // Use an extra container to avoid causing the content itself to recompose
+                            let hasComposed = remember { mutableStateOf(false) }
+                            SideEffect { hasComposed.value = true }
+                            let alpha = hasComposed.value ? Float(1.0) : Float(0.0)
+                            Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
+                                // recomposing when called with the same values
+                                let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
+                                PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
+                                    RenderEntry(with: arguments, context: entryContext)
                                 }
                             }
-                        }
+                        })
                     }
+                    NavDisplay(
+                        backStack: activeStack,
+                        modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
+                        onBack: {
+                            if activeStack.size > 1 {
+                                activeStack.removeLastOrNull()
+                            }
+                        },
+                        entryDecorators: tabDecorators,
+                        entryProvider: tabEntryProvider
+                    )
                     bottomBar()
                 }
             }
@@ -474,33 +486,13 @@ public struct TabView : View, Renderable {
         }
     }
 
-    private func navigate(controller navController: NavHostController, route: String) {
-        navController.navigate(route) {
-            // Clear back stack so that tabs don't participate in Android system back button
-            let destinationID = navController.currentBackStackEntry?.destination?.id ?? navController.graph.startDestinationId
-            popUpTo(destinationID) {
-                inclusive = true
-                saveState = true
-            }
-            // Avoid multiple copies of the same destination when reselecting the same item
-            launchSingleTop = true
-            // Restore state when reselecting a previously selected item
-            restoreState = true
-        }
-    }
-
-    @Composable private func navigateToCurrentRoute(controller navController: NavHostController, tabRenderables: kotlin.collections.List<Renderable>) {
-        let currentRoute = currentRoute(for: navController)
-        if let selection, let currentRoute, selection.wrappedValue != tagValue(route: currentRoute, in: tabRenderables) {
-            if let route = route(tagValue: selection.wrappedValue, in: tabRenderables) {
-                navigate(controller: navController, route: route)
+    @Composable private func navigateToCurrentRoute(tabBackStacks: kotlin.collections.List<NavBackStack<NavKey>>, selectedTabIndex: MutableState<Int>, tabRenderables: kotlin.collections.List<Renderable>) {
+        let currentRoute = String(describing: selectedTabIndex.value)
+        if let selection, selection.wrappedValue != tagValue(route: currentRoute, in: tabRenderables) {
+            if let route = route(tagValue: selection.wrappedValue, in: tabRenderables), let idx = Int(string: route) {
+                selectedTabIndex.value = idx
             }
         }
-    }
-
-    @Composable private func currentRoute(for navController: NavHostController) -> String? {
-        // In your BottomNavigation composable, get the current NavBackStackEntry using the currentBackStackEntryAsState() function. This entry gives you access to the current NavDestination. The selected state of each BottomNavigationItem can then be determined by comparing the item's route with the route of the current destination and its parent destinations (to handle cases when you are using nested navigation) via the NavDestination hierarchy.
-        navController.currentBackStackEntryAsState().value?.destination?.route
     }
     #else
     public var body: some View {
@@ -510,6 +502,27 @@ public struct TabView : View, Renderable {
 }
 
 #if SKIP
+// SKIP INSERT: @Serializable
+public struct SkipTabViewRouteKey : NavKey {
+    public let index: Int
+}
+
+/// Fixed 100 persistent back stacks for tab bar content (matches legacy `0..<100` routes).
+@Composable public func rememberSkipTabViewBackStacks() -> kotlin.collections.List<NavBackStack<NavKey>> {
+    // Use a constant number of routes. Changing routes causes a NavHost to reset its state
+    // TODO is this necessary with NavDisplay?
+    let slots = remember { arrayOfNulls<NavBackStack<NavKey>?>(100) }
+    var tabIndex = 0
+    while tabIndex < 100 {
+        let ti = tabIndex
+        key(ti) {
+            slots[ti] = rememberNavBackStack(SkipTabViewRouteKey(index: ti))
+        }
+        tabIndex += 1
+    }
+    return slots.filterNotNull()
+}
+
 @Stable struct TabEntryArguments: Equatable {
     let tabIndex: Int
     let modifier: Modifier

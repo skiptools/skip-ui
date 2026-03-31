@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,7 +55,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,14 +77,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import kotlin.reflect.full.superclasses
+import kotlinx.serialization.Serializable
+import androidx.compose.runtime.key
 import kotlinx.coroutines.delay
 #endif
 
@@ -136,25 +137,23 @@ public struct NavigationStack : View, Renderable {
         // Make this collector non-erasable so that destinations defined at e.g. the root nav stack layer don't disappear when you push
         let destinationsCollector = PreferenceCollector<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, state: destinations, isErasable: false)
         let reducedDestinations = destinations.value.reduced
-        let navController = rememberNavController()
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navController: navController, destinations: reducedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
-        navigator.value.didCompose(navController: navController, destinations: reducedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
+        let navBackStack = rememberNavBackStack(SkipNavigationStackRootKey.root)
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navBackStack: navBackStack, destinations: reducedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
+        navigator.value.didCompose(navBackStack: navBackStack, destinations: reducedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
             let safeArea = EnvironmentValues.shared._safeArea
-            // We have to ignore the safe area around the entire NavHost to prevent push/pop animation issues with the system bars.
+            // We have to ignore the safe area around the entire NavDisplay to prevent push/pop animation issues with the system bars.
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
             ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
             IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges) { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-                    let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                    NavHost(navController: navController, startDestination: Navigator.rootRoute, modifier: modifier) {
-                        composable(route: Navigator.rootRoute,
-                                   exitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                   popEnterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) }) { entry in
-                            guard let state = navigator.value.state(for: entry) else {
+                    let decoratorList = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
+                    let entryProvider = entryProvider {
+                        entry<SkipNavigationStackRootKey> { _ in
+                            guard let state = navigator.value.stateForRoot() else {
                                 return
                             }
                             // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
@@ -172,39 +171,48 @@ public struct NavigationStack : View, Renderable {
                                 }
                             }
                         }
-                        for destinationIndex in 0..<Navigator.destinationCount {
-                            composable(route: Navigator.route(for: destinationIndex, valueString: "{identifier}"),
-                                       arguments: listOf(navArgument("identifier") { type = NavType.StringType }),
-                                       enterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? -1 : 1) / 3 }) },
-                                       exitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                       popEnterTransition: { fadeIn() + slideInHorizontally(initialOffsetX: { $0 * (isRTL ? 1 : -1) / 3 }) },
-                                       popExitTransition: { fadeOut(animationSpec: tween(durationMillis: 200)) + slideOutHorizontally(targetOffsetX: { $0 * (isRTL ? -1 : 1) / 3 }) }) { entry in
-                                guard let state = navigator.value.state(for: entry), let targetValue = state.targetValue else {
-                                    return
-                                }
-                                // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
-                                // during the navigation animation. We have to collect them here
-                                let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
-                                let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
-                                let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
-                                let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
-                                let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
-                                let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
-                                EnvironmentValues.shared.setValues {
-                                    $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
-                                    return ComposeResult.ok
-                                } in: {
-                                    let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
-                                    PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
-                                        RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
-                                            let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
-                                            RenderDestination(state.destination, arguments: destinationArguments, context: context)
-                                        }
+                        entry<SkipNavigationStackPushKey> { navKey in
+                            guard let state = navigator.value.state(forPushKey: navKey), let targetValue = state.targetValue else {
+                                return
+                            }
+                            // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
+                            // during the navigation animation. We have to collect them here
+                            let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
+                            let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
+                            let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
+                            let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
+                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
+                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
+                            EnvironmentValues.shared.setValues {
+                                $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
+                                return ComposeResult.ok
+                            } in: {
+                                let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
+                                PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
+                                    RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
+                                        let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
+                                        RenderDestination(state.destination, arguments: destinationArguments, context: context)
                                     }
                                 }
                             }
                         }
                     }
+                    NavDisplay(
+                        backStack: navBackStack,
+                        modifier: modifier,
+                        onBack: { navigator.value.navigateBack() },
+                        transitionSpec: {
+                            // SKIP INSERT: slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                        },
+                        popTransitionSpec: {
+                            // SKIP INSERT: slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                        },
+                        predictivePopTransitionSpec: { _ in
+                            // SKIP INSERT: slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                        },
+                        entryDecorators: decoratorList,
+                        entryProvider: entryProvider
+                    )
                 }
             }
         }
@@ -257,13 +265,6 @@ public struct NavigationStack : View, Renderable {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         }
         modifier = modifier.then(context.modifier)
-
-        // Intercept system back button to keep our state in sync
-        BackHandler(enabled: !arguments.isRoot) {
-            if arguments.toolbarPreferences.backButtonHidden != true {
-                navigator.value.navigateBack()
-            }
-        }
 
         let defaultTopBarHeight = 112.dp
         let topBarBottomPx = remember {
@@ -670,6 +671,18 @@ public struct NavigationStack : View, Renderable {
 }
 
 #if SKIP
+
+// SKIP INSERT: @Serializable
+public enum SkipNavigationStackRootKey : NavKey {
+    case root
+}
+
+// SKIP INSERT: @Serializable
+public struct SkipNavigationStackPushKey : NavKey {
+    public let destinationIndex: Int
+    public let identifier: String
+}
+
 @Stable struct NavigationEntryArguments: Equatable {
     let isRoot: Bool
     let state: Navigator.BackStackState
@@ -708,7 +721,7 @@ struct NavigationDestination {
         return String(describing: destinationIndex) + "/" + valueString
     }
 
-    private var navController: NavHostController
+    private var navBackStack: NavBackStack<NavKey>
     private var keyboardController: SoftwareKeyboardController?
     private var destinations: NavigationDestinations
     private var destinationIndexes: [AnyHashable: Int] = [:]
@@ -741,16 +754,16 @@ struct NavigationDestination {
         }
     }
 
-    init(navController: NavHostController, destinations: NavigationDestinations, destinationKeyTransformer: ((Any) -> String)?) {
-        self.navController = navController
+    init(navBackStack: NavBackStack<NavKey>, destinations: NavigationDestinations, destinationKeyTransformer: ((Any) -> String)?) {
+        self.navBackStack = navBackStack
         self.destinations = destinations
         self.destinationKeyTransformer = destinationKeyTransformer
         updateDestinationIndexes()
     }
 
     /// Call with updated state on recompose.
-    @Composable func didCompose(navController: NavHostController, destinations: NavigationDestinations, path: Binding<[Any]>?, navigationPath: Binding<NavigationPath>?, keyboardController: SoftwareKeyboardController?) {
-        self.navController = navController
+    @Composable func didCompose(navBackStack: NavBackStack<NavKey>, destinations: NavigationDestinations, path: Binding<[Any]>?, navigationPath: Binding<NavigationPath>?, keyboardController: SoftwareKeyboardController?) {
+        self.navBackStack = navBackStack
         self.destinations = destinations
         self.path = path
         self.navigationPath = navigationPath
@@ -762,7 +775,7 @@ struct NavigationDestination {
 
     /// Whether we're at the root of the navigation stack.
     var isRoot: Bool {
-        return navController.currentBackStack.value.size <= 2 // graph entry, root entry
+        return navBackStack.size <= 1
     }
 
     /// Navigate to a target value specified in a `NavigationLink`.
@@ -802,42 +815,51 @@ struct NavigationDestination {
     func navigateBack() {
         // Check for a view destination before we pop our path bindings, because the user could push arbitrary views
         // that are not represented in the bound path
-        let viewDestinationPrefix = Self.route(for: viewDestinationIndex, valueString: "")
-        if navController.currentBackStackEntry?.destination.route?.hasPrefix(viewDestinationPrefix) == true {
-            navController.popBackStack()
+        if let lastKey = navBackStack.lastOrNull() as? SkipNavigationStackPushKey, lastKey.destinationIndex == viewDestinationIndex {
+            navBackStack.removeLastOrNull()
         } else if let path {
             path.wrappedValue.popLast()
         } else if let navigationPath {
             navigationPath.wrappedValue.removeLast()
         } else if !isRoot {
-            navController.popBackStack()
+            navBackStack.removeLastOrNull()
         }
     }
 
     /// Whether the given view entry ID is presented.
     func isViewPresented(id: String, asTop: Bool = false) -> Bool {
-        let stack = navController.currentBackStack.value
-        guard !stack.isEmpty() else {
+        guard !navBackStack.isEmpty() else {
             return false
         }
         guard !asTop else {
-            return stack.last().id == id
+            return stableEntryId(forKey: navBackStack[navBackStack.size - 1]) == id
         }
-        return stack.any { $0.id == id }
+        for key in navBackStack {
+            if stableEntryId(forKey: key) == id {
+                return true
+            }
+        }
+        return false
     }
 
-    /// The entry being navigated to.
-    func state(for entry: NavBackStackEntry) -> BackStackState? {
-        if let state = backStackState[entry.id] {
+    func stateForRoot() -> BackStackState? {
+        let rootId = stableEntryId(forKey: SkipNavigationStackRootKey.root)
+        if let state = backStackState[rootId] {
             return state
         }
         // Need to establish the root state?
-        guard navController.currentBackStack.value.count() > 1 && entry.id == navController.currentBackStack.value[1].id else {
+        guard navBackStack.size >= 1, navBackStack.firstOrNull() is SkipNavigationStackRootKey else {
             return nil
         }
-        let rootState = BackStackState(id: entry.id, route: Self.rootRoute)
-        backStackState[entry.id] = rootState
+        let rootState = BackStackState(id: rootId, route: Self.rootRoute)
+        backStackState[rootId] = rootState
         return rootState
+    }
+
+    /// The entry being navigated to.
+    func state(forPushKey pushKey: SkipNavigationStackPushKey) -> BackStackState? {
+        let id = stableEntryId(forKey: pushKey)
+        return backStackState[id]
     }
 
     /// The effective title display mode for the given preference value.
@@ -854,24 +876,34 @@ struct NavigationDestination {
 
         // Base the display mode on the back stack
         var titleDisplayMode: ToolbarTitleDisplayMode? = nil
-        for entry in navController.currentBackStack.value {
-            if entry.id == state.id {
+        for key in navBackStack {
+            let entryId = stableEntryId(forKey: key)
+            if entryId == state.id {
                 break
-            } else if let entryTitleDisplayMode = backStackState[entry.id]?.titleDisplayMode {
+            } else if let entryTitleDisplayMode = backStackState[entryId]?.titleDisplayMode {
                 titleDisplayMode = entryTitleDisplayMode
             }
         }
         return titleDisplayMode ?? ToolbarTitleDisplayMode.automatic
     }
 
-    /// Sync our back stack state with the nav controller.
-    @Composable private func syncState() {
-        // Collect as state to ensure we get re-called on change
-        let entryList = navController.currentBackStack.collectAsState()
+    private func stableEntryId(forKey key: NavKey) -> String {
+        if key is SkipNavigationStackRootKey {
+            return Self.rootRoute
+        } else if let pushKey = key as? SkipNavigationStackPushKey {
+            return Self.route(for: pushKey.destinationIndex, valueString: pushKey.identifier)
+        } else {
+            return String(describing: key)
+        }
+    }
 
-        // Toggle any presented bindings for popped states back to false. Do this immediately so that we don't
+    /// Sync our back stack state with the navigation back stack.
+    @Composable private func syncState() {
+        let stackKeys = navBackStack.toList()
         // re-present views that were removed from the stack
-        let entryIDs = Set(entryList.value.map { $0.id })
+        let entryIDs = Set(stackKeys.map { stableEntryId(forKey: $0) })
+        // Toggle any presented bindings for popped states back to false. Do this immediately so that we don't
+        // continue to present popped values while waiting for our delayed state sync below.
         for (id, state) in backStackState {
             if !entryIDs.contains(id) {
                 state.binding?.wrappedValue = false
@@ -880,12 +912,14 @@ struct NavigationDestination {
 
         // Sync the back stack with remaining states. We delay this to allow views that receive compose calls while
         // animating away to find their state
-        LaunchedEffect(entryList.value) {
+        let stackEffectKey = stackKeys.map { stableEntryId(forKey: $0) }.joinToString(separator: "|")
+        LaunchedEffect(stackEffectKey) {
             delay(1000) // 1 second
             var syncedBackStackState: [String: BackStackState] = [:]
-            for entry in entryList.value {
-                if let state = backStackState[entry.id] {
-                    syncedBackStackState[entry.id] = state
+            for key in stackKeys {
+                let entryId = stableEntryId(forKey: key)
+                if let state = backStackState[entryId] {
+                    syncedBackStackState[entryId] = state
                 }
             }
             backStackState = syncedBackStackState
@@ -896,19 +930,20 @@ struct NavigationDestination {
         guard let path = (self.path?.wrappedValue ?? navigationPath?.wrappedValue.path) else {
             return
         }
-        let backStack = navController.currentBackStack.value
-        guard !backStack.isEmpty() else {
+        let keys = navBackStack.toList()
+        guard !keys.isEmpty() else {
             return
         }
 
         // Figure out where the path and back stack first differ
         var pathIndex = 0
-        var backStackIndex = 2 // graph, root
+        var backStackIndex = 1 // root key at 0
         while pathIndex < path.count {
-            if backStackIndex >= backStack.count() {
+            if backStackIndex >= keys.size {
                 break
             }
-            let state = backStackState[backStack[backStackIndex].id]
+            let kid = stableEntryId(forKey: keys[backStackIndex])
+            let state = backStackState[kid]
             if state?.targetValue != path[pathIndex] {
                 break
             }
@@ -922,8 +957,9 @@ struct NavigationDestination {
         if pathIndex == path.count {
             hasOnlyTrailingViews = true
             let viewDestinationPrefix = Self.route(for: viewDestinationIndex, valueString: "")
-            for i in 0..<(backStack.count() - backStackIndex) {
-                if backStack[backStackIndex + i].destination.route?.hasPrefix(viewDestinationPrefix) != true {
+            for i in 0..<(keys.size - backStackIndex) {
+                let kid = stableEntryId(forKey: keys[backStackIndex + i])
+                if !kid.hasPrefix(viewDestinationPrefix) {
                     hasOnlyTrailingViews = false
                     break
                 }
@@ -934,8 +970,8 @@ struct NavigationDestination {
         }
 
         // Pop back to last common value
-        for _ in 0..<(backStack.count() - backStackIndex) {
-            navController.popBackStack()
+        for _ in 0..<(keys.size - backStackIndex) {
+            navBackStack.removeLastOrNull()
         }
         // Navigate to any new path values
         for i in pathIndex..<path.count {
@@ -964,21 +1000,33 @@ struct NavigationDestination {
     }
 
     private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
-        // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
-        keyboardController?.hide()
-        navController.navigate(route)
-        guard let entry = navController.currentBackStackEntry else {
+        let slash = route.indexOf("/")
+        guard slash >= 0 else {
             return nil
         }
-        var state = backStackState[entry.id]
+        let indexStr = route.substring(0, slash)
+        let identifier = route.substring(slash + 1)
+        guard let destIndex = Int(string: indexStr) else {
+            return nil
+        }
+        let pushKey = SkipNavigationStackPushKey(destinationIndex: destIndex, identifier: identifier)
+        return navigate(pushKey: pushKey, route: route, destination: destination, targetValue: targetValue, binding: binding)
+    }
+
+    private func navigate(pushKey: SkipNavigationStackPushKey, route: String, destination: ((Any) -> any View)?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
+        // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
+        keyboardController?.hide()
+        navBackStack.add(pushKey)
+        let entryId = stableEntryId(forKey: pushKey)
+        var state = backStackState[entryId]
         if state == nil {
-            state = BackStackState(id: entry.id, route: route, destination: destination, targetValue: targetValue)
-            backStackState[entry.id] = state
+            state = BackStackState(id: entryId, route: route, destination: destination, targetValue: targetValue)
+            backStackState[entryId] = state
         }
         if let binding {
             state?.binding = binding
         }
-        return entry.id
+        return entryId
     }
 
     private func route(for key: AnyHashable, value: Any) -> String {
