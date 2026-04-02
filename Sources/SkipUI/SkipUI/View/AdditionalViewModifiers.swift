@@ -1276,9 +1276,23 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func statusBarHidden(_ hidden: Bool = true) -> some View {
+    // SKIP @bridge
+    public func statusBarHidden(_ hidden: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
+            DisposableEffect(hidden) {
+                UIApplication.shared.setStatusBarHidden(hidden)
+                onDispose {
+                    if hidden {
+                        UIApplication.shared.setStatusBarHidden(false)
+                    }
+                }
+            }
+            return ComposeResult.ok
+        })
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)

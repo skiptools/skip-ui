@@ -36,6 +36,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     #if SKIP
     private var requestPermissionLauncher: ActivityResultLauncher<String>?
     private let waitingContinuations: MutableList<Continuation<Bool>> = mutableListOf<Continuation<Bool>>()
+    private var systemOverlaysCoordinator: SkipUISystemOverlaysCoordinator?
     #endif
 
     private init() {
@@ -91,12 +92,20 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
             } catch {
                 android.util.Log.w("SkipUI", "error initializing permission launcher", error as? Throwable)
             }
+            shared.systemOverlaysCoordinator = SkipUISystemOverlaysCoordinator()
+            shared.systemOverlaysCoordinator?.register()
         }
     }
 
     func onActivityDestroy() {
+        systemOverlaysCoordinator?.unregister()
+        systemOverlaysCoordinator = nil
         // The permission launcher appears to hold a strong reference to the activity, so we must nil it to avoid memory leaks
         self.requestPermissionLauncher = nil
+    }
+
+    public func setStatusBarHidden(_ hidden: Bool) {
+        systemOverlaysCoordinator?.setStatusBarHidden(hidden)
     }
 
     /// Requests the given permission.
