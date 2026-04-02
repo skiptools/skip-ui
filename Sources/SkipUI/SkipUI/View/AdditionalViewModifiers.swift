@@ -49,6 +49,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
@@ -1279,9 +1282,51 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func statusBarHidden(_ hidden: Bool = true) -> some View {
+    // SKIP @bridge
+    public func statusBarHidden(_ hidden: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
+            DisposableEffect(hidden) {
+                let statusBars: Int = androidx.core.view.WindowInsetsCompat.Type.statusBars()
+                // This flag makes status bar show/hide animation smooth
+                // It also fixes the status bar state when resuming the app from background
+                let showTransientBarsBySwipe: Int = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                var effectDecorView: android.view.View? = nil
+                if let activity = UIApplication.shared.androidActivity {
+                    let decorView = activity.window.decorView
+                    effectDecorView = decorView
+                    ViewCompat.setOnApplyWindowInsetsListener(decorView) { view, windowInsets in
+                        if hidden, windowInsets.isVisible(statusBars) {
+                            let insetsController = WindowCompat.getInsetsController(activity.window, decorView)
+                            insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                            insetsController.hide(statusBars)
+                        }
+                        return ViewCompat.onApplyWindowInsets(view, windowInsets)
+                    }
+                    let insetsController = WindowCompat.getInsetsController(activity.window, decorView)
+                    insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                    if hidden {
+                        insetsController.hide(statusBars)
+                    } else {
+                        insetsController.show(statusBars)
+                    }
+                }
+                onDispose {
+                    if let effectDecorView {
+                        ViewCompat.setOnApplyWindowInsetsListener(effectDecorView, nil)
+                    }
+                    if hidden, let activity = UIApplication.shared.androidActivity {
+                        let insetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+                        insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                        insetsController.show(statusBars)
+                    }
+                }
+            }
+            return ComposeResult.ok
+        })
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
