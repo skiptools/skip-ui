@@ -300,8 +300,21 @@ public struct Path : Shape, Equatable {
     }
 
     public mutating func addArc(center: CGPoint, radius: CGFloat, startAngle: Angle, endAngle: Angle, clockwise: Bool, transform: CGAffineTransform = .identity) {
-        let deltar = clockwise ? startAngle.radians - endAngle.radians : endAngle.radians - startAngle.radians
-        addRelativeArc(center: center, radius: radius, startAngle: startAngle, delta: Angle(radians: deltar))
+        // SwiftUI uses a flipped coordinate system (y-down), so:
+        // clockwise: false → positive sweep (clockwise on screen)
+        // clockwise: true  → negative sweep (counter-clockwise on screen)
+        var deltar = endAngle.radians - startAngle.radians
+        let twoPi = 2.0 * Double.pi
+        if clockwise {
+            // Need a negative delta
+            if deltar > 0 { deltar -= twoPi }
+            if deltar == 0.0 { deltar = -twoPi }
+        } else {
+            // Need a positive delta
+            if deltar < 0 { deltar += twoPi }
+            if deltar == 0.0 { deltar = twoPi }
+        }
+        addRelativeArc(center: center, radius: radius, startAngle: startAngle, delta: Angle(radians: deltar), transform: transform)
     }
 
     // SKIP @bridge
