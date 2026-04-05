@@ -15,6 +15,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
+/// Rank for monotonic merge: higher means stronger cross-axis expansion intent (issue #389 loop).
+private func composeFlexibleExpansionRank(_ value: Float?) -> Int {
+    guard let value else { return 0 }
+    if value == Float.flexibleFill { return 4 }
+    if value == Float.flexibleSpace { return 3 }
+    if value == Float.flexibleUnknownWithSpace { return 2 }
+    if value == Float.flexibleUnknownNonExpanding { return 1 }
+    return 0
+}
+
+/// Keeps the stronger expansion classification so SideEffects cannot oscillate downward between frames.
+private func composeFlexibleMergedMax(_ current: Float?, _ proposed: Float?) -> Float? {
+    if composeFlexibleExpansionRank(proposed) > composeFlexibleExpansionRank(current) {
+        return proposed
+    }
+    return current
+}
+
 /// Composable to handle sizing and layout in a SwiftUI-like way for containers that compose child content.
 ///
 /// - Seealso: `ComposeFlexibleContainer(...)`
@@ -108,14 +126,26 @@ import androidx.compose.ui.Modifier
             var defaultModifier: Modifier = Modifier
             if max?.isFlexibleExpanding == true {
                 if max == Float.flexibleFill {
-                    SideEffect { contentFlexibleWidthMax.value = Float.flexibleFill }
+                    SideEffect {
+                        let prev = contentFlexibleWidthMax.value
+                        let merged = composeFlexibleMergedMax(prev, Float.flexibleFill)
+                        contentFlexibleWidthMax.value = merged
+                    }
                 } else if contentFlexibleWidthMax.value != Float.flexibleFill {
                     // max must be flexibleSpace or flexibleUnknownWithSpace
-                    SideEffect { contentFlexibleWidthMax.value = Float.flexibleUnknownWithSpace }
+                    SideEffect {
+                        let prev = contentFlexibleWidthMax.value
+                        let merged = composeFlexibleMergedMax(prev, Float.flexibleUnknownWithSpace)
+                        contentFlexibleWidthMax.value = merged
+                    }
                 }
                 defaultModifier = Modifier.fillMaxWidth()
             } else if max != nil && contentFlexibleWidthMax.value == nil {
-                SideEffect { contentFlexibleWidthMax.value = Float.flexibleUnknownNonExpanding }
+                SideEffect {
+                    let prev = contentFlexibleWidthMax.value
+                    let merged = composeFlexibleMergedMax(prev, Float.flexibleUnknownNonExpanding)
+                    contentFlexibleWidthMax.value = merged
+                }
             }
             return EnvironmentValues.shared._flexibleWidthModifier?(ideal, min, max)
                 ?? defaultModifier.applyNonExpandingFlexibleWidth(ideal: ideal, min: min, max: max)
@@ -124,14 +154,26 @@ import androidx.compose.ui.Modifier
             var defaultModifier: Modifier = Modifier
             if max?.isFlexibleExpanding == true {
                 if max == Float.flexibleFill {
-                    SideEffect { contentFlexibleHeightMax.value = Float.flexibleFill }
+                    SideEffect {
+                        let prev = contentFlexibleHeightMax.value
+                        let merged = composeFlexibleMergedMax(prev, Float.flexibleFill)
+                        contentFlexibleHeightMax.value = merged
+                    }
                 } else if contentFlexibleHeightMax.value != Float.flexibleFill {
                     // max must be flexibleSpace or flexibleUnknownWithSpace
-                    SideEffect { contentFlexibleHeightMax.value = Float.flexibleUnknownWithSpace }
+                    SideEffect {
+                        let prev = contentFlexibleHeightMax.value
+                        let merged = composeFlexibleMergedMax(prev, Float.flexibleUnknownWithSpace)
+                        contentFlexibleHeightMax.value = merged
+                    }
                 }
                 defaultModifier = Modifier.fillMaxHeight()
             } else if max != nil && contentFlexibleHeightMax.value == nil {
-                SideEffect { contentFlexibleHeightMax.value = Float.flexibleUnknownNonExpanding }
+                SideEffect {
+                    let prev = contentFlexibleHeightMax.value
+                    let merged = composeFlexibleMergedMax(prev, Float.flexibleUnknownNonExpanding)
+                    contentFlexibleHeightMax.value = merged
+                }
             }
             return EnvironmentValues.shared._flexibleHeightModifier?(ideal, min, max)
                 ?? defaultModifier.applyNonExpandingFlexibleHeight(ideal: ideal, min: min, max: max)
