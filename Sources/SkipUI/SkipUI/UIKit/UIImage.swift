@@ -8,6 +8,8 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import java.nio.ByteBuffer
 import android.graphics.Bitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 #endif
 
 // SKIP @bridge
@@ -80,13 +82,39 @@ public class UIImage {
     public func prepareForDisplay(completionHandler: @escaping (UIImage?) -> Void) {
         fatalError()
     }
-    @available(*, unavailable)
+    
     public func preparingThumbnail(of size: CGSize) -> UIImage? {
-        fatalError()
+        #if SKIP
+        if let bitmap {
+            let newBitmap = Bitmap.createScaledBitmap(bitmap, Int(size.width), Int(size.height), true)
+            return UIImage(bitmap: newBitmap, scale: 1.0)
+        }
+        #endif
+        return nil
     }
+    
+    // SKIP @bridge
+    public func preparingThumbnail(width: CGFloat, height: CGFloat) -> UIImage? {
+        return preparingThumbnail(of: .init(width: width, height: height))
+    }
+    
     @available(*, unavailable)
     public func prepareThumbnail(of size: CGSize, completionHandler: @escaping (UIImage?) -> Void) {
         fatalError()
+    }
+
+    public func byPreparingThumbnail(ofSize size: CGSize) async -> UIImage? {
+        #if SKIP
+        return await withContext(Dispatchers.Default) {
+            preparingThumbnail(of: size)
+        }
+        #endif
+        return nil
+    }
+    
+    // SKIP @bridge
+    public func byPreparingThumbnail(width: CGFloat, height: CGFloat) async -> UIImage? {
+        return await byPreparingThumbnail(ofSize: .init(width: width, height: height))
     }
 
     public init?(contentsOfFile path: String) {
@@ -101,6 +129,7 @@ public class UIImage {
             }
             
             self.bitmap = bitmap
+            self.size = .init(width: Double(bitmap.getWidth()), height: Double(bitmap.getHeight()))
         } catch {
             android.util.Log.w("SkipUI", "Error initializing UIImage from contentsOfFile", error as? Throwable)
             return nil
@@ -125,7 +154,7 @@ public class UIImage {
             }
             
             self.bitmap = bitmap
-            
+            self.size = .init(width: Double(bitmap.getWidth()), height: Double(bitmap.getHeight()))
         } catch {
             android.util.Log.w("SkipUI", "Error initializing UIImage from data", error as? Throwable)
             return nil
@@ -138,6 +167,14 @@ public class UIImage {
     public static func bridgedInit(data: Data, scale: CGFloat) -> UIImage? {
         return UIImage(data: data, scale: scale)
     }
+    
+    #if SKIP
+    private init(bitmap: Bitmap, scale: CGFloat) {
+        self.bitmap = bitmap
+        self.size = .init(width: Double(bitmap.getWidth()), height: Double(bitmap.getHeight()))
+        self.scale = scale
+    }
+    #endif
 
     @available(*, unavailable)
     public struct UIImageReader {
@@ -213,11 +250,18 @@ public class UIImage {
 
     // SKIP @bridge
     public let scale: CGFloat
-
-    @available(*, unavailable)
-    public var size: CGSize {
-        fatalError()
+    
+    public private(set) var size: CGSize = .zero
+    
+    // SKIP @bridge
+    public var bridgedWidth: CGFloat {
+        return size.width
     }
+    // SKIP @bridge
+    public var bridgedHeight: CGFloat {
+        return size.height
+    }
+    
     @available(*, unavailable)
     public var imageOrientation: Any {
         fatalError()
