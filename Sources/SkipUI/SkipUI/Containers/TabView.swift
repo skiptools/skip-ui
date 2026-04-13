@@ -56,6 +56,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
@@ -378,7 +379,6 @@ public struct TabView : View, Renderable {
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Column(modifier: modifier.background(Color.background.colorImpl())) {
                     let entryContext = context.content()
-                    let activeStack = tabBackStacks[selectedTabIndex.value]
                     let tabDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
                     let tabEntryProvider: (NavKey) -> NavEntry<NavKey> = { key in
                         let tabKey = key as! SkipTabViewRouteKey
@@ -409,17 +409,30 @@ public struct TabView : View, Renderable {
                             }
                         })
                     }
-                    NavDisplay(
-                        backStack: activeStack,
-                        modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
-                        onBack: {
-                            if activeStack.size > 1 {
-                                activeStack.removeLastOrNull()
+                    Box(modifier: Modifier.fillMaxWidth().weight(Float(1.0))) {
+                        for tabIndex in 0..<tabRenderables.size {
+                            let isSelected = selectedTabIndex.value == tabIndex
+                            let tabStack = tabBackStacks[tabIndex]
+                            Box(
+                                modifier: Modifier
+                                    .fillMaxSize()
+                                    .zIndex(isSelected ? Float(1.0) : Float(0.0))
+                                    .alpha(isSelected ? Float(1.0) : Float(0.0))
+                            ) {
+                                NavDisplay(
+                                    backStack: tabStack,
+                                    modifier: Modifier.fillMaxSize(),
+                                    onBack: {
+                                        if tabStack.size > 1 {
+                                            tabStack.removeLastOrNull()
+                                        }
+                                    },
+                                    entryDecorators: tabDecorators,
+                                    entryProvider: tabEntryProvider
+                                )
                             }
-                        },
-                        entryDecorators: tabDecorators,
-                        entryProvider: tabEntryProvider
-                    )
+                        }
+                    }
                     bottomBar()
                 }
             }
