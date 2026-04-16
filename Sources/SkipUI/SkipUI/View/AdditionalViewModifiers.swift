@@ -1009,15 +1009,18 @@ extension View {
         #endif
     }
 
-    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> any View {
+    public func overlay(_ overlay: any View, alignment: Alignment = .center) -> any View {
         #if SKIP
-        let overlay = content()
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             OverlayLayout(content: renderable, context: context, overlay: overlay, alignment: alignment)
         })
         #else
         return self
         #endif
+    }
+
+    public func overlay(alignment: Alignment = .center, @ViewBuilder content: () -> any View) -> any View {
+        return overlay(content(), alignment: alignment)
     }
 
     // SKIP @bridge
