@@ -490,15 +490,4 @@ public enum LegibilityWeight : Hashable {
     case bold
 }
 
-#if !SKIP
-
-// Unneeded stubs:
-
-//@propertyWrapper public struct ScaledMetric<Value> : DynamicProperty where Value : BinaryFloatingPoint {
-//    public init(wrappedValue: Value, relativeTo textStyle: Font.TextStyle) { fatalError() }
-//    public init(wrappedValue: Value) { fatalError() }
-//    public var wrappedValue: Value { get { fatalError() } }
-//}
-
-#endif
 #endif

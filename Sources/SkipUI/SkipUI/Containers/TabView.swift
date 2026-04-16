@@ -57,6 +57,9 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
@@ -262,6 +265,7 @@ public struct TabView : View, Renderable {
                     bottomBarTopPx.value = bounds.top
                     bottomBarHeightPx.value = bounds.bottom - bounds.top
                 }
+                .semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar")
             let tint = EnvironmentValues.shared._tint
             let hasColorScheme = reducedTabBarPreferences.colorScheme != nil
             let isSystemBackground = reducedTabBarPreferences.isSystemBackground == true
@@ -341,7 +345,7 @@ public struct TabView : View, Renderable {
                     if let updateOptions = EnvironmentValues.shared._material3NavigationBar {
                         options = updateOptions(options)
                     }
-                    NavigationBar(modifier: options.modifier, containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
+                    NavigationBar(modifier: options.modifier.semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar"), containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
                         for tabIndex in 0..<tabRenderables.size {
                             if tabs[tabIndex]?.isHidden == true {
                                 continue
