@@ -33,9 +33,27 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.util.fastCoerceAtLeast
 import androidx.compose.ui.util.fastRoundToInt
+import androidx.compose.ui.layout.LastBaseline
 import kotlin.collections.List
 import kotlin.math.max
 import kotlin.math.min
+
+/**
+ * Compose `Row` / [HStackRow] baseline alignment for `Text`: SwiftUI `HStack(alignment: .firstTextBaseline)`
+ * requires [androidx.compose.foundation.layout.alignByBaseline] on children; this applies the same
+ * [WithAlignmentLineElement] used by [HStackRowScope.alignByBaseline].
+ */
+@Stable
+fun Modifier.applyHStackTextBaselineAlignment(alignmentKey: String?): Modifier {
+    if (alignmentKey == null) {
+        return this
+    }
+    return when (alignmentKey) {
+        "firstTextBaseline" -> this.then(WithAlignmentLineElement(FirstBaseline))
+        "lastTextBaseline" -> this.then(WithAlignmentLineElement(LastBaseline))
+        else -> this
+    }
+}
 
 /**
  * This file contains heavily modified versions of Compose's `Row` and `Column` layouts to provide

@@ -108,6 +108,7 @@ public struct LazyHStack : View, Renderable {
                 }
                 EnvironmentValues.shared.setValues {
                     $0.set_contentPadding(EdgeInsets())
+                    $0.set_horizontalStackVerticalAlignmentKey(alignment.key)
                     return ComposeResult.ok
                 } in: {
                 LazyRow(state: listState, modifier: modifier, horizontalArrangement: rowArrangement, verticalAlignment: rowAlignment, contentPadding: contentPadding, userScrollEnabled: isScrollEnabled, flingBehavior: flingBehavior) {

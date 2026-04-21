@@ -694,6 +694,12 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_layoutAxis", value: newValue, defaultValue: { nil }) }
     }
 
+    /// When non-nil, direct children of an ``HStack`` / ``LazyHStack`` should use Compose baseline alignment (see ``Text``).
+    var _horizontalStackVerticalAlignmentKey: String? {
+        get { builtinValue(key: "_horizontalStackVerticalAlignmentKey", defaultValue: { nil }) as! String? }
+        set { setBuiltinValue(key: "_horizontalStackVerticalAlignmentKey", value: newValue, defaultValue: { nil }) }
+    }
+
     /// The axes that are unbound due to scrolling.
     ///
     /// This is different than `_scrollAxes`, because using a fixed size container or applying a different layout axis

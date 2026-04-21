@@ -119,6 +119,7 @@ private func composeFlexibleMergedMax(_ current: Float?, _ proposed: Float?) -> 
         // the correct layout before rendering in the content block below, so that its own children can distribute available space
         $0.set_flexibleWidthModifier(nil)
         $0.set_flexibleHeightModifier(nil)
+        $0.set_horizontalStackVerticalAlignmentKey(nil)
 
         // Set the 'flexibleWidth' and 'flexibleHeight' blocks to trigger a side effect to update our container's expansion state, which
         // can cause it to recompose and recalculate its own modifier. We must use `SideEffect` or the recomposition never happens

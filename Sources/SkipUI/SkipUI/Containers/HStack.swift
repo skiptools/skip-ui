@@ -102,6 +102,7 @@ public struct HStack : View, Renderable {
                         }
                         EnvironmentValues.shared.setValues {
                             $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                            $0.set_horizontalStackVerticalAlignmentKey(alignment.key)
                             return ComposeResult.ok
                         } in: {
                             var lastWasSpacer: Bool? = nil
@@ -117,6 +118,7 @@ public struct HStack : View, Renderable {
                         }
                         EnvironmentValues.shared.setValues {
                             $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                            $0.set_horizontalStackVerticalAlignmentKey(alignment.key)
                             return ComposeResult.ok
                         } in: {
                             var lastWasSpacer: Bool? = nil
@@ -168,6 +170,7 @@ public struct HStack : View, Renderable {
                     }
                     EnvironmentValues.shared.setValues {
                         $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                        $0.set_horizontalStackVerticalAlignmentKey(alignment.key)
                         return ComposeResult.ok
                     } in: {
                         var lastWasSpacer: Bool? = nil
@@ -193,6 +196,7 @@ public struct HStack : View, Renderable {
                     }
                     EnvironmentValues.shared.setValues {
                         $0.set_flexibleWidthModifier(flexibleWidthModifier)
+                        $0.set_horizontalStackVerticalAlignmentKey(alignment.key)
                         return ComposeResult.ok
                     } in: {
                         var lastWasSpacer: Bool? = nil

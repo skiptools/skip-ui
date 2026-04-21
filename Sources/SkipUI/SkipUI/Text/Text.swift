@@ -400,6 +400,9 @@ struct _Text: View, Renderable, Equatable {
         let styleInfo = Text.styleInfo(textEnvironment: textEnvironment, redaction: redaction, context: context)
         let animatable = styleInfo.style.asAnimatable(context: context)
         var modifier = Modifier.flexibleWidth(max: Float.flexibleUnknownNonExpanding).then(context.modifier)
+        if EnvironmentValues.shared._layoutAxis == .horizontal {
+            modifier = modifier.applyHStackTextBaselineAlignment(EnvironmentValues.shared._horizontalStackVerticalAlignmentKey)
+        }
         var options: Material3TextOptions
         if let locnode {
             let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
