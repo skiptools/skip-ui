@@ -3,8 +3,6 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -61,15 +59,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavEntry
-import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 #endif
 
 // SKIP @bridge
@@ -226,13 +218,11 @@ public struct TabView : View, Renderable {
             }
         }
 
-        let tabBackStacks = rememberSkipTabViewBackStacks()
         let selectedTabIndex = rememberSaveable(stateSaver: context.stateSaver as! Saver<Int, Any>) { mutableStateOf(0) }
         // Isolate access to current route within child Composable so route nav does not force us to recompose
-        navigateToCurrentRoute(tabBackStacks: tabBackStacks, selectedTabIndex: selectedTabIndex, tabRenderables: tabRenderables)
+        navigateToCurrentRoute(selectedTabIndex: selectedTabIndex, tabRenderables: tabRenderables)
 
         let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ToolbarBarPreferences>, Any>) { mutableStateOf(Preference<ToolbarBarPreferences>(key: TabBarPreferenceKey.self)) }
-        let tabBarPreferencesCollector = PreferenceCollector<ToolbarBarPreferences>(key: TabBarPreferenceKey.self, state: tabBarPreferences)
 
         let safeArea = EnvironmentValues.shared._safeArea
         let density = LocalDensity.current
@@ -382,48 +372,62 @@ public struct TabView : View, Renderable {
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
                 Column(modifier: modifier.background(Color.background.colorImpl())) {
                     let entryContext = context.content()
-                    let activeStack = tabBackStacks[selectedTabIndex.value]
-                    let tabDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
-                    let tabEntryProvider: (NavKey) -> NavEntry<NavKey> = { key in
-                        let tabKey = key as! SkipTabViewRouteKey
-                        return NavEntry(tabKey, content: { key in
-                            let tabIndex = (key as! SkipTabViewRouteKey).index
-                            // Inset manually where our container ignored the safe area, but we aren't showing a bar
-                            let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-                            var bottomPadding = 0.dp
-                            if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
-                                bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
-                            }
-                            let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
-                            let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
+                    let tabIndex = selectedTabIndex.value
+                    // Shared padding/safe area calculations (same for all tabs)
+                    let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                    var bottomPadding = 0.dp
+                    if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
+                        bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                    }
+                    let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
+                    let contentSafeArea = safeArea?.insetting(.bottom, to: bottomBarTopPx.value)
+                    // Keep all visited tabs in composition simultaneously to preserve their full
+                    // state (scroll position, @State, navigation level, etc.) across tab switches.
+                    // Both @State and scroll state use plain `remember` (not rememberSaveable), so
+                    // the composition subtree must stay alive to retain them. Only the active tab is
+                    // visible; inactive tabs remain composed but hidden.
+                    Box(modifier: Modifier.fillMaxWidth().weight(Float(1.0))) {
+                        for ti in 0..<tabRenderables.size {
+                            // Key on the tab's identity (tag value) rather than index so that
+                            // state follows the tab if tabs are dynamically inserted or removed
+                            let tabKey: Any = tabTagValue(for: tabRenderables[ti]) ?? ti
+                            key(tabKey) {
+                                let isActive = ti == tabIndex
+                                // Track whether this tab has ever been active so we only compose
+                                // visited tabs (avoids composing all tabs at startup)
+                                let wasVisited = remember { mutableStateOf(isActive) }
+                                if isActive { wasVisited.value = true }
+                                if wasVisited.value {
+                                    // Each tab gets its own preference collector to keep the
+                                    // composition structure stable across active/inactive transitions
+                                    let perTabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ToolbarBarPreferences>, Any>) { mutableStateOf(Preference<ToolbarBarPreferences>(key: TabBarPreferenceKey.self)) }
+                                    let perTabCollector = PreferenceCollector<ToolbarBarPreferences>(key: TabBarPreferenceKey.self, state: perTabBarPreferences)
 
-                            // Special-case the first composition to avoid seeing the layout adjust. This is a common
-                            // issue with nav stacks in particular, and they're common enough that we need to cater to them.
-                            // Use an extra container to avoid causing the content itself to recompose
-                            let hasComposed = remember { mutableStateOf(false) }
-                            SideEffect { hasComposed.value = true }
-                            let alpha = hasComposed.value ? Float(1.0) : Float(0.0)
-                            Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
-                                // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
-                                // recomposing when called with the same values
-                                let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
-                                PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
-                                    RenderEntry(with: arguments, context: entryContext)
+                                    // Special-case the first composition to avoid seeing the layout adjust. This is a common
+                                    // issue with nav stacks in particular, and they're common enough that we need to cater to them.
+                                    // Use an extra container to avoid causing the content itself to recompose
+                                    let hasComposed = remember { mutableStateOf(false) }
+                                    SideEffect { hasComposed.value = true }
+                                    let alpha: Float = (isActive && hasComposed.value) ? Float(1.0) : Float(0.0)
+                                    Box(modifier: Modifier.fillMaxSize()
+                                        .zIndex(isActive ? Float(1.0) : Float(0.0))
+                                        .graphicsLayer(alpha: alpha),
+                                        contentAlignment: androidx.compose.ui.Alignment.Center) {
+                                        let arguments = TabEntryArguments(tabIndex: ti, modifier: contentModifier, safeArea: contentSafeArea)
+                                        PreferenceValues.shared.collectPreferences([perTabCollector]) {
+                                            RenderEntry(with: arguments, context: entryContext)
+                                        }
+                                    }
+                                    // Only propagate active tab's preferences to the shared state
+                                    if isActive {
+                                        SideEffect {
+                                            tabBarPreferences.value = perTabBarPreferences.value
+                                        }
+                                    }
                                 }
                             }
-                        })
+                        }
                     }
-                    NavDisplay(
-                        backStack: activeStack,
-                        modifier: Modifier.fillMaxWidth().weight(Float(1.0)),
-                        onBack: {
-                            if activeStack.size > 1 {
-                                activeStack.removeLastOrNull()
-                            }
-                        },
-                        entryDecorators: tabDecorators,
-                        entryProvider: tabEntryProvider
-                    )
                     bottomBar()
                 }
             }
@@ -490,7 +494,7 @@ public struct TabView : View, Renderable {
         }
     }
 
-    @Composable private func navigateToCurrentRoute(tabBackStacks: kotlin.collections.List<NavBackStack<NavKey>>, selectedTabIndex: MutableState<Int>, tabRenderables: kotlin.collections.List<Renderable>) {
+    @Composable private func navigateToCurrentRoute(selectedTabIndex: MutableState<Int>, tabRenderables: kotlin.collections.List<Renderable>) {
         let currentRoute = String(describing: selectedTabIndex.value)
         if let selection, selection.wrappedValue != tagValue(route: currentRoute, in: tabRenderables) {
             if let route = route(tagValue: selection.wrappedValue, in: tabRenderables), let idx = Int(string: route) {
@@ -506,27 +510,6 @@ public struct TabView : View, Renderable {
 }
 
 #if SKIP
-// SKIP INSERT: @Serializable
-public struct SkipTabViewRouteKey : NavKey {
-    public let index: Int
-}
-
-/// Fixed 100 persistent back stacks for tab bar content (matches legacy `0..<100` routes).
-@Composable public func rememberSkipTabViewBackStacks() -> kotlin.collections.List<NavBackStack<NavKey>> {
-    // Use a constant number of routes. Changing routes causes a NavHost to reset its state
-    // TODO is this necessary with NavDisplay?
-    let slots = remember { arrayOfNulls<NavBackStack<NavKey>?>(100) }
-    var tabIndex = 0
-    while tabIndex < 100 {
-        let ti = tabIndex
-        key(ti) {
-            slots[ti] = rememberNavBackStack(SkipTabViewRouteKey(index: ti))
-        }
-        tabIndex += 1
-    }
-    return slots.filterNotNull()
-}
-
 @Stable struct TabEntryArguments: Equatable {
     let tabIndex: Int
     let modifier: Modifier
