@@ -3,7 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -12,11 +12,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.DrawModifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -39,6 +41,8 @@ import androidx.compose.foundation.text.TextAutoSize
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
@@ -418,8 +422,33 @@ struct _Text: View, Renderable, Equatable {
                 let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
                 let currentIsEnabled = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
                 modifier = modifier.pointerInput(true) {
-                    detectTapGestures { pos in
-                        if currentIsEnabled.value, let offset = layoutResult.value?.getOffsetForPosition(pos), let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url, let url = URL(string: urlString) {
+                    // Detect a tap on a markdown link without consuming pointer events,
+                    // so a parent .onLongPressGesture / .onTapGesture / .gesture(...)
+                    // still fires. See https://github.com/skiptools/skip-ui/issues/371.
+                    let slop = viewConfiguration.touchSlop
+                    let timeout = viewConfiguration.longPressTimeoutMillis
+                    awaitEachGesture {
+                        let downEvent = awaitPointerEvent(pass: PointerEventPass.Initial)
+                        guard let down = downEvent.changes.firstOrNull({ $0.pressed }) else { return }
+                        let start = down.position
+                        let upPosition: Offset? = withTimeoutOrNull(timeout) {
+                            while true {
+                                let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+                                guard let change = event.changes.firstOrNull() else { return nil }
+                                if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
+                                    return nil
+                                }
+                                if !change.pressed {
+                                    return change.position
+                                }
+                            }
+                            return nil
+                        }
+                        guard let upPosition else { return }
+                        if currentIsEnabled.value,
+                           let offset = layoutResult.value?.getOffsetForPosition(upPosition),
+                           let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url,
+                           let url = URL(string: urlString) {
                             currentHandler.value.invoke(url)
                         }
                     }
