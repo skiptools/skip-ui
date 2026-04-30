@@ -41,6 +41,7 @@ public final class StateSupport: StateTracker {
     // SKIP @bridge
     public func access() {
         #if SKIP
+        StateTracking.recordMutationRead(lastAnimationTransaction)
         let _ = state?.value
         #endif
     }
@@ -48,6 +49,8 @@ public final class StateSupport: StateTracker {
     // SKIP @bridge
     public func update() {
         #if SKIP
+        lastAnimationTransaction = StateTracking.currentMutationTransaction as? AnimationTransaction
+        Animation.debugLog("bridged StateSupport update transaction=\(Animation.debugDescription(for: lastAnimationTransaction))")
         state?.value += 1
         #endif
     }
@@ -58,6 +61,10 @@ public final class StateSupport: StateTracker {
         state = mutableStateOf(0)
         #endif
     }
+
+    #if SKIP
+    var lastAnimationTransaction: AnimationTransaction?
+    #endif
 }
 
 #endif

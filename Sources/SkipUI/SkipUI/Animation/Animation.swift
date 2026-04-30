@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 import Foundation
+import SkipModel
 #if SKIP
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
@@ -92,6 +93,20 @@ extension View {
 final class AnimationHolder {
     var animation: Animation?
 }
+
+final class AnimationTransaction: StateMutationTransaction {
+    let id: Int
+    let animation: Animation?
+
+    init(id: Int, animation: Animation?) {
+        self.id = id
+        self.animation = animation
+    }
+}
+
+public enum AnimationDebug {
+    public static var decisionSink: ((String) -> Void)?
+}
 #endif
 
 // SKIP @bridge
@@ -109,7 +124,13 @@ public struct Animation : Hashable {
         var isNested = false
         synchronized (withAnimationLock) {
             isNested = _withAnimation != nil
+            nextWithAnimationTransactionID += 1
+            let transaction = AnimationTransaction(id: nextWithAnimationTransactionID, animation: animation)
+            withAnimationTransactions.append(transaction)
+            StateTracking.currentMutationTransaction = transaction
+            StateTracking.clearMutationReads()
             _withAnimation = animation
+            debugLog("open withAnimation \(debugDescription(for: withAnimationTransactions.last)) nested=\(isNested)")
         }
         return isNested
         #else
@@ -120,10 +141,17 @@ public struct Animation : Hashable {
     // SKIP @bridge
     public static func postBodyWithAnimation() {
         #if SKIP
+        synchronized (withAnimationLock) {
+            debugLog("clear withAnimation transactions after body")
+            withAnimationTransactions.removeAll()
+            StateTracking.currentMutationTransaction = nil
+        }
         GlobalScope.async(Dispatchers.Main) {
             awaitFrame()
             synchronized (withAnimationLock) {
+                debugLog("clear global withAnimation after frame")
                 _withAnimation = nil
+                StateTracking.clearMutationReads()
             }
         }
         #endif
@@ -151,6 +179,33 @@ public struct Animation : Hashable {
         return isAnimating ? rememberedAnimation : nil
     }
 
+    /// The current active animation for normal value animatables.
+    ///
+    /// Value animatables should be driven by explicit `.animation(..., value:)`
+    /// environment state or by a transaction attached to the state write that
+    /// caused the value change. The legacy global `_withAnimation` frame window
+    /// remains only for transition surfaces that cannot yet be tied to reads.
+    @Composable static func currentForAnimatable(isAnimating: Bool) -> Animation? {
+        let environmentAnimation = EnvironmentValues.shared._animation
+        let transaction = StateTracking.consumeMutationRead() as? AnimationTransaction
+        let animation = environmentAnimation ?? transaction?.animation
+
+        let rememberedAnimationHolder = remember { AnimationHolder() }
+        let rememberedAnimation = rememberedAnimationHolder.animation
+        if animation != nil {
+            rememberedAnimationHolder.animation = animation
+        } else if !isAnimating {
+            rememberedAnimationHolder.animation = nil
+        }
+
+        debugDecision("animatable transaction=\(debugDescription(for: transaction)) environmentAnimation=\(environmentAnimation != nil) usesAnimation=\(animation != nil)")
+
+        guard animation == nil else {
+            return animation
+        }
+        return isAnimating ? rememberedAnimation : nil
+    }
+
     /// Whether we're in a `withAnimation` block.
     static var isInWithAnimation: Bool {
         synchronized (withAnimationLock) {
@@ -158,10 +213,36 @@ public struct Animation : Hashable {
         }
     }
 
+    static var currentTransaction: AnimationTransaction? {
+        synchronized (withAnimationLock) {
+            return withAnimationTransactions.last
+        }
+    }
+
+    static func debugDescription(for transaction: AnimationTransaction?) -> String {
+        if let transaction {
+            return "#\(transaction.id) animation=\(transaction.animation != nil)"
+        } else {
+            return "none"
+        }
+    }
+
+    static func debugLog(_ message: String) {
+        if debugWithAnimationTransactions {
+            android.util.Log.d("SkipUI.Animation", message)
+        }
+    }
+
+    static func debugDecision(_ message: String) {
+        AnimationDebug.decisionSink?(message)
+        debugLog(message)
+    }
+
     /// Internal implementation of global `withAnimation` SwiftUI function.
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
         let isNested = preBodyWithAnimation(animation)
         defer {
+            finishBodyWithAnimation()
             if !isNested {
                 postBodyWithAnimation()
             }
@@ -169,7 +250,19 @@ public struct Animation : Hashable {
         return body()
     }
 
+    private static func finishBodyWithAnimation() {
+        synchronized (withAnimationLock) {
+            if !withAnimationTransactions.isEmpty {
+                withAnimationTransactions.removeLast()
+            }
+            StateTracking.currentMutationTransaction = withAnimationTransactions.last
+        }
+    }
+
     private static var _withAnimation: Animation?
+    private static var withAnimationTransactions: [AnimationTransaction] = []
+    private static var nextWithAnimationTransactionID = 0
+    private static let debugWithAnimationTransactions = false
     private static let withAnimationLock: java.lang.Object = java.lang.Object()
 
     private let spec: AnimationSpec<Any>
@@ -458,7 +551,8 @@ public enum AnimationCompletionCriteria : Hashable {
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
     if isAnimating || animatable.value != value {
-        let animation = Animation.current(isAnimating: isAnimating)
+        let animation = Animation.currentForAnimatable(isAnimating: isAnimating)
+        Animation.debugDecision("animatable change value=\(value) isAnimating=\(isAnimating) usesAnimation=\(animation != nil)")
         LaunchedEffect(value, animation) {
             if let animation {
                 if animation.isInfinite {
