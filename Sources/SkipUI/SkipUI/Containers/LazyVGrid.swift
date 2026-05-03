@@ -76,11 +76,15 @@ public struct LazyVGrid: View, Renderable {
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVGrid") { _, safeAreaEdges in
+            let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+            let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
+            let coroutineScope = rememberCoroutineScope()
+            if scrollAxes.contains(Axis.Set.vertical) {
+                PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: gridState, for: [ToolbarPlacement.bottomBar]))
+                PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: gridState))
+            }
+            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVGrid") { _, _ in
                 // Integrate with our scroll-to-top and ScrollViewReader
-                let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
-                let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
-                let coroutineScope = rememberCoroutineScope()
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: gridState) {
                     coroutineScope.launch {
                         gridState.animateScrollToItem(0)
@@ -98,10 +102,6 @@ public struct LazyVGrid: View, Renderable {
                     }
                 }
                 PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-                if safeAreaEdges.contains(Edge.Set.bottom) {
-                    PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: gridState, for: [ToolbarPlacement.bottomBar]))
-                    PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: gridState))
-                }
 
                 // Observe scroll position changes and contribute them via preferences
                 let scrollPositionState = remember { mutableStateOf<ScrollPositionState?>(nil) }

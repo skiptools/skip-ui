@@ -69,11 +69,15 @@ public struct LazyVStack : View, Renderable {
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVStack") { _, safeAreaEdges in
+            let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
+            let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
+            let coroutineScope = rememberCoroutineScope()
+            if scrollAxes.contains(Axis.Set.vertical) {
+                PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
+                PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: listState))
+            }
+            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVStack") { _, _ in
                 // Integrate with our scroll-to-top and ScrollViewReader
-                let listState = rememberLazyListState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
-                let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(listState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()
-                let coroutineScope = rememberCoroutineScope()
                 PreferenceValues.shared.contribute(context: context, key: ScrollToTopPreferenceKey.self, value: ScrollToTopAction(key: listState) {
                     coroutineScope.launch {
                         listState.animateScrollToItem(0)
@@ -91,10 +95,6 @@ public struct LazyVStack : View, Renderable {
                     }
                 }
                 PreferenceValues.shared.contribute(context: context, key: ScrollToIDPreferenceKey.self, value: scrollToID)
-                if safeAreaEdges.contains(Edge.Set.bottom) {
-                    PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(scrollableState: listState, for: [ToolbarPlacement.bottomBar]))
-                    PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(scrollableState: listState))
-                }
 
                 // Observe scroll position changes and contribute them via preferences
                 let scrollPositionState = remember { mutableStateOf<ScrollPositionState?>(nil) }
