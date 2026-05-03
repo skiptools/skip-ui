@@ -4,12 +4,13 @@
 import Foundation
 #if SKIP
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -52,6 +53,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -248,7 +250,6 @@ public struct NavigationStack : View, Renderable {
         }
 
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
-        let topBarHidden = remember { mutableStateOf(false) }
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: titleDisplayPreference)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
@@ -260,6 +261,15 @@ public struct NavigationStack : View, Renderable {
         let toolbarItems = ToolbarItems(content: toolbarContentReduced.content ?? [])
         let (titleMenu, topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
 
+        let showTopBar: Bool
+        switch topBarPreferences?.visibility ?? Visibility.automatic {
+        case .hidden:
+            showTopBar = false
+        case .visible:
+            showTopBar = true
+        case .automatic:
+            showTopBar = !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0
+        }
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
         let searchFieldHeightPx = with(density) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
@@ -290,7 +300,7 @@ public struct NavigationStack : View, Renderable {
             navigationIconButtonColors = nil
         }
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
-        if !topBarHidden.value {
+        if showTopBar {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         }
         modifier = modifier.then(context.modifier)
@@ -308,164 +318,158 @@ public struct NavigationStack : View, Renderable {
 
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
         let topBar: @Composable () -> Void = {
-            guard topBarPreferences?.visibility != Visibility.hidden else {
-                SideEffect {
-                    topBarHidden.value = true
-                    topBarBottomPx.value = Float(0.0)
-                    topBarHeightPx.value = Float(0.0)
-                }
-                return
-            }
-
-            guard !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0 || topBarPreferences?.visibility == Visibility.visible else {
-                SideEffect {
-                    topBarHidden.value = true
-                    topBarBottomPx.value = Float(0.0)
-                    topBarHeightPx.value = Float(0.0)
-                }
-                return
-            }
-            topBarHidden.value = false
-
-            let isOverlapped = scrollBehavior.state.overlappedFraction > 0
-            let materialColorScheme: androidx.compose.material3.ColorScheme
-            if isOverlapped, let customColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() {
-                materialColorScheme = customColorScheme
-            } else {
-                materialColorScheme = MaterialTheme.colorScheme
-            }
-            MaterialTheme(colorScheme: materialColorScheme) {
-                let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-                let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
-                let topBarBackgroundForBrush: ShapeStyle?
-                // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
-                // properly interpolate between the title text colors
-                let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
-                let isSystemBackground = topBarPreferences?.isSystemBackground == true
-                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-                    topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                    unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                    topBarBackgroundForBrush = nil
-                } else if let background = topBarPreferences?.background {
-                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                        topBarBackgroundColor = color
-                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
-                        topBarBackgroundForBrush = nil
-                    } else {
-                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                        topBarBackgroundColor = !topBarHasColorScheme || isOverlapped ? unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0)) : unscrolledTopBarBackgroundColor
-                        topBarBackgroundForBrush = background
+            let animation: Animation = Animation.current(isAnimating: false) ?? topBarPreferences?.visibilityAnimation ?? Animation.linear(duration: 0)
+            let animationSpec: AnimationSpec<Any> = animation.asAnimationSpec()
+            let moveEdgeTop = MoveTransition(edge: .top)
+            let topBarEnter = moveEdgeTop.asEnterTransition(spec: animationSpec)
+            let topBarExit = moveEdgeTop.asExitTransition(spec: animationSpec)
+            AnimatedVisibility(visible: showTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
+                DisposableEffect(true) {
+                    onDispose {
+                        topBarBottomPx.value = Float(0.0)
+                        topBarHeightPx.value = Float(0.0)
                     }
+                }
+                let isOverlapped = scrollBehavior.state.overlappedFraction > 0
+                let materialColorScheme: androidx.compose.material3.ColorScheme
+                if isOverlapped, let customColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() {
+                    materialColorScheme = customColorScheme
                 } else {
-                    topBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                    unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
-                    topBarBackgroundForBrush = nil
+                    materialColorScheme = MaterialTheme.colorScheme
                 }
-
-                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-                let placement = EnvironmentValues.shared._placement
-                EnvironmentValues.shared.setValues {
-                    $0.set_placement(placement.union(ViewPlacement.toolbar))
-                    $0.set_tint(tint)
-                    return ComposeResult.ok
-                } in: {
-                    let interactionSource = remember { MutableInteractionSource() }
-                    var topBarModifier = Modifier.zIndex(Float(1.1))
-                        .clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                            scrollToTop.value.reduced.action()
-                        })
-                        .onGloballyPositionedInWindow { bounds in
-                            topBarBottomPx.value = bounds.bottom
-                            topBarHeightPx.value = bounds.bottom - bounds.top
-                        }
-                    if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
-                        let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
-                        if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
-                            topBarModifier = topBarModifier.background(topBarBackgroundBrush)
-                        }
-                    }
-                    let alwaysShowScrolledBackground = topBarPreferences?.backgroundVisibility == Visibility.visible
-                    let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: alwaysShowScrolledBackground ? topBarBackgroundColor : unscrolledTopBarBackgroundColor,
-                        scrolledContainerColor: topBarBackgroundColor,
-                        titleContentColor: MaterialTheme.colorScheme.onSurface
-                    )
-                    let topBarTitle: @Composable () -> Void = {
-                        if let titleMenu {
-                            let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                                titleMenu.toggleMenu()
-                            })
-                            let arrangement = Arrangement.spacedBy(2.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
-                            Row(modifier: menuModifier, horizontalArrangement: arrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                                Image(systemName: "chevron.down").accessibilityHidden(true).Compose(context: context)
-                            }
-                            titleMenu.Render(context: context)
+                MaterialTheme(colorScheme: materialColorScheme) {
+                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    let topBarBackgroundForBrush: ShapeStyle?
+                    // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
+                    // properly interpolate between the title text colors
+                    let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
+                    let isSystemBackground = topBarPreferences?.isSystemBackground == true
+                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                        topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                        unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                        topBarBackgroundForBrush = nil
+                    } else if let background = topBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            topBarBackgroundColor = color
+                            unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
+                            topBarBackgroundForBrush = nil
                         } else {
-                            androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                        }
-                    }
-                    let topBarNavigationIcon: @Composable () -> Void = {
-                        let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
-                        if hasBackButton || topLeadingItems.size > 0 {
-                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                if hasBackButton {
-                                    let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                                    let backIcon: @Composable () -> Void = {
-                                        Icon(
-                                            imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack),
-                                            contentDescription: "Back",
-                                            tint: tint.colorImpl()
-                                        )
-                                    }
-                                    switch navigationIconButtonStyle {
-                                    case Material3TopAppBarNavigationIconButtonStyle.filledIconButton:
-                                        FilledIconButton(
-                                            onClick: { navigator.value.navigateBack() },
-                                            colors: navigationIconButtonColors ?? IconButtonDefaults.filledIconButtonColors()
-                                        ) { backIcon() }
-                                    case Material3TopAppBarNavigationIconButtonStyle.iconButton:
-                                        IconButton(
-                                            onClick: { navigator.value.navigateBack() },
-                                            colors: navigationIconButtonColors ?? IconButtonDefaults.iconButtonColors()
-                                        ) { backIcon() }
-                                    }
-                                }
-                                for renderable in topLeadingItems {
-                                    renderable.Render(context: toolbarItemContext)
-                                }
-                            }
-                        }
-                    }
-                    let topBarActions: @Composable () -> Void = {
-                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                        for renderable in topTrailingItems {
-                            renderable.Render(context: toolbarItemContext)
-                        }
-                    }
-                    var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
-                    if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
-                        options = updateOptions(options)
-                    }
-                    // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
-                    options = options.copy(scrollBehavior: scrollBehavior)
-                    if isInlineTitleDisplayMode {
-                        if options.preferCenterAlignedStyle {
-                            CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
-                        } else {
-                            TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                            topBarBackgroundColor = !topBarHasColorScheme || isOverlapped ? unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0)) : unscrolledTopBarBackgroundColor
+                            topBarBackgroundForBrush = background
                         }
                     } else {
-                        // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
-                        let typography = MaterialTheme.typography
-                        let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
-                        let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
-                        MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
-                            if options.preferLargeStyle {
-                                LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                        unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
+                        topBarBackgroundForBrush = nil
+                    }
+
+                    let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                    let placement = EnvironmentValues.shared._placement
+                    EnvironmentValues.shared.setValues {
+                        $0.set_placement(placement.union(ViewPlacement.toolbar))
+                        $0.set_tint(tint)
+                        return ComposeResult.ok
+                    } in: {
+                        let interactionSource = remember { MutableInteractionSource() }
+                        var topBarModifier = Modifier.zIndex(Float(1.1))
+                            .clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                                scrollToTop.value.reduced.action()
+                            })
+                            .onGloballyPositionedInWindow { bounds in
+                                topBarBottomPx.value = bounds.bottom
+                                topBarHeightPx.value = bounds.bottom - bounds.top
+                            }
+                        if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
+                            let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
+                            if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
+                                topBarModifier = topBarModifier.background(topBarBackgroundBrush)
+                            }
+                        }
+                        let alwaysShowScrolledBackground = topBarPreferences?.backgroundVisibility == Visibility.visible
+                        let topBarColors = TopAppBarDefaults.topAppBarColors(
+                            containerColor: alwaysShowScrolledBackground ? topBarBackgroundColor : unscrolledTopBarBackgroundColor,
+                            scrolledContainerColor: topBarBackgroundColor,
+                            titleContentColor: MaterialTheme.colorScheme.onSurface
+                        )
+                        let topBarTitle: @Composable () -> Void = {
+                            if let titleMenu {
+                                let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                                    titleMenu.toggleMenu()
+                                })
+                                let arrangement = Arrangement.spacedBy(2.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+                                Row(modifier: menuModifier, horizontalArrangement: arrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                    androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                                    Image(systemName: "chevron.down").accessibilityHidden(true).Compose(context: context)
+                                }
+                                titleMenu.Render(context: context)
                             } else {
-                                MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                            }
+                        }
+                        let topBarNavigationIcon: @Composable () -> Void = {
+                            let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
+                            if hasBackButton || topLeadingItems.size > 0 {
+                                let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                                Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                    if hasBackButton {
+                                        let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
+                                        let backIcon: @Composable () -> Void = {
+                                            Icon(
+                                                imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack),
+                                                contentDescription: "Back",
+                                                tint: tint.colorImpl()
+                                            )
+                                        }
+                                        switch navigationIconButtonStyle {
+                                        case Material3TopAppBarNavigationIconButtonStyle.filledIconButton:
+                                            FilledIconButton(
+                                                onClick: { navigator.value.navigateBack() },
+                                                colors: navigationIconButtonColors ?? IconButtonDefaults.filledIconButtonColors()
+                                            ) { backIcon() }
+                                        case Material3TopAppBarNavigationIconButtonStyle.iconButton:
+                                            IconButton(
+                                                onClick: { navigator.value.navigateBack() },
+                                                colors: navigationIconButtonColors ?? IconButtonDefaults.iconButtonColors()
+                                            ) { backIcon() }
+                                        }
+                                    }
+                                    for renderable in topLeadingItems {
+                                        renderable.Render(context: toolbarItemContext)
+                                    }
+                                }
+                            }
+                        }
+                        let topBarActions: @Composable () -> Void = {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                            for renderable in topTrailingItems {
+                                renderable.Render(context: toolbarItemContext)
+                            }
+                        }
+                        var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
+                        if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
+                            options = updateOptions(options)
+                        }
+                        // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
+                        options = options.copy(scrollBehavior: scrollBehavior)
+                        if isInlineTitleDisplayMode {
+                            if options.preferCenterAlignedStyle {
+                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            } else {
+                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            }
+                        } else {
+                            // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
+                            let typography = MaterialTheme.typography
+                            let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
+                            let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
+                            MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
+                                if options.preferLargeStyle {
+                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                } else {
+                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                }
                             }
                         }
                     }
@@ -564,9 +568,8 @@ public struct NavigationStack : View, Renderable {
             }
         }
 
-        // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
-        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        
+        // We place nav bars within each entry rather than at the navigation controller level so toolbar preferences apply per entry.
+
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
         if layoutImplementationVersion < 2 {
             // Old Column layout (version < 2)
@@ -625,9 +628,13 @@ public struct NavigationStack : View, Renderable {
             // New Box layout (version >= 2)
             Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
                 // Calculate safe area for content by insetting by topBar and bottomBar heights
-                let contentSafeArea = arguments.safeArea?
-                    .insetting(.top, to: topBarBottomPx.value)
-                    .insetting(.bottom, to: bottomBarTopPx.value)
+                var contentSafeArea: SafeArea?
+                if let safeArea = arguments.safeArea {
+                    let clampedTopBarBottomPxValue: Float = max(topBarBottomPx.value, safeArea.safeBoundsPx.top)
+                    contentSafeArea = safeArea
+                        .insetting(.top, to: clampedTopBarBottomPxValue)
+                        .insetting(.bottom, to: bottomBarTopPx.value)
+                }
                 
                 // Top bar aligned to top
                 Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
@@ -646,9 +653,9 @@ public struct NavigationStack : View, Renderable {
                 // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
                 // indicator.
                 var contentModifier = Modifier.fillMaxSize()
-                // Use top bar height (not absolute bottom) for padding so content starts directly under the bar (LIV 2 Box layout).
-                let topPadding = topBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
-                        WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : with(density) { topBarHeightPx.value.toDp() }
+                let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
+                let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
                 let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
                         max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
                 contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
