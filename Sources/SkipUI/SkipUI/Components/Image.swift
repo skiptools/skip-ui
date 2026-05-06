@@ -43,6 +43,7 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
@@ -277,8 +278,34 @@ public struct Image : View, Renderable, Equatable {
             parseSymbolXML(url)
         }
 
+        func swiftFontWeight(from composeFontWeight: FontWeight?) -> Font.Weight? {
+            guard let composeFontWeight else {
+                return nil
+            }
+            if composeFontWeight == FontWeight.Thin {
+                return .ultraLight
+            } else if composeFontWeight == FontWeight.ExtraLight {
+                return .thin
+            } else if composeFontWeight == FontWeight.Light {
+                return .light
+            } else if composeFontWeight == FontWeight.Normal {
+                return .regular
+            } else if composeFontWeight == FontWeight.Medium {
+                return .medium
+            } else if composeFontWeight == FontWeight.SemiBold {
+                return .semibold
+            } else if composeFontWeight == FontWeight.Bold {
+                return .bold
+            } else if composeFontWeight == FontWeight.ExtraBold {
+                return .heavy
+            } else if composeFontWeight == FontWeight.Black {
+                return .black
+            }
+            return nil
+        }
+
         // match the best symbol for the current font weight
-        let fontWeight = EnvironmentValues.shared._textEnvironment.fontWeight ?? Font.Weight.regular
+        let fontWeight = EnvironmentValues.shared._textEnvironment.fontWeight ?? swiftFontWeight(from: EnvironmentValues.shared.font?.fontImpl().fontWeight) ?? Font.Weight.regular
 
         // Exporting as "Static" will contain all 27 variants (9 weights * 3 sizes),
         // but "Variable" will only have 3: Ultralight-S, Regular-S, and Black-S
