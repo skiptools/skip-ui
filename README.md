@@ -3090,6 +3090,99 @@ struct CityPickerView: View {
 }
 ```
 
+#### Configure navigation transition animations
+
+SkipUI uses [Navigation 3](https://developer.android.com/guide/navigation/navigation-3) transition animations to animate pushing/popping in  `NavigationStack` and to animate switching tabs in `TabView`. For `TabView`, we use Navigation 3's default animation (a quick fade), and for `NavigationStack`, we simulate SwiftUI's default animation with a slide + fade animation.
+
+You can configure these navigation animations with the `.navigationStackTransitions` and `.tabViewTransitions` modifiers. You pass it a closure that returns a `NavDisplayTransitionOptions` object.
+
+```swift
+public struct NavDisplayTransitionOptions {
+    public enum TransitionPreset {
+        case `default` // `default` uses NavDisplay.defaultTransitionSpec, .defaultPopTransitionSpec, and .defaultPredictivePopTransitionSpec
+        case slideIn
+        case slideOut
+        case fade
+        case slideInAndFade // This is the default NavigationStack transition
+        case slideOutAndFade
+        case none // instant transition with no animation
+    }
+
+    public init(
+        transition: TransitionPreset = .default,
+        popTransition: TransitionPreset = .default,
+        predictivePopTransition: TransitionPreset = .default
+    )
+
+    public init(_ transitionPresets: TransitionPreset)
+
+    public func copy(
+        transition: TransitionPreset? = nil,
+        popTransition: TransitionPreset? = nil,
+        predictivePopTransition: TransitionPreset? = nil
+    ) -> NavDisplayTransitionOptions
+
+    #if SKIP
+    public let transitionSpec: ContentTransform?
+    public let popTransitionSpec: ContentTransform?
+    public let predictivePopTransitionSpec: ContentTransform?
+
+    public init(
+        transitionSpec: ContentTransform?,
+        popTransitionSpec: ContentTransform?,
+        predictivePopTransitionSpec: ContentTransform?
+    )
+
+    public init(_ transitionSpecs: ContentTransform?)
+
+    public func copy(
+        transitionSpec: ContentTransform? = self.transitionSpec,
+        popTransitionSpec: ContentTransform? = self.popTransitionSpec,
+        predictivePopTransitionSpec: ContentTransform? = self.predictivePopTransitionSpec
+    ) -> NavDisplayTransitionOptions
+    #endif
+}
+```
+
+Your closure can either return your own instance of `NavDisplayTransitionOptions`, or a copy of the provided options, changing just one of the transitions.
+
+```swift
+#if os(Android)
+.tabViewTransitions { options in
+    NavDisplayTransitionOptions(.none)
+}
+.navigationStackTransitions { _ in
+    options.copy(predictivePopTransition: .fade)
+}
+#endif
+```
+
+In transpiled `#if SKIP` code, you can specify a custom animation spec. (In Skip Fuse, you'd use [`composeModifier`](#composemodifier) for that.)
+
+```swift
+#if os(Android)
+.composeModifier {
+    CustomNavigationAnimationSpecModifier()
+}
+#endif
+
+// ...
+
+#if SKIP
+struct CustomNavigationAnimationSpecModifier : ContentModifier {
+    func modify(view: any View) -> any View {
+        view.composeModifier {
+            $0.navigationStackTransitions { _ in
+                NavDisplayTransitionOptions(
+                    // this example is just .slideInAndFade, but you could customize it however you like
+                    (slideInHorizontally { $0 } + fadeIn()).togetherWith(slideOutHorizontally { -$0 } + fadeOut())
+                )
+            }
+        }
+    }
+}
+#endif
+```
 #### Modals
 
 Skip supports standard modal presentations. Android apps typically allow users to dismiss modals with the Android back button. Skip allows you to selectively disable this behavior with the Android-only `backDismissDisabled(_ isDisabled: Bool = true)` SwiftUI modifier. If you use this modifier, you **must** put it on the top-level view embedded in your `.sheet` or `.fullScreenCover`, as in the following example:

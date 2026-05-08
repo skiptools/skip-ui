@@ -78,6 +78,9 @@ import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultPopTransitionSpec
+import androidx.navigation3.ui.defaultPredictivePopTransitionSpec
+import androidx.navigation3.ui.defaultTransitionSpec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -515,6 +518,8 @@ public struct TabView : View, Renderable {
                                 tabIndex += 1
                             }
                             let activeEntries = decoratedEntrySlots[selectedTabIndex.value]!
+                            let defaults = NavDisplayTransitionOptions.tabViewDefaults
+                            let transitions = EnvironmentValues.shared._tabViewTransitions?(defaults) ?? defaults
                             NavDisplay(
                                 entries: activeEntries,
                                 modifier: Modifier.fillMaxSize(),
@@ -523,6 +528,15 @@ public struct TabView : View, Renderable {
                                         activeStack.removeLastOrNull()
                                     }
                                 },
+                                transitionSpec: {
+                                    transitions.transitionSpec ?? defaultTransitionSpec<NavKey>()()
+                                },
+                                popTransitionSpec: {
+                                    transitions.popTransitionSpec ?? defaultPopTransitionSpec<NavKey>()()
+                                },
+                                predictivePopTransitionSpec: { edge in
+                                    transitions.predictivePopTransitionSpec ?? defaultPredictivePopTransitionSpec<NavKey>()(edge)
+                                }
                             )
                         }
                     )
@@ -1233,6 +1247,11 @@ extension View {
     #if SKIP
     public func material3NavigationBar(_ options: @Composable (Material3NavigationBarOptions) -> Material3NavigationBarOptions) -> View {
         return environment(\._material3NavigationBar, options, affectsEvaluate: false)
+    }
+
+    // SKIP @bridge
+    public func tabViewTransitions(_ options: @escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions) -> View {
+        return environment(\._tabViewTransitions, options, affectsEvaluate: false)
     }
     #endif
 }

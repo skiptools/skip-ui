@@ -4,6 +4,8 @@
 import Foundation
 #if SKIP
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -88,7 +90,11 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.scene.Scene
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.defaultPopTransitionSpec
+import androidx.navigation3.ui.defaultPredictivePopTransitionSpec
+import androidx.navigation3.ui.defaultTransitionSpec
 import kotlin.reflect.full.superclasses
 import kotlinx.serialization.Serializable
 import androidx.compose.runtime.key
@@ -198,18 +204,20 @@ public struct NavigationStack : View, Renderable {
                             }
                         }
                     }
+                    let defaults = NavDisplayTransitionOptions.navigationStackDefaults
+                    let transitions = EnvironmentValues.shared._navigationStackTransitions?(defaults) ?? defaults
                     NavDisplay(
                         backStack: navBackStack,
                         modifier: modifier,
                         onBack: { navigator.value.navigateBack() },
                         transitionSpec: {
-                            // SKIP INSERT: slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+                            transitions.transitionSpec ?? defaultTransitionSpec<NavKey>()()
                         },
                         popTransitionSpec: {
-                            // SKIP INSERT: slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                            transitions.popTransitionSpec ?? defaultPopTransitionSpec<NavKey>()()
                         },
-                        predictivePopTransitionSpec: { _ in
-                            // SKIP INSERT: slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+                        predictivePopTransitionSpec: { edge in
+                            transitions.predictivePopTransitionSpec ?? defaultPredictivePopTransitionSpec<NavKey>()(edge)
                         },
                         entryDecorators: decoratorList,
                         entryProvider: entryProvider
@@ -1379,6 +1387,11 @@ extension View {
         return environment(\._material3BottomAppBar, options, affectsEvaluate: false)
     }
 
+    // SKIP @bridge
+    public func navigationStackTransitions(_ options: @escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions) -> View {
+        return environment(\._navigationStackTransitions, options, affectsEvaluate: false)
+    }
+
     public func navigationStackLayoutHints(expectedTitle: Text = NavigationTitlePreferenceKey.defaultValue, expectedTitleDisplayMode: ToolbarTitleDisplayMode? = nil) -> View {
         return environment(
             \._navigationStackLayoutHints,
@@ -1506,6 +1519,111 @@ public struct Material3BottomAppBarOptions {
         contentPadding: PaddingValues = self.contentPadding
     ) -> Material3BottomAppBarOptions {
         return Material3BottomAppBarOptions(modifier: modifier, containerColor: containerColor, contentColor: contentColor, tonalElevation: tonalElevation, contentPadding: contentPadding)
+    }
+}
+
+// SKIP @bridge
+public struct NavDisplayTransitionOptions {
+    // SKIP @bridgeMembers
+    public enum TransitionPreset: Sendable {
+        case `default`
+        case slideIn
+        case slideOut
+        case slideInAndFade
+        case slideOutAndFade
+        case fade
+        case none
+
+        // SKIP @nobridge
+        var contentTransform: ContentTransform? {
+            switch self {
+            case .default:
+                // This will use NavDisplay.defaultTransitionSpec, .defaultPopTransitionSpec, and .defaultPredictivePopTransitionSpec
+                return nil
+            case .slideIn:
+                return slideInHorizontally { $0 }.togetherWith(slideOutHorizontally { -$0 })
+            case .slideOut:
+                return slideInHorizontally { -$0 }.togetherWith(slideOutHorizontally { $0 })
+            case .slideInAndFade:
+                return (slideInHorizontally { $0 } + fadeIn()).togetherWith(slideOutHorizontally { -$0 } + fadeOut())
+            case .slideOutAndFade:
+                return (slideInHorizontally { -$0 } + fadeIn()).togetherWith(slideOutHorizontally { $0 } + fadeOut())
+            case .fade:
+                return fadeIn().togetherWith(fadeOut())
+            case .none:
+                return fadeIn(animationSpec: tween(0)).togetherWith(fadeOut(animationSpec: tween(0)))
+            }
+        }
+    }
+
+    public let transitionSpec: ContentTransform?
+    public let popTransitionSpec: ContentTransform?
+    public let predictivePopTransitionSpec: ContentTransform?
+
+    public init(transitionSpec: ContentTransform?, popTransitionSpec: ContentTransform?, predictivePopTransitionSpec: ContentTransform?) {
+        self.transitionSpec = transitionSpec
+        self.popTransitionSpec = popTransitionSpec
+        self.predictivePopTransitionSpec = predictivePopTransitionSpec
+    }
+
+    public init(_ transitionSpecs: ContentTransform?) {
+        self.transitionSpec = transitionSpecs
+        self.popTransitionSpec = transitionSpecs
+        self.predictivePopTransitionSpec = transitionSpecs
+    }
+
+    // SKIP @bridge
+    public init(_ transitionPreset: TransitionPreset) {
+        self.transitionSpec = transitionPreset.contentTransform
+        self.popTransitionSpec = transitionPreset.contentTransform
+        self.predictivePopTransitionSpec = transitionPreset.contentTransform
+    }
+
+    // SKIP @bridge
+    public init(transition: TransitionPreset = .default, popTransition: TransitionPreset = .default, predictivePopTransition: TransitionPreset = .default) {
+        self.transitionSpec = transition.contentTransform
+        self.popTransitionSpec = popTransition.contentTransform
+        self.predictivePopTransitionSpec = predictivePopTransition.contentTransform
+    }
+
+    // SKIP @bridge
+    public static var navigationStackDefaults: NavDisplayTransitionOptions {
+        NavDisplayTransitionOptions(
+            transition: .slideInAndFade,
+            popTransition: .slideOutAndFade,
+            predictivePopTransition: .slideOut
+        )
+    }
+
+    // SKIP @bridge
+    public static var tabViewDefaults: NavDisplayTransitionOptions {
+        NavDisplayTransitionOptions()
+    }
+
+    public func copy(
+        transitionSpec: ContentTransform? = self.transitionSpec,
+        popTransitionSpec: ContentTransform? = self.popTransitionSpec,
+        predictivePopTransitionSpec: ContentTransform? = self.predictivePopTransitionSpec
+    ) -> NavDisplayTransitionOptions {
+        NavDisplayTransitionOptions(
+            transitionSpec: transitionSpec,
+            popTransitionSpec: popTransitionSpec,
+            predictivePopTransitionSpec: predictivePopTransitionSpec
+        )
+    }
+
+    /// Preset-based updates. Pass `nil` for a slot to leave `self`’s value unchanged.
+    // SKIP @bridge
+    public func copy(
+        transition: TransitionPreset? = nil,
+        popTransition: TransitionPreset? = nil,
+        predictivePopTransition: TransitionPreset? = nil
+    ) -> NavDisplayTransitionOptions {
+        return copy(
+            transitionSpec: transition == .default ? nil : (transition?.contentTransform ?? transitionSpec),
+            popTransitionSpec: popTransition == .default ? nil : (popTransition?.contentTransform ?? popTransitionSpec),
+            predictivePopTransitionSpec: predictivePopTransition == .default ? nil : (predictivePopTransition?.contentTransform ?? predictivePopTransitionSpec)
+        )
     }
 }
 
