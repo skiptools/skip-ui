@@ -134,14 +134,10 @@ public struct NavigationStack : View, Renderable {
 
     #if SKIP
     @Composable public override func Render(context: ComposeContext) {
-        // Have to use rememberSaveable for e.g. a nav stack in each tab
-        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>) { mutableStateOf(Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self))
-        }
-        // Make this collector non-erasable so that destinations defined at e.g. the root nav stack layer don't disappear when you push
-        let destinationsCollector = PreferenceCollector<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, state: destinations, isErasable: false)
-        let destinationLayoutHints = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinationLayoutHintsMap>, Any>) { mutableStateOf(Preference<NavigationDestinationLayoutHintsMap>(key: NavigationDestinationLayoutHintsPreferenceKey.self))
-        }
-        let destinationLayoutHintsCollector = PreferenceCollector<NavigationDestinationLayoutHintsMap>(key: NavigationDestinationLayoutHintsPreferenceKey.self, state: destinationLayoutHints, isErasable: false)
+        // Have to use rememberSaveable for e.g. a nav stack in each tab. Make the collectors non-erasable so that
+        // destinations defined at e.g. the root nav stack layer don't disappear when you push.
+        let (destinations, destinationsCollector) = rememberSaveablePreferenceCollector(key: NavigationDestinationsPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>, isErasable: false)
+        let (destinationLayoutHints, destinationLayoutHintsCollector) = rememberSaveablePreferenceCollector(key: NavigationDestinationLayoutHintsPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinationLayoutHintsMap>, Any>, isErasable: false)
         let reducedDestinations = destinations.value.reduced
         let reducedDestinationLayoutHints = destinationLayoutHints.value.reduced
         let mergedDestinations = mergeNavigationDestinationsWithLayoutHints(reducedDestinations, layoutHints: reducedDestinationLayoutHints)
@@ -166,12 +162,9 @@ public struct NavigationStack : View, Renderable {
                             }
                             // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                             // during the navigation animation. We have to collect them here
-                            let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
-                            let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
-                            let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
-                            let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
-                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
-                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
+                            let (title, titleCollector) = rememberSaveablePreferenceCollector(key: NavigationTitlePreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>)
+                            let (toolbarPreferences, toolbarPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>)
+                            let (toolbarContentPreferences, toolbarContentPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarContentPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>)
                             let arguments = NavigationEntryArguments(isRoot: true, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                             PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector, destinationLayoutHintsCollector]) {
                                 RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
@@ -185,12 +178,9 @@ public struct NavigationStack : View, Renderable {
                             }
                             // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                             // during the navigation animation. We have to collect them here
-                            let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
-                            let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
-                            let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
-                            let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
-                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
-                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
+                            let (title, titleCollector) = rememberSaveablePreferenceCollector(key: NavigationTitlePreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>)
+                            let (toolbarPreferences, toolbarPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>)
+                            let (toolbarContentPreferences, toolbarContentPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarContentPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>)
                             EnvironmentValues.shared.setValues {
                                 $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
                                 return ComposeResult.ok
@@ -266,11 +256,9 @@ public struct NavigationStack : View, Renderable {
         let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
-        let searchableStatePreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>) { mutableStateOf(Preference<SearchableState?>(key: SearchableStatePreferenceKey.self)) }
-        let searchableStateCollector = PreferenceCollector<SearchableState?>(key: SearchableStatePreferenceKey.self, state: searchableStatePreference)
+        let (searchableStatePreference, searchableStateCollector) = rememberSaveablePreferenceCollector(key: SearchableStatePreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>)
 
-        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>) { mutableStateOf(Preference<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self)) }
-        let scrollToTopCollector = PreferenceCollector<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
+        let (scrollToTop, scrollToTopCollector) = rememberSaveablePreferenceCollector(key: ScrollToTopPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>)
 
         let initialScrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         // Determine the final scrollBehavior early by checking if the environment value would modify it

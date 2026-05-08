@@ -92,8 +92,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
-    let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
+    let (interactiveDismissDisabledPreference, interactiveDismissDisabledCollector) = rememberSaveablePreferenceCollector(key: InteractiveDismissDisabledPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>)
 
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
@@ -130,8 +129,8 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
 
-            let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
-            let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
+            // Producers contribute under the value type rather than the `PreferenceKey` type, so override `collectorKey`.
+            let (detentPreferences, detentPreferencesCollector) = rememberSaveablePreferenceCollector(key: PresentationDetentPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>, collectorKey: PresentationDetentPreferences.self)
             let reducedDetentPreferences = detentPreferences.value.reduced
 
             if !isFullScreen && verticalSizeClass != .compact {

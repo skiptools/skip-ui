@@ -52,8 +52,7 @@ public struct ScrollView : View, Renderable {
     // SKIP INSERT: @OptIn(ExperimentalMaterialApi::class)
     @Composable override func Render(context: ComposeContext) {
         // Some components in Compose have their own scrolling built in
-        let builtinScrollAxisSet = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Axis.Set>, Any>) { mutableStateOf(Preference<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self)) }
-        let builtinScrollAxisSetCollector = PreferenceCollector<Axis.Set>(key: BuiltinScrollAxisSetPreferenceKey.self, state: builtinScrollAxisSet)
+        let (builtinScrollAxisSet, builtinScrollAxisSetCollector) = rememberSaveablePreferenceCollector(key: BuiltinScrollAxisSetPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<Axis.Set>, Any>)
 
         let scrollState = rememberScrollState()
         let coroutineScope = rememberCoroutineScope()
