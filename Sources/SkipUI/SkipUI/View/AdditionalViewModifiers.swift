@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
@@ -1351,8 +1350,13 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let handler = rememberUpdatedState(action)
-            LaunchedEffect(value) {
-                handler.value()
+            DisposableEffect(value) {
+                let task = Task(priority: priority) {
+                    handler.value()
+                }
+                onDispose {
+                    task.cancel()
+                }
             }
             return ComposeResult.ok
         })
@@ -1366,15 +1370,20 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let actionState = rememberUpdatedState(bridgedAction)
-            LaunchedEffect(value) {
-                kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                    let completionHandler = CompletionHandler({
-                        do { continuation.resume(Unit, nil) } catch {}
-                    })
-                    continuation.invokeOnCancellation { _ in
-                        completionHandler.onCancel?()
+            DisposableEffect(value) {
+                let task = Task {
+                    kotlinx.coroutines.suspendCancellableCoroutine { continuation in
+                        let completionHandler = CompletionHandler({
+                            do { continuation.resume(Unit, nil) } catch {}
+                        })
+                        continuation.invokeOnCancellation { _ in
+                            completionHandler.onCancel?()
+                        }
+                        actionState.value(completionHandler)
                     }
-                    actionState.value(completionHandler)
+                }
+                onDispose {
+                    task.cancel()
                 }
             }
             return ComposeResult.ok
