@@ -17,6 +17,7 @@ import androidx.compose.material.icons.twotone.__
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.geometry.Rect
@@ -142,16 +143,26 @@ public struct Image : View, Renderable, Equatable {
 
     @Composable private func RenderAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let url = asset.url
-        let model = ImageRequest.Builder(LocalContext.current)
-            .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
-            .decoderFactory(coil3.svg.SvgDecoder.Factory())
-            //.decoderFactory(coil3.gif.GifDecoder.Factory())
-            .decoderFactory(PdfDecoder.Factory())
-            .data(url)
-            .size(coil3.size.Size.ORIGINAL)
-            .memoryCacheKey(url.description)
-            .diskCacheKey(url.description)
-            .build()
+        let androidContext = LocalContext.current
+        let dm = androidContext.resources.displayMetrics
+        let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
+        let cacheKey = "\(url.description)#\(maxPx)x\(maxPx)"
+        let model = remember(asset.url, maxPx) {
+            // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
+            // We're using maxPx as an arbitrary bound to force it to cache properly
+            // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
+            // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+            return ImageRequest.Builder(androidContext)
+                .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
+                .decoderFactory(coil3.svg.SvgDecoder.Factory())
+                //.decoderFactory(coil3.gif.GifDecoder.Factory())
+                .decoderFactory(PdfDecoder.Factory())
+                .data(asset.url)
+                .size(coil3.size.Size(width: maxPx, height: maxPx))
+                .memoryCacheKey(cacheKey)
+                .diskCacheKey(cacheKey)
+                .build()
+        }
 
         let shouldTint = (templateRenderingMode == .template) || (templateRenderingMode == nil && asset.isTemplateImage)
         let tintColor = shouldTint ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
@@ -161,6 +172,7 @@ public struct Image : View, Renderable, Equatable {
         }, success: { state in
             RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
         }, error: { state in
+
         })
     }
 
