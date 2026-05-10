@@ -1491,6 +1491,31 @@ final class DisabledModifier: EnvironmentModifier {
     }
 }
 
+extension View {
+    /// When `true`, SkipUI's ``Image`` / ``AsyncImage`` use Coil's ``SubcomposeAsyncImage`` (slower; avoids first-frame `Empty` state with cached images). Default is `false.
+    // SKIP @bridge
+    public func subcomposeAsyncImage(_ enabled: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SubcomposeAsyncImageModifier(enabled))
+        #else
+        return self
+        #endif
+    }
+}
+
+final class SubcomposeAsyncImageModifier: EnvironmentModifier {
+    let enabled: Bool
+
+    init(_ enabled: Bool) {
+        self.enabled = enabled
+        super.init()
+        self.action = {
+            $0.set_subcomposeAsyncImage(enabled)
+            return ComposeResult.ok
+        }
+    }
+}
+
 final class PaddingModifier: RenderModifier {
     let insets: EdgeInsets
 

@@ -894,6 +894,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_badgeProminence", value: newValue, defaultValue: { BadgeProminence.standard }) }
     }
 
+    var _subcomposeAsyncImage: Bool {
+        get { builtinValue(key: "_subcomposeAsyncImage", defaultValue: { false }) as! Bool }
+        set { setBuiltinValue(key: "_subcomposeAsyncImage", value: newValue, defaultValue: { false }) }
+    }
+
     var _symbolVariants: SymbolVariants {
         get { builtinValue(key: "_symbolVariants", defaultValue: { SymbolVariants.none }) as! SymbolVariants }
         set { setBuiltinValue(key: "_symbolVariants", value: newValue, defaultValue: { SymbolVariants.none }) }

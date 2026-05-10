@@ -17,6 +17,7 @@ import androidx.compose.material.icons.twotone.__
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -45,7 +46,10 @@ import androidx.compose.ui.layout.ScaleFactor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
 import coil3.request.ImageRequest
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
@@ -144,36 +148,63 @@ public struct Image : View, Renderable, Equatable {
     @Composable private func RenderAssetImage(asset: AssetImageInfo, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {
         let url = asset.url
         let androidContext = LocalContext.current
-        let dm = androidContext.resources.displayMetrics
-        let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
-        let cacheKey = "\(url.description)#\(maxPx)x\(maxPx)"
-        let model = remember(asset.url, maxPx) {
-            // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
-            // We're using maxPx as an arbitrary bound to force it to cache properly
-            // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
-            // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+
+        let shouldTint = (templateRenderingMode == .template) || (templateRenderingMode == nil && asset.isTemplateImage)
+        let tintColor = shouldTint ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
+
+        if EnvironmentValues.shared._subcomposeAsyncImage {
+            let dm = androidContext.resources.displayMetrics
+            let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
+
+            let cacheKey = "\(url.description)#\(maxPx)x\(maxPx)"
+            let model = remember(asset.url, maxPx) {
+                // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
+                // We're using maxPx as an arbitrary bound to force it to cache properly
+                // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
+                // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+                return ImageRequest.Builder(androidContext)
+                    .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
+                    .decoderFactory(coil3.svg.SvgDecoder.Factory())
+                    //.decoderFactory(coil3.gif.GifDecoder.Factory())
+                    .decoderFactory(PdfDecoder.Factory())
+                    .data(asset.url)
+                    .size(coil3.size.Size(width: maxPx, height: maxPx))
+                    .memoryCacheKey(cacheKey)
+                    .diskCacheKey(cacheKey)
+                    .build()
+            }
+
+            SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
+
+            }, success: { state in
+                RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
+            }, error: { state in
+
+            })
+            return
+        }
+
+        // Default: same Coil strategy as ``AsyncImage`` (constraint size resolver + ``rememberAsyncImagePainter``).
+        let sizeResolver = rememberConstraintsSizeResolver()
+        let cacheKey = "\(url.description)#layout"
+        let model = remember(asset.url, sizeResolver) {
             return ImageRequest.Builder(androidContext)
                 .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
                 .decoderFactory(coil3.svg.SvgDecoder.Factory())
                 //.decoderFactory(coil3.gif.GifDecoder.Factory())
                 .decoderFactory(PdfDecoder.Factory())
                 .data(asset.url)
-                .size(coil3.size.Size(width: maxPx, height: maxPx))
+                .size(sizeResolver)
                 .memoryCacheKey(cacheKey)
                 .diskCacheKey(cacheKey)
                 .build()
         }
+        let painter = rememberAsyncImagePainter(model: model, contentScale: ContentScale.Fit)
 
-        let shouldTint = (templateRenderingMode == .template) || (templateRenderingMode == nil && asset.isTemplateImage)
-        let tintColor = shouldTint ? EnvironmentValues.shared._foregroundStyle?.asColor(opacity: 1.0, animationContext: context) ?? Color.primary.colorImpl() : nil
-
-        SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
-
-        }, success: { state in
-            RenderPainter(painter: self.painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: context)
-        }, error: { state in
-
-        })
+        let innerContext = context.content()
+        Box(modifier: context.modifier.then(sizeResolver), contentAlignment: androidx.compose.ui.Alignment.Center) {
+            RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
+        }
     }
 
     @Composable private func RenderSymbolImage(name: String, url: URL, label: Text?, aspectRatio: Double?, contentMode: ContentMode?, context: ComposeContext) {

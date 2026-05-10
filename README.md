@@ -2904,6 +2904,132 @@ Image(systemName: "Icons.Filled.Settings")
 #endif
 ```
 
+#### First-frame rendering and `AsyncImagePhase` quirks
+
+SkipUI's `AsyncImage` is built on top of [Coil for Android](https://coil-kt.github.io/coil/), which was inspired by SwiftUI. Just like SwiftUI, Coil allows its users to specify an URL and a placeholder, or to react to phase changes as the image loads.
+
+But there is one major difference between Coil's `AsyncImage` and SwiftUI's `AsyncImage`. On the very first frame, Coil cannot know whether the image will be successfully rendered from the memory cache, because it can't yet know the size of the layout constraints.
+
+This may impact you if you use [`AsyncImage(url:scale:transaction:content:)`](https://developer.apple.com/documentation/swiftui/asyncimage/init(url:scale:transaction:content:)), where the `content` callback accepts an [`AsyncImagePhase`](https://developer.apple.com/documentation/swiftui/asyncimagephase) enum, with three phases:
+
+* `empty`: No image is loaded
+* `failure(any Error)`: An image failed to load with an error
+* `success(Image)`: An image successfully loaded
+
+Instead of three phases, Coil has _four_ phases: `Success`, `Failure`, `Loading`, and `Empty`. `Empty` is the state where Coil doesn't yet know whether the image is ready or not.
+
+To model this, SkipUI's `empty` case is actually `empty(Image?)`. You can use `let image: Image? = phase.image` to read it. If the phase is `empty` and the image is `nil`, then Coil is `Loading`, and you should show your placeholder.
+
+If the image is not `nil` in the `empty` case, you can decide what to do with that image.
+
+There are a few options available to you:
+
+1. Option 1 (Optimistic): You can optimistically render the image, hoping to get a cache hit, delaying rendering the placeholder.
+
+    ```swift
+    AsyncImage(url: url) { phase in
+        switch phase {
+        case .empty:
+            if let image = phase.image {
+                image.resizable()
+            } else {
+                ProgressView()
+            }
+        case .failure:
+            Color.red
+        case .success(let image):
+            image.resizable()
+        }
+    }
+    ```
+
+    **Beware, this can cause a layout shift.** If the image isn't ready yet, it will always render at 0x0 size. To workaround this, consider using a transparent `Color.clear` placeholder in Option 2, below.
+
+2. Option 2 (ZStack): You can render the placeholder underneath the image in a `ZStack` when the phase is `empty`. If the image renders (and if the image doesn't include any transparency), it will completely obscure the placeholder.
+
+    ```swift
+    AsyncImage(url: url) { phase in
+        switch phase {
+        case .empty:
+            if let image = phase.image {
+                ZStack {
+                    ProgressView() // or Color.clear
+                    if let image = phase.image {
+                        image.resizable()
+                    }
+                }
+            } else {
+                ProgressView()
+            }
+        case .failure:
+            Color.red
+        case .success(let image):
+            image.resizable()
+        }
+    }
+    ```
+
+    If you use this Option 2 (ZStack), and your image contains transparency, the placeholder might be visible underneath your image on the first frame of rendering. In that case, consider using a transparent placeholder for the `empty` case where an `image` is available, like `Color.clear`.
+
+2. Option 3 (Pessimistic): You can pessimistically render the placeholder, waiting to render the image until we can be certain it's ready.
+
+    ```swift
+    AsyncImage(url: url) { phase in
+        switch phase {
+        case .empty:
+            ProgressView()
+        case .failure:
+            Color.red
+        case .success(let image):
+            image.resizable()
+        }
+    }
+    ```
+
+    This is what you'll get if you write idiomatic SwiftUI code with [`AsyncImage(url:scale:transaction:content:)`](https://developer.apple.com/documentation/swiftui/asyncimage/init(url:scale:transaction:content:)).
+
+
+If you use [`AsyncImage(url:scale:)`](https://developer.apple.com/documentation/swiftui/asyncimage/init(url:scale:)) or [`AsyncImage(url:scale:content:placeholder:)`](https://developer.apple.com/documentation/swiftui/asyncimage/init(url:scale:content:placeholder:)), SkipUI will prefer Option 2 (ZStack), so your image can render as soon as possible. We use a `Color.clear` placeholder during the first frame, ensuring that the layout doesn't shift, but if the image doesn't load instantly, this will delay showing a visible placeholder for one frame.
+
+##### Use `.subcomposeAsyncImage()` to opt out of first-frame rendering quirks (at a performance cost)
+
+Lastly, there is a mode of Coil that _doesn't_ use Coil's `Empty` phase, called `SubcomposeAsyncImage`. Under the hood, `SubcomposeAsyncImage` uses Compose `BoxWithConstraints` (which relies on `SubcomposeLayout`) to measure the size of the constraints before rendering.
+
+Coil's documentation warns that `SubcomposeAsyncImage` is "slow."
+
+> Subcomposition is slower than regular composition so this composable may not be suitable for performance-critical parts of your UI (e.g. `LazyList`).
+
+> Specifically, [SubcomposeAsyncImage] is only useful if you need to observe `AsyncImagePainter.state` [SkipUI AsyncImagePhase] and you can't have it be `Empty` for the first composition and first frame.
+
+To opt-in to using `SubcomposeAsyncImage`, you can use the Android-only `.subcomposeAsyncImage()` modifier.
+
+```swift
+AsyncImage(url: url) { image in
+    image.resizable()
+} placeholder: {
+    Color.gray
+}
+#if os(Android)
+.subcomposeAsyncImage()
+#endif
+```
+
+`.subcomposeAsyncImage()` sets an environment value, so you can set it at a high level; it will affect all images in its tree. You can use `.subcomposeAsyncImage(false)` to turn it back off for an entire subtree.
+
+To decide whether you "need" this, decide what's most important to you:
+
+1. Is rendering the image as soon as possible your top priority?
+
+    In that case, don't use `.subcomposeAsyncImage()`. SkipUI's default already optimizes for this.
+
+2. Is it more important to render the placeholder as soon as possible, even if that delays rendering the image?
+
+    In that case, use [`AsyncImage(url:scale:transaction:content:)`](https://developer.apple.com/documentation/swiftui/asyncimage/init(url:scale:transaction:content:)) pessimistically rendering your placeholder in `case empty:`. (See "Option 3" above.)
+
+3. Is it more important that the first frame be "correct" (showing the rendered image or a visible placeholder), even if this requires doing more work on the main UI thread?
+
+    That's when you should use `.subcomposeAsyncImage()`. `.subcomposeAsyncImage()` will show the correct UI slower than the other two options, but the UI will be correct on the very first frame.
+
 ### Layout
 
 SkipUI fully supports SwiftUI's various layout mechanisms, including `HStack`, `VStack`, `ZStack`, and the `.frame` modifier. If you discover layout edge cases where the result on Android does not match the result on iOS, please file an Issue. The following is a list of known cases where results may not match:
