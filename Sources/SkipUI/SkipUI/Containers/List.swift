@@ -48,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.CornerRadius
@@ -602,7 +603,7 @@ public final class List : View, Renderable {
             }
         }
 
-        Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }) {
+        Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }.clipToBounds()) {
             let rowWidthPx = rowWidthPxState.value
             let trailingFullPx = -rowWidthPx
             let leadingFullPx = rowWidthPx
@@ -746,6 +747,24 @@ public final class List : View, Renderable {
                 })
             ) {
                 RenderItem(content: content, level: level, context: context, styling: styling)
+                // Subtle scrim that intensifies with swipe progress so the row
+                // visually recedes as actions appear. Capped at a low alpha
+                // because the row is still tappable and shouldn't look disabled.
+                let curAbs = offsetState.value < Float(0) ? -offsetState.value : offsetState.value
+                let openMag: Float
+                if offsetState.value < Float(0) {
+                    openMag = -trailingOpenPx
+                } else if offsetState.value > Float(0) {
+                    openMag = leadingOpenPx
+                } else {
+                    openMag = Float(1) // unused; progress stays 0
+                }
+                let progressRaw = openMag > Float(0) ? curAbs / openMag : Float(0)
+                let progress: Float = progressRaw > Float(1) ? Float(1) : progressRaw
+                if progress > Float(0) {
+                    let scrimAlpha = progress * Float(0.18)
+                    Box(modifier: Modifier.matchParentSize().background(androidx.compose.ui.graphics.Color.LightGray.copy(alpha: scrimAlpha)))
+                }
             }
         }
     }
