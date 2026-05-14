@@ -4,11 +4,11 @@
 import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import android.webkit.MimeTypeMap
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
-import coil3.size.Size
 import coil3.fetch.Fetcher
 import coil3.fetch.FetchResult
 import coil3.ImageLoader
@@ -114,16 +114,27 @@ public struct AsyncImage : View, Renderable {
         // we add a custom fetchers that will handle loading the URL.
         // Otherwise use Coil's default URL string handling
         let requestSource: Any = AssetURLFetcher.handlesURL(url) ? url : urlString
-        let model = ImageRequest.Builder(LocalContext.current)
-            .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
-            .decoderFactory(coil3.svg.SvgDecoder.Factory())
-            //.decoderFactory(coil3.gif.GifDecoder.Factory())
-            .decoderFactory(PdfDecoder.Factory())
-            .data(requestSource)
-            .size(Size.ORIGINAL)
-            .memoryCacheKey(urlString)
-            .diskCacheKey(urlString)
-            .build()
+
+        let androidContext = LocalContext.current
+        let dm = androidContext.resources.displayMetrics
+        let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
+        let cacheKey = "\(urlString)#\(maxPx)x\(maxPx)"
+        let model = remember(urlString, maxPx) {
+            // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
+            // We're using maxPx as an arbitrary bound to force it to cache properly
+            // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
+            // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+            return ImageRequest.Builder(androidContext)
+                .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
+                .decoderFactory(coil3.svg.SvgDecoder.Factory())
+                //.decoderFactory(coil3.gif.GifDecoder.Factory())
+                .decoderFactory(PdfDecoder.Factory())
+                .data(requestSource)
+                .size(coil3.size.Size(width: maxPx, height: maxPx))
+                .memoryCacheKey(cacheKey)
+                .diskCacheKey(cacheKey)
+                .build()
+        }
 
         SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
             let placeholderView = content(AsyncImagePhase.empty)

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
@@ -49,6 +48,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
@@ -1279,9 +1281,51 @@ extension View {
         #endif
     }
 
-    @available(*, unavailable)
-    public func statusBarHidden(_ hidden: Bool = true) -> some View {
+    // SKIP @bridge
+    public func statusBarHidden(_ hidden: Bool = true) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
+            DisposableEffect(hidden) {
+                let statusBars: Int = androidx.core.view.WindowInsetsCompat.Type.statusBars()
+                // This flag makes status bar show/hide animation smooth
+                // It also fixes the status bar state when resuming the app from background
+                let showTransientBarsBySwipe: Int = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                var effectDecorView: android.view.View? = nil
+                if let activity = UIApplication.shared.androidActivity {
+                    let decorView = activity.window.decorView
+                    effectDecorView = decorView
+                    ViewCompat.setOnApplyWindowInsetsListener(decorView) { view, windowInsets in
+                        if hidden, windowInsets.isVisible(statusBars) {
+                            let insetsController = WindowCompat.getInsetsController(activity.window, decorView)
+                            insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                            insetsController.hide(statusBars)
+                        }
+                        return ViewCompat.onApplyWindowInsets(view, windowInsets)
+                    }
+                    let insetsController = WindowCompat.getInsetsController(activity.window, decorView)
+                    insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                    if hidden {
+                        insetsController.hide(statusBars)
+                    } else {
+                        insetsController.show(statusBars)
+                    }
+                }
+                onDispose {
+                    if let effectDecorView {
+                        ViewCompat.setOnApplyWindowInsetsListener(effectDecorView, nil)
+                    }
+                    if hidden, let activity = UIApplication.shared.androidActivity {
+                        let insetsController = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+                        insetsController.systemBarsBehavior = showTransientBarsBySwipe
+                        insetsController.show(statusBars)
+                    }
+                }
+            }
+            return ComposeResult.ok
+        })
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
@@ -1306,8 +1350,13 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let handler = rememberUpdatedState(action)
-            LaunchedEffect(value) {
-                handler.value()
+            DisposableEffect(value) {
+                let task = Task(priority: priority) {
+                    handler.value()
+                }
+                onDispose {
+                    task.cancel()
+                }
             }
             return ComposeResult.ok
         })
@@ -1321,15 +1370,20 @@ extension View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SideEffectModifier { _ in
             let actionState = rememberUpdatedState(bridgedAction)
-            LaunchedEffect(value) {
-                kotlinx.coroutines.suspendCancellableCoroutine { continuation in
-                    let completionHandler = CompletionHandler({
-                        do { continuation.resume(Unit, nil) } catch {}
-                    })
-                    continuation.invokeOnCancellation { _ in
-                        completionHandler.onCancel?()
+            DisposableEffect(value) {
+                let task = Task {
+                    kotlinx.coroutines.suspendCancellableCoroutine { continuation in
+                        let completionHandler = CompletionHandler({
+                            do { continuation.resume(Unit, nil) } catch {}
+                        })
+                        continuation.invokeOnCancellation { _ in
+                            completionHandler.onCancel?()
+                        }
+                        actionState.value(completionHandler)
                     }
-                    actionState.value(completionHandler)
+                }
+                onDispose {
+                    task.cancel()
                 }
             }
             return ComposeResult.ok
@@ -1453,18 +1507,28 @@ final class PaddingModifier: RenderModifier {
         self.insets = insets
         super.init(role: .spacing)
         self.action = { renderable, context in
+            let topAnim = Float(insets.top).asAnimatable(context: context)
+            let leadingAnim = Float(insets.leading).asAnimatable(context: context)
+            let bottomAnim = Float(insets.bottom).asAnimatable(context: context)
+            let trailingAnim = Float(insets.trailing).asAnimatable(context: context)
+            let animatedInsets = EdgeInsets(
+                top: CGFloat(topAnim.value),
+                leading: CGFloat(leadingAnim.value),
+                bottom: CGFloat(bottomAnim.value),
+                trailing: CGFloat(trailingAnim.value)
+            )
             let stripped = renderable.strip()
             if (stripped is LazyVGrid || stripped is LazyHGrid || stripped is LazyVStack || stripped is LazyHStack)
                 && renderable.forEachModifier(perform: { $0.role == .spacing ? true : nil }) == nil {
                 // Certain views apply their padding themselves
                 EnvironmentValues.shared.setValues {
-                    $0.set_contentPadding(insets)
+                    $0.set_contentPadding(animatedInsets)
                     return ComposeResult.ok
                 } in: {
                     renderable.Render(context: context)
                 }
             } else {
-                PaddingLayout(content: renderable, padding: insets, context: context)
+                PaddingLayout(content: renderable, padding: animatedInsets, context: context)
             }
         }
     }

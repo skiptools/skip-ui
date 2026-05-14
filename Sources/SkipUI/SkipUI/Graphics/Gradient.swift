@@ -141,13 +141,7 @@ public struct LinearGradient : ShapeStyle, Renderable {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
-        let rememberedOpacity = remember { mutableStateOf(opacity) }
-        let rememberedBrush = remember { mutableStateOf(LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)) }
-        if opacity != rememberedOpacity.value {
-            rememberedOpacity.value = opacity
-            rememberedBrush.value = LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)
-        }
-        return rememberedBrush.value
+        return LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)
     }
 
     private struct LinearGradientShaderBrush: ShaderBrush {
@@ -213,8 +207,7 @@ public struct EllipticalGradient : ShapeStyle, Renderable {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
-        let brush = remember { RadialGradientShaderBrush(colorStops: stops, center: center, startFraction: startFraction, endFraction: endFraction) }
-        return brush
+        return RadialGradientShaderBrush(colorStops: stops, center: center, startFraction: startFraction, endFraction: endFraction)
     }
 
     private struct RadialGradientShaderBrush: ShaderBrush {
@@ -282,8 +275,7 @@ public struct RadialGradient : ShapeStyle, Renderable {
         let start = with(density) { startRadius.dp.toPx() }
         let end = with(density) { endRadius.dp.toPx() }
         let stops = gradient.colorStops(opacity: opacity)
-        let brush = remember { RadialGradientShaderBrush(colorStops: stops, center: center, startRadius: start, endRadius: end) }
-        return brush
+        return RadialGradientShaderBrush(colorStops: stops, center: center, startRadius: start, endRadius: end)
     }
 
     private struct RadialGradientShaderBrush: ShaderBrush {

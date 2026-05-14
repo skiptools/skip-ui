@@ -76,7 +76,7 @@ public struct LazyVGrid: View, Renderable {
         let renderables = content.EvaluateLazyItems(level: 0, context: context)
         let itemCollector = remember { mutableStateOf(LazyItemCollector()) }
         ComposeContainer(axis: .vertical, scrollAxes: scrollAxes, modifier: context.modifier, fillWidth: true) { modifier in
-            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier) { _, safeAreaEdges in
+            IgnoresSafeAreaLayout(expandInto: [], checkEdges: [.bottom], modifier: modifier, logTag: "LazyVGrid") { _, safeAreaEdges in
                 // Integrate with our scroll-to-top and ScrollViewReader
                 let gridState = rememberLazyGridState(initialFirstVisibleItemIndex = isSearchable ? 1 : 0)
                 let flingBehavior = scrollTargetBehavior is ViewAlignedScrollTargetBehavior ? rememberSnapFlingBehavior(gridState, SnapPosition.Start) : ScrollableDefaults.flingBehavior()

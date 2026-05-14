@@ -543,10 +543,17 @@ extension View {
     public func material3TopAppBar(_ options: @Composable (Material3TopAppBarOptions) -> Material3TopAppBarOptions) -> some View
 }
 
+public enum Material3TopAppBarNavigationIconButtonStyle {
+    case iconButton
+    case filledIconButton
+}
+
 public struct Material3TopAppBarOptions {
     public var title: @Composable () -> Void
     public var modifier: androidx.compose.ui.Modifier
     public var navigationIcon: @Composable () -> Void
+    public var navigationIconButtonStyle: Material3TopAppBarNavigationIconButtonStyle
+    public var navigationIconButtonColors: androidx.compose.material3.IconButtonColors?
     public var colors: androidx.compose.material3.TopAppBarColors
     public var scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior?
     public var preferCenterAlignedStyle: Bool
@@ -2535,6 +2542,7 @@ The following properties are currently animatable:
 - `.frame` width and height
 - `.offset`
 - `.opacity`
+- `.padding`
 - `.rotationEffect`
 - `.scaleEffect`
 - `.stroke` color
@@ -3018,6 +3026,69 @@ func navigationDestination(isPresented: Binding<Bool>, @ViewBuilder destination:
 SkipUI supports all of these models. When using `.navigationDestination(isPresented:destination:)`, note that manually setting `isPresented` to `false` will **not** dismiss your view. Prefer standard dismissing mechanisms. Using `.navigationDestination(for:destination:)` to bind data types to destinations also requires some care. It is currently the case that if a pushed view defines a new `.navigationDestination` for key type `T`, it will overwrite any previous stack view's `T` destination mapping. **Take care not to unintentionally re-map the same key type in the same navigation stack.**
 
 Compose imposes an additional restriction as well: we must be able to stringify `.navigationDestination` data key types. See [Restrictions on Identifiers](#restrictions-on-identifiers) below.
+
+#### Prevent layout shifting with hints
+
+Android Compose's `TopAppBar` APIs ask the client to choose a size and pass it a `title` parameter before the navigation bar composes. In SwiftUI, you specify the display mode and title using modifiers on your rendered content,  `navigationBarTitleDisplayMode` and the `navigationTitle`. Under the hood, these modifiers set SwiftUI [preferences](https://developer.apple.com/documentation/swiftui/preferences) that modify the behavior of the `NavigationStack`.
+
+If your content composes slowly, this can cause a "layout shift," where the `NavigationStack` tries to guess the height of your navigation bar, then later discovers the actual height, shifting your content up/down as the user views it.
+
+To prevent layout shifting, you can use the `navigationStackLayoutHints` modifier, like this:
+
+```swift
+struct MyView: View {
+    var body: some View {
+        NavigationStack{
+            Text("My Content")
+                .navigationTitle("My Title")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        #if os(Android)
+        .navigationStackLayoutHints(
+            expectedTitle: Text("My Title"),
+            expectedTitleDisplayMode: .inline
+        )
+        #endif
+    }
+}
+```
+
+These hints tell `NavigationStack` to render the correct navigation bar content on the first try, eliminating layout shifts.
+
+If your navigation destinations have different expectations, you can set them with `navigationDestinationLayoutHints`, like this:
+
+```swift
+struct CityPickerView: View {
+    var body: some View {
+        NavigationStack {
+            List(City.allCases) { city in
+                NavigationLink(value: city) {
+                    rowView(city: city)
+                }
+            }
+            .navigationTitle("Cities")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: City.self) { city in
+                CityView(city: city)
+                    .navigationTitle(city.rawValue)
+                    .navigationBarTitleDisplayMode(.large)
+            }
+            #if os(Android)
+            .navigationDestinationLayoutHints(
+                for: City.self,
+                expectedTitleDisplayMode: .large
+            )
+            #endif
+        }
+        #if os(Android)
+        .navigationStackLayoutHints(
+            expectedTitle: Text("Cities"),
+            expectedTitleDisplayMode: .inline
+        )
+        #endif
+    }
+}
+```
 
 #### Modals
 

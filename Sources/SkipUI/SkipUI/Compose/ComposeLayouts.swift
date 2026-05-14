@@ -1,10 +1,12 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 #if SKIP
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -142,9 +144,9 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
 }
 
 /// Layout the given view to ignore the given safe areas.
-@Composable func IgnoresSafeAreaLayout(content: Renderable, context: ComposeContext, expandInto: Edge.Set) {
+@Composable func IgnoresSafeAreaLayout(content: Renderable, context: ComposeContext, expandInto: Edge.Set, logTag: String = "") {
     ComposeContainer(modifier: context.modifier) { modifier in
-        IgnoresSafeAreaLayout(expandInto: expandInto, modifier: modifier) { _, _ in
+        IgnoresSafeAreaLayout(expandInto: expandInto, checkEdges: expandInto, modifier: modifier, logTag: logTag) { _, _ in
             content.Render(context.content())
         }
     }
@@ -156,10 +158,20 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
 ///     the given closure as a pixel rect.
 /// - Parameter checkEdges: Which edges to check to see if we're against a safe area. Any matching edges will be
 ///     passed to the given closure.
-@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, target: @Composable (IntRect, Edge.Set) -> Void) {
+/// - Parameter logTag: When non-empty, emits Android ``Log`` lines with tag `SkipUI.ISAL.<logTag>` (e.g. filter logcat `SkipUI.ISAL.List`).
+@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, logTag: String = "", target: @Composable (IntRect, Edge.Set) -> Void) {
     guard let safeArea = EnvironmentValues.shared._safeArea else {
+        if !logTag.isEmpty {
+            Log.d("SkipUI.ISAL.\(logTag)", "no SafeArea in environment; skipping expansion")
+        }
         target(IntRect.Zero, [])
         return
+    }
+
+    if !logTag.isEmpty {
+        LaunchedEffect(logTag, expandInto.rawValue, checkEdges.rawValue) {
+            Log.d("SkipUI.ISAL.\(logTag)", "init expandInto=\(expandInto) checkEdges=\(checkEdges) edgesState(initial)=\(checkEdges)")
+        }
     }
 
     // Note: We only allow edges we're interested in to affect our internal state and output. This is critical
@@ -207,8 +219,15 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
         return ComposeResult.ok
     } in: {
         Layout(modifier: modifier.onGloballyPositionedInWindow {
-            let edges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: expandInto.union(checkEdges))
-            edgesState.value = edges
+            let probeEdges = expandInto.union(checkEdges)
+            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges)
+            if !logTag.isEmpty {
+                let previous = edgesState.value
+                if newEdges != previous {
+                    Log.d("SkipUI.ISAL.\(logTag)", "onGloballyPositionedInWindow adjacentEdges \(previous) -> \(newEdges) (probeEdges=\(probeEdges))")
+                }
+            }
+            edgesState.value = newEdges
         }, content: {
             let expansion = IntRect(top: expansionTop, left: expansionLeft, bottom: expansionBottom, right: expansionRight)
             target(expansion, edges.intersection(checkEdges))

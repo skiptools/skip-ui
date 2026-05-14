@@ -166,6 +166,30 @@ struct PreferenceCollector<Value> {
     }
 }
 
+/// Wraps `rememberSaveable` for a `Preference<V>` with defensive null handling.
+///
+/// After certain Android configuration changes (e.g. a system font scale change) the activity is recreated and the
+/// in-memory map backing our `ComposeStateSaver` is lost, so saved keys no longer resolve to their values and the
+/// restored `MutableState` ends up holding null. Reading `.reduced` on a null `Preference` then crashes. Reset to
+/// the value produced by `initial` whenever the state value is null. See https://github.com/skiptools/skip-ui/issues/300.
+@Composable func rememberSaveablePreference<V>(stateSaver: Saver<Preference<V>, Any>, initial: () -> Preference<V>) -> MutableState<Preference<V>> {
+    let state = rememberSaveable(stateSaver: stateSaver) { mutableStateOf(initial()) }
+    if (state.value as Any?) == nil {
+        state.value = initial()
+    }
+    return state
+}
+
+/// Combines `rememberSaveablePreference` with the matching `PreferenceCollector` so callers don't have to repeat
+/// the value type or the key. The generic `V` is supplied once on the `stateSaver` cast and inferred elsewhere.
+/// Pass `collectorKey` for cases where producers contribute under a different key than the `PreferenceKey` companion
+/// (e.g. when the producer keys on the value type itself rather than the `PreferenceKey` type).
+@Composable func rememberSaveablePreferenceCollector<V>(key: Any.Type, stateSaver: Saver<Preference<V>, Any>, collectorKey: Any? = nil, isErasable: Bool = true) -> (state: MutableState<Preference<V>>, collector: PreferenceCollector<V>) {
+    let state = rememberSaveablePreference(stateSaver: stateSaver) { Preference<V>(key: key) }
+    let collector = PreferenceCollector<V>(key: collectorKey ?? key, state: state, isErasable: isErasable)
+    return (state: state, collector: collector)
+}
+
 struct PreferenceNode<Value>: Equatable {
     let id: Int
     let value: Value
@@ -218,8 +242,8 @@ extension View {
     public func onPreferenceChange(key: Any, defaultValue: Any?, reducer: @escaping (Any?, Any?) -> Any?, action: @escaping (Any?) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let preference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Any?>, Any>) {
-                mutableStateOf(Preference<Any?>(key: key, initialValue: defaultValue, reducer: reducer))
+            let preference = rememberSaveablePreference(stateSaver: context.stateSaver as! Saver<Preference<Any?>, Any>) {
+                Preference<Any?>(key: key, initialValue: defaultValue, reducer: reducer)
             }
             let preferenceCollector = PreferenceCollector<Any?>(key: key, state: preference)
             let currentAction = rememberUpdatedState(action)

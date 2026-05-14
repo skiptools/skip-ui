@@ -340,19 +340,20 @@ extension View {
 
     public func _toolbarVisibility(_ visibility: Visibility, for placements: [ToolbarPlacement]) -> any View {
         #if SKIP
-        // SKIP REPLACE: var view = this
-        var view = self
         var bars = placements
         if bars.isEmpty {
             bars = [.automatic]
         }
-        if bars.contains(ToolbarPlacement.tabBar) {
-            view = view.preference(key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility))
-        }
-        if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
-            view = view.preference(key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, for: bars))
-        }
-        return view
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let visibilityAnimation = EnvironmentValues.shared._animation
+            if bars.contains(ToolbarPlacement.tabBar) {
+                PreferenceValues.shared.contribute(context: context, key: TabBarPreferenceKey.self, value: ToolbarBarPreferences(visibility: visibility, visibilityAnimation: visibilityAnimation))
+            }
+            if bars.contains(where: { $0 != ToolbarPlacement.tabBar }) {
+                PreferenceValues.shared.contribute(context: context, key: ToolbarPreferenceKey.self, value: ToolbarPreferences(visibility: visibility, visibilityAnimation: visibilityAnimation, for: bars))
+            }
+            renderable.Render(context: context)
+        })
         #else
         return self
         #endif
@@ -524,8 +525,8 @@ struct ToolbarPreferences: Equatable {
         self.bottomBar = bottomBar
     }
 
-    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, isSystemBackground: Bool? = nil, scrollableState: ScrollableState? = nil, for bars: [ToolbarPlacement]) {
-        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, colorScheme: colorScheme, isSystemBackground: isSystemBackground, scrollableState: scrollableState)
+    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, isSystemBackground: Bool? = nil, scrollableState: ScrollableState? = nil, visibilityAnimation: Animation? = nil, for bars: [ToolbarPlacement]) {
+        let barPreferences = ToolbarBarPreferences(visibility: visibility, background: background, backgroundVisibility: backgroundVisibility, colorScheme: colorScheme, isSystemBackground: isSystemBackground, scrollableState: scrollableState, visibilityAnimation: visibilityAnimation)
         var navigationBar: ToolbarBarPreferences? = nil
         var bottomBar: ToolbarBarPreferences? = nil
         for bar in bars {
@@ -568,14 +569,25 @@ struct ToolbarBarPreferences: Equatable {
     let colorScheme: ColorScheme?
     let isSystemBackground: Bool?
     let scrollableState: ScrollableState?
+    let visibilityAnimation: Animation?
+
+    init(visibility: Visibility? = nil, background: ShapeStyle? = nil, backgroundVisibility: Visibility? = nil, colorScheme: ColorScheme? = nil, isSystemBackground: Bool? = nil, scrollableState: ScrollableState? = nil, visibilityAnimation: Animation? = nil) {
+        self.visibility = visibility
+        self.background = background
+        self.backgroundVisibility = backgroundVisibility
+        self.colorScheme = colorScheme
+        self.isSystemBackground = isSystemBackground
+        self.scrollableState = scrollableState
+        self.visibilityAnimation = visibilityAnimation
+    }
 
     func reduce(_ next: ToolbarBarPreferences) -> ToolbarBarPreferences {
-        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, colorScheme: next.colorScheme ?? colorScheme, isSystemBackground: next.isSystemBackground ?? isSystemBackground, scrollableState: next.scrollableState ?? scrollableState)
+        return ToolbarBarPreferences(visibility: next.visibility ?? visibility, background: next.background ?? background, backgroundVisibility: next.backgroundVisibility ?? backgroundVisibility, colorScheme: next.colorScheme ?? colorScheme, isSystemBackground: next.isSystemBackground ?? isSystemBackground, scrollableState: next.scrollableState ?? scrollableState, visibilityAnimation: next.visibilityAnimation ?? visibilityAnimation)
     }
 
     public static func ==(lhs: ToolbarBarPreferences, rhs: ToolbarBarPreferences) -> Bool {
         // Don't compare on background because it will never compare equal
-        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme && lhs.isSystemBackground == rhs.isSystemBackground && lhs.scrollableState == rhs.scrollableState
+        return lhs.visibility == rhs.visibility && lhs.backgroundVisibility == rhs.backgroundVisibility && (lhs.background != nil) == (rhs.background != nil) && lhs.colorScheme == rhs.colorScheme && lhs.isSystemBackground == rhs.isSystemBackground && lhs.scrollableState == rhs.scrollableState && lhs.visibilityAnimation == rhs.visibilityAnimation
     }
 }
 

@@ -4,11 +4,13 @@
 import Foundation
 #if SKIP
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +30,6 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -37,7 +38,11 @@ import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -49,6 +54,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -131,15 +137,16 @@ public struct NavigationStack : View, Renderable {
 
     #if SKIP
     @Composable public override func Render(context: ComposeContext) {
-        // Have to use rememberSaveable for e.g. a nav stack in each tab
-        let destinations = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>) { mutableStateOf(Preference<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self))
-        }
-        // Make this collector non-erasable so that destinations defined at e.g. the root nav stack layer don't disappear when you push
-        let destinationsCollector = PreferenceCollector<NavigationDestinations>(key: NavigationDestinationsPreferenceKey.self, state: destinations, isErasable: false)
+        // Have to use rememberSaveable for e.g. a nav stack in each tab. Make the collectors non-erasable so that
+        // destinations defined at e.g. the root nav stack layer don't disappear when you push.
+        let (destinations, destinationsCollector) = rememberSaveablePreferenceCollector(key: NavigationDestinationsPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinations>, Any>, isErasable: false)
+        let (destinationLayoutHints, destinationLayoutHintsCollector) = rememberSaveablePreferenceCollector(key: NavigationDestinationLayoutHintsPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<NavigationDestinationLayoutHintsMap>, Any>, isErasable: false)
         let reducedDestinations = destinations.value.reduced
+        let reducedDestinationLayoutHints = destinationLayoutHints.value.reduced
+        let mergedDestinations = mergeNavigationDestinationsWithLayoutHints(reducedDestinations, layoutHints: reducedDestinationLayoutHints)
         let navBackStack = rememberNavBackStack(SkipNavigationStackRootKey.root)
-        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navBackStack: navBackStack, destinations: reducedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
-        navigator.value.didCompose(navBackStack: navBackStack, destinations: reducedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
+        let navigator = rememberSaveable(stateSaver: context.stateSaver as! Saver<Navigator, Any>) { mutableStateOf(Navigator(navBackStack: navBackStack, destinations: mergedDestinations, destinationKeyTransformer: destinationKeyTransformer)) }
+        navigator.value.didCompose(navBackStack: navBackStack, destinations: mergedDestinations, path: path, navigationPath: navigationPath, keyboardController: LocalSoftwareKeyboardController.current)
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
@@ -148,7 +155,7 @@ public struct NavigationStack : View, Renderable {
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
             ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges) { _, _ in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "NavigationStack") { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                     let decoratorList = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
                     let entryProvider = entryProvider {
@@ -158,14 +165,11 @@ public struct NavigationStack : View, Renderable {
                             }
                             // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                             // during the navigation animation. We have to collect them here
-                            let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
-                            let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
-                            let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
-                            let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
-                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
-                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
+                            let (title, titleCollector) = rememberSaveablePreferenceCollector(key: NavigationTitlePreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>)
+                            let (toolbarPreferences, toolbarPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>)
+                            let (toolbarContentPreferences, toolbarContentPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarContentPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>)
                             let arguments = NavigationEntryArguments(isRoot: true, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
-                            PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
+                            PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector, destinationLayoutHintsCollector]) {
                                 RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                     root.Compose(context: context)
                                 }
@@ -177,18 +181,15 @@ public struct NavigationStack : View, Renderable {
                             }
                             // These preferences are per-entry, but if we put them in RenderEntry then their initial values don't show
                             // during the navigation animation. We have to collect them here
-                            let title = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>) { mutableStateOf(Preference<Text>(key: NavigationTitlePreferenceKey.self)) }
-                            let titleCollector = PreferenceCollector<Text>(key: NavigationTitlePreferenceKey.self, state: title)
-                            let toolbarPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>) { mutableStateOf(Preference<ToolbarPreferences>(key: ToolbarPreferenceKey.self)) }
-                            let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
-                            let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
-                            let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
+                            let (title, titleCollector) = rememberSaveablePreferenceCollector(key: NavigationTitlePreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<Text>, Any>)
+                            let (toolbarPreferences, toolbarPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarPreferences>, Any>)
+                            let (toolbarContentPreferences, toolbarContentPreferencesCollector) = rememberSaveablePreferenceCollector(key: ToolbarContentPreferenceKey.self, stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>)
                             EnvironmentValues.shared.setValues {
                                 $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
                                 return ComposeResult.ok
                             } in: {
                                 let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
-                                PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector]) {
+                                PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector, destinationLayoutHintsCollector]) {
                                     RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                         let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
                                         RenderDestination(state.destination, arguments: destinationArguments, context: context)
@@ -223,11 +224,25 @@ public struct NavigationStack : View, Renderable {
         let state = arguments.state
         let context = context.content(stateSaver: state.stateSaver)
 
+        let entryLayoutHints = state.layoutHints ?? (arguments.isRoot ? EnvironmentValues.shared._navigationStackLayoutHints : nil)
+        let hasTitleFromPreferences = arguments.title != NavigationTitlePreferenceKey.defaultValue
+        let hasTitle: Bool
+        let title: Text
+        let titleDisplayPreference: ToolbarTitleDisplayMode?
+        if let layoutHints = entryLayoutHints {
+            let hasTitleFromHints = layoutHints.expectedTitle != NavigationTitlePreferenceKey.defaultValue
+            hasTitle = hasTitleFromPreferences || hasTitleFromHints
+            title = hasTitleFromPreferences ? arguments.title : (hasTitleFromHints ? layoutHints.expectedTitle : arguments.title)
+            titleDisplayPreference = arguments.toolbarPreferences.titleDisplayMode ?? layoutHints.expectedTitleDisplayMode
+        } else {
+            hasTitle = hasTitleFromPreferences
+            title = arguments.title
+            titleDisplayPreference = arguments.toolbarPreferences.titleDisplayMode
+        }
+
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
-        let topBarHidden = remember { mutableStateOf(false) }
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
-        let hasTitle = arguments.title != NavigationTitlePreferenceKey.defaultValue
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: arguments.toolbarPreferences.titleDisplayMode)
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: titleDisplayPreference)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
 
         // We would like to only process toolbar content in our topBar/bottomBar Composables, but composing
@@ -237,31 +252,44 @@ public struct NavigationStack : View, Renderable {
         let toolbarItems = ToolbarItems(content: toolbarContentReduced.content ?? [])
         let (titleMenu, topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
 
+        let showTopBar: Bool
+        switch topBarPreferences?.visibility ?? Visibility.automatic {
+        case .hidden:
+            showTopBar = false
+        case .visible:
+            showTopBar = true
+        case .automatic:
+            showTopBar = !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0
+        }
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
         let searchFieldHeightPx = with(density) { searchFieldHeight.dp.toPx() + searchFieldPadding.toPx() }
         let searchFieldOffsetPx = rememberSaveable(stateSaver: context.stateSaver as! Saver<Float, Any>) { mutableStateOf(Float(0.0)) }
         let searchFieldScrollConnection = remember { SearchFieldScrollConnection(heightPx: searchFieldHeightPx, offsetPx: searchFieldOffsetPx) }
 
-        let searchableStatePreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>) { mutableStateOf(Preference<SearchableState?>(key: SearchableStatePreferenceKey.self)) }
-        let searchableStateCollector = PreferenceCollector<SearchableState?>(key: SearchableStatePreferenceKey.self, state: searchableStatePreference)
+        let (searchableStatePreference, searchableStateCollector) = rememberSaveablePreferenceCollector(key: SearchableStatePreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<SearchableState?>, Any>)
 
-        let scrollToTop = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>) { mutableStateOf(Preference<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self)) }
-        let scrollToTopCollector = PreferenceCollector<ScrollToTopAction>(key: ScrollToTopPreferenceKey.self, state: scrollToTop)
+        let (scrollToTop, scrollToTopCollector) = rememberSaveablePreferenceCollector(key: ScrollToTopPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<ScrollToTopAction>, Any>)
 
         let initialScrollBehavior = isInlineTitleDisplayMode ? TopAppBarDefaults.pinnedScrollBehavior() : TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         // Determine the final scrollBehavior early by checking if the environment value would modify it
         // We need to do this before we create the nestedScroll modifier so we attach the correct nestedScrollConnection
         let scrollBehavior: TopAppBarScrollBehavior
+        let navigationIconButtonStyle: Material3TopAppBarNavigationIconButtonStyle
+        let navigationIconButtonColors: IconButtonColors?
         if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
             let tempOptions = Material3TopAppBarOptions(title: {}, modifier: Modifier, navigationIcon: {}, colors: TopAppBarDefaults.topAppBarColors(), scrollBehavior: initialScrollBehavior)
             let updatedOptions = updateOptions(tempOptions)
             scrollBehavior = updatedOptions.scrollBehavior ?? initialScrollBehavior
+            navigationIconButtonStyle = updatedOptions.navigationIconButtonStyle
+            navigationIconButtonColors = updatedOptions.navigationIconButtonColors
         } else {
             scrollBehavior = initialScrollBehavior
+            navigationIconButtonStyle = Material3TopAppBarNavigationIconButtonStyle.iconButton
+            navigationIconButtonColors = nil
         }
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
-        if !topBarHidden.value {
+        if showTopBar {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         }
         modifier = modifier.then(context.modifier)
@@ -279,150 +307,158 @@ public struct NavigationStack : View, Renderable {
 
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
         let topBar: @Composable () -> Void = {
-            guard topBarPreferences?.visibility != Visibility.hidden else {
-                SideEffect {
-                    topBarHidden.value = true
-                    topBarBottomPx.value = Float(0.0)
-                    topBarHeightPx.value = Float(0.0)
-                }
-                return
-            }
-
-            guard !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0 || topBarPreferences?.visibility == Visibility.visible else {
-                SideEffect {
-                    topBarHidden.value = true
-                    topBarBottomPx.value = Float(0.0)
-                    topBarHeightPx.value = Float(0.0)
-                }
-                return
-            }
-            topBarHidden.value = false
-
-            let isOverlapped = scrollBehavior.state.overlappedFraction > 0
-            let materialColorScheme: androidx.compose.material3.ColorScheme
-            if isOverlapped, let customColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() {
-                materialColorScheme = customColorScheme
-            } else {
-                materialColorScheme = MaterialTheme.colorScheme
-            }
-            MaterialTheme(colorScheme: materialColorScheme) {
-                let topBarBackgroundColor: androidx.compose.ui.graphics.Color
-                let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
-                let topBarBackgroundForBrush: ShapeStyle?
-                // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
-                // properly interpolate between the title text colors
-                let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
-                let isSystemBackground = topBarPreferences?.isSystemBackground == true
-                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
-                    topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                    unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
-                    topBarBackgroundForBrush = nil
-                } else if let background = topBarPreferences?.background {
-                    if let color = background.asColor(opacity: 1.0, animationContext: nil) {
-                        topBarBackgroundColor = color
-                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
-                        topBarBackgroundForBrush = nil
-                    } else {
-                        unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                        topBarBackgroundColor = !topBarHasColorScheme || isOverlapped ? unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0)) : unscrolledTopBarBackgroundColor
-                        topBarBackgroundForBrush = background
+            let animation: Animation = Animation.current(isAnimating: false) ?? topBarPreferences?.visibilityAnimation ?? Animation.linear(duration: 0)
+            let animationSpec: AnimationSpec<Any> = animation.asAnimationSpec()
+            let moveEdgeTop = MoveTransition(edge: .top)
+            let topBarEnter = moveEdgeTop.asEnterTransition(spec: animationSpec)
+            let topBarExit = moveEdgeTop.asExitTransition(spec: animationSpec)
+            AnimatedVisibility(visible: showTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
+                DisposableEffect(true) {
+                    onDispose {
+                        topBarBottomPx.value = Float(0.0)
+                        topBarHeightPx.value = Float(0.0)
                     }
+                }
+                let isOverlapped = scrollBehavior.state.overlappedFraction > 0
+                let materialColorScheme: androidx.compose.material3.ColorScheme
+                if isOverlapped, let customColorScheme = topBarPreferences?.colorScheme?.asMaterialTheme() {
+                    materialColorScheme = customColorScheme
                 } else {
-                    topBarBackgroundColor = Color.systemBarBackground.colorImpl()
-                    unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
-                    topBarBackgroundForBrush = nil
+                    materialColorScheme = MaterialTheme.colorScheme
                 }
-
-                let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
-                let placement = EnvironmentValues.shared._placement
-                EnvironmentValues.shared.setValues {
-                    $0.set_placement(placement.union(ViewPlacement.toolbar))
-                    $0.set_tint(tint)
-                    return ComposeResult.ok
-                } in: {
-                    let interactionSource = remember { MutableInteractionSource() }
-                    var topBarModifier = Modifier.zIndex(Float(1.1))
-                        .clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                            scrollToTop.value.reduced.action()
-                        })
-                        .onGloballyPositionedInWindow { bounds in
-                            topBarBottomPx.value = bounds.bottom
-                            topBarHeightPx.value = bounds.bottom - bounds.top
-                        }
-                    if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
-                        let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
-                        if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
-                            topBarModifier = topBarModifier.background(topBarBackgroundBrush)
-                        }
-                    }
-                    let alwaysShowScrolledBackground = topBarPreferences?.backgroundVisibility == Visibility.visible
-                    let topBarColors = TopAppBarDefaults.topAppBarColors(
-                        containerColor: alwaysShowScrolledBackground ? topBarBackgroundColor : unscrolledTopBarBackgroundColor,
-                        scrolledContainerColor: topBarBackgroundColor,
-                        titleContentColor: MaterialTheme.colorScheme.onSurface
-                    )
-                    let topBarTitle: @Composable () -> Void = {
-                        if let titleMenu {
-                            let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
-                                titleMenu.toggleMenu()
-                            })
-                            let arrangement = Arrangement.spacedBy(2.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
-                            Row(modifier: menuModifier, horizontalArrangement: arrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
-                                Image(systemName: "chevron.down").accessibilityHidden(true).Compose(context: context)
-                            }
-                            titleMenu.Render(context: context)
+                MaterialTheme(colorScheme: materialColorScheme) {
+                    let topBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    let unscrolledTopBarBackgroundColor: androidx.compose.ui.graphics.Color
+                    let topBarBackgroundForBrush: ShapeStyle?
+                    // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
+                    // properly interpolate between the title text colors
+                    let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
+                    let isSystemBackground = topBarPreferences?.isSystemBackground == true
+                    if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                        topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                        unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
+                        topBarBackgroundForBrush = nil
+                    } else if let background = topBarPreferences?.background {
+                        if let color = background.asColor(opacity: 1.0, animationContext: nil) {
+                            topBarBackgroundColor = color
+                            unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : color.copy(alpha: Float(0.0))
+                            topBarBackgroundForBrush = nil
                         } else {
-                            androidx.compose.material3.Text(arguments.title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                            unscrolledTopBarBackgroundColor = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                            topBarBackgroundColor = !topBarHasColorScheme || isOverlapped ? unscrolledTopBarBackgroundColor.copy(alpha: Float(0.0)) : unscrolledTopBarBackgroundColor
+                            topBarBackgroundForBrush = background
                         }
+                    } else {
+                        topBarBackgroundColor = Color.systemBarBackground.colorImpl()
+                        unscrolledTopBarBackgroundColor = isSystemBackground ? topBarBackgroundColor : topBarBackgroundColor.copy(alpha: Float(0.0))
+                        topBarBackgroundForBrush = nil
                     }
-                    let topBarNavigationIcon: @Composable () -> Void = {
-                        let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
-                        if hasBackButton || topLeadingItems.size > 0 {
-                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                            Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
-                                if hasBackButton {
-                                    IconButton(onClick: {
-                                        navigator.value.navigateBack()
-                                    }) {
+
+                    let tint = EnvironmentValues.shared._tint ?? Color(colorImpl: { MaterialTheme.colorScheme.onSurface })
+                    let placement = EnvironmentValues.shared._placement
+                    EnvironmentValues.shared.setValues {
+                        $0.set_placement(placement.union(ViewPlacement.toolbar))
+                        $0.set_tint(tint)
+                        return ComposeResult.ok
+                    } in: {
+                        let interactionSource = remember { MutableInteractionSource() }
+                        var topBarModifier = Modifier.zIndex(Float(1.1))
+                            .clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                                scrollToTop.value.reduced.action()
+                            })
+                            .onGloballyPositionedInWindow { bounds in
+                                topBarBottomPx.value = bounds.bottom
+                                topBarHeightPx.value = bounds.bottom - bounds.top
+                            }
+                        if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
+                            let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
+                            if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
+                                topBarModifier = topBarModifier.background(topBarBackgroundBrush)
+                            }
+                        }
+                        let alwaysShowScrolledBackground = topBarPreferences?.backgroundVisibility == Visibility.visible
+                        let topBarColors = TopAppBarDefaults.topAppBarColors(
+                            containerColor: alwaysShowScrolledBackground ? topBarBackgroundColor : unscrolledTopBarBackgroundColor,
+                            scrolledContainerColor: topBarBackgroundColor,
+                            titleContentColor: MaterialTheme.colorScheme.onSurface
+                        )
+                        let topBarTitle: @Composable () -> Void = {
+                            if let titleMenu {
+                                let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
+                                    titleMenu.toggleMenu()
+                                })
+                                let arrangement = Arrangement.spacedBy(2.dp, alignment: androidx.compose.ui.Alignment.CenterHorizontally)
+                                Row(modifier: menuModifier, horizontalArrangement: arrangement, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                    androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                                    Image(systemName: "chevron.down").accessibilityHidden(true).Compose(context: context)
+                                }
+                                titleMenu.Render(context: context)
+                            } else {
+                                androidx.compose.material3.Text(title.localizedTextString(), maxLines: 1, overflow: TextOverflow.Ellipsis)
+                            }
+                        }
+                        let topBarNavigationIcon: @Composable () -> Void = {
+                            let hasBackButton = !arguments.isRoot && arguments.toolbarPreferences.backButtonHidden != true
+                            if hasBackButton || topLeadingItems.size > 0 {
+                                let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                                Row(verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+                                    if hasBackButton {
                                         let isRTL = EnvironmentValues.shared.layoutDirection == LayoutDirection.rightToLeft
-                                        Icon(imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack), contentDescription: "Back", tint: tint.colorImpl())
+                                        let backIcon: @Composable () -> Void = {
+                                            Icon(
+                                                imageVector: (isRTL ? Icons.Filled.ArrowForward : Icons.Filled.ArrowBack),
+                                                contentDescription: "Back",
+                                                tint: tint.colorImpl()
+                                            )
+                                        }
+                                        switch navigationIconButtonStyle {
+                                        case Material3TopAppBarNavigationIconButtonStyle.filledIconButton:
+                                            FilledIconButton(
+                                                onClick: { navigator.value.navigateBack() },
+                                                colors: navigationIconButtonColors ?? IconButtonDefaults.filledIconButtonColors()
+                                            ) { backIcon() }
+                                        case Material3TopAppBarNavigationIconButtonStyle.iconButton:
+                                            IconButton(
+                                                onClick: { navigator.value.navigateBack() },
+                                                colors: navigationIconButtonColors ?? IconButtonDefaults.iconButtonColors()
+                                            ) { backIcon() }
+                                        }
+                                    }
+                                    for renderable in topLeadingItems {
+                                        renderable.Render(context: toolbarItemContext)
                                     }
                                 }
-                                for renderable in topLeadingItems {
-                                    renderable.Render(context: toolbarItemContext)
-                                }
                             }
                         }
-                    }
-                    let topBarActions: @Composable () -> Void = {
-                        let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
-                        for renderable in topTrailingItems {
-                            renderable.Render(context: toolbarItemContext)
+                        let topBarActions: @Composable () -> Void = {
+                            let toolbarItemContext = context.content(modifier: Modifier.padding(start: 12.dp, end: 12.dp))
+                            for renderable in topTrailingItems {
+                                renderable.Render(context: toolbarItemContext)
+                            }
                         }
-                    }
-                    var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
-                    if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
-                        options = updateOptions(options)
-                    }
-                    // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
-                    options = options.copy(scrollBehavior: scrollBehavior)
-                    if isInlineTitleDisplayMode {
-                        if options.preferCenterAlignedStyle {
-                            CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
-                        } else {
-                            TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                        var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
+                        if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
+                            options = updateOptions(options)
                         }
-                    } else {
-                        // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
-                        let typography = MaterialTheme.typography
-                        let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
-                        let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
-                        MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
-                            if options.preferLargeStyle {
-                                LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                        // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
+                        options = options.copy(scrollBehavior: scrollBehavior)
+                        if isInlineTitleDisplayMode {
+                            if options.preferCenterAlignedStyle {
+                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
                             } else {
-                                MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                            }
+                        } else {
+                            // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
+                            let typography = MaterialTheme.typography
+                            let appBarTitleStyle = typography.headlineLarge.copy(fontWeight: FontWeight.Bold)
+                            let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
+                            MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
+                                if options.preferLargeStyle {
+                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                } else {
+                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                }
                             }
                         }
                     }
@@ -521,9 +557,8 @@ public struct NavigationStack : View, Renderable {
             }
         }
 
-        // We place nav bars within each entry rather than at the navigation controller level. There isn't a fluid animation
-        // between navigation bar states on Android, and it is simpler to only hoist navigation bar preferences to this level
-        
+        // We place nav bars within each entry rather than at the navigation controller level so toolbar preferences apply per entry.
+
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
         if layoutImplementationVersion < 2 {
             // Old Column layout (version < 2)
@@ -582,9 +617,13 @@ public struct NavigationStack : View, Renderable {
             // New Box layout (version >= 2)
             Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
                 // Calculate safe area for content by insetting by topBar and bottomBar heights
-                let contentSafeArea = arguments.safeArea?
-                    .insetting(.top, to: topBarBottomPx.value)
-                    .insetting(.bottom, to: bottomBarTopPx.value)
+                var contentSafeArea: SafeArea?
+                if let safeArea = arguments.safeArea {
+                    let clampedTopBarBottomPxValue: Float = max(topBarBottomPx.value, safeArea.safeBoundsPx.top)
+                    contentSafeArea = safeArea
+                        .insetting(.top, to: clampedTopBarBottomPxValue)
+                        .insetting(.bottom, to: bottomBarTopPx.value)
+                }
                 
                 // Top bar aligned to top
                 Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
@@ -603,9 +642,9 @@ public struct NavigationStack : View, Renderable {
                 // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
                 // indicator.
                 var contentModifier = Modifier.fillMaxSize()
-                // Use top bar height (not absolute bottom) for padding so content starts directly under the bar (LIV 2 Box layout).
-                let topPadding = topBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ?
-                        WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : with(density) { topBarHeightPx.value.toDp() }
+                let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+                let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
+                let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
                 let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
                         max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
                 contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
@@ -673,12 +712,12 @@ public struct NavigationStack : View, Renderable {
 #if SKIP
 
 // SKIP INSERT: @Serializable
-public enum SkipNavigationStackRootKey : NavKey {
+public enum SkipNavigationStackRootKey : NavKey, Hashable {
     case root
 }
 
 // SKIP INSERT: @Serializable
-public struct SkipNavigationStackPushKey : NavKey {
+public struct SkipNavigationStackPushKey : NavKey, Hashable {
     public let destinationIndex: Int
     public let identifier: String
 }
@@ -697,12 +736,34 @@ public struct SkipNavigationStackPushKey : NavKey {
 }
 
 typealias NavigationDestinations = Dictionary<AnyHashable, NavigationDestination>
+typealias NavigationDestinationLayoutHintsMap = Dictionary<AnyHashable, NavigationStackLayoutHints>
+
 struct NavigationDestination {
     let destination: (Any) -> any View
+    let layoutHints: NavigationStackLayoutHints?
+
+    init(destination: @escaping (Any) -> any View, layoutHints: NavigationStackLayoutHints? = nil) {
+        self.destination = destination
+        self.layoutHints = layoutHints
+    }
+
     // No way to compare closures. Assume equal so we don't think our destinations are constantly updating
     public override func equals(other: Any?) -> Bool {
         return true
     }
+}
+
+private func mergeNavigationDestinationsWithLayoutHints(_ destinations: NavigationDestinations, layoutHints: NavigationDestinationLayoutHintsMap) -> NavigationDestinations {
+    if layoutHints.isEmpty {
+        return destinations
+    }
+    var merged = destinations
+    for (key, hint) in layoutHints {
+        if let existing = merged[key] {
+            merged[key] = NavigationDestination(destination: existing.destination, layoutHints: hint)
+        }
+    }
+    return merged
 }
 
 @Stable final class Navigator {
@@ -741,15 +802,17 @@ struct NavigationDestination {
         let route: String
         let destination: ((Any) -> any View)?
         let targetValue: Any?
+        let layoutHints: NavigationStackLayoutHints?
         let stateSaver: ComposeStateSaver
         var titleDisplayMode: ToolbarTitleDisplayMode?
         var binding: Binding<Bool>?
 
-        init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
+        init(id: String, route: String, destination: ((Any) -> any View)? = nil, targetValue: Any? = nil, layoutHints: NavigationStackLayoutHints? = nil, stateSaver: ComposeStateSaver = ComposeStateSaver()) {
             self.id = id
             self.route = route
             self.destination = destination
             self.targetValue = targetValue
+            self.layoutHints = layoutHints
             self.stateSaver = stateSaver
         }
     }
@@ -808,7 +871,7 @@ struct NavigationDestination {
         viewDestinationValue += 1
 
         let route = Self.route(for: viewDestinationIndex, valueString: String(describing: targetValue))
-        return navigate(route: route, destination: { _ in view }, targetValue: targetValue, binding: binding)
+        return navigate(route: route, destination: { _ in view }, layoutHints: nil, targetValue: targetValue, binding: binding)
     }
 
     /// Pop the back stack.
@@ -995,11 +1058,11 @@ struct NavigationDestination {
         }
 
         let route = route(for: key, value: targetValue)
-        navigate(route: route, destination: destination.destination, targetValue: targetValue)
+        navigate(route: route, destination: destination.destination, layoutHints: destination.layoutHints, targetValue: targetValue)
         return true
     }
 
-    private func navigate(route: String, destination: ((Any) -> any View)?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
+    private func navigate(route: String, destination: ((Any) -> any View)?, layoutHints: NavigationStackLayoutHints?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
         let slash = route.indexOf("/")
         guard slash >= 0 else {
             return nil
@@ -1010,17 +1073,17 @@ struct NavigationDestination {
             return nil
         }
         let pushKey = SkipNavigationStackPushKey(destinationIndex: destIndex, identifier: identifier)
-        return navigate(pushKey: pushKey, route: route, destination: destination, targetValue: targetValue, binding: binding)
+        return navigate(pushKey: pushKey, route: route, destination: destination, layoutHints: layoutHints, targetValue: targetValue, binding: binding)
     }
 
-    private func navigate(pushKey: SkipNavigationStackPushKey, route: String, destination: ((Any) -> any View)?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
+    private func navigate(pushKey: SkipNavigationStackPushKey, route: String, destination: ((Any) -> any View)?, layoutHints: NavigationStackLayoutHints?, targetValue: Any, binding: Binding<Bool>? = nil) -> String? {
         // We see a top app bar glitch when the keyboard animates away after push, so manually dismiss it first
         keyboardController?.hide()
         navBackStack.add(pushKey)
         let entryId = stableEntryId(forKey: pushKey)
         var state = backStackState[entryId]
         if state == nil {
-            state = BackStackState(id: entryId, route: route, destination: destination, targetValue: targetValue)
+            state = BackStackState(id: entryId, route: route, destination: destination, targetValue: targetValue, layoutHints: layoutHints)
             backStackState[entryId] = state
         }
         if let binding {
@@ -1315,15 +1378,89 @@ extension View {
     public func material3BottomAppBar(_ options: @Composable (Material3BottomAppBarOptions) -> Material3BottomAppBarOptions) -> View {
         return environment(\._material3BottomAppBar, options, affectsEvaluate: false)
     }
+
+    public func navigationStackLayoutHints(expectedTitle: Text = NavigationTitlePreferenceKey.defaultValue, expectedTitleDisplayMode: ToolbarTitleDisplayMode? = nil) -> View {
+        return environment(
+            \._navigationStackLayoutHints,
+             NavigationStackLayoutHints(
+                expectedTitle: expectedTitle,
+                expectedTitleDisplayMode: expectedTitleDisplayMode),
+             affectsEvaluate: false
+        )
+    }
+    public func navigationDestinationLayoutHints(for data: Any.Type, expectedTitle: Text = NavigationTitlePreferenceKey.defaultValue, expectedTitleDisplayMode: ToolbarTitleDisplayMode? = nil) -> any View {
+        let hints = NavigationStackLayoutHints(
+            expectedTitle: expectedTitle,
+            expectedTitleDisplayMode: expectedTitleDisplayMode
+        )
+        return preference(key: NavigationDestinationLayoutHintsPreferenceKey.self, value: [data as! AnyHashable: hints])
+    }
+
+    public func navigationDestinationLayoutHints(destinationKey: String, expectedTitle: Text = NavigationTitlePreferenceKey.defaultValue, expectedTitleDisplayMode: ToolbarTitleDisplayMode? = nil) -> any View {
+        let hints = NavigationStackLayoutHints(
+            expectedTitle: expectedTitle,
+            expectedTitleDisplayMode: expectedTitleDisplayMode
+        )
+        return preference(key: NavigationDestinationLayoutHintsPreferenceKey.self, value: [destinationKey: hints])
+    }
     #endif
+
+    // SKIP @bridge
+    public func navigationStackLayoutHints(expectedTitle: Text, bridgedExpectedTitleDisplayMode: Int?) -> any View {
+        #if SKIP
+        let expectedTitleDisplayMode: ToolbarTitleDisplayMode? = bridgedExpectedTitleDisplayMode.flatMap { raw in
+            switch NavigationBarItem.TitleDisplayMode(rawValue: raw) ?? .automatic {
+            case .automatic: return ToolbarTitleDisplayMode.automatic
+            case .inline: return ToolbarTitleDisplayMode.inline
+            case .large: return ToolbarTitleDisplayMode.large
+            }
+        }
+        return environment(
+            \._navigationStackLayoutHints,
+            NavigationStackLayoutHints(
+                expectedTitle: expectedTitle,
+                expectedTitleDisplayMode: expectedTitleDisplayMode),
+            affectsEvaluate: false
+        )
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func navigationDestinationLayoutHints(destinationKey: String, expectedTitle: Text, bridgedExpectedTitleDisplayMode: Int?) -> any View {
+        #if SKIP
+        let expectedTitleDisplayMode: ToolbarTitleDisplayMode? = bridgedExpectedTitleDisplayMode.flatMap { raw in
+            switch NavigationBarItem.TitleDisplayMode(rawValue: raw) ?? .automatic {
+            case .automatic: return ToolbarTitleDisplayMode.automatic
+            case .inline: return ToolbarTitleDisplayMode.inline
+            case .large: return ToolbarTitleDisplayMode.large
+            }
+        }
+        let hints = NavigationStackLayoutHints(
+            expectedTitle: expectedTitle,
+            expectedTitleDisplayMode: expectedTitleDisplayMode
+        )
+        return preference(key: NavigationDestinationLayoutHintsPreferenceKey.self, value: [destinationKey: hints])
+        #else
+        return self
+        #endif
+    }
 }
 
 #if SKIP
+public enum Material3TopAppBarNavigationIconButtonStyle {
+    case iconButton
+    case filledIconButton
+}
+
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 public struct Material3TopAppBarOptions {
     public var title: @Composable () -> Void
     public var modifier: Modifier = Modifier
     public var navigationIcon: @Composable () -> Void = {}
+    public var navigationIconButtonStyle: Material3TopAppBarNavigationIconButtonStyle = .iconButton
+    public var navigationIconButtonColors: IconButtonColors? = nil
     public var colors: TopAppBarColors
     public var scrollBehavior: TopAppBarScrollBehavior? = nil
     public var preferCenterAlignedStyle = false
@@ -1333,12 +1470,24 @@ public struct Material3TopAppBarOptions {
         title: @Composable () -> Void = self.title,
         modifier: Modifier = self.modifier,
         navigationIcon: @Composable () -> Void = self.navigationIcon,
+        navigationIconButtonStyle: Material3TopAppBarNavigationIconButtonStyle = self.navigationIconButtonStyle,
+        navigationIconButtonColors: IconButtonColors? = self.navigationIconButtonColors,
         colors: TopAppBarColors = self.colors,
         scrollBehavior: TopAppBarScrollBehavior? = self.scrollBehavior,
         preferCenterAlignedStyle: Bool = self.preferCenterAlignedStyle,
         preferLargeStyle: Bool = self.preferLargeStyle
     ) -> Material3TopAppBarOptions {
-        return Material3TopAppBarOptions(title: title, modifier: modifier, navigationIcon: navigationIcon, colors: colors, scrollBehavior: scrollBehavior, preferCenterAlignedStyle: preferCenterAlignedStyle, preferLargeStyle: preferLargeStyle)
+        return Material3TopAppBarOptions(
+            title: title,
+            modifier: modifier,
+            navigationIcon: navigationIcon,
+            navigationIconButtonStyle: navigationIconButtonStyle,
+            navigationIconButtonColors: navigationIconButtonColors,
+            colors: colors,
+            scrollBehavior: scrollBehavior,
+            preferCenterAlignedStyle: preferCenterAlignedStyle,
+            preferLargeStyle: preferLargeStyle
+        )
     }
 }
 
@@ -1375,6 +1524,27 @@ struct NavigationTitlePreferenceKey: PreferenceKey {
 
     static func reduce(value: inout Text, nextValue: () -> Text) {
         value = nextValue()
+    }
+}
+
+struct NavigationDestinationLayoutHintsPreferenceKey: PreferenceKey {
+    static let defaultValue: NavigationDestinationLayoutHintsMap = [:]
+
+    static func reduce(value: inout NavigationDestinationLayoutHintsMap, nextValue: () -> NavigationDestinationLayoutHintsMap) {
+        for (key, hints) in nextValue() {
+            value[key] = hints
+        }
+    }
+}
+
+/// Values supplied before `navigationTitle` / `navigationBarTitleDisplayMode` preferences propagate, so the first frames use the correct top bar eligibility, scroll behavior, and title text, preventing layout shift.
+public struct NavigationStackLayoutHints {
+    public let expectedTitle: Text
+    public let expectedTitleDisplayMode: ToolbarTitleDisplayMode?
+
+    public init(expectedTitle: Text = NavigationTitlePreferenceKey.defaultValue, expectedTitleDisplayMode: ToolbarTitleDisplayMode? = nil) {
+        self.expectedTitle = expectedTitle
+        self.expectedTitleDisplayMode = expectedTitleDisplayMode
     }
 }
 #endif

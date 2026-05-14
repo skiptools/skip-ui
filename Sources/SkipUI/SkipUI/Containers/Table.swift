@@ -60,7 +60,7 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
         let itemContext = context.content()
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, modifier: modifier) { safeAreaExpansion, _ in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, modifier: modifier, logTag: "Table") { safeAreaExpansion, _ in
                 let density = LocalDensity.current
                 let headerSafeAreaHeight = with(density) { safeAreaExpansion.top.toDp() }
                 let footerSafeAreaHeight = with(density) { safeAreaExpansion.bottom.toDp() }

@@ -16,6 +16,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.LocalRippleConfiguration
 import androidx.compose.material3.RippleConfiguration
 import androidx.compose.runtime.Composable
@@ -197,6 +198,8 @@ public struct Button : View, Renderable {
                 }
             case .plain:
                 RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: true, isEnabled: isEnabled, action: action)
+            case .m3Text:
+                RenderM3TextButton(label: label, context: context.content(modifier: modifier), role: role, isPlain: false, isEnabled: isEnabled, action: action)
             default:
                 RenderTextButton(label: label, context: context.content(modifier: modifier), role: role, isEnabled: isEnabled, action: action)
             }
@@ -233,6 +236,44 @@ public struct Button : View, Renderable {
             label.Compose(context: contentContext)
         }
     }
+
+    /// Render a Material3 text button style.
+    ///
+    /// - Parameters:
+    ///   - action: Pass nil if the given modifier already includes `clickable`
+    @Composable static func RenderM3TextButton(label: View, context: ComposeContext, role: ButtonRole? = nil, isPlain: Bool = false, isEnabled: Bool = EnvironmentValues.shared.isEnabled, action: (() -> Void)? = nil) {
+        let isHitTestingEnabled = EnvironmentValues.shared._isHitTestingEnabled
+        let baseForegroundStyle: ShapeStyle
+        if role == .destructive {
+            baseForegroundStyle = Color(colorImpl: { MaterialTheme.colorScheme.error })
+        } else {
+            baseForegroundStyle = EnvironmentValues.shared._foregroundStyle ?? (isPlain ? Color.primary : (EnvironmentValues.shared._tint ?? Color.accentColor))
+        }
+        var foregroundStyle = baseForegroundStyle
+        if !isEnabled {
+            let disabledAlpha = Double(ContentAlpha.disabled)
+            foregroundStyle = AnyShapeStyle(baseForegroundStyle, opacity: disabledAlpha)
+        }
+
+        let hasAction = action != nil && isHitTestingEnabled
+        let enabledContentColor = baseForegroundStyle.asColor(opacity: 1.0, animationContext: nil) ?? MaterialTheme.colorScheme.primary
+        let disabledContentColor = baseForegroundStyle.asColor(opacity: Double(ContentAlpha.disabled), animationContext: nil) ?? enabledContentColor.copy(alpha: ContentAlpha.disabled)
+        let colors = ButtonDefaults.textButtonColors(contentColor: enabledContentColor, disabledContentColor: disabledContentColor)
+        var options = Material3ButtonOptions(onClick: action ?? {}, modifier: context.modifier, enabled: isEnabled && hasAction, shape: ButtonDefaults.textShape, colors: colors, elevation: nil, border: nil, contentPadding: ButtonDefaults.TextButtonContentPadding, interactionSource: nil)
+        if let updateOptions = EnvironmentValues.shared._material3Button {
+            options = updateOptions(options)
+        }
+        let contentContext = context.content()
+
+        EnvironmentValues.shared.setValues {
+            $0.set_foregroundStyle(foregroundStyle)
+            return ComposeResult.ok
+        } in: {
+            TextButton(onClick: options.onClick, modifier: options.modifier, enabled: options.enabled, shape: options.shape, colors: options.colors, elevation: options.elevation, border: options.border, contentPadding: options.contentPadding, interactionSource: options.interactionSource) {
+                label.Compose(context: contentContext)
+            }
+        }
+    }
     #else
     public var body: some View {
         stubView()
@@ -252,6 +293,7 @@ public struct ButtonStyle: RawRepresentable, Equatable {
     public static let borderless = ButtonStyle(rawValue: 2) // For bridging
     public static let bordered = ButtonStyle(rawValue: 3) // For bridging
     public static let borderedProminent = ButtonStyle(rawValue: 4) // For bridging
+    public static let m3Text = ButtonStyle(rawValue: 7) // For bridging
     @available(*, unavailable)
     public static let glass = ButtonStyle(rawValue: 5) // For bridging
     @available(*, unavailable)

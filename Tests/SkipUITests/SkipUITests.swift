@@ -284,6 +284,35 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    // Regression test for https://github.com/skiptools/skip-ui/issues/371:
+    // .onLongPressGesture must still fire on a Text whose body contains a
+    // markdown link. Before the fix, the link-tap pointerInput in Text
+    // consumed the down event so the parent gesture's long-press timer
+    // never started.
+    func testLongPressOnTextWithMarkdownLink() throws {
+        try testUI(view: {
+            LongPressLinkTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "no")
+            #if SKIP
+            rule.onNodeWithTag("text").performTouchInput { longClick() }
+            #endif
+            try check(rule, id: "status", hasText: "yes")
+        })
+    }
+    struct LongPressLinkTestView: View {
+        @State var pressed = false
+        var body: some View {
+            VStack {
+                Text("Long press [me](https://skip.tools)")
+                    .accessibilityIdentifier("text")
+                    .onLongPressGesture { pressed = true }
+                Text(pressed ? "yes" : "no")
+                    .accessibilityIdentifier("status")
+            }
+        }
+    }
+
     // look up a localized string in the current bundle using the given language
     func localizedBundle(_ lang: String) throws -> Bundle {
         try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: lang)).deletingLastPathComponent()))

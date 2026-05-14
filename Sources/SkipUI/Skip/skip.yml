@@ -40,6 +40,7 @@ settings:
                 - 'library("androidx-activity-compose", "androidx.activity", "activity-compose").versionRef("androidx-activity")'
                 - 'library("androidx-lifecycle-process", "androidx.lifecycle", "lifecycle-process").versionRef("androidx-lifecycle-process")'
                 - 'library("androidx-compose-material3-adaptive", "androidx.compose.material3.adaptive", "adaptive").versionRef("androidx-material3-adaptive")'
+                - 'library("androidx-compose-material3-adaptive-navigation-suite", "androidx.compose.material3", "material3-adaptive-navigation-suite").versionRef("androidx-material3-adaptive")'
 
                 - 'library("androidx-work-runtime", "androidx.work", "work-runtime-ktx").versionRef("androidx-work")'
 
@@ -77,6 +78,7 @@ build:
         - 'api(libs.androidx.compose.material.icons.extended)'
         - 'api(libs.androidx.compose.material3)'
         - 'api(libs.androidx.compose.material3.adaptive)'
+        - 'api(libs.androidx.compose.material3.adaptive.navigation.suite)'
         - 'api(libs.androidx.compose.foundation)'
         - 'api(libs.androidx.navigation3.runtime)'
         - 'api(libs.androidx.navigation3.ui)'

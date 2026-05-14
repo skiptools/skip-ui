@@ -145,46 +145,6 @@ public struct LabelStyle: RawRepresentable, Equatable {
     public static let titleAndIcon = LabelStyle(rawValue: 3) // For bridging
 }
 
-public struct LabeledContent {
-    @available(*, unavailable)
-    public init(@ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
-    }
-
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: () -> any View) {
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, @ViewBuilder content: () -> any View) {
-    }
-
-    @available(*, unavailable)
-    public init(_ title: String, @ViewBuilder content: () -> any View) {
-    }
-
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, value: String) {
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, value: String) {
-    }
-
-    @available(*, unavailable)
-    public init(_ title: String, value: String) {
-    }
-}
-
-public struct LabeledContentStyle: RawRepresentable, Equatable {
-    public let rawValue: Int
-
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    public static let automatic = LabeledContentStyle(rawValue: 0)
-}
-
 extension View {
     public func labelStyle(_ style: LabelStyle) -> some View {
         #if SKIP
@@ -197,10 +157,6 @@ extension View {
     // SKIP @bridge
     public func labelStyle(bridgedStyle: Int) -> any View {
         return labelStyle(LabelStyle(rawValue: bridgedStyle))
-    }
-
-    public func labeledContentStyle(_ style: LabeledContentStyle) -> some View {
-        return self
     }
 
     @available(*, unavailable)

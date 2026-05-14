@@ -32,8 +32,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 @Composable public func PresentationRoot(defaultColorScheme: ColorScheme? = nil, absoluteSystemBarEdges systemBarEdges: Edge.Set = .all, context: ComposeContext, content: @Composable (ComposeContext) -> Void) {
     launchUIApplicationActivity()
 
-    let preferredColorScheme = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>) { mutableStateOf(Preference<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self)) }
-    let preferredColorSchemeCollector = PreferenceCollector<PreferredColorScheme>(key: PreferredColorSchemePreferenceKey.self, state: preferredColorScheme)
+    let (preferredColorScheme, preferredColorSchemeCollector) = rememberSaveablePreferenceCollector(key: PreferredColorSchemePreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<PreferredColorScheme>, Any>)
     PreferenceValues.shared.collectPreferences([preferredColorSchemeCollector]) {
         let materialColorScheme = preferredColorScheme.value.reduced.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
         MaterialTheme(colorScheme: materialColorScheme) {
