@@ -4,12 +4,18 @@
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
@@ -26,6 +33,7 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
@@ -49,6 +57,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -475,14 +484,35 @@ public final class List : View, Renderable {
             return
         }
         let editActionsModifier = EditActionsModifier.combined(for: content)
+        let swipeConfigs = SwipeActionsModifier.combined(for: content)
+        let leadingSwipe = swipeConfigs.leading
+        let trailingSwipe = swipeConfigs.trailing
+        let hasUserSwipe = leadingSwipe != nil || trailingSwipe != nil
         let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifier.isDeleteDisabled != true
         let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifier.isMoveDisabled != true
-        guard isDeleteEnabled || isMoveEnabled else {
+        guard isDeleteEnabled || isMoveEnabled || hasUserSwipe else {
             RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
             return
         }
 
-        if isDeleteEnabled {
+        // Build the inner swipe + content composable. User-provided .swipeActions
+        // wins over the implicit onDelete trash. If neither swipe path applies
+        // we just render the row (caller still handles reorder wrapping).
+        let itemContent: @Composable (Modifier) -> Void
+        if hasUserSwipe {
+            // Pass-through onDelete so an explicit destructive button can still
+            // remove the row by calling the same action the trash swipe would.
+            let rememberedOnDelete = rememberUpdatedState({
+                if let onDelete {
+                    withAnimation { onDelete(IndexSet(integer: index)) }
+                } else if let objectsBinding, objectsBinding.wrappedValue.count > index {
+                    withAnimation { (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index) }
+                }
+            })
+            itemContent = { rowModifier in
+                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe)
+            }
+        } else if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
                 if let onDelete {
                     withAnimation { onDelete(IndexSet(integer: index)) }
@@ -501,7 +531,7 @@ public final class List : View, Renderable {
                 return false
             }, positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold)
 
-            let itemContent: @Composable (Modifier) -> Void = {
+            itemContent = {
                 SwipeToDismissBox(state: dismissState, enableDismissFromEndToStart: true, enableDismissFromStartToEnd: false, modifier: $0, backgroundContent: {
                     let trashVector = Image.composeImageVector(named: "trash")!
                     Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
@@ -511,15 +541,142 @@ public final class List : View, Renderable {
                     RenderItem(content: content, level: level, context: context, styling: styling)
                 })
             }
-            if isMoveEnabled {
-                RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
-            } else {
-                itemContent(modifier)
-            }
         } else {
-            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier) {
-                RenderItem(content: content, level: level, context: context, modifier: $0, styling: styling)
+            itemContent = { rowModifier in
+                RenderItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling)
             }
+        }
+
+        if isMoveEnabled {
+            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
+        } else {
+            itemContent(modifier)
+        }
+    }
+
+    /// Render a row wrapped in a horizontal-drag swipe container that reveals
+    /// user-provided action Buttons on the leading and/or trailing edge.
+    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?) {
+        let coroutineScope = rememberCoroutineScope()
+
+        let trailingButtons: kotlin.collections.List<Button> = (trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
+            $0.strip() as? Button
+        }
+        let leadingButtons: kotlin.collections.List<Button> = (leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
+            $0.strip() as? Button
+        }
+        let allowsTrailingFullSwipe = trailingConfig?.allowsFullSwipe == true && trailingButtons.size > 0
+        let allowsLeadingFullSwipe = leadingConfig?.allowsFullSwipe == true && leadingButtons.size > 0
+
+        let buttonWidthDp = 80.dp
+        let density = LocalDensity.current
+        let buttonWidthPx = with(density) { buttonWidthDp.toPx() }
+        let trailingOpenPx = -Float(trailingButtons.size) * buttonWidthPx
+        let leadingOpenPx = Float(leadingButtons.size) * buttonWidthPx
+
+        let offsetState = remember { Animatable(Float(0)) }
+
+        BoxWithConstraints(modifier: modifier) {
+            let rowWidthPx = with(density) { maxWidth.toPx() }
+            let trailingFullPx = -rowWidthPx
+            let leadingFullPx = rowWidthPx
+            let minOffsetPx = trailingButtons.size > 0 ? trailingFullPx : Float(0)
+            let maxOffsetPx = leadingButtons.size > 0 ? leadingFullPx : Float(0)
+
+            // Reveal area sits beneath the row content and shows the buttons
+            // pinned to whichever edge is being swiped open.
+            Box(modifier: Modifier.matchParentSize()) {
+                if leadingButtons.size > 0 {
+                    Row(modifier: Modifier.fillMaxSize(), horizontalArrangement: Arrangement.Start) {
+                        for button in leadingButtons {
+                            RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
+                                button.action()
+                                coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                            })
+                        }
+                    }
+                }
+                if trailingButtons.size > 0 {
+                    Row(modifier: Modifier.fillMaxSize(), horizontalArrangement: Arrangement.End) {
+                        for button in trailingButtons {
+                            RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
+                                button.action()
+                                coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                            })
+                        }
+                    }
+                }
+            }
+
+            // Foreground row content, offset by drag.
+            let dragState = rememberDraggableState { delta in
+                let target = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
+                coroutineScope.launch { offsetState.snapTo(target) }
+            }
+            Box(modifier: Modifier
+                .matchParentSize()
+                .offset { IntOffset(offsetState.value.toInt(), 0) }
+                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStopped: { _ in
+                    let cur = offsetState.value
+                    var target: Float = Float(0)
+                    var fullSwipeAction: (() -> Void)? = nil
+                    if cur < Float(0) {
+                        let absCur = -cur
+                        if allowsTrailingFullSwipe && absCur > rowWidthPx * Float(0.5) {
+                            target = trailingFullPx
+                            fullSwipeAction = trailingButtons.firstOrNull()?.action
+                        } else if trailingButtons.size > 0 && absCur > -trailingOpenPx * Float(0.5) {
+                            target = trailingOpenPx
+                        }
+                    } else if cur > Float(0) {
+                        if allowsLeadingFullSwipe && cur > rowWidthPx * Float(0.5) {
+                            target = leadingFullPx
+                            fullSwipeAction = leadingButtons.firstOrNull()?.action
+                        } else if leadingButtons.size > 0 && cur > leadingOpenPx * Float(0.5) {
+                            target = leadingOpenPx
+                        }
+                    }
+                    if let fullSwipeAction {
+                        offsetState.animateTo(target)
+                        fullSwipeAction()
+                        offsetState.snapTo(Float(0))
+                    } else {
+                        offsetState.animateTo(target)
+                    }
+                })
+            ) {
+                RenderItem(content: content, level: level, context: context, modifier: Modifier.fillMaxSize(), styling: styling)
+            }
+        }
+    }
+
+    /// Render a single action button inside the swipe reveal area.
+    @Composable private func RenderSwipeRevealButton(button: Button, widthDp: Dp, context: ComposeContext, onTap: () -> Void) {
+        let backgroundColor: androidx.compose.ui.graphics.Color
+        let contentColor: androidx.compose.ui.graphics.Color
+        if button.role == ButtonRole.destructive {
+            backgroundColor = MaterialTheme.colorScheme.error
+            contentColor = MaterialTheme.colorScheme.onError
+        } else {
+            let tint = EnvironmentValues.shared._tint?.colorImpl()
+            if let tint {
+                backgroundColor = tint
+                contentColor = androidx.compose.ui.graphics.Color.White
+            } else {
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            }
+        }
+        let labelText = button.label.Evaluate(context: context, options: 0).mapNotNull {
+            $0.strip() as? Text
+        }.firstOrNull()
+        Box(modifier: Modifier
+            .fillMaxHeight()
+            .width(widthDp)
+            .background(backgroundColor)
+            .clickable(onClick: onTap),
+            contentAlignment: androidx.compose.ui.Alignment.Center) {
+            androidx.compose.material3.Text(text: labelText?.localizedTextString() ?? "", color: contentColor, style: Font.callout.fontImpl(), maxLines: 1)
         }
     }
 
@@ -873,10 +1030,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> some View {
-        return self
-    }
 }
 
 #if SKIP
