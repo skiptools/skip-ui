@@ -672,13 +672,34 @@ public final class List : View, Renderable {
             // past this fraction of its width.
             let fullSwipeFraction: Float = Float(0.75)
 
+            // Captures the offset at the moment a new drag begins. If the row
+            // is already open in one direction, we constrain the gesture to
+            // that direction's range so swiping back past zero closes the row
+            // without opening the opposite-edge actions.
+            let dragStartOffset = remember { mutableFloatStateOf(Float(0)) }
+
             let dragState = rememberDraggableState { delta in
-                offsetState.value = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
+                let start = dragStartOffset.value
+                let dragMin: Float
+                let dragMax: Float
+                if start < Float(0) {
+                    dragMin = minOffsetPx
+                    dragMax = Float(0)
+                } else if start > Float(0) {
+                    dragMin = Float(0)
+                    dragMax = maxOffsetPx
+                } else {
+                    dragMin = minOffsetPx
+                    dragMax = maxOffsetPx
+                }
+                offsetState.value = (offsetState.value + delta).coerceIn(dragMin, dragMax)
             }
             Box(modifier: Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetState.value.toInt(), 0) }
-                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStopped: { velocity in
+                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStarted: { _ in
+                    dragStartOffset.value = offsetState.value
+                }, onDragStopped: { velocity in
                     let cur = offsetState.value
                     let projected = (cur + velocity * velocityProjectionSeconds).coerceIn(minOffsetPx, maxOffsetPx)
 
