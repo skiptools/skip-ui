@@ -4,7 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -578,7 +578,10 @@ public final class List : View, Renderable {
         let trailingOpenPx = -Float(trailingButtons.size) * buttonWidthPx
         let leadingOpenPx = Float(leadingButtons.size) * buttonWidthPx
 
-        let offsetState = remember { Animatable(Float(0)) }
+        // Single source of truth for the foreground row's horizontal offset.
+        // Updated synchronously in the drag callback (no coroutine race) and
+        // driven by the top-level `animate(...)` suspend during the snap-back.
+        let offsetState = remember { mutableFloatStateOf(Float(0)) }
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
 
         Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }) {
@@ -595,7 +598,12 @@ public final class List : View, Renderable {
                     for button in leadingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
-                            coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                            let from = offsetState.value
+                            coroutineScope.launch {
+                                animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                    offsetState.value = value
+                                }
+                            }
                         })
                     }
                 }
@@ -605,7 +613,12 @@ public final class List : View, Renderable {
                     for button in trailingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
-                            coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                            let from = offsetState.value
+                            coroutineScope.launch {
+                                animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                    offsetState.value = value
+                                }
+                            }
                         })
                     }
                 }
@@ -625,8 +638,7 @@ public final class List : View, Renderable {
             let fullSwipeFraction: Float = Float(0.5)
 
             let dragState = rememberDraggableState { delta in
-                let target = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
-                coroutineScope.launch { offsetState.snapTo(target) }
+                offsetState.value = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
             }
             Box(modifier: Modifier
                 .fillMaxWidth()
@@ -669,12 +681,19 @@ public final class List : View, Renderable {
                         fullSwipeAction = leadingButtons.firstOrNull()?.action
                     }
 
+                    // animate(...) is a top-level Compose suspend that drives
+                    // the value through the AnimationSpec frame by frame and
+                    // hands us each value via the trailing block. Running it
+                    // here — inside onDragStopped's own suspend coroutine —
+                    // means the next gesture (which cancels this coroutine)
+                    // simply interrupts the animation cleanly. There is no
+                    // shared Animatable for stale snapTo calls to step on.
+                    animate(initialValue: cur, targetValue: target, initialVelocity: velocity) { value, _ in
+                        offsetState.value = value
+                    }
                     if let fullSwipeAction {
-                        offsetState.animateTo(target, initialVelocity: velocity)
                         fullSwipeAction()
-                        offsetState.snapTo(Float(0))
-                    } else {
-                        offsetState.animateTo(target, initialVelocity: velocity)
+                        offsetState.value = Float(0)
                     }
                 })
             ) {
