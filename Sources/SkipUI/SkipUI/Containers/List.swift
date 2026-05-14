@@ -701,15 +701,32 @@ public final class List : View, Renderable {
                     dragStartOffset.value = offsetState.value
                 }, onDragStopped: { velocity in
                     let cur = offsetState.value
-                    let projected = (cur + velocity * velocityProjectionSeconds).coerceIn(minOffsetPx, maxOffsetPx)
+                    // Apply the same direction constraint as the drag callback
+                    // so a hard flick past zero from an open state can't
+                    // project into the opposite-edge anchor — it snaps closed.
+                    let start = dragStartOffset.value
+                    let projMin: Float
+                    let projMax: Float
+                    if start < Float(0) {
+                        projMin = minOffsetPx
+                        projMax = Float(0)
+                    } else if start > Float(0) {
+                        projMin = Float(0)
+                        projMax = maxOffsetPx
+                    } else {
+                        projMin = minOffsetPx
+                        projMax = maxOffsetPx
+                    }
+                    let projected = (cur + velocity * velocityProjectionSeconds).coerceIn(projMin, projMax)
 
-                    // Build the candidate anchor set: always closed; add open
-                    // anchors only on edges that have buttons.
+                    // Build the candidate anchor set: always closed; add the
+                    // same-side open anchor only if the gesture didn't start
+                    // on the opposite side.
                     let anchors: kotlin.collections.MutableList<Float> = mutableListOf(Float(0))
-                    if trailingButtons.size > 0 {
+                    if trailingButtons.size > 0 && start <= Float(0) {
                         anchors.add(trailingOpenPx)
                     }
-                    if leadingButtons.size > 0 {
+                    if leadingButtons.size > 0 && start >= Float(0) {
                         anchors.add(leadingOpenPx)
                     }
 
