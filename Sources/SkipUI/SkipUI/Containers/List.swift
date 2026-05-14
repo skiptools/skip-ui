@@ -611,7 +611,13 @@ public final class List : View, Renderable {
 
             // Reveal area sits beneath the row content. matchParentSize adopts
             // the foreground's size without forcing the parent Box to grow.
-            if leadingButtons.size > 0 {
+            // Each edge's buttons are clustered at that edge via Arrangement.
+            // Without the direction guard below, a full-swipe in one direction
+            // moves the foreground entirely off-screen and the opposite-edge
+            // buttons would otherwise become visible — guard so only the edge
+            // matching the current drag direction can ever render.
+            let curOffsetForReveal = offsetState.value
+            if leadingButtons.size > 0 && curOffsetForReveal >= Float(0) {
                 Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.Start) {
                     for button in leadingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
@@ -629,7 +635,7 @@ public final class List : View, Renderable {
                     }
                 }
             }
-            if trailingButtons.size > 0 {
+            if trailingButtons.size > 0 && curOffsetForReveal <= Float(0) {
                 Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.End) {
                     for button in trailingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
