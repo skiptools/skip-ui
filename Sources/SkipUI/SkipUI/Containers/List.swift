@@ -654,6 +654,13 @@ public final class List : View, Renderable {
                     for button in leadingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
+                            // Mirror the destructive full-swipe path: a tap on
+                            // a destructive action also removes the row from
+                            // the underlying data when an onDelete handler or
+                            // deletable objectsBinding is wired up.
+                            if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                onDestructiveDelete()
+                            }
                             let from = offsetState.value
                             if activeSwipeKey.value == rowKey {
                                 activeSwipeKey.value = nil
@@ -672,6 +679,13 @@ public final class List : View, Renderable {
                     for button in trailingButtons {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
+                            // Mirror the destructive full-swipe path: a tap on
+                            // a destructive action also removes the row from
+                            // the underlying data when an onDelete handler or
+                            // deletable objectsBinding is wired up.
+                            if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                onDestructiveDelete()
+                            }
                             let from = offsetState.value
                             if activeSwipeKey.value == rowKey {
                                 activeSwipeKey.value = nil
