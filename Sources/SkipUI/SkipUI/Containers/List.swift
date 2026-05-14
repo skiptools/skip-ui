@@ -39,6 +39,7 @@ import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -252,6 +253,10 @@ public final class List : View, Renderable {
         }
 
         let itemContext = context.content()
+        // Tracks which row currently has its swipe actions revealed. When one
+        // opens, all others observe this state and animate closed. Matches
+        // iOS list behavior of "only one row's swipe actions visible at once".
+        let activeSwipeKey = remember { mutableStateOf<String?>(nil) }
         // Combine contentPadding with contentMargins additively
         var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
         if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
@@ -287,7 +292,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(index + range.start, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
@@ -297,7 +302,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(objects[index], itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
@@ -307,7 +312,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(objectsBinding, index, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 sectionHeader: { content in
@@ -476,7 +481,7 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
+    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState, activeSwipeKey: MutableState<String?>) {
         guard !content.isSwiftUIEmptyView else {
             return
         }
@@ -511,7 +516,7 @@ public final class List : View, Renderable {
                 }
             })
             itemContent = { rowModifier in
-                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe)
+                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey)
             }
         } else if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
@@ -560,7 +565,7 @@ public final class List : View, Renderable {
     /// The foreground row determines the cell's height; reveal buttons match it
     /// via `Modifier.matchParentSize()` so we never propagate unbounded height
     /// constraints up into the surrounding LazyColumn.
-    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?) {
+    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>) {
         let coroutineScope = rememberCoroutineScope()
 
         let trailingButtons: kotlin.collections.List<Button> = (trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
@@ -584,6 +589,19 @@ public final class List : View, Renderable {
         let offsetState = remember { mutableFloatStateOf(Float(0)) }
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
 
+        // When a *different* row's swipe opens, this LaunchedEffect observes
+        // the shared activeSwipeKey and animates this row closed. Matches
+        // iOS list behavior of one open swipe at a time.
+        let currentlyOpen = activeSwipeKey.value
+        LaunchedEffect(currentlyOpen) {
+            if currentlyOpen != rowKey && offsetState.value != Float(0) {
+                let from = offsetState.value
+                animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                    offsetState.value = value
+                }
+            }
+        }
+
         Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }) {
             let rowWidthPx = rowWidthPxState.value
             let trailingFullPx = -rowWidthPx
@@ -599,6 +617,9 @@ public final class List : View, Renderable {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
                             let from = offsetState.value
+                            if activeSwipeKey.value == rowKey {
+                                activeSwipeKey.value = nil
+                            }
                             coroutineScope.launch {
                                 animate(initialValue: from, targetValue: Float(0)) { value, _ in
                                     offsetState.value = value
@@ -614,6 +635,9 @@ public final class List : View, Renderable {
                         RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
                             button.action()
                             let from = offsetState.value
+                            if activeSwipeKey.value == rowKey {
+                                activeSwipeKey.value = nil
+                            }
                             coroutineScope.launch {
                                 animate(initialValue: from, targetValue: Float(0)) { value, _ in
                                     offsetState.value = value
@@ -685,6 +709,17 @@ public final class List : View, Renderable {
                         fullSwipeAction = leadingButtons.firstOrNull()?.action
                     }
 
+                    // Update the shared "active swipe" key BEFORE animating —
+                    // sibling rows observe the change immediately and start
+                    // their own close animation in parallel.
+                    if target == Float(0) {
+                        if activeSwipeKey.value == rowKey {
+                            activeSwipeKey.value = nil
+                        }
+                    } else {
+                        activeSwipeKey.value = rowKey
+                    }
+
                     // animate(...) is a top-level Compose suspend that drives
                     // the value through the AnimationSpec frame by frame and
                     // hands us each value via the trailing block. Running it
@@ -698,6 +733,9 @@ public final class List : View, Renderable {
                     if let fullSwipeAction {
                         fullSwipeAction()
                         offsetState.value = Float(0)
+                        if activeSwipeKey.value == rowKey {
+                            activeSwipeKey.value = nil
+                        }
                     }
                 })
             ) {
