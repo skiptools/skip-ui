@@ -635,7 +635,11 @@ public final class List : View, Renderable {
             // dragging back from open toward closed projects past closed and
             // snaps shut, even if the finger lifted while still partially open.
             let velocityProjectionSeconds: Float = Float(0.15)
-            let fullSwipeFraction: Float = Float(0.5)
+            // Full-swipe is checked against ACTUAL drag distance (not the
+            // velocity-projected position) so a fast flick alone can't trigger
+            // the destructive action — the user has to physically drag the row
+            // past this fraction of its width.
+            let fullSwipeFraction: Float = Float(0.75)
 
             let dragState = rememberDraggableState { delta in
                 offsetState.value = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
@@ -673,10 +677,10 @@ public final class List : View, Renderable {
                     // position has crossed half the row width past its open
                     // anchor — this is what fires the destructive action.
                     var fullSwipeAction: (() -> Void)? = nil
-                    if allowsTrailingFullSwipe && target == trailingOpenPx && -projected > rowWidthPx * fullSwipeFraction {
+                    if allowsTrailingFullSwipe && target == trailingOpenPx && -cur > rowWidthPx * fullSwipeFraction {
                         target = trailingFullPx
                         fullSwipeAction = trailingButtons.firstOrNull()?.action
-                    } else if allowsLeadingFullSwipe && target == leadingOpenPx && projected > rowWidthPx * fullSwipeFraction {
+                    } else if allowsLeadingFullSwipe && target == leadingOpenPx && cur > rowWidthPx * fullSwipeFraction {
                         target = leadingFullPx
                         fullSwipeAction = leadingButtons.firstOrNull()?.action
                     }
