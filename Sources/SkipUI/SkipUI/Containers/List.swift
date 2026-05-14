@@ -12,7 +12,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -41,6 +40,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +48,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -556,6 +557,9 @@ public final class List : View, Renderable {
 
     /// Render a row wrapped in a horizontal-drag swipe container that reveals
     /// user-provided action Buttons on the leading and/or trailing edge.
+    /// The foreground row determines the cell's height; reveal buttons match it
+    /// via `Modifier.matchParentSize()` so we never propagate unbounded height
+    /// constraints up into the surrounding LazyColumn.
     @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?) {
         let coroutineScope = rememberCoroutineScope()
 
@@ -575,46 +579,47 @@ public final class List : View, Renderable {
         let leadingOpenPx = Float(leadingButtons.size) * buttonWidthPx
 
         let offsetState = remember { Animatable(Float(0)) }
+        let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
 
-        BoxWithConstraints(modifier: modifier) {
-            let rowWidthPx = with(density) { maxWidth.toPx() }
+        Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }) {
+            let rowWidthPx = rowWidthPxState.value
             let trailingFullPx = -rowWidthPx
             let leadingFullPx = rowWidthPx
             let minOffsetPx = trailingButtons.size > 0 ? trailingFullPx : Float(0)
             let maxOffsetPx = leadingButtons.size > 0 ? leadingFullPx : Float(0)
 
-            // Reveal area sits beneath the row content and shows the buttons
-            // pinned to whichever edge is being swiped open.
-            Box(modifier: Modifier.matchParentSize()) {
-                if leadingButtons.size > 0 {
-                    Row(modifier: Modifier.fillMaxSize(), horizontalArrangement: Arrangement.Start) {
-                        for button in leadingButtons {
-                            RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
-                                button.action()
-                                coroutineScope.launch { offsetState.animateTo(Float(0)) }
-                            })
-                        }
+            // Reveal area sits beneath the row content. matchParentSize adopts
+            // the foreground's size without forcing the parent Box to grow.
+            if leadingButtons.size > 0 {
+                Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.Start) {
+                    for button in leadingButtons {
+                        RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
+                            button.action()
+                            coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                        })
                     }
                 }
-                if trailingButtons.size > 0 {
-                    Row(modifier: Modifier.fillMaxSize(), horizontalArrangement: Arrangement.End) {
-                        for button in trailingButtons {
-                            RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
-                                button.action()
-                                coroutineScope.launch { offsetState.animateTo(Float(0)) }
-                            })
-                        }
+            }
+            if trailingButtons.size > 0 {
+                Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.End) {
+                    for button in trailingButtons {
+                        RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
+                            button.action()
+                            coroutineScope.launch { offsetState.animateTo(Float(0)) }
+                        })
                     }
                 }
             }
 
-            // Foreground row content, offset by drag.
+            // Foreground row content sizes itself naturally (no fillMaxSize)
+            // so the parent Box adopts its height and the LazyColumn item is
+            // measurable.
             let dragState = rememberDraggableState { delta in
                 let target = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
                 coroutineScope.launch { offsetState.snapTo(target) }
             }
             Box(modifier: Modifier
-                .matchParentSize()
+                .fillMaxWidth()
                 .offset { IntOffset(offsetState.value.toInt(), 0) }
                 .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStopped: { _ in
                     let cur = offsetState.value
@@ -645,7 +650,7 @@ public final class List : View, Renderable {
                     }
                 })
             ) {
-                RenderItem(content: content, level: level, context: context, modifier: Modifier.fillMaxSize(), styling: styling)
+                RenderItem(content: content, level: level, context: context, styling: styling)
             }
         }
     }
