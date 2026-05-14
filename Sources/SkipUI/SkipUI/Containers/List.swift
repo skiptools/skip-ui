@@ -507,17 +507,23 @@ public final class List : View, Renderable {
         // we just render the row (caller still handles reorder wrapping).
         let itemContent: @Composable (Modifier) -> Void
         if hasUserSwipe {
-            // Pass-through onDelete so an explicit destructive button can still
-            // remove the row by calling the same action the trash swipe would.
-            let rememberedOnDelete = rememberUpdatedState({
+            // Mirror iOS: a destructive button's full-swipe both fires the
+            // user's action AND removes the row from the underlying data, so
+            // the row visibly disappears via LazyColumn's animateItem. We pass
+            // an `onDestructiveDelete` closure to RenderSwipeableItem; it is
+            // only invoked when (a) the destructive full-swipe fires AND
+            // (b) the List has either an onDelete handler or a deletable
+            // objectsBinding to remove from.
+            let canAutoDelete = isDeleteEnabled
+            let onDestructiveDelete: (() -> Void)? = canAutoDelete ? {
                 if let onDelete {
                     withAnimation { onDelete(IndexSet(integer: index)) }
                 } else if let objectsBinding, objectsBinding.wrappedValue.count > index {
                     withAnimation { (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index) }
                 }
-            })
+            } : nil
             itemContent = { rowModifier in
-                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey)
+                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey, onDestructiveDelete: onDestructiveDelete)
             }
         } else if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
@@ -566,15 +572,40 @@ public final class List : View, Renderable {
     /// The foreground row determines the cell's height; reveal buttons match it
     /// via `Modifier.matchParentSize()` so we never propagate unbounded height
     /// constraints up into the surrounding LazyColumn.
-    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>) {
+    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>, onDestructiveDelete: (() -> Void)? = nil) {
         let coroutineScope = rememberCoroutineScope()
 
-        let trailingButtons: kotlin.collections.List<Button> = (trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
+        let trailingButtonsRaw: kotlin.collections.List<Button> = (trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
             $0.strip() as? Button
         }
-        let leadingButtons: kotlin.collections.List<Button> = (leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
+        let leadingButtonsRaw: kotlin.collections.List<Button> = (leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
             $0.strip() as? Button
         }
+        // iOS reorders .destructive Buttons to the swipe-from edge regardless
+        // of the order they were declared in. For trailing swipes that means
+        // pinned to the right (last in the Row laid out with Arrangement.End);
+        // for leading, pinned to the left (first with Arrangement.Start). The
+        // destructive button also becomes the full-swipe target.
+        let trailingDestructive = trailingButtonsRaw.firstOrNull { $0.role == ButtonRole.destructive }
+        let trailingNonDestructive = trailingButtonsRaw.filter { $0.role != ButtonRole.destructive }
+        let trailingButtons: kotlin.collections.List<Button>
+        if let trailingDestructive {
+            trailingButtons = (trailingNonDestructive + listOf(trailingDestructive)) as kotlin.collections.List<Button>
+        } else {
+            trailingButtons = trailingButtonsRaw
+        }
+        let leadingDestructive = leadingButtonsRaw.firstOrNull { $0.role == ButtonRole.destructive }
+        let leadingNonDestructive = leadingButtonsRaw.filter { $0.role != ButtonRole.destructive }
+        let leadingButtons: kotlin.collections.List<Button>
+        if let leadingDestructive {
+            leadingButtons = (listOf(leadingDestructive) + leadingNonDestructive) as kotlin.collections.List<Button>
+        } else {
+            leadingButtons = leadingButtonsRaw
+        }
+        // The full-swipe gesture should fire the destructive action when one
+        // exists, otherwise the edge-most action.
+        let trailingFullSwipeTarget = trailingDestructive ?? trailingButtons.lastOrNull()
+        let leadingFullSwipeTarget = leadingDestructive ?? leadingButtons.firstOrNull()
         let allowsTrailingFullSwipe = trailingConfig?.allowsFullSwipe == true && trailingButtons.size > 0
         let allowsLeadingFullSwipe = leadingConfig?.allowsFullSwipe == true && leadingButtons.size > 0
 
@@ -746,12 +777,15 @@ public final class List : View, Renderable {
                     // position has crossed half the row width past its open
                     // anchor — this is what fires the destructive action.
                     var fullSwipeAction: (() -> Void)? = nil
+                    var firedDestructive = false
                     if allowsTrailingFullSwipe && target == trailingOpenPx && -cur > rowWidthPx * fullSwipeFraction {
                         target = trailingFullPx
-                        fullSwipeAction = trailingButtons.firstOrNull()?.action
+                        fullSwipeAction = trailingFullSwipeTarget?.action
+                        firedDestructive = trailingFullSwipeTarget?.role == ButtonRole.destructive
                     } else if allowsLeadingFullSwipe && target == leadingOpenPx && cur > rowWidthPx * fullSwipeFraction {
                         target = leadingFullPx
-                        fullSwipeAction = leadingButtons.firstOrNull()?.action
+                        fullSwipeAction = leadingFullSwipeTarget?.action
+                        firedDestructive = leadingFullSwipeTarget?.role == ButtonRole.destructive
                     }
 
                     // Update the shared "active swipe" key BEFORE animating —
@@ -777,6 +811,13 @@ public final class List : View, Renderable {
                     }
                     if let fullSwipeAction {
                         fullSwipeAction()
+                        // For a destructive full-swipe also remove the row
+                        // from the underlying data so LazyColumn collapses
+                        // it visually (matches iOS). Skipped for non-
+                        // destructive full-swipes — those just bounce back.
+                        if firedDestructive, let onDestructiveDelete {
+                            onDestructiveDelete()
+                        }
                         offsetState.value = Float(0)
                         if activeSwipeKey.value == rowKey {
                             activeSwipeKey.value = nil
