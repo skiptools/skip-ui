@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -627,14 +628,19 @@ public final class List : View, Renderable {
            swipeButtonMinWidth is the floor. */
         let minButtonWidthDp = swipeButtonMinWidth
         let density = LocalDensity.current
+        let minButtonWidthPx = with(density) { minButtonWidthDp.toPx() }
 
         /* Single source of truth for the foreground row's horizontal offset.
            Updated synchronously in the drag callback (no coroutine race) and
            driven by the top-level `animate(...)` suspend during the snap-back. */
         let offsetState = remember { mutableFloatStateOf(Float(0)) }
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
-        let trailingButtonsWidthPxState = remember { mutableFloatStateOf(Float(0)) }
-        let leadingButtonsWidthPxState = remember { mutableFloatStateOf(Float(0)) }
+        /* Natural (content-sized) buttons-row width per edge, captured via
+           onSizeChanged when the reveal is in natural-layout mode. Defaults
+           to count × minButtonWidth until the first measurement lands; that
+           fallback keeps the open-anchor non-zero on the very first gesture. */
+        let trailingNaturalState = remember { mutableFloatStateOf(Float(0)) }
+        let leadingNaturalState = remember { mutableFloatStateOf(Float(0)) }
 
         /* When a *different* row's swipe opens, this LaunchedEffect observes
            the shared activeSwipeKey and animates this row closed. Matches
@@ -651,63 +657,165 @@ public final class List : View, Renderable {
 
         Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }.clipToBounds()) {
             let rowWidthPx = rowWidthPxState.value
-            let trailingOpenPx = -trailingButtonsWidthPxState.value
-            let leadingOpenPx = leadingButtonsWidthPxState.value
+            /* Natural buttons-row width is the measured content width (each
+               button sized to its label), captured below in natural-layout
+               mode. Before the first measurement lands the fallback is
+               count × minButtonWidth so the open anchor is never zero on
+               frame zero. */
+            let trailingNaturalFallback = Float(trailingButtons.size) * minButtonWidthPx
+            let leadingNaturalFallback = Float(leadingButtons.size) * minButtonWidthPx
+            let trailingNaturalPx = trailingNaturalState.value > Float(0) ? trailingNaturalState.value : trailingNaturalFallback
+            let leadingNaturalPx = leadingNaturalState.value > Float(0) ? leadingNaturalState.value : leadingNaturalFallback
+            let trailingOpenPx = -trailingNaturalPx
+            let leadingOpenPx = leadingNaturalPx
             let trailingFullPx = -rowWidthPx
             let leadingFullPx = rowWidthPx
             let minOffsetPx = trailingButtons.size > 0 ? trailingFullPx : Float(0)
             let maxOffsetPx = leadingButtons.size > 0 ? leadingFullPx : Float(0)
 
-            /* Reveal area sits beneath the row content. matchParentSize adopts
-               the foreground's size without forcing the parent Box to grow.
-               Each edge's buttons are clustered at that edge via Arrangement.
-               Without the direction guard below, a full-swipe in one direction
-               moves the foreground entirely off-screen and the opposite-edge
-               buttons would otherwise become visible — guard so only the edge
-               matching the current drag direction can ever render. */
-            let curOffsetForReveal = offsetState.value
-            if leadingButtons.size > 0 && curOffsetForReveal >= Float(0) {
+            /* Current revealed width per edge (positive). When the user drags
+               further than the natural buttons-row width, the reveal area
+               stretches: the row's width follows the foreground so the
+               buttons grow to track the row edge instead of leaving a gap. */
+            let curOffset = offsetState.value
+            let revealedTrailingPx = curOffset < Float(0) ? -curOffset : Float(0)
+            let revealedLeadingPx = curOffset > Float(0) ? curOffset : Float(0)
+
+            /* Past the full-swipe trigger, the destructive (or otherwise
+               edge-most) action takes over and expands to fill the entire
+               revealed width while the other actions shrink to zero. The
+               transition is animated to smooth out the moment of takeover. */
+            let trailingFullSwipeActive = allowsTrailingFullSwipe && revealedTrailingPx > rowWidthPx * swipeFullSwipeFraction
+            let leadingFullSwipeActive = allowsLeadingFullSwipe && revealedLeadingPx > rowWidthPx * swipeFullSwipeFraction
+            let trailingFullSwipeAnim = animateFloatAsState(targetValue: trailingFullSwipeActive ? Float(1) : Float(0)).value
+            let leadingFullSwipeAnim = animateFloatAsState(targetValue: leadingFullSwipeActive ? Float(1) : Float(0)).value
+
+            /* Reveal area sits beneath the row content. Buttons are sized to
+               share the row's current revealed (stretched) width. The primary
+               action (destructive if present, else the edge-most) absorbs all
+               additional width during full-swipe takeover; other buttons
+               proportionally shrink to zero. The direction guards ensure only
+               one edge's reveal renders at any non-zero offset. */
+            /* Two layout modes:
+               - Natural: revealedPx ≤ naturalRow. Each button sizes to its
+                 content (Modifier.widthIn(min:).wrapContentWidth()) so long
+                 labels never wrap. The row's wrapContentWidth captures the
+                 total via onSizeChanged for future use.
+               - Stretch: revealedPx > naturalRow. Row width = revealedPx;
+                 each button is wrapped in a weighted Box so they share the
+                 row's extra width proportionally. Full-swipe takeover pushes
+                 the primary action's weight up while the rest shrink to zero. */
+            let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
+            let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
+            let leadingCount = Float(leadingButtons.size)
+            let trailingCount = Float(trailingButtons.size)
+
+            if leadingButtons.size > 0 && curOffset >= Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
-                    Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingButtonsWidthPxState.value = Float($0.width) }) {
-                        for button in leadingButtons {
-                            RenderSwipeRevealButton(button: button, minWidthDp: minButtonWidthDp, context: context, onTap: {
-                                button.action()
-                                if button.role == ButtonRole.destructive, let onDestructiveDelete {
-                                    onDestructiveDelete()
+                    if leadingUseStretch {
+                        let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
+                        Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
+                            for button in leadingButtons {
+                                let isPrimary = button === leadingFullSwipeTarget
+                                let primaryWeight = Float(1) + (leadingCount - Float(1)) * leadingFullSwipeAnim
+                                let otherWeight = Float(1) - leadingFullSwipeAnim
+                                let weight = isPrimary ? primaryWeight : otherWeight
+                                if weight <= Float(0.01) {
+                                    continue
                                 }
-                                let from = offsetState.value
-                                if activeSwipeKey.value == rowKey {
-                                    activeSwipeKey.value = nil
+                                Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, onTap: {
+                                        button.action()
+                                        if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                            onDestructiveDelete()
+                                        }
+                                        let from = offsetState.value
+                                        if activeSwipeKey.value == rowKey {
+                                            activeSwipeKey.value = nil
+                                        }
+                                        coroutineScope.launch {
+                                            animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                                offsetState.value = value
+                                            }
+                                        }
+                                    })
                                 }
-                                coroutineScope.launch {
-                                    animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                        offsetState.value = value
+                            }
+                        }
+                    } else {
+                        Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingNaturalState.value = Float($0.width) }) {
+                            for button in leadingButtons {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, onTap: {
+                                    button.action()
+                                    if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                        onDestructiveDelete()
                                     }
-                                }
-                            })
+                                    let from = offsetState.value
+                                    if activeSwipeKey.value == rowKey {
+                                        activeSwipeKey.value = nil
+                                    }
+                                    coroutineScope.launch {
+                                        animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                            offsetState.value = value
+                                        }
+                                    }
+                                })
+                            }
                         }
                     }
                 }
             }
-            if trailingButtons.size > 0 && curOffsetForReveal <= Float(0) {
+            if trailingButtons.size > 0 && curOffset <= Float(0) {
                 Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
-                    Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingButtonsWidthPxState.value = Float($0.width) }) {
-                        for button in trailingButtons {
-                            RenderSwipeRevealButton(button: button, minWidthDp: minButtonWidthDp, context: context, onTap: {
-                                button.action()
-                                if button.role == ButtonRole.destructive, let onDestructiveDelete {
-                                    onDestructiveDelete()
+                    if trailingUseStretch {
+                        let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
+                        Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
+                            for button in trailingButtons {
+                                let isPrimary = button === trailingFullSwipeTarget
+                                let primaryWeight = Float(1) + (trailingCount - Float(1)) * trailingFullSwipeAnim
+                                let otherWeight = Float(1) - trailingFullSwipeAnim
+                                let weight = isPrimary ? primaryWeight : otherWeight
+                                if weight <= Float(0.01) {
+                                    continue
                                 }
-                                let from = offsetState.value
-                                if activeSwipeKey.value == rowKey {
-                                    activeSwipeKey.value = nil
+                                Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, onTap: {
+                                        button.action()
+                                        if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                            onDestructiveDelete()
+                                        }
+                                        let from = offsetState.value
+                                        if activeSwipeKey.value == rowKey {
+                                            activeSwipeKey.value = nil
+                                        }
+                                        coroutineScope.launch {
+                                            animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                                offsetState.value = value
+                                            }
+                                        }
+                                    })
                                 }
-                                coroutineScope.launch {
-                                    animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                        offsetState.value = value
+                            }
+                        }
+                    } else {
+                        Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingNaturalState.value = Float($0.width) }) {
+                            for button in trailingButtons {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, onTap: {
+                                    button.action()
+                                    if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                        onDestructiveDelete()
                                     }
-                                }
-                            })
+                                    let from = offsetState.value
+                                    if activeSwipeKey.value == rowKey {
+                                        activeSwipeKey.value = nil
+                                    }
+                                    coroutineScope.launch {
+                                        animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                            offsetState.value = value
+                                        }
+                                    }
+                                })
+                            }
                         }
                     }
                 }
@@ -873,10 +981,12 @@ public final class List : View, Renderable {
     }
 
     /// Render a single action button inside the swipe reveal area.
-    /// Width is dynamic — at least `minWidthDp` but grows to fit content
-    /// on a single line. Padding around the label keeps icon/text from
+    /// Sizing is supplied by the caller: in natural mode this is
+    /// widthIn(min:).fillMaxHeight() so the button hugs its label; in
+    /// stretch mode it's fillMaxSize() inside a weighted Box so the button
+    /// expands with the row. Padding around the label keeps icon/text from
     /// touching the cell edges.
-    @Composable private func RenderSwipeRevealButton(button: Button, minWidthDp: Dp, context: ComposeContext, onTap: () -> Void) {
+    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, onTap: () -> Void) {
         let backgroundColor: androidx.compose.ui.graphics.Color
         let contentColor: androidx.compose.ui.graphics.Color
         if button.role == ButtonRole.destructive {
@@ -897,9 +1007,7 @@ public final class List : View, Renderable {
         }
         /* Render the user's label view (Text, Image, Label, or any custom
            composition) by composing it directly. */
-        Row(modifier: Modifier
-            .fillMaxHeight()
-            .widthIn(min: minWidthDp)
+        Row(modifier: sizeModifier
             .background(backgroundColor)
             .clickable(onClick: onTap)
             .padding(horizontal: 12.dp, vertical: 8.dp),
