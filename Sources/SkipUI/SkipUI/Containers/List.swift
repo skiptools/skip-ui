@@ -614,6 +614,13 @@ public final class List : View, Renderable {
             // Foreground row content sizes itself naturally (no fillMaxSize)
             // so the parent Box adopts its height and the LazyColumn item is
             // measurable.
+            // Velocity-aware snap: any meaningful swipe carries the row to the
+            // open anchor; a fast flick goes to the full-swipe anchor and fires
+            // the destructive action. Tiny wiggles still snap back to closed.
+            let flingVelocityThreshold = with(density) { 600.dp.toPx() } // px/sec
+            let openThresholdFraction: Float = Float(0.15) // of buttons-row width
+            let fullSwipeFraction: Float = Float(0.5) // of full row width
+
             let dragState = rememberDraggableState { delta in
                 let target = (offsetState.value + delta).coerceIn(minOffsetPx, maxOffsetPx)
                 coroutineScope.launch { offsetState.snapTo(target) }
@@ -621,32 +628,37 @@ public final class List : View, Renderable {
             Box(modifier: Modifier
                 .fillMaxWidth()
                 .offset { IntOffset(offsetState.value.toInt(), 0) }
-                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStopped: { _ in
+                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStopped: { velocity in
                     let cur = offsetState.value
                     var target: Float = Float(0)
                     var fullSwipeAction: (() -> Void)? = nil
-                    if cur < Float(0) {
+                    let trailingFlick = velocity < -flingVelocityThreshold
+                    let leadingFlick = velocity > flingVelocityThreshold
+
+                    if cur < Float(0) || trailingFlick {
                         let absCur = -cur
-                        if allowsTrailingFullSwipe && absCur > rowWidthPx * Float(0.5) {
+                        let openThresholdPx = -trailingOpenPx * openThresholdFraction
+                        if allowsTrailingFullSwipe && (absCur > rowWidthPx * fullSwipeFraction || velocity < -flingVelocityThreshold * Float(2)) {
                             target = trailingFullPx
                             fullSwipeAction = trailingButtons.firstOrNull()?.action
-                        } else if trailingButtons.size > 0 && absCur > -trailingOpenPx * Float(0.5) {
+                        } else if trailingButtons.size > 0 && (absCur > openThresholdPx || trailingFlick) {
                             target = trailingOpenPx
                         }
-                    } else if cur > Float(0) {
-                        if allowsLeadingFullSwipe && cur > rowWidthPx * Float(0.5) {
+                    } else if cur > Float(0) || leadingFlick {
+                        let openThresholdPx = leadingOpenPx * openThresholdFraction
+                        if allowsLeadingFullSwipe && (cur > rowWidthPx * fullSwipeFraction || velocity > flingVelocityThreshold * Float(2)) {
                             target = leadingFullPx
                             fullSwipeAction = leadingButtons.firstOrNull()?.action
-                        } else if leadingButtons.size > 0 && cur > leadingOpenPx * Float(0.5) {
+                        } else if leadingButtons.size > 0 && (cur > openThresholdPx || leadingFlick) {
                             target = leadingOpenPx
                         }
                     }
                     if let fullSwipeAction {
-                        offsetState.animateTo(target)
+                        offsetState.animateTo(target, initialVelocity: velocity)
                         fullSwipeAction()
                         offsetState.snapTo(Float(0))
                     } else {
-                        offsetState.animateTo(target)
+                        offsetState.animateTo(target, initialVelocity: velocity)
                     }
                 })
             ) {
