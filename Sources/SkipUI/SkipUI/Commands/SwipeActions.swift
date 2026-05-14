@@ -4,12 +4,18 @@
 import Foundation
 
 extension View {
-    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> some View {
+    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: SwipeActionsModifier(edge: edge, allowsFullSwipe: allowsFullSwipe, content: ComposeBuilder.from(content)))
         #else
         return self
         #endif
+    }
+
+    // SKIP @bridge
+    public func swipeActions(bridgedEdge: Int, allowsFullSwipe: Bool, bridgedActions: any View) -> any View {
+        let edge = HorizontalEdge(rawValue: bridgedEdge) ?? .trailing
+        return swipeActions(edge: edge, allowsFullSwipe: allowsFullSwipe, content: { bridgedActions })
     }
 }
 
