@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
@@ -609,17 +611,24 @@ public final class List : View, Renderable {
         let allowsTrailingFullSwipe = trailingConfig?.allowsFullSwipe == true && trailingButtons.size > 0
         let allowsLeadingFullSwipe = leadingConfig?.allowsFullSwipe == true && leadingButtons.size > 0
 
-        let buttonWidthDp = 80.dp
+        // Each reveal button is at least this wide but grows to fit its
+        // content (long text, icon + text, etc.). 96dp matches Material's
+        // comfortable touch target with horizontal breathing room around
+        // the label and visually closes the gap that used to appear when
+        // text content was narrow. The actual buttons-row width is captured
+        // per edge via onSizeChanged below; that measured width drives the
+        // open-anchor distance so the row always opens to exactly the space
+        // the buttons need.
+        let minButtonWidthDp = 80.dp
         let density = LocalDensity.current
-        let buttonWidthPx = with(density) { buttonWidthDp.toPx() }
-        let trailingOpenPx = -Float(trailingButtons.size) * buttonWidthPx
-        let leadingOpenPx = Float(leadingButtons.size) * buttonWidthPx
 
         // Single source of truth for the foreground row's horizontal offset.
         // Updated synchronously in the drag callback (no coroutine race) and
         // driven by the top-level `animate(...)` suspend during the snap-back.
         let offsetState = remember { mutableFloatStateOf(Float(0)) }
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
+        let trailingButtonsWidthPxState = remember { mutableFloatStateOf(Float(0)) }
+        let leadingButtonsWidthPxState = remember { mutableFloatStateOf(Float(0)) }
 
         // When a *different* row's swipe opens, this LaunchedEffect observes
         // the shared activeSwipeKey and animates this row closed. Matches
@@ -636,6 +645,8 @@ public final class List : View, Renderable {
 
         Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }.clipToBounds()) {
             let rowWidthPx = rowWidthPxState.value
+            let trailingOpenPx = -trailingButtonsWidthPxState.value
+            let leadingOpenPx = leadingButtonsWidthPxState.value
             let trailingFullPx = -rowWidthPx
             let leadingFullPx = rowWidthPx
             let minOffsetPx = trailingButtons.size > 0 ? trailingFullPx : Float(0)
@@ -650,52 +661,48 @@ public final class List : View, Renderable {
             // matching the current drag direction can ever render.
             let curOffsetForReveal = offsetState.value
             if leadingButtons.size > 0 && curOffsetForReveal >= Float(0) {
-                Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.Start) {
-                    for button in leadingButtons {
-                        RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
-                            button.action()
-                            // Mirror the destructive full-swipe path: a tap on
-                            // a destructive action also removes the row from
-                            // the underlying data when an onDelete handler or
-                            // deletable objectsBinding is wired up.
-                            if button.role == ButtonRole.destructive, let onDestructiveDelete {
-                                onDestructiveDelete()
-                            }
-                            let from = offsetState.value
-                            if activeSwipeKey.value == rowKey {
-                                activeSwipeKey.value = nil
-                            }
-                            coroutineScope.launch {
-                                animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                    offsetState.value = value
+                Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingButtonsWidthPxState.value = Float($0.width) }) {
+                        for button in leadingButtons {
+                            RenderSwipeRevealButton(button: button, minWidthDp: minButtonWidthDp, context: context, onTap: {
+                                button.action()
+                                if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                    onDestructiveDelete()
                                 }
-                            }
-                        })
+                                let from = offsetState.value
+                                if activeSwipeKey.value == rowKey {
+                                    activeSwipeKey.value = nil
+                                }
+                                coroutineScope.launch {
+                                    animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                        offsetState.value = value
+                                    }
+                                }
+                            })
+                        }
                     }
                 }
             }
             if trailingButtons.size > 0 && curOffsetForReveal <= Float(0) {
-                Row(modifier: Modifier.matchParentSize(), horizontalArrangement: Arrangement.End) {
-                    for button in trailingButtons {
-                        RenderSwipeRevealButton(button: button, widthDp: buttonWidthDp, context: context, onTap: {
-                            button.action()
-                            // Mirror the destructive full-swipe path: a tap on
-                            // a destructive action also removes the row from
-                            // the underlying data when an onDelete handler or
-                            // deletable objectsBinding is wired up.
-                            if button.role == ButtonRole.destructive, let onDestructiveDelete {
-                                onDestructiveDelete()
-                            }
-                            let from = offsetState.value
-                            if activeSwipeKey.value == rowKey {
-                                activeSwipeKey.value = nil
-                            }
-                            coroutineScope.launch {
-                                animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                    offsetState.value = value
+                Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+                    Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingButtonsWidthPxState.value = Float($0.width) }) {
+                        for button in trailingButtons {
+                            RenderSwipeRevealButton(button: button, minWidthDp: minButtonWidthDp, context: context, onTap: {
+                                button.action()
+                                if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                    onDestructiveDelete()
                                 }
-                            }
-                        })
+                                let from = offsetState.value
+                                if activeSwipeKey.value == rowKey {
+                                    activeSwipeKey.value = nil
+                                }
+                                coroutineScope.launch {
+                                    animate(initialValue: from, targetValue: Float(0)) { value, _ in
+                                        offsetState.value = value
+                                    }
+                                }
+                            })
+                        }
                     }
                 }
             }
@@ -715,7 +722,7 @@ public final class List : View, Renderable {
             // velocity-projected position) so a fast flick alone can't trigger
             // the destructive action — the user has to physically drag the row
             // past this fraction of its width.
-            let fullSwipeFraction: Float = Float(0.75)
+            let fullSwipeFraction: Float = Float(0.65)
 
             // Captures the offset at the moment a new drag begins. If the row
             // is already open in one direction, we constrain the gesture to
@@ -863,12 +870,19 @@ public final class List : View, Renderable {
     }
 
     /// Render a single action button inside the swipe reveal area.
-    @Composable private func RenderSwipeRevealButton(button: Button, widthDp: Dp, context: ComposeContext, onTap: () -> Void) {
+    /// Width is dynamic — at least `minWidthDp` but grows to fit content
+    /// on a single line. Padding around the label keeps icon/text from
+    /// touching the cell edges.
+    @Composable private func RenderSwipeRevealButton(button: Button, minWidthDp: Dp, context: ComposeContext, onTap: () -> Void) {
         let backgroundColor: androidx.compose.ui.graphics.Color
         let contentColor: androidx.compose.ui.graphics.Color
         if button.role == ButtonRole.destructive {
-            backgroundColor = MaterialTheme.colorScheme.error
-            contentColor = MaterialTheme.colorScheme.onError
+            // Match the red used by the implicit onDelete trash swipe
+            // (line ~550 above) so destructive actions look consistent
+            // whether they come from .onDelete or an explicit
+            // .swipeActions { Button(role: .destructive) { ... } }.
+            backgroundColor = androidx.compose.ui.graphics.Color.Red
+            contentColor = androidx.compose.ui.graphics.Color.White
         } else {
             let tint = EnvironmentValues.shared._tint?.colorImpl()
             if let tint {
@@ -879,16 +893,31 @@ public final class List : View, Renderable {
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             }
         }
-        let labelText = button.label.Evaluate(context: context, options: 0).mapNotNull {
-            $0.strip() as? Text
-        }.firstOrNull()
-        Box(modifier: Modifier
+        // Render the user's label view (Text, Image, Label, or any custom
+        // composition) by composing it directly. Use a centered Row (not a
+        // Box) so multi-view labels — e.g. Image + Text, or Label by itself
+        // which is icon+text — flow horizontally instead of stacking on
+        // top of each other at the Box center. Set foregroundStyle in the
+        // environment so child Text/Image inherit the contentColor.
+        Row(modifier: Modifier
             .fillMaxHeight()
-            .width(widthDp)
+            .widthIn(min: minWidthDp)
             .background(backgroundColor)
-            .clickable(onClick: onTap),
-            contentAlignment: androidx.compose.ui.Alignment.Center) {
-            androidx.compose.material3.Text(text: labelText?.localizedTextString() ?? "", color: contentColor, style: Font.callout.fontImpl(), maxLines: 1)
+            .clickable(onClick: onTap)
+            .padding(horizontal: 12.dp, vertical: 8.dp),
+            horizontalArrangement: Arrangement.Center,
+            verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            let contentSwiftColor = Color(colorImpl: { contentColor })
+            EnvironmentValues.shared.setValues({
+                $0.set_foregroundStyle(contentSwiftColor)
+                return ComposeResult.ok
+            }) {
+                // Apply the font via the .font() View modifier which routes
+                // through environment(\.font, ...). Setting the font property
+                // on EnvironmentValues directly isn't exposed as a Kotlin
+                // setter by Skip's transpilation.
+                button.label.font(Font.footnote).Compose(context: context.content())
+            }
         }
     }
 
