@@ -17,7 +17,6 @@ import androidx.compose.material.icons.twotone.__
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
@@ -203,7 +202,14 @@ public struct Image : View, Renderable, Equatable {
 
         let innerContext = context.content()
         Box(modifier: context.modifier.then(sizeResolver), contentAlignment: androidx.compose.ui.Alignment.Center) {
-            RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
+            let hasValidIntrinsic = !painter.intrinsicSize.isUnspecified && !painter.intrinsicSize.width.isNaN() && painter.intrinsicSize.width > 0 && !painter.intrinsicSize.height.isNaN() && painter.intrinsicSize.height > 0
+            if hasValidIntrinsic {
+                RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
+            } else {
+                // Without a valid intrinsic, RenderPainter will try to render the painter with
+                // fillSize, which can break layout. We're rendering a 0x0 Box as a placeholder.
+                Box(modifier: innerContext.modifier.then(Modifier.size(0.dp)), contentAlignment: androidx.compose.ui.Alignment.Center) {}
+            }
         }
     }
 
