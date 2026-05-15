@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.safeDrawing
@@ -898,8 +899,11 @@ public struct Tab : TabContent, Renderable {
                 renderable.Render(context: context)
             }
         }
-        let iconContent: (@Composable () -> ()) = {
-            Box(modifier: Modifier.graphicsLayer(scaleX: Float(1.5), scaleY: Float(1.5)), contentAlignment: androidx.compose.ui.Alignment.Center) {
+        let renderIcon: (@Composable () -> ()) = {
+            Box(
+                modifier: Modifier.graphicsLayer(scaleX: Float(1.5), scaleY: Float(1.5)),
+                contentAlignment: androidx.compose.ui.Alignment.Center
+            ) {
                 // Default to a lighter symbol weight so tab icons approximate SwiftUI sizing
                 if EnvironmentValues.shared._textEnvironment.fontWeight == nil {
                     EnvironmentValues.shared.setValues {
@@ -920,15 +924,15 @@ public struct Tab : TabContent, Renderable {
             if let badge {
                 BadgedBox(
                     badge: {
-                        Badge {
-                            badge.Render(context: context)
+                        Badge(modifier: Modifier.offset(x: 8.dp, y: -4.dp)) {
+                            badge.foregroundStyle(Color.white).Render(context: context)
                         }
                     }
                 ) {
-                    iconContent()
+                    renderIcon()
                 }
             } else {
-                iconContent()
+                renderIcon()
             }
         }
     }
