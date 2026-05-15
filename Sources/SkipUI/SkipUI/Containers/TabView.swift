@@ -39,6 +39,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
@@ -228,10 +230,16 @@ public struct TabView : View, Renderable {
         let tabRenderables = EvaluateContent(context: tabContext)
         let tabs: kotlin.collections.List<Tab?> = tabRenderables.map {
             let renderable = $0 as Renderable // Let transpiler understand type
-            if let tab = renderable.strip() as? Tab {
+            let badgeModifier = BadgeModifier.combined(for: renderable)
+            if var tab = renderable.strip() as? Tab {
+                if let badge = badgeModifier.badge {
+                    tab.badge = badge
+                }
                 return tab
             } else if let tabItemModifier = renderable.forEachModifier(perform: { $0 as? TabItemModifier }) as? TabItemModifier {
-                return Tab(content: { renderable.asView() }, label: { tabItemModifier.label })
+                var tab = Tab(content: { renderable.asView() }, label: { tabItemModifier.label })
+                tab.badge = badgeModifier.badge
+                return tab
             } else {
                 return nil
             }
@@ -743,6 +751,7 @@ public enum AdaptableTabBarPlacement : Hashable {
 public protocol TabContent : View {
     var isHidden: Bool { get set }
     var isDisabled: Bool { get set }
+    var badge: Text? { get set }
 }
 
 // SKIP @bridge
@@ -850,6 +859,7 @@ public struct Tab : TabContent, Renderable {
 
     public var isHidden = false
     public var isDisabled = false
+    public var badge: Text? = nil
 
     #if SKIP
     @Composable override func Render(context: ComposeContext) {
@@ -888,7 +898,7 @@ public struct Tab : TabContent, Renderable {
                 renderable.Render(context: context)
             }
         }
-        Box(modifier: outerModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+        let iconContent: (@Composable () -> ()) = {
             Box(modifier: Modifier.graphicsLayer(scaleX: Float(1.5), scaleY: Float(1.5)), contentAlignment: androidx.compose.ui.Alignment.Center) {
                 // Default to a lighter symbol weight so tab icons approximate SwiftUI sizing
                 if EnvironmentValues.shared._textEnvironment.fontWeight == nil {
@@ -903,6 +913,22 @@ public struct Tab : TabContent, Renderable {
                 } else {
                     renderImage()
                 }
+            }
+        }
+
+        Box(modifier: outerModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+            if let badge {
+                BadgedBox(
+                    badge: {
+                        Badge {
+                            badge.Render(context: context)
+                        }
+                    }
+                ) {
+                    iconContent()
+                }
+            } else {
+                iconContent()
             }
         }
     }
@@ -960,6 +986,7 @@ public struct TabSection : TabContent, Renderable {
 
     public var isHidden = false
     public var isDisabled = false
+    public var badge: Text? = nil
 
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
@@ -970,6 +997,9 @@ public struct TabSection : TabContent, Renderable {
             }
             if isDisabled {
                 (renderable as? TabContent)?.isDisabled = true
+            }
+            if let badge {
+                (renderable as? TabContent)?.badge = badge
             }
         }
         return renderables
@@ -1078,29 +1108,34 @@ extension TabContent {
         return self
     }
 
-    @available(*, unavailable)
     public func badge(_ count: Int) -> some TabContent {
-        return self
+        var tabContent = self
+        tabContent.badge = count > 0 ? Text(String(count)) : nil
+        return tabContent
     }
 
-    @available(*, unavailable)
     public func badge(_ label: Text?) -> some TabContent {
-        return self
+        var tabContent = self
+        tabContent.badge = label
+        return tabContent
     }
 
-    @available(*, unavailable)
     public func badge(_ key: LocalizedStringKey) -> some TabContent {
-        return self
+        var tabContent = self
+        tabContent.badge = Text(key)
+        return tabContent
     }
 
-    @available(*, unavailable)
     public func badge(_ resource: LocalizedStringResource) -> some TabContent {
-        return self
+        var tabContent = self
+        tabContent.badge = Text(resource)
+        return tabContent
     }
 
-    @available(*, unavailable)
     public func badge(_ label: String) -> some TabContent {
-        return self
+        var tabContent = self
+        tabContent.badge = Text(label)
+        return tabContent
     }
 
     @available(*, unavailable)

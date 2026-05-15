@@ -1487,6 +1487,30 @@ final class AspectRatioModifier: RenderModifier {
     }
 }
 
+final class BadgeModifier: RenderModifier {
+    let badge: Text?
+    let prominence: BadgeProminence?
+
+    init(badge: Text? = nil, prominence: BadgeProminence? = nil) {
+        self.badge = badge
+        self.prominence = prominence
+        super.init()
+    }
+
+    static func combined(for renderable: Renderable) -> BadgeModifier {
+        var badge: Text? = nil
+        var prominence: BadgeProminence? = nil
+        renderable.forEachModifier {
+            if let badgeModifier = $0 as? BadgeModifier {
+                badge = badge ?? badgeModifier.badge
+                prominence = prominence ?? badgeModifier.prominence
+            }
+            return nil
+        }
+        return BadgeModifier(badge: badge, prominence: prominence)
+    }
+}
+
 final class DisabledModifier: EnvironmentModifier {
     let disabled: Bool
 
