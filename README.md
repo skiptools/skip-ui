@@ -1463,16 +1463,8 @@ Support levels:
       <td><code>.backgroundStyle</code></td>
     </tr>
     <tr>
-      <td>🟡</td>
-      <td>
-          <details>
-              <summary><code>.badge</code></summary>
-              <ul>
-                  <li>Supported on <code>List</code> items</li>
-                  <li>Not yet supported on <code>TabView</code></li>
-              </ul>
-          </details>
-      </td>
+      <td>✅</td>
+      <td><code>.badge</code></td>
     </tr>
     <tr>
       <td>🟢</td>
