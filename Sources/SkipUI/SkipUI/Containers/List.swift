@@ -609,12 +609,37 @@ public final class List : View, Renderable {
     @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>, onDestructiveDelete: (() -> Void)? = nil) {
         let coroutineScope = rememberCoroutineScope()
 
-        let trailingButtonsRaw: kotlin.collections.List<Button> = (trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
-            $0.strip() as? Button
+        /* Extract Buttons and per-button .tint(_:) values from each edge's
+           rendered content. .tint() is implemented as an env modifier with
+           affectsEvaluate=false, so it wraps the Button via ModifiedContent
+           but doesn't appear in the EnvironmentValues during Evaluate. We
+           walk each renderable's modifier chain, run any EnvironmentModifier
+           actions in a scoped env, and capture the resulting _tint. The
+           innermost matching modifier wins (matches SwiftUI). */
+        let trailingRenderables = trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()
+        let leadingRenderables = leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()
+        let trailingTintMap: kotlin.collections.MutableMap<Button, Color> = mutableMapOf()
+        let leadingTintMap: kotlin.collections.MutableMap<Button, Color> = mutableMapOf()
+        let trailingButtonsRawMutable: kotlin.collections.MutableList<Button> = mutableListOf()
+        for renderable in trailingRenderables {
+            if let button = renderable.strip() as? Button {
+                trailingButtonsRawMutable.add(button)
+                if let tint = ExtractEnvironmentTint(from: renderable) {
+                    trailingTintMap[button] = tint
+                }
+            }
         }
-        let leadingButtonsRaw: kotlin.collections.List<Button> = (leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()).mapNotNull {
-            $0.strip() as? Button
+        let leadingButtonsRawMutable: kotlin.collections.MutableList<Button> = mutableListOf()
+        for renderable in leadingRenderables {
+            if let button = renderable.strip() as? Button {
+                leadingButtonsRawMutable.add(button)
+                if let tint = ExtractEnvironmentTint(from: renderable) {
+                    leadingTintMap[button] = tint
+                }
+            }
         }
+        let trailingButtonsRaw: kotlin.collections.List<Button> = trailingButtonsRawMutable
+        let leadingButtonsRaw: kotlin.collections.List<Button> = leadingButtonsRawMutable
         /* iOS reorders .destructive Buttons to the swipe-from edge regardless
            of the order they were declared in. For trailing swipes that means
            pinned to the right (last in the Row laid out with Arrangement.End);
@@ -762,15 +787,6 @@ public final class List : View, Renderable {
                additional width during full-swipe takeover; other buttons
                proportionally shrink to zero. The direction guards ensure only
                one edge's reveal renders at any non-zero offset. */
-            /* Two layout modes:
-               - Natural: revealedPx ≤ naturalRow. Each button sizes to its
-                 content (Modifier.widthIn(min:).wrapContentWidth()) so long
-                 labels never wrap. The row's wrapContentWidth captures the
-                 total via onSizeChanged for future use.
-               - Stretch: revealedPx > naturalRow. Row width = revealedPx;
-                 each button is wrapped in a weighted Box so they share the
-                 row's extra width proportionally. Full-swipe takeover pushes
-                 the primary action's weight up while the rest shrink to zero. */
             let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
             let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
             let leadingCount = Float(leadingButtons.size)
@@ -790,7 +806,7 @@ public final class List : View, Renderable {
                                     continue
                                 }
                                 Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
-                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, onTap: {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: leadingTintMap[button], onTap: {
                                         button.action()
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
@@ -805,7 +821,7 @@ public final class List : View, Renderable {
                     } else {
                         Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingNaturalState.value = Float($0.width) }) {
                             for button in leadingButtons {
-                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, onTap: {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: leadingTintMap[button], onTap: {
                                     button.action()
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
@@ -833,7 +849,7 @@ public final class List : View, Renderable {
                                     continue
                                 }
                                 Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
-                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, onTap: {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: trailingTintMap[button], onTap: {
                                         button.action()
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
@@ -848,7 +864,7 @@ public final class List : View, Renderable {
                     } else {
                         Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingNaturalState.value = Float($0.width) }) {
                             for button in trailingButtons {
-                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, onTap: {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: trailingTintMap[button], onTap: {
                                     button.action()
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
@@ -931,13 +947,37 @@ public final class List : View, Renderable {
         }
     }
 
+    /// Walk the renderable's ModifiedContent chain, run any
+    /// EnvironmentModifier action in a scoped EnvironmentValues, and
+    /// return whatever ._tint it sets. We walk manually (instead of
+    /// forEachModifier) because the action is @Composable and so is
+    /// setValuesWithReturn — both must be invoked from a @Composable
+    /// scope, which forEachModifier's plain callback isn't. Outermost
+    /// modifier processed first so the innermost wins (matches SwiftUI).
+    @Composable private func ExtractEnvironmentTint(from renderable: Renderable) -> Color? {
+        var captured: Color? = nil
+        var current: Renderable? = renderable
+        while let mod = current as? ModifiedContent {
+            if let envMod = mod.modifier as? EnvironmentModifier, let action = envMod.action {
+                let scoped: Color? = EnvironmentValues.shared.setValuesWithReturn(action) {
+                    return EnvironmentValues.shared._tint
+                }
+                if scoped != nil {
+                    captured = scoped
+                }
+            }
+            current = mod.renderable
+        }
+        return captured
+    }
+
     /// Render a single action button inside the swipe reveal area.
     /// Sizing is supplied by the caller: in natural mode this is
     /// widthIn(min:).fillMaxHeight() so the button hugs its label; in
     /// stretch mode it's fillMaxSize() inside a weighted Box so the button
     /// expands with the row. Padding around the label keeps icon/text from
     /// touching the cell edges.
-    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, onTap: () -> Void) {
+    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, tintOverride: Color? = nil, onTap: () -> Void) {
         let backgroundColor: androidx.compose.ui.graphics.Color
         let contentColor: androidx.compose.ui.graphics.Color
         if button.role == ButtonRole.destructive {
@@ -947,7 +987,8 @@ public final class List : View, Renderable {
             backgroundColor = androidx.compose.ui.graphics.Color.Red
             contentColor = androidx.compose.ui.graphics.Color.White
         } else {
-            let tint = EnvironmentValues.shared._tint?.colorImpl()
+            /* Per-button .tint(_:) wins over the surrounding env tint. */
+            let tint = (tintOverride ?? EnvironmentValues.shared._tint)?.colorImpl()
             if let tint {
                 backgroundColor = tint
                 contentColor = androidx.compose.ui.graphics.Color.White
