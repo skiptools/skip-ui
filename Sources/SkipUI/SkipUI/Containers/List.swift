@@ -8,9 +8,14 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +28,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -78,6 +85,18 @@ import struct CoreGraphics.CGFloat
 
 /// Corner radius for list sections.
 let listSectionCornerRadius = 8.0
+
+#if SKIP
+/// Discrete rest positions for a row's swipe gesture. Used as the value
+/// type for the row's AnchoredDraggableState.
+enum SwipeAnchor {
+    case closed
+    case leadingOpen
+    case leadingFull
+    case trailingOpen
+    case trailingFull
+}
+#endif
 
 // SKIP @bridge
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
@@ -630,27 +649,77 @@ public final class List : View, Renderable {
         let density = LocalDensity.current
         let minButtonWidthPx = with(density) { minButtonWidthDp.toPx() }
 
-        /* Single source of truth for the foreground row's horizontal offset.
-           Updated synchronously in the drag callback (no coroutine race) and
-           driven by the top-level `animate(...)` suspend during the snap-back. */
-        let offsetState = remember { mutableFloatStateOf(Float(0)) }
+        /* AnchoredDraggableState owns the horizontal offset and runs both the
+           live drag and the snap-back animation. Anchors are populated below
+           via updateAnchors once the row width has been measured; until then
+           the state has only the .closed anchor at 0f so it behaves as a
+           no-op draggable. */
+        let velocityThresholdPx = with(density) { 125.dp.toPx() }
+        let anchoredState = remember {
+            AnchoredDraggableState<SwipeAnchor>(
+                initialValue: SwipeAnchor.closed,
+                positionalThreshold: { distance in distance * Float(0.5) },
+                velocityThreshold: { velocityThresholdPx },
+                snapAnimationSpec: tween(durationMillis: 300),
+                decayAnimationSpec: exponentialDecay<Float>()
+            )
+        }
         let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
         /* Natural (content-sized) buttons-row width per edge, captured via
            onSizeChanged when the reveal is in natural-layout mode. Defaults
-           to count × minButtonWidth until the first measurement lands; that
-           fallback keeps the open-anchor non-zero on the very first gesture. */
+           to count × minButtonWidth until the first measurement lands. */
         let trailingNaturalState = remember { mutableFloatStateOf(Float(0)) }
         let leadingNaturalState = remember { mutableFloatStateOf(Float(0)) }
 
-        /* When a *different* row's swipe opens, this LaunchedEffect observes
-           the shared activeSwipeKey and animates this row closed. Matches
-           iOS list behavior of one open swipe at a time. */
+        /* When a *different* row's swipe opens, animate this row closed.
+           Matches iOS list behavior of one open swipe at a time. */
         let currentlyOpen = activeSwipeKey.value
         LaunchedEffect(currentlyOpen) {
-            if currentlyOpen != rowKey && offsetState.value != Float(0) {
-                let from = offsetState.value
-                animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                    offsetState.value = value
+            if currentlyOpen != rowKey && anchoredState.currentValue != SwipeAnchor.closed {
+                anchoredState.animateTo(SwipeAnchor.closed)
+            }
+        }
+
+        /* Sync activeSwipeKey from this row's currentValue: when the user
+           commits to an open anchor we register ourselves so siblings close;
+           when we settle back to closed we clear the key. */
+        LaunchedEffect(anchoredState.currentValue) {
+            let cur = anchoredState.currentValue
+            if cur == SwipeAnchor.closed {
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            } else if cur != SwipeAnchor.trailingFull && cur != SwipeAnchor.leadingFull {
+                activeSwipeKey.value = rowKey
+            }
+        }
+
+        /* When the row actually settles on a full-swipe anchor, fire the
+           primary action (and optional auto-delete for destructive), then
+           snap back to closed. */
+        LaunchedEffect(anchoredState.settledValue) {
+            let settled = anchoredState.settledValue
+            if settled == SwipeAnchor.trailingFull {
+                if let action = trailingFullSwipeTarget?.action {
+                    action()
+                }
+                if trailingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
+                    onDestructiveDelete()
+                }
+                anchoredState.snapTo(SwipeAnchor.closed)
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            } else if settled == SwipeAnchor.leadingFull {
+                if let action = leadingFullSwipeTarget?.action {
+                    action()
+                }
+                if leadingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
+                    onDestructiveDelete()
+                }
+                anchoredState.snapTo(SwipeAnchor.closed)
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
                 }
             }
         }
@@ -668,16 +737,13 @@ public final class List : View, Renderable {
             let leadingNaturalPx = leadingNaturalState.value > Float(0) ? leadingNaturalState.value : leadingNaturalFallback
             let trailingOpenPx = -trailingNaturalPx
             let leadingOpenPx = leadingNaturalPx
-            let trailingFullPx = -rowWidthPx
-            let leadingFullPx = rowWidthPx
-            let minOffsetPx = trailingButtons.size > 0 ? trailingFullPx : Float(0)
-            let maxOffsetPx = leadingButtons.size > 0 ? leadingFullPx : Float(0)
 
             /* Current revealed width per edge (positive). When the user drags
                further than the natural buttons-row width, the reveal area
                stretches: the row's width follows the foreground so the
                buttons grow to track the row edge instead of leaving a gap. */
-            let curOffset = offsetState.value
+            let rawOffset = anchoredState.offset
+            let curOffset: Float = rawOffset.isNaN() ? Float(0) : rawOffset
             let revealedTrailingPx = curOffset < Float(0) ? -curOffset : Float(0)
             let revealedLeadingPx = curOffset > Float(0) ? curOffset : Float(0)
 
@@ -729,14 +795,8 @@ public final class List : View, Renderable {
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
                                         }
-                                        let from = offsetState.value
-                                        if activeSwipeKey.value == rowKey {
-                                            activeSwipeKey.value = nil
-                                        }
                                         coroutineScope.launch {
-                                            animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                                offsetState.value = value
-                                            }
+                                            anchoredState.animateTo(SwipeAnchor.closed)
                                         }
                                     })
                                 }
@@ -750,14 +810,8 @@ public final class List : View, Renderable {
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
                                     }
-                                    let from = offsetState.value
-                                    if activeSwipeKey.value == rowKey {
-                                        activeSwipeKey.value = nil
-                                    }
                                     coroutineScope.launch {
-                                        animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                            offsetState.value = value
-                                        }
+                                        anchoredState.animateTo(SwipeAnchor.closed)
                                     }
                                 })
                             }
@@ -784,14 +838,8 @@ public final class List : View, Renderable {
                                         if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                             onDestructiveDelete()
                                         }
-                                        let from = offsetState.value
-                                        if activeSwipeKey.value == rowKey {
-                                            activeSwipeKey.value = nil
-                                        }
                                         coroutineScope.launch {
-                                            animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                                offsetState.value = value
-                                            }
+                                            anchoredState.animateTo(SwipeAnchor.closed)
                                         }
                                     })
                                 }
@@ -805,14 +853,8 @@ public final class List : View, Renderable {
                                     if button.role == ButtonRole.destructive, let onDestructiveDelete {
                                         onDestructiveDelete()
                                     }
-                                    let from = offsetState.value
-                                    if activeSwipeKey.value == rowKey {
-                                        activeSwipeKey.value = nil
-                                    }
                                     coroutineScope.launch {
-                                        animate(initialValue: from, targetValue: Float(0)) { value, _ in
-                                            offsetState.value = value
-                                        }
+                                        anchoredState.animateTo(SwipeAnchor.closed)
                                     }
                                 })
                             }
@@ -836,136 +878,45 @@ public final class List : View, Renderable {
              so a fast flick alone can't trigger the destructive action.
              */
 
-            /* Captures the offset at the moment a new drag begins. If the row
-               is already open in one direction, we constrain the gesture to
-               that direction's range so swiping back past zero closes the row
-               without opening the opposite-edge actions. */
-            let dragStartOffset = remember { mutableFloatStateOf(Float(0)) }
-
-            let dragState = rememberDraggableState { delta in
-                let start = dragStartOffset.value
-                let dragMin: Float
-                let dragMax: Float
-                if start < Float(0) {
-                    dragMin = minOffsetPx
-                    dragMax = Float(0)
-                } else if start > Float(0) {
-                    dragMin = Float(0)
-                    dragMax = maxOffsetPx
-                } else {
-                    dragMin = minOffsetPx
-                    dragMax = maxOffsetPx
-                }
-                offsetState.value = (offsetState.value + delta).coerceIn(dragMin, dragMax)
+            /* Anchor refresh: rebuilt whenever the measured sizes or
+               allowsXxxFullSwipe flags change. Anchors are defined via
+               Compose's DraggableAnchors DSL inside a SKIP INSERT block
+               because Skip's transpiler doesn't model Kotlin lambdas with
+               receiver-type extensions like `T.at(Float)`. */
+            LaunchedEffect(rowWidthPx, trailingNaturalPx, leadingNaturalPx, allowsTrailingFullSwipe, allowsLeadingFullSwipe, trailingButtons.size, leadingButtons.size) {
+                let hasTrailing = trailingButtons.size > 0
+                let hasLeading = leadingButtons.size > 0
+                let trailingOpenPos = -trailingNaturalPx
+                let leadingOpenPos = leadingNaturalPx
+                let trailingFullPos = -rowWidthPx
+                let leadingFullPos = rowWidthPx
+                // SKIP INSERT: val newAnchors = androidx.compose.foundation.gestures.DraggableAnchors<skip.ui.SwipeAnchor> {
+                // SKIP INSERT:     skip.ui.SwipeAnchor.closed at 0f
+                // SKIP INSERT:     if (hasTrailing) skip.ui.SwipeAnchor.trailingOpen at trailingOpenPos
+                // SKIP INSERT:     if (allowsTrailingFullSwipe) skip.ui.SwipeAnchor.trailingFull at trailingFullPos
+                // SKIP INSERT:     if (hasLeading) skip.ui.SwipeAnchor.leadingOpen at leadingOpenPos
+                // SKIP INSERT:     if (allowsLeadingFullSwipe) skip.ui.SwipeAnchor.leadingFull at leadingFullPos
+                // SKIP INSERT: }
+                // SKIP INSERT: anchoredState.updateAnchors(newAnchors)
             }
             Box(modifier: Modifier
                 .fillMaxWidth()
-                .offset { IntOffset(offsetState.value.toInt(), 0) }
-                .draggable(state: dragState, orientation: Orientation.Horizontal, onDragStarted: { _ in
-                    dragStartOffset.value = offsetState.value
-                }, onDragStopped: { velocity in
-                    let cur = offsetState.value
-                    /* Apply the same direction constraint as the drag callback
-                       so a hard flick past zero from an open state can't
-                       project into the opposite-edge anchor — it snaps closed. */
-                    let start = dragStartOffset.value
-                    let projMin: Float
-                    let projMax: Float
-                    if start < Float(0) {
-                        projMin = minOffsetPx
-                        projMax = Float(0)
-                    } else if start > Float(0) {
-                        projMin = Float(0)
-                        projMax = maxOffsetPx
-                    } else {
-                        projMin = minOffsetPx
-                        projMax = maxOffsetPx
-                    }
-                    let projected = (cur + velocity * swipeVelocityProjectionSeconds).coerceIn(projMin, projMax)
-
-                    /* Build the candidate anchor set: always closed; add the
-                       same-side open anchor only if the gesture didn't start
-                       on the opposite side. */
-                    let anchors: kotlin.collections.MutableList<Float> = mutableListOf(Float(0))
-                    if trailingButtons.size > 0 && start <= Float(0) {
-                        anchors.add(trailingOpenPx)
-                    }
-                    if leadingButtons.size > 0 && start >= Float(0) {
-                        anchors.add(leadingOpenPx)
-                    }
-
-                    var target: Float = anchors[0]
-                    let firstDelta = anchors[0] - projected
-                    var minDist: Float = firstDelta < Float(0) ? -firstDelta : firstDelta
-                    for anchor in anchors {
-                        let delta = anchor - projected
-                        let dist: Float = delta < Float(0) ? -delta : delta
-                        if dist < minDist {
-                            minDist = dist
-                            target = anchor
-                        }
-                    }
-
-                    /* Escalate to the full-swipe anchor if the projected
-                       position has crossed half the row width past its open
-                       anchor — this is what fires the destructive action. */
-                    var fullSwipeAction: (() -> Void)? = nil
-                    var firedDestructive = false
-                    if allowsTrailingFullSwipe && target == trailingOpenPx && -cur > rowWidthPx * swipeFullSwipeFraction {
-                        target = trailingFullPx
-                        fullSwipeAction = trailingFullSwipeTarget?.action
-                        firedDestructive = trailingFullSwipeTarget?.role == ButtonRole.destructive
-                    } else if allowsLeadingFullSwipe && target == leadingOpenPx && cur > rowWidthPx * swipeFullSwipeFraction {
-                        target = leadingFullPx
-                        fullSwipeAction = leadingFullSwipeTarget?.action
-                        firedDestructive = leadingFullSwipeTarget?.role == ButtonRole.destructive
-                    }
-
-                    /* Update the shared "active swipe" key BEFORE animating —
-                       sibling rows observe the change immediately and start
-                       their own close animation in parallel. */
-                    if target == Float(0) {
-                        if activeSwipeKey.value == rowKey {
-                            activeSwipeKey.value = nil
-                        }
-                    } else {
-                        activeSwipeKey.value = rowKey
-                    }
-
-                    /* animate(...) is a top-level Compose suspend that drives
-                       the value through the AnimationSpec frame by frame and
-                       hands us each value via the trailing block. Running it
-                       here — inside onDragStopped's own suspend coroutine —
-                       means the next gesture (which cancels this coroutine)
-                       simply interrupts the animation cleanly. There is no
-                       shared Animatable for stale snapTo calls to step on. */
-                    animate(initialValue: cur, targetValue: target, initialVelocity: velocity) { value, _ in
-                        offsetState.value = value
-                    }
-                    if let fullSwipeAction {
-                        fullSwipeAction()
-                        /* For a destructive full-swipe also remove the row
-                           from the underlying data so LazyColumn collapses
-                           it visually (matches iOS). Skipped for non-
-                           destructive full-swipes — those just bounce back. */
-                        if firedDestructive, let onDestructiveDelete {
-                            onDestructiveDelete()
-                        }
-                        offsetState.value = Float(0)
-                        if activeSwipeKey.value == rowKey {
-                            activeSwipeKey.value = nil
-                        }
-                    }
-                })
+                .offset {
+                    let o = anchoredState.offset
+                    IntOffset(o.isNaN() ? 0 : o.toInt(), 0)
+                }
+                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal)
             ) {
                 RenderItem(content: content, level: level, context: context, styling: styling)
                 /* Subtle scrim that intensifies with swipe progress so the row
                    visually recedes as actions appear.*/
-                let curAbs = offsetState.value < Float(0) ? -offsetState.value : offsetState.value
+                let rawScrimOffset = anchoredState.offset
+                let scrimOffset: Float = rawScrimOffset.isNaN() ? Float(0) : rawScrimOffset
+                let curAbs = scrimOffset < Float(0) ? -scrimOffset : scrimOffset
                 let openMag: Float
-                if offsetState.value < Float(0) {
+                if scrimOffset < Float(0) {
                     openMag = -trailingOpenPx
-                } else if offsetState.value > Float(0) {
+                } else if scrimOffset > Float(0) {
                     openMag = leadingOpenPx
                 } else {
                     openMag = Float(1) // unused; progress stays 0
@@ -1006,8 +957,13 @@ public final class List : View, Renderable {
             }
         }
         /* Render the user's label view (Text, Image, Label, or any custom
-           composition) by composing it directly. */
+           composition). clipToBounds on the button means the label can
+           safely use Modifier.width(IntrinsicSize.Max) — Text stays on one
+           line at its intrinsic width and any overflow is clipped instead
+           of wrapping mid-animation when full-swipe takeover squeezes a
+           non-primary button's width below the natural content width. */
         Row(modifier: sizeModifier
+            .clipToBounds()
             .background(backgroundColor)
             .clickable(onClick: onTap)
             .padding(horizontal: 12.dp, vertical: 8.dp),
@@ -1022,7 +978,14 @@ public final class List : View, Renderable {
                    through environment(\.font, ...). Setting the font property
                    on EnvironmentValues directly isn't exposed as a Kotlin
                    setter by Skip's transpilation. */
-                button.label.font(Font.footnote).Compose(context: context.content())
+                /* requiredWidth(IntrinsicSize.Max) overrides parent's max
+                   width constraint so Text always lays out at its one-line
+                   intrinsic width. An extra 8dp horizontal pad gives a tiny
+                   measurement headroom so subpixel rounding can't trigger
+                   a one-line→two-line→one-line flicker during the
+                   takeover animation. The button Row's clipToBounds
+                   clips the resulting overflow visually. */
+                button.label.font(Font.footnote).Compose(context: context.content(modifier: Modifier.requiredWidth(IntrinsicSize.Max).padding(horizontal: 4.dp)))
             }
         }
     }
