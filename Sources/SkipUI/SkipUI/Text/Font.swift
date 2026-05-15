@@ -485,6 +485,7 @@ public struct Font : Hashable {
     #endif
 }
 
+// SKIP @bridgeMembers
 public enum LegibilityWeight : Hashable {
     case regular
     case bold

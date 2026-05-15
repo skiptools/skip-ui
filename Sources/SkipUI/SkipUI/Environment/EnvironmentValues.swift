@@ -8,6 +8,7 @@ import Observation
 
 #if SKIP
 import android.content.res.Configuration
+import android.os.Build
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.text.KeyboardOptions
@@ -287,6 +288,20 @@ extension EnvironmentValues {
         // NOTE: We also maintain equivalent code in SkipSwiftUI.EnvironmentValues.
         // It would be nice to come up with a better way to do this...
         switch key {
+        case "accessibilityEnabled":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilityEnabled())
+        case "accessibilityInvertColors":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilityInvertColors())
+        case "accessibilityReduceMotion":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilityReduceMotion())
+        case "accessibilityReduceTransparency":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilityReduceTransparency())
+        case "accessibilitySwitchControlEnabled":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilitySwitchControlEnabled())
+        case "accessibilityVoiceOverEnabled":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.accessibilityVoiceOverEnabled())
+        case "colorSchemeContrast":
+            return EnvironmentSupport(builtinValue: AccessibilityEnvironment.shared.colorSchemeContrast().rawValue)
         case "autocorrectionDisabled":
             return EnvironmentSupport(builtinValue: autocorrectionDisabled)
         case "backgroundStyle":
@@ -305,6 +320,8 @@ extension EnvironmentValues {
             return EnvironmentSupport(builtinValue: isSearching)
         case "layoutDirection":
             return EnvironmentSupport(builtinValue: layoutDirection.rawValue)
+        case "legibilityWeight":
+            return EnvironmentSupport(builtinValue: legibilityWeight)
         case "lineLimit":
             return EnvironmentSupport(builtinValue: lineLimit)
         case "locale":
@@ -330,6 +347,20 @@ extension EnvironmentValues {
 
     private func setBuiltinBridged(key: String, value: EnvironmentSupport?) -> Bool {
         switch key {
+        case "accessibilityEnabled":
+            return false
+        case "accessibilityInvertColors":
+            return false
+        case "accessibilityReduceMotion":
+            return false
+        case "accessibilityReduceTransparency":
+            return false
+        case "accessibilitySwitchControlEnabled":
+            return false
+        case "accessibilityVoiceOverEnabled":
+            return false
+        case "colorSchemeContrast":
+            return false
         case "autocorrectionDisabled":
             return false
         case "backgroundStyle":
@@ -355,6 +386,8 @@ extension EnvironmentValues {
             let layoutDirection: LayoutDirection = rawValue == nil ? .leftToRight : LayoutDirection(rawValue: rawValue!) ?? .leftToRight
             setlayoutDirection(layoutDirection)
             return true
+        case "legibilityWeight":
+            return false
         case "lineLimit":
             setlineLimit(value?.builtinValue as? Int)
             return true
@@ -512,21 +545,54 @@ extension EnvironmentValues {
         UserInterfaceSizeClass.fromWindowHeightSizeClass(currentWindowAdaptiveInfo().windowSizeClass.windowHeightSizeClass)
     }
 
+    public var accessibilityEnabled: Bool {
+        return AccessibilityEnvironment.shared.accessibilityEnabled()
+    }
+
+    public var accessibilityInvertColors: Bool {
+        return AccessibilityEnvironment.shared.accessibilityInvertColors()
+    }
+
+    public var accessibilityReduceMotion: Bool {
+        return AccessibilityEnvironment.shared.accessibilityReduceMotion()
+    }
+
+    public var accessibilityReduceTransparency: Bool {
+        return AccessibilityEnvironment.shared.accessibilityReduceTransparency()
+    }
+
+    public var accessibilitySwitchControlEnabled: Bool {
+        return AccessibilityEnvironment.shared.accessibilitySwitchControlEnabled()
+    }
+
+    public var accessibilityVoiceOverEnabled: Bool {
+        return AccessibilityEnvironment.shared.accessibilityVoiceOverEnabled()
+    }
+
+    public var colorSchemeContrast: ColorSchemeContrast {
+        return AccessibilityEnvironment.shared.colorSchemeContrast()
+    }
+
+    public var legibilityWeight: LegibilityWeight? {
+        if Build.VERSION.SDK_INT >= Build.VERSION_CODES.S {
+            let adjustment = LocalConfiguration.current.fontWeightAdjustment
+            if adjustment == Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED {
+                return nil
+            }
+            return adjustment == 0 ? .regular : .bold
+        }
+        return nil
+    }
+
     /* Not yet supported
+    var accessibilityAssistiveAccessEnabled
     var accessibilityDimFlashingLights: Bool
     var accessibilityDifferentiateWithoutColor: Bool
-    var accessibilityEnabled: Bool
-    var accessibilityInvertColors: Bool
     var accessibilityLargeContentViewerEnabled: Bool
     var accessibilityPlayAnimatedImages: Bool
     var accessibilityPrefersHeadAnchorAlternative: Bool
     var accessibilityQuickActionsEnabled: Bool
-    var accessibilityReduceMotion: Bool
-    var accessibilityReduceTransparency: Bool
     var accessibilityShowButtonShapes: Bool
-    var accessibilitySwitchControlEnabled: Bool
-    var accessibilityVoiceOverEnabled: Bool
-    var legibilityWeight: LegibilityWeight?
 
     var dismissSearch: DismissSearchAction
     var dismissWindow: DismissWindowAction
@@ -549,7 +615,6 @@ extension EnvironmentValues {
     var menuIndicatorVisibility: Visibility
     var menuOrder: MenuOrder
     var searchSuggestionsPlacement: SearchSuggestionsPlacement
-    var colorSchemeContrast: ColorSchemeContrast
     var displayScale: CGFloat
     var imageScale: Image.Scale
     var pixelLength: CGFloat

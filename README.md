@@ -2635,14 +2635,22 @@ See the [Skip Showcase app](https://github.com/skiptools/skipapp-showcase) `Text
 
 SwiftUI has many built-in environment keys. These keys are defined in `EnvironmentValues` and typically accessed with the `@Environment` property wrapper. In additional to supporting your custom environment keys, SkipUI exposes the following built-in environment keys:
 
+- `accessibilityEnabled` (read-only)
+- `accessibilityInvertColors` (read-only)
+- `accessibilityReduceMotion` (read-only)
+- `accessibilityReduceTransparency` (read-only; Android maps to "reduce blur effects")
+- `accessibilitySwitchControlEnabled` (read-only)
+- `accessibilityVoiceOverEnabled` (read-only)
 - `autocorrectionDisabled` (read-only)
 - `backgroundStyle`
+- `colorSchemeContrast` (read-only)
 - `dismiss`
 - `font`
 - `horizontalSizeClass`
 - `isEnabled`
 - `isSearching` (read-only)
 - `layoutDirection`
+- `legibilityWeight` (read-only)
 - `lineLimit`
 - `locale`
 - `openURL`
