@@ -3,29 +3,27 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.DrawModifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.UrlAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -41,8 +39,7 @@ import androidx.compose.foundation.text.TextAutoSize
 import skip.foundation.LocalizedStringResource
 import skip.foundation.Bundle
 import skip.foundation.Locale
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.math.abs
+import skip.foundation.URL
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
@@ -409,52 +406,18 @@ struct _Text: View, Renderable, Equatable {
         }
         var options: Material3TextOptions
         if let locnode {
-            let layoutResult = remember { mutableStateOf<TextLayoutResult?>(nil) }
             let isPlaceholder = redaction.contains(RedactionReasons.placeholder)
             var linkColor = EnvironmentValues.shared._tint?.colorImpl() ?? Color.accentColor.colorImpl()
             if isPlaceholder {
                 linkColor = linkColor.copy(alpha: linkColor.alpha * Float(Color.placeholderOpacity))
             }
-            let annotatedText = annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
-            let links = annotatedText.getUrlAnnotations(start: 0, end: annotatedText.length)
-            if !links.isEmpty() {
-                let currentText = rememberUpdatedState(annotatedText)
-                let currentHandler = rememberUpdatedState(EnvironmentValues.shared.openURL)
-                let currentIsEnabled = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
-                modifier = modifier.pointerInput(true) {
-                    // Detect a tap on a markdown link without consuming pointer events,
-                    // so a parent .onLongPressGesture / .onTapGesture / .gesture(...)
-                    // still fires. See https://github.com/skiptools/skip-ui/issues/371.
-                    let slop = viewConfiguration.touchSlop
-                    let timeout = viewConfiguration.longPressTimeoutMillis
-                    awaitEachGesture {
-                        let downEvent = awaitPointerEvent(pass: PointerEventPass.Initial)
-                        guard let down = downEvent.changes.firstOrNull({ $0.pressed }) else { return }
-                        let start = down.position
-                        let upPosition: Offset? = withTimeoutOrNull(timeout) {
-                            while true {
-                                let event = awaitPointerEvent(pass: PointerEventPass.Initial)
-                                guard let change = event.changes.firstOrNull() else { return nil }
-                                if abs(change.position.x - start.x) > slop || abs(change.position.y - start.y) > slop {
-                                    return nil
-                                }
-                                if !change.pressed {
-                                    return change.position
-                                }
-                            }
-                            return nil
-                        }
-                        guard let upPosition else { return }
-                        if currentIsEnabled.value,
-                           let offset = layoutResult.value?.getOffsetForPosition(upPosition),
-                           let urlString = currentText.value.getUrlAnnotations(offset, offset).firstOrNull()?.item.url,
-                           let url = URL(string: urlString) {
-                            currentHandler.value.invoke(url)
-                        }
-                    }
-                }
+            let openURLState = rememberUpdatedState(EnvironmentValues.shared.openURL)
+            let isEnabledState = rememberUpdatedState(EnvironmentValues.shared.isEnabled)
+            let linkListener = rememberOpenURLLinkInteractionListener(openURLState: openURLState, isEnabledState: isEnabledState)
+            let annotatedText = remember(locfmt, interpolations, linkColor, linkListener, styleInfo.isUppercased, styleInfo.isLowercased, isPlaceholder) {
+                annotatedString(markdown: locnode, interpolations: interpolations, linkColor: linkColor, linkListener: linkListener, isUppercased: styleInfo.isUppercased, isLowercased: styleInfo.isLowercased, isRedacted: isPlaceholder)
             }
-            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign, onTextLayout: { layoutResult.value = $0 })
+            options = Material3TextOptions(annotatedText: annotatedText, modifier: modifier, color: styleInfo.color ?? androidx.compose.ui.graphics.Color.Unspecified, maxLines: maxLines, minLines: minLines, style: animatable.value, textDecoration: textDecoration, textAlign: textAlign)
         } else {
             var text: String
             if let interpolations {
@@ -517,21 +480,23 @@ struct _Text: View, Renderable, Equatable {
         }
         if let annotatedText = options.annotatedText, let onTextLayout = options.onTextLayout {
             androidx.compose.material3.Text(text: annotatedText, modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: onTextLayout, style: options.style)
+        } else if let annotatedText = options.annotatedText {
+            androidx.compose.material3.Text(text: annotatedText, modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, style: options.style)
         } else {
             androidx.compose.material3.Text(text: options.text ?? "", modifier: options.modifier, color: options.color, autoSize: options.autoSize, fontSize: options.fontSize, fontStyle: options.fontStyle, fontWeight: options.fontWeight, fontFamily: options.fontFamily, letterSpacing: options.letterSpacing, textDecoration: options.textDecoration, textAlign: options.textAlign, lineHeight: options.lineHeight, overflow: options.overflow, softWrap: options.softWrap, maxLines: options.maxLines, minLines: options.minLines, onTextLayout: options.onTextLayout, style: options.style)
         }
     }
 
-    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
+    private func annotatedString(markdown: MarkdownNode, interpolations: kotlin.collections.List<AnyHashable>?, linkColor: androidx.compose.ui.graphics.Color, linkListener: LinkInteractionListener, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) -> AnnotatedString {
         return buildAnnotatedString {
-            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted)
+            append(markdown: markdown, to: self, interpolations: interpolations, linkColor: linkColor, linkListener: linkListener, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted)
         }
     }
 
     // SKIP INSERT: @OptIn(ExperimentalTextApi::class)
-    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) {
+    private func append(markdown: MarkdownNode, to builder: AnnotatedString.Builder, interpolations: kotlin.collections.List<AnyHashable>?, isFirstChild: Bool = true, linkColor: androidx.compose.ui.graphics.Color, linkListener: LinkInteractionListener, isUppercased: Bool, isLowercased: Bool, isRedacted: Bool) {
         func appendChildren() {
-            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted) }
+            markdown.children?.forEachIndexed { append(markdown: $1, to: builder, interpolations: interpolations, isFirstChild: $0 == 0, linkColor: linkColor, linkListener: linkListener, isUppercased: isUppercased, isLowercased: isLowercased, isRedacted: isRedacted) }
         }
 
         switch markdown.type {
@@ -556,14 +521,16 @@ struct _Text: View, Renderable, Equatable {
             appendChildren()
             builder.pop()
         case MarkdownNode.NodeType.link:
+            // Material3 Text applies primaryColor + underline when styles is nil; supply explicit
+            // TextLinkStyles so links use tint (linkColor) and match SwiftUI (no underline).
+            let linkStyles: TextLinkStyles
             if isRedacted {
-                builder.pushStyle(SpanStyle(background: linkColor))
+                linkStyles = TextLinkStyles(style: SpanStyle(background: linkColor, textDecoration: TextDecoration.None))
             } else {
-                builder.pushStyle(SpanStyle(color: linkColor))
+                linkStyles = TextLinkStyles(style: SpanStyle(color: linkColor, textDecoration: TextDecoration.None))
             }
-            builder.pushUrlAnnotation(UrlAnnotation(markdown.formattedString(interpolations) ?? ""))
+            builder.pushLink(LinkAnnotation.Url(url: markdown.formattedString(interpolations) ?? "", styles: linkStyles, linkInteractionListener: linkListener))
             appendChildren()
-            builder.pop()
             builder.pop()
         case MarkdownNode.NodeType.paragraph:
             if !isFirstChild {
@@ -596,6 +563,25 @@ struct _Text: View, Renderable, Equatable {
     }
     #endif
 }
+
+#if SKIP
+// SKIP INSERT: @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+@Composable func rememberOpenURLLinkInteractionListener(openURLState: State<OpenURLAction>, isEnabledState: State<Bool>) -> LinkInteractionListener {
+    return remember {
+        LinkInteractionListener { link in
+            if !isEnabledState.value {
+                return
+            }
+            guard let urlLink = link as? LinkAnnotation.Url else {
+                return
+            }
+            URL(string: urlLink.url)?.let { url in
+                openURLState.value.invoke(url)
+            }
+        }
+    }
+}
+#endif
 
 public enum TextAlignment : Int, Hashable, CaseIterable {
     case leading = 0 // For bridging
