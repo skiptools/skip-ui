@@ -110,6 +110,7 @@ import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performFirstLinkClick
 import androidx.compose.ui.test.performGesture
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
@@ -308,6 +309,33 @@ final class SkipUITests: SkipUITestCase {
                     .accessibilityIdentifier("text")
                     .onLongPressGesture { pressed = true }
                 Text(pressed ? "yes" : "no")
+                    .accessibilityIdentifier("status")
+            }
+        }
+    }
+
+    func testMarkdownLinkOpenURLIntercept() throws {
+        try testUI(view: {
+            OpenURLLinkTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "no")
+            #if SKIP
+            rule.onNodeWithTag("text").performFirstLinkClick()
+            #endif
+            try check(rule, id: "status", hasText: "yes")
+        })
+    }
+    struct OpenURLLinkTestView: View {
+        @State var opened = false
+        var body: some View {
+            VStack {
+                Text("Tap [intercept](example://intercept)")
+                    .environment(\.openURL, OpenURLAction { _ in
+                        opened = true
+                        return OpenURLAction.Result.handled
+                    })
+                    .accessibilityIdentifier("text")
+                Text(opened ? "yes" : "no")
                     .accessibilityIdentifier("status")
             }
         }
