@@ -281,7 +281,7 @@ public struct Button : View, Renderable {
     #endif
 }
 
-public struct ButtonStyle: RawRepresentable, Equatable {
+public struct ButtonStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -313,7 +313,7 @@ public enum ButtonRole : Int, Equatable {
     case close = 4 // For bridging
 }
 
-public struct ButtonSizing : RawRepresentable, Hashable {
+public struct ButtonSizing : RawRepresentable, Hashable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

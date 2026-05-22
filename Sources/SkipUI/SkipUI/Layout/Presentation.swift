@@ -668,7 +668,7 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 }
 #endif
 
-public enum PresentationAdaptation {
+public enum PresentationAdaptation: Sendable {
     case automatic
     case none
     case popover
@@ -676,7 +676,7 @@ public enum PresentationAdaptation {
     case fullScreenCover
 }
 
-public struct PresentationBackgroundInteraction {
+public struct PresentationBackgroundInteraction: Sendable {
     let enabled: Bool?
     let upThrough: PresentationDetent?
 
@@ -697,7 +697,7 @@ public enum PresentationContentInteraction : Equatable {
     case scrolls
 }
 
-public enum PresentationDetent : Hashable {
+public enum PresentationDetent : Hashable, Sendable {
     case medium
     case large
     case fraction(CGFloat)

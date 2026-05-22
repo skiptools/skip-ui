@@ -8,7 +8,7 @@ import struct CoreGraphics.CGSize
 #endif
 #endif
 
-public struct ProposedViewSize : Equatable {
+public struct ProposedViewSize : Equatable, Sendable {
     public var width: CGFloat?
     public var height: CGFloat?
 

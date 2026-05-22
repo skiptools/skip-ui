@@ -6,7 +6,7 @@ public enum HorizontalEdge : Int, CaseIterable, Codable, Hashable {
     case leading = 1
     case trailing = 2
 
-    public struct Set : OptionSet {
+    public struct Set : OptionSet, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

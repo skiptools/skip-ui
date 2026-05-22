@@ -188,7 +188,7 @@ public struct DisclosureGroup : View, Renderable {
     #endif
 }
 
-public struct DisclosureGroupStyle: RawRepresentable, Equatable {
+public struct DisclosureGroupStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

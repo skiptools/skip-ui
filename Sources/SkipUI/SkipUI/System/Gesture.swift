@@ -407,7 +407,7 @@ public struct SpatialTapGesture : Gesture {
     }
 }
 
-public struct GestureMask : OptionSet {
+public struct GestureMask : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

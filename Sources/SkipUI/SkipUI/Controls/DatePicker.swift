@@ -276,7 +276,7 @@ public struct DatePicker : View, Renderable {
 }
 #endif
 
-public struct DatePickerComponents : OptionSet {
+public struct DatePickerComponents : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -287,7 +287,7 @@ public struct DatePickerComponents : OptionSet {
     public static let date = DatePickerComponents(rawValue: 1 << 1) // For bridging
 }
 
-public struct DatePickerStyle: RawRepresentable, Equatable {
+public struct DatePickerStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

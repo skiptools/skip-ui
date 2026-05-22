@@ -6,7 +6,7 @@ public enum VerticalEdge : Int, Hashable, CaseIterable, Codable {
     case top = 1 // For bridging
     case bottom = 2 // For bridging
 
-    public struct Set : OptionSet {
+    public struct Set : OptionSet, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

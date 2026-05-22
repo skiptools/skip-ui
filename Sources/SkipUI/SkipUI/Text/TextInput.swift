@@ -28,7 +28,7 @@ public enum TextInputAutocapitalization: Int {
 }
 
 public struct TextInputFormattingControlPlacement {
-    public struct Set : OptionSet {
+    public struct Set : OptionSet, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

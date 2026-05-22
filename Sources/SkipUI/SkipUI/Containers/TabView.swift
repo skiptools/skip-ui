@@ -691,7 +691,7 @@ public struct PageTabViewStyle: TabViewStyle {
 
     public let indexDisplayMode: PageTabViewStyle.IndexDisplayMode
 
-    public struct IndexDisplayMode: RawRepresentable, Equatable {
+    public struct IndexDisplayMode: RawRepresentable, Equatable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -718,7 +718,7 @@ extension TabViewStyle where Self == PageTabViewStyle {
 
 // MARK: Tab
 
-public struct TabBarMinimizeBehavior : RawRepresentable, Hashable {
+public struct TabBarMinimizeBehavior : RawRepresentable, Hashable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -913,19 +913,19 @@ public struct Tab : TabContent, Renderable {
     #endif
 }
 
-public struct TabCustomizationBehavior : Equatable {
+public struct TabCustomizationBehavior : Equatable, Sendable {
     public static let automatic = TabCustomizationBehavior()
     public static let reorderable = TabCustomizationBehavior()
     public static let disabled = TabCustomizationBehavior()
 }
 
-public struct TabPlacement : Hashable {
+public struct TabPlacement : Hashable, Sendable {
     public static let automatic = TabPlacement()
     public static let pinned = TabPlacement()
     public static let sidebarOnly = TabPlacement()
 }
 
-public enum TabRole : Int, Hashable {
+public enum TabRole : Int, Hashable, Sendable {
     case search = 1 // For bridging
 }
 

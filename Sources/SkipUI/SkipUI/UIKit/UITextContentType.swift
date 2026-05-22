@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct UITextContentType: RawRepresentable, Equatable {
+public struct UITextContentType: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

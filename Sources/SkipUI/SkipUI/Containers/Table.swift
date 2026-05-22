@@ -470,7 +470,7 @@ extension View {
     }
 }
 
-public struct TableStyle {
+public struct TableStyle: Sendable {
     public static let automatic = TableStyle()
     @available(*, unavailable)
     public static let inset = TableStyle()

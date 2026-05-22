@@ -268,7 +268,7 @@ public final class Picker<SelectionValue> : View, Renderable {
     #endif
 }
 
-public struct PickerStyle: RawRepresentable, Equatable {
+public struct PickerStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

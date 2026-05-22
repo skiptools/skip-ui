@@ -8,7 +8,7 @@ import struct CoreGraphics.CGFloat
 #endif
 
 // NOTE: Keep in sync with SkipSwiftUI.VerticalAlignment
-public struct VerticalAlignment : Equatable {
+public struct VerticalAlignment : Equatable, Sendable {
     let key: String
 
     init(key: String) {

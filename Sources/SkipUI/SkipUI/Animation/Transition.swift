@@ -74,7 +74,7 @@ extension Transition {
     #endif
 }
 
-public struct ContentTransition : RawRepresentable, Equatable {
+public struct ContentTransition : RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -428,7 +428,7 @@ public struct OffsetTransition : Transition {
 }
 
 // SKIP @bridge
-public struct OpacityTransition : Transition {
+public struct OpacityTransition : Transition, Sendable {
     static let shared = OpacityTransition()
 
     // SKIP @bridge

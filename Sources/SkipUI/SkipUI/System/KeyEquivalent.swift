@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct KeyEquivalent : Hashable {
+public struct KeyEquivalent : Hashable, Sendable {
     public let character: Character
 
     public init(_ character: Character) {

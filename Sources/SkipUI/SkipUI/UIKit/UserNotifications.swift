@@ -32,7 +32,7 @@ import kotlin.random.Random
 
 // SKIP @bridge
 public final class UNUserNotificationCenter {
-    private static let shared = UNUserNotificationCenter()
+    nonisolated(unsafe) private static let shared = UNUserNotificationCenter()
 
     private init() {
     }
@@ -335,7 +335,7 @@ extension UNUserNotificationCenterDelegate {
     }
 }
 
-public struct UNAuthorizationOptions : OptionSet {
+public struct UNAuthorizationOptions : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -348,7 +348,7 @@ public struct UNAuthorizationOptions : OptionSet {
     public static let carPlay = UNAuthorizationOptions(rawValue: 1 << 3) // For bridging
     public static let criticalAlert = UNAuthorizationOptions(rawValue: 1 << 4) // For bridging
     public static let providesAppNotificationSettings = UNAuthorizationOptions(rawValue: 1 << 5) // For bridging
-    public static var provisional = UNAuthorizationOptions(rawValue: 1 << 6) // For bridging
+    public static let provisional = UNAuthorizationOptions(rawValue: 1 << 6) // For bridging
 }
 
 // SKIP @bridge
@@ -409,7 +409,7 @@ public final class UNNotificationResponse {
 }
 
 // SKIP @bridge
-public struct UNNotificationPresentationOptions : OptionSet {
+public struct UNNotificationPresentationOptions : OptionSet, Sendable {
     // SKIP @bridge
     public let rawValue: Int
 
@@ -587,7 +587,7 @@ public final class UNNotificationSound {
     }
 }
 
-public struct UNNotificationSoundName: RawRepresentable, Hashable {
+public struct UNNotificationSoundName: RawRepresentable, Hashable, Sendable {
     public let rawValue: String
 
     public init(rawValue: String) {

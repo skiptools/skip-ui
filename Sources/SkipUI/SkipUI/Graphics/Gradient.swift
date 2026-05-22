@@ -69,7 +69,7 @@ public struct Gradient : ShapeStyle, Hashable {
     }
     #endif
 
-    public struct ColorSpace : Hashable {
+    public struct ColorSpace : Hashable, Sendable {
         public static let device = Gradient.ColorSpace()
         public static let perceptual = Gradient.ColorSpace()
     }

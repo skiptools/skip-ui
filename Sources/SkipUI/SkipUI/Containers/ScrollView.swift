@@ -304,7 +304,7 @@ public struct ScrollTarget {
     }
 }
 
-public struct PinnedScrollableViews : OptionSet {
+public struct PinnedScrollableViews : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

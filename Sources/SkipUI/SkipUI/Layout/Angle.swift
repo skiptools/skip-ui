@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct Angle: Codable, Hashable {
-    public static var zero = Angle()
+public struct Angle: Codable, Hashable, Sendable {
+    public static let zero = Angle()
 
     public var radians: Double
     public var degrees: Double {

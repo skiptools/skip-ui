@@ -507,7 +507,7 @@ extension View {
     }
 }
 
-public struct AccessibilityActionKind : Equatable {
+public struct AccessibilityActionKind : Equatable, Sendable {
     public static let `default` = AccessibilityActionKind()
     public static let escape = AccessibilityActionKind()
     public static let magicTap = AccessibilityActionKind()
@@ -519,12 +519,12 @@ public struct AccessibilityActionKind : Equatable {
     }
 }
 
-public enum AccessibilityAdjustmentDirection : Hashable {
+public enum AccessibilityAdjustmentDirection : Hashable, Sendable {
     case increment
     case decrement
 }
 
-public enum AccessibilityChildBehavior : Hashable {
+public enum AccessibilityChildBehavior : Hashable, Sendable {
     case ignore, contain, combine
 }
 
@@ -545,7 +545,7 @@ public struct AccessibilityCustomContentKey : Equatable {
     }
 }
 
-public struct AccessibilityDirectTouchOptions : OptionSet {
+public struct AccessibilityDirectTouchOptions : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -556,7 +556,7 @@ public struct AccessibilityDirectTouchOptions : OptionSet {
     public static let requiresActivation = AccessibilityDirectTouchOptions(rawValue: 2)
 }
 
-public enum AccessibilityHeadingLevel : Int {
+public enum AccessibilityHeadingLevel : Int, Sendable {
     case unspecified = 0 // For bridging
     case h1 = 1 // For bridging
     case h2 = 2 // For bridging
@@ -566,7 +566,7 @@ public enum AccessibilityHeadingLevel : Int {
     case h6 = 6 // For bridging
 }
 
-public enum AccessibilityLabeledPairRole : Hashable {
+public enum AccessibilityLabeledPairRole : Hashable, Sendable {
     case label
     case content
 }
@@ -616,7 +616,7 @@ public struct AccessibilityRotorEntry<ID>: AccessibilityRotorContent where ID : 
     }
 }
 
-public struct AccessibilitySystemRotor {
+public struct AccessibilitySystemRotor: Sendable {
     public static func links(visited: Bool) -> AccessibilitySystemRotor {
         return AccessibilitySystemRotor()
     }
@@ -639,7 +639,7 @@ public struct AccessibilitySystemRotor {
     public static let landmarks = AccessibilitySystemRotor()
 }
 
-public struct AccessibilityTechnologies : OptionSet {
+public struct AccessibilityTechnologies : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -650,11 +650,11 @@ public struct AccessibilityTechnologies : OptionSet {
     public static let switchControl = AccessibilityTechnologies(rawValue: 2)
 }
 
-public enum AccessibilityTextContentType {
+public enum AccessibilityTextContentType: Sendable {
     case plain, console, fileSystem, messaging, narrative, sourceCode, spreadsheet, wordProcessing
 }
 
-public struct AccessibilityTraits : OptionSet {
+public struct AccessibilityTraits : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

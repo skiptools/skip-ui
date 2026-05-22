@@ -3,7 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 
-public struct EditActions /* <Data> */ : OptionSet {
+public struct EditActions /* <Data> */ : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

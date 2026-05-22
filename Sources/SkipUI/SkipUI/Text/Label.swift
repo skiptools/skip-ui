@@ -132,7 +132,7 @@ public struct Label : View, Renderable {
     #endif
 }
 
-public struct LabelStyle: RawRepresentable, Equatable {
+public struct LabelStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

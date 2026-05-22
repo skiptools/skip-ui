@@ -70,7 +70,7 @@ extension Scene {
     }
 }
 
-public struct ScenePadding : Equatable {
+public struct ScenePadding : Equatable, Sendable {
     public static let minimum = ScenePadding()
 }
 

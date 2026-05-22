@@ -62,7 +62,7 @@ public struct AnyShapeStyle : ShapeStyle {
 }
 
 // SKIP @bridge
-public struct ForegroundStyle : ShapeStyle {
+public struct ForegroundStyle : ShapeStyle, Sendable {
     static let shared = ForegroundStyle()
 
     // SKIP @bridge
@@ -91,7 +91,7 @@ extension ShapeStyle where Self == ForegroundStyle {
 }
 
 // SKIP @bridge
-public struct BackgroundStyle : ShapeStyle {
+public struct BackgroundStyle : ShapeStyle, Sendable {
     static let shared = BackgroundStyle()
 
     // SKIP @bridge
@@ -128,7 +128,7 @@ extension ShapeStyle where Self == BackgroundStyle {
 }
 
 // SKIP @bridge
-public struct TintShapeStyle : ShapeStyle {
+public struct TintShapeStyle : ShapeStyle, Sendable {
     static let shared = TintShapeStyle()
 
     // SKIP @bridge

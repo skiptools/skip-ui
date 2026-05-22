@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct MatchedGeometryProperties : OptionSet {
+public struct MatchedGeometryProperties : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

@@ -32,7 +32,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
 // SKIP @bridge
 /* @MainActor */ public class UIApplication /* : UIResponder */ {
     // SKIP @bridge
-    public static let shared = UIApplication()
+    nonisolated(unsafe) public static let shared = UIApplication()
     #if SKIP
     private var requestPermissionLauncher: ActivityResultLauncher<String>?
     private let waitingContinuations: MutableList<Continuation<Bool>> = mutableListOf<Continuation<Bool>>()
@@ -432,7 +432,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
     }
 
     // NOTE: Keep in sync with SkipSwiftUI.UIApplication.State
-    public enum State : Int {
+    public enum State : Int, Sendable {
         case active = 0
         case inactive = 1
         case background = 2
@@ -447,7 +447,7 @@ let logger: Logger = Logger(subsystem: "skip.ui", category: "SkipUI") // adb log
         fatalError()
     }
 
-    public struct OpenExternalURLOptionsKey : Hashable, Equatable, RawRepresentable {
+    public struct OpenExternalURLOptionsKey : Hashable, Equatable, RawRepresentable, Sendable {
         public let rawValue: String
         public init(rawValue: String) {
             self.rawValue = rawValue

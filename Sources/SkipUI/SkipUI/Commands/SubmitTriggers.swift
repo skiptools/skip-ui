@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct SubmitTriggers : OptionSet {
+public struct SubmitTriggers : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

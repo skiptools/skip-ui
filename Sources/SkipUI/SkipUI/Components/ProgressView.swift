@@ -137,7 +137,7 @@ public struct ProgressView : View, Renderable {
     #endif
 }
 
-public struct ProgressViewStyle: RawRepresentable, Equatable {
+public struct ProgressViewStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

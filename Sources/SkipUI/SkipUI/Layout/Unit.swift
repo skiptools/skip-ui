@@ -6,7 +6,7 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 #endif
 
-public struct UnitPoint : Codable, Hashable {
+public struct UnitPoint : Codable, Hashable, Sendable {
     public var x = 0.0
     public var y = 0.0
 
@@ -22,7 +22,7 @@ public struct UnitPoint : Codable, Hashable {
     public static let bottomTrailing = UnitPoint(x: 1.0, y: 1.0)
 }
 
-public struct UnitCurve: Hashable {
+public struct UnitCurve: Hashable, Sendable {
     private let startControlPoint: UnitPoint
     private let endControlPoint: UnitPoint
 
