@@ -214,13 +214,13 @@ public struct ToolbarSpacer : ToolbarContent, CustomizableToolbarContent, View, 
     #endif
 }
 
-public enum ToolbarCustomizationBehavior {
+public enum ToolbarCustomizationBehavior: Sendable {
     case `default`
     case reorderable
     case disabled
 }
 
-public struct ToolbarItemPlacement: RawRepresentable, Equatable {
+public struct ToolbarItemPlacement: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -252,38 +252,38 @@ public struct ToolbarItemPlacement: RawRepresentable, Equatable {
     public static let largeSubtitle = ToolbarItemPlacement(rawValue: 18) // For bridging
 }
 
-public enum ToolbarPlacement: Int, Equatable {
+public enum ToolbarPlacement: Int, Equatable, Sendable {
     case automatic = 0 // For bridging
     case bottomBar = 1 // For bridging
     case navigationBar = 2 // For bridging
     case tabBar = 3 // For bridging
 }
 
-public enum ToolbarRole {
+public enum ToolbarRole: Sendable {
     case automatic
     case navigationStack
     case browser
     case editor
 }
 
-public enum ToolbarTitleDisplayMode: Int {
+public enum ToolbarTitleDisplayMode: Int, Sendable {
     case automatic = 0 // For bridging
     case large = 1 // For bridging
     case inlineLarge = 2 // For bridging
     case inline = 3 // For bridging
 }
 
-public struct ToolbarCustomizationOptions : OptionSet {
+public struct ToolbarCustomizationOptions : OptionSet, Sendable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
 
-    public static var alwaysAvailable = ToolbarCustomizationOptions(rawValue: 1 << 0)
+    public static let alwaysAvailable = ToolbarCustomizationOptions(rawValue: 1 << 0)
 }
 
-public struct ToolbarDefaultItemKind : RawRepresentable {
+public struct ToolbarDefaultItemKind : RawRepresentable, Sendable, Sendable {
     public let rawValue: Int // For bridging
 
     public init(rawValue: Int) {

@@ -3,7 +3,7 @@
 #if !SKIP_BRIDGE
 
 // NOTE: Keep in sync with SkipSwiftUI.Alignment
-public struct Alignment : Equatable {
+public struct Alignment : Equatable, Sendable {
     public var horizontal: HorizontalAlignment
     public var vertical: VerticalAlignment
 
@@ -17,12 +17,12 @@ public struct Alignment : Equatable {
     public static let bottomLeading = Alignment(horizontal: .leading, vertical: .bottom)
     public static let bottomTrailing = Alignment(horizontal: .trailing, vertical: .bottom)
 
-    public static var centerFirstTextBaseline = Alignment(horizontal: .center, vertical: .firstTextBaseline)
-    public static var centerLastTextBaseline = Alignment(horizontal: .center, vertical: .lastTextBaseline)
-    public static var leadingFirstTextBaseline = Alignment(horizontal: .leading, vertical: .firstTextBaseline)
-    public static var leadingLastTextBaseline = Alignment(horizontal: .leading, vertical: .lastTextBaseline)
-    public static var trailingFirstTextBaseline = Alignment(horizontal: .trailing, vertical: .firstTextBaseline)
-    public static var trailingLastTextBaseline = Alignment(horizontal: .trailing, vertical: .lastTextBaseline)
+    public static let centerFirstTextBaseline = Alignment(horizontal: .center, vertical: .firstTextBaseline)
+    public static let centerLastTextBaseline = Alignment(horizontal: .center, vertical: .lastTextBaseline)
+    public static let leadingFirstTextBaseline = Alignment(horizontal: .leading, vertical: .firstTextBaseline)
+    public static let leadingLastTextBaseline = Alignment(horizontal: .leading, vertical: .lastTextBaseline)
+    public static let trailingFirstTextBaseline = Alignment(horizontal: .trailing, vertical: .firstTextBaseline)
+    public static let trailingLastTextBaseline = Alignment(horizontal: .trailing, vertical: .lastTextBaseline)
 
     #if SKIP
     /// Return the Compose alignment equivalent.

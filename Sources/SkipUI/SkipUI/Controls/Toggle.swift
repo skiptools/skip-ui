@@ -95,7 +95,7 @@ public struct Toggle : View, Renderable {
     #endif
 }
 
-public struct ToggleStyle: RawRepresentable, Equatable {
+public struct ToggleStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

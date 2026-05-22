@@ -31,7 +31,7 @@ public struct ControlGroup : View {
     #endif
 }
 
-public struct ControlGroupStyle: RawRepresentable, Equatable {
+public struct ControlGroupStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

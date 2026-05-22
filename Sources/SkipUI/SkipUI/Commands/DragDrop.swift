@@ -121,7 +121,7 @@ public enum DropOperation: Int, Hashable, Sendable {
     case move = 8
     case delete = 16
 
-    public struct Set : OptionSet, Hashable {
+    public struct Set : OptionSet, Hashable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

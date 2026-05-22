@@ -6,7 +6,7 @@ public enum Axis : Int, Hashable, CaseIterable {
     case horizontal = 1 // For bridging
     case vertical = 2 // For bridging
 
-    public struct Set : OptionSet, Hashable {
+    public struct Set : OptionSet, Hashable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {

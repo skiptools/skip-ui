@@ -196,7 +196,7 @@ public struct TextField : View, Renderable {
     #endif
 }
 
-public struct TextFieldStyle: RawRepresentable, Equatable {
+public struct TextFieldStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

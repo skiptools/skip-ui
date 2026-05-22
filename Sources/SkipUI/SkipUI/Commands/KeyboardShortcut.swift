@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-public struct KeyboardShortcut : Hashable {
-    public enum Localization : Hashable {
+public struct KeyboardShortcut : Hashable, Sendable {
+    public enum Localization : Hashable, Sendable {
         case automatic
         case withoutMirroring
         case custom

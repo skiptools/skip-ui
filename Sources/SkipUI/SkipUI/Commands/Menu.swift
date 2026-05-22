@@ -246,7 +246,7 @@ public final class Menu : View, Renderable {
     #endif
 }
 
-public struct MenuStyle: RawRepresentable, Equatable {
+public struct MenuStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -257,7 +257,7 @@ public struct MenuStyle: RawRepresentable, Equatable {
     public static let button = MenuStyle(rawValue: 1) // For bridging
 }
 
-public struct MenuActionDismissBehavior: RawRepresentable, Equatable {
+public struct MenuActionDismissBehavior: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
@@ -270,7 +270,7 @@ public struct MenuActionDismissBehavior: RawRepresentable, Equatable {
     public static let disabled = MenuActionDismissBehavior(rawValue: 1) // For bridging
 }
 
-public struct MenuOrder: RawRepresentable, Equatable, Hashable {
+public struct MenuOrder: RawRepresentable, Equatable, Hashable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

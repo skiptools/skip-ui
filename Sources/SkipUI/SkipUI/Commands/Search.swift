@@ -70,7 +70,7 @@ extension View {
     }
 }
 
-public struct SearchFieldPlacement : RawRepresentable {
+public struct SearchFieldPlacement : RawRepresentable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

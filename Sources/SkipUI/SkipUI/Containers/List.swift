@@ -747,7 +747,7 @@ struct ListStyling: Equatable {
 }
 #endif
 
-public struct ListStyle: RawRepresentable, Equatable {
+public struct ListStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

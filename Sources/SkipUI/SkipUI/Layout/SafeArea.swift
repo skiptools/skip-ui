@@ -8,7 +8,7 @@ import androidx.compose.ui.geometry.Rect
 import struct CoreGraphics.CGFloat
 #endif
 
-public struct SafeAreaRegions : OptionSet {
+public struct SafeAreaRegions : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

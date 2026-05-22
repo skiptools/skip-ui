@@ -60,7 +60,7 @@ public struct TextEditor : View, Renderable {
     #endif
 }
 
-public struct TextEditorStyle: RawRepresentable, Equatable {
+public struct TextEditorStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

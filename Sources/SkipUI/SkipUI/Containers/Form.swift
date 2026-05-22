@@ -30,7 +30,7 @@ public struct Form : View {
     #endif
 }
 
-public struct FormStyle: RawRepresentable, Equatable {
+public struct FormStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

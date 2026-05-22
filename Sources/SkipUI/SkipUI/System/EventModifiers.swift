@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 
-@frozen public struct EventModifiers : OptionSet, Hashable {
+@frozen public struct EventModifiers : OptionSet, Hashable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

@@ -12,7 +12,7 @@ import android.content.Context.CLIPBOARD_SERVICE
 // SKIP @bridge
 public class UIPasteboard {
     // SKIP @bridge
-    public static let general = UIPasteboard()
+    nonisolated(unsafe) public static let general = UIPasteboard()
 
     private init() {
         #if SKIP

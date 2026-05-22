@@ -1140,16 +1140,16 @@ struct NavigationDestinationItemWrapper<D: Hashable>: View {
 let LocalNavigator: ProvidableCompositionLocal<Navigator?> = compositionLocalOf { nil as Navigator? }
 #endif
 
-public struct NavigationSplitViewStyle: RawRepresentable, Equatable {
+public struct NavigationSplitViewStyle: RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
 
-    public static var automatic = NavigationSplitViewStyle(rawValue: 0)
-    public static var balanced = NavigationSplitViewStyle(rawValue: 1)
-    public static var prominentDetail = NavigationSplitViewStyle(rawValue: 2)
+    public static let automatic = NavigationSplitViewStyle(rawValue: 0)
+    public static let balanced = NavigationSplitViewStyle(rawValue: 1)
+    public static let prominentDetail = NavigationSplitViewStyle(rawValue: 2)
 }
 
 public struct NavigationBarItem : Hashable {
@@ -1556,7 +1556,7 @@ public struct NavigationLink : View, Renderable {
     let label: ComposeBuilder
 
     private static let minimumNavigationInterval = 0.35
-    private static var lastNavigationTime = 0.0
+    nonisolated(unsafe) private static var lastNavigationTime = 0.0
 
     public init(value: Any?, @ViewBuilder label: () -> any View) {
         self.value = value

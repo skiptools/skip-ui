@@ -13,7 +13,7 @@ public struct DismissAction {
         self.action = action
     }
 
-    static let `default` = DismissAction(action: { })
+    nonisolated(unsafe) static let `default` = DismissAction(action: { })
 
     public func callAsFunction() {
         action()
@@ -23,7 +23,7 @@ public struct DismissAction {
 // SKIP @bridge
 public struct OpenURLAction {
     // SKIP @bridge
-    public struct Result {
+    public struct Result: Sendable {
         // SKIP @bridge
         public let rawValue: Int
         // SKIP @bridge
@@ -51,7 +51,7 @@ public struct OpenURLAction {
     // SKIP @bridge
     public let systemHandler: ((URL) throws -> Void)?
 
-    static let `default`: OpenURLAction = OpenURLAction(handler: { _ in Result.systemAction })
+    nonisolated(unsafe) static let `default`: OpenURLAction = OpenURLAction(handler: { _ in Result.systemAction })
 
     // SKIP @bridge
     public init(handler: @escaping (URL) -> Result) {
@@ -91,10 +91,10 @@ public struct OpenURLAction {
 }
 
 // SKIP @bridge
-public struct RefreshAction {
-    public let action: () async -> Void
+public struct RefreshAction: Sendable {
+    public let action: @Sendable () async -> Void
 
-    public init(action: @escaping () async -> Void) {
+    public init(action: @Sendable @escaping () async -> Void) {
         self.action = action
     }
 
@@ -122,7 +122,7 @@ public struct RefreshAction {
     }
 
     // SKIP @bridge
-    public func run(completion: @escaping () -> Void) {
+    public func run(completion: @Sendable @escaping () -> Void) {
         Task {
             await action()
             completion()

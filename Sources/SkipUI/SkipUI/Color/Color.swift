@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 #endif
 
 // SKIP @bridge
-public struct Color: ShapeStyle, Renderable, Hashable {
+public struct Color: ShapeStyle, Renderable, Hashable, Sendable {
     #if SKIP
     public let colorImpl: @Composable () -> androidx.compose.ui.graphics.Color
 

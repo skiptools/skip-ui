@@ -8,7 +8,7 @@ import skip.model.StateTracking
 
 // SKIP @bridge
 public struct EmptyModifier : ViewModifier {
-    public static let identity: EmptyModifier = EmptyModifier()
+    nonisolated(unsafe) public static let identity: EmptyModifier = EmptyModifier()
 
     // SKIP @bridge
     public init() {

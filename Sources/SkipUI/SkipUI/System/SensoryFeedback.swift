@@ -5,7 +5,7 @@
 import android.os.VibrationEffect
 #endif
 
-public struct SensoryFeedback : RawRepresentable, Equatable {
+public struct SensoryFeedback : RawRepresentable, Equatable, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {

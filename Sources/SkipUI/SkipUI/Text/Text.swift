@@ -266,12 +266,12 @@ public struct Text: View, Renderable, Equatable {
         return self
     }
 
-    public enum Case : Int, Equatable {
+    public enum Case : Int, Equatable, Sendable {
         case uppercase = 0 // For bridging
         case lowercase = 1 // For bridging
     }
 
-    public struct LineStyle : Hashable {
+    public struct LineStyle : Hashable, Sendable {
         public let pattern: Text.LineStyle.Pattern
         public let color: Color?
 
@@ -280,7 +280,7 @@ public struct Text: View, Renderable, Equatable {
             self.color = color
         }
 
-        public enum Pattern {
+        public enum Pattern: Sendable {
             case solid
             case dot
             case dash
@@ -291,18 +291,18 @@ public struct Text: View, Renderable, Equatable {
         public static let single = Text.LineStyle()
     }
 
-    public enum Scale : Hashable {
+    public enum Scale : Hashable, Sendable {
         case `default`
         case secondary
     }
 
-    public enum TruncationMode: Int {
+    public enum TruncationMode: Int, Sendable {
         case head = 1 // For bridging
         case tail = 2 // For bridging
         case middle = 3 // For bridging
     }
 
-    public struct DateStyle {
+    public struct DateStyle: @unsafe Sendable {
         public static let time = DateStyle(format: { date in
             let formatter = DateFormatter()
             formatter.timeStyle = .medium
@@ -324,21 +324,21 @@ public struct Text: View, Renderable, Equatable {
         @available(*, unavailable)
         public static let timer = DateStyle(format: { _ in fatalError() })
 
-        let format: (Date) -> String
+        let format: @Sendable (Date) -> String
 
-        private init(format: @escaping (Date) -> String) {
+        private init(format: @Sendable @escaping (Date) -> String) {
             self.format = format
         }
     }
 
-    public struct WritingDirectionStrategy : Hashable {
+    public struct WritingDirectionStrategy : Hashable, Sendable {
         @available(*, unavailable)
         public static let layoutBased = WritingDirectionStrategy()
         public static let contentBased = WritingDirectionStrategy()
         public static let `default` = WritingDirectionStrategy()
     }
 
-    public struct AlignmentStrategy : Hashable {
+    public struct AlignmentStrategy : Hashable, Sendable {
         @available(*, unavailable)
         public static let layoutBased = AlignmentStrategy()
         @available(*, unavailable)
@@ -983,7 +983,7 @@ public struct Material3TextOptions {
 }
 #endif
 
-public struct RedactionReasons : OptionSet {
+public struct RedactionReasons : OptionSet, Sendable {
     public let rawValue: Int
 
     public init(rawValue: Int) {
