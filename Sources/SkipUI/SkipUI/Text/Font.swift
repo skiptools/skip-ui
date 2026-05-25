@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 #if SKIP
 import android.graphics.Typeface
+import androidx.core.content.res.ResourcesCompat
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -212,7 +213,7 @@ public struct Font : Hashable {
             } else {
                 android.util.Log.w("SkipUI", "unable to find font named: \(fontName) (\(name))")
             }
-        } else if let customTypeface = ctx.resources.getFont(fid) {
+        } else if let customTypeface = ResourcesCompat.getFont(ctx, fid) {
             fontFamily = FontFamily(customTypeface)
         } else {
             android.util.Log.w("SkipUI", "unable to find font named: \(name)")
