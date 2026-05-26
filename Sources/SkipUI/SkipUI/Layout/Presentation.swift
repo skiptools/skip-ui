@@ -177,7 +177,8 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             }
 
             let clipShape = RoundedCornerShape(topStart: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp, topEnd: isFullScreen ? 0.dp : overlayPresentationCornerRadius.dp)
-            Box(modifier: Modifier.weight(Float(1.0)).clip(clipShape).nestedScroll(DisableScrollToDismissConnection())) {
+            let contentModifier = Modifier.weight(Float(1.0)).clip(clipShape)
+            Box(modifier: interactiveDismissDisabled ? contentModifier.nestedScroll(DisableScrollToDismissConnection()) : contentModifier) {
                 // Place outside of PresentationRoot recomposes
                 let stateSaver = remember { ComposeStateSaver() }
                 let presentationContext = context.content(stateSaver: stateSaver)

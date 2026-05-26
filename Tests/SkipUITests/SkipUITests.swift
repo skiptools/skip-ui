@@ -98,6 +98,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.moveTo
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -310,6 +312,71 @@ final class SkipUITests: SkipUITestCase {
                 Text(pressed ? "yes" : "no")
                     .accessibilityIdentifier("status")
             }
+        }
+    }
+
+    func testSheetWithScrollableContentDismissesOnDownwardOverscroll() throws {
+        #if !SKIP
+        throw XCTSkip("sheet overscroll dismissal is a Compose behavior")
+        #else
+        let didDismiss = mutableStateOf(false)
+        try testUI(view: {
+            SheetOverscrollDismissTestView(interactiveDismissDisabled: false, onDismiss: { didDismiss.value = true })
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+            XCTAssertFalse(didDismiss.value)
+            rule.onAllNodesWithTag("sheet-list").onFirst().assertIsDisplayed()
+            dragSheetListDown(rule)
+            rule.waitForIdle()
+            XCTAssertTrue(didDismiss.value)
+        })
+        #endif
+    }
+
+    func testSheetWithScrollableContentKeepsOverscrollBlockedWhenInteractiveDismissDisabled() throws {
+        #if !SKIP
+        throw XCTSkip("sheet overscroll dismissal is a Compose behavior")
+        #else
+        let didDismiss = mutableStateOf(false)
+        try testUI(view: {
+            SheetOverscrollDismissTestView(interactiveDismissDisabled: true, onDismiss: { didDismiss.value = true })
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+            XCTAssertFalse(didDismiss.value)
+            rule.onAllNodesWithTag("sheet-list").onFirst().assertIsDisplayed()
+            dragSheetListDown(rule)
+            rule.waitForIdle()
+            XCTAssertFalse(didDismiss.value)
+        })
+        #endif
+    }
+
+    #if SKIP
+    func dragSheetListDown(_ rule: any SkipUIEvaluator) {
+        rule.onAllNodesWithTag("sheet-list").onFirst().performGesture {
+            down(Offset(Float(120.0), Float(80.0)))
+            moveTo(Offset(Float(120.0), Float(720.0)))
+            up()
+        }
+    }
+    #endif
+
+    struct SheetOverscrollDismissTestView: View {
+        @State var isPresented = true
+        let interactiveDismissDisabled: Bool
+        let onDismiss: () -> Void
+
+        var body: some View {
+            Text("Sheet Host")
+                .sheet(isPresented: $isPresented, onDismiss: onDismiss) {
+                    List(0..<40) { index in
+                        Text("Row \(index)")
+                    }
+                    .accessibilityIdentifier("sheet-list")
+                    .interactiveDismissDisabled(interactiveDismissDisabled)
+                }
         }
     }
 
