@@ -58,6 +58,19 @@ final class CanvasTests: XCSnapshotTestCase {
         0 0 C C C C C C C C 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
         0 0 0 0 0 0 0 0 0 0 0 0
+        """, robolectric: """
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 C C C C C C C C 0 0
+        0 0 C C C C C C C C 0 0
+        0 0 C C 6 6 6 6 C C 0 0
+        0 0 C C 6 878787 878787 6 C C 0 0
+        0 0 C C 6 878787 878787 6 C C 0 0
+        0 0 C C 6 6 6 6 C C 0 0
+        0 0 C C C C C C C C 0 0
+        0 0 C C C C C C C C 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
+        0 0 0 0 0 0 0 0 0 0 0 0
         """))
     }
 
