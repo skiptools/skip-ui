@@ -822,6 +822,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_progressViewStyle", value: newValue, defaultValue: { nil }) }
     }
 
+    var _material3WavyProgress: Material3WavyProgressConfiguration? {
+        get { builtinValue(key: "_material3WavyProgress", defaultValue: { nil }) as! Material3WavyProgressConfiguration? }
+        set { setBuiltinValue(key: "_material3WavyProgress", value: newValue, defaultValue: { nil }) }
+    }
+
     var _tabViewStyle: TabViewStyle? {
         get { builtinValue(key: "_tabViewStyle", defaultValue: { nil }) as! TabViewStyle? }
         set { setBuiltinValue(key: "_tabViewStyle", value: newValue, defaultValue: { nil }) }
