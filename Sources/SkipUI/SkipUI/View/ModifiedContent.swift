@@ -76,6 +76,11 @@ class SideEffectModifier: ModifierProtocol {
 class RenderModifier: ModifierProtocol {
     let role: ModifierRole
     var action: (@Composable (Renderable, ComposeContext) -> Void)?
+    /// When initialized with a `(ComposeContext) -> Modifier` transform, this
+    /// holds the raw transform so callers like `Menu` can apply it to a
+    /// non-View Compose element (e.g. `DropdownMenuItem`) that does not run
+    /// through the normal `Renderable.Render` path.
+    var modifierAction: (@Composable (ComposeContext) -> Modifier)?
 
     init(role: ModifierRole = .unspecified, action: (@Composable (Renderable, ComposeContext) -> Void)? = nil) {
         self.role = role
@@ -84,6 +89,7 @@ class RenderModifier: ModifierProtocol {
 
     init(role: ModifierRole = .unspecified, action: @Composable (ComposeContext) -> Modifier) {
         self.role = role
+        self.modifierAction = action
         self.action = { content, context in
             var context = context
             context.modifier = action(context)
