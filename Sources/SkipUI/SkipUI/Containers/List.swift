@@ -4,12 +4,23 @@
 import Foundation
 #if SKIP
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
+import androidx.compose.foundation.gestures.snapTo
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +28,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.GenericShape
@@ -26,20 +42,25 @@ import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
@@ -49,6 +70,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -63,6 +85,18 @@ import struct CoreGraphics.CGFloat
 
 /// Corner radius for list sections.
 let listSectionCornerRadius = 8.0
+
+#if SKIP
+/// Discrete rest positions for a row's swipe gesture. Used as the value
+/// type for the row's AnchoredDraggableState.
+enum SwipeAnchor {
+    case closed
+    case leadingOpen
+    case leadingFull
+    case trailingOpen
+    case trailingFull
+}
+#endif
 
 // SKIP @bridge
 // SKIP INSERT: @Stable // Otherwise Compose recomposes all internal @Composable funcs because 'this' is unstable
@@ -242,6 +276,10 @@ public final class List : View, Renderable {
         }
 
         let itemContext = context.content()
+        /* Tracks which row currently has its swipe actions revealed. When one
+           opens, all others observe this state and animate closed. Matches
+           iOS list behavior of "only one row's swipe actions visible at once". */
+        let activeSwipeKey = remember { mutableStateOf<String?>(nil) }
         // Combine contentPadding with contentMargins additively
         var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
         if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
@@ -277,7 +315,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(index + range.start, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 objectItems: { objects, identifier, offset, onDelete, onMove, level, factory in
@@ -287,7 +325,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(objects[index], itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, key: keyValue, index: index, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 objectBindingItems: { objectsBinding, identifier, offset, editActions, onDelete, onMove, level, factory in
@@ -297,7 +335,7 @@ public final class List : View, Renderable {
                         let index = itemCollector.value.remapIndex(index, from: offset)
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         let renderable = factory(objectsBinding, index, itemContext)
-                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState)
+                        RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
                 sectionHeader: { content in
@@ -359,6 +397,15 @@ public final class List : View, Renderable {
     private static let horizontalItemInset = 16.0
     private static let verticalItemInset = 8.0
     private static let levelInset = 24.0
+    
+    /// Seconds of velocity-based projection used when picking the snap anchor.
+    private static let swipeVelocityProjectionSeconds: Float = Float(0.15)
+    /// Fraction of the row width past which a full swipe fires the destructive action.
+    private static let swipeFullSwipeFraction: Float = Float(0.65)
+    /// Cap on the gray scrim alpha applied to the foreground during a swipe.
+    private static let swipeScrimMaxAlpha: Float = Float(0.18)
+    /// Minimum width for a single reveal button; grows to fit longer labels.
+    private static let swipeButtonMinWidth: Dp = 80.dp
 
     static func contentModifier(level: Int) -> Modifier {
         return Modifier.padding(start: (horizontalItemInset + level * levelInset).dp, end: horizontalItemInset.dp, top: verticalItemInset.dp, bottom: verticalItemInset.dp).fillMaxWidth().requiredHeightIn(min: minimumItemHeight.dp)
@@ -466,7 +513,7 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState) {
+    @Composable private func RenderEditableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, objectsBinding: Binding<RandomAccessCollection<Any>>? = nil, key: String?, index: Int, editActions: EditActions = [], onDelete: ((IndexSet) -> Void)?, onMove: ((IndexSet, Int) -> Void)?, reorderableState: ReorderableLazyListState, activeSwipeKey: MutableState<String?>) {
         guard !content.isSwiftUIEmptyView else {
             return
         }
@@ -475,14 +522,41 @@ public final class List : View, Renderable {
             return
         }
         let editActionsModifier = EditActionsModifier.combined(for: content)
+        let swipeConfigs = SwipeActionsModifier.combined(for: content)
+        let leadingSwipe = swipeConfigs.leading
+        let trailingSwipe = swipeConfigs.trailing
+        let hasUserSwipe = leadingSwipe != nil || trailingSwipe != nil
         let isDeleteEnabled = (editActions.contains(.delete) || onDelete != nil) && editActionsModifier.isDeleteDisabled != true
         let isMoveEnabled = (editActions.contains(.move) || onMove != nil) && editActionsModifier.isMoveDisabled != true
-        guard isDeleteEnabled || isMoveEnabled else {
+        guard isDeleteEnabled || isMoveEnabled || hasUserSwipe else {
             RenderItem(content: content, level: level, context: context, modifier: modifier, styling: styling)
             return
         }
 
-        if isDeleteEnabled {
+        /* Build the inner swipe + content composable. User-provided .swipeActions
+           wins over the implicit onDelete trash. If neither swipe path applies
+           we just render the row (caller still handles reorder wrapping). */
+        let itemContent: @Composable (Modifier) -> Void
+        if hasUserSwipe {
+            /* Mirror iOS: a destructive button's full-swipe both fires the
+               user's action AND removes the row from the underlying data, so
+               the row visibly disappears via LazyColumn's animateItem. We pass
+               an `onDestructiveDelete` closure to RenderSwipeableItem; it is
+               only invoked when (a) the destructive full-swipe fires AND
+               (b) the List has either an onDelete handler or a deletable
+               objectsBinding to remove from. */
+            let canAutoDelete = isDeleteEnabled
+            let onDestructiveDelete: (() -> Void)? = canAutoDelete ? {
+                if let onDelete {
+                    withAnimation { onDelete(IndexSet(integer: index)) }
+                } else if let objectsBinding, objectsBinding.wrappedValue.count > index {
+                    withAnimation { (objectsBinding.wrappedValue as? RangeReplaceableCollection<Any>)?.remove(at: index) }
+                }
+            } : nil
+            itemContent = { rowModifier in
+                RenderSwipeableItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling, leadingConfig: leadingSwipe, trailingConfig: trailingSwipe, rowKey: key, activeSwipeKey: activeSwipeKey, onDestructiveDelete: onDestructiveDelete)
+            }
+        } else if isDeleteEnabled {
             let rememberedOnDelete = rememberUpdatedState({
                 if let onDelete {
                     withAnimation { onDelete(IndexSet(integer: index)) }
@@ -501,24 +575,458 @@ public final class List : View, Renderable {
                 return false
             }, positionalThreshold = SwipeToDismissBoxDefaults.positionalThreshold)
 
-            let itemContent: @Composable (Modifier) -> Void = {
+            itemContent = {
                 SwipeToDismissBox(state: dismissState, enableDismissFromEndToStart: true, enableDismissFromStartToEnd: false, modifier: $0, backgroundContent: {
-                    let trashVector = Image.composeImageVector(named: "trash")!
+                    /* Red background unconditional (destructive cue); icon only
+                       if the trash vector resolves — force-unwrapping inside a LazyColumn item would crash measurement. */
                     Box(modifier: Modifier.background(androidx.compose.ui.graphics.Color.Red).fillMaxSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
-                        Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+                        if let trashVector = Image.composeImageVector(named: "trash") {
+                            Icon(imageVector: trashVector, contentDescription: "Delete", modifier = Modifier.padding(end: 24.dp), tint: androidx.compose.ui.graphics.Color.White)
+                        }
                     }
                 }, content: {
                     RenderItem(content: content, level: level, context: context, styling: styling)
                 })
             }
-            if isMoveEnabled {
-                RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
-            } else {
-                itemContent(modifier)
-            }
         } else {
-            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier) {
-                RenderItem(content: content, level: level, context: context, modifier: $0, styling: styling)
+            itemContent = { rowModifier in
+                RenderItem(content: content, level: level, context: context, modifier: rowModifier, styling: styling)
+            }
+        }
+
+        if isMoveEnabled {
+            RenderReorderableItem(reorderableState: reorderableState, key: key, modifier: modifier, content: itemContent)
+        } else {
+            itemContent(modifier)
+        }
+    }
+
+    /// Render a row wrapped in a horizontal-drag swipe container that reveals
+    /// user-provided action Buttons on the leading and/or trailing edge.
+    /// The foreground row determines the cell's height; reveal buttons match it
+    /// via `Modifier.matchParentSize()` so we never propagate unbounded height
+    /// constraints up into the surrounding LazyColumn.
+    @Composable private func RenderSwipeableItem(content: Renderable, level: Int, context: ComposeContext, modifier: Modifier, styling: ListStyling, leadingConfig: SwipeActionsConfig?, trailingConfig: SwipeActionsConfig?, rowKey: String, activeSwipeKey: MutableState<String?>, onDestructiveDelete: (() -> Void)? = nil) {
+        let coroutineScope = rememberCoroutineScope()
+
+        /* Extract Buttons and per-button .tint(_:) values from each edge's
+           rendered content. .tint() is implemented as an env modifier with
+           affectsEvaluate=false, so it wraps the Button via ModifiedContent
+           but doesn't appear in the EnvironmentValues during Evaluate. We
+           walk each renderable's modifier chain, run any EnvironmentModifier
+           actions in a scoped env, and capture the resulting _tint. The
+           innermost matching modifier wins (matches SwiftUI). */
+        let trailingRenderables = trailingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()
+        let leadingRenderables = leadingConfig?.content.Evaluate(context: context, options: 0) ?? listOf()
+        let trailingTintMap: kotlin.collections.MutableMap<Button, Color> = mutableMapOf()
+        let leadingTintMap: kotlin.collections.MutableMap<Button, Color> = mutableMapOf()
+        let trailingButtonsRawMutable: kotlin.collections.MutableList<Button> = mutableListOf()
+        for renderable in trailingRenderables {
+            if let button = renderable.strip() as? Button {
+                trailingButtonsRawMutable.add(button)
+                if let tint = ExtractEnvironmentTint(from: renderable) {
+                    trailingTintMap[button] = tint
+                }
+            }
+        }
+        let leadingButtonsRawMutable: kotlin.collections.MutableList<Button> = mutableListOf()
+        for renderable in leadingRenderables {
+            if let button = renderable.strip() as? Button {
+                leadingButtonsRawMutable.add(button)
+                if let tint = ExtractEnvironmentTint(from: renderable) {
+                    leadingTintMap[button] = tint
+                }
+            }
+        }
+        let trailingButtonsRaw: kotlin.collections.List<Button> = trailingButtonsRawMutable
+        let leadingButtonsRaw: kotlin.collections.List<Button> = leadingButtonsRawMutable
+        /* iOS reorders .destructive Buttons to the swipe-from edge regardless
+           of the order they were declared in. For trailing swipes that means
+           pinned to the right (last in the Row laid out with Arrangement.End);
+           for leading, pinned to the left (first with Arrangement.Start). The
+           destructive button also becomes the full-swipe target. */
+        let trailingDestructive = trailingButtonsRaw.firstOrNull { $0.role == ButtonRole.destructive }
+        let trailingNonDestructive = trailingButtonsRaw.filter { $0.role != ButtonRole.destructive }
+        let trailingButtons: kotlin.collections.List<Button>
+        if let trailingDestructive {
+            trailingButtons = (trailingNonDestructive + listOf(trailingDestructive))
+        } else {
+            trailingButtons = trailingButtonsRaw
+        }
+        let leadingDestructive = leadingButtonsRaw.firstOrNull { $0.role == ButtonRole.destructive }
+        let leadingNonDestructive = leadingButtonsRaw.filter { $0.role != ButtonRole.destructive }
+        let leadingButtons: kotlin.collections.List<Button>
+        if let leadingDestructive {
+            leadingButtons = (listOf(leadingDestructive) + leadingNonDestructive)
+        } else {
+            leadingButtons = leadingButtonsRaw
+        }
+        /* The full-swipe gesture should fire the destructive action when one
+           exists, otherwise the edge-most action. */
+        let trailingFullSwipeTarget = trailingDestructive ?? trailingButtons.lastOrNull()
+        let leadingFullSwipeTarget = leadingDestructive ?? leadingButtons.firstOrNull()
+        let allowsTrailingFullSwipe = trailingConfig?.allowsFullSwipe == true && trailingButtons.size > 0
+        let allowsLeadingFullSwipe = leadingConfig?.allowsFullSwipe == true && leadingButtons.size > 0
+
+        /* Measured buttons-row width per edge drives the open-anchor distance.
+           swipeButtonMinWidth is the floor. */
+        let minButtonWidthDp = swipeButtonMinWidth
+        let density = LocalDensity.current
+        let minButtonWidthPx = with(density) { minButtonWidthDp.toPx() }
+
+        /* AnchoredDraggableState owns the horizontal offset and runs both the
+           live drag and the snap-back animation. Anchors are populated below
+           via updateAnchors once the row width has been measured; until then
+           the state has only the .closed anchor at 0f so it behaves as a
+           no-op draggable. */
+        let velocityThresholdPx = with(density) { 125.dp.toPx() }
+        let anchoredState = remember {
+            AnchoredDraggableState<SwipeAnchor>(
+                initialValue: SwipeAnchor.closed,
+                positionalThreshold: { distance in distance * Float(0.5) },
+                velocityThreshold: { velocityThresholdPx },
+                snapAnimationSpec: tween(durationMillis: 300),
+                decayAnimationSpec: exponentialDecay<Float>()
+            )
+        }
+        let rowWidthPxState = remember { mutableFloatStateOf(Float(0)) }
+        /* Natural (content-sized) buttons-row width per edge, captured via
+           onSizeChanged when the reveal is in natural-layout mode. Defaults
+           to count × minButtonWidth until the first measurement lands. */
+        let trailingNaturalState = remember { mutableFloatStateOf(Float(0)) }
+        let leadingNaturalState = remember { mutableFloatStateOf(Float(0)) }
+
+        /* When a *different* row's swipe opens, animate this row closed.
+           Matches iOS list behavior of one open swipe at a time. */
+        let currentlyOpen = activeSwipeKey.value
+        LaunchedEffect(currentlyOpen) {
+            if currentlyOpen != rowKey && anchoredState.currentValue != SwipeAnchor.closed {
+                anchoredState.animateTo(SwipeAnchor.closed)
+            }
+        }
+
+        /* Sync activeSwipeKey from this row's currentValue: when the user
+           commits to an open anchor we register ourselves so siblings close;
+           when we settle back to closed we clear the key. */
+        LaunchedEffect(anchoredState.currentValue) {
+            let cur = anchoredState.currentValue
+            if cur == SwipeAnchor.closed {
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            } else if cur != SwipeAnchor.trailingFull && cur != SwipeAnchor.leadingFull {
+                activeSwipeKey.value = rowKey
+            }
+        }
+
+        /* When the row actually settles on a full-swipe anchor, fire the
+           primary action (and optional auto-delete for destructive), then
+           snap back to closed. */
+        LaunchedEffect(anchoredState.settledValue) {
+            let settled = anchoredState.settledValue
+            if settled == SwipeAnchor.trailingFull {
+                if let action = trailingFullSwipeTarget?.action {
+                    action()
+                }
+                if trailingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
+                    onDestructiveDelete()
+                }
+                anchoredState.snapTo(SwipeAnchor.closed)
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            } else if settled == SwipeAnchor.leadingFull {
+                if let action = leadingFullSwipeTarget?.action {
+                    action()
+                }
+                if leadingFullSwipeTarget?.role == ButtonRole.destructive, let onDestructiveDelete {
+                    onDestructiveDelete()
+                }
+                anchoredState.snapTo(SwipeAnchor.closed)
+                if activeSwipeKey.value == rowKey {
+                    activeSwipeKey.value = nil
+                }
+            }
+        }
+
+        Box(modifier: modifier.onSizeChanged { rowWidthPxState.value = Float($0.width) }.clipToBounds()) {
+            let rowWidthPx = rowWidthPxState.value
+            /* Natural buttons-row width is the measured content width (each
+               button sized to its label), captured below in natural-layout
+               mode. Before the first measurement lands the fallback is
+               count × minButtonWidth so the open anchor is never zero on
+               frame zero. */
+            let trailingNaturalFallback = Float(trailingButtons.size) * minButtonWidthPx
+            let leadingNaturalFallback = Float(leadingButtons.size) * minButtonWidthPx
+            let trailingNaturalPx = trailingNaturalState.value > Float(0) ? trailingNaturalState.value : trailingNaturalFallback
+            let leadingNaturalPx = leadingNaturalState.value > Float(0) ? leadingNaturalState.value : leadingNaturalFallback
+            let trailingOpenPx = -trailingNaturalPx
+            let leadingOpenPx = leadingNaturalPx
+
+            /* Current revealed width per edge (positive). When the user drags
+               further than the natural buttons-row width, the reveal area
+               stretches: the row's width follows the foreground so the
+               buttons grow to track the row edge instead of leaving a gap. */
+            let rawOffset = anchoredState.offset
+            let curOffset: Float = rawOffset.isNaN() ? Float(0) : rawOffset
+            let revealedTrailingPx = curOffset < Float(0) ? -curOffset : Float(0)
+            let revealedLeadingPx = curOffset > Float(0) ? curOffset : Float(0)
+
+            /* Past the full-swipe trigger, the destructive (or otherwise
+               edge-most) action takes over and expands to fill the entire
+               revealed width while the other actions shrink to zero. The
+               transition is animated to smooth out the moment of takeover. */
+            let trailingFullSwipeActive = allowsTrailingFullSwipe && revealedTrailingPx > rowWidthPx * swipeFullSwipeFraction
+            let leadingFullSwipeActive = allowsLeadingFullSwipe && revealedLeadingPx > rowWidthPx * swipeFullSwipeFraction
+            let trailingFullSwipeAnim = animateFloatAsState(targetValue: trailingFullSwipeActive ? Float(1) : Float(0)).value
+            let leadingFullSwipeAnim = animateFloatAsState(targetValue: leadingFullSwipeActive ? Float(1) : Float(0)).value
+
+            /* Reveal area sits beneath the row content. Buttons are sized to
+               share the row's current revealed (stretched) width. The primary
+               action (destructive if present, else the edge-most) absorbs all
+               additional width during full-swipe takeover; other buttons
+               proportionally shrink to zero. The direction guards ensure only
+               one edge's reveal renders at any non-zero offset. */
+            let leadingUseStretch = leadingButtons.size > 0 && revealedLeadingPx > leadingNaturalPx + Float(1)
+            let trailingUseStretch = trailingButtons.size > 0 && revealedTrailingPx > trailingNaturalPx + Float(1)
+            let leadingCount = Float(leadingButtons.size)
+            let trailingCount = Float(trailingButtons.size)
+
+            if leadingButtons.size > 0 && curOffset >= Float(0) {
+                Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterStart) {
+                    if leadingUseStretch {
+                        let rowWidthDp = with(density) { revealedLeadingPx.toDp() }
+                        Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
+                            for button in leadingButtons {
+                                let isPrimary = button === leadingFullSwipeTarget
+                                let primaryWeight = Float(1) + (leadingCount - Float(1)) * leadingFullSwipeAnim
+                                let otherWeight = Float(1) - leadingFullSwipeAnim
+                                let weight = isPrimary ? primaryWeight : otherWeight
+                                if weight <= Float(0.01) {
+                                    continue
+                                }
+                                Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: leadingTintMap[button], onTap: {
+                                        button.action()
+                                        if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                            onDestructiveDelete()
+                                        }
+                                        coroutineScope.launch {
+                                            anchoredState.animateTo(SwipeAnchor.closed)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    } else {
+                        Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { leadingNaturalState.value = Float($0.width) }) {
+                            for button in leadingButtons {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: leadingTintMap[button], onTap: {
+                                    button.action()
+                                    if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                        onDestructiveDelete()
+                                    }
+                                    coroutineScope.launch {
+                                        anchoredState.animateTo(SwipeAnchor.closed)
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+            if trailingButtons.size > 0 && curOffset <= Float(0) {
+                Box(modifier: Modifier.matchParentSize(), contentAlignment: androidx.compose.ui.Alignment.CenterEnd) {
+                    if trailingUseStretch {
+                        let rowWidthDp = with(density) { revealedTrailingPx.toDp() }
+                        Row(modifier: Modifier.fillMaxHeight().width(rowWidthDp)) {
+                            for button in trailingButtons {
+                                let isPrimary = button === trailingFullSwipeTarget
+                                let primaryWeight = Float(1) + (trailingCount - Float(1)) * trailingFullSwipeAnim
+                                let otherWeight = Float(1) - trailingFullSwipeAnim
+                                let weight = isPrimary ? primaryWeight : otherWeight
+                                if weight <= Float(0.01) {
+                                    continue
+                                }
+                                Box(modifier: Modifier.weight(weight).fillMaxHeight()) {
+                                    RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxSize(), context: context, tintOverride: trailingTintMap[button], onTap: {
+                                        button.action()
+                                        if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                            onDestructiveDelete()
+                                        }
+                                        coroutineScope.launch {
+                                            anchoredState.animateTo(SwipeAnchor.closed)
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    } else {
+                        Row(modifier: Modifier.fillMaxHeight().wrapContentWidth().onSizeChanged { trailingNaturalState.value = Float($0.width) }) {
+                            for button in trailingButtons {
+                                RenderSwipeRevealButton(button: button, sizeModifier: Modifier.fillMaxHeight().widthIn(min: minButtonWidthDp), context: context, tintOverride: trailingTintMap[button], onTap: {
+                                    button.action()
+                                    if button.role == ButtonRole.destructive, let onDestructiveDelete {
+                                        onDestructiveDelete()
+                                    }
+                                    coroutineScope.launch {
+                                        anchoredState.animateTo(SwipeAnchor.closed)
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            /*
+             Foreground row content sizes itself naturally (no fillMaxSize)
+             so the parent Box adopts its height and the LazyColumn item is
+             measurable.
+             On release, project the current position forward by the gesture's
+             velocity and snap to whichever anchor (closed / leading-open /
+             trailing-open / full-swipe) the projected position is closest to.
+             This guarantees the row always lands on a defined state — never
+             stops mid-track — and naturally handles reversing direction:
+             dragging back from open toward closed projects past closed and
+             snaps shut, even if the finger lifted while still partially open.
+             Full-swipe checks ACTUAL drag distance, not the projected position,
+             so a fast flick alone can't trigger the destructive action.
+             */
+
+            /* Anchor refresh: rebuilt whenever the measured sizes or
+               allowsXxxFullSwipe flags change. Anchors are defined via
+               Compose's DraggableAnchors DSL inside a SKIP INSERT block
+               because Skip's transpiler doesn't model Kotlin lambdas with
+               receiver-type extensions like `T.at(Float)`. */
+            LaunchedEffect(rowWidthPx, trailingNaturalPx, leadingNaturalPx, allowsTrailingFullSwipe, allowsLeadingFullSwipe, trailingButtons.size, leadingButtons.size) {
+                let hasTrailing = trailingButtons.size > 0
+                let hasLeading = leadingButtons.size > 0
+                let trailingOpenPos = -trailingNaturalPx
+                let leadingOpenPos = leadingNaturalPx
+                let trailingFullPos = -rowWidthPx
+                let leadingFullPos = rowWidthPx
+                // SKIP INSERT: val newAnchors = androidx.compose.foundation.gestures.DraggableAnchors<skip.ui.SwipeAnchor> {
+                // SKIP INSERT:     skip.ui.SwipeAnchor.closed at 0f
+                // SKIP INSERT:     if (hasTrailing) skip.ui.SwipeAnchor.trailingOpen at trailingOpenPos
+                // SKIP INSERT:     if (allowsTrailingFullSwipe) skip.ui.SwipeAnchor.trailingFull at trailingFullPos
+                // SKIP INSERT:     if (hasLeading) skip.ui.SwipeAnchor.leadingOpen at leadingOpenPos
+                // SKIP INSERT:     if (allowsLeadingFullSwipe) skip.ui.SwipeAnchor.leadingFull at leadingFullPos
+                // SKIP INSERT: }
+                // SKIP INSERT: anchoredState.updateAnchors(newAnchors)
+            }
+            Box(modifier: Modifier
+                .fillMaxWidth()
+                .offset {
+                    let o = anchoredState.offset
+                    IntOffset(o.isNaN() ? 0 : o.toInt(), 0)
+                }
+                .anchoredDraggable(state: anchoredState, orientation: Orientation.Horizontal)
+            ) {
+                RenderItem(content: content, level: level, context: context, styling: styling)
+                /* Subtle scrim that intensifies with swipe progress so the row
+                   visually recedes as actions appear.*/
+                let rawScrimOffset = anchoredState.offset
+                let scrimOffset: Float = rawScrimOffset.isNaN() ? Float(0) : rawScrimOffset
+                let curAbs = scrimOffset < Float(0) ? -scrimOffset : scrimOffset
+                let openMag: Float
+                if scrimOffset < Float(0) {
+                    openMag = -trailingOpenPx
+                } else if scrimOffset > Float(0) {
+                    openMag = leadingOpenPx
+                } else {
+                    openMag = Float(1) // unused; progress stays 0
+                }
+                let progressRaw = openMag > Float(0) ? curAbs / openMag : Float(0)
+                let progress: Float = progressRaw > Float(1) ? Float(1) : progressRaw
+                if progress > Float(0) {
+                    let scrimAlpha = progress * swipeScrimMaxAlpha
+                    Box(modifier: Modifier.matchParentSize().background(androidx.compose.ui.graphics.Color.LightGray.copy(alpha: scrimAlpha)))
+                }
+            }
+        }
+    }
+
+    /// Walk the renderable's ModifiedContent chain, run any
+    /// EnvironmentModifier action in a scoped EnvironmentValues, and
+    /// return whatever ._tint it sets. We walk manually (instead of
+    /// forEachModifier) because the action is @Composable and so is
+    /// setValuesWithReturn — both must be invoked from a @Composable
+    /// scope, which forEachModifier's plain callback isn't. Outermost
+    /// modifier processed first so the innermost wins (matches SwiftUI).
+    @Composable private func ExtractEnvironmentTint(from renderable: Renderable) -> Color? {
+        var captured: Color? = nil
+        var current: Renderable? = renderable
+        while let mod = current as? ModifiedContent {
+            if let envMod = mod.modifier as? EnvironmentModifier, let action = envMod.action {
+                let scoped: Color? = EnvironmentValues.shared.setValuesWithReturn(action) {
+                    return EnvironmentValues.shared._tint
+                }
+                if scoped != nil {
+                    captured = scoped
+                }
+            }
+            current = mod.renderable
+        }
+        return captured
+    }
+
+    /// Render a single action button inside the swipe reveal area.
+    /// Sizing is supplied by the caller: in natural mode this is
+    /// widthIn(min:).fillMaxHeight() so the button hugs its label; in
+    /// stretch mode it's fillMaxSize() inside a weighted Box so the button
+    /// expands with the row. Padding around the label keeps icon/text from
+    /// touching the cell edges.
+    @Composable private func RenderSwipeRevealButton(button: Button, sizeModifier: Modifier, context: ComposeContext, tintOverride: Color? = nil, onTap: () -> Void) {
+        let backgroundColor: androidx.compose.ui.graphics.Color
+        let contentColor: androidx.compose.ui.graphics.Color
+        if button.role == ButtonRole.destructive {
+            /* Match the red used by the implicit onDelete SwipeToDismissBox so
+               destructive actions look the same whether triggered via .onDelete
+               or an explicit .swipeActions { Button(role: .destructive) }. */
+            backgroundColor = androidx.compose.ui.graphics.Color.Red
+            contentColor = androidx.compose.ui.graphics.Color.White
+        } else {
+            /* Per-button .tint(_:) wins over the surrounding env tint. */
+            let tint = (tintOverride ?? EnvironmentValues.shared._tint)?.colorImpl()
+            if let tint {
+                backgroundColor = tint
+                contentColor = androidx.compose.ui.graphics.Color.White
+            } else {
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            }
+        }
+        /* Render the user's label view (Text, Image, Label, or any custom
+           composition). clipToBounds on the button means the label can
+           safely use Modifier.width(IntrinsicSize.Max) — Text stays on one
+           line at its intrinsic width and any overflow is clipped instead
+           of wrapping mid-animation when full-swipe takeover squeezes a
+           non-primary button's width below the natural content width. */
+        Row(modifier: sizeModifier
+            .clipToBounds()
+            .background(backgroundColor)
+            .clickable(onClick: onTap)
+            .padding(horizontal: 12.dp, vertical: 8.dp),
+            horizontalArrangement: Arrangement.Center,
+            verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
+            let contentSwiftColor = Color(colorImpl: { contentColor })
+            EnvironmentValues.shared.setValues({
+                $0.set_foregroundStyle(contentSwiftColor)
+                return ComposeResult.ok
+            }) {
+                /* Apply the font via the .font() View modifier which routes
+                   through environment(\.font, ...). Setting the font property
+                   on EnvironmentValues directly isn't exposed as a Kotlin
+                   setter by Skip's transpilation. */
+                /* requiredWidth(IntrinsicSize.Max) overrides parent's max
+                   width constraint so Text always lays out at its one-line
+                   intrinsic width. An extra 8dp horizontal pad gives a tiny
+                   measurement headroom so subpixel rounding can't trigger
+                   a one-line→two-line→one-line flicker during the
+                   takeover animation. The button Row's clipToBounds
+                   clips the resulting overflow visually. */
+                button.label.font(Font.footnote).Compose(context: context.content(modifier: Modifier.requiredWidth(IntrinsicSize.Max).padding(horizontal: 4.dp)))
             }
         }
     }
@@ -873,10 +1381,6 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func swipeActions(edge: HorizontalEdge = .trailing, allowsFullSwipe: Bool = true, @ViewBuilder content: () -> any View) -> some View {
-        return self
-    }
 }
 
 #if SKIP
