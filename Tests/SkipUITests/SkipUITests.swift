@@ -313,6 +313,57 @@ final class SkipUITests: SkipUITestCase {
         }
     }
 
+    func testMenuAccessibilityIdentifier() throws {
+        try testUI(view: {
+            MenuTestView().accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            try check(rule, id: "status", hasText: "initial")
+            #if SKIP
+            rule.onNodeWithTag("menu.label").performClick()
+
+            rule.onNodeWithTag("menu.item.tag").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.tag").performClick()
+
+            try check(rule, id: "status", hasText: "tagged")
+
+            rule.onNodeWithTag("menu.item.untag").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.untag").performClick()
+
+            try check(rule, id: "status", hasText: "untagged")
+
+            rule.onNodeWithTag("menu.item.reset").assertIsDisplayed()
+            rule.onNodeWithTag("menu.item.reset").performClick()
+
+            try check(rule, id: "status", hasText: "initial")
+            #endif
+        })
+    }
+
+    struct MenuTestView: View {
+        @State var status: String = "initial"
+
+        var body: some View {
+            VStack {
+                Text(verbatim: status)
+                    .accessibilityIdentifier("status")
+                Menu {
+                    Button("Tag item") {
+                        status = status == "tagged" ? "untagged" : "tagged"
+                    }
+                    .accessibilityIdentifier(status == "tagged" ? "menu.item.untag" : "menu.item.tag")
+
+                    Button("Reset item") {
+                        status = "initial"
+                    }
+                    .accessibilityIdentifier("menu.item.reset")
+                } label: {
+                    Text(verbatim: "Open menu")
+                }
+                .accessibilityIdentifier("menu.label")
+            }
+        }
+    }
+
     // look up a localized string in the current bundle using the given language
     func localizedBundle(_ lang: String) throws -> Bundle {
         try XCTUnwrap(Bundle(url: XCTUnwrap(Bundle.module.url(forResource: "Localizable", withExtension: "strings", subdirectory: nil, localization: lang)).deletingLastPathComponent()))
