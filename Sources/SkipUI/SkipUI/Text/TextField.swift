@@ -17,6 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.text.TextRange
@@ -133,13 +138,32 @@ public struct TextField : View, Renderable {
         let textAlign = EnvironmentValues.shared.multilineTextAlignment.asTextAlign()
         let alignedTextStyle = animatable.value.merge(TextStyle(textAlign: textAlign))
         
+        // A single-line `OutlinedTextField` only fires its `keyboardActions`
+        // callbacks from the IME's action button — a *hardware* Enter (e.g.
+        // a USB keyboard, an emulator keyevent, or `adb shell input
+        // keyevent 66`) is consumed silently and never reaches `onSubmit`.
+        // Intercept those Enter key-downs with `onPreviewKeyEvent` and
+        // route them to the same submit state the IME action would.
+        let submitState = EnvironmentValues.shared._onSubmitState
+        let focusManager = LocalFocusManager.current
+        let baseModifier = context.modifier.fillWidth().onPreviewKeyEvent { keyEvent in
+            if keyEvent.type == KeyEventType.KeyDown &&
+                (keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) {
+                if let submitState {
+                    submitState.onSubmit(trigger: SubmitTriggers.text)
+                    focusManager.clearFocus()
+                    return true
+                }
+            }
+            return false
+        }
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             textFieldValue.value = value
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: context.modifier.fillWidth(), textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
+        }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
