@@ -880,9 +880,9 @@ private func mergeNavigationDestinationsWithLayoutHints(_ destinations: Navigati
         // that are not represented in the bound path
         if let lastKey = navBackStack.lastOrNull() as? SkipNavigationStackPushKey, lastKey.destinationIndex == viewDestinationIndex {
             navBackStack.removeLastOrNull()
-        } else if let path {
+        } else if let path, !path.wrappedValue.isEmpty {
             path.wrappedValue.popLast()
-        } else if let navigationPath {
+        } else if let navigationPath, !navigationPath.wrappedValue.isEmpty {
             navigationPath.wrappedValue.removeLast()
         } else if !isRoot {
             navBackStack.removeLastOrNull()
