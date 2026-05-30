@@ -336,7 +336,7 @@ final class SkipUITests: SkipUITestCase {
             rule.onNodeWithTag("menu.item.reset").assertIsDisplayed()
             rule.onNodeWithTag("menu.item.reset").performClick()
 
-            try check(rule, id: "status", hasText: "initialXXX")
+            try check(rule, id: "status", hasText: "initial")
             #endif
         })
     }
