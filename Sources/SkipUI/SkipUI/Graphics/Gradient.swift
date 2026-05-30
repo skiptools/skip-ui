@@ -141,7 +141,9 @@ public struct LinearGradient : ShapeStyle, Renderable {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
-        return LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)
+        return remember(gradient, startPoint, endPoint, opacity) {
+            LinearGradientShaderBrush(colorStops: stops, startPoint: startPoint, endPoint: endPoint)
+        }
     }
 
     private struct LinearGradientShaderBrush: ShaderBrush {
@@ -207,7 +209,9 @@ public struct EllipticalGradient : ShapeStyle, Renderable {
 
     @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
         let stops = gradient.colorStops(opacity: opacity)
-        return RadialGradientShaderBrush(colorStops: stops, center: center, startFraction: startFraction, endFraction: endFraction)
+        return remember(gradient, center, startFraction, endFraction, opacity) {
+            RadialGradientShaderBrush(colorStops: stops, center: center, startFraction: startFraction, endFraction: endFraction)
+        }
     }
 
     private struct RadialGradientShaderBrush: ShaderBrush {
@@ -275,7 +279,9 @@ public struct RadialGradient : ShapeStyle, Renderable {
         let start = with(density) { startRadius.dp.toPx() }
         let end = with(density) { endRadius.dp.toPx() }
         let stops = gradient.colorStops(opacity: opacity)
-        return RadialGradientShaderBrush(colorStops: stops, center: center, startRadius: start, endRadius: end)
+        return remember(gradient, center, start, end, opacity) {
+            RadialGradientShaderBrush(colorStops: stops, center: center, startRadius: start, endRadius: end)
+        }
     }
 
     private struct RadialGradientShaderBrush: ShaderBrush {
