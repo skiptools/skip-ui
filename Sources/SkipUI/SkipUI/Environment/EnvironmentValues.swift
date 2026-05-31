@@ -861,6 +861,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_navigationStackLayoutHints", value: newValue, defaultValue: { nil }) }
     }
 
+    var _navigationStackTransitions: (@escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions)? {
+        get { builtinValue(key: "_navigationStackTransitions", defaultValue: { nil }) as! (@escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions)? }
+        set { setBuiltinValue(key: "_navigationStackTransitions", value: newValue, defaultValue: { nil }) }
+    }
+
     /// Nested scroll connection for the active `NavigationStack` entry's top app bar
     public var _nestedScrollConnection: NestedScrollConnection? {
         get { builtinValue(key: "_nestedScrollConnection", defaultValue: { nil }) as! NestedScrollConnection? }
@@ -890,6 +895,11 @@ extension EnvironmentValues {
     var _tabViewStyle: TabViewStyle? {
         get { builtinValue(key: "_tabViewStyle", defaultValue: { nil }) as! TabViewStyle? }
         set { setBuiltinValue(key: "_tabViewStyle", value: newValue, defaultValue: { nil }) }
+    }
+
+    var _tabViewTransitions: (@escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions)? {
+        get { builtinValue(key: "_tabViewTransitions", defaultValue: { nil }) as! (@escaping (NavDisplayTransitionOptions) -> NavDisplayTransitionOptions)? }
+        set { setBuiltinValue(key: "_tabViewTransitions", value: newValue, defaultValue: { nil }) }
     }
 
     var _safeArea: SafeArea? {
