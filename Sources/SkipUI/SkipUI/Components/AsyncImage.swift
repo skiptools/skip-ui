@@ -3,11 +3,17 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import android.webkit.MimeTypeMap
+import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
 import coil3.request.ImageRequest
 import coil3.fetch.Fetcher
 import coil3.fetch.FetchResult
@@ -19,7 +25,24 @@ import coil3.asImage
 import kotlin.math.roundToInt
 import okio.buffer
 import okio.source
+
+/// Composes AsyncImage placeholder views (empty / error / nil URL) with optional ``EnvironmentValues/_aspectRatio`` from the environment.
+@Composable
+private func composePlaceholder(_ view: any View, context: ComposeContext) {
+    if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
+        view.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context: context)
+    } else {
+        view.Compose(context: context)
+    }
+}
 #endif
+
+// SKIP @bridgeMembers
+public struct AsyncImageBridgedContentArguments {
+    public var image: Image?
+    public var error: (any Error)?
+    public var isEmpty: Bool
+}
 
 // SKIP @bridge
 public struct AsyncImage : View, Renderable {
@@ -33,7 +56,18 @@ public struct AsyncImage : View, Renderable {
         self.content = { phase in
             switch phase {
             case .empty:
+                #if SKIP
+                if let image = phase.image {
+                    return ZStack {
+                        Color.clear // Showing a placeholder here prevents layout shift if the image is 0x0 on the first frame
+                        image
+                    }
+                } else {
+                    return Self.defaultPlaceholder()
+                }
+                #else
                 return Self.defaultPlaceholder()
+                #endif
             case .failure:
                 return Self.defaultPlaceholder()
             case .success(let image):
@@ -48,7 +82,18 @@ public struct AsyncImage : View, Renderable {
         self.content = { phase in
             switch phase {
             case .empty:
+                #if SKIP
+                if let image = phase.image {
+                    return ZStack {
+                        Color.clear // Showing a placeholder here prevents layout shift if the image is 0x0 on the first frame
+                        content(image)
+                    }
+                } else {
+                    return placeholder()
+                }
+                #else
                 return placeholder()
+                #endif
             case .failure:
                 return placeholder()
             case .success(let image):
@@ -65,27 +110,37 @@ public struct AsyncImage : View, Renderable {
 
     // Note that we reverse the `url` and `scale` parameter order just to create a unique JVM signature
     // SKIP @bridge
-    public init(scale: CGFloat, url: URL?, bridgedContent: ((Image?, (any Error)?) -> any View)?) {
+    public init(scale: CGFloat, url: URL?, bridgedContent: ((AsyncImageBridgedContentArguments) -> any View)?) {
         self.url = url
         self.scale = scale
         self.content = { phase in
-            switch phase {
-            case .empty:
-                if let bridgedContent {
-                    return bridgedContent(nil, nil)
-                } else {
-                    return Self.defaultPlaceholder()
+            if let bridgedContent {
+                switch phase {
+                case .empty:
+                    return bridgedContent(.init(image: phase.image, error: nil, isEmpty: true))
+                case .failure(let error):
+                    return bridgedContent(.init(image: nil, error: error, isEmpty: false))
+                case .success(let image):
+                    return bridgedContent(.init(image: image, error: nil, isEmpty: false))
                 }
-            case .failure(let error):
-                if let bridgedContent {
-                    return bridgedContent(nil, error)
-                } else {
+            } else {
+                switch phase {
+                case .empty:
+                    #if SKIP
+                    if let image = phase.image {
+                        return ZStack {
+                            Color.clear // Showing a placeholder here prevents layout shift if the image is 0x0 on the first frame
+                            image
+                        }
+                    } else {
+                        return Self.defaultPlaceholder()
+                    }
+                    #else
                     return Self.defaultPlaceholder()
-                }
-            case .success(let image):
-                if let bridgedContent {
-                    return bridgedContent(image, nil)
-                } else {
+                    #endif
+                case .failure(let error):
+                    return Self.defaultPlaceholder()
+                case .success(let image):
                     return image
                 }
             }
@@ -98,12 +153,8 @@ public struct AsyncImage : View, Renderable {
         // Instead, we set it in the environment, so the Image can consume it
         // If we're showing a placeholder, and the aspectRatio is in the environment, we need to apply it to the placeholder
         guard let url else {
-            let placeholderView = self.content(AsyncImagePhase.empty)
-            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
-                let _ = placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context)
-            } else {
-                let _ = placeholderView.Compose(context)
-            }
+            let placeholderView = self.content(AsyncImagePhase.empty(nil))
+            composePlaceholder(placeholderView, context: context)
             return
         }
 
@@ -114,47 +165,84 @@ public struct AsyncImage : View, Renderable {
         // we add a custom fetchers that will handle loading the URL.
         // Otherwise use Coil's default URL string handling
         let requestSource: Any = AssetURLFetcher.handlesURL(url) ? url : urlString
-
         let androidContext = LocalContext.current
-        let dm = androidContext.resources.displayMetrics
-        let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
-        let cacheKey = "\(urlString)#\(maxPx)x\(maxPx)"
-        let model = remember(urlString, maxPx) {
-            // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
-            // We're using maxPx as an arbitrary bound to force it to cache properly
-            // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
-            // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+
+        if EnvironmentValues.shared._subcomposeAsyncImage {
+            let dm = androidContext.resources.displayMetrics
+            let maxPx = max(Int(dm.widthPixels), Int(dm.heightPixels))
+            let cacheKey = "\(urlString)#\(maxPx)x\(maxPx)"
+
+            let model = remember(urlString, maxPx) {
+                // Coil refuses to use its memory cache for .size(Size.ORIGINAL) requests!
+                // We're using maxPx as an arbitrary bound to force it to cache properly
+                // Coil memory-cache size validation is in MemoryCacheService.isCacheValueValidForSize:
+                // See compose-source/io-coil-kt-coil3/coil-core-android/commonMain/coil3/memory/MemoryCacheService.kt:127.
+                return ImageRequest.Builder(androidContext)
+                    .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
+                    .decoderFactory(coil3.svg.SvgDecoder.Factory())
+                    //.decoderFactory(coil3.gif.GifDecoder.Factory())
+                    .decoderFactory(PdfDecoder.Factory())
+                    .data(requestSource)
+                    .size(coil3.size.Size(width: maxPx, height: maxPx))
+                    .memoryCacheKey(cacheKey)
+                    .diskCacheKey(cacheKey)
+                    .build()
+            }
+
+            SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
+                let placeholderView = content(AsyncImagePhase.empty(nil))
+                composePlaceholder(placeholderView, context: context)
+            }, success: { state in
+                let image = Image(painter: self.painter, scale: scale)
+                let content = content(AsyncImagePhase.success(image))
+                content.Compose(context: context)
+            }, error: { state in
+                let placeholderView = content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable)))
+                composePlaceholder(placeholderView, context: context)
+            })
+            return
+        }
+
+        let sizeResolver = rememberConstraintsSizeResolver()
+        let cacheKey = "\(urlString)#layout"
+        let model = remember(urlString, sizeResolver) {
             return ImageRequest.Builder(androidContext)
                 .fetcherFactory(AssetURLFetcher.Factory()) // handler for asset:/ and jar:file:/ URLs
                 .decoderFactory(coil3.svg.SvgDecoder.Factory())
                 //.decoderFactory(coil3.gif.GifDecoder.Factory())
                 .decoderFactory(PdfDecoder.Factory())
                 .data(requestSource)
-                .size(coil3.size.Size(width: maxPx, height: maxPx))
+                .size(sizeResolver)
                 .memoryCacheKey(cacheKey)
                 .diskCacheKey(cacheKey)
                 .build()
         }
+        let painter = rememberAsyncImagePainter(model: model, contentScale: ContentScale.Fit)
+        let asyncImageState = painter.state.collectAsState()
 
-        SubcomposeAsyncImage(model: model, contentDescription: nil, loading: { _ in
-            let placeholderView = content(AsyncImagePhase.empty)
-            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
-                placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context: context)
-            } else {
-                placeholderView.Compose(context: context)
+        let innerContext = context.content()
+        Box(modifier: context.modifier.then(sizeResolver), contentAlignment: androidx.compose.ui.Alignment.Center) {
+            let state = asyncImageState.value
+            if state == AsyncImagePainter.State.Empty {
+                // In this case, Coil doesn't yet know the true state
+                // If the image is cached in memory, we can render it right away
+                // If not, we'd want to show a placeholder
+                let coilImage = Image(painter: painter, scale: scale)
+                let placeholderView = content(AsyncImagePhase.empty(coilImage))
+                composePlaceholder(placeholderView, context: innerContext)
+            } else if state is AsyncImagePainter.State.Loading {
+                let placeholderView = content(AsyncImagePhase.empty(nil))
+                composePlaceholder(placeholderView, context: innerContext)
+            } else if state is AsyncImagePainter.State.Success {
+                let image = Image(painter: painter, scale: scale)
+                let successContent = content(AsyncImagePhase.success(image))
+                successContent.Compose(context: innerContext)
+            } else if state is AsyncImagePainter.State.Error {
+                let errorState = state as! AsyncImagePainter.State.Error
+                let placeholderView = content(AsyncImagePhase.failure(ErrorException(cause: errorState.result.throwable)))
+                composePlaceholder(placeholderView, context: innerContext)
             }
-        }, success: { state in
-            let image = Image(painter: self.painter, scale: scale)
-            let content = content(AsyncImagePhase.success(image))
-            content.Compose(context: context)
-        }, error: { state in
-            let placeholderView = content(AsyncImagePhase.failure(ErrorException(cause: state.result.throwable)))
-            if let (aspectRatio, contentMode) = EnvironmentValues.shared._aspectRatio {
-                placeholderView.aspectRatio(aspectRatio, contentMode: contentMode).Compose(context: context)
-            } else {
-                placeholderView.Compose(context: context)
-            }
-        })
+        }
     }
     #else
     public var body: some View {
@@ -172,13 +260,17 @@ public struct AsyncImage : View, Renderable {
 }
 
 public enum AsyncImagePhase {
-    case empty
+    // This is either Coil's `Loading` state with a nil image, or `Empty` state with a painter-backed image
+    // In Coil's `Empty` state, Coil doesn't yet know whether the image is in memory cache or not
+    case empty(Image?)
     case success(Image)
     case failure(Error)
 
     public var image: Image? {
         switch self {
         case .success(let image):
+            return image
+        case .empty(let image):
             return image
         default:
             return nil
