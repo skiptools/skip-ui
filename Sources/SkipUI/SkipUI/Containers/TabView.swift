@@ -418,7 +418,10 @@ public struct TabView : View, Renderable {
                                     if layoutType == NavigationSuiteType.NavigationBar {
                                         NavigationBar(modifier: options.modifier.semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar"), containerColor: options.containerColor, contentColor: options.contentColor, tonalElevation: options.tonalElevation) {
                                             for tabIndex in 0..<tabRenderables.size {
-                                                if tabs[tabIndex]?.isHidden == true {
+                                                // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
+                                                // maps to a nil entry above; skip it so it does not render a blank,
+                                                // equal-width navigation item (phantom slot / uneven spacing).
+                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
                                                     continue
                                                 }
                                                 let route = String(describing: tabIndex)
@@ -445,7 +448,10 @@ public struct TabView : View, Renderable {
                                             // Center the item group vertically (Material navigation rail guidance for tablets).
                                             Spacer(modifier: Modifier.weight(Float(1.0)))
                                             for tabIndex in 0..<tabRenderables.size {
-                                                if tabs[tabIndex]?.isHidden == true {
+                                                // A tab from a `false` conditional branch (e.g. `if x { Tab(...) }`)
+                                                // maps to a nil entry above; skip it so it does not render a blank,
+                                                // equal-width navigation item (phantom slot / uneven spacing).
+                                                if tabs[tabIndex] == nil || tabs[tabIndex]?.isHidden == true {
                                                     continue
                                                 }
                                                 let route = String(describing: tabIndex)
