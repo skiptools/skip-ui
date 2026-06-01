@@ -445,6 +445,15 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func bridgedSimultaneousGesture(_ gesture: Any, isEnabled: Bool) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func highPriorityGesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> some View {
         return self
@@ -484,9 +493,16 @@ extension View {
         return onTapGesture(count: count, coordinateSpace: coordinateSpace, perform: { p in action(p.x, p.y) })
     }
 
-    @available(*, unavailable)
     public func simultaneousGesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> some View {
+        return simultaneousGesture(gesture, isEnabled: !mask.isEmpty)
+    }
+
+    public func simultaneousGesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> some View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        #else
         return self
+        #endif
     }
 }
 
