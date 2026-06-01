@@ -22,6 +22,7 @@ public final class State<Value>: StateTracker {
         get {
             #if SKIP
             if let _wrappedValueState {
+                StateTracking.recordMutationRead(lastAnimationTransaction)
                 return _wrappedValueState.value
             }
             #endif
@@ -30,6 +31,8 @@ public final class State<Value>: StateTracker {
         set {
             _wrappedValue = newValue
             #if SKIP
+            lastAnimationTransaction = StateTracking.currentMutationTransaction as? AnimationTransaction
+            Animation.debugLog("State write transaction=\(Animation.debugDescription(for: lastAnimationTransaction))")
             _wrappedValueState?.value = _wrappedValue
             #endif
         }
@@ -37,6 +40,7 @@ public final class State<Value>: StateTracker {
     private var _wrappedValue: Value
     #if SKIP
     private var _wrappedValueState: MutableState<Value>?
+    var lastAnimationTransaction: AnimationTransaction?
     #endif
 
     public var projectedValue: Binding<Value> {
