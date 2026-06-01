@@ -305,12 +305,24 @@ public struct NavigationStack : View, Renderable {
         let defaultTopBarHeight = 112.dp
         let topBarBottomPx = remember {
             // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
-            // recompose with adjusted layouts
+            // recompose with adjusted layouts. Only reserve the inset when a bar will actually be
+            // shown: a title-less root has showTopBar == false and never composes the
+            // AnimatedVisibility content below, so its onDispose reset never runs — initializing to
+            // the bar height here would leave a phantom top inset (~safeArea + 112dp).
             let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
-            mutableStateOf(with(density) { safeAreaTopPx + defaultTopBarHeight.toPx() })
+            mutableStateOf(showTopBar ? with(density) { safeAreaTopPx + defaultTopBarHeight.toPx() } : Float(0.0))
         }
         let topBarHeightPx = remember {
-            mutableStateOf(with(density) { defaultTopBarHeight.toPx() })
+            mutableStateOf(showTopBar ? with(density) { defaultTopBarHeight.toPx() } : Float(0.0))
+        }
+        // Reactively clear the reserved inset whenever the bar is hidden — covers both a
+        // title-less root (where AnimatedVisibility's onDispose never runs) and visible→hidden
+        // transitions where onDispose may not have fired yet.
+        LaunchedEffect(showTopBar) {
+            if !showTopBar {
+                topBarBottomPx.value = Float(0.0)
+                topBarHeightPx.value = Float(0.0)
+            }
         }
 
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
