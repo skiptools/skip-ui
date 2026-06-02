@@ -9,6 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -512,14 +514,32 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func fixedSize(horizontal: Bool, vertical: Bool) -> some View {
+    // SKIP @bridge
+    public func fixedSize(horizontal: Bool, vertical: Bool) -> any View {
+        #if SKIP
+        guard horizontal || vertical else {
+            return self
+        }
+        // Fix an axis to the content's ideal size by measuring it unbounded on that axis, mirroring
+        // SwiftUI's fixedSize (the view is proposed its ideal size and won't be compressed/truncated).
+        // A non-fixed axis is left untouched so the flexible-width layout system still governs it.
+        return ModifiedContent(content: self, modifier: RenderModifier { context in
+            var modifier = context.modifier
+            if horizontal {
+                modifier = modifier.wrapContentWidth(unbounded: true)
+            }
+            if vertical {
+                modifier = modifier.wrapContentHeight(unbounded: true)
+            }
+            return modifier
+        })
+        #else
         return self
+        #endif
     }
 
-    @available(*, unavailable)
-    public func fixedSize() -> some View {
-        return self
+    public func fixedSize() -> any View {
+        return fixedSize(horizontal: true, vertical: true)
     }
 
     // SKIP @bridge
