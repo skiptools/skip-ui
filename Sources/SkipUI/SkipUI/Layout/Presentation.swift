@@ -132,6 +132,8 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             // Producers contribute under the value type rather than the `PreferenceKey` type, so override `collectorKey`.
             let (detentPreferences, detentPreferencesCollector) = rememberSaveablePreferenceCollector(key: PresentationDetentPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>, collectorKey: PresentationDetentPreferences.self)
             let reducedDetentPreferences = detentPreferences.value.reduced
+            let (dragIndicatorPreferences, dragIndicatorPreferencesCollector) = rememberSaveablePreferenceCollector(key: PresentationDragIndicatorPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<PresentationDragIndicatorPreferences>, Any>, collectorKey: PresentationDragIndicatorPreferences.self)
+            let reducedDragIndicatorVisibility = dragIndicatorPreferences.value.reduced.visibility
 
             if !isFullScreen && verticalSizeClass != .compact {
                 systemBarEdges.remove(.top)
@@ -162,7 +164,13 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 // Draw the drag handle and the presentation root content area below it
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
                 Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
-                    Capsule().fill(Color.primary.opacity(0.4)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
+                    // Honor `presentationDragIndicator(.hidden)` by suppressing the capsule while
+                    // preserving its vertical footprint so the content does not shift.
+                    if reducedDragIndicatorVisibility == Visibility.hidden {
+                        androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handleHeight))
+                    } else {
+                        Capsule().fill(Color.primary.opacity(0.4)).frame(width: 60.0, height: Double(handleHeight.value)).Compose(context: context)
+                    }
                 }
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(handlePadding))
             } else if !isEdgeToEdge {
@@ -191,7 +199,7 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                         $0.setdismiss(DismissAction(action: { isPresented.set(false) }))
                         return ComposeResult.ok
                     } in: {
-                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector]) {
+                        PreferenceValues.shared.collectPreferences([interactiveDismissDisabledCollector, detentPreferencesCollector, dragIndicatorPreferencesCollector]) {
                             for renderable in contentRenderables {
                                 renderable.Render(context: context)
                             }
@@ -817,6 +825,30 @@ struct PresentationDetentPreferences: Equatable {
         return lhs.detent == rhs.detent
     }
 }
+
+struct PresentationDragIndicatorPreferenceKey: PreferenceKey {
+    static let defaultValue = PresentationDragIndicatorPreferences()
+
+    static func reduce(value: inout PresentationDragIndicatorPreferences, nextValue: () -> PresentationDragIndicatorPreferences) {
+        value = value.reduce(nextValue())
+    }
+}
+
+struct PresentationDragIndicatorPreferences: Equatable {
+    let visibility: Visibility
+
+    init(visibility: Visibility = .automatic) {
+        self.visibility = visibility
+    }
+
+    func reduce(_ next: PresentationDragIndicatorPreferences) -> PresentationDragIndicatorPreferences {
+        return next
+    }
+
+    public static func ==(lhs: PresentationDragIndicatorPreferences, rhs: PresentationDragIndicatorPreferences) -> Bool {
+        return lhs.visibility == rhs.visibility
+    }
+}
 #endif
 
 
@@ -1178,9 +1210,17 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func presentationDragIndicator(_ visibility: Visibility) -> some View {
+    public func presentationDragIndicator(_ visibility: Visibility) -> any View {
+        #if SKIP
+        return preference(key: PresentationDragIndicatorPreferences.self, value: PresentationDragIndicatorPreferences(visibility: visibility))
+        #else
         return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func presentationDragIndicator(bridgedVisibility: Int) -> any View {
+        return presentationDragIndicator(Visibility(rawValue: bridgedVisibility) ?? .automatic)
     }
 
     @available(*, unavailable)
