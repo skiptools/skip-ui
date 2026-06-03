@@ -1661,6 +1661,17 @@ Support levels:
        </td>
     </tr>
     <tr>
+      <td>🟢</td>
+      <td>
+          <details>
+              <summary><code>.simultaneousGesture</code> (<a href="https://skip.dev/docs/components/gesture/">example</a>)</summary>
+              <ul>
+                  <li>See <a href="#gestures">Gestures</a></li>
+              </ul>
+          </details>
+       </td>
+    </tr>
+    <tr>
       <td>✅</td>
       <td><code>.gradient</code> (<a href="https://skip.dev/docs/components/gradient/">example</a>)</td>
     </tr>
@@ -2671,13 +2682,14 @@ ForEach([person1, person2, person3], id: \.fullName) { person in
 
 ### Gestures
 
-SkipUI currently supports tap, long press, drag, magnify, and rotate gestures. You can use either the general `.gesture` modifier or the specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
+SkipUI currently supports tap, long press, drag, magnify, and rotate gestures. You can use the general `.gesture` modifier, `.simultaneousGesture` for supported gesture observers, or specialized modifiers like `.onTapGesture` to add gesture support to your views. The following limitations apply:
 
 - `@GestureState` is only supported in Skip Fuse. Use the `Gesture.onEnded` modifier to reset your state.
 - Tap counts > 2 are not supported.
 - Gesture velocity and predicted end location are always reported as zero and the current location, respectively.
 - Only the `onChanged` and `onEnded` gesture modifiers are supported.
 - Customization of minimum touch duration, distance, etc. is generally not supported.
+- `.simultaneousGesture` support is partial. It can observe supported gestures on the same rendered view, including drag observation while scroll views continue scrolling, but only `.all` and `.none` have meaningful mask behavior. `.gesture` and `.subviews` masks are not distinguished.
 - When applying gestures to an offset view, place any gesture modifiers **before** the `.offset` modifier.
 
 There is one exception to the last limitation: you **can** create a `DragGesture(minimumDistance: 0)` in order to detect touch down events immediately.
