@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import android.util.Log
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGAffineTransform
 import struct CoreGraphics.CGFloat
@@ -1031,7 +1030,6 @@ extension View {
     ) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            Log.d("ChromeStyleMenuOverscroll", "modifier render enabled=\(isEnabled)")
             let enabledState = rememberUpdatedState(isEnabled)
             let onPullState = rememberUpdatedState(onPull)
             let onEndState = rememberUpdatedState(onEnd)
@@ -1043,14 +1041,10 @@ extension View {
                     },
                     onPullPx: { pullPx in
                         let pullDp = with(density) { pullPx.toDp() }
-                        Log.d("ChromeStyleMenuOverscroll", "onPull bridge call pullDp=\(pullDp.value)")
                         onPullState.value(CGFloat(pullDp.value))
-                        Log.d("ChromeStyleMenuOverscroll", "onPull bridge return pullDp=\(pullDp.value)")
                     },
                     onEnd: {
-                        Log.d("ChromeStyleMenuOverscroll", "onEnd bridge call")
                         onEndState.value()
-                        Log.d("ChromeStyleMenuOverscroll", "onEnd bridge return")
                     }
                 )
             }
@@ -1796,8 +1790,6 @@ final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection 
     let onEnd: () -> Void
 
     var accumulatedPullPx = Float(0.0)
-    var preScrollSample = 0
-    var postScrollSample = 0
 
     init(
         isEnabled: @escaping () -> Bool,
@@ -1807,46 +1799,30 @@ final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection 
         self.isEnabled = isEnabled
         self.onPullPx = onPullPx
         self.onEnd = onEnd
-        log("connection init")
     }
 
     override func onPreScroll(available: Offset, source: NestedScrollSource) -> Offset {
-        preScrollSample += 1
-        let enabled = isEnabled()
-        if source == NestedScrollSource.Drag && (preScrollSample <= 20 || preScrollSample % 20 == 0) {
-            log("pre sample=\(preScrollSample) enabled=\(enabled) availableY=\(available.y) accumulated=\(accumulatedPullPx)")
-        }
-
-        guard source == NestedScrollSource.Drag, enabled, accumulatedPullPx > Float(0.0) else {
+        guard source == NestedScrollSource.Drag, isEnabled(), accumulatedPullPx > Float(0.0) else {
             return Offset.Zero
         }
 
         let previousPullPx = accumulatedPullPx
         accumulatedPullPx = max(Float(0.0), accumulatedPullPx + available.y)
         onPullPx(accumulatedPullPx)
-        log("pre consume deltaY=\(accumulatedPullPx - previousPullPx) accumulated=\(accumulatedPullPx)")
         return Offset(x: Float(0.0), y: accumulatedPullPx - previousPullPx)
     }
 
     override func onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource) -> Offset {
-        postScrollSample += 1
-        let enabled = isEnabled()
-        if source == NestedScrollSource.Drag && (postScrollSample <= 40 || postScrollSample % 20 == 0) {
-            log("post sample=\(postScrollSample) enabled=\(enabled) consumedY=\(consumed.y) availableY=\(available.y) accumulated=\(accumulatedPullPx)")
-        }
-
-        guard source == NestedScrollSource.Drag, enabled, available.y > Float(0.0) else {
+        guard source == NestedScrollSource.Drag, isEnabled(), available.y > Float(0.0) else {
             return Offset.Zero
         }
 
         accumulatedPullPx += available.y
         onPullPx(accumulatedPullPx)
-        log("post consume availableY=\(available.y) accumulated=\(accumulatedPullPx)")
         return Offset(x: Float(0.0), y: available.y)
     }
 
     override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
-        log("fling consumedY=\(consumed.y) availableY=\(available.y) accumulated=\(accumulatedPullPx)")
         guard accumulatedPullPx > Float(0.0) else {
             return Velocity.Zero
         }
@@ -1854,13 +1830,6 @@ final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection 
         accumulatedPullPx = Float(0.0)
         onEnd()
         return Velocity(x: Float(0.0), y: available.y)
-    }
-
-    private func log(_ message: String) {
-        let result = Log.d("ChromeStyleMenuOverscroll", message)
-        if result == Int.min {
-            return
-        }
     }
 }
 #endif
