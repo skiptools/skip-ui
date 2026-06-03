@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -430,7 +431,7 @@ extension View {
 
     public func gesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled, composition: .normal))
         #else
         return self
         #endif
@@ -439,16 +440,23 @@ extension View {
     // SKIP @bridge
     public func bridgedGesture(_ gesture: Any, isEnabled: Bool) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled, composition: .normal))
         #else
         return self
         #endif
     }
 
+    /// Adds a SkipUI-supported bridged gesture as a simultaneous observer.
+    ///
+    /// Android support is partial. The supplied gesture is collected with
+    /// other gestures on the same rendered view, which is enough for simple
+    /// observation such as `DragGesture` callbacks. Gesture arbitration,
+    /// `GestureMask.gesture`, and `GestureMask.subviews` do not yet fully
+    /// match SwiftUI/UIKit behavior.
     // SKIP @bridge
     public func bridgedSimultaneousGesture(_ gesture: Any, isEnabled: Bool) -> any View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled, composition: .simultaneous))
         #else
         return self
         #endif
@@ -493,13 +501,27 @@ extension View {
         return onTapGesture(count: count, coordinateSpace: coordinateSpace, perform: { p in action(p.x, p.y) })
     }
 
+    /// Adds a gesture that may recognize at the same time as the view's other
+    /// SkipUI-supported gestures.
+    ///
+    /// Android support is partial. This currently treats the gesture as an
+    /// additional observer on the same rendered view. Only `.all` and `.none`
+    /// have meaningful mask behavior; `.gesture` and `.subviews` are not
+    /// distinguished. This does not implement high-priority gestures or full
+    /// SwiftUI/UIKit gesture arbitration.
     public func simultaneousGesture<V>(_ gesture: any Gesture<V>, including mask: GestureMask = .all) -> some View {
         return simultaneousGesture(gesture, isEnabled: !mask.isEmpty)
     }
 
+    /// Adds a gesture that may recognize at the same time as the view's other
+    /// SkipUI-supported gestures when `isEnabled` is true.
+    ///
+    /// Android support is partial. This currently treats the gesture as an
+    /// additional observer on the same rendered view, which is intended as a
+    /// first step toward fuller `simultaneousGesture` parity.
     public func simultaneousGesture<V>(_ gesture: any Gesture<V>, isEnabled: Bool) -> some View {
         #if SKIP
-        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled))
+        return ModifiedContent(content: self, modifier: GestureModifier(gesture: gesture as! Gesture<Any>, isEnabled: isEnabled, composition: .simultaneous))
         #else
         return self
         #endif
@@ -615,11 +637,18 @@ public struct ModifiedGesture<V> : Gesture {
 
 /// Modifier view that collects and executes gestures.
 final class GestureModifier: RenderModifier {
+    enum Composition {
+        case normal
+        case simultaneous
+    }
+
     let gesture: ModifiedGesture<Any>?
+    let composition: Composition
     var isConsumed = false
 
-    init(gesture: Gesture<Any>, isEnabled: Bool) {
+    init(gesture: Gesture<Any>, isEnabled: Bool, composition: Composition) {
         self.gesture = isEnabled ? gesture.modified : nil
+        self.composition = composition
         super.init()
         self.action = { renderable, context in
             var context = context
@@ -639,21 +668,36 @@ final class GestureModifier: RenderModifier {
             return modifier
         }
 
-        // Compose wants you to collect all e.g. tap gestures into a single pointerInput modifier, so we collect all our gestures
-        let gestures: kotlin.collections.MutableList<ModifiedGesture<Any>> = mutableListOf()
+        // Compose wants related gestures, such as taps, collected into a single
+        // pointerInput modifier. Keep simultaneous drag gestures separate so
+        // scrollable children can keep consuming movement while observers still
+        // receive callbacks.
+        let normalGestures: kotlin.collections.MutableList<ModifiedGesture<Any>> = mutableListOf()
+        let simultaneousGestures: kotlin.collections.MutableList<ModifiedGesture<Any>> = mutableListOf()
         if let gesture {
-            gestures.add(gesture)
+            switch composition {
+            case .normal:
+                normalGestures.add(gesture)
+            case .simultaneous:
+                simultaneousGestures.add(gesture)
+            }
         }
         renderable.forEachModifier {
             guard let gestureModifier = $0 as? GestureModifier else {
                 return nil
             }
             if let gesture = gestureModifier.gesture {
-                gestures.add(gesture)
+                switch gestureModifier.composition {
+                case .normal:
+                    normalGestures.add(gesture)
+                case .simultaneous:
+                    simultaneousGestures.add(gesture)
+                }
             }
             gestureModifier.isConsumed = true
             return nil
         }
+        let allGestures: kotlin.collections.List<ModifiedGesture<Any>> = normalGestures + simultaneousGestures
 
         let density = LocalDensity.current
         var ret = modifier
@@ -666,9 +710,9 @@ final class GestureModifier: RenderModifier {
         let layoutCoordinates = remember { mutableStateOf<LayoutCoordinates?>(nil) }
         ret = ret.onGloballyPositioned { layoutCoordinates.value = $0 }
 
-        let tapGestures = rememberUpdatedState(gestures.filter { $0.isTapGesture })
-        let doubleTapGestures = rememberUpdatedState(gestures.filter { $0.isDoubleTapGesture })
-        let longPressGestures = rememberUpdatedState(gestures.filter { $0.isLongPressGesture })
+        let tapGestures = rememberUpdatedState(allGestures.filter { $0.isTapGesture })
+        let doubleTapGestures = rememberUpdatedState(allGestures.filter { $0.isDoubleTapGesture })
+        let longPressGestures = rememberUpdatedState(allGestures.filter { $0.isLongPressGesture })
         if tapGestures.value.size > 0 || doubleTapGestures.value.size > 0 || longPressGestures.value.size > 0 {
             ret = ret.pointerInput(true) {
                 let onDoubleTap: ((Offset) -> Void)?
@@ -707,7 +751,7 @@ final class GestureModifier: RenderModifier {
             }
         }
 
-        let dragGestures = rememberUpdatedState(gestures.filter { $0.isDragGesture })
+        let dragGestures = rememberUpdatedState(normalGestures.filter { $0.isDragGesture })
         if dragGestures.value.size > 0 {
             let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
             let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
@@ -753,8 +797,53 @@ final class GestureModifier: RenderModifier {
             }
         }
 
-        let magnifyGestures = rememberUpdatedState(gestures.filter { $0.isMagnifyGesture })
-        let rotateGestures = rememberUpdatedState(gestures.filter { $0.isRotateGesture })
+        let simultaneousDragGestures = rememberUpdatedState(simultaneousGestures.filter { $0.isDragGesture })
+        if simultaneousDragGestures.value.size > 0 {
+            let dragOffsetX = remember { mutableStateOf(Float(0.0)) }
+            let dragOffsetY = remember { mutableStateOf(Float(0.0)) }
+            let dragPositionPx = remember { mutableStateOf(Offset(x: Float(0.0), y: Float(0.0))) }
+            let noMinimumDistance = simultaneousDragGestures.value.any { $0.minimumDistance <= 0.0 }
+            ret = ret.pointerInput(true) {
+                let onDrag: (PointerInputChange, Offset) -> Void = { change, offsetPx in
+                    let offsetX = with(density) { offsetPx.x.toDp() }
+                    let offsetY = with(density) { offsetPx.y.toDp() }
+                    dragOffsetX.value += offsetX.value
+                    dragOffsetY.value += offsetY.value
+                    let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
+
+                    dragPositionPx.value = change.position
+                    for dragGesture in simultaneousDragGestures.value {
+                        var positionPx = change.position
+                        if dragGesture.coordinateSpace.isGlobal, let layoutCoordinates = layoutCoordinates.value {
+                            positionPx = layoutCoordinates.localToRoot(positionPx)
+                        }
+                        let positionX = (with(density) { positionPx.x.toDp() }).value
+                        let positionY = (with(density) { positionPx.y.toDp() }).value
+                        let location = CGPoint(x: CGFloat(positionX), y: CGFloat(positionY))
+                        dragGesture.onDragChange(location: location, translation: translation)
+                    }
+                }
+                let onDragEnd: () -> Void = {
+                    let translation = CGSize(width: CGFloat(dragOffsetX.value), height: CGFloat(dragOffsetY.value))
+                    dragOffsetX.value = Float(0.0)
+                    dragOffsetY.value = Float(0.0)
+                    for dragGesture in simultaneousDragGestures.value {
+                        var positionPx = dragPositionPx.value
+                        if dragGesture.coordinateSpace.isGlobal, let layoutCoordinates = layoutCoordinates.value {
+                            positionPx = layoutCoordinates.localToRoot(positionPx)
+                        }
+                        let positionX = (with(density) { positionPx.x.toDp() }).value
+                        let positionY = (with(density) { positionPx.y.toDp() }).value
+                        let location = CGPoint(x: CGFloat(positionX), y: CGFloat(positionY))
+                        dragGesture.onDragEnd(location: location, translation: translation)
+                    }
+                }
+                detectSimultaneousDragGestures(onDrag: onDrag, onDragEnd: onDragEnd, onDragCancel: onDragEnd, shouldAwaitTouchSlop: { !noMinimumDistance })
+            }
+        }
+
+        let magnifyGestures = rememberUpdatedState(allGestures.filter { $0.isMagnifyGesture })
+        let rotateGestures = rememberUpdatedState(allGestures.filter { $0.isRotateGesture })
         if magnifyGestures.value.size > 0 || rotateGestures.value.size > 0 {
             let magnification = remember { mutableStateOf(Float(1.0)) }
             let rotation = remember { mutableStateOf(Float(0.0)) }
@@ -872,6 +961,56 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
                 onDragEnd()
             } else {
                 onDragCancel()
+            }
+        }
+    }
+}
+
+// SKIP DECLARE: suspend fun PointerInputScope.detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean)
+func detectSimultaneousDragGestures(onDragEnd: () -> Void, onDragCancel: () -> Void, onDrag: (PointerInputChange, Offset) -> Void, shouldAwaitTouchSlop: () -> Bool) {
+    awaitEachGesture {
+        let down = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
+        let awaitTouchSlop = shouldAwaitTouchSlop()
+        let touchSlop = viewConfiguration.touchSlop
+        var overSlop = Offset.Zero
+        var accepted = !awaitTouchSlop
+        if accepted {
+            onDrag(down, Offset.Zero)
+        }
+
+        while true {
+            let event = awaitPointerEvent(pass: PointerEventPass.Initial)
+            let change = event.changes.firstOrNull { $0.id == down.id }
+            if change == nil {
+                if accepted {
+                    onDragEnd()
+                } else {
+                    onDragCancel()
+                }
+                break
+            }
+
+            if change!.changedToUpIgnoreConsumed() {
+                if accepted {
+                    onDragEnd()
+                } else {
+                    onDragCancel()
+                }
+                break
+            }
+
+            let delta = change!.positionChange()
+            if accepted {
+                onDrag(change!, delta)
+                continue
+            }
+
+            overSlop += delta
+            let distance = overSlop.getDistance()
+            if distance >= touchSlop {
+                let touchSlopOffset = overSlop / distance * touchSlop
+                onDrag(change!, overSlop - touchSlopOffset)
+                accepted = true
             }
         }
     }
