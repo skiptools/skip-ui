@@ -22,9 +22,9 @@ func assetContentsURLs(name: String, bundle: Bundle) -> [URL] {
     var resourceURLs: [URL] = []
     for resourceName in resourceNames {
         let components = resourceName.split(separator: "/").map({ String($0) })
-        // return every *.xcassets/NAME/Contents.json
+        // Return every *.xcassets/**/NAME/Contents.json, including grouped asset folders.
         if components.first?.hasSuffix(".xcassets") == true
-            && components.dropFirst().first == name
+            && components.dropLast().last == name
             && components.last == "Contents.json",
            let contentsURL = bundle.url(forResource: resourceName, withExtension: nil) {
             resourceURLs.append(contentsURL)
