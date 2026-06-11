@@ -22,12 +22,26 @@ public final class State<Value>: StateTracker {
         get {
             #if SKIP
             if let _wrappedValueState {
+                // Report this slot's write-transaction so a transformer-instrumented animatable
+                // modifier consuming this read can decide animate-vs-snap. Skip the call entirely
+                // for un-stamped slots — the common case for state never written in withAnimation.
+                if let tx = lastWriteTransaction {
+                    StateTracking.recordRead(tx)
+                }
                 return _wrappedValueState.value
             }
             #endif
             return _wrappedValue
         }
         set {
+            #if SKIP
+            // Stamp the slot with the active withAnimation/withTransaction scope's transaction;
+            // a plain write clears a stale stamp so later reads don't wrongly animate.
+            let tx = StateTracking.currentTransaction
+            if tx != nil || lastWriteTransaction != nil {
+                lastWriteTransaction = tx
+            }
+            #endif
             _wrappedValue = newValue
             #if SKIP
             _wrappedValueState?.value = _wrappedValue
@@ -37,6 +51,7 @@ public final class State<Value>: StateTracker {
     private var _wrappedValue: Value
     #if SKIP
     private var _wrappedValueState: MutableState<Value>?
+    private var lastWriteTransaction: StateMutationTransaction?
     #endif
 
     public var projectedValue: Binding<Value> {
