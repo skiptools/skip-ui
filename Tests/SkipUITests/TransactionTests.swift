@@ -11,7 +11,7 @@ import SkipModel
 /// `withAnimation` pushes a `Transaction` onto the `StateTracking` stack so writes inside
 /// the body get the per-slot tx stamp, AND publishes the animation as a marker on exit for
 /// render-time-resolved values. `Transaction` conforms to `StateMutationTransaction` so the
-/// transformer-driven `__animTx:` path can carry it.
+/// modifier-entry `animTx:` capture path can carry it.
 final class TransactionTests: XCTestCase {
 
     override func setUp() {

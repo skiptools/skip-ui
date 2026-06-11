@@ -179,7 +179,7 @@ public struct Animation : Hashable {
     /// Whether this process's composition is driven through the SkipFuseUI bridge. Set (sticky)
     /// by the first `preBodyWithAnimation` call — an entry point only SkipFuseUI uses. When
     /// bridge-driven, per-slot provenance is structurally unavailable (state reads happen in
-    /// native Swift), so nil `__animTx` at a provenance site falls back to the marker rather
+    /// native Swift), so nil `animTx` at a provenance site falls back to the marker rather
     /// than snapping. Never set in transpiled (Lite) apps, so their strict per-slot semantics
     /// are unaffected.
     private static var bridgedComposition = false
@@ -241,7 +241,7 @@ public struct Animation : Hashable {
     }
 
     /// The animation to apply to an animatable value that resolves during the render pass
-    /// (e.g. `Shape.fill(Color)`), where the transformer cannot synthesize per-slot provenance.
+    /// (e.g. `Shape.fill(Color)`), where no modifier-entry capture provides per-slot provenance.
     ///
     /// Lookup order: the explicit `.animation(_:)` environment override, then the "recent
     /// withAnimation" marker (set on exit from a `withAnimation` / `withTransaction` scope,
@@ -257,10 +257,10 @@ public struct Animation : Hashable {
 
     /// The animation to apply at a provenance-capturing modifier call site.
     ///
-    /// `__animTx` is the per-slot transaction captured by `StateTracking.captureLastReadAndClear()`
+    /// `animTx` is the per-slot transaction captured by `StateTracking.captureLastReadAndClear()`
     /// at the modifier impl's entry: non-nil exactly when the modifier's value arguments read
     /// state that was last written inside a `withAnimation` / `withTransaction` scope. A nil
-    /// `__animTx` means the modifier's inputs were NOT animated sources, so we snap — the
+    /// `animTx` means the modifier's inputs were NOT animated sources, so we snap — the
     /// recent-withAnimation marker is intentionally NOT consulted here. That's what prevents
     /// the "two squares" cross-contamination where state written outside `withAnimation` would
     /// wrongly pick up the marker published by a concurrent write that was inside.
@@ -273,12 +273,12 @@ public struct Animation : Hashable {
     ///
     /// The explicit `.animation(_:)` environment override still wins over the transaction,
     /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
-    @Composable static func current(isAnimating: Bool, __animTx: StateMutationTransaction?) -> Animation? {
+    @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
         var ambient = EnvironmentValues.shared._animation
-        if ambient == nil, let tx = __animTx as? Transaction, !tx.disablesAnimations {
+        if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
         }
-        if ambient == nil, __animTx == nil, bridgedComposition, !bridgedProvenance {
+        if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
             // Legacy SkipFuseUI (no native provenance): the marker is the only signal.
             ambient = recentWithAnimationAnimation
         }
@@ -313,8 +313,8 @@ public struct Animation : Hashable {
 
     /// Internal implementation of global `withAnimation` SwiftUI function. Pushes a
     /// `Transaction` carrying `animation` onto the per-thread `StateTracking` stack for the
-    /// body's duration so that observable writes get the per-slot transaction stamp the
-    /// transformer needs. On exit, pops the transaction AND publishes the animation through
+    /// body's duration so that observable writes get the per-slot transaction stamp that
+    /// modifier-entry captures consume. On exit, pops the transaction AND publishes the animation through
     /// one Compose frame as a fallback for animatable values that resolve later (e.g.
     /// `Shape.fill` reading a color during the render pass).
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
@@ -641,15 +641,15 @@ public enum AnimationCompletionCriteria : Hashable {
     return animatable
 }
 
-/// Animatable plumbing for transformer-instrumented modifier sites: `__animTx` carries the
+/// Animatable plumbing for modifiers that capture provenance at entry: `animTx` carries the
 /// per-slot transaction (or nil → snap); the marker fallback is NOT consulted.
-@Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, __animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
+@Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
     // SKIP NOWARN
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
     if isAnimating || animatable.value != value {
-        let animation = Animation.current(isAnimating: isAnimating, __animTx: __animTx)
+        let animation = Animation.current(isAnimating: isAnimating, animTx: animTx)
         LaunchedEffect(value, animation) {
             if let animation {
                 if animation.isInfinite {
@@ -674,8 +674,8 @@ extension Float {
     }
 
     /// Return an animatable version of this value (instrumented site: per-slot provenance only).
-    @Composable func asAnimatable(context: ComposeContext, __animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
-        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, __animTx: __animTx)
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
 }
 
@@ -686,8 +686,8 @@ extension Tuple2 where E0 == Float, E1 == Float {
     }
 
     /// Return an animatable version of this value (instrumented site: per-slot provenance only).
-    @Composable func asAnimatable(context: ComposeContext, __animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
-        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, __animTx: __animTx)
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
 }
 

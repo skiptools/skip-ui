@@ -248,9 +248,9 @@ extension View {
         // before the call, so a tracked-state read in the caller's value expression has just
         // recorded the transaction that wrote it. This pairs each modifier with the
         // `withAnimation` scope (if any) that changed its inputs — no transpiler involvement.
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedRadius = Float(radius).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedRadius = Float(radius).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.blur(radiusX: animatedRadius.dp, radiusY: animatedRadius.dp, edgeTreatment: BlurredEdgeTreatment.Unbounded)
         })
         #else
@@ -270,9 +270,9 @@ extension View {
     // SKIP @bridge
     public func brightness(_ amount: Double) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedAmount = Float(amount).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedAmount = Float(amount).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.then(BrightnessModifier(amount: Double(animatedAmount)))
         })
         #else
@@ -410,9 +410,9 @@ extension View {
     // SKIP @bridge
     public func contrast(_ amount: Double) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedAmount = Float(amount).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedAmount = Float(amount).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.then(ContrastModifier(amount: Double(animatedAmount)))
         })
         #else
@@ -599,9 +599,9 @@ extension View {
 
     public func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = (Float(width ?? 0.0), Float(height ?? 0.0)).asAnimatable(context: context, animTx: animTx)
             FrameLayout(content: renderable, context: context, width: width == nil ? nil : Double(animatable.value.0), height: height == nil ? nil : Double(animatable.value.1), alignment: alignment)
         })
         #else
@@ -632,9 +632,9 @@ extension View {
     // SKIP @bridge
     public func grayscale(_ amount: Double) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedAmount = Float(amount).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedAmount = Float(amount).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.then(GrayscaleModifier(amount: Double(animatedAmount)))
         })
         #else
@@ -693,9 +693,9 @@ extension View {
 
     public func hueRotation(_ angle: Angle) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedDegrees = Float(angle.degrees).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedDegrees = Float(angle.degrees).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.then(HueRotationModifier(degrees: Double(animatedDegrees)))
         })
         #else
@@ -841,10 +841,10 @@ extension View {
     // SKIP @bridge
     public func offset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier {
             let density = LocalDensity.current
-            let animatable = (Float(x), Float(y)).asAnimatable(context: $0, __animTx: __animTx)
+            let animatable = (Float(x), Float(y)).asAnimatable(context: $0, animTx: animTx)
             let offsetPx = with(density) {
                 IntOffset(animatable.value.0.dp.roundToPx(), animatable.value.1.dp.roundToPx())
             }
@@ -1034,9 +1034,9 @@ extension View {
     // SKIP @bridge
     public func opacity(_ opacity: Double) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = Float(opacity).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = Float(opacity).asAnimatable(context: context, animTx: animTx)
             return context.modifier.graphicsLayer { alpha = animatable.value }
         })
         #else
@@ -1131,10 +1131,10 @@ extension View {
     // SKIP @bridge
     public func position(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
             let density = LocalDensity.current
-            let animatable = (Float(x), Float(y)).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = (Float(x), Float(y)).asAnimatable(context: context, animTx: animTx)
             let positionPx = with(density) {
                 IntOffset(animatable.value.0.dp.roundToPx(), animatable.value.1.dp.roundToPx())
             }
@@ -1181,9 +1181,9 @@ extension View {
 
     public func rotationEffect(_ angle: Angle) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = Float(angle.degrees).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = Float(angle.degrees).asAnimatable(context: context, animTx: animTx)
             return context.modifier.rotate(animatable.value)
         })
         #else
@@ -1193,9 +1193,9 @@ extension View {
 
     public func rotationEffect(_ angle: Angle, anchor: UnitPoint) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = Float(angle.degrees).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = Float(angle.degrees).asAnimatable(context: context, animTx: animTx)
             return context.modifier.graphicsLayer(
                 transformOrigin: TransformOrigin(pivotFractionX: Float(anchor.x), pivotFractionY: Float(anchor.y)),
                 rotationZ: animatable.value
@@ -1213,9 +1213,9 @@ extension View {
 
     public func rotation3DEffect(_ angle: Angle, axis: (x: CGFloat, y: CGFloat, z: CGFloat), anchor: UnitPoint = .center, anchorZ: CGFloat = 0.0, perspective: CGFloat = 1.0) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = Float(angle.degrees).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = Float(angle.degrees).asAnimatable(context: context, animTx: animTx)
             // Try to approximate SwiftUI's perspective adaptation to view size
             let size = remember { mutableStateOf(IntSize.Zero) }
             let dimension = max(size.value.width * axis.y, size.value.height * axis.x)
@@ -1247,9 +1247,9 @@ extension View {
     // SKIP @bridge
     public func saturation(_ amount: Double) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatedAmount = Float(amount).asAnimatable(context: context, __animTx: __animTx).value
+            let animatedAmount = Float(amount).asAnimatable(context: context, animTx: animTx).value
             return context.modifier.then(SaturationModifier(amount: Double(animatedAmount)))
         })
         #else
@@ -1277,9 +1277,9 @@ extension View {
 
     public func scaleEffect(x: CGFloat = 1.0, y: CGFloat = 1.0, anchor: UnitPoint = .center) -> any View {
         #if SKIP
-        let __animTx = StateTracking.captureLastReadAndClear()
+        let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = (Float(x), Float(y)).asAnimatable(context: context, __animTx: __animTx)
+            let animatable = (Float(x), Float(y)).asAnimatable(context: context, animTx: animTx)
             return context.modifier.graphicsLayer(
                 transformOrigin: TransformOrigin(pivotFractionX: Float(anchor.x), pivotFractionY: Float(anchor.y)),
                 scaleX: animatable.value.0,
