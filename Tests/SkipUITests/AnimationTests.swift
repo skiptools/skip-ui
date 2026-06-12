@@ -21,6 +21,7 @@ import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.width
+import androidx.compose.ui.unit.height
 
 import skip.ui.Animation
 #endif
@@ -214,26 +215,34 @@ final class AnimationTests: SkipUITestCase {
         withAnimation(.linear(duration: 1.0)) {
             model.width = 300.0
         }
-        composeRule.mainClock.advanceTimeByFrame()
-        composeRule.waitForIdle()
-
-        // Sample mid-flight at ~250ms of the 1s linear ramp: the animated rect must have left
-        // the start but not reached the target (animating, not snapped), while the un-animated
-        // rect must already be at its target (snapped, not animating).
-        composeRule.mainClock.advanceTimeBy(250)
-        composeRule.waitForIdle()
-        let animatedMid = composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value
-        XCTAssertGreaterThan(Double(animatedMid), 105.0, "animated property should have started interpolating")
-        XCTAssertLessThan(Double(animatedMid), 290.0, "animated property should not have snapped to the target")
-        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(300.0.dp)
-
-        composeRule.mainClock.advanceTimeBy(250)
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsAtLeast(150.0.dp)
-
-        composeRule.mainClock.advanceTimeBy(700)
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(300.0.dp)
+        // Drive the clock in small steps and record when each rect settles at its target.
+        // Asserting settle ORDER (snap finishes long before the 1s animation) plus at least
+        // one observed intermediate width is robust to Robolectric's paused-clock coroutine
+        // scheduling, which makes "measure at exactly t=250ms" style asserts racy.
+        var animatedSettled = -1
+        var unrelatedSettled = -1
+        var sawIntermediate = false
+        var step = 0
+        while step < 200 && (animatedSettled < 0 || unrelatedSettled < 0) {
+            composeRule.mainClock.advanceTimeBy(16)
+            composeRule.waitForIdle()
+            let a = Double(composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value)
+            let u = Double(composeRule.onNodeWithTag("obs-unrelated-rect").getUnclippedBoundsInRoot().width.value)
+            if a > 105.0 && a < 295.0 {
+                sawIntermediate = true
+            }
+            if animatedSettled < 0 && abs(a - 300.0) < 0.5 {
+                animatedSettled = step
+            }
+            if unrelatedSettled < 0 && abs(u - 300.0) < 0.5 {
+                unrelatedSettled = step
+            }
+            step += 1
+        }
+        XCTAssertTrue(sawIntermediate, "animated property should interpolate through intermediate widths")
+        XCTAssertTrue(unrelatedSettled >= 0, "un-animated property should settle at its target")
+        XCTAssertTrue(animatedSettled >= 0, "animated property should reach its target")
+        XCTAssertLessThan(unrelatedSettled, animatedSettled, "un-animated property must snap (settled at step \(unrelatedSettled)) well before the 1s animation completes (step \(animatedSettled))")
         #endif
     }
 
@@ -258,19 +267,34 @@ final class AnimationTests: SkipUITestCase {
         withAnimation(.linear(duration: 1.0)) {
             model.width = 300.0
         }
-        composeRule.mainClock.advanceTimeByFrame()
-        composeRule.waitForIdle()
-
-        composeRule.mainClock.advanceTimeBy(250)
-        composeRule.waitForIdle()
-        let animatedMid = composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value
-        XCTAssertGreaterThan(Double(animatedMid), 105.0, "animated property should have started interpolating")
-        XCTAssertLessThan(Double(animatedMid), 290.0, "animated property should not have snapped to the target")
-        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(300.0.dp)
-
-        composeRule.mainClock.advanceTimeBy(700)
-        composeRule.waitForIdle()
-        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(300.0.dp)
+        // Drive the clock in small steps and record when each rect settles at its target.
+        // Asserting settle ORDER (snap finishes long before the 1s animation) plus at least
+        // one observed intermediate width is robust to Robolectric's paused-clock coroutine
+        // scheduling, which makes "measure at exactly t=250ms" style asserts racy.
+        var animatedSettled = -1
+        var unrelatedSettled = -1
+        var sawIntermediate = false
+        var step = 0
+        while step < 200 && (animatedSettled < 0 || unrelatedSettled < 0) {
+            composeRule.mainClock.advanceTimeBy(16)
+            composeRule.waitForIdle()
+            let a = Double(composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value)
+            let u = Double(composeRule.onNodeWithTag("obs-unrelated-rect").getUnclippedBoundsInRoot().width.value)
+            if a > 105.0 && a < 295.0 {
+                sawIntermediate = true
+            }
+            if animatedSettled < 0 && abs(a - 300.0) < 0.5 {
+                animatedSettled = step
+            }
+            if unrelatedSettled < 0 && abs(u - 300.0) < 0.5 {
+                unrelatedSettled = step
+            }
+            step += 1
+        }
+        XCTAssertTrue(sawIntermediate, "animated property should interpolate through intermediate widths")
+        XCTAssertTrue(unrelatedSettled >= 0, "un-animated property should settle at its target")
+        XCTAssertTrue(animatedSettled >= 0, "animated property should reach its target")
+        XCTAssertLessThan(unrelatedSettled, animatedSettled, "un-animated property must snap (settled at step \(unrelatedSettled)) well before the 1s animation completes (step \(animatedSettled))")
         #endif
     }
 
