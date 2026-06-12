@@ -17,8 +17,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertWidthIsEqualTo
 import androidx.compose.ui.test.assertWidthIsAtLeast
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.width
 
 import skip.ui.Animation
 #endif
@@ -168,6 +170,110 @@ final class AnimationTests: SkipUITestCase {
         #endif
     }
 
+    // MARK: - @Observable provenance
+
+    /// Diagnostic: with the default (auto-advancing) clock and no animation at all, an
+    /// `@Observable` property write must propagate to the rendered layout. Separates
+    /// "recomposition doesn't happen for observables in this harness" from provenance issues.
+    func testObservablePropertyChangePropagates() throws {
+        #if !SKIP
+        throw XCTSkip("Compose UI testing is Android-only")
+        #else
+        let model = AnimatedSquaresModel()
+        composeRule.setContent {
+            ObservableSquares(model: model).Compose()
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(100.0.dp)
+
+        model.unrelatedWidth = 300.0
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(300.0.dp)
+        #endif
+    }
+
+    /// The two-square invariant for `@Observable` reference objects: a property mutated inside
+    /// `withAnimation` must interpolate while a sibling property mutated outside it in the same
+    /// handler must snap. Exercises the `Observed`/`MutableStateBacking` per-slot stamping path
+    /// rather than `@State`.
+    func testObservablePropertyAnimatesWhileUnrelatedSnaps() throws {
+        #if !SKIP
+        throw XCTSkip("Compose mainClock animation testing is Android-only")
+        #else
+        composeRule.mainClock.autoAdvance = false
+        let model = AnimatedSquaresModel()
+        composeRule.setContent {
+            ObservableSquares(model: model).Compose()
+        }
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(100.0.dp)
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(100.0.dp)
+
+        model.unrelatedWidth = 300.0
+        withAnimation(.linear(duration: 1.0)) {
+            model.width = 300.0
+        }
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+
+        // Sample mid-flight at ~250ms of the 1s linear ramp: the animated rect must have left
+        // the start but not reached the target (animating, not snapped), while the un-animated
+        // rect must already be at its target (snapped, not animating).
+        composeRule.mainClock.advanceTimeBy(250)
+        composeRule.waitForIdle()
+        let animatedMid = composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value
+        XCTAssertGreaterThan(Double(animatedMid), 105.0, "animated property should have started interpolating")
+        XCTAssertLessThan(Double(animatedMid), 290.0, "animated property should not have snapped to the target")
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(300.0.dp)
+
+        composeRule.mainClock.advanceTimeBy(250)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsAtLeast(150.0.dp)
+
+        composeRule.mainClock.advanceTimeBy(700)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(300.0.dp)
+        #endif
+    }
+
+    /// Same invariant when the observable arrives through the SwiftUI environment
+    /// (`.environment(model)` + `@Environment(Model.self)`) instead of an init parameter:
+    /// provenance is per-slot on the object, so the arrival path must not matter.
+    func testEnvironmentObservablePropertyAnimatesWhileUnrelatedSnaps() throws {
+        #if !SKIP
+        throw XCTSkip("Compose mainClock animation testing is Android-only")
+        #else
+        composeRule.mainClock.autoAdvance = false
+        let model = AnimatedSquaresModel()
+        composeRule.setContent {
+            ObservableEnvironmentSquares().environment(model).Compose()
+        }
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(100.0.dp)
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(100.0.dp)
+
+        model.unrelatedWidth = 300.0
+        withAnimation(.linear(duration: 1.0)) {
+            model.width = 300.0
+        }
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.waitForIdle()
+
+        composeRule.mainClock.advanceTimeBy(250)
+        composeRule.waitForIdle()
+        let animatedMid = composeRule.onNodeWithTag("obs-animated-rect").getUnclippedBoundsInRoot().width.value
+        XCTAssertGreaterThan(Double(animatedMid), 105.0, "animated property should have started interpolating")
+        XCTAssertLessThan(Double(animatedMid), 290.0, "animated property should not have snapped to the target")
+        composeRule.onNodeWithTag("obs-unrelated-rect").assertWidthIsEqualTo(300.0.dp)
+
+        composeRule.mainClock.advanceTimeBy(700)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("obs-animated-rect").assertWidthIsEqualTo(300.0.dp)
+        #endif
+    }
+
     // MARK: - Adversarial sanity checks
     //
     // These tests deliberately assert the WRONG thing about animation behaviour. They exist to
@@ -206,6 +312,49 @@ private struct ResizableRectangle: View {
             .fill(Color.red)
             .frame(width: size.wrappedValue, height: 50)
             .accessibilityIdentifier("animated-rect")
+    }
+}
+
+/// Observable model for the @Observable provenance tests: `width` is mutated inside
+/// `withAnimation` while `unrelatedWidth` is mutated outside it in the same handler, so the
+/// per-slot stamping on `Observed` properties must animate the former and snap the latter.
+@Observable private final class AnimatedSquaresModel {
+    var width = 100.0
+    var unrelatedWidth = 100.0
+}
+
+/// Reads the observable's properties directly at the animatable modifier sites.
+private struct ObservableSquares: View {
+    let model: AnimatedSquaresModel
+    var body: some View {
+        VStack {
+            Rectangle()
+                .fill(Color.red)
+                .frame(width: model.width, height: 50)
+                .accessibilityIdentifier("obs-animated-rect")
+            Rectangle()
+                .fill(Color.green)
+                .frame(width: model.unrelatedWidth, height: 50)
+                .accessibilityIdentifier("obs-unrelated-rect")
+        }
+    }
+}
+
+/// Same shape, but the model arrives through the SwiftUI environment rather than an
+/// initializer parameter.
+private struct ObservableEnvironmentSquares: View {
+    @Environment(AnimatedSquaresModel.self) var model: AnimatedSquaresModel
+    var body: some View {
+        VStack {
+            Rectangle()
+                .fill(Color.red)
+                .frame(width: model.width, height: 50)
+                .accessibilityIdentifier("obs-animated-rect")
+            Rectangle()
+                .fill(Color.green)
+                .frame(width: model.unrelatedWidth, height: 50)
+                .accessibilityIdentifier("obs-unrelated-rect")
+        }
     }
 }
 
