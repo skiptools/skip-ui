@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import SkipModel
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
@@ -24,11 +25,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.async
 #endif
 
@@ -98,20 +99,32 @@ final class AnimationHolder {
 public struct Animation : Hashable {
     // SKIP @bridge
     public static func preBodyWithAnimation(_ animation: Animation?) -> Bool {
+        // Bridge entry for SkipFuseUI's `withAnimation`. Pushes a Transaction onto the
+        // StateTracking stack (so state writes inside the body get the per-slot tx stamp) and
+        // remembers the animation for the matching `postBodyWithAnimation` to mark.
+        // Returns whether an outer `withAnimation` / `withTransaction` was already active for
+        // source compatibility — Fuse callers mainly care about pair-up structure.
         #if SKIP
-        // SwiftUI's withAnimation works as if by snapshotting the view tree at the beginning of the block,
-        // snapshotting again at the end fo the block, and animating the difference with the given animation.
-        // We don't have the ability to snapshot. Instead, we run the given body, which should trigger a
-        // recompose. We set a global animation instance that animatable properties check via `current()`
-        // so that the recompose will begin animations. We then wait for the next frame and unset the global.
-        // Note that we cannot properly handle `withAnimation` nesting with different animations; instead
-        // the last set animation wins
-        var isNested = false
-        synchronized (withAnimationLock) {
-            isNested = _withAnimation != nil
-            _withAnimation = animation
+        // Only SkipFuseUI's withAnimation calls this entry point, so its first use marks the
+        // composition as bridge-driven for the lifetime of the process: state lives in native
+        // Swift, the Kotlin-side read cursor can never carry per-slot provenance, and
+        // `Animation.current` must fall back to the recent-withAnimation marker instead of
+        // treating nil provenance as "snap".
+        bridgedComposition = true
+        let wasInside = StateTracking.currentTransaction != nil
+        var stack = bridgeFrameStack.get()
+        if stack == nil {
+            stack = mutableListOf<BridgeFrame>()
+            bridgeFrameStack.set(stack)
         }
-        return isNested
+        let token: StateMutationTransactionToken?
+        if let animation {
+            token = StateTracking.pushTransaction(Transaction(animation: animation))
+        } else {
+            token = nil
+        }
+        stack!.add(BridgeFrame(animation: animation, token: token))
+        return wasInside
         #else
         return false
         #endif
@@ -120,57 +133,207 @@ public struct Animation : Hashable {
     // SKIP @bridge
     public static func postBodyWithAnimation() {
         #if SKIP
-        GlobalScope.async(Dispatchers.Main) {
-            awaitFrame()
-            synchronized (withAnimationLock) {
-                _withAnimation = nil
-            }
+        guard let stack = bridgeFrameStack.get(), !stack.isEmpty() else { return }
+        let frame = stack.removeAt(stack.size - 1)
+        if let token = frame.token {
+            StateTracking.popTransaction(token)
+        }
+        if let animation = frame.animation {
+            markRecentWithAnimation(animation)
         }
         #endif
     }
 
     #if SKIP
-    /// The current active animation, whether from the environment via `animation` or from `withAnimation`.
-    @Composable static func current(isAnimating: Bool) -> Animation? {
-        let environmentAnimation = EnvironmentValues.shared._animation
-        let animation = environmentAnimation ?? _withAnimation
+    /// Pair of (animation, token) tracked for each unmatched `preBodyWithAnimation`, so
+    /// `postBodyWithAnimation` can pop the same transaction it pushed and publish the marker.
+    private final class BridgeFrame {
+        let animation: Animation?
+        let token: StateMutationTransactionToken?
 
+        init(animation: Animation?, token: StateMutationTransactionToken?) {
+            self.animation = animation
+            self.token = token
+        }
+    }
+
+    /// Per-thread bridge stack tracking pending `preBodyWithAnimation` calls. Thread-local so
+    /// concurrent UI threads can't corrupt one another's stacks.
+    private static let bridgeFrameStack: ThreadLocal<MutableList<BridgeFrame>> = ThreadLocal()
+
+    /// The animation from the most recent `withAnimation` / `withTransaction` scope, exposed to
+    /// `Animation.current` and `Animation.isInWithAnimation` during the one Compose frame that
+    /// follows the scope's exit. Modifiers reached during that recompose (whether through the
+    /// `frame`/`opacity`/`offset` etc. paths or through paths like `Shape.fill` that resolve
+    /// their value during the render pass) consult this when neither an environment
+    /// `.animation(_:)` override nor an enclosing scope is active.
+    ///
+    /// Cleared on the next Compose frame by a coroutine that suspends on `withFrameNanos` —
+    /// that ties the clear to Compose's actual frame production, not to a wall-clock or to
+    /// `Dispatchers.Main`'s ordering. Each mark increments `recentWithAnimationGeneration` and
+    /// the scheduled clear only fires if the generation still matches, so a fresh
+    /// `withAnimation` issued before the next frame can't be wiped by a stale clear.
+    private static var recentWithAnimationAnimation: Animation? = nil
+    private static var recentWithAnimationGeneration: Long = 0
+
+    /// Whether this process's composition is driven through the SkipFuseUI bridge. Set (sticky)
+    /// by the first `preBodyWithAnimation` call — an entry point only SkipFuseUI uses. When
+    /// bridge-driven, per-slot provenance is structurally unavailable (state reads happen in
+    /// native Swift), so nil `animTx` at a provenance site falls back to the marker rather
+    /// than snapping. Never set in transpiled (Lite) apps, so their strict per-slot semantics
+    /// are unaffected.
+    private static var bridgedComposition = false
+
+    /// Whether the bridged composition supplies per-modifier provenance via
+    /// `primeBridgedProvenance` (SkipFuseUI versions with native provenance tracking). Set
+    /// (sticky) by the first prime call. When active, the marker fallback for nil provenance
+    /// is disabled — the native side explicitly primes nil for modifiers whose inputs were
+    /// not animated sources, restoring Lite-equivalent strict snap semantics in Fuse.
+    private static var bridgedProvenance = false
+
+    #endif
+
+    /// Seed the read cursor for the next animatable-modifier call from a bridged (Skip Fuse)
+    /// composition.
+    ///
+    /// SkipFuseUI captures per-modifier provenance natively (its state and body evaluation
+    /// live in native Swift where the Kotlin cursor can't see them) and calls this immediately
+    /// before the bridged modifier call during Java view materialization. The two calls are
+    /// sequential on the same thread, so the modifier impl's entry capture consumes exactly
+    /// this value. A nil `animation` explicitly clears the cursor: the modifier's inputs were
+    /// not animated sources and the modifier must snap.
+    // SKIP @bridge
+    public static func primeBridgedProvenance(_ animation: Animation?) {
+        #if SKIP
+        bridgedProvenance = true
+        StateTracking.clearReadCursor()
+        if let animation {
+            StateTracking.recordRead(Transaction(animation: animation))
+        }
+        #endif
+    }
+
+    #if SKIP
+    /// Publish `animation` through one Compose frame.
+    static func markRecentWithAnimation(_ animation: Animation?) {
+        recentWithAnimationAnimation = animation
+        recentWithAnimationGeneration += 1
+        let generation = recentWithAnimationGeneration
+        GlobalScope.async(Dispatchers.Main) {
+            // SKIP INSERT: withFrameNanos { _ -> }
+            if recentWithAnimationGeneration == generation {
+                recentWithAnimationAnimation = nil
+            }
+        }
+    }
+
+    /// Test-only hook to clear the recent-withAnimation marker AND the bridge stack so tests
+    /// are deterministic even if a sibling test left a frame on the stack via an early
+    /// assertion failure. Bumps the generation too so any in-flight clear becomes a no-op
+    /// against state we've already wiped.
+    static func resetRecentWithAnimationForTesting() {
+        recentWithAnimationAnimation = nil
+        recentWithAnimationGeneration += 1
+        bridgedComposition = false
+        bridgedProvenance = false
+        bridgeFrameStack.set(nil)
+        StateTracking.resetForTesting()
+    }
+
+    /// The animation to apply to an animatable value that resolves during the render pass
+    /// (e.g. `Shape.fill(Color)`), where no modifier-entry capture provides per-slot provenance.
+    ///
+    /// Lookup order: the explicit `.animation(_:)` environment override, then the "recent
+    /// withAnimation" marker (set on exit from a `withAnimation` / `withTransaction` scope,
+    /// cleared on the next Compose frame), then the remembered animation so a still-in-flight
+    /// animation can complete past the marker window.
+    @Composable static func current(isAnimating: Bool) -> Animation? {
+        var ambient = EnvironmentValues.shared._animation
+        if ambient == nil {
+            ambient = recentWithAnimationAnimation
+        }
+        return resolve(isAnimating: isAnimating, ambient: ambient)
+    }
+
+    /// The animation to apply at a provenance-capturing modifier call site.
+    ///
+    /// `animTx` is the per-slot transaction captured by `StateTracking.captureLastReadAndClear()`
+    /// at the modifier impl's entry: non-nil exactly when the modifier's value arguments read
+    /// state that was last written inside a `withAnimation` / `withTransaction` scope. A nil
+    /// `animTx` means the modifier's inputs were NOT animated sources, so we snap — the
+    /// recent-withAnimation marker is intentionally NOT consulted here. That's what prevents
+    /// the "two squares" cross-contamination where state written outside `withAnimation` would
+    /// wrongly pick up the marker published by a concurrent write that was inside.
+    ///
+    /// Exception: in a bridge-driven (SkipFuseUI) composition, state lives in native Swift and
+    /// the Kotlin-side cursor is structurally always empty, so nil provenance carries no
+    /// information; the marker published by `postBodyWithAnimation` is the only signal and we
+    /// fall back to it. Per-slot isolation in Fuse would require native-side provenance carried
+    /// across the bridge — future work.
+    ///
+    /// The explicit `.animation(_:)` environment override still wins over the transaction,
+    /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
+    @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
+        var ambient = EnvironmentValues.shared._animation
+        if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
+            ambient = tx.animation
+        }
+        if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
+            // Legacy SkipFuseUI (no native provenance): the marker is the only signal.
+            ambient = recentWithAnimationAnimation
+        }
+        return resolve(isAnimating: isAnimating, ambient: ambient)
+    }
+
+    /// Shared resolution: prefer the ambient animation; remember it so an in-flight animation
+    /// survives unrelated recompositions; snap when there's no ambient and nothing in flight.
+    @Composable private static func resolve(isAnimating: Bool, ambient: Animation?) -> Animation? {
         // Update our remembered animation value if there is a new animation or the animation is complete
         let rememberedAnimationHolder = remember { AnimationHolder() }
         let rememberedAnimation = rememberedAnimationHolder.animation
-        if animation != nil {
-            rememberedAnimationHolder.animation = animation
+        if ambient != nil {
+            rememberedAnimationHolder.animation = ambient
         } else if !isAnimating {
             rememberedAnimationHolder.animation = nil
         }
 
-        guard animation == nil else {
-            return animation
+        guard ambient == nil else {
+            return ambient
         }
         // No current animation, but if we're still animating a previous animation, use it
         return isAnimating ? rememberedAnimation : nil
     }
 
-    /// Whether we're in a `withAnimation` block.
+    /// Whether the calling thread is inside (or just recently exited) a `withAnimation` /
+    /// `withTransaction` scope with a non-nil animation. Used by SkipUI internals like
+    /// `TabView` to suppress reflow animations during a scope.
     static var isInWithAnimation: Bool {
-        synchronized (withAnimationLock) {
-            return _withAnimation != nil
-        }
+        return recentWithAnimationAnimation != nil
     }
 
-    /// Internal implementation of global `withAnimation` SwiftUI function.
+    /// Internal implementation of global `withAnimation` SwiftUI function. Pushes a
+    /// `Transaction` carrying `animation` onto the per-thread `StateTracking` stack for the
+    /// body's duration so that observable writes get the per-slot transaction stamp that
+    /// modifier-entry captures consume. On exit, pops the transaction AND publishes the animation through
+    /// one Compose frame as a fallback for animatable values that resolve later (e.g.
+    /// `Shape.fill` reading a color during the render pass).
     static func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
-        let isNested = preBodyWithAnimation(animation)
+        let token: StateMutationTransactionToken?
+        if let animation {
+            token = StateTracking.pushTransaction(Transaction(animation: animation))
+        } else {
+            token = nil
+        }
         defer {
-            if !isNested {
-                postBodyWithAnimation()
+            if let token {
+                StateTracking.popTransaction(token)
+            }
+            if let animation {
+                markRecentWithAnimation(animation)
             }
         }
-        return body()
+        return try body()
     }
-
-    private static var _withAnimation: Animation?
-    private static let withAnimationLock: java.lang.Object = java.lang.Object()
 
     private let spec: AnimationSpec<Any>
 
@@ -450,6 +613,8 @@ public enum AnimationCompletionCriteria : Hashable {
 }
 
 #if SKIP
+/// Animatable plumbing for values that resolve during the render pass (no per-slot provenance):
+/// uses `Animation.current(isAnimating:)`, which includes the recent-withAnimation marker fallback.
 @Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
     // In order to reset infinite animations after exiting and coming back to a composition, we have to remember its initial
     // value, because the powering state value will be at its target when we return to the composition
@@ -476,29 +641,65 @@ public enum AnimationCompletionCriteria : Hashable {
     return animatable
 }
 
+/// Animatable plumbing for modifiers that capture provenance at entry: `animTx` carries the
+/// per-slot transaction (or nil → snap); the marker fallback is NOT consulted.
+@Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
+    // SKIP NOWARN
+    let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
+    let animatable = remember { Animatable(resetValue.value ?? value, converter) }
+    let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    if isAnimating || animatable.value != value {
+        let animation = Animation.current(isAnimating: isAnimating, animTx: animTx)
+        LaunchedEffect(value, animation) {
+            if let animation {
+                if animation.isInfinite {
+                    resetValue.value = animatable.value // Remember infinite animation start value
+                } else {
+                    resetValue.value = nil
+                }
+                animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<T>)
+            } else {
+                resetValue.value = nil
+                animatable.snapTo(value)
+            }
+        }
+    }
+    return animatable
+}
+
 extension Float {
-    /// Return an animatable version of this value.
+    /// Return an animatable version of this value (render-path: marker fallback allowed).
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<Float, AnimationVector1D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context)
+    }
+
+    /// Return an animatable version of this value (instrumented site: per-slot provenance only).
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
 }
 
 extension Tuple2 where E0 == Float, E1 == Float {
-    /// Return an animatable version of this value.
+    /// Return an animatable version of this value (render-path: marker fallback allowed).
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context)
+    }
+
+    /// Return an animatable version of this value (instrumented site: per-slot provenance only).
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
+        return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
 }
 
 extension androidx.compose.ui.graphics.Color {
-    /// Return an animatable version of this value.
+    /// Return an animatable version of this value (render-path: marker fallback allowed).
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.graphics.Color, AnimationVector4D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector4D($0.red, $0.green, $0.blue, $0.alpha) }, { androidx.compose.ui.graphics.Color(max(Float(0), min(Float(1), $0.v1)), max(Float(0), min(Float(1), $0.v2)), max(Float(0), min(Float(1), $0.v3)), max(Float(0), min(Float(1), $0.v4))) }), context: context)
     }
 }
 
 extension androidx.compose.ui.text.TextStyle {
-    /// Return an animatable version of this value.
+    /// Return an animatable version of this value (render-path: marker fallback allowed).
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<androidx.compose.ui.text.TextStyle, AnimationVector1D> {
         let value = self
         return toAnimatable(value: value, converter: TwoWayConverter({ AnimationVector1D($0.fontSize.value) }, { value.copy(fontSize: TextUnit($0.value, TextUnitType.Sp)) }), context: context)
