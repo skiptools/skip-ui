@@ -55,8 +55,21 @@ public struct ZStack : View, Renderable {
             let contentContext = context.content()
             ComposeContainer(eraseAxis: true, modifier: context.modifier) { modifier in
                 Box(modifier: modifier, contentAlignment: alignment.asComposeAlignment()) {
-                    for renderable in renderables {
-                        renderable.Render(context: contentContext)
+                    // Key each child by its identity so per-child remembered state (e.g. the
+                    // `Animatable`s behind `.position`/`.frame`/`.fill`) follows the child
+                    // rather than its index in this Box. Without a key, composing children in
+                    // a positional loop binds their `remember` slots to position, so mutating
+                    // the child list (a middle child inserted/removed, a conditional child
+                    // toggling) shifts every later child's slot and leaks one child's
+                    // animation state into another — e.g. a view jumps to a sibling's animated
+                    // position or briefly adopts its color. See `childKey`.
+                    let occurrences = mutableMapOf<Any, Int>()
+                    for index in 0..<renderables.size {
+                        let renderable = renderables[index]
+                        let key = childKey(for: renderable, index: index, occurrences: occurrences)
+                        androidx.compose.runtime.key(key) {
+                            renderable.Render(context: contentContext)
+                        }
                     }
                 }
             }
@@ -90,7 +103,9 @@ public struct ZStack : View, Renderable {
                 arguments.rememberedNewIds.clear()
             }
             Box(contentAlignment: alignment.asComposeAlignment()) {
-                for renderable in state {
+                let occurrences = mutableMapOf<Any, Int>()
+                for index in 0..<state.size {
+                    let renderable = state[index]
                     let id = arguments.idMap(renderable)
                     var modifier: Modifier = Modifier
                     if let animation, arguments.newIds.contains(id) || arguments.rememberedNewIds.contains(id) || !arguments.ids.contains(id) {
@@ -100,10 +115,32 @@ public struct ZStack : View, Renderable {
                         let exit = transition.asExitTransition(spec: spec)
                         modifier = modifier.animateEnterExit(enter: enter, exit: exit)
                     }
-                    renderable.Render(context: context.content(modifier: modifier))
+                    // Key by identity so per-child remembered state follows the child rather
+                    // than its index — see the matching note in `Render`.
+                    let key = childKey(for: renderable, index: index, occurrences: occurrences)
+                    androidx.compose.runtime.key(key) {
+                        renderable.Render(context: context.content(modifier: modifier))
+                    }
                 }
             }
         }, label: "ZStack")
+    }
+
+    /// A stable, collision-free Compose key for a child of this stack.
+    ///
+    /// Identity is the child's explicit `.id()` or `ForEach` id when present, falling back to
+    /// the child's index for untagged children (preserving the prior positional behavior for
+    /// those). Duplicate identities — e.g. a nested `ForEach` whose inner ids repeat across
+    /// outer iterations — are disambiguated by occurrence count, so the returned key is always
+    /// unique within a single composition (no Compose "key already used" crash) yet stable
+    /// across recompositions whenever the child set is stable.
+    private func childKey(for renderable: Renderable, index: Int, occurrences: MutableMap<Any, Int>) -> Any {
+        let identity: Any = TagModifier.on(content: renderable, role: .id)?.value
+            ?? TagModifier.on(content: renderable, role: .tag)?.value
+            ?? index
+        let occurrence = occurrences[identity] ?? 0
+        occurrences[identity] = occurrence + 1
+        return listOf(identity, occurrence)
     }
     #else
     public var body: some View {
