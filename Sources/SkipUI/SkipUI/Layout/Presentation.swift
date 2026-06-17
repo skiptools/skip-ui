@@ -133,7 +133,10 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
             let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
             let reducedDetentPreferences = detentPreferences.value.reduced
-            let (dragIndicatorPreferences, dragIndicatorPreferencesCollector) = rememberSaveablePreferenceCollector(key: PresentationDragIndicatorPreferenceKey.self, stateSaver: context.stateSaver as! Saver<Preference<PresentationDragIndicatorPreferences>, Any>, collectorKey: PresentationDragIndicatorPreferences.self)
+
+            let dragIndicatorPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDragIndicatorPreferences>, Any>) { mutableStateOf(Preference<PresentationDragIndicatorPreferences>(key: PresentationDragIndicatorPreferenceKey.self)) }
+            let dragIndicatorPreferencesCollector = PreferenceCollector<PresentationDragIndicatorPreferences>(key: PresentationDragIndicatorPreferences.self, state: dragIndicatorPreferences)
+
             let reducedDragIndicatorVisibility = dragIndicatorPreferences.value.reduced.visibility
 
             if !isFullScreen && verticalSizeClass != .compact {
