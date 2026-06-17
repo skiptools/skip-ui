@@ -966,6 +966,8 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
     }
 }
 
+// A pure Swift async function is emitted through Async.run, which moves the detector to Dispatchers.Default.
+// Compose pointer input needs this body to stay in the pointerInput coroutine, so declare the direct suspend receiver.
 // SKIP DECLARE: suspend fun PointerInputScope.detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean)
 func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: () -> Void, onDragCancel: () -> Void, shouldAwaitTouchSlop: () -> Bool) {
     awaitEachGesture {
