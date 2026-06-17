@@ -967,7 +967,7 @@ func detectDragGesturesWithScrollAxes(onDragEnd: () -> Void, onDragCancel: () ->
 }
 
 // SKIP DECLARE: suspend fun PointerInputScope.detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Unit, onDragEnd: () -> Unit, onDragCancel: () -> Unit, shouldAwaitTouchSlop: () -> Boolean)
-func detectSimultaneousDragGestures(onDragEnd: () -> Void, onDragCancel: () -> Void, onDrag: (PointerInputChange, Offset) -> Void, shouldAwaitTouchSlop: () -> Bool) {
+func detectSimultaneousDragGestures(onDrag: (PointerInputChange, Offset) -> Void, onDragEnd: () -> Void, onDragCancel: () -> Void, shouldAwaitTouchSlop: () -> Bool) {
     awaitEachGesture {
         let down = awaitFirstDown(requireUnconsumed: false, pass: PointerEventPass.Initial)
         let awaitTouchSlop = shouldAwaitTouchSlop()
