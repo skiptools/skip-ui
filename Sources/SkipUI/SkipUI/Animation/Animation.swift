@@ -191,6 +191,11 @@ public struct Animation : Hashable {
     /// not animated sources, restoring Lite-equivalent strict snap semantics in Fuse.
     private static var bridgedProvenance = false
 
+    /// Holds the most recent non-nil bridge prime until an animatable consumer resolves.
+    /// A nil bridge prime can arrive before the modifier consumes the cursor; keeping this
+    /// one-shot value preserves the intended bridged animation provenance for that consumer.
+    private static var pendingBridgedProvenanceAnimation: Animation? = nil
+
     #endif
 
     /// Seed the read cursor for the next animatable-modifier call from a bridged (Skip Fuse)
@@ -206,9 +211,12 @@ public struct Animation : Hashable {
     public static func primeBridgedProvenance(_ animation: Animation?) {
         #if SKIP
         bridgedProvenance = true
-        StateTracking.clearReadCursor()
         if let animation {
+            pendingBridgedProvenanceAnimation = animation
+            StateTracking.clearReadCursor()
             StateTracking.recordRead(Transaction(animation: animation))
+        } else if pendingBridgedProvenanceAnimation == nil {
+            StateTracking.clearReadCursor()
         }
         #endif
     }
@@ -236,6 +244,7 @@ public struct Animation : Hashable {
         recentWithAnimationGeneration += 1
         bridgedComposition = false
         bridgedProvenance = false
+        pendingBridgedProvenanceAnimation = nil
         bridgeFrameStack.set(nil)
         StateTracking.resetForTesting()
     }
@@ -277,6 +286,11 @@ public struct Animation : Hashable {
         var ambient = EnvironmentValues.shared._animation
         if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
+            pendingBridgedProvenanceAnimation = nil
+        }
+        if ambient == nil, animTx == nil, bridgedProvenance, let pendingAnimation = pendingBridgedProvenanceAnimation {
+            ambient = pendingAnimation
+            pendingBridgedProvenanceAnimation = nil
         }
         if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
             // Legacy SkipFuseUI (no native provenance): the marker is the only signal.
