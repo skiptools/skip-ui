@@ -626,8 +626,8 @@ struct ToolbarContentPreferences: Equatable {
 struct ToolbarItems {
     let content: [View]
 
-    /// Proces our content items, dividing them into the locations at which they should render.
-    @Composable func Evaluate(context: ComposeContext) -> (titleMenu: ToolbarTitleMenu?, topLeading: kotlin.collections.List<Renderable>, topTrailing: kotlin.collections.List<Renderable>, bottom: kotlin.collections.List<Renderable>) {
+    /// Process our content items, dividing them into the locations at which they should render.
+    @Composable func Evaluate(context: ComposeContext) -> (titleMenu: ToolbarTitleMenu?, principal: Renderable?, topLeading: kotlin.collections.List<Renderable>, topTrailing: kotlin.collections.List<Renderable>, bottom: kotlin.collections.List<Renderable>) {
         var titleMenu: ToolbarTitleMenu? = nil
         let leading: kotlin.collections.MutableList<Renderable> = mutableListOf()
         let trailing: kotlin.collections.MutableList<Renderable> = mutableListOf()
@@ -642,6 +642,7 @@ struct ToolbarItems {
                     let placement = (renderable as? ToolbarItem)?.placement ?? (renderable as? ToolbarSpacer)?.placement ?? ToolbarItemPlacement.automatic
                     switch placement {
                     case .principal:
+                        // The navigation container renders principal content in the title slot.
                         principal = renderable
                     case .topBarLeading, .navigationBarLeading, .cancellationAction:
                         leading.add(renderable)
@@ -653,9 +654,6 @@ struct ToolbarItems {
                 }
             }
         }
-        if let principal {
-            leading.add(principal)
-        }
         // SwiftUI inserts a spacer before the last bottom item
         if bottom.size > 1 && !bottom.any({
             let stripped = $0.strip()
@@ -663,7 +661,7 @@ struct ToolbarItems {
         }) {
             bottom.add(1, Spacer())
         }
-        return (titleMenu, leading, trailing, bottom)
+        return (titleMenu, principal, leading, trailing, bottom)
     }
 }
 #endif
