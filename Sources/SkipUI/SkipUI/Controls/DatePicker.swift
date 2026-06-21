@@ -193,20 +193,19 @@ public struct DatePicker : View, Renderable {
         guard isPresented.value else {
             return
         }
-        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT())
-        let initialSeconds = selection.wrappedValue.timeIntervalSince1970 + timeZoneOffset
+        let initialMillis = datePickerMillis(from: selection.wrappedValue)
         let displayMode = EnvironmentValues.shared.verticalSizeClass == .compact ? DisplayMode.Input : DisplayMode.Picker
 
         // Create selectable dates filter if range is specified
-        let minMillis: Long? = minDate != nil ? Long((minDate!.timeIntervalSince1970 + timeZoneOffset) * 1000.0) : nil
-        let maxMillis: Long? = maxDate != nil ? Long((maxDate!.timeIntervalSince1970 + timeZoneOffset) * 1000.0) : nil
+        let minMillis: Long? = minDate != nil ? datePickerMillis(from: minDate!) : nil
+        let maxMillis: Long? = maxDate != nil ? datePickerMillis(from: maxDate!) : nil
 
         let state: DatePickerState
         if minMillis != nil || maxMillis != nil {
             // SKIP INSERT: val selectableDates = object : SelectableDates { override fun isSelectableDate(utcTimeMillis: Long): Boolean { val min = minMillis; val max = maxMillis; if (min != null && utcTimeMillis < min) return false; if (max != null && utcTimeMillis > max) return false; return true } override fun isSelectableYear(year: Int): Boolean { return true } }
-            state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: displayMode, selectableDates: selectableDates)
+            state = rememberDatePickerState(initialSelectedDateMillis: initialMillis, initialDisplayMode: displayMode, selectableDates: selectableDates)
         } else {
-            state = rememberDatePickerState(initialSelectedDateMillis: Long(initialSeconds * 1000.0), initialDisplayMode: displayMode)
+            state = rememberDatePickerState(initialSelectedDateMillis: initialMillis, initialDisplayMode: displayMode)
         }
 
         let colors = DatePickerDefaults.colors(selectedDayContainerColor: tintColor, selectedYearContainerColor: tintColor, todayDateBorderColor: tintColor, currentYearContentColor: tintColor)
@@ -214,8 +213,19 @@ public struct DatePicker : View, Renderable {
             DatePicker(modifier: context.modifier, state: state, colors: colors)
         }
         if let millis = state.selectedDateMillis {
-            dateSelected(Date(timeIntervalSince1970: Double(millis / 1000.0) - timeZoneOffset))
+            dateSelected(date(fromDatePickerMillis: millis))
         }
+    }
+
+    private func datePickerMillis(from date: Date) -> Long {
+        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT(for: date))
+        return Long((date.timeIntervalSince1970 + timeZoneOffset) * 1000.0)
+    }
+
+    private func date(fromDatePickerMillis millis: Long) -> Date {
+        let utcDate = Date(timeIntervalSince1970: Double(millis) / 1000.0)
+        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT(for: utcDate))
+        return Date(timeIntervalSince1970: utcDate.timeIntervalSince1970 - timeZoneOffset)
     }
 
     // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
