@@ -622,11 +622,83 @@ private struct ColorSet : Decodable {
         let blue: String?
         let alpha: String?
 
+        private static func hexDigitValue(_ character: Character) -> Int? {
+            switch character {
+            case "0":
+                return 0
+            case "1":
+                return 1
+            case "2":
+                return 2
+            case "3":
+                return 3
+            case "4":
+                return 4
+            case "5":
+                return 5
+            case "6":
+                return 6
+            case "7":
+                return 7
+            case "8":
+                return 8
+            case "9":
+                return 9
+            case "a", "A":
+                return 10
+            case "b", "B":
+                return 11
+            case "c", "C":
+                return 12
+            case "d", "D":
+                return 13
+            case "e", "E":
+                return 14
+            case "f", "F":
+                return 15
+            default:
+                return nil
+            }
+        }
+
+        private static func parseHexComponent(_ value: String) -> Double? {
+            let hexValue = value.dropFirst(2)
+
+            if hexValue.isEmpty {
+                return nil
+            }
+
+            var intValue = 0
+
+            for character in hexValue {
+                guard let digit = Self.hexDigitValue(character) else {
+                    return nil
+                }
+
+                intValue = intValue * 16 + digit
+            }
+
+            return Double(intValue) / 255.0
+        }
+
+        private static func parseComponent(_ value: String?, defaultValue: Double) -> Double {
+            guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+                return defaultValue
+            }
+
+            if value.hasPrefix("0x") || value.hasPrefix("0X") {
+                return Self.parseHexComponent(value) ?? defaultValue
+            }
+
+            return Double(value) ?? defaultValue
+        }
+
         var color: Color {
-            let redValue = Double(red ?? "") ?? 0.0
-            let greenValue = Double(green ?? "") ?? 0.0
-            let blueValue = Double(blue ?? "") ?? 0.0
-            let alphaValue = Double(alpha ?? "") ?? 1.0
+            let redValue = Self.parseComponent(red, defaultValue: 0.0)
+            let greenValue = Self.parseComponent(green, defaultValue: 0.0)
+            let blueValue = Self.parseComponent(blue, defaultValue: 0.0)
+            let alphaValue = Self.parseComponent(alpha, defaultValue: 1.0)
+
             return Color(red: redValue, green: greenValue, blue: blueValue, opacity: alphaValue)
         }
     }
