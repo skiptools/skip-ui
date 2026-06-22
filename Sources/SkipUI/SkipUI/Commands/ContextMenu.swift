@@ -37,7 +37,8 @@ class ContextMenuModifier: RenderModifier {
     let nestedMenu = remember { mutableStateOf<Menu?>(nil) }
     let coroutineScope = rememberCoroutineScope()
     let contentContext = context.content()
-    let isContextMenuEnabled = EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._isHitTestingEnabled
+    let primaryMenuItems = menuItems.Evaluate(context: contentContext, options: 0).filter { !$0.isSwiftUIEmptyView }
+    let isContextMenuEnabled = EnvironmentValues.shared.isEnabled && EnvironmentValues.shared._isHitTestingEnabled && primaryMenuItems.size > 0
     let replaceMenu: (Menu?) -> Void = { menu in
         coroutineScope.launch {
             delay(200)
@@ -105,7 +106,7 @@ class ContextMenuModifier: RenderModifier {
                     $0.set_placement(placement)
                     return ComposeResult.ok
                 } in: {
-                    let renderables = (nestedMenu.value?.content ?? menuItems).Evaluate(context: contentContext, options: 0)
+                    let renderables = nestedMenu.value?.content.Evaluate(context: contentContext, options: 0) ?? primaryMenuItems
                     Menu.RenderDropdownMenuItems(for: renderables, context: contentContext, replaceMenu: replaceMenu)
                 }
             }
