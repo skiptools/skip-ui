@@ -623,13 +623,44 @@ private struct ColorSet : Decodable {
         let alpha: String?
 
         var color: Color {
-            let redValue = Double(red ?? "") ?? 0.0
-            let greenValue = Double(green ?? "") ?? 0.0
-            let blueValue = Double(blue ?? "") ?? 0.0
-            let alphaValue = Double(alpha ?? "") ?? 1.0
+            let redValue = parseColorComponent(red, defaultValue: 0.0)
+            let greenValue = parseColorComponent(green, defaultValue: 0.0)
+            let blueValue = parseColorComponent(blue, defaultValue: 0.0)
+            let alphaValue = parseColorComponent(alpha, defaultValue: 1.0)
             return Color(red: redValue, green: greenValue, blue: blueValue, opacity: alphaValue)
         }
     }
+}
+
+/// Parse a single `.colorset` channel, covering all of Xcode's numeric "Input Method" variants:
+/// Floating Point ("0.945", passed through unchanged), 8-bit Hexadecimal ("0xF1" / "#F1"), and
+/// 8-bit (0-255) ("241"). Hex bytes and 0-255 integers are normalized to 0...1 by dividing by 255.
+/// Malformed or empty input falls back to `defaultValue`. See https://github.com/skiptools/skip-ui/issues/146
+///
+/// The hex prefix is detected explicitly rather than relying on `Double(_:)` to reject it: Swift
+/// parses `Double("0xF1")` as `241.0`, whereas the transpiled Kotlin `"0xF1".toDoubleOrNull()` is
+/// `null`. A "try Double first" approach would therefore behave differently once transpiled (and is
+/// the reason #146 manifests only on Android). Checking the prefix keeps both platforms identical.
+/// Hex digits are parsed with Kotlin's `toIntOrNull(radix:)` because Swift's `Int(_:radix:)` does not
+/// transpile. This is a free function rather than a method on `ColorComponents` because adding a
+/// `static` member to that `Decodable` type breaks Skip's reflection-based JSON decoding of `ColorSet`.
+private func parseColorComponent(_ string: String?, defaultValue: Double) -> Double {
+    guard let string, !string.isEmpty else { return defaultValue }
+    if string.hasPrefix("0x") || string.hasPrefix("0X") {
+        let byte: Int? = String(string.dropFirst(2)).toIntOrNull(radix: 16)
+        if let byte { return Double(byte) / 255.0 }
+        return defaultValue
+    }
+    if string.hasPrefix("#") {
+        let byte: Int? = String(string.dropFirst(1)).toIntOrNull(radix: 16)
+        if let byte { return Double(byte) / 255.0 }
+        return defaultValue
+    }
+    // Floating Point emits a decimal ("0.580"); the "8-bit (0-255)" method emits a bare integer ("148").
+    if !string.contains("."), let intValue = Int(string) {
+        return Double(intValue) / 255.0
+    }
+    return Double(string) ?? defaultValue
 }
 
 #endif
