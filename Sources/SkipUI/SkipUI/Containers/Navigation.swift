@@ -258,8 +258,7 @@ public struct NavigationStack : View, Renderable {
         // content for each bar) prevents it from updating properly on recompose
         let toolbarContentReduced = toolbarContent.value.reduced
         let toolbarItems = ToolbarItems(content: toolbarContentReduced.content ?? [])
-        let (titleMenu, principalItem, topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
-        let hasPrincipalToolbarItem = principalItem != nil
+        let (titleMenu, topLeadingItems, topTrailingItems, bottomItems) = toolbarItems.Evaluate(context: context)
 
         let showTopBar: Bool
         switch topBarPreferences?.visibility ?? Visibility.automatic {
@@ -268,7 +267,7 @@ public struct NavigationStack : View, Renderable {
         case .visible:
             showTopBar = true
         case .automatic:
-            showTopBar = !arguments.isRoot || hasTitle || hasPrincipalToolbarItem || topLeadingItems.size > 0 || topTrailingItems.size > 0
+            showTopBar = !arguments.isRoot || hasTitle || topLeadingItems.size > 0 || topTrailingItems.size > 0
         }
         let searchFieldPadding = 16.dp
         let density = LocalDensity.current
@@ -287,10 +286,7 @@ public struct NavigationStack : View, Renderable {
         let navigationIconButtonStyle: Material3TopAppBarNavigationIconButtonStyle
         let navigationIconButtonColors: IconButtonColors?
         if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
-            var tempOptions = Material3TopAppBarOptions(title: {}, modifier: Modifier, navigationIcon: {}, colors: TopAppBarDefaults.topAppBarColors(), scrollBehavior: initialScrollBehavior)
-            if hasPrincipalToolbarItem {
-                tempOptions = tempOptions.copy(preferCenterAlignedStyle: true)
-            }
+            let tempOptions = Material3TopAppBarOptions(title: {}, modifier: Modifier, navigationIcon: {}, colors: TopAppBarDefaults.topAppBarColors(), scrollBehavior: initialScrollBehavior)
             let updatedOptions = updateOptions(tempOptions)
             scrollBehavior = updatedOptions.scrollBehavior ?? initialScrollBehavior
             navigationIconButtonStyle = updatedOptions.navigationIconButtonStyle
@@ -407,11 +403,7 @@ public struct NavigationStack : View, Renderable {
                             titleContentColor: MaterialTheme.colorScheme.onSurface
                         )
                         let topBarTitle: @Composable () -> Void = {
-                            if let principalItem {
-                                // SwiftUI's .principal toolbar placement is the navigation title.
-                                // Render it in the Material top app bar title slot rather than as a leading toolbar item.
-                                principalItem.Render(context: context)
-                            } else if let titleMenu {
+                            if let titleMenu {
                                 let menuModifier = Modifier.clickable(interactionSource: interactionSource, indication: nil, onClick: {
                                     titleMenu.toggleMenu()
                                 })
@@ -465,9 +457,6 @@ public struct NavigationStack : View, Renderable {
                             }
                         }
                         var options = Material3TopAppBarOptions(title: topBarTitle, modifier: topBarModifier, navigationIcon: topBarNavigationIcon, colors: topBarColors, scrollBehavior: scrollBehavior)
-                        if hasPrincipalToolbarItem {
-                            options = options.copy(preferCenterAlignedStyle: true)
-                        }
                         if let updateOptions = EnvironmentValues.shared._material3TopAppBar {
                             options = updateOptions(options)
                         }
