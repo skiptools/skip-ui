@@ -14,6 +14,42 @@ final class ColorTests: XCSnapshotTestCase {
         XCTAssertEqual("F", try render(compact: 1, view: Color.white.frame(width: 1.0, height: 1.0)).pixmap)
     }
 
+    // Issue #146: a custom .colorset authored with Xcode's "8-bit Hexadecimal" input method (channels
+    // like "0xF1") rendered as pure black on Android, because Double("0xF1") returned nil and every
+    // channel fell back to 0.0. These tests render fixtures from the test bundle and are guarded to the
+    // transpiled (SKIP) side: on Apple platforms Color(_:bundle:) defers to SwiftUI's own asset loader,
+    // so the buggy parsing path only exists under SKIP.
+
+    // The two tests below validate the issue #146 fix end-to-end by rendering custom `.colorset` assets.
+    // They are DISABLED-prefixed (this file's convention for tests that don't run in the standard pass)
+    // because decoding a bundled component `.colorset` currently fails under the Robolectric *unit* runner:
+    // `JSONDecoder().decode(ColorSet.self, …)` throws a kotlin-reflect `IllegalAccessException` on the JVM.
+    // It works on a real Android device — which is where #146 was reported (hex colorsets rendered *black*,
+    // i.e. decode succeeded and only the parse was wrong). The failure is independent of this fix: it occurs
+    // in `ColorSet` decoding, before `parseColorComponent` is ever reached. Run these on an emulator/device
+    // to validate; the parsing algorithm itself is covered by the contribution's standalone logic harness.
+
+    func DISABLEDtestHexColorset() throws {
+        // 0x04/0xF1/0x88 must render the real color (#04F188), not black (pre-fix it rendered "0").
+        #if SKIP
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("HexColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
+    func DISABLEDtestFloatColorset() throws {
+        // The identical color authored as floats must render the same #04F188 (hex path == float path).
+        #if SKIP
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("FloatColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
+    func DISABLEDtestIntColorset() throws {
+        // The identical color authored with the "8-bit (0-255)" method (4/241/136) must render #04F188.
+        #if SKIP
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("IntColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
     // Disabled tests (due to slow performance when running against emulator)
 
     func DISABLEDtestColorClearDark() throws {
