@@ -662,8 +662,11 @@ public enum AnimationCompletionCriteria : Hashable {
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
     let animatable = remember { Animatable(resetValue.value ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    let isNewTarget = animatable.targetValue != value
     if isAnimating || animatable.value != value {
-        let animation = Animation.current(isAnimating: isAnimating, animTx: animTx)
+        // A new target with no provenance is a plain state write, so it must cancel any
+        // previous in-flight animation instead of inheriting the remembered animation.
+        let animation = Animation.current(isAnimating: isAnimating && !isNewTarget, animTx: animTx)
         LaunchedEffect(value, animation) {
             if let animation {
                 if animation.isInfinite {
@@ -681,6 +684,41 @@ public enum AnimationCompletionCriteria : Hashable {
     return animatable
 }
 
+/// Return the value that should be rendered by a provenance-capturing modifier.
+///
+/// New non-animated targets render immediately so live gestures do not display the stale
+/// value of an in-flight Compose `Animatable` before its snap coroutine runs.
+@Composable func toAnimatableValue<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> T where T: Any, VectorT: AnimationVector {
+    // SKIP NOWARN
+    let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
+    let animatable = remember { Animatable(resetValue.value ?? value, converter) }
+    let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
+    let isNewTarget = animatable.targetValue != value
+    var renderValue = animatable.value
+    if isAnimating || animatable.value != value {
+        // A new target with no provenance is a plain state write, so it must cancel any
+        // previous in-flight animation instead of inheriting the remembered animation.
+        let animation = Animation.current(isAnimating: isAnimating && !isNewTarget, animTx: animTx)
+        if animation == nil && isNewTarget {
+            renderValue = value
+        }
+        LaunchedEffect(value, animation) {
+            if let animation {
+                if animation.isInfinite {
+                    resetValue.value = animatable.value // Remember infinite animation start value
+                } else {
+                    resetValue.value = nil
+                }
+                animatable.animateTo(value, animationSpec: animation.asAnimationSpec() as! AnimationSpec<T>)
+            } else {
+                resetValue.value = nil
+                animatable.snapTo(value)
+            }
+        }
+    }
+    return renderValue
+}
+
 extension Float {
     /// Return an animatable version of this value (render-path: marker fallback allowed).
     @Composable func asAnimatable(context: ComposeContext) -> Animatable<Float, AnimationVector1D> {
@@ -690,6 +728,11 @@ extension Float {
     /// Return an animatable version of this value (instrumented site: per-slot provenance only).
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Float, AnimationVector1D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
+    }
+
+    /// Return the immediate render value for a provenance-capturing modifier.
+    @Composable func asAnimatableValue(context: ComposeContext, animTx: StateMutationTransaction?) -> Float {
+        return toAnimatableValue(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
 }
 
@@ -702,6 +745,11 @@ extension Tuple2 where E0 == Float, E1 == Float {
     /// Return an animatable version of this value (instrumented site: per-slot provenance only).
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
+    }
+
+    /// Return the immediate render value for a provenance-capturing modifier.
+    @Composable func asAnimatableValue(context: ComposeContext, animTx: StateMutationTransaction?) -> Tuple2<Float, Float> {
+        return toAnimatableValue(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
 }
 
