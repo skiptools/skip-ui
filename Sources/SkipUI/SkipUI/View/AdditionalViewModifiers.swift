@@ -1030,24 +1030,22 @@ extension View {
     public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
-            let previousValue = remember { mutableStateOf(nil as Any?) }
+            let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
-
-            if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
-                let newValue = transform(proxy)
-                let oldValue = previousValue.value as? T
-                if oldValue == nil || oldValue != newValue {
-                    let effectiveOldValue = oldValue ?? newValue
-                    previousValue.value = newValue
-                    SideEffect { action(effectiveOldValue, newValue) }
-                }
-            }
+            let safeArea = EnvironmentValues.shared._safeArea
 
             var updatedContext = context
             updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
-                globalFramePx.value = rect
+                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: safeArea)
+                let newValue = transform(proxy)
+                let oldValue = storage.previousValue as? T
+                guard oldValue == nil || oldValue != newValue else {
+                    return
+                }
+
+                let effectiveOldValue = oldValue ?? newValue
+                storage.previousValue = newValue
+                action(effectiveOldValue, newValue)
             }
             renderable.Render(context: updatedContext)
         })
@@ -1823,6 +1821,12 @@ final class AnimatedBorderModifier: RenderModifier {
         content.Render(context: context)
     }
 }
+
+#if SKIP
+final class GeometryChangeValueStorage {
+    var previousValue: Any?
+}
+#endif
 
 #if SKIP
 final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection {
