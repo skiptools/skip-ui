@@ -41,6 +41,13 @@ public final class Picker<SelectionValue> : View, Renderable {
     let content: ComposeBuilder
     #if SKIP
     private var isMenuExpanded: MutableState<Bool>? = nil
+    // Bumped whenever the selection is mutated through this Picker's own controls
+    // (menu items, segmented buttons). The render paths read it so that the
+    // collapsed selected-value re-evaluates `processPickerContent` and re-reads the
+    // binding. Without this, a bridged/`@Observable` selection write updates the
+    // underlying value but does not invalidate this Compose subtree, leaving the
+    // displayed value stale until the view is re-rendered for another reason.
+    private var selectionTrigger: MutableState<Int>? = nil
     #endif
 
     public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> any View, @ViewBuilder label: () -> any View) {
@@ -71,10 +78,20 @@ public final class Picker<SelectionValue> : View, Renderable {
     #if SKIP
     @Composable override func Evaluate(context: ComposeContext, options: Int) -> kotlin.collections.List<Renderable> {
         isMenuExpanded = remember { mutableStateOf(false) }
+        selectionTrigger = remember { mutableStateOf(0) }
         return listOf(self)
     }
 
+    // Bump from a selection action to invalidate the render scopes that read
+    // `selectionTrigger?.value`, forcing the collapsed value to re-read the binding.
+    private func noteSelectionChanged() {
+        if let selectionTrigger {
+            selectionTrigger.value += 1
+        }
+    }
+
     @Composable override func Render(context: ComposeContext) {
+        let _ = selectionTrigger?.value
         let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
         if style == PickerStyle.segmented {
             RenderSegmentedValue(context: context)
@@ -89,6 +106,7 @@ public final class Picker<SelectionValue> : View, Renderable {
     }
 
     @Composable private func RenderLabeledValue(context: ComposeContext, style: PickerStyle) {
+        let _ = selectionTrigger?.value
         let (selected, tagged) = processPickerContent(content: content, selection: selection, context: context)
         let contentContext = context.content()
         let navigator = LocalNavigator.current
@@ -143,6 +161,7 @@ public final class Picker<SelectionValue> : View, Renderable {
     }
 
     @Composable private func RenderSegmentedValue(context: ComposeContext) {
+        let _ = selectionTrigger?.value
         let (_, tagged) = processPickerContent(content: content, selection: selection, context: context, requireTaggedRenderables: true)
         let selectedIndex = tagged?.indexOfFirst { TagModifier.on(content: $0, role: .tag)?.value == selection.wrappedValue } ?? -1
         let isEnabled = EnvironmentValues.shared.isEnabled
@@ -162,6 +181,7 @@ public final class Picker<SelectionValue> : View, Renderable {
                     let isSelected = index == selectedIndex
                     let onClick: () -> Void = {
                         selection.wrappedValue = TagModifier.on(content: taggedRenderable, role: .tag)?.value as! SelectionValue
+                        noteSelectionChanged()
                     }
                     let shape = SegmentedButtonDefaults.itemShape(index: index, count: tagged.size)
                     let borderColor = isSelected ? (isEnabled ? colors.activeBorderColor : colors.disabledActiveBorderColor) : (isEnabled ? colors.inactiveBorderColor : colors.disabledInactiveBorderColor)
@@ -202,6 +222,7 @@ public final class Picker<SelectionValue> : View, Renderable {
 
     @Composable override func RenderListItem(context: ComposeContext, modifiers: kotlin.collections.List<ModifierProtocol>) {
         ModifiedContent.RenderWithModifiers(modifiers, context: context) { context in
+            let _ = selectionTrigger?.value
             let (selected, tagged) = processPickerContent(content: content, selection: selection, context: context)
             let style = EnvironmentValues.shared._pickerStyle ?? PickerStyle.automatic
             Row(modifier: context.modifier, verticalAlignment: androidx.compose.ui.Alignment.CenterVertically) {
@@ -231,6 +252,7 @@ public final class Picker<SelectionValue> : View, Renderable {
             let tagValue = TagModifier.on(content: renderable, role: .tag)?.value
             let button = Button(action: {
                 selection.wrappedValue = tagValue as! SelectionValue
+                noteSelectionChanged()
             }, label: { renderable.asView() })
             return ModifiedContent(content: button as Renderable, modifier: TagModifier(value: tagValue, role: .tag))
         }
