@@ -215,7 +215,8 @@ public struct Animation : Hashable {
             pendingBridgedProvenanceAnimation = animation
             StateTracking.clearReadCursor()
             StateTracking.recordRead(Transaction(animation: animation))
-        } else if pendingBridgedProvenanceAnimation == nil {
+        } else {
+            pendingBridgedProvenanceAnimation = nil
             StateTracking.clearReadCursor()
         }
         #endif

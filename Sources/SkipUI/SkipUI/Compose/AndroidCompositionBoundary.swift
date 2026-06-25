@@ -4,9 +4,11 @@
 #if SKIP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.ui.viewinterop.AndroidView
 #endif
 
+#if SKIP
 /// Hosts a subtree in a retained Android composition root.
 ///
 /// Use this for heavyweight Android-only branches that should not be re-entered when an ancestor
@@ -46,17 +48,18 @@ public struct AndroidCompositionBoundary: View, Renderable {
         self.content = bridgedContentFactory
     }
 
-    #if SKIP
     @Composable override func Render(context: ComposeContext) {
         androidx.compose.runtime.key(id) {
+            let parentCompositionContext = rememberCompositionContext()
+            let childContext = context.content()
             let storage = remember(id) {
                 AndroidCompositionBoundaryStorage(inputs: inputs, content: content())
             }
 
             AndroidView(
                 factory: { androidContext in
-                    return AndroidCompositionBoundaryComposeView(context: androidContext) {
-                        storage.content.Compose(context: ComposeContext())
+                    return AndroidCompositionBoundaryComposeView(context: androidContext, parentCompositionContext: parentCompositionContext) {
+                        storage.content.Compose(context: childContext)
                     }
                 },
                 modifier: context.modifier,
@@ -67,20 +70,14 @@ public struct AndroidCompositionBoundary: View, Renderable {
                     storage.inputs = inputs
                     storage.content = content()
                     composeView.setContent {
-                        storage.content.Compose(context: ComposeContext())
+                        storage.content.Compose(context: childContext)
                     }
                 }
             )
         }
     }
-    #else
-    public var body: some View {
-        stubView()
-    }
-    #endif
 }
 
-#if SKIP
 private final class AndroidCompositionBoundaryStorage {
     var inputs: String
     var content: any View

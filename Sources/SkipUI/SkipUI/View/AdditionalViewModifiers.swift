@@ -1030,22 +1030,25 @@ extension View {
     public func onGeometryChangeErased<T>(of transform: @escaping (GeometryProxy) -> T, action: @escaping (_ oldValue: T, _ newValue: T) -> Void) -> any View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let globalFramePx = remember { mutableStateOf<Rect?>(nil) }
             let storage = remember { GeometryChangeValueStorage() }
             let density = LocalDensity.current
             let safeArea = EnvironmentValues.shared._safeArea
 
-            var updatedContext = context
-            updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
+            if let rect = globalFramePx.value {
                 let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: safeArea)
                 let newValue = transform(proxy)
                 let oldValue = storage.previousValue as? T
-                guard oldValue == nil || oldValue != newValue else {
-                    return
+                if oldValue == nil || oldValue != newValue {
+                    let effectiveOldValue = oldValue ?? newValue
+                    storage.previousValue = newValue
+                    SideEffect { action(effectiveOldValue, newValue) }
                 }
+            }
 
-                let effectiveOldValue = oldValue ?? newValue
-                storage.previousValue = newValue
-                action(effectiveOldValue, newValue)
+            var updatedContext = context
+            updatedContext.modifier = context.modifier.onGloballyPositionedInRoot { rect in
+                globalFramePx.value = rect
             }
             renderable.Render(context: updatedContext)
         })
