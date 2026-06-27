@@ -206,6 +206,11 @@ public struct Image : View, Renderable, Equatable {
             let hasValidIntrinsic = !painter.intrinsicSize.isUnspecified && !painter.intrinsicSize.width.isNaN() && painter.intrinsicSize.width > 0 && !painter.intrinsicSize.height.isNaN() && painter.intrinsicSize.height > 0
             if hasValidIntrinsic {
                 RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
+            } else if resizingMode == .stretch {
+                // Coil reports State.Empty on the first composition even when a cached image can draw
+                // in the first frame. Resizable images already have external constraints, so keep the
+                // slot filled instead of briefly replacing cached icons with a 0x0 placeholder.
+                RenderPainter(painter: painter, tintColor: tintColor, scale: scale, aspectRatio: aspectRatio, contentMode: contentMode, context: innerContext)
             } else {
                 // Without a valid intrinsic, RenderPainter will try to render the painter with
                 // fillSize, which can break layout. We're rendering a 0x0 Box as a placeholder.
