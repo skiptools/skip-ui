@@ -5,6 +5,7 @@ import Foundation
 #if SKIP
 import SkipModel
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,9 +15,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,6 +33,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
@@ -38,6 +42,9 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.boundsInWindow
@@ -50,6 +57,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -1026,6 +1034,47 @@ extension View {
         #endif
     }
 
+    // SKIP @bridge
+    public func androidVerticalOverscrollPullDown(
+        isEnabled: Bool,
+        onPull: @escaping (CGFloat) -> Void,
+        onEnd: @escaping () -> Void
+    ) -> any View {
+        #if SKIP
+        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
+            let enabledState = rememberUpdatedState(isEnabled)
+            let onPullState = rememberUpdatedState(onPull)
+            let onEndState = rememberUpdatedState(onEnd)
+            let density = LocalDensity.current
+            let connection = remember {
+                AndroidVerticalOverscrollPullDownConnection(
+                    isEnabled: {
+                        enabledState.value
+                    },
+                    onPullPx: { pullPx in
+                        let pullDp = with(density) { pullPx.toDp() }
+                        onPullState.value(CGFloat(pullDp.value))
+                    },
+                    onEnd: {
+                        onEndState.value()
+                    }
+                )
+            }
+
+            var context = context
+            context.modifier = context.modifier.nestedScroll(connection)
+            // Android's stretch overscroll consumes the edge drag before the
+            // parent nested-scroll connection can use it for sheet handoff.
+            // SKIP INSERT: val providedOverscrollFactory = LocalOverscrollFactory provides null
+            CompositionLocalProvider(providedOverscrollFactory) {
+                renderable.Render(context: context)
+            }
+        })
+        #else
+        return self
+        #endif
+    }
+
     @available(*, unavailable)
     public func onHover(perform action: @escaping (Bool) -> Void) -> some View {
         return self
@@ -1752,6 +1801,57 @@ final class AnimatedBorderModifier: RenderModifier {
         content.Render(context: context)
     }
 }
+
+#if SKIP
+final class AndroidVerticalOverscrollPullDownConnection: NestedScrollConnection {
+    let isEnabled: () -> Bool
+    let onPullPx: (Float) -> Void
+    let onEnd: () -> Void
+
+    var accumulatedPullPx = Float(0.0)
+
+    init(
+        isEnabled: @escaping () -> Bool,
+        onPullPx: @escaping (Float) -> Void,
+        onEnd: @escaping () -> Void
+    ) {
+        self.isEnabled = isEnabled
+        self.onPullPx = onPullPx
+        self.onEnd = onEnd
+    }
+
+    override func onPreScroll(available: Offset, source: NestedScrollSource) -> Offset {
+        guard source == NestedScrollSource.Drag, isEnabled(), accumulatedPullPx > Float(0.0) else {
+            return Offset.Zero
+        }
+
+        let previousPullPx = accumulatedPullPx
+        accumulatedPullPx = max(Float(0.0), accumulatedPullPx + available.y)
+        onPullPx(accumulatedPullPx)
+        return Offset(x: Float(0.0), y: accumulatedPullPx - previousPullPx)
+    }
+
+    override func onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource) -> Offset {
+        guard source == NestedScrollSource.Drag, isEnabled(), available.y > Float(0.0) else {
+            return Offset.Zero
+        }
+
+        accumulatedPullPx += available.y
+        onPullPx(accumulatedPullPx)
+        return Offset(x: Float(0.0), y: available.y)
+    }
+
+    override func onPostFling(consumed: Velocity, available: Velocity) async -> Velocity {
+        guard accumulatedPullPx > Float(0.0) else {
+            return Velocity.Zero
+        }
+
+        accumulatedPullPx = Float(0.0)
+        onEnd()
+        return Velocity(x: Float(0.0), y: available.y)
+    }
+}
+#endif
 
 #endif
 #endif

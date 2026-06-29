@@ -80,6 +80,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsDisplayed
@@ -89,6 +90,7 @@ import androidx.compose.ui.test.click
 import androidx.compose.ui.test.down
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasTextExactly
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasImeAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.isFocused
@@ -113,6 +115,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextInputSelection
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.performGesture
+import androidx.compose.ui.test.swipeUp
 import androidx.compose.ui.test.up
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -311,6 +314,205 @@ final class SkipUITests: SkipUITestCase {
                     .onLongPressGesture { pressed = true }
                 Text(pressed ? "yes" : "no")
                     .accessibilityIdentifier("status")
+            }
+        }
+    }
+
+    func testSimultaneousGestureTapObserver() throws {
+        #if !SKIP
+        throw XCTSkip("simultaneousGesture partial parity is a Compose behavior")
+        #else
+        let gestureTapCount = mutableStateOf(0)
+        let simultaneousTapCount = mutableStateOf(0)
+        try testUI(view: {
+            SimultaneousGestureTapTestView(
+                gestureAction: { gestureTapCount.value += 1 },
+                simultaneousAction: { simultaneousTapCount.value += 1 }
+            )
+            .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.onNodeWithTag("simultaneous.tap.target").performClick()
+            rule.waitForIdle()
+            XCTAssertEqual(gestureTapCount.value, 1)
+            XCTAssertEqual(simultaneousTapCount.value, 1)
+        })
+        #endif
+    }
+
+    func testSimultaneousGestureNoneMaskDoesNotFire() throws {
+        #if !SKIP
+        throw XCTSkip("simultaneousGesture partial parity is a Compose behavior")
+        #else
+        let gestureTapCount = mutableStateOf(0)
+        let simultaneousTapCount = mutableStateOf(0)
+        try testUI(view: {
+            SimultaneousGestureNoneMaskTestView(
+                gestureAction: { gestureTapCount.value += 1 },
+                simultaneousAction: { simultaneousTapCount.value += 1 }
+            )
+            .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.onNodeWithTag("simultaneous.none.target").performClick()
+            rule.waitForIdle()
+            XCTAssertEqual(gestureTapCount.value, 1)
+            XCTAssertEqual(simultaneousTapCount.value, 0)
+        })
+        #endif
+    }
+
+    func testSimultaneousDragGestureObservesScrollViewWithoutBlockingScroll() throws {
+        #if !SKIP
+        throw XCTSkip("simultaneousGesture drag observation is a Compose behavior")
+        #else
+        let dragChangeCount = mutableStateOf(0)
+        try testUI(view: {
+            SimultaneousGestureScrollViewTestView {
+                dragChangeCount.value += 1
+            }
+            .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+
+            rule.onNodeWithTag("simultaneous.scroll.content").performTouchInput { swipeUp() }
+            rule.waitForIdle()
+            XCTAssertGreaterThan(dragChangeCount.value, 0)
+
+            XCTAssertTrue(rule.onRoot().fetchSemanticsNode().containsScrollAction())
+        })
+        #endif
+    }
+
+    struct SimultaneousGestureTapTestView: View {
+        let gestureAction: () -> Void
+        let simultaneousAction: () -> Void
+
+        var body: some View {
+            VStack {
+                Text("Tap")
+                    .accessibilityIdentifier("simultaneous.tap.target")
+                    .gesture(
+                        TapGesture().onEnded { _ in
+                            gestureAction()
+                        }
+                    )
+                    .simultaneousGesture(
+                        TapGesture().onEnded { _ in
+                            simultaneousAction()
+                        }
+                    )
+            }
+        }
+    }
+
+    struct SimultaneousGestureNoneMaskTestView: View {
+        let gestureAction: () -> Void
+        let simultaneousAction: () -> Void
+
+        var body: some View {
+            VStack {
+                Text("Tap")
+                    .accessibilityIdentifier("simultaneous.none.target")
+                    .gesture(
+                        TapGesture().onEnded { _ in
+                            gestureAction()
+                        }
+                    )
+                    .simultaneousGesture(
+                        TapGesture().onEnded { _ in
+                            simultaneousAction()
+                        },
+                        including: .none
+                    )
+            }
+        }
+    }
+
+    struct SimultaneousGestureScrollViewTestView: View {
+        let simultaneousAction: () -> Void
+
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(0..<30) { index in
+                        Text("Row \(index)")
+                            .frame(height: 40)
+                            .accessibilityIdentifier("simultaneous.scroll.row.\(index)")
+                    }
+                }
+                .accessibilityIdentifier("simultaneous.scroll.content")
+            }
+            .frame(height: 220)
+            .accessibilityIdentifier("simultaneous.scroll.container")
+            .simultaneousGesture(
+                DragGesture().onChanged { _ in
+                    simultaneousAction()
+                }
+            )
+        }
+    }
+
+    func testConditionalTabDoesNotRenderBlankNavigationItem() throws {
+        #if !SKIP
+        throw XCTSkip("TabView navigation item count is a Compose behavior")
+        #else
+        try testUI(view: {
+            ConditionalTabTestView()
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+            rule.onAllNodes(hasClickAction()).assertCountEquals(2)
+            rule.onNodeWithText("First").assertIsDisplayed()
+            rule.onNodeWithText("Second").assertIsDisplayed()
+        })
+        #endif
+    }
+
+    func testTitlelessRootNavigationStackDoesNotReserveTopBarSpace() throws {
+        #if !SKIP
+        throw XCTSkip("Navigation top bar measurement is a Compose behavior")
+        #else
+        try testUI(view: {
+            TitlelessNavigationStackTestView()
+                .accessibilityIdentifier("test-view")
+        }, eval: { rule in
+            rule.waitForIdle()
+            let topBounds = rule.onNodeWithTag("navigation.titleless.top").fetchSemanticsNode().boundsInRoot
+            let defaultTopBarHeightPx = with(rule.density) { 112.dp.toPx() }
+            XCTAssertLessThan(topBounds.top, defaultTopBarHeightPx)
+        })
+        #endif
+    }
+
+    struct TitlelessNavigationStackTestView: View {
+        var body: some View {
+            NavigationStack {
+                VStack(spacing: 0) {
+                    Text("Top")
+                        .accessibilityIdentifier("navigation.titleless.top")
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
+        }
+    }
+
+    struct ConditionalTabTestView: View {
+        var body: some View {
+            TabView {
+                Text("First Content")
+                    .tabItem {
+                        Label("First", systemImage: "house")
+                    }
+                if false {
+                    Text("Hidden Content")
+                        .tabItem {
+                            Label("Hidden", systemImage: "star")
+                        }
+                }
+                Text("Second Content")
+                    .tabItem {
+                        Label("Second", systemImage: "gear")
+                    }
             }
         }
     }
@@ -766,6 +968,15 @@ final class SkipUITests: SkipUITestCase {
 #if SKIP
 
 extension SemanticsNode {
+    func containsScrollAction() -> Bool {
+        if config.getOrNull(SemanticsActions.ScrollBy) != nil {
+            return true
+        }
+        return children.any { child in
+            child.containsScrollAction()
+        }
+    }
+
     /// Returns a description of this node's hierarchy and attributes
     func treeString(indent: String = "") -> String {
         let nodeDescription = "\(indent)Node:\(attrList())"

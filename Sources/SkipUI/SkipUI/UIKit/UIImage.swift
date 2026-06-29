@@ -3,11 +3,13 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
-import android.content.Context
+import android.content.ContentResolver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
 import java.nio.ByteBuffer
-import android.graphics.Bitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 #endif
@@ -16,6 +18,22 @@ import kotlinx.coroutines.withContext
 public class UIImage {
     #if SKIP
     let bitmap: Bitmap?
+
+    private static func decodeBitmapFromData(bytes: kotlin.ByteArray) -> Bitmap? {
+        if Build.VERSION.SDK_INT >= Build.VERSION_CODES.P {
+            let source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
+            return ImageDecoder.decodeBitmap(source)
+        }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    private static func decodeBitmapFromUri(contentResolver: ContentResolver, uri: Uri) -> Bitmap? {
+        if Build.VERSION.SDK_INT >= Build.VERSION_CODES.P {
+            let source = ImageDecoder.createSource(contentResolver, uri)
+            return ImageDecoder.decodeBitmap(source)
+        }
+        return contentResolver.openInputStream(uri)?.use { stream in BitmapFactory.decodeStream(stream) }
+    }
     #endif
 
     @available(*, unavailable)
@@ -122,9 +140,8 @@ public class UIImage {
         do {
             let contentResolver = ProcessInfo.processInfo.androidContext.getContentResolver()
             let uri = Uri.parse(path)
-            let source = ImageDecoder.createSource(contentResolver, uri)
             
-            guard let bitmap = ImageDecoder.decodeBitmap(source) else {
+            guard let bitmap = Self.decodeBitmapFromUri(contentResolver: contentResolver, uri: uri) else {
                 return nil
             }
             
@@ -147,9 +164,8 @@ public class UIImage {
         #if SKIP
         do {
             let bytes = data.kotlin(nocopy: true)
-            let source = ImageDecoder.createSource(ByteBuffer.wrap(bytes))
             
-            guard let bitmap = ImageDecoder.decodeBitmap(source) else {
+            guard let bitmap = Self.decodeBitmapFromData(bytes: bytes) else {
                 return nil
             }
             
