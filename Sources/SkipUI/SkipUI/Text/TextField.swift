@@ -357,6 +357,19 @@ extension View {
         return textInputAutocapitalization(autocap)
     }
 
+    public func textFieldContentPadding(_ insets: EdgeInsets) -> any View {
+        #if SKIP
+        return environment(\._textFieldContentPadding, insets, affectsEvaluate: false)
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func textFieldContentPadding(bridgedTop: Double, bridgedLeading: Double, bridgedBottom: Double, bridgedTrailing: Double) -> any View {
+        return textFieldContentPadding(EdgeInsets(top: bridgedTop, leading: bridgedLeading, bottom: bridgedBottom, trailing: bridgedTrailing))
+    }
+
     @available(*, unavailable)
     public func textInputFormattingControlVisibility(_ visibility: Visibility, for placement: TextInputFormattingControlPlacement.Set) -> some View {
         return self
