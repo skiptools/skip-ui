@@ -5,6 +5,7 @@ import Foundation
 #if SKIP
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
@@ -22,6 +23,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.text.TextRange
@@ -167,7 +169,17 @@ public struct TextField : View, Renderable {
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
-        OutlinedTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, label: options.label, placeholder: options.placeholder, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, isError: options.isError, visualTransformation: options.visualTransformation, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, interactionSource: options.interactionSource, shape: options.shape, colors: options.colors)
+        if let tfContentPadding = EnvironmentValues.shared._textFieldContentPadding {
+            let interactionSource = options.interactionSource ?? remember { MutableInteractionSource() }
+            let cursorColor = (EnvironmentValues.shared._tint ?? Color.primary).colorImpl()
+            BasicTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, visualTransformation: options.visualTransformation, interactionSource: interactionSource, cursorBrush: SolidColor(cursorColor), decorationBox: { innerTextField in
+                OutlinedTextFieldDefaults.DecorationBox(value: options.value.text, visualTransformation: options.visualTransformation, innerTextField: innerTextField, placeholder: options.placeholder, label: options.label, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, singleLine: options.singleLine, enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, contentPadding: tfContentPadding.asPaddingValues(), container: {
+                    OutlinedTextFieldDefaults.Container(enabled: options.enabled, isError: options.isError, interactionSource: interactionSource, colors: options.colors, shape: options.shape)
+                })
+            })
+        } else {
+            OutlinedTextField(value: options.value, onValueChange: options.onValueChange, modifier: options.modifier, enabled: options.enabled, readOnly: options.readOnly, textStyle: options.textStyle, label: options.label, placeholder: options.placeholder, leadingIcon: options.leadingIcon, trailingIcon: options.trailingIcon, prefix: options.prefix, suffix: options.suffix, supportingText: options.supportingText, isError: options.isError, visualTransformation: options.visualTransformation, keyboardOptions: options.keyboardOptions, keyboardActions: options.keyboardActions, singleLine: options.singleLine, maxLines: options.maxLines, minLines: options.minLines, interactionSource: options.interactionSource, shape: options.shape, colors: options.colors)
+        }
     }
 
     @Composable static func textColor(styleInfo: TextStyleInfo, enabled: Bool) -> androidx.compose.ui.graphics.Color {
@@ -343,6 +355,19 @@ extension View {
     public func textInputAutocapitalization(bridgedAutocapitalization: Int?) -> any View {
         let autocap: TextInputAutocapitalization? = bridgedAutocapitalization == nil ? nil : TextInputAutocapitalization(rawValue: bridgedAutocapitalization!)
         return textInputAutocapitalization(autocap)
+    }
+
+    public func textFieldContentPadding(_ insets: EdgeInsets) -> any View {
+        #if SKIP
+        return environment(\._textFieldContentPadding, insets, affectsEvaluate: false)
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func textFieldContentPadding(bridgedTop: Double, bridgedLeading: Double, bridgedBottom: Double, bridgedTrailing: Double) -> any View {
+        return textFieldContentPadding(EdgeInsets(top: bridgedTop, leading: bridgedLeading, bottom: bridgedBottom, trailing: bridgedTrailing))
     }
 
     @available(*, unavailable)

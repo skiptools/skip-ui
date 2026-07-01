@@ -693,6 +693,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentPadding", value: newValue, defaultValue: { EdgeInsets() }) }
     }
 
+    var _textFieldContentPadding: EdgeInsets? {
+        get { builtinValue(key: "_textFieldContentPadding", defaultValue: { nil }) as! EdgeInsets? }
+        set { setBuiltinValue(key: "_textFieldContentPadding", value: newValue, defaultValue: { nil }) }
+    }
+
     var _flexibleHeight: (@Composable (Float?, Float?, Float?) -> Modifier)? {
         get { builtinValue(key: "_flexibleHeight", defaultValue: { nil }) as! (@Composable (Float?, Float?, Float?) -> Modifier)? }
         set { setBuiltinValue(key: "_flexibleHeight", value: newValue, defaultValue: { nil }) }
