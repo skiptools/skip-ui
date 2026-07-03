@@ -76,6 +76,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -260,7 +261,10 @@ public struct NavigationStack : View, Renderable {
 
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
-        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: titleDisplayPreference)
+        let presentationTopPx = arguments.safeArea?.presentationBoundsPx.top ?? Float(0.0)
+        let isInitialRootPreferencePass = remember { mutableStateOf(arguments.isRoot) }
+        let reservesInitialRootTopBar = isInitialRootPreferencePass.value && arguments.isRoot && !hasTitle && (topBarPreferences?.visibility ?? Visibility.automatic) == Visibility.automatic
+        let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle || reservesInitialRootTopBar, preference: titleDisplayPreference)
         let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
 
         // We would like to only process toolbar content in our topBar/bottomBar Composables, but composing
@@ -309,31 +313,41 @@ public struct NavigationStack : View, Renderable {
             navigationIconButtonColors = nil
         }
         var modifier = Modifier.nestedScroll(searchFieldScrollConnection)
-        if showTopBar {
+        SideEffect {
+            if isInitialRootPreferencePass.value {
+                isInitialRootPreferencePass.value = false
+            }
+        }
+        let showsTopBar = showTopBar || reservesInitialRootTopBar
+        if showsTopBar {
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
         }
         modifier = modifier.then(context.modifier)
 
-        let defaultTopBarHeight = 112.dp
-        let topBarBottomPx = remember {
-            let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
-            // Use a first-frame estimate only when a top bar will render. The measured value from
-            // onGloballyPositionedInWindow below is the source of truth after composition.
-            mutableStateOf(showTopBar ? with(density) { safeAreaTopPx + defaultTopBarHeight.toPx() } : Float(0.0))
-        }
-        let topBarHeightPx = remember {
-            mutableStateOf(showTopBar ? with(density) { defaultTopBarHeight.toPx() } : Float(0.0))
-        }
-        // Reactively clear the reserved inset whenever the bar is hidden — covers both a
-        // title-less root (where AnimatedVisibility's onDispose never runs) and visible→hidden
-        // transitions where onDispose may not have fired yet.
-        LaunchedEffect(showTopBar) {
-            if !showTopBar {
+        let shouldReserveInitialTopBarSpace = showTopBar || reservesInitialRootTopBar
+        let estimatedTopBarHeight = isInlineTitleDisplayMode ? 64.dp : 112.dp
+        let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
+        let hasAbsoluteTopSystemBar = arguments.safeArea?.absoluteSystemBarEdges.contains(.top) == true
+        let estimatedTopBarBottomPx = shouldReserveInitialTopBarSpace ? with(density) { safeAreaTopPx + estimatedTopBarHeight.toPx() } : Float(0.0)
+        let estimatedTopBarBottomInPresentationPx = max(Float(0.0), estimatedTopBarBottomPx - presentationTopPx)
+        let topBarBottomPx = remember { mutableStateOf(estimatedTopBarBottomInPresentationPx) }
+        let measuredTopBarIsInline = remember { mutableStateOf(isInlineTitleDisplayMode) }
+        let measuredTopBarSafeAreaTopPx = remember { mutableStateOf<Float?>(nil) }
+        let measuredTopBarPresentationTopPx = remember { mutableStateOf<Float?>(nil) }
+        LaunchedEffect(showsTopBar, isInitialRootPreferencePass.value) {
+            if !showsTopBar && !isInitialRootPreferencePass.value {
                 topBarBottomPx.value = Float(0.0)
-                topBarHeightPx.value = Float(0.0)
+                measuredTopBarSafeAreaTopPx.value = nil
+                measuredTopBarPresentationTopPx.value = nil
             }
         }
-
+        var safeAreaMatchesMeasuredTopBar = false
+        if let measuredSafeAreaTopPx = measuredTopBarSafeAreaTopPx.value, let measuredPresentationTopPx = measuredTopBarPresentationTopPx.value {
+            safeAreaMatchesMeasuredTopBar = measuredSafeAreaTopPx == safeAreaTopPx && measuredPresentationTopPx == presentationTopPx
+        }
+        let isPresentedAsSheet = presentationTopPx > Float(0.0) && arguments.safeArea?.absoluteSystemBarEdges.contains(.top) != true
+        let hasCurrentTopBarMeasurement = measuredTopBarIsInline.value == isInlineTitleDisplayMode && (isPresentedAsSheet || safeAreaMatchesMeasuredTopBar) && topBarBottomPx.value > Float(0.0)
+        let effectiveTopBarBottomPx = shouldReserveInitialTopBarSpace ? presentationTopPx + (hasCurrentTopBarMeasurement ? topBarBottomPx.value : estimatedTopBarBottomInPresentationPx) : Float(0.0)
         let isSystemBackground = topBarPreferences?.isSystemBackground == true
         let topBar: @Composable () -> Void = {
             let animation: Animation = Animation.current(isAnimating: false) ?? topBarPreferences?.visibilityAnimation ?? Animation.linear(duration: 0)
@@ -341,11 +355,12 @@ public struct NavigationStack : View, Renderable {
             let moveEdgeTop = MoveTransition(edge: .top)
             let topBarEnter = moveEdgeTop.asEnterTransition(spec: animationSpec)
             let topBarExit = moveEdgeTop.asExitTransition(spec: animationSpec)
-            AnimatedVisibility(visible: showTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
+            AnimatedVisibility(visible: showsTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
                 DisposableEffect(true) {
                     onDispose {
                         topBarBottomPx.value = Float(0.0)
-                        topBarHeightPx.value = Float(0.0)
+                        measuredTopBarSafeAreaTopPx.value = nil
+                        measuredTopBarPresentationTopPx.value = nil
                     }
                 }
                 let isOverlapped = scrollBehavior.state.overlappedFraction > 0
@@ -362,7 +377,7 @@ public struct NavigationStack : View, Renderable {
                     // If there is a custom color scheme, we also always show any custom background even when unscrolled, because we can't
                     // properly interpolate between the title text colors
                     let topBarHasColorScheme = topBarPreferences?.colorScheme != nil
-                    let isSystemBackground = topBarPreferences?.isSystemBackground == true
+                    let isSystemBackground = topBarPreferences?.isSystemBackground == true || reservesInitialRootTopBar
                     if topBarPreferences?.backgroundVisibility == Visibility.hidden {
                         topBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
                         unscrolledTopBarBackgroundColor = androidx.compose.ui.graphics.Color.Transparent
@@ -395,9 +410,14 @@ public struct NavigationStack : View, Renderable {
                             .clickable(interactionSource: interactionSource, indication: nil, onClick: {
                                 scrollToTop.value.reduced.action()
                             })
-                            .onGloballyPositionedInWindow { bounds in
-                                topBarBottomPx.value = bounds.bottom
-                                topBarHeightPx.value = bounds.bottom - bounds.top
+                            .onGloballyPositioned { coordinates in
+                                let heightPx = Float(coordinates.size.height)
+                                if heightPx > Float(0.0) {
+                                    topBarBottomPx.value = heightPx
+                                    measuredTopBarIsInline.value = isInlineTitleDisplayMode
+                                }
+                                measuredTopBarSafeAreaTopPx.value = safeAreaTopPx
+                                measuredTopBarPresentationTopPx.value = presentationTopPx
                             }
                         if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
                             let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
@@ -471,11 +491,12 @@ public struct NavigationStack : View, Renderable {
                         }
                         // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
                         options = options.copy(scrollBehavior: scrollBehavior)
+                        let topBarWindowInsets = hasAbsoluteTopSystemBar ? TopAppBarDefaults.windowInsets : WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
                         if isInlineTitleDisplayMode {
                             if options.preferCenterAlignedStyle {
-                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior, windowInsets: topBarWindowInsets)
                             } else {
-                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior, windowInsets: topBarWindowInsets)
                             }
                         } else {
                             // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
@@ -484,9 +505,9 @@ public struct NavigationStack : View, Renderable {
                             let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
                             MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
                                 if options.preferLargeStyle {
-                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior, windowInsets: topBarWindowInsets)
                                 } else {
-                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior, windowInsets: topBarWindowInsets)
                                 }
                             }
                         }
@@ -594,10 +615,10 @@ public struct NavigationStack : View, Renderable {
             Column(modifier: modifier.background(Color.background.colorImpl())) {
                 // Calculate safe area for content
                 let contentSafeArea = arguments.safeArea?
-                    .insetting(.top, to: topBarBottomPx.value)
+                    .insetting(.top, to: effectiveTopBarBottomPx)
                     .insetting(.bottom, to: bottomBarTopPx.value)
                 // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-                let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                let topPadding = effectiveTopBarBottomPx <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
                 var bottomPadding = 0.dp
                 if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
                     bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
@@ -648,7 +669,7 @@ public struct NavigationStack : View, Renderable {
                 // Calculate safe area for content by insetting by topBar and bottomBar heights
                 var contentSafeArea: SafeArea?
                 if let safeArea = arguments.safeArea {
-                    let clampedTopBarBottomPxValue: Float = max(topBarBottomPx.value, safeArea.safeBoundsPx.top)
+                    let clampedTopBarBottomPxValue: Float = max(effectiveTopBarBottomPx, safeArea.safeBoundsPx.top)
                     contentSafeArea = safeArea
                         .insetting(.top, to: clampedTopBarBottomPxValue)
                         .insetting(.bottom, to: bottomBarTopPx.value)
@@ -672,10 +693,39 @@ public struct NavigationStack : View, Renderable {
                 // indicator.
                 var contentModifier = Modifier.fillMaxSize()
                 let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
-                let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
-                let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
-                        max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
+                let localTopBarBottomPx = max(Float(0.0), effectiveTopBarBottomPx - (arguments.safeArea?.presentationBoundsPx.top ?? Float(0.0)))
+                let topBarBottomDp = with(density) { localTopBarBottomPx.toDp() }
+                let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarBottomDp, safeTopDp) : topBarBottomDp
+                let bottomPadding: Dp
+
+                let topBarUnderlayColor: androidx.compose.ui.graphics.Color?
+                if topBarPreferences?.backgroundVisibility == Visibility.visible {
+                    topBarUnderlayColor = topBarPreferences?.background?.asColor(opacity: 1.0, animationContext: nil) ?? Color.systemBarBackground.colorImpl()
+                } else if topBarPreferences?.isSystemBackground == true || reservesInitialRootTopBar {
+                    topBarUnderlayColor = Color.systemBarBackground.colorImpl()
+                } else {
+                    topBarUnderlayColor = nil
+                }
+
+                if showsTopBar && topPadding.value > Float(0.0), let topBarUnderlayColor {
+                    Box(
+                        modifier: Modifier
+                            .zIndex(Float(1.0))
+                            .align(androidx.compose.ui.Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .height(topPadding)
+                            .background(topBarUnderlayColor)
+                    ) {}
+                }
+
+                if bottomBarHeightPx.value > Float(0.0) {
+                    bottomPadding = with(density) { bottomBarHeightPx.value.toDp() }
+                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) && !isPresentedAsSheet {
+                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                } else {
+                    bottomPadding = 0.dp
+                }
+
                 contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
                 Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                     var topPadding = 0.dp
