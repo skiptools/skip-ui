@@ -79,6 +79,14 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                         $0.set_isEdgeToEdge(safeBounds != presentationBounds.value)
                     }
                     $0.set_safeArea(safeArea)
+                    // A presentation is a new layout root: scroll axes inherited from the presenting
+                    // context (e.g. a sheet presented from a button inside a ScrollView) must not
+                    // leak in. Otherwise expanding content in the presentation is sized with
+                    // IntrinsicSize as if it were in the presenter's scroll direction, which crashes
+                    // when that content contains a lazy container: intrinsic measurement of
+                    // SubcomposeLayout-based components is unsupported in Compose
+                    $0.set_layoutScrollAxes(Axis.Set(rawValue: 0))
+                    $0.set_scrollAxes(Axis.Set(rawValue: 0))
                     return ComposeResult.ok
                 } in: {
                     Box(modifier: Modifier.fillMaxSize().padding(safeArea), contentAlignment = androidx.compose.ui.Alignment.Center) {
