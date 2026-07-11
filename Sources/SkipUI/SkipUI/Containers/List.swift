@@ -285,7 +285,9 @@ public final class List : View, Renderable {
         if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
             contentPadding = contentPadding.adding(contentMargins)
         }
-        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding) {
+        let listRowSpacing = EnvironmentValues.shared._listRowSpacing
+        let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
+        LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable () -> Bool = {
@@ -1369,9 +1371,13 @@ extension View {
         return self
     }
 
-    @available(*, unavailable)
-    public func listRowSpacing(_ spacing: CGFloat?) -> some View {
+    // SKIP @bridge
+    public func listRowSpacing(_ spacing: CGFloat?) -> any View {
+        #if SKIP
+        return environment(\._listRowSpacing, spacing, affectsEvaluate: false)
+        #else
         return self
+        #endif
     }
 
     @available(*, unavailable)
