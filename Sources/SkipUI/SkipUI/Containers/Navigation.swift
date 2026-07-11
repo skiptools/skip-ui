@@ -413,7 +413,9 @@ public struct NavigationStack : View, Renderable {
                             .onGloballyPositioned { coordinates in
                                 let heightPx = Float(coordinates.size.height)
                                 if heightPx > Float(0.0) {
-                                    topBarBottomPx.value = heightPx
+                                    // Toolbar item content can measure taller in some locales. Keep the content inset
+                                    // tied to the standard app bar height so navigation transitions stay stable.
+                                    topBarBottomPx.value = min(heightPx, estimatedTopBarBottomInPresentationPx)
                                     measuredTopBarIsInline.value = isInlineTitleDisplayMode
                                 }
                                 measuredTopBarSafeAreaTopPx.value = safeAreaTopPx
@@ -720,7 +722,7 @@ public struct NavigationStack : View, Renderable {
 
                 if bottomBarHeightPx.value > Float(0.0) {
                     bottomPadding = with(density) { bottomBarHeightPx.value.toDp() }
-                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) && !isPresentedAsSheet {
+                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) && !isPresentedAsSheet && !showsTopBar {
                     bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
                 } else {
                     bottomPadding = 0.dp
