@@ -289,9 +289,12 @@ public final class List : View, Renderable {
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
             let shouldAnimateItems: @Composable () -> Bool = {
-                // We disable animation to prevent filtered items from animating when they return
-                let animate = !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
-                return animate
+                // Algumon temporary performance patch: Compose's permanent
+                // animateItem modifier causes measurable jank while scrolling
+                // large, image-rich lists. Keep LazyColumn virtualization and
+                // stable keys, but disable placement animation until SkipUI
+                // exposes a public opt-out.
+                return false
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
