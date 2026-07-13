@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.RadialGradientShader
 import androidx.compose.ui.graphics.Shader
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.SweepGradientShader
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -303,32 +304,74 @@ public struct RadialGradient : ShapeStyle, Renderable {
     #endif
 }
 
-public struct AngularGradient : ShapeStyle {
-    @available(*, unavailable)
-    public init(gradient: Gradient, center: UnitPoint, startAngle: Angle = .zero, endAngle: Angle = .zero) {
+// SKIP @bridge
+public struct AngularGradient : ShapeStyle, Renderable {
+    let gradient: Gradient
+    let center: UnitPoint
+    let startAngle: Angle
+    let endAngle: Angle
+
+    public init(gradient: Gradient, center: UnitPoint, startAngle: Angle = .zero, endAngle: Angle = .degrees(360)) {
+        self.gradient = gradient
+        self.center = center
+        self.startAngle = startAngle
+        self.endAngle = endAngle
     }
 
-    @available(*, unavailable)
     public init(colors: [Color], center: UnitPoint, startAngle: Angle, endAngle: Angle) {
+        self.init(gradient: Gradient(colors: colors), center: center, startAngle: startAngle, endAngle: endAngle)
     }
 
-    @available(*, unavailable)
     public init(stops: [Gradient.Stop], center: UnitPoint, startAngle: Angle, endAngle: Angle) {
+        self.init(gradient: Gradient(stops: stops), center: center, startAngle: startAngle, endAngle: endAngle)
     }
 
-    @available(*, unavailable)
     public init(gradient: Gradient, center: UnitPoint, angle: Angle = .zero) {
+        self.init(gradient: gradient, center: center, startAngle: angle, endAngle: Angle(radians: angle.radians + 2.0 * Double.pi))
     }
 
-    @available(*, unavailable)
     public init(colors: [Color], center: UnitPoint, angle: Angle = .zero) {
+        self.init(gradient: Gradient(colors: colors), center: center, angle: angle)
     }
 
-    @available(*, unavailable)
     public init(stops: [Gradient.Stop], center: UnitPoint, angle: Angle = .zero) {
+        self.init(gradient: Gradient(stops: stops), center: center, angle: angle)
     }
 
-    #if !SKIP
+    // SKIP @bridge
+    public init(colors: [Color], locations: [CGFloat], centerX: CGFloat, centerY: CGFloat, startAngle: Double, endAngle: Double) {
+        let stops = zip(colors, locations).map { Gradient.Stop(color: $0.0, location: $0.1) }
+        self.gradient = Gradient(stops: stops)
+        self.center = UnitPoint(x: centerX, y: centerY)
+        self.startAngle = .radians(startAngle)
+        self.endAngle = .radians(endAngle)
+    }
+
+    #if SKIP
+    @Composable override func Render(context: ComposeContext) {
+        let modifier = context.modifier.background(asBrush(opacity: 1.0, animationContext: nil)!).fillSize()
+        Box(modifier: modifier)
+    }
+
+    // MARK: - ShapeStyle
+
+    @Composable override func asBrush(opacity: Double, animationContext: ComposeContext?) -> Brush? {
+        let stops = gradient.colorStops(opacity: opacity)
+        return remember(gradient, center, startAngle, endAngle, opacity) {
+            SweepGradientShaderBrush(colorStops: stops, center: center)
+        }
+    }
+
+    private struct SweepGradientShaderBrush: ShaderBrush {
+        let colorStops: kotlin.collections.List<Pair<Float, androidx.compose.ui.graphics.Color>>
+        let center: UnitPoint
+
+        override func createShader(size: androidx.compose.ui.geometry.Size) -> Shader {
+            let center = Offset(x: size.width * Float(center.x), y: size.height * Float(center.y))
+            return SweepGradientShader(center: center, colors: colorStops.map { $0.second }, colorStops: colorStops.map { $0.first })
+        }
+    }
+    #else
     public var body: some View {
         stubView()
     }
@@ -378,34 +421,28 @@ extension ShapeStyle where Self == EllipticalGradient {
 }
 
 extension ShapeStyle where Self == AngularGradient {
-    @available(*, unavailable)
     public static func angularGradient(_ gradient: Gradient, center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
-        fatalError()
+        return AngularGradient(gradient: gradient, center: center, startAngle: startAngle, endAngle: endAngle)
     }
 
-    @available(*, unavailable)
     public static func angularGradient(colors: [Color], center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
-        fatalError()
+        return AngularGradient(colors: colors, center: center, startAngle: startAngle, endAngle: endAngle)
     }
 
-    @available(*, unavailable)
     public static func angularGradient(stops: [Gradient.Stop], center: UnitPoint, startAngle: Angle, endAngle: Angle) -> AngularGradient {
-        fatalError()
+        return AngularGradient(stops: stops, center: center, startAngle: startAngle, endAngle: endAngle)
     }
 
-    @available(*, unavailable)
     public static func conicGradient(_ gradient: Gradient, center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
-        fatalError()
+        return AngularGradient(gradient: gradient, center: center, angle: angle)
     }
 
-    @available(*, unavailable)
     public static func conicGradient(colors: [Color], center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
-        fatalError()
+        return AngularGradient(colors: colors, center: center, angle: angle)
     }
 
-    @available(*, unavailable)
     public static func conicGradient(stops: [Gradient.Stop], center: UnitPoint, angle: Angle = .zero) -> AngularGradient {
-        fatalError()
+        return AngularGradient(stops: stops, center: center, angle: angle)
     }
 }
 
