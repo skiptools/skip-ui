@@ -863,28 +863,6 @@ extension View {
         #endif
     }
 
-    /// Moves a view with a render-layer translation instead of a layout offset.
-    ///
-    /// This is useful for performance experiments where a view should move visually without
-    /// asking Compose to reposition it during layout. Hit testing keeps the original layout
-    /// bounds, so this should only be used for controlled overlay surfaces.
-    // SKIP @bridge
-    public func graphicsLayerOffset(x: CGFloat = 0.0, y: CGFloat = 0.0) -> any View {
-        #if SKIP
-        let animTx = StateTracking.captureLastReadAndClear()
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let density = LocalDensity.current
-            let value = (Float(x), Float(y)).asAnimatableValue(context: context, animTx: animTx)
-            return context.modifier.graphicsLayer {
-                translationX = with(density) { value.0.dp.toPx() }
-                translationY = with(density) { value.1.dp.toPx() }
-            }
-        })
-        #else
-        return self
-        #endif
-    }
-
     // SKIP @bridge
     public func onAppear(perform action: (() -> Void)? = nil) -> any View {
         #if SKIP
