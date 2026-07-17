@@ -14,30 +14,26 @@ final class ColorTests: XCSnapshotTestCase {
         XCTAssertEqual("F", try render(compact: 1, view: Color.white.frame(width: 1.0, height: 1.0)).pixmap)
     }
 
-    // Issue #146 follow-up: a custom .colorset must render the same color regardless of which Input Method
-    // Xcode used to encode its components. #471 handled the "0x" hexadecimal form; these also cover the
-    // "8-bit (0-255)" and "Floating Point" methods. All three fixtures encode the same color (#04F188).
-    //
-    // DISABLED-prefixed (device/emulator only): decoding a bundled component .colorset from Bundle.module
-    // throws a kotlin-reflect IllegalAccessException under the Robolectric *unit* runner (it can't access the
-    // DecodableCompanion Skip generates for the nested ColorSet types), so the color falls back to gray. This
-    // is a pre-existing test-runner limitation, independent of the parser; the parsing itself is covered by a
-    // standalone logic harness, and these render correctly on a real device/emulator.
+    // Issue #146 follow-up: all three .colorset Input Methods must render the same color (#04F188).
+    // Skipped on Robolectric — Bundle.module colorset decoding falls back to gray there (pre-existing runner limitation).
 
-    func DISABLEDtestHexColorset() throws {
+    func testHexColorset() throws {
         #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
         XCTAssertEqual("04F188", try render(compact: 1, view: Color("HexColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
         #endif
     }
 
-    func DISABLEDtestIntColorset() throws {
+    func testIntColorset() throws {
         #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
         XCTAssertEqual("04F188", try render(compact: 1, view: Color("IntColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
         #endif
     }
 
-    func DISABLEDtestFloatColorset() throws {
+    func testFloatColorset() throws {
         #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
         XCTAssertEqual("04F188", try render(compact: 1, view: Color("FloatColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
         #endif
     }
