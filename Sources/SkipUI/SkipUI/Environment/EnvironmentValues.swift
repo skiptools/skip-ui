@@ -789,6 +789,11 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentMargins", value: newValue, defaultValue: { nil }) }
     }
 
+    var _listRowSpacing: CGFloat? {
+        get { builtinValue(key: "_listRowSpacing", defaultValue: { nil }) as! CGFloat? }
+        set { setBuiltinValue(key: "_listRowSpacing", value: newValue, defaultValue: { nil }) }
+    }
+
     /// Allow users to revert to previous layout behavior.
     var _layoutImplementationVersion: Int {
         get { builtinValue(key: "_layoutImplementationVersion", defaultValue: { 2 }) as! Int }
