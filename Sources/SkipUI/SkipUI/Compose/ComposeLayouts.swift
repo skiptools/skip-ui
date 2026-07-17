@@ -235,7 +235,12 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
             guard !measurables.isEmpty() else {
                 return layout(width: 0, height: 0) {}
             }
-            let updatedConstraints = constraints.copy(maxWidth: constraints.maxWidth + expansionLeft + expansionRight, maxHeight: constraints.maxHeight + expansionTop + expansionBottom)
+            // Guard the arithmetic: in an intrinsic measurement pass (e.g. a parent fill in a
+            // scroll direction using IntrinsicSize.Max) Compose calls measure with
+            // maxHeight == Constraints.Infinity, and adding the expansion overflows Int to a
+            // negative value, crashing Constraints.copy. Preserve Infinity and never go below
+            // the min constraints
+            let updatedConstraints = constraints.copy(maxWidth: constraint(constraints.maxWidth, adding: expansionLeft + expansionRight, atLeast: constraints.minWidth), maxHeight: constraint(constraints.maxHeight, adding: expansionTop + expansionBottom, atLeast: constraints.minHeight))
             let targetPlaceables = measurables.map { $0.measure(updatedConstraints) }
             layout(width: targetPlaceables[0].width, height: targetPlaceables[0].height) {
                 // Layout will center extra space by default
@@ -337,6 +342,13 @@ private func constraint(_ value: Int, subtracting: Int) -> Int {
         return value
     }
     return max(0, value - subtracting)
+}
+
+private func constraint(_ value: Int, adding: Int, atLeast: Int) -> Int {
+    guard value != Int.MAX_VALUE else {
+        return value
+    }
+    return max(atLeast, value + adding)
 }
 
 private func placeContent(width: Int, height: Int, inWidth: Int, inHeight: Int, alignment: Alignment) -> (Int, Int) {

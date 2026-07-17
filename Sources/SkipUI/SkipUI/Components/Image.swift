@@ -513,12 +513,17 @@ public struct Image : View, Renderable, Equatable {
         case "arrow.left": return "Icons.Outlined.ArrowBack" //􀄪
         case "arrowtriangle.down.fill": return "Icons.Outlined.ArrowDropDown" //􀄥
         case "arrow.forward": return "Icons.Outlined.ArrowForward" //􀰑
+        case "person.text.rectangle": return "Icons.Outlined.Badge"
+        case "barcode": return "Icons.Outlined.Badge"
+        case "chart.bar.xaxis": return "Icons.Outlined.BarChart"
+        case "bookmark": return "Icons.Outlined.BookmarkBorder" //􀉞
         case "wrench": return "Icons.Outlined.Build" //􀎕
         case "phone": return "Icons.Outlined.Call" //􀌾
         case "checkmark.circle": return "Icons.Outlined.CheckCircle" //􀁢
         case "checkmark": return "Icons.Outlined.Check" //􀆅
         case "xmark": return "Icons.Outlined.Clear" //􀆄
         case "pencil": return "Icons.Outlined.Create" //􀈊
+        case "barcode.viewfinder": return "Icons.Outlined.CropFree"
         case "calendar": return "Icons.Outlined.DateRange" //􀉉
         case "trash": return "Icons.Outlined.Delete" //􀈑
         case "envelope": return "Icons.Outlined.Email" //􀍕
@@ -541,6 +546,7 @@ public struct Image : View, Renderable, Equatable {
         case "person": return "Icons.Outlined.Person" //􀉩
         case "mappin.circle": return "Icons.Outlined.Place" //􀎪
         case "play": return "Icons.Outlined.PlayArrow" //􀊃
+        case "camera.viewfinder": return "Icons.Outlined.QrCodeScanner"
         case "arrow.clockwise.circle": return "Icons.Outlined.Refresh" //􀚁
         case "magnifyingglass": return "Icons.Outlined.Search" //􀊫
         case "paperplane": return "Icons.Outlined.Send" //􀈟
@@ -554,6 +560,7 @@ public struct Image : View, Renderable, Equatable {
 
         case "person.crop.square.fill": return "Icons.Filled.AccountBox" //􀉺
         case "person.crop.circle.fill": return "Icons.Filled.AccountCircle" //􀉮
+        case "bookmark.fill": return "Icons.Filled.Bookmark" //􀉟
         case "wrench.fill": return "Icons.Filled.Build" //􀎖
         case "phone.fill": return "Icons.Filled.Call" //􀌿
         case "checkmark.circle.fill": return "Icons.Filled.CheckCircle" //􀁣
@@ -591,6 +598,9 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.ArrowBack": return Icons.Outlined.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ArrowBack
         case "Icons.Outlined.ArrowDropDown": return Icons.Outlined.ArrowDropDown
         case "Icons.Outlined.ArrowForward": return Icons.Outlined.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.ArrowForward
+        case "Icons.Outlined.Badge": return Icons.Outlined.Badge
+        case "Icons.Outlined.BarChart": return Icons.Outlined.BarChart
+        case "Icons.Outlined.BookmarkBorder": return Icons.Outlined.BookmarkBorder
         case "Icons.Outlined.Build": return Icons.Outlined.Build
         case "Icons.Outlined.Call": return Icons.Outlined.Call
         case "Icons.Outlined.CheckCircle": return Icons.Outlined.CheckCircle
@@ -598,6 +608,7 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.Clear": return Icons.Outlined.Clear
         case "Icons.Outlined.Close": return Icons.Outlined.Close
         case "Icons.Outlined.Create": return Icons.Outlined.Create
+        case "Icons.Outlined.CropFree": return Icons.Outlined.CropFree
         case "Icons.Outlined.DateRange": return Icons.Outlined.DateRange
         case "Icons.Outlined.Delete": return Icons.Outlined.Delete
         case "Icons.Outlined.Done": return Icons.Outlined.Done
@@ -624,6 +635,7 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Outlined.Phone": return Icons.Outlined.Phone
         case "Icons.Outlined.Place": return Icons.Outlined.Place
         case "Icons.Outlined.PlayArrow": return Icons.Outlined.PlayArrow
+        case "Icons.Outlined.QrCodeScanner": return Icons.Outlined.QrCodeScanner
         case "Icons.Outlined.Refresh": return Icons.Outlined.Refresh
         case "Icons.Outlined.Search": return Icons.Outlined.Search
         case "Icons.Outlined.Send": return Icons.Outlined.Send // Compose 1.6 TODO: Icons.AutoMirrored.Outlined.Send
@@ -641,6 +653,7 @@ public struct Image : View, Renderable, Equatable {
         case "Icons.Filled.ArrowBack": return Icons.Filled.ArrowBack // Compose 1.6 TODO: Icons.AutoMirrored.Filled.ArrowBack
         case "Icons.Filled.ArrowDropDown": return Icons.Filled.ArrowDropDown
         case "Icons.Filled.ArrowForward": return Icons.Filled.ArrowForward // Compose 1.6 TODO: Icons.AutoMirrored.Filled.ArrowForward
+        case "Icons.Filled.Bookmark": return Icons.Filled.Bookmark
         case "Icons.Filled.Build": return Icons.Filled.Build
         case "Icons.Filled.Call": return Icons.Filled.Call
         case "Icons.Filled.CheckCircle": return Icons.Filled.CheckCircle

@@ -154,10 +154,12 @@ public struct DatePicker : View, Renderable {
         let isTimePickerPresented = remember { mutableStateOf(false) }
         let isEnabled = EnvironmentValues.shared.isEnabled
         let date = selection.wrappedValue
-        let (hour, minute) = hourAndMinute(from: date)
+        let timeZone = EnvironmentValues.shared.timeZone
+        let (hour, minute) = hourAndMinute(from: date, timeZone: timeZone)
         let currentLocale = Locale(androidx.compose.ui.platform.LocalConfiguration.current.locales[0])
         
         dateFormatter?.locale = currentLocale
+        dateFormatter?.timeZone = timeZone
         if let dateString = dateFormatter?.string(from: date) {
             let text = Text(verbatim: dateString)
             if isEnabled {
@@ -169,6 +171,7 @@ public struct DatePicker : View, Renderable {
             }
         }
         timeFormatter?.locale = currentLocale
+        timeFormatter?.timeZone = timeZone
         if let timeString = timeFormatter?.string(from: date) {
             let text = Text(verbatim: timeString)
             if isEnabled {
@@ -181,24 +184,24 @@ public struct DatePicker : View, Renderable {
         }
 
         let tintColor = (EnvironmentValues.shared._tint ?? Color.accentColor).colorImpl()
-        RenderDatePicker(context: context, isPresented: isDatePickerPresented, tintColor: tintColor) {
-            didSelect(date: $0, hour: hour, minute: minute)
+        RenderDatePicker(context: context, isPresented: isDatePickerPresented, tintColor: tintColor, timeZone: timeZone) {
+            didSelect(date: $0, hour: hour, minute: minute, timeZone: timeZone)
         }
         RenderTimePicker(context: context, isPresented: isTimePickerPresented, tintColor: tintColor, hour: hour, minute: minute) {
-            didSelect(date: date, hour: $0, minute: $1)
+            didSelect(date: date, hour: $0, minute: $1, timeZone: timeZone)
         }
     }
 
-    @Composable private func RenderDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, dateSelected: (Date) -> Void) {
+    @Composable private func RenderDatePicker(context: ComposeContext, isPresented: MutableState<Bool>, tintColor: androidx.compose.ui.graphics.Color, timeZone: TimeZone, dateSelected: (Date) -> Void) {
         guard isPresented.value else {
             return
         }
-        let initialMillis = datePickerMillis(from: selection.wrappedValue)
+        let initialMillis = datePickerMillis(from: selection.wrappedValue, timeZone: timeZone)
         let displayMode = EnvironmentValues.shared.verticalSizeClass == .compact ? DisplayMode.Input : DisplayMode.Picker
 
         // Create selectable dates filter if range is specified
-        let minMillis: Long? = minDate != nil ? datePickerMillis(from: minDate!) : nil
-        let maxMillis: Long? = maxDate != nil ? datePickerMillis(from: maxDate!) : nil
+        let minMillis: Long? = minDate != nil ? datePickerMillis(from: minDate!, timeZone: timeZone) : nil
+        let maxMillis: Long? = maxDate != nil ? datePickerMillis(from: maxDate!, timeZone: timeZone) : nil
 
         let state: DatePickerState
         if minMillis != nil || maxMillis != nil {
@@ -213,18 +216,18 @@ public struct DatePicker : View, Renderable {
             DatePicker(modifier: context.modifier, state: state, colors: colors)
         }
         if let millis = state.selectedDateMillis {
-            dateSelected(date(fromDatePickerMillis: millis))
+            dateSelected(date(fromDatePickerMillis: millis, timeZone: timeZone))
         }
     }
 
-    private func datePickerMillis(from date: Date) -> Long {
-        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT(for: date))
+    private func datePickerMillis(from date: Date, timeZone: TimeZone) -> Long {
+        let timeZoneOffset = Double(timeZone.secondsFromGMT(for: date))
         return Long((date.timeIntervalSince1970 + timeZoneOffset) * 1000.0)
     }
 
-    private func date(fromDatePickerMillis millis: Long) -> Date {
+    private func date(fromDatePickerMillis millis: Long, timeZone: TimeZone) -> Date {
         let utcDate = Date(timeIntervalSince1970: Double(millis) / 1000.0)
-        let timeZoneOffset = Double(TimeZone.current.secondsFromGMT(for: utcDate))
+        let timeZoneOffset = Double(timeZone.secondsFromGMT(for: utcDate))
         return Date(timeIntervalSince1970: utcDate.timeIntervalSince1970 - timeZoneOffset)
     }
 
@@ -247,9 +250,9 @@ public struct DatePicker : View, Renderable {
     }
     #endif
 
-    private func didSelect(date: Date, hour: Int, minute: Int) {
+    private func didSelect(date: Date, hour: Int, minute: Int, timeZone: TimeZone = TimeZone.current) {
         // Subtract out any existing hour and minute from the given date, then add the selected values
-        let (baseHour, baseMinute) = hourAndMinute(from: date)
+        let (baseHour, baseMinute) = hourAndMinute(from: date, timeZone: timeZone)
         let baseSeconds = date.timeIntervalSince1970 - Double(baseHour * 60 * 60) - Double(baseMinute * 60)
         let selectedSeconds = baseSeconds + Double(hour * 60 * 60) + Double(minute * 60)
         #if SKIP
@@ -260,8 +263,9 @@ public struct DatePicker : View, Renderable {
         #endif
     }
 
-    private func hourAndMinute(from date: Date) -> (Int, Int) {
-        let calendar = Calendar.current
+    private func hourAndMinute(from date: Date, timeZone: TimeZone = TimeZone.current) -> (Int, Int) {
+        var calendar = Calendar.current
+        calendar.timeZone = timeZone
         let timeComponents = calendar.dateComponents([.hour, .minute], from: date)
         return (timeComponents.hour!, timeComponents.minute!)
     }
