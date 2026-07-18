@@ -158,8 +158,9 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
 ///     the given closure as a pixel rect.
 /// - Parameter checkEdges: Which edges to check to see if we're against a safe area. Any matching edges will be
 ///     passed to the given closure.
+/// - Parameter bottomAdjacencyTolerancePx: Distance from the bottom safe boundary still considered adjacent.
 /// - Parameter logTag: When non-empty, emits Android ``Log`` lines with tag `SkipUI.ISAL.<logTag>` (e.g. filter logcat `SkipUI.ISAL.List`).
-@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, logTag: String = "", target: @Composable (IntRect, Edge.Set) -> Void) {
+@Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, bottomAdjacencyTolerancePx: Float = Float(0.1), logTag: String = "", target: @Composable (IntRect, Edge.Set) -> Void) {
     guard let safeArea = EnvironmentValues.shared._safeArea else {
         if !logTag.isEmpty {
             Log.d("SkipUI.ISAL.\(logTag)", "no SafeArea in environment; skipping expansion")
@@ -220,7 +221,7 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
     } in: {
         Layout(modifier: modifier.onGloballyPositionedInWindow {
             let probeEdges = expandInto.union(checkEdges)
-            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges)
+            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges, bottomTolerancePx: bottomAdjacencyTolerancePx)
             if !logTag.isEmpty {
                 let previous = edgesState.value
                 if newEdges != previous {
@@ -255,12 +256,12 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
     }
 }
 
-private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool, checkEdges: Edge.Set) -> Edge.Set {
+private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool, checkEdges: Edge.Set, bottomTolerancePx: Float = Float(0.1)) -> Edge.Set {
     var edges: Edge.Set = []
     if checkEdges.contains(Edge.Set.top), bounds.top <= safeArea.safeBoundsPx.top + 0.1 {
         edges.insert(Edge.Set.top)
     }
-    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= safeArea.safeBoundsPx.bottom - 0.1 {
+    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= safeArea.safeBoundsPx.bottom - bottomTolerancePx {
         edges.insert(Edge.Set.bottom)
     }
     if isRTL {
