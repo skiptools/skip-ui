@@ -14,6 +14,30 @@ final class ColorTests: XCSnapshotTestCase {
         XCTAssertEqual("F", try render(compact: 1, view: Color.white.frame(width: 1.0, height: 1.0)).pixmap)
     }
 
+    // Issue #146 follow-up: all three .colorset Input Methods must render the same color (#04F188).
+    // Skipped on Robolectric — Bundle.module colorset decoding falls back to gray there (pre-existing runner limitation).
+
+    func testHexColorset() throws {
+        #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("HexColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
+    func testIntColorset() throws {
+        #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("IntColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
+    func testFloatColorset() throws {
+        #if SKIP
+        if isRobolectric { throw XCTSkip("Bundle.module colorset decoding requires Android emulator") }
+        XCTAssertEqual("04F188", try render(compact: 1, view: Color("FloatColor", bundle: .module).frame(width: 1.0, height: 1.0)).pixmap)
+        #endif
+    }
+
     // Disabled tests (due to slow performance when running against emulator)
 
     func DISABLEDtestColorClearDark() throws {
