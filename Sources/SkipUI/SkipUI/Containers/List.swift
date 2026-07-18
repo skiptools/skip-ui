@@ -156,8 +156,9 @@ public final class List : View, Renderable {
         let safeArea = EnvironmentValues.shared._safeArea
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
         ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        let bottomAdjacencyTolerancePx = safeArea.map { max(Float(0.1), $0.presentationBoundsPx.bottom - $0.safeBoundsPx.bottom) } ?? Float(0.1)
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true, then: Modifier.background(BackgroundColor(styling: styling, isItem: false))) { modifier in
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.bottom], modifier: modifier, logTag: "List") { safeAreaExpansion, safeAreaEdges in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: [.bottom], modifier: modifier, bottomAdjacencyTolerancePx: bottomAdjacencyTolerancePx, logTag: "List") { safeAreaExpansion, safeAreaEdges in
                 var containerModifier: Modifier
                 let refreshing = remember { mutableStateOf(false) }
                 let refreshAction = EnvironmentValues.shared.refresh

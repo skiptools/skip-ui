@@ -166,7 +166,8 @@ public struct NavigationStack : View, Renderable {
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
             ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "NavigationStack") { _, _ in
+            let bottomAdjacencyTolerancePx = safeArea.map { max(Float(0.1), $0.presentationBoundsPx.bottom - $0.safeBoundsPx.bottom) } ?? Float(0.1)
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, bottomAdjacencyTolerancePx: bottomAdjacencyTolerancePx, logTag: "NavigationStack") { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                     let decoratorList = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
                     let entryProvider = entryProvider {
@@ -325,7 +326,9 @@ public struct NavigationStack : View, Renderable {
         modifier = modifier.then(context.modifier)
 
         let shouldReserveInitialTopBarSpace = showTopBar || reservesInitialRootTopBar
-        let estimatedTopBarHeight = isInlineTitleDisplayMode ? 64.dp : 112.dp
+        let estimatedCollapsedTopBarHeight = 64.dp
+        let estimatedExpandedTopBarHeight = 112.dp
+        let estimatedTopBarHeight = isInlineTitleDisplayMode ? estimatedCollapsedTopBarHeight : estimatedExpandedTopBarHeight
         let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
         let hasAbsoluteTopSystemBar = arguments.safeArea?.absoluteSystemBarEdges.contains(.top) == true
         let estimatedTopBarBottomPx = shouldReserveInitialTopBarSpace ? with(density) { safeAreaTopPx + estimatedTopBarHeight.toPx() } : Float(0.0)
@@ -589,7 +592,8 @@ public struct NavigationStack : View, Renderable {
                     let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
                         let containerColor = showScrolledBackground ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
-                        let windowInsets = EnvironmentValues.shared._isEdgeToEdge == true ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
+                        let usesBottomSystemBarInset = EnvironmentValues.shared._isEdgeToEdge == true && arguments.safeArea?.absoluteSystemBarEdges.contains(.bottom) == true
+                        let windowInsets = usesBottomSystemBarInset ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
                         var options = Material3BottomAppBarOptions(modifier: context.modifier.then(bottomBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp))
                         if let updateOptions = EnvironmentValues.shared._material3BottomAppBar {
                             options = updateOptions(options)
@@ -676,12 +680,12 @@ public struct NavigationStack : View, Renderable {
                         .insetting(.top, to: clampedTopBarBottomPxValue)
                         .insetting(.bottom, to: bottomBarTopPx.value)
                 }
-                
+
                 // Top bar aligned to top
                 Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
                     topBar()
                 }
-                
+
                 // Bottom bar aligned to bottom
                 Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
                     bottomBar()
@@ -695,13 +699,27 @@ public struct NavigationStack : View, Renderable {
                 // indicator.
                 var contentModifier = Modifier.fillMaxSize()
                 let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                let localTopBarBottomPx = max(Float(0.0), effectiveTopBarBottomPx - (arguments.safeArea?.presentationBoundsPx.top ?? Float(0.0)))
-                let topBarBottomDp = with(density) { localTopBarBottomPx.toDp() }
+                let topBarBottomDp: Dp
+                if showsTopBar {
+                    if isInlineTitleDisplayMode {
+                        let localTopBarBottomPx = max(Float(0.0), effectiveTopBarBottomPx - (arguments.safeArea?.presentationBoundsPx.top ?? Float(0.0)))
+                        topBarBottomDp = with(density) { localTopBarBottomPx.toDp() }
+                    } else {
+                        let localSafeAreaTopDp = with(density) { max(Float(0.0), safeAreaTopPx - presentationTopPx).toDp() }
+                        let topBarHeightDp = estimatedCollapsedTopBarHeight + ((estimatedExpandedTopBarHeight - estimatedCollapsedTopBarHeight) * Float(1.0 - scrollBehavior.state.collapsedFraction))
+                        topBarBottomDp = localSafeAreaTopDp + topBarHeightDp
+                    }
+                } else {
+                    topBarBottomDp = 0.dp
+                }
+
                 let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarBottomDp, safeTopDp) : topBarBottomDp
                 let bottomPadding: Dp
 
                 let topBarUnderlayColor: androidx.compose.ui.graphics.Color?
-                if topBarPreferences?.backgroundVisibility == Visibility.visible {
+                if topBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    topBarUnderlayColor = nil
+                } else if topBarPreferences?.backgroundVisibility == Visibility.visible {
                     topBarUnderlayColor = topBarPreferences?.background?.asColor(opacity: 1.0, animationContext: nil) ?? Color.systemBarBackground.colorImpl()
                 } else if topBarPreferences?.isSystemBackground == true || reservesInitialRootTopBar {
                     topBarUnderlayColor = Color.systemBarBackground.colorImpl()
@@ -722,10 +740,31 @@ public struct NavigationStack : View, Renderable {
 
                 if bottomBarHeightPx.value > Float(0.0) {
                     bottomPadding = with(density) { bottomBarHeightPx.value.toDp() }
-                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) && !isPresentedAsSheet && !showsTopBar {
+                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) {
                     bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
                 } else {
                     bottomPadding = 0.dp
+                }
+
+                let bottomBarUnderlayColor: androidx.compose.ui.graphics.Color?
+                if bottomBarPreferences?.backgroundVisibility == Visibility.hidden {
+                    bottomBarUnderlayColor = nil
+                } else if bottomBarPreferences?.backgroundVisibility == Visibility.visible {
+                    bottomBarUnderlayColor = bottomBarPreferences?.background?.asColor(opacity: 1.0, animationContext: nil) ?? Color.systemBarBackground.colorImpl()
+                } else if bottomBarPreferences?.isSystemBackground == true {
+                    bottomBarUnderlayColor = Color.systemBarBackground.colorImpl()
+                } else {
+                    bottomBarUnderlayColor = nil
+                }
+
+                if bottomPadding.value > Float(0.0), let bottomBarUnderlayColor {
+                    Box(
+                        modifier: Modifier
+                            .align(androidx.compose.ui.Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(bottomPadding)
+                            .background(bottomBarUnderlayColor)
+                    ) {}
                 }
 
                 contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
