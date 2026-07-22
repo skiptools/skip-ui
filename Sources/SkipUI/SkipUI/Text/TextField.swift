@@ -42,69 +42,37 @@ public struct TextField : View, Renderable {
     let label: ComposeBuilder
     let prompt: Text?
     let isSecure: Bool
+    let axis: Axis
 
-    public init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, isSecure: Bool = false, @ViewBuilder label: () -> any View) {
+    public init(text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, isSecure: Bool = false, axis: Axis = Axis.horizontal, @ViewBuilder label: () -> any View) {
         self.text = text
         self.selection = selection
         self.label = ComposeBuilder.from(label)
         self.prompt = prompt
         self.isSecure = isSecure
+        self.axis = axis
     }
 
     // SKIP @bridge
-    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, getSelection: @escaping () -> TextSelection?, setSelection: @escaping (TextSelection?) -> Void, prompt: Text?, isSecure: Bool, bridgedLabel: any View) {
+    public init(getText: @escaping () -> String, setText: @escaping (String) -> Void, getSelection: @escaping () -> TextSelection?, setSelection: @escaping (TextSelection?) -> Void, prompt: Text?, isSecure: Bool, bridgedAxis: Int, bridgedLabel: any View) {
         self.text = Binding(get: getText, set: setText)
         self.selection = Binding(get: getSelection, set: setSelection)
         self.label = ComposeBuilder.from { bridgedLabel }
         self.prompt = prompt
         self.isSecure = isSecure
+        self.axis = Axis(rawValue: bridgedAxis) ?? Axis.horizontal
     }
 
-    public init(_ title: String, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
-        self.init(text: text, selection: selection, prompt: prompt, label: { Text(verbatim: title) })
+    public init(_ title: String, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, axis: Axis = Axis.horizontal) {
+        self.init(text: text, selection: selection, prompt: prompt, axis: axis, label: { Text(verbatim: title) })
     }
 
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
-        self.init(text: text, selection: selection, prompt: prompt, label: { Text(titleKey) })
+    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, axis: Axis = Axis.horizontal) {
+        self.init(text: text, selection: selection, prompt: prompt, axis: axis, label: { Text(titleKey) })
     }
 
-    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil) {
-        self.init(text: text, selection: selection, prompt: prompt, label: { Text(titleResource) })
-    }
-
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, axis: Axis) {
-        self.init(titleKey, text: text)
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, axis: Axis) {
-        self.init(titleResource, text: text)
-    }
-
-    @available(*, unavailable)
-    public init(_ titleKey: LocalizedStringKey, text: Binding<String>, prompt: Text?, axis: Axis) {
-        self.init(titleKey, text: text, prompt: prompt)
-    }
-
-    @available(*, unavailable)
-    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, prompt: Text?, axis: Axis) {
-        self.init(titleResource, text: text, prompt: prompt)
-    }
-
-    @available(*, unavailable)
-    public init(_ title: String, text: Binding<String>, axis: Axis) {
-        self.init(title, text: text)
-    }
-
-    @available(*, unavailable)
-    public init(_ title: String, text: Binding<String>, prompt: Text?, axis: Axis) {
-        self.init(title, text: text, prompt: prompt)
-    }
-
-    @available(*, unavailable)
-    public init(text: Binding<String>, prompt: Text? = nil, axis: Axis, @ViewBuilder label: () -> any View) {
-        self.init(text: text, prompt: prompt, label: label)
+    public init(_ titleResource: LocalizedStringResource, text: Binding<String>, selection: Binding<TextSelection?>? = nil, prompt: Text? = nil, axis: Axis = Axis.horizontal) {
+        self.init(text: text, selection: selection, prompt: prompt, axis: axis, label: { Text(titleResource) })
     }
 
     #if SKIP
@@ -148,24 +116,33 @@ public struct TextField : View, Renderable {
         // route them to the same submit state the IME action would.
         let submitState = EnvironmentValues.shared._onSubmitState
         let focusManager = LocalFocusManager.current
-        let baseModifier = context.modifier.fillWidth().onPreviewKeyEvent { keyEvent in
-            if keyEvent.type == KeyEventType.KeyDown &&
-                (keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) {
-                if let submitState {
-                    submitState.onSubmit(trigger: SubmitTriggers.text)
-                    focusManager.clearFocus()
-                    return true
+        // A vertical field takes Enter as a newline, so only single-line fields submit on it.
+        let isVertical = axis == Axis.vertical
+        var baseModifier = context.modifier.fillWidth()
+        if !isVertical {
+            baseModifier = baseModifier.onPreviewKeyEvent { keyEvent in
+                if keyEvent.type == KeyEventType.KeyDown &&
+                    (keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) {
+                    if let submitState {
+                        submitState.onSubmit(trigger: SubmitTriggers.text)
+                        focusManager.clearFocus()
+                        return true
+                    }
                 }
+                return false
             }
-            return false
         }
+        // `lineLimit` caps a vertical field's growth; `reservesSpace` makes it start at that height.
+        let lineLimit = EnvironmentValues.shared.lineLimit
+        let maxLines = isVertical ? (lineLimit ?? Int.max) : 1
+        let minLines = isVertical && EnvironmentValues.shared._lineLimitReservesSpace == true ? (lineLimit ?? 1) : 1
         var options = Material3TextFieldOptions(value: currentTextFieldValue, onValueChange: { value in
             text.wrappedValue = value.text
             selection?.wrappedValue = TextSelection(range: value.selection.start..<value.selection.end)
             textFieldValue.value = value
         }, placeholder: {
             Self.Placeholder(prompt: prompt ?? label, context: contentContext)
-        }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: true, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: 1, shape: OutlinedTextFieldDefaults.shape, colors: colors)
+        }, modifier: baseModifier, textStyle: alignedTextStyle, enabled: EnvironmentValues.shared.isEnabled, singleLine: !isVertical, visualTransformation: visualTransformation, keyboardOptions: keyboardOptions, keyboardActions: keyboardActions, maxLines: maxLines, minLines: minLines, shape: OutlinedTextFieldDefaults.shape, colors: colors)
         if let updateOptions = EnvironmentValues.shared._material3TextField {
             options = updateOptions(options)
         }
