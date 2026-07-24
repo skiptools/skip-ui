@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlin.reflect.full.companionObjectInstance
+import kotlin.reflect.full.companionObject
 #endif
 
 public protocol EnvironmentKey {
@@ -40,6 +40,18 @@ public protocol EnvironmentKey {
 public protocol EnvironmentKeyCompanion {
     associatedtype Value
     var defaultValue: Value { get }
+}
+
+/// Companion object instance for `type`, via Java reflection with `isAccessible = true`.
+/// Kotlin's `companionObjectInstance` omits that and throws `IllegalAccessException` for
+/// non-`public` key types, whose generated class is package-private (issue #243).
+func companionInstance(ofType type: Any.Type) -> Any? {
+    var instance: Any? = nil
+    // SKIP INSERT: val name = type.companionObject?.simpleName ?: "Companion"
+    // SKIP INSERT: val field = type.java.getDeclaredField(name)
+    // SKIP INSERT: field.isAccessible = true
+    // SKIP INSERT: instance = field.get(null)
+    return instance
 }
 #endif
 
@@ -145,7 +157,7 @@ public final class EnvironmentValues {
 
     /// The Compose `CompositionLocal` for the given environment value key type.
     public func valueCompositionLocal(key: Any.Type) -> ProvidableCompositionLocal<Any> {
-        // SKIP INSERT: val defaultValue = { (key.companionObjectInstance as EnvironmentKeyCompanion<*>).defaultValue }
+        // SKIP INSERT: val defaultValue = { (companionInstance(key) as EnvironmentKeyCompanion<*>).defaultValue }
         return compositionLocal(key: key, defaultValue: defaultValue)
     }
 
