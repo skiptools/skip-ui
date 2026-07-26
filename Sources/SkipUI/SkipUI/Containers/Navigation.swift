@@ -77,6 +77,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
@@ -319,16 +320,21 @@ public struct NavigationStack : View, Renderable {
         }
         modifier = modifier.then(context.modifier)
 
+        let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
+        let useLegacyBarHeightTracking = layoutImplementationVersion < 3
+
         let defaultTopBarHeight = 112.dp
         let topBarHeightPx = remember {
             mutableStateOf(showTopBar ? with(density) { defaultTopBarHeight.toPx() } : Float(0.0))
         }
         // Reactively clear the reserved inset whenever the bar is hidden — covers both a
         // title-less root (where AnimatedVisibility's onDispose never runs) and visible→hidden
-        // transitions where onDispose may not have fired yet.
-        LaunchedEffect(showTopBar) {
-            if !showTopBar {
-                topBarHeightPx.value = Float(0.0)
+        // transitions where onDispose may not have fired yet. Only needed for legacy layouts.
+        if useLegacyBarHeightTracking {
+            LaunchedEffect(showTopBar) {
+                if !showTopBar {
+                    topBarHeightPx.value = Float(0.0)
+                }
             }
         }
 
@@ -340,9 +346,11 @@ public struct NavigationStack : View, Renderable {
             let topBarEnter = moveEdgeTop.asEnterTransition(spec: animationSpec)
             let topBarExit = moveEdgeTop.asExitTransition(spec: animationSpec)
             AnimatedVisibility(visible: showTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
-                DisposableEffect(true) {
-                    onDispose {
-                        topBarHeightPx.value = Float(0.0)
+                if useLegacyBarHeightTracking {
+                    DisposableEffect(true) {
+                        onDispose {
+                            topBarHeightPx.value = Float(0.0)
+                        }
                     }
                 }
                 let isOverlapped = scrollBehavior.state.overlappedFraction > 0
@@ -392,9 +400,11 @@ public struct NavigationStack : View, Renderable {
                             .clickable(interactionSource: interactionSource, indication: nil, onClick: {
                                 scrollToTop.value.reduced.action()
                             })
-                            .onGloballyPositionedInWindow { bounds in
+                        if useLegacyBarHeightTracking {
+                            topBarModifier = topBarModifier.onGloballyPositionedInWindow { bounds in
                                 topBarHeightPx.value = bounds.bottom - bounds.top
                             }
+                        }
                         if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
                             let opacity = topBarHasColorScheme ? 1.0 : isInlineTitleDisplayMode ? min(1.0, Double(scrollBehavior.state.overlappedFraction * 5)) : Double(scrollBehavior.state.collapsedFraction)
                             if let topBarBackgroundBrush = topBarBackgroundForBrush.asBrush(opacity: opacity, animationContext: nil) {
@@ -491,6 +501,7 @@ public struct NavigationStack : View, Renderable {
             }
         }
 
+        // Kept for bottom-bar IME pull (all versions) and legacy chrome padding (versions < 3).
         let bottomBarHeightPx = remember { mutableStateOf(Float(0.0)) }
         let bottomBar: @Composable () -> Void = {
             guard bottomBarPreferences?.visibility != Visibility.hidden else {
@@ -585,126 +596,189 @@ public struct NavigationStack : View, Renderable {
         let inheritedInsets = edgeInsets(from: EnvironmentValues.shared._contentWindowInsets)
         let inheritedLeading = inheritedInsets.leading.dp
         let inheritedTrailing = inheritedInsets.trailing.dp
-        let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-        let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
-        let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
-        let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
-            max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
-        let chromePadding = PaddingValues(top: topPadding, bottom: bottomPadding)
         let inheritedTop = inheritedInsets.top.dp
         let inheritedBottom = inheritedInsets.bottom.dp
-        let contentInsets = contentWindowInsets(top: inheritedTop + topPadding, leading: inheritedLeading, bottom: inheritedBottom + bottomPadding, trailing: inheritedTrailing)
-        var contentSystemBarEdges = EnvironmentValues.shared._presentationSystemBarEdges
-        if showTopBar {
-            contentSystemBarEdges.remove(.top)
-        }
-        if bottomBarHeightPx.value > Float(0.0) {
-            contentSystemBarEdges.remove(.bottom)
-        }
+        let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+        let safeBottomDp = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
 
-        let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
-        if layoutImplementationVersion < 2 {
-            // Old Column layout (version < 2)
-            Column(modifier: modifier.background(Color.background.colorImpl())) {
-                // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-                let layoutTopPadding = !showTopBar && arguments.ignoresSafeAreaEdges.contains(.top) ? safeTopDp : 0.dp
-                let layoutBottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ? bottomPadding : 0.dp
-                let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : topPadding, bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : bottomPadding)
-                let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0))
-                    .padding(top: layoutTopPadding, bottom: layoutBottomPadding)
-                    .consumeWindowInsets(consumePadding)
-
-                topBar()
-                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    var topPadding = 0.dp
-                    let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
-                    if let searchableState {
-                        let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                        let searchFieldFadeOffset = searchFieldHeightPx / 3
-                        let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
-                            .align(androidx.compose.ui.Alignment.TopCenter)
-                            .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
-                            .background(searchFieldBackground)
-                            .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
-                            // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
-                            .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
-                            .fillMaxWidth()
-                        SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
-                        let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
-                        topPadding = searchFieldPlaceholderPadding
-                    }
-                    EnvironmentValues.shared.setValues {
-                        $0.set_contentWindowInsets(contentInsets)
-                        $0.set_presentationSystemBarEdges(contentSystemBarEdges)
-                        $0.set_searchableState(searchableState)
-                        $0.set_isNavigationRoot(arguments.isRoot)
-                        $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
-                        return ComposeResult.ok
-                    } in: {
-                        // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
-                        Box(modifier: Modifier.padding(top: topPadding)) {
-                            PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
-                                content(context.content())
-                            }
+        let renderMainContent: @Composable (PaddingValues, WindowInsets, Edge.Set) -> Void = { chromePadding, contentInsets, contentSystemBarEdges in
+            // Only consume the edges our bars cover. Where we're merely padding for a system bar that
+            // descendants can expand back into, consuming would suppress their own inset padding
+            let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : chromePadding.calculateTopPadding(), bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : chromePadding.calculateBottomPadding())
+            Box(modifier: Modifier.fillMaxSize().padding(chromePadding).consumeWindowInsets(consumePadding), contentAlignment: androidx.compose.ui.Alignment.Center) {
+                var searchTopPadding = 0.dp
+                let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
+                if let searchableState {
+                    let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                    let searchFieldFadeOffset = searchFieldHeightPx / 3
+                    let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
+                        .align(androidx.compose.ui.Alignment.TopCenter)
+                        .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
+                        .background(searchFieldBackground)
+                        .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
+                        // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
+                        .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
+                        .fillMaxWidth()
+                    SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
+                    let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
+                    searchTopPadding = searchFieldPlaceholderPadding
+                }
+                EnvironmentValues.shared.setValues {
+                    $0.set_contentWindowInsets(contentInsets)
+                    $0.set_presentationSystemBarEdges(contentSystemBarEdges)
+                    $0.set_searchableState(searchableState)
+                    $0.set_isNavigationRoot(arguments.isRoot)
+                    $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
+                    return ComposeResult.ok
+                } in: {
+                    // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
+                    Box(modifier: Modifier.padding(top: searchTopPadding)) {
+                        PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
+                            content(context.content())
                         }
                     }
                 }
-                bottomBar()
+            }
+        }
+
+        if layoutImplementationVersion >= 3 {
+            // Scaffold-style SubcomposeLayout: measure bars, then pad content in the same layout pass.
+            // Do not remember the slot lambdas — Skip may treat closures as equal and freeze the
+            // first composition's showTopBar / inherited insets (unlike Compose reference equality).
+            let chromePaddingHolder = remember { NavigationChromePaddingHolder() }
+            SubcomposeLayout(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) { constraints in
+                let layoutWidth = constraints.maxWidth
+                let layoutHeight = constraints.maxHeight
+                let looseConstraints = constraints.copy(minWidth: 0, minHeight: 0)
+
+                let topBarPlaceable = subcompose(NavigationScaffoldSlot.topBar) {
+                    Box { topBar() }
+                }.first().measure(looseConstraints)
+                let bottomBarPlaceable = subcompose(NavigationScaffoldSlot.bottomBar) {
+                    Box { bottomBar() }
+                }.first().measure(looseConstraints)
+                let hasTopBar = topBarPlaceable.width > 0 || topBarPlaceable.height > 0
+                let hasBottomBar = bottomBarPlaceable.width > 0 || bottomBarPlaceable.height > 0
+
+                let topPad: Dp
+                if hasTopBar {
+                    topPad = topBarPlaceable.height.toDp()
+                } else if arguments.ignoresSafeAreaEdges.contains(.top) {
+                    topPad = safeTopDp
+                } else {
+                    topPad = 0.dp
+                }
+                let bottomPad: Dp
+                if hasBottomBar {
+                    bottomPad = bottomBarPlaceable.height.toDp()
+                } else if arguments.ignoresSafeAreaEdges.contains(.bottom) {
+                    bottomPad = safeBottomDp
+                } else {
+                    bottomPad = 0.dp
+                }
+                chromePaddingHolder.top = topPad
+                chromePaddingHolder.bottom = bottomPad
+                chromePaddingHolder.hasTopBar = hasTopBar
+                chromePaddingHolder.hasBottomBar = hasBottomBar
+
+                let bodyPlaceable = subcompose(NavigationScaffoldSlot.mainContent) {
+                    // Read inherited insets live so TabView chrome changes propagate.
+                    let inherited = edgeInsets(from: EnvironmentValues.shared._contentWindowInsets)
+                    let chromeTop = chromePaddingHolder.top
+                    let chromeBottom = chromePaddingHolder.bottom
+                    let chromePadding = PaddingValues(top: chromeTop, bottom: chromeBottom)
+                    let contentInsets = contentWindowInsets(
+                        top: inherited.top.dp + chromeTop,
+                        leading: inherited.leading.dp,
+                        bottom: inherited.bottom.dp + chromeBottom,
+                        trailing: inherited.trailing.dp
+                    )
+                    var contentSystemBarEdges = EnvironmentValues.shared._presentationSystemBarEdges
+                    if chromePaddingHolder.hasTopBar {
+                        contentSystemBarEdges.remove(.top)
+                    }
+                    if chromePaddingHolder.hasBottomBar {
+                        contentSystemBarEdges.remove(.bottom)
+                    }
+                    renderMainContent(chromePadding, contentInsets, contentSystemBarEdges)
+                }.first().measure(looseConstraints)
+                layout(layoutWidth, layoutHeight) {
+                    bodyPlaceable.place(x: 0, y: 0)
+                    topBarPlaceable.place(x: 0, y: 0)
+                    bottomBarPlaceable.place(x: 0, y: layoutHeight - bottomBarPlaceable.height)
+                }
             }
         } else {
-            // New Box layout (version >= 2)
-            Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
-                // Top bar aligned to top
-                Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
-                    topBar()
-                }
-                
-                // Bottom bar aligned to bottom
-                Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
-                    bottomBar()
-                }
+            let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
+            let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
+            let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
+                safeBottomDp : with(density) { bottomBarHeightPx.value.toDp() }
+            let chromePadding = PaddingValues(top: topPadding, bottom: bottomPadding)
+            let contentInsets = contentWindowInsets(top: inheritedTop + topPadding, leading: inheritedLeading, bottom: inheritedBottom + bottomPadding, trailing: inheritedTrailing)
+            var contentSystemBarEdges = EnvironmentValues.shared._presentationSystemBarEdges
+            if showTopBar {
+                contentSystemBarEdges.remove(.top)
+            }
+            if bottomBarHeightPx.value > Float(0.0) {
+                contentSystemBarEdges.remove(.bottom)
+            }
 
-                // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
-                // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
-                // measured topBarHeightPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
-                // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
-                // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
-                // indicator.
-                let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : topPadding, bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : bottomPadding)
-                let contentModifier = Modifier.fillMaxSize().padding(chromePadding).consumeWindowInsets(consumePadding)
-                Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
-                    var topPadding = 0.dp
-                    let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
-                    if let searchableState {
-                        let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
-                        let searchFieldFadeOffset = searchFieldHeightPx / 3
-                        let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
-                            .align(androidx.compose.ui.Alignment.TopCenter)
-                            .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
-                            .background(searchFieldBackground)
-                            .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
-                            // Offset is negative. Fade out quickly as it scrolls in case it is moving up under transparent nav bar
-                            .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
-                            .fillMaxWidth()
-                        SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
-                        let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
-                        topPadding = searchFieldPlaceholderPadding
-                    }
-                    EnvironmentValues.shared.setValues {
-                        $0.set_contentWindowInsets(contentInsets)
-                        $0.set_presentationSystemBarEdges(contentSystemBarEdges)
-                        $0.set_searchableState(searchableState)
-                        $0.set_isNavigationRoot(arguments.isRoot)
-                        $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
-                        return ComposeResult.ok
-                    } in: {
-                        // Elevate the top padding modifier so that content always has the same context, allowing it to avoid recomposition
-                        Box(modifier: Modifier.padding(top: topPadding)) {
-                            PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
-                                content(context.content())
+            if layoutImplementationVersion < 2 {
+                // Old Column layout (version < 2)
+                Column(modifier: modifier.background(Color.background.colorImpl())) {
+                    // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
+                    let layoutTopPadding = !showTopBar && arguments.ignoresSafeAreaEdges.contains(.top) ? safeTopDp : 0.dp
+                    let layoutBottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ? bottomPadding : 0.dp
+                    let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : topPadding, bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : bottomPadding)
+                    let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0))
+                        .padding(top: layoutTopPadding, bottom: layoutBottomPadding)
+                        .consumeWindowInsets(consumePadding)
+
+                    topBar()
+                    Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
+                        var searchTopPadding = 0.dp
+                        let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
+                        if let searchableState {
+                            let searchFieldBackground = isSystemBackground ? Color.systemBarBackground.colorImpl() : androidx.compose.ui.graphics.Color.Transparent
+                            let searchFieldFadeOffset = searchFieldHeightPx / 3
+                            let searchFieldModifier = Modifier.height(searchFieldHeight.dp + searchFieldPadding)
+                                .align(androidx.compose.ui.Alignment.TopCenter)
+                                .offset({ IntOffset(0, Int(searchFieldOffsetPx.value)) })
+                                .background(searchFieldBackground)
+                                .padding(start: searchFieldPadding, bottom: searchFieldPadding, end: searchFieldPadding)
+                                .graphicsLayer { alpha = max(Float(0.0), (searchFieldFadeOffset + searchFieldOffsetPx.value) / searchFieldFadeOffset) }
+                                .fillMaxWidth()
+                            SearchField(state: searchableState, context: context.content(modifier: searchFieldModifier))
+                            let searchFieldPlaceholderPadding = searchFieldHeight.dp + searchFieldPadding + (with(LocalDensity.current) { searchFieldOffsetPx.value.toDp() })
+                            searchTopPadding = searchFieldPlaceholderPadding
+                        }
+                        EnvironmentValues.shared.setValues {
+                            $0.set_contentWindowInsets(contentInsets)
+                            $0.set_presentationSystemBarEdges(contentSystemBarEdges)
+                            $0.set_searchableState(searchableState)
+                            $0.set_isNavigationRoot(arguments.isRoot)
+                            $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
+                            return ComposeResult.ok
+                        } in: {
+                            Box(modifier: Modifier.padding(top: searchTopPadding)) {
+                                PreferenceValues.shared.collectPreferences([searchableStateCollector, scrollToTopCollector]) {
+                                    content(context.content())
+                                }
                             }
                         }
                     }
+                    bottomBar()
+                }
+            } else {
+                // Box layout (version 2)
+                Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
+                    Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
+                        topBar()
+                    }
+                    Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.BottomCenter)) {
+                        bottomBar()
+                    }
+                    renderMainContent(chromePadding, contentInsets, contentSystemBarEdges)
                 }
             }
         }
@@ -751,6 +825,18 @@ public struct SkipNavigationStackPushKey : NavKey, Hashable {
     let ignoresSafeAreaEdges: Edge.Set
     let title: Text
     let toolbarPreferences: ToolbarPreferences
+}
+
+/// Mutable chrome padding updated during SubcomposeLayout measure before body subcomposition (Scaffold pattern).
+final class NavigationChromePaddingHolder {
+    var top: Dp = 0.dp
+    var bottom: Dp = 0.dp
+    var hasTopBar: Bool = false
+    var hasBottomBar: Bool = false
+}
+
+private enum NavigationScaffoldSlot {
+    case topBar, bottomBar, mainContent
 }
 
 @Stable struct NavigationDestinationArguments: Equatable {
