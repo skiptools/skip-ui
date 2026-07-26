@@ -11,9 +11,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -257,32 +259,21 @@ public struct TabView : View, Renderable {
         let tabBarPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<ToolbarBarPreferences>, Any>) { mutableStateOf(Preference<ToolbarBarPreferences>(key: TabBarPreferenceKey.self)) }
         let tabBarPreferencesCollector = PreferenceCollector<ToolbarBarPreferences>(key: TabBarPreferenceKey.self, state: tabBarPreferences)
 
-        let safeArea = EnvironmentValues.shared._safeArea
-        /// Latest TabView-scope safe area; use inside long-lived nav entry closures so inset updates (e.g. status bar hide) propagate without relying on lexical capture of `safeArea`.
-        let tabViewSafeAreaState = rememberUpdatedState(safeArea)
         let density = LocalDensity.current
         let defaultBottomBarHeight = 80.dp
-        let bottomBarTopPx = remember {
-            // Default our initial value to the expected value, which helps avoid visual artifacts as we measure actual values and
-            // recompose with adjusted layouts
-            if let safeArea {
-                mutableStateOf(with(density) { safeArea.presentationBoundsPx.bottom - defaultBottomBarHeight.toPx() })
-            } else {
-                mutableStateOf(Float(0.0))
-            }
-        }
         let bottomBarHeightPx = remember { mutableStateOf(with(density) { defaultBottomBarHeight.toPx() }) }
-        let tabNavLeadingEndPx = remember { mutableStateOf(Float(0.0)) }
+        let tabNavLeadingWidthPx = remember { mutableStateOf(Float(0.0)) }
 
         // Reduce the tab bar preferences outside the bar composable. Otherwise the reduced value may change
         // when the bottom bar recomposes
         let reducedTabBarPreferences = tabBarPreferences.value.reduced
+        let showsTabBar = tabs.any({ $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden
 
         // When we layout, extend into the safe area if it is due to system bars, not into any app chrome. We extend
         // into the top bar too so that tab content can also extend into the top area without getting cut off during
         // tab switches
         var ignoresSafeAreaEdges: Edge.Set = [.bottom, .top]
-        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        ignoresSafeAreaEdges.formIntersection(EnvironmentValues.shared._presentationSystemBarEdges)
         IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "TabView") { _, _ in
             ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                 // Don't use a Scaffold: it clips content beyond its bounds and prevents .ignoresSafeArea modifiers from working
@@ -299,11 +290,10 @@ public struct TabView : View, Renderable {
                     let navigationSuiteScaffoldState = rememberNavigationSuiteScaffoldState()
                     NavigationSuiteScaffoldLayout(
                         navigationSuite: {
-                            guard tabs.any({ $0 != nil }) && reducedTabBarPreferences.visibility != Visibility.hidden else {
+                            guard showsTabBar else {
                                 SideEffect {
-                                    bottomBarTopPx.value = Float(0.0)
                                     bottomBarHeightPx.value = Float(0.0)
-                                    tabNavLeadingEndPx.value = Float(0.0)
+                                    tabNavLeadingWidthPx.value = Float(0.0)
                                 }
                                 return
                             }
@@ -311,17 +301,14 @@ public struct TabView : View, Renderable {
                                 .onGloballyPositionedInWindow { bounds in
                                     let lt = layoutTypeState.value
                                     if lt == NavigationSuiteType.NavigationBar {
-                                        bottomBarTopPx.value = bounds.top
                                         bottomBarHeightPx.value = bounds.bottom - bounds.top
-                                        tabNavLeadingEndPx.value = Float(0.0)
+                                        tabNavLeadingWidthPx.value = Float(0.0)
                                     } else if lt == NavigationSuiteType.NavigationRail {
-                                        bottomBarTopPx.value = Float(0.0)
                                         bottomBarHeightPx.value = Float(0.0)
-                                        tabNavLeadingEndPx.value = bounds.right
+                                        tabNavLeadingWidthPx.value = bounds.width
                                     } else {
-                                        bottomBarTopPx.value = Float(0.0)
                                         bottomBarHeightPx.value = Float(0.0)
-                                        tabNavLeadingEndPx.value = Float(0.0)
+                                        tabNavLeadingWidthPx.value = Float(0.0)
                                     }
                                 }
                                 .semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_tab_bar")
@@ -489,17 +476,41 @@ public struct TabView : View, Renderable {
                                 let tabKey = key as! SkipTabViewRouteKey
                                 return NavEntry(tabKey, content: { key in
                                     let tabIndex = (key as! SkipTabViewRouteKey).index
-                                    // Inset manually where our container ignored the safe area, but we aren't showing a bar
-                                    let topPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-                                    var bottomPadding = 0.dp
-                                    if bottomBarTopPx.value <= Float(0.0) && ignoresSafeAreaEdges.contains(.bottom) {
-                                        bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                                    // NavigationSuiteScaffoldLayout already sizes the content slot
+                                    // around the navigation suite. Only pad for system edges the
+                                    // suite is not covering; always publish/consume chrome insets
+                                    // for GeometryProxy and descendants.
+                                    let systemTopPadding = ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
+                                    let systemBottomPadding = ignoresSafeAreaEdges.contains(.bottom) ? max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : 0.dp
+                                    let tabBarHeightDp = with(density) { bottomBarHeightPx.value.toDp() }
+                                    let railWidthDp = with(density) { tabNavLeadingWidthPx.value.toDp() }
+                                    let layoutTopPadding = systemTopPadding
+                                    let layoutBottomPadding = showsTabBar ? 0.dp : systemBottomPadding
+                                    let chromeBottomForInsets = showsTabBar && bottomBarHeightPx.value > Float(0.0) ? tabBarHeightDp : layoutBottomPadding
+                                    let chromeLeadingForInsets = railWidthDp
+                                    // NavigationSuiteScaffoldLayout already subtracts suite size from the content slot.
+                                    let layoutPadding = PaddingValues(top: layoutTopPadding, bottom: layoutBottomPadding)
+                                    // Only consume the edges the tab bar or rail covers. The top is merely padded for
+                                    // the status bar, which a nav stack expands back into and pads with its own top bar
+                                    let consumePadding = PaddingValues(start: chromeLeadingForInsets, bottom: showsTabBar ? chromeBottomForInsets : 0.dp)
+                                    var contentModifier = Modifier.fillMaxSize()
+                                    if layoutTopPadding > 0.dp || layoutBottomPadding > 0.dp {
+                                        contentModifier = contentModifier.padding(layoutPadding)
                                     }
-                                    let contentModifier = Modifier.fillMaxSize().padding(top: topPadding, bottom: bottomPadding)
-                                    let tabViewSafeArea = tabViewSafeAreaState.value
-                                    var contentSafeArea = tabViewSafeArea?.insetting(Edge.bottom, to: bottomBarTopPx.value)
-                                    if tabNavLeadingEndPx.value > Float(0.0) {
-                                        contentSafeArea = contentSafeArea?.insetting(Edge.leading, to: tabNavLeadingEndPx.value)
+                                    contentModifier = contentModifier.consumeWindowInsets(consumePadding)
+                                    let inheritedInsets = edgeInsets(from: EnvironmentValues.shared._contentWindowInsets)
+                                    let contentInsets = contentWindowInsets(
+                                        top: inheritedInsets.top.dp + layoutTopPadding,
+                                        leading: inheritedInsets.leading.dp + chromeLeadingForInsets,
+                                        bottom: inheritedInsets.bottom.dp + chromeBottomForInsets,
+                                        trailing: inheritedInsets.trailing.dp
+                                    )
+                                    var contentSystemBarEdges = EnvironmentValues.shared._presentationSystemBarEdges
+                                    if showsTabBar && bottomBarHeightPx.value > Float(0.0) {
+                                        contentSystemBarEdges.remove(.bottom)
+                                    }
+                                    if tabNavLeadingWidthPx.value > Float(0.0) {
+                                        contentSystemBarEdges.remove(.leading)
                                     }
 
                                     // Special-case the first composition to avoid seeing the layout adjust. This is a common
@@ -511,7 +522,7 @@ public struct TabView : View, Renderable {
                                     Box(modifier: Modifier.alpha(alpha), contentAlignment: androidx.compose.ui.Alignment.Center) {
                                         // This block is called multiple times on tab switch. Use stable arguments that will prevent our entry from
                                         // recomposing when called with the same values
-                                        let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, safeArea: contentSafeArea)
+                                        let arguments = TabEntryArguments(tabIndex: tabIndex, modifier: contentModifier, contentInsets: contentInsets, systemBarEdges: contentSystemBarEdges)
                                         PreferenceValues.shared.collectPreferences([tabBarPreferencesCollector]) {
                                             RenderEntry(with: arguments, context: entryContext)
                                         }
@@ -566,9 +577,8 @@ public struct TabView : View, Renderable {
         // multiple times for the same tab on tab change. Test after modifications
         Box(modifier: arguments.modifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
             EnvironmentValues.shared.setValues {
-                if let safeArea = arguments.safeArea {
-                    $0.set_safeArea(safeArea)
-                }
+                $0.set_contentWindowInsets(arguments.contentInsets)
+                $0.set_presentationSystemBarEdges(arguments.systemBarEdges)
                 return ComposeResult.ok
             } in: {
                 let renderables = EvaluateContent(context: context)
@@ -661,7 +671,8 @@ public struct SkipTabViewRouteKey : NavKey {
 @Stable struct TabEntryArguments: Equatable {
     let tabIndex: Int
     let modifier: Modifier
-    let safeArea: SafeArea?
+    let contentInsets: WindowInsets
+    let systemBarEdges: Edge.Set
 }
 
 struct TabBarPreferenceKey: PreferenceKey {

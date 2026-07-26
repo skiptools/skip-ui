@@ -55,9 +55,8 @@ public final class Table<ObjectType, ID> : View, Renderable where ObjectType: Id
     @Composable override func Render(context: ComposeContext) {
         // When we layout, extend into safe areas that are due to system bars, not into any app chrome. We'll add
         // blank head
-        let safeArea = EnvironmentValues.shared._safeArea
         var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
-        ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+        ignoresSafeAreaEdges.formIntersection(EnvironmentValues.shared._presentationSystemBarEdges)
         let itemContext = context.content()
         ComposeContainer(scrollAxes: .vertical, modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
             IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, modifier: modifier, logTag: "Table") { safeAreaExpansion, _ in

@@ -3,6 +3,7 @@
 #if SKIP
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
@@ -113,19 +114,6 @@ extension Modifier {
         }
     }
 
-    /// Add padding equivalent to the given safe area.
-    @Composable func padding(safeArea: SafeArea) -> Modifier {
-        let density = LocalDensity.current
-        let layoutDirection = LocalLayoutDirection.current
-        let top = with(density) { (safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top).toDp() }
-        let left = with(density) { (safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left).toDp() }
-        let bottom = with(density) { (safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom).toDp() }
-        let right = with(density) { (safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right).toDp() }
-        let start = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? right : left
-        let end = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl ? left : right
-        return self.padding(top: top, start: start, bottom: bottom, end: end)
-    }
-
     /// Invoke the given closure with the modified view's root bounds.
     @Composable func onGloballyPositionedInRoot(perform: (Rect) -> Void) -> Modifier {
         return self.onGloballyPositioned {
@@ -159,6 +147,29 @@ extension Modifier {
         }
         return self.nestedScroll(nestedScrollConnection)
     }
+}
+
+/// Create fixed insets using logical leading and trailing values.
+@Composable func contentWindowInsets(top: Dp = 0.dp, leading: Dp = 0.dp, bottom: Dp = 0.dp, trailing: Dp = 0.dp) -> WindowInsets {
+    let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+    let left = isRTL ? trailing : leading
+    let right = isRTL ? leading : trailing
+    return WindowInsets(left, top, right, bottom)
+}
+
+/// Convert WindowInsets to SwiftUI EdgeInsets at the current density and layout direction.
+@Composable func edgeInsets(from windowInsets: WindowInsets) -> EdgeInsets {
+    let values = windowInsets.asPaddingValues()
+    let layoutDirection = LocalLayoutDirection.current
+    let left = values.calculateLeftPadding(layoutDirection)
+    let right = values.calculateRightPadding(layoutDirection)
+    let isRTL = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl
+    return EdgeInsets(
+        top: Double(values.calculateTopPadding().value),
+        leading: Double((isRTL ? right : left).value),
+        bottom: Double(values.calculateBottomPadding().value),
+        trailing: Double((isRTL ? left : right).value)
+    )
 }
 
 extension PaddingValues {

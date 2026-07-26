@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -13,17 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -37,12 +37,28 @@ import androidx.compose.ui.platform.LocalLayoutDirection
     PreferenceValues.shared.collectPreferences([preferredColorSchemeCollector]) {
         let materialColorScheme = preferredColorScheme.value.reduced.colorScheme?.asMaterialTheme() ?? defaultColorScheme?.asMaterialTheme() ?? MaterialTheme.colorScheme
         MaterialTheme(colorScheme: materialColorScheme) {
-            let presentationBounds = remember { mutableStateOf(Rect.Zero) }
             let density = LocalDensity.current
             let layoutDirection = LocalLayoutDirection.current
+            let safeDrawing = WindowInsets.safeDrawing
+            let systemBars = WindowInsets.systemBars
+            let isRTL = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl
+            let safeLeftPx = systemBarEdges.contains(isRTL ? .trailing : .leading) ? safeDrawing.getLeft(density, layoutDirection) : 0
+            let safeRightPx = systemBarEdges.contains(isRTL ? .leading : .trailing) ? safeDrawing.getRight(density, layoutDirection) : 0
+            let safeTopPx = systemBarEdges.contains(.top) ? safeDrawing.getTop(density) : 0
+            // The keyboard is handled by `imePadding` below, so don't reserve the navigation bar it covers
+            let safeBottomPx = systemBarEdges.contains(.bottom) ? max(0, systemBars.getBottom(density) - WindowInsets.ime.getBottom(density)) : 0
+            let contentInsets = with(density) {
+                contentWindowInsets(
+                    top: safeTopPx.toDp(),
+                    leading: (isRTL ? safeRightPx : safeLeftPx).toDp(),
+                    bottom: safeBottomPx.toDp(),
+                    trailing: (isRTL ? safeLeftPx : safeRightPx).toDp()
+                )
+            }
             var rootModifier = Modifier
                 .background(androidx.compose.ui.graphics.Color.Black)
                 .fillMaxSize()
+            // We pad horizontally like standard Android apps do, so we can consume those insets
             if systemBarEdges.contains(.leading) {
                 rootModifier = rootModifier.windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Start))
             }
@@ -53,32 +69,17 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                 rootModifier = rootModifier.imePadding()
             }
             rootModifier = rootModifier.background(Color.background.colorImpl())
-                .onGloballyPositionedInWindow {
-                    presentationBounds.value = $0
-                }
-            Box(modifier: rootModifier) {
-                guard presentationBounds.value != Rect.Zero else {
-                    return
-                }
-                // Cannot get accurate WindowInsets until we're in the content box. We only check top and bottom
-                // because we've padded the content to within horizontal safe insets already, mirroring standard
-                // Android app behavior like e.g. Settings
-                var (safeLeft, safeTop, safeRight, safeBottom) = presentationBounds.value
-                if systemBarEdges.contains(.top) {
-                    safeTop += WindowInsets.safeDrawing.getTop(density)
-                }
-                if systemBarEdges.contains(.bottom) {
-                    safeBottom -= max(0, WindowInsets.safeDrawing.getBottom(density) - WindowInsets.ime.getBottom(density))
-                }
-                let safeBounds = Rect(left: safeLeft, top: safeTop, right: safeRight, bottom: safeBottom)
-                let safeArea = SafeArea(presentation: presentationBounds.value, safe: safeBounds, absoluteSystemBars: systemBarEdges)
+            // Reserve the vertical system bars, but with plain padding rather than `windowInsetsPadding`:
+            // containers like NavigationStack and TabView expand back into these edges, and their bars
+            // apply the system insets themselves. Consuming here would zero out that bar padding
+            let verticalPadding = with(density) { PaddingValues(top: safeTopPx.toDp(), bottom: safeBottomPx.toDp()) }
+            Box(modifier: rootModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                 EnvironmentValues.shared.setValues {
-                    // Detect whether the app is edge to edge mode based on whether we're padding horizontally (landscape)
-                    // or we have a top/bttom safe area (portrait)
                     if $0._isEdgeToEdge == nil {
-                        $0.set_isEdgeToEdge(safeBounds != presentationBounds.value)
+                        $0.set_isEdgeToEdge(safeLeftPx > 0 || safeTopPx > 0 || safeRightPx > 0 || safeBottomPx > 0)
                     }
-                    $0.set_safeArea(safeArea)
+                    $0.set_contentWindowInsets(contentInsets)
+                    $0.set_presentationSystemBarEdges(systemBarEdges)
                     // A presentation is a new layout root: scroll axes inherited from the presenting
                     // context (e.g. a sheet presented from a button inside a ScrollView) must not
                     // leak in. Otherwise expanding content in the presentation is sized with
@@ -89,7 +90,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
                     $0.set_scrollAxes(Axis.Set(rawValue: 0))
                     return ComposeResult.ok
                 } in: {
-                    Box(modifier: Modifier.fillMaxSize().padding(safeArea), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                    Box(modifier: Modifier.fillMaxSize().padding(verticalPadding), contentAlignment: androidx.compose.ui.Alignment.Center) {
                         content(context)
                     }
                 }

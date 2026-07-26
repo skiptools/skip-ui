@@ -789,6 +789,12 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_contentMargins", value: newValue, defaultValue: { nil }) }
     }
 
+    /// Insets reserved by presentation and app chrome for SwiftUI safe-area semantics.
+    var _contentWindowInsets: WindowInsets {
+        get { builtinValue(key: "_contentWindowInsets", defaultValue: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) as! WindowInsets }
+        set { setBuiltinValue(key: "_contentWindowInsets", value: newValue, defaultValue: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) }
+    }
+
     var _listRowSpacing: CGFloat? {
         get { builtinValue(key: "_listRowSpacing", defaultValue: { nil }) as! CGFloat? }
         set { setBuiltinValue(key: "_listRowSpacing", value: newValue, defaultValue: { nil }) }
@@ -912,9 +918,10 @@ extension EnvironmentValues {
         set { setBuiltinValue(key: "_tabViewTransitions", value: newValue, defaultValue: { nil }) }
     }
 
-    var _safeArea: SafeArea? {
-        get { builtinValue(key: "_safeArea", defaultValue: { nil }) as! SafeArea? }
-        set { setBuiltinValue(key: "_safeArea", value: newValue, defaultValue: { nil }) }
+    /// Edges at the current presentation root whose safe area comes from system bars.
+    var _presentationSystemBarEdges: Edge.Set {
+        get { builtinValue(key: "_presentationSystemBarEdges", defaultValue: { Edge.Set(rawValue: 0) }) as! Edge.Set }
+        set { setBuiltinValue(key: "_presentationSystemBarEdges", value: newValue, defaultValue: { Edge.Set(rawValue: 0) }) }
     }
 
     var _scrollAxes: Axis.Set {

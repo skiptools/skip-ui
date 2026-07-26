@@ -3,6 +3,7 @@
 #if !SKIP_BRIDGE
 import Foundation
 #if SKIP
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -77,8 +79,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -160,11 +166,10 @@ public struct NavigationStack : View, Renderable {
 
         // SKIP INSERT: val providedNavigator = LocalNavigator provides navigator.value
         CompositionLocalProvider(providedNavigator) {
-            let safeArea = EnvironmentValues.shared._safeArea
             // We have to ignore the safe area around the entire NavDisplay to prevent push/pop animation issues with the system bars.
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
-            ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
+            ignoresSafeAreaEdges.formIntersection(EnvironmentValues.shared._presentationSystemBarEdges)
             IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "NavigationStack") { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                     let decoratorList = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
@@ -181,7 +186,7 @@ public struct NavigationStack : View, Renderable {
                             let toolbarPreferencesCollector = PreferenceCollector<ToolbarPreferences>(key: ToolbarPreferenceKey.self, state: toolbarPreferences)
                             let toolbarContentPreferences = rememberSaveable(stateSaver: state.stateSaver as! Saver<Preference<ToolbarContentPreferences>, Any>) { mutableStateOf(Preference<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self)) }
                             let toolbarContentPreferencesCollector = PreferenceCollector<ToolbarContentPreferences>(key: ToolbarContentPreferenceKey.self, state: toolbarContentPreferences)
-                            let arguments = NavigationEntryArguments(isRoot: true, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
+                            let arguments = NavigationEntryArguments(isRoot: true, state: state, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                             PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector, destinationLayoutHintsCollector]) {
                                 RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                     root.Compose(context: context)
@@ -204,7 +209,7 @@ public struct NavigationStack : View, Renderable {
                                 $0.setdismiss(DismissAction(action: { navigator.value.navigateBack() }))
                                 return ComposeResult.ok
                             } in: {
-                                let arguments = NavigationEntryArguments(isRoot: false, state: state, safeArea: safeArea, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
+                                let arguments = NavigationEntryArguments(isRoot: false, state: state, ignoresSafeAreaEdges: ignoresSafeAreaEdges, title: title.value.reduced, toolbarPreferences: toolbarPreferences.value.reduced)
                                 PreferenceValues.shared.collectPreferences([titleCollector, toolbarPreferencesCollector, toolbarContentPreferencesCollector, destinationsCollector, destinationLayoutHintsCollector]) {
                                     RenderEntry(navigator: navigator, toolbarContent: toolbarContentPreferences, arguments: arguments, context: context) { context in
                                         let destinationArguments = NavigationDestinationArguments(targetValue: targetValue)
@@ -261,7 +266,7 @@ public struct NavigationStack : View, Renderable {
         let topBarPreferences = arguments.toolbarPreferences.navigationBar
         let bottomBarPreferences = arguments.toolbarPreferences.bottomBar
         let effectiveTitleDisplayMode = navigator.value.titleDisplayMode(for: state, hasTitle: hasTitle, preference: titleDisplayPreference)
-        let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode, safeArea: arguments.safeArea)
+        let isInlineTitleDisplayMode = useInlineTitleDisplayMode(for: effectiveTitleDisplayMode)
 
         // We would like to only process toolbar content in our topBar/bottomBar Composables, but composing
         // custom ToolbarContent multiple times (in order to process the placement of the items in its body
@@ -315,12 +320,6 @@ public struct NavigationStack : View, Renderable {
         modifier = modifier.then(context.modifier)
 
         let defaultTopBarHeight = 112.dp
-        let topBarBottomPx = remember {
-            let safeAreaTopPx = arguments.safeArea?.safeBoundsPx.top ?? Float(0.0)
-            // Use a first-frame estimate only when a top bar will render. The measured value from
-            // onGloballyPositionedInWindow below is the source of truth after composition.
-            mutableStateOf(showTopBar ? with(density) { safeAreaTopPx + defaultTopBarHeight.toPx() } : Float(0.0))
-        }
         let topBarHeightPx = remember {
             mutableStateOf(showTopBar ? with(density) { defaultTopBarHeight.toPx() } : Float(0.0))
         }
@@ -329,7 +328,6 @@ public struct NavigationStack : View, Renderable {
         // transitions where onDispose may not have fired yet.
         LaunchedEffect(showTopBar) {
             if !showTopBar {
-                topBarBottomPx.value = Float(0.0)
                 topBarHeightPx.value = Float(0.0)
             }
         }
@@ -344,7 +342,6 @@ public struct NavigationStack : View, Renderable {
             AnimatedVisibility(visible: showTopBar, modifier: Modifier.fillMaxWidth(), enter: topBarEnter, exit: topBarExit, label: "NavigationTopBar") {
                 DisposableEffect(true) {
                     onDispose {
-                        topBarBottomPx.value = Float(0.0)
                         topBarHeightPx.value = Float(0.0)
                     }
                 }
@@ -396,7 +393,6 @@ public struct NavigationStack : View, Renderable {
                                 scrollToTop.value.reduced.action()
                             })
                             .onGloballyPositionedInWindow { bounds in
-                                topBarBottomPx.value = bounds.bottom
                                 topBarHeightPx.value = bounds.bottom - bounds.top
                             }
                         if !topBarHasColorScheme || isOverlapped, let topBarBackgroundForBrush {
@@ -495,19 +491,16 @@ public struct NavigationStack : View, Renderable {
             }
         }
 
-        let bottomBarTopPx = remember { mutableStateOf(Float(0.0)) }
         let bottomBarHeightPx = remember { mutableStateOf(Float(0.0)) }
         let bottomBar: @Composable () -> Void = {
             guard bottomBarPreferences?.visibility != Visibility.hidden else {
                 SideEffect {
-                    bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
                 }
                 return
             }
             guard bottomItems.size > 0 || bottomBarPreferences?.visibility == Visibility.visible else {
                 SideEffect {
-                    bottomBarTopPx.value = Float(0.0)
                     bottomBarHeightPx.value = Float(0.0)
                 }
                 return
@@ -554,7 +547,6 @@ public struct NavigationStack : View, Renderable {
                 } in: {
                     var bottomBarModifier = Modifier.zIndex(Float(1.1))
                         .onGloballyPositionedInWindow { bounds in
-                            bottomBarTopPx.value = bounds.top
                             bottomBarHeightPx.value = bounds.bottom - bounds.top
                         }
                     if showScrolledBackground, let bottomBarBackgroundForBrush {
@@ -566,8 +558,10 @@ public struct NavigationStack : View, Renderable {
                     let bottomPadding = with(density) { min(bottomBarHeightPx.value, Float(WindowInsets.ime.getBottom(density))).toDp() }
                     PaddingLayout(padding: EdgeInsets(top: 0.0, leading: 0.0, bottom: Double(-bottomPadding.value), trailing: 0.0), context: context.content()) { context in
                         let containerColor = showScrolledBackground ? bottomBarBackgroundColor : unscrolledBottomBarBackgroundColor
-                        let windowInsets = EnvironmentValues.shared._isEdgeToEdge == true ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
-                        var options = Material3BottomAppBarOptions(modifier: context.modifier.then(bottomBarModifier), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp))
+                        // System bottom insets belong to TabView's NavigationBar (or PresentationRoot
+                        // sheets). Inside those content slots BottomAppBar must not re-apply them.
+                        let windowInsets = (EnvironmentValues.shared._isEdgeToEdge == true && EnvironmentValues.shared._presentationSystemBarEdges.contains(.bottom)) ? BottomAppBarDefaults.windowInsets : WindowInsets(bottom: 0.dp)
+                        var options = Material3BottomAppBarOptions(modifier: context.modifier.then(bottomBarModifier).semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_bottom_app_bar"), containerColor: containerColor, contentColor: MaterialTheme.colorScheme.contentColorFor(containerColor), contentPadding: PaddingValues.Absolute(left: 16.dp, right: 16.dp))
                         if let updateOptions = EnvironmentValues.shared._material3BottomAppBar {
                             options = updateOptions(options)
                         }
@@ -588,21 +582,37 @@ public struct NavigationStack : View, Renderable {
 
         // We place nav bars within each entry rather than at the navigation controller level so toolbar preferences apply per entry.
 
+        let inheritedInsets = edgeInsets(from: EnvironmentValues.shared._contentWindowInsets)
+        let inheritedLeading = inheritedInsets.leading.dp
+        let inheritedTrailing = inheritedInsets.trailing.dp
+        let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+        let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
+        let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
+        let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
+            max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
+        let chromePadding = PaddingValues(top: topPadding, bottom: bottomPadding)
+        let inheritedTop = inheritedInsets.top.dp
+        let inheritedBottom = inheritedInsets.bottom.dp
+        let contentInsets = contentWindowInsets(top: inheritedTop + topPadding, leading: inheritedLeading, bottom: inheritedBottom + bottomPadding, trailing: inheritedTrailing)
+        var contentSystemBarEdges = EnvironmentValues.shared._presentationSystemBarEdges
+        if showTopBar {
+            contentSystemBarEdges.remove(.top)
+        }
+        if bottomBarHeightPx.value > Float(0.0) {
+            contentSystemBarEdges.remove(.bottom)
+        }
+
         let layoutImplementationVersion = EnvironmentValues.shared._layoutImplementationVersion
         if layoutImplementationVersion < 2 {
             // Old Column layout (version < 2)
             Column(modifier: modifier.background(Color.background.colorImpl())) {
-                // Calculate safe area for content
-                let contentSafeArea = arguments.safeArea?
-                    .insetting(.top, to: topBarBottomPx.value)
-                    .insetting(.bottom, to: bottomBarTopPx.value)
                 // Inset manually for any edge where our container ignored the safe area, but we aren't showing a bar
-                let topPadding = topBarBottomPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.top) ? WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() : 0.dp
-                var bottomPadding = 0.dp
-                if bottomBarTopPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) {
-                    bottomPadding = max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
-                }
-                let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0)).padding(top: topPadding, bottom: bottomPadding)
+                let layoutTopPadding = !showTopBar && arguments.ignoresSafeAreaEdges.contains(.top) ? safeTopDp : 0.dp
+                let layoutBottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ? bottomPadding : 0.dp
+                let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : topPadding, bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : bottomPadding)
+                let contentModifier = Modifier.fillMaxWidth().weight(Float(1.0))
+                    .padding(top: layoutTopPadding, bottom: layoutBottomPadding)
+                    .consumeWindowInsets(consumePadding)
 
                 topBar()
                 Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
@@ -624,9 +634,8 @@ public struct NavigationStack : View, Renderable {
                         topPadding = searchFieldPlaceholderPadding
                     }
                     EnvironmentValues.shared.setValues {
-                        if let contentSafeArea {
-                            $0.set_safeArea(contentSafeArea)
-                        }
+                        $0.set_contentWindowInsets(contentInsets)
+                        $0.set_presentationSystemBarEdges(contentSystemBarEdges)
                         $0.set_searchableState(searchableState)
                         $0.set_isNavigationRoot(arguments.isRoot)
                         $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
@@ -645,15 +654,6 @@ public struct NavigationStack : View, Renderable {
         } else {
             // New Box layout (version >= 2)
             Box(modifier: modifier.background(Color.background.colorImpl()).fillMaxSize()) {
-                // Calculate safe area for content by insetting by topBar and bottomBar heights
-                var contentSafeArea: SafeArea?
-                if let safeArea = arguments.safeArea {
-                    let clampedTopBarBottomPxValue: Float = max(topBarBottomPx.value, safeArea.safeBoundsPx.top)
-                    contentSafeArea = safeArea
-                        .insetting(.top, to: clampedTopBarBottomPxValue)
-                        .insetting(.bottom, to: bottomBarTopPx.value)
-                }
-                
                 // Top bar aligned to top
                 Box(modifier: Modifier.zIndex(Float(1.1)).align(androidx.compose.ui.Alignment.TopCenter)) {
                     topBar()
@@ -666,17 +666,12 @@ public struct NavigationStack : View, Renderable {
 
                 // Constrain the content to the area between the top bar and bottom bar. In the Box layout we use
                 // fillMaxSize(), so we must add top/bottom padding to reserve space for our nav bars. Use the
-                // measured topBarBottomPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
+                // measured topBarHeightPx and bottomBarHeightPx when the bars are visible. When a bar is hidden,
                 // inset by the system safe area (WindowInsets.safeDrawing) for that edge when
                 // arguments.ignoresSafeAreaEdges contains it, so content does not overlap the status bar or home
                 // indicator.
-                var contentModifier = Modifier.fillMaxSize()
-                let safeTopDp = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
-                let topBarHeightDp = with(density) { topBarHeightPx.value.toDp() }
-                let topPadding = arguments.ignoresSafeAreaEdges.contains(.top) ? max(topBarHeightDp, safeTopDp) : topBarHeightDp
-                let bottomPadding = bottomBarHeightPx.value <= Float(0.0) && arguments.ignoresSafeAreaEdges.contains(.bottom) ?
-                        max(0.dp, WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()) : with(density) { bottomBarHeightPx.value.toDp() }
-                contentModifier = contentModifier.padding(top: topPadding, bottom: bottomPadding)
+                let consumePadding = PaddingValues(top: contentSystemBarEdges.contains(.top) ? 0.dp : topPadding, bottom: contentSystemBarEdges.contains(.bottom) ? 0.dp : bottomPadding)
+                let contentModifier = Modifier.fillMaxSize().padding(chromePadding).consumeWindowInsets(consumePadding)
                 Box(modifier: contentModifier, contentAlignment: androidx.compose.ui.Alignment.Center) {
                     var topPadding = 0.dp
                     let searchableState: SearchableState? = arguments.isRoot ? (EnvironmentValues.shared._searchableState ?? searchableStatePreference.value.reduced) : nil
@@ -696,9 +691,8 @@ public struct NavigationStack : View, Renderable {
                         topPadding = searchFieldPlaceholderPadding
                     }
                     EnvironmentValues.shared.setValues {
-                        if let contentSafeArea {
-                            $0.set_safeArea(contentSafeArea)
-                        }
+                        $0.set_contentWindowInsets(contentInsets)
+                        $0.set_presentationSystemBarEdges(contentSystemBarEdges)
                         $0.set_searchableState(searchableState)
                         $0.set_isNavigationRoot(arguments.isRoot)
                         $0.set_nestedScrollConnection(scrollBehavior.nestedScrollConnection)
@@ -721,12 +715,12 @@ public struct NavigationStack : View, Renderable {
         destination?(arguments.targetValue).Compose(context: context)
     }
 
-    @Composable private func useInlineTitleDisplayMode(for titleDisplayMode: ToolbarTitleDisplayMode, safeArea: SafeArea?) -> Bool {
+    @Composable private func useInlineTitleDisplayMode(for titleDisplayMode: ToolbarTitleDisplayMode) -> Bool {
         guard titleDisplayMode == .automatic else {
             return titleDisplayMode == ToolbarTitleDisplayMode.inline
         }
         // Default to inline if in landscape or a sheet
-        if let safeArea, safeArea.presentationBoundsPx.width > safeArea.presentationBoundsPx.height {
+        if LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE {
             return true
         }
         return EnvironmentValues.shared._sheetDepth > 0
@@ -754,7 +748,6 @@ public struct SkipNavigationStackPushKey : NavKey, Hashable {
 @Stable struct NavigationEntryArguments: Equatable {
     let isRoot: Bool
     let state: Navigator.BackStackState
-    let safeArea: SafeArea?
     let ignoresSafeAreaEdges: Edge.Set
     let title: Text
     let toolbarPreferences: ToolbarPreferences
