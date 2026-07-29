@@ -622,33 +622,6 @@ extension View {
         return frame(width: width, height: height, alignment: Alignment(horizontal: HorizontalAlignment(key: horizontalAlignmentKey), vertical: VerticalAlignment(key: verticalAlignmentKey)))
     }
 
-    /// Experimental bridge API that gives a newly composed frame explicit source dimensions.
-    // SKIP @bridge
-    public func experimentalFirstRenderFrame(width: CGFloat, height: CGFloat, sourceWidth: CGFloat, sourceHeight: CGFloat, horizontalAlignmentKey: String, verticalAlignmentKey: String) -> any View {
-        #if SKIP
-        let animTx = StateTracking.captureLastReadAndClear()
-        return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
-            let animatable = (Float(width), Float(height)).asAnimatable(
-                context: context,
-                animTx: animTx,
-                initialValue: (Float(sourceWidth), Float(sourceHeight))
-            )
-            FrameLayout(
-                content: renderable,
-                context: context,
-                width: Double(animatable.value.0),
-                height: Double(animatable.value.1),
-                alignment: Alignment(
-                    horizontal: HorizontalAlignment(key: horizontalAlignmentKey),
-                    vertical: VerticalAlignment(key: verticalAlignmentKey)
-                )
-            )
-        })
-        #else
-        return self
-        #endif
-    }
-
     public func frame(minWidth: CGFloat? = nil, idealWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, idealHeight: CGFloat? = nil, maxHeight: CGFloat? = nil, alignment: Alignment = .center) -> some View {
         #if SKIP
         return ModifiedContent(content: self, modifier: RenderModifier { renderable, context in
@@ -890,28 +863,6 @@ extension View {
         #endif
     }
 
-    /// Experimental bridge API that gives a newly composed offset an explicit source value.
-    // SKIP @bridge
-    public func experimentalFirstRenderOffset(x: CGFloat, y: CGFloat, sourceX: CGFloat, sourceY: CGFloat) -> any View {
-        #if SKIP
-        let animTx = StateTracking.captureLastReadAndClear()
-        return ModifiedContent(content: self, modifier: RenderModifier {
-            let density = LocalDensity.current
-            let animatable = (Float(x), Float(y)).asAnimatable(
-                context: $0,
-                animTx: animTx,
-                initialValue: (Float(sourceX), Float(sourceY))
-            )
-            let offsetPx = with(density) {
-                IntOffset(animatable.value.0.dp.roundToPx(), animatable.value.1.dp.roundToPx())
-            }
-            return $0.modifier.offset { offsetPx }
-        })
-        #else
-        return self
-        #endif
-    }
-
     // SKIP @bridge
     public func onAppear(perform action: (() -> Void)? = nil) -> any View {
         #if SKIP
@@ -1136,24 +1087,6 @@ extension View {
         let animTx = StateTracking.captureLastReadAndClear()
         return ModifiedContent(content: self, modifier: RenderModifier { context in
             let animatable = Float(opacity).asAnimatable(context: context, animTx: animTx)
-            return context.modifier.graphicsLayer { alpha = animatable.value }
-        })
-        #else
-        return self
-        #endif
-    }
-
-    /// Experimental bridge API that gives a newly composed opacity an explicit source value.
-    // SKIP @bridge
-    public func experimentalFirstRenderOpacity(_ opacity: Double, sourceOpacity: Double) -> any View {
-        #if SKIP
-        let animTx = StateTracking.captureLastReadAndClear()
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = Float(opacity).asAnimatable(
-                context: context,
-                animTx: animTx,
-                initialValue: Float(sourceOpacity)
-            )
             return context.modifier.graphicsLayer { alpha = animatable.value }
         })
         #else
@@ -1449,28 +1382,6 @@ extension View {
                 scaleY: animatedScale.value.1,
                 translationX: translationXPixels,
                 translationY: translationYPixels
-            )
-        })
-        #else
-        return self
-        #endif
-    }
-
-    /// Experimental bridge API that gives a newly composed scale an explicit source value.
-    // SKIP @bridge
-    public func experimentalFirstRenderScaleEffect(x: CGFloat, y: CGFloat, sourceX: CGFloat, sourceY: CGFloat, anchorX: CGFloat, anchorY: CGFloat) -> any View {
-        #if SKIP
-        let animTx = StateTracking.captureLastReadAndClear()
-        return ModifiedContent(content: self, modifier: RenderModifier { context in
-            let animatable = (Float(x), Float(y)).asAnimatable(
-                context: context,
-                animTx: animTx,
-                initialValue: (Float(sourceX), Float(sourceY))
-            )
-            return context.modifier.graphicsLayer(
-                transformOrigin: TransformOrigin(pivotFractionX: Float(anchorX), pivotFractionY: Float(anchorY)),
-                scaleX: animatable.value.0,
-                scaleY: animatable.value.1
             )
         })
         #else
