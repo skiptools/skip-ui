@@ -473,6 +473,7 @@ public struct NavigationStack : View, Renderable {
                         options = options.copy(scrollBehavior: scrollBehavior)
                         let topBarWindowInsets = EnvironmentValues.shared._sheetDepth > 0 ? WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) : TopAppBarDefaults.windowInsets
                         if isInlineTitleDisplayMode {
+                            
                             if options.preferCenterAlignedStyle {
                                 CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, windowInsets: topBarWindowInsets, scrollBehavior: options.scrollBehavior)
                             } else {
