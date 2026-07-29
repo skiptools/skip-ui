@@ -4,6 +4,7 @@
 import Foundation
 #if SKIP
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 #endif
 
 // SKIP @bridge
@@ -81,6 +82,7 @@ public final class ForEach : View, Renderable, LazyItemFactory {
         guard !EvaluateOptions(options).isKeepForEach else {
             return listOf(self)
         }
+        let identityNamespace = remember { ForEachIdentityNamespace() }
         let isLazy = EvaluateOptions(options).lazyItemLevel != nil
 
         // ForEach views might contain nested lazy item factories such as Sections or other ForEach instances. They also
@@ -105,7 +107,9 @@ public final class ForEach : View, Renderable, LazyItemFactory {
                 } else {
                     defaultTag = index
                 }
-                renderables = renderables.map { taggedRenderable(for: $0, defaultTag: defaultTag) }
+                renderables = renderables.map {
+                    taggedRenderable(for: $0, defaultTag: defaultTag, identityNamespace: identityNamespace)
+                }
                 collected.addAll(renderables)
             }
         } else if let objects {
@@ -118,7 +122,9 @@ public final class ForEach : View, Renderable, LazyItemFactory {
                     isFirst = false
                 }
                 if let identifier {
-                    renderables = renderables.map { taggedRenderable(for: $0, defaultTag: identifier(object)) }
+                    renderables = renderables.map {
+                        taggedRenderable(for: $0, defaultTag: identifier(object), identityNamespace: identityNamespace)
+                    }
                 }
                 collected.addAll(renderables)
             }
@@ -133,7 +139,9 @@ public final class ForEach : View, Renderable, LazyItemFactory {
                     isFirst = false
                 }
                 if let identifier {
-                    renderables = renderables.map { taggedRenderable(for: $0, defaultTag: identifier(objects[i])) }
+                    renderables = renderables.map {
+                        taggedRenderable(for: $0, defaultTag: identifier(objects[i]), identityNamespace: identityNamespace)
+                    }
                 }
                 collected.addAll(renderables)
             }
@@ -239,12 +247,32 @@ public final class ForEach : View, Renderable, LazyItemFactory {
         }
     }
 
-    private func taggedRenderable(for renderable: Renderable, defaultTag: Any?) -> Renderable {
-        if let defaultTag, TagModifier.on(content: renderable, role: .tag) == nil {
-            return ModifiedContent(content: renderable, modifier: TagModifier(value: defaultTag, role: .tag))
-        } else {
+    private func taggedRenderable(
+        for renderable: Renderable,
+        defaultTag: Any?,
+        identityNamespace: ForEachIdentityNamespace? = nil
+    ) -> Renderable {
+        guard let defaultTag else {
             return renderable
         }
+
+        let taggedRenderable: Renderable
+        if TagModifier.on(content: renderable, role: .tag) == nil {
+            taggedRenderable = ModifiedContent(content: renderable, modifier: TagModifier(value: defaultTag, role: .tag))
+        } else {
+            taggedRenderable = renderable
+        }
+
+        guard let identityNamespace else {
+            return taggedRenderable
+        }
+
+        // Keep Compose state attached to the ForEach element rather than its current position.
+        // Namespace the key because sibling ForEach blocks may legally contain the same IDs.
+        return ModifiedContent(
+            content: taggedRenderable,
+            modifier: ForEachIdentityModifier(namespace: identityNamespace, identity: defaultTag)
+        )
     }
     #else
     public var body: some View {
@@ -254,6 +282,33 @@ public final class ForEach : View, Renderable, LazyItemFactory {
 }
 
 #if SKIP
+final class ForEachIdentityNamespace {
+}
+
+final class ForEachIdentityModifier: RenderModifier {
+    let namespace: ForEachIdentityNamespace
+    let identity: Any
+
+    init(namespace: ForEachIdentityNamespace, identity: Any) {
+        self.namespace = namespace
+        self.identity = identity
+        super.init(action: { renderable, context in
+            androidx.compose.runtime.key(namespace, identity) {
+                renderable.Render(context: context)
+            }
+        })
+    }
+
+    static func key(for renderable: Renderable) -> Any? {
+        return renderable.forEachModifier {
+            guard let identityModifier = $0 as? ForEachIdentityModifier else {
+                return nil
+            }
+            return listOf(identityModifier.namespace, identityModifier.identity)
+        }
+    }
+}
+
 // Kotlin does not support generic constructor parameters, so we have to model many ForEach constructors as functions
 
 //extension ForEach where ID == Data.Element.ID, Content : AccessibilityRotorContent, Data.Element : Identifiable {

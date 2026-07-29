@@ -585,6 +585,65 @@ public struct Material3RippleOptions {
 }
 ```
 
+## Android Rendering Performance
+
+SkipUI provides Android-only modifiers for avoiding repeated work in expensive view subtrees. Both modifiers below return the original view on non-Android platforms.
+
+### Reusing Equal Content
+
+Use `.androidEquatable()` on an `Equatable` view to reuse its evaluated Android content while the view value remains equal:
+
+```swift
+struct ContactRow: View, Equatable {
+    let contact: Contact
+
+    var body: some View {
+        HStack {
+            Text(contact.name)
+            Spacer()
+            Text(contact.status)
+        }
+    }
+}
+
+ContactRow(contact: contact)
+    .androidEquatable()
+```
+
+For a view that is not itself `Equatable`, pass an explicit value to `.androidEquatable(recomposeOverride:)`:
+
+```swift
+ContactRow(contact: contact, onSelect: onSelect)
+    .androidEquatable(
+        recomposeOverride: ContactRowInputs(
+            contact: contact,
+            isSelected: isSelected
+        )
+    )
+```
+
+Think of `recomposeOverride` as a cache key. When a parent recomposes and the key is unchanged, SkipUI reuses the child's evaluated content instead of evaluating its body again. When the key changes, SkipUI evaluates the child again. Include every value that can affect the child's body, including relevant environment and hoisted state values.
+
+State read inside the optimized child's body is not an automatic invalidation input. If a child must update from state, hoist that state above the optimized view and include its value in `recomposeOverride`. Modifiers applied after `.androidEquatable(...)` remain outside the cached content and can continue to receive updated values and actions.
+
+This is an explicit Android optimization rather than the standard SwiftUI `.equatable()` modifier. Use it only after identifying repeated body evaluation as meaningful work.
+
+### Retained Composition Boundaries
+
+For a subtree that needs its own retained Compose identity and lifecycle, use `.androidCompositionBoundary(id:inputs:)`:
+
+```swift
+PlayerSurface(player: player)
+    .androidCompositionBoundary(
+        id: player.id.uuidString,
+        inputs: String(player.renderRevision)
+    )
+```
+
+Keeping `id` stable preserves the hosted composition and its state. Changing `inputs` updates the content inside the existing host. Changing `id` disposes the old host and creates a new one. Treat `inputs` as a revision token and change it whenever any value used to build the retained content changes; content remains unchanged while both `id` and `inputs` are unchanged.
+
+An Android composition boundary creates a separate Compose host, so it is heavier than `.androidEquatable(...)`. Prefer equality reuse for ordinary views and collection rows. Use a composition boundary when the subtree specifically needs retained hosting or lifecycle isolation.
+
 ## Supported SwiftUI
 
 The following table summarizes SkipUI's SwiftUI support on Android. Anything not listed here is likely not supported. Note that in your iOS-only code - i.e. code within `#if !os(Android)` blocks - you can use any SwiftUI you want.
@@ -2550,6 +2609,8 @@ The following properties are currently animatable:
 - `.scaleEffect`
 - `.stroke` color
 
+Only values changed by a matching `withAnimation` or animated `Transaction` use that animation. A concurrent plain state write snaps to its new value, and a plain write to a value with an in-progress animation cancels that animation and snaps to the new target.
+
 All of SwiftUI's built-in transitions are supported on Android. To use transitions or to animate views being added or removed in general, however, you **must** assign a unique `.id` value to every view in the parent `HStack`, `VStack`, or `ZStack`:
 
 ```swift
@@ -2679,6 +2740,8 @@ ForEach([person1, person2, person3], id: \.fullName) { person in
 ```
 
 **Important**: When the body of your `ForEach` contains multiple top-level views (e.g. a full row of a `VGrid`), or any single view that expands to additional views (like a `Section` or a nested `ForEach`), SkipUI must "unroll" the loop in order to supply all its views individually to Compose. This means that the `ForEach` will be entirely iterated up front, though the views it produces won't yet be rendered.
+
+SkipUI uses each element's `ForEach` identifier as its Android composition identity, including when an unrolled `ForEach` is rendered in an `HStack`, `VStack`, or `ZStack`. Use stable, unique identifiers so retained state and optimized content continue to follow the same element when the collection is inserted into, removed from, or reordered.
 
 ### Gestures
 
