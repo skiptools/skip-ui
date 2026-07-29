@@ -471,11 +471,12 @@ public struct NavigationStack : View, Renderable {
                         }
                         // Use scrollBehavior (from the early call) for the TopAppBar to ensure it matches the nestedScrollConnection
                         options = options.copy(scrollBehavior: scrollBehavior)
-                        if isInlineTitleDisplayMode {
+                        let topBarWindowInsets = EnvironmentValues.shared._sheetDepth > 0 ? WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) : TopAppBarDefaults.windowInsets
+                        if isInlineTitleDisplayMode {                   
                             if options.preferCenterAlignedStyle {
-                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                CenterAlignedTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, windowInsets: topBarWindowInsets, scrollBehavior: options.scrollBehavior)
                             } else {
-                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                TopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, windowInsets: topBarWindowInsets, scrollBehavior: options.scrollBehavior)
                             }
                         } else {
                             // Force a larger, bold title style in the uncollapsed state by replacing the headlineSmall style the bar uses
@@ -484,9 +485,9 @@ public struct NavigationStack : View, Renderable {
                             let appBarTypography = typography.copy(headlineSmall: appBarTitleStyle)
                             MaterialTheme(colorScheme: MaterialTheme.colorScheme, typography: appBarTypography, shapes: MaterialTheme.shapes) {
                                 if options.preferLargeStyle {
-                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                    LargeTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, windowInsets: topBarWindowInsets, scrollBehavior: options.scrollBehavior)
                                 } else {
-                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, scrollBehavior: options.scrollBehavior)
+                                    MediumTopAppBar(title: options.title, modifier: options.modifier, navigationIcon: options.navigationIcon, actions: { topBarActions() }, colors: options.colors, windowInsets: topBarWindowInsets, scrollBehavior: options.scrollBehavior)
                                 }
                             }
                         }
