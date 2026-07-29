@@ -162,9 +162,10 @@ final class AndroidEquatableTests: SkipUITestCase {
         composeRule.onNodeWithTag("android-equatable-row-0").assertTextEquals("Zero")
         composeRule.onNodeWithTag("android-equatable-row-1").assertTextEquals("One")
         composeRule.onNodeWithTag("android-equatable-row-3").assertTextEquals("Three")
-        XCTAssertGreaterThan(counter.value("android-equatable-row-0"), 0)
-        XCTAssertGreaterThan(counter.value("android-equatable-row-1"), 0)
-        XCTAssertGreaterThan(counter.value("android-equatable-row-3"), 0)
+        let row0InsertedCount = counter.value("android-equatable-row-0")
+        XCTAssertGreaterThan(row0InsertedCount, 0)
+        XCTAssertEqual(counter.value("android-equatable-row-1"), row1InitialCount)
+        XCTAssertEqual(counter.value("android-equatable-row-3"), row3InitialCount)
 
         items.wrappedValue = [
             AndroidEquatableItem(id: 3, title: "Three"),
@@ -176,9 +177,9 @@ final class AndroidEquatableTests: SkipUITestCase {
         composeRule.onNodeWithTag("android-equatable-row-3").assertTextEquals("Three")
         composeRule.onNodeWithTag("android-equatable-row-0").assertTextEquals("Zero")
         composeRule.onNodeWithTag("android-equatable-row-1").assertTextEquals("One")
-        XCTAssertGreaterThan(counter.value("android-equatable-row-0"), 0)
-        XCTAssertGreaterThan(counter.value("android-equatable-row-1"), 0)
-        XCTAssertGreaterThan(counter.value("android-equatable-row-3"), 0)
+        XCTAssertEqual(counter.value("android-equatable-row-0"), row0InsertedCount)
+        XCTAssertEqual(counter.value("android-equatable-row-1"), row1InitialCount)
+        XCTAssertEqual(counter.value("android-equatable-row-3"), row3InitialCount)
         #endif
     }
 
@@ -332,6 +333,42 @@ final class AndroidEquatableTests: SkipUITestCase {
         composeRule.onNodeWithTag("android-equatable-selected-value").assertTextEquals("selected 2")
         XCTAssertEqual(selectedValue.wrappedValue, 2)
         XCTAssertEqual(counter.value("android-equatable-action-child"), 1)
+        #endif
+    }
+
+    func testBridgedFactoryRunsOnlyWhenOverrideChanges() throws {
+        #if !SKIP
+        throw XCTSkip("AndroidEquatableContent is Android-only")
+        #else
+        let parentTick = State(initialValue: 0)
+        let childText = State(initialValue: "A")
+        let counter = AndroidEquatableBodyCounter()
+
+        composeRule.setContent {
+            AndroidEquatableFactoryHost(
+                parentTick: parentTick,
+                childText: childText,
+                counter: counter
+            )
+            .Compose()
+        }
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("android-equatable-factory-child").assertTextEquals("A")
+        XCTAssertEqual(counter.value("android-equatable-factory"), 1)
+
+        parentTick.wrappedValue = 1
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("android-equatable-factory-parent").assertTextEquals("tick 1")
+        composeRule.onNodeWithTag("android-equatable-factory-child").assertTextEquals("A")
+        XCTAssertEqual(counter.value("android-equatable-factory"), 1)
+
+        childText.wrappedValue = "B"
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag("android-equatable-factory-child").assertTextEquals("B")
+        XCTAssertEqual(counter.value("android-equatable-factory"), 2)
         #endif
     }
 }
@@ -552,6 +589,28 @@ private struct AndroidEquatableActionHost: View {
             )
             .androidEquatable(recomposeOverride: "action")
             .onTapGesture { _ in selectedValue.wrappedValue = capturedValue }
+        }
+    }
+}
+
+private struct AndroidEquatableFactoryHost: View {
+    let parentTick: State<Int>
+    let childText: State<String>
+    let counter: AndroidEquatableBodyCounter
+
+    var body: some View {
+        let text = childText.wrappedValue
+        VStack {
+            Text("tick \(parentTick.wrappedValue)")
+                .accessibilityIdentifier("android-equatable-factory-parent")
+            AndroidEquatableContent(
+                recomposeOverride: text,
+                bridgedContentFactory: {
+                    counter.increment("android-equatable-factory")
+                    return Text(text)
+                        .accessibilityIdentifier("android-equatable-factory-child")
+                }
+            )
         }
     }
 }

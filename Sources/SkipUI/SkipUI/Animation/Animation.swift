@@ -284,14 +284,18 @@ public struct Animation : Hashable {
     /// The explicit `.animation(_:)` environment override still wins over the transaction,
     /// matching SwiftUI's modifier-overrides-ambient-transaction semantics.
     @Composable static func current(isAnimating: Bool, animTx: StateMutationTransaction?) -> Animation? {
+        // A bridge prime belongs to exactly one animatable consumer. Consume it even when an
+        // environment animation or an explicit transaction wins, so it cannot leak to a later
+        // unrelated modifier.
+        let pendingAnimation = pendingBridgedProvenanceAnimation
+        pendingBridgedProvenanceAnimation = nil
+
         var ambient = EnvironmentValues.shared._animation
         if ambient == nil, let tx = animTx as? Transaction, !tx.disablesAnimations {
             ambient = tx.animation
-            pendingBridgedProvenanceAnimation = nil
         }
-        if ambient == nil, animTx == nil, bridgedProvenance, let pendingAnimation = pendingBridgedProvenanceAnimation {
+        if ambient == nil, animTx == nil, bridgedProvenance, let pendingAnimation {
             ambient = pendingAnimation
-            pendingBridgedProvenanceAnimation = nil
         }
         if ambient == nil, animTx == nil, bridgedComposition, !bridgedProvenance {
             // Legacy SkipFuseUI (no native provenance): the marker is the only signal.
@@ -658,10 +662,13 @@ public enum AnimationCompletionCriteria : Hashable {
 
 /// Animatable plumbing for modifiers that capture provenance at entry: `animTx` carries the
 /// per-slot transaction (or nil → snap); the marker fallback is NOT consulted.
-@Composable func toAnimatable<T, VectorT>(value: T, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
+@Composable func toAnimatable<T, VectorT>(value: T, initialValue: T? = nil, converter: TwoWayConverter<T, VectorT>, context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<T, VectorT> where T: Any, VectorT: AnimationVector {
     // SKIP NOWARN
     let resetValue = rememberSaveable(stateSaver: context.stateSaver as Saver<T?, Any>) { mutableStateOf<T?>(nil) }
-    let animatable = remember { Animatable(resetValue.value ?? value, converter) }
+    // A newly composed modifier normally has only its target value, so Compose has no source
+    // to interpolate from. Experimental first-render modifier APIs can provide that source
+    // explicitly; existing callers continue to initialize from `value`.
+    let animatable = remember { Animatable(resetValue.value ?? initialValue ?? value, converter) }
     let isAnimating = animatable.isRunning || animatable.value != animatable.targetValue
     let isNewTarget = animatable.targetValue != value
     if isAnimating || animatable.value != value {
@@ -696,6 +703,11 @@ extension Float {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
     }
 
+    /// Return an animatable value initialized from an explicit first-render source.
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?, initialValue: Float) -> Animatable<Float, AnimationVector1D> {
+        return toAnimatable(value: self, initialValue: initialValue, converter: TwoWayConverter({ AnimationVector1D($0) }, { $0.value }), context: context, animTx: animTx)
+    }
+
 }
 
 extension Tuple2 where E0 == Float, E1 == Float {
@@ -707,6 +719,11 @@ extension Tuple2 where E0 == Float, E1 == Float {
     /// Return an animatable version of this value (instrumented site: per-slot provenance only).
     @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
         return toAnimatable(value: self, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
+    }
+
+    /// Return an animatable pair initialized from an explicit first-render source.
+    @Composable func asAnimatable(context: ComposeContext, animTx: StateMutationTransaction?, initialValue: Tuple2<Float, Float>) -> Animatable<Tuple2<Float, Float>, AnimationVector2D> {
+        return toAnimatable(value: self, initialValue: initialValue, converter: TwoWayConverter({ AnimationVector2D($0.0, $0.1) }, { Tuple2($0.v1, $0.v2) }), context: context, animTx: animTx)
     }
 
 }
