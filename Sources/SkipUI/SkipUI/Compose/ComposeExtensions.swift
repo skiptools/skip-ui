@@ -207,11 +207,16 @@ extension Rect {
         guard let other else {
             return false
         }
-        return abs(left - other.left) < boundsEpsilonPx
-            && abs(top - other.top) < boundsEpsilonPx
-            && abs(right - other.right) < boundsEpsilonPx
-            && abs(bottom - other.bottom) < boundsEpsilonPx
+        return isWithinEpsilon(left, other.left)
+            && isWithinEpsilon(top, other.top)
+            && isWithinEpsilon(right, other.right)
+            && isWithinEpsilon(bottom, other.bottom)
     }
+}
+
+private func isWithinEpsilon(_ a: Float, _ b: Float) -> Bool {
+    let delta = a - b
+    return delta < boundsEpsilonPx && delta > -boundsEpsilonPx
 }
 
 #endif
