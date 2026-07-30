@@ -127,6 +127,11 @@ extension Modifier {
     }
 
     /// Invoke the given closure with the modified view's root bounds.
+    ///
+    /// - Warning: Callbacks can deliver bounds that differ from the previous pass by sub-pixel
+    ///   amounts (float rounding, scroll settle, in-progress animations). Callers that gate
+    ///   composed content on remembered bounds state should guard their state write with
+    ///   `Rect.isApproximatelyEqual(to:)` to avoid an idle recomposition loop.
     @Composable func onGloballyPositionedInRoot(perform: (Rect) -> Void) -> Modifier {
         return self.onGloballyPositioned {
             let bounds = $0.boundsInRoot()
@@ -182,6 +187,30 @@ extension PaddingValues {
             end: (insets1.trailing + insets2.trailing).dp,
             bottom: (insets1.bottom + insets2.bottom).dp
         )
+    }
+}
+
+/// The maximum per-edge delta at which two bounds rects are treated as visually identical.
+///
+/// Global-position callbacks can report bounds that differ from the previous layout pass by
+/// sub-pixel amounts (float rounding, scroll settle, in-progress animations). Writing such a
+/// rect into gating state closes a write → recompose → remeasure → write loop that recomposes
+/// continuously while the screen is idle. Half a pixel is below anything visually meaningful.
+let boundsEpsilonPx = Float(0.5)
+
+extension Rect {
+    /// Whether every edge of this rect is within `boundsEpsilonPx` of `other`'s.
+    ///
+    /// Use to guard remembered-bounds state writes in global-position callbacks; see
+    /// `onGloballyPositionedInRoot`.
+    func isApproximatelyEqual(to other: Rect?) -> Bool {
+        guard let other else {
+            return false
+        }
+        return abs(left - other.left) < boundsEpsilonPx
+            && abs(top - other.top) < boundsEpsilonPx
+            && abs(right - other.right) < boundsEpsilonPx
+            && abs(bottom - other.bottom) < boundsEpsilonPx
     }
 }
 
