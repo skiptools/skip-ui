@@ -32,6 +32,12 @@ internal class GeometryReaderState {
 
     /** Measured size remains valid even when an ancestor clips the global bounding rectangle. */
     fun update(size: IntSize, frame: Rect) {
+        // Guard against sub-pixel jitter: content that reads the frame recomposes on every write,
+        // so unfiltered writes can recompose in a loop while the screen is idle
+        val current = layout.value
+        if (current != null && current.size == size && frame.isApproximatelyEqual(current.frame)) {
+            return
+        }
         layout.value = Layout(size, frame)
     }
 
