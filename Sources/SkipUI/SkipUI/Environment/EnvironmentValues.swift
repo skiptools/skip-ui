@@ -479,8 +479,12 @@ extension EnvironmentValues {
     }
     
     public var locale: Locale {
-        get { Locale(LocalConfiguration.current.locales[0]) }
+        get { builtinValue(key: "_locale", defaultValue: { nil }) as! Locale? ?? Locale(LocalConfiguration.current.locales[0]) }
         set {
+            // Presentations compose in their own Android window, where Compose re-provides
+            // `LocalConfiguration` from the platform. Track the override in our own composition
+            // local as well so that it survives into sheets, covers, alerts, and popups.
+            setBuiltinValue(key: "_locale", value: newValue, defaultValue: { nil })
             let action: @Composable () -> Void = {
                 // Requires a @Composable context to copy LocalConfiguration.current
                 let configuration = Configuration(LocalConfiguration.current)
