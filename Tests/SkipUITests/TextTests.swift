@@ -297,4 +297,49 @@ final class TextTests: XCSnapshotTestCase {
 
         """))
     }
+
+    /// Splits a pixmap of two equal rows into its top and bottom halves, so a concatenation can
+    /// be compared against an equivalent plain text rendered directly beneath it. The compose
+    /// test rule permits a single `setContent` per test, so both subjects share one render.
+    private func stackedHalves(_ map: String) -> (top: String, bottom: String) {
+        let rows = map.split(separator: "\n", omittingEmptySubsequences: false).map({ String($0) })
+        let mid = rows.count / 2
+        return (Array(rows.prefix(mid)).joined(separator: "\n"), Array(rows.suffix(mid)).joined(separator: "\n"))
+    }
+
+    /// `Text + Text` must lay out as a single string rather than as two adjacent views: the
+    /// concatenation renders identically to the equivalent joined literal below it.
+    func testTextConcatenationLaysOutAsSingleString() throws {
+        if isAndroid {
+            throw XCTSkip("Disabled on Android due to inconsistent font rendering on different emulators")
+        }
+
+        let halves = stackedHalves(try pixmap(content: VStack(spacing: 0.0) {
+            Text("Hello") + Text("World")
+            Text("HelloWorld")
+        }.background(Color.white)))
+        XCTAssertEqual(halves.top, halves.bottom)
+    }
+
+    /// Each operand's own styling survives the concatenation. Were the captured per-run style
+    /// dropped, the runs would fall back to the environment font and render at body size rather
+    /// than matching the equivalently styled plain text below them. Compared by inked height
+    /// rather than the whole pixmap because the two paths differ slightly in advance width.
+    func testTextConcatenationAppliesPerSegmentFont() throws {
+        if isAndroid {
+            throw XCTSkip("Disabled on Android due to inconsistent font rendering on different emulators")
+        }
+
+        let halves = stackedHalves(try pixmap(content: VStack(spacing: 0.0) {
+            Text("A").font(.largeTitle) + Text("B").font(.largeTitle)
+            Text("AB").font(.largeTitle)
+        }.background(Color.white)))
+        XCTAssertEqual(inkedRows(halves.top), inkedRows(halves.bottom))
+        XCTAssertGreaterThan(inkedRows(halves.top), 0)
+    }
+
+    /// The number of rows containing rendered pixels, i.e. the drawn height of a pixmap.
+    private func inkedRows(_ map: String) -> Int {
+        return map.split(separator: "\n", omittingEmptySubsequences: false).filter({ $0.contains(".") }).count
+    }
 }
