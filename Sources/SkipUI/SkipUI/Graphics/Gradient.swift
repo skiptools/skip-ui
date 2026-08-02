@@ -71,8 +71,14 @@ public struct Gradient : ShapeStyle, Hashable {
     #endif
 
     public struct ColorSpace : Hashable {
-        public static let device = Gradient.ColorSpace()
-        public static let perceptual = Gradient.ColorSpace()
+        let identifier: Int
+
+        init(identifier: Int) {
+            self.identifier = identifier
+        }
+
+        public static let device = Gradient.ColorSpace(identifier: 0)
+        public static let perceptual = Gradient.ColorSpace(identifier: 1)
     }
 
     public func colorSpace(_ space: Gradient.ColorSpace) -> AnyGradient {

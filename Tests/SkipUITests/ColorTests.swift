@@ -14,6 +14,37 @@ final class ColorTests: XCSnapshotTestCase {
         XCTAssertEqual("F", try render(compact: 1, view: Color.white.frame(width: 1.0, height: 1.0)).pixmap)
     }
 
+    func testColorMixFullFraction() throws {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            XCTAssertEqual("0", try render(compact: 1, view: Color.white.mix(with: Color.black, by: 1.0).frame(width: 1.0, height: 1.0)).pixmap)
+        }
+    }
+
+    func testColorMixFractionClampedAbove() throws {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            XCTAssertEqual("F", try render(compact: 1, view: Color.black.mix(with: Color.white, by: 2.0).frame(width: 1.0, height: 1.0)).pixmap)
+        }
+    }
+
+    func testColorMixFractionClampedBelow() throws {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            XCTAssertEqual("0", try render(compact: 1, view: Color.black.mix(with: Color.white, by: -1.0).frame(width: 1.0, height: 1.0)).pixmap)
+        }
+    }
+
+    func testColorMixDevice() throws {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            XCTAssertEqual(plaf("808080"), try render(view: Color.black.mix(with: Color.white, by: 0.5, in: .device).frame(width: 1.0, height: 1.0)).pixmap)
+        }
+    }
+
+    func testColorMixPerceptual() throws {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            // A 50% black/white mix in the default perceptual (Oklab) color space resolves to Oklab L = 0.5, i.e. #636363
+            XCTAssertEqual(plaf("636363"), try render(view: Color.black.mix(with: Color.white, by: 0.5).frame(width: 1.0, height: 1.0)).pixmap)
+        }
+    }
+
     // Issue #146 follow-up: all three .colorset Input Methods must render the same color (#04F188).
     // Skipped on Robolectric — Bundle.module colorset decoding falls back to gray there (pre-existing runner limitation).
 

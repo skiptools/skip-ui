@@ -10,6 +10,8 @@ import androidx.compose.material.ContentAlpha
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 #endif
 
@@ -338,6 +340,33 @@ public struct Color: ShapeStyle, Renderable, Hashable {
         #else
         return self
         #endif
+    }
+
+    public func mix(with rhs: Color, by fraction: Double, in colorSpace: Gradient.ColorSpace = .perceptual) -> Color {
+        #if SKIP
+        let clampedFraction = Self.clamp(fraction)
+        return Color(colorImpl: {
+            if colorSpace == .device {
+                let start = colorImpl().convert(ColorSpaces.Srgb)
+                let stop = rhs.colorImpl().convert(ColorSpaces.Srgb)
+                return androidx.compose.ui.graphics.Color(
+                    red: start.red + (stop.red - start.red) * clampedFraction,
+                    green: start.green + (stop.green - start.green) * clampedFraction,
+                    blue: start.blue + (stop.blue - start.blue) * clampedFraction,
+                    alpha: start.alpha + (stop.alpha - start.alpha) * clampedFraction)
+            } else {
+                // Compose's lerp interpolates in the Oklab color space, matching SwiftUI's .perceptual
+                return lerp(colorImpl(), rhs.colorImpl(), clampedFraction)
+            }
+        })
+        #else
+        return self
+        #endif
+    }
+
+    // SKIP @bridge
+    public func mix(with rhs: Color, by fraction: Double, bridgedColorSpace: Int) -> Color {
+        return mix(with: rhs, by: fraction, in: bridgedColorSpace == 0 ? .device : .perceptual)
     }
 
     // SKIP @bridge
