@@ -690,6 +690,11 @@ private struct ColorSet : Decodable {
                 return Self.parseHexComponent(value) ?? defaultValue
             }
 
+            // "8-bit (0-255)" input method (e.g. "148"): a bare integer with no decimal point, normalized by /255.
+            if !value.contains("."), let intValue = Int(value) {
+                return Double(intValue) / 255.0
+            }
+
             return Double(value) ?? defaultValue
         }
 
