@@ -92,15 +92,17 @@ private let AlertDialogMaxWidth: Dp = 560.dp
 
 // SKIP INSERT: @OptIn(ExperimentalMaterial3Api::class)
 @Composable func SheetPresentation(isPresented: Binding<Bool>, isFullScreen: Bool, context: ComposeContext, content: () -> any View, onDismiss: (() -> Void)?) {
-    let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self)) }
-    let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
-
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     let isPresentedValue = isPresented.get()
     if isPresentedValue || sheetState.isVisible {
         // Don't fully evaluate content until we set up the presented environment. For now we just want
-        // to get at the modifiers to look for `BackDismissDisabled`
+        // to get at the modifiers to look for `BackDismissDisabled` and statically-applied
+        // presentation preferences (see `harvestPreference`)
         let contentRenderables = ComposeBuilder.from(content).Evaluate(context: context, options: EvaluateOptions(isKeepNonModified: true).value)
+        // Seed from the harvested static preference so the first composition already gates
+        // gestures correctly; dynamic updates keep flowing through the collector
+        let interactiveDismissDisabledPreference = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<Bool>, Any>) { mutableStateOf(Preference<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, initialValue: harvestPreference(key: InteractiveDismissDisabledPreferenceKey.self, on: contentRenderables) as? Bool)) }
+        let interactiveDismissDisabledCollector = PreferenceCollector<Bool>(key: InteractiveDismissDisabledPreferenceKey.self, state: interactiveDismissDisabledPreference)
         let topInset = remember { mutableStateOf(0.dp) }
         let topInsetPx = with(LocalDensity.current) { topInset.value.toPx() }
         let handleHeight = isFullScreen ? 0.dp : 8.dp
@@ -108,18 +110,26 @@ private let AlertDialogMaxWidth: Dp = 560.dp
         let handlePadding = isFullScreen ? 0.dp : 10.dp
         let handlePaddingPx = with(LocalDensity.current) { handlePadding.toPx() }
         let sheetMaxWidth = isFullScreen ? Dp.Unspecified : BottomSheetDefaults.SheetMaxWidth
-        let shape = GenericShape { size, _ in
-            let y = topInsetPx - handleHeightPx - handlePaddingPx
-            addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
+        // Remember the shape keyed on its inputs: a fresh (unequal) instance per pass is an
+        // unstable ModalBottomSheet argument that forces the sheet machinery to recompose on
+        // every presenter recomposition
+        let shape = remember(topInsetPx, handleHeightPx, handlePaddingPx) {
+            GenericShape { size, _ in
+                let y = topInsetPx - handleHeightPx - handlePaddingPx
+                addRect(Rect(offset = Offset(x: Float(0.0), y: y), size: Size(width: size.width, height: size.height - y)))
+            }
         }
         let interactiveDismissDisabled = isFullScreen || interactiveDismissDisabledPreference.value.reduced
         // Implementing backDismissDisabled as a preference doesn't work because preferences require an extra composition
         // and only the first composition of `ModalBottomSheetProperties` is taken into account. So we require the
-        // modifier directly on the content view
-        let backDismissDisabled = isBackDismissDisabled(on: contentRenderables)
-        let onDismissRequest = {
-            isPresented.set(false)
-        }
+        // modifier directly on the content view. Harvested once per presentation for the same
+        // reason: later values are ignored anyway, and a per-pass recomputation destabilizes
+        // the ModalBottomSheet arguments
+        let backDismissDisabled = remember { isBackDismissDisabled(on: contentRenderables) }
+        // Stable dismiss callback: a fresh closure per pass is an unstable ModalBottomSheet
+        // argument (see `shape` above)
+        let currentIsPresented = rememberUpdatedState(isPresented)
+        let onDismissRequest: () -> Void = remember { { currentIsPresented.value.set(false) } }
         let properties = ModalBottomSheetProperties(shouldDismissOnBackPress: !backDismissDisabled)
         ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, sheetMaxWidth: sheetMaxWidth, sheetGesturesEnabled: !interactiveDismissDisabled, containerColor: androidx.compose.ui.graphics.Color.Unspecified, shape: shape, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }, properties: properties) {
             
@@ -130,10 +140,15 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
 
-            let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self)) }
+            // Seed both preference states from the statically-applied modifiers harvested off
+            // the evaluated content, so the sheet's FIRST composition uses the final detent
+            // geometry and drag-indicator visibility instead of defaults that settle (with a
+            // visible jump) one composition later. Dynamic preference updates still flow
+            // through the collectors exactly as before
+            let detentPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDetentPreferences>, Any>) { mutableStateOf(Preference<PresentationDetentPreferences>(key: PresentationDetentPreferenceKey.self, initialValue: harvestPreference(key: PresentationDetentPreferences.self, on: contentRenderables) as? PresentationDetentPreferences)) }
             let detentPreferencesCollector = PreferenceCollector<PresentationDetentPreferences>(key: PresentationDetentPreferences.self, state: detentPreferences)
             let reducedDetentPreferences = detentPreferences.value.reduced
-            let dragIndicatorPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDragIndicatorPreferences>, Any>) { mutableStateOf(Preference<PresentationDragIndicatorPreferences>(key: PresentationDragIndicatorPreferenceKey.self)) }
+            let dragIndicatorPreferences = rememberSaveable(stateSaver: context.stateSaver as! Saver<Preference<PresentationDragIndicatorPreferences>, Any>) { mutableStateOf(Preference<PresentationDragIndicatorPreferences>(key: PresentationDragIndicatorPreferenceKey.self, initialValue: harvestPreference(key: PresentationDragIndicatorPreferences.self, on: contentRenderables) as? PresentationDragIndicatorPreferences)) }
             let dragIndicatorPreferencesCollector = PreferenceCollector<PresentationDragIndicatorPreferences>(key: PresentationDragIndicatorPreferences.self, state: dragIndicatorPreferences)
             let reducedDragIndicatorVisibility = dragIndicatorPreferences.value.reduced.visibility
 
@@ -256,6 +271,31 @@ func isBackDismissDisabled(on renderables: kotlin.collections.List<Renderable>) 
         }
     }
     return false
+}
+
+/// One-shot harvest of a statically-applied `preference(key:value:)` value from evaluated
+/// renderables, mirroring `isBackDismissDisabled`.
+///
+/// Used to seed presentation preference state so that the presentation's first composition
+/// uses final values (detent geometry, drag indicator, interactive dismiss) instead of
+/// defaults that only settle after the collected preferences propagate a composition later.
+/// Only sees preferences applied to the presented content's own modifier chain — values
+/// applied deeper in the tree still arrive through the collector as before. Returns the
+/// first match, matching the collector's outermost-wins reduction for these keys.
+func harvestPreference(key: Any, on renderables: kotlin.collections.List<Renderable>) -> Any? {
+    for renderable in renderables {
+        let value = renderable.forEachModifier(perform: { modifier in
+            if let preferenceModifier = modifier as? PreferenceModifier, preferenceModifier.key == key {
+                return preferenceModifier.value
+            } else {
+                return nil
+            }
+        })
+        if value != nil {
+            return value
+        }
+    }
+    return nil
 }
 
 final class DisableScrollToDismissConnection : NestedScrollConnection {
