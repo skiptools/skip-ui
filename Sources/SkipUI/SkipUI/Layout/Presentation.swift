@@ -312,21 +312,27 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
 @Composable func ConfirmationDialogPresentation(title: Text?, isPresented: Binding<Bool>, context: ComposeContext, actions: any View, message: (any View)? = nil) {
     let sheetState = rememberModalBottomSheetState(skipPartiallyExpanded: true)
     if isPresented.get() || sheetState.isVisible {
-        // Collect buttons and message text
-        let actionRenderables = actions.Evaluate(context: context, options: 0)
-        let composableActions: kotlin.collections.List<Renderable> = actionRenderables.mapNotNull {
-            let stripped = $0.strip()
-            return stripped as? Button ?? stripped as? Link ?? stripped as? NavigationLink
-        }
-        let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context, options: 0) ?? listOf()
-        let messageText = messageRenderables.mapNotNull {
-            $0.strip() as? Text
-        }.firstOrNull()
+        // Stable dismiss callback: a fresh closure per pass is an unstable ModalBottomSheet
+        // argument that forces the sheet machinery to recompose on every presenter recomposition
+        let currentIsPresented = rememberUpdatedState(isPresented)
+        let onDismissRequest: () -> Void = remember { { currentIsPresented.value.set(false) } }
+        ModalBottomSheet(onDismissRequest: onDismissRequest, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
+            // Collect buttons and message text. Evaluated inside the dialog's own composition:
+            // in the presenter's scope these full evaluations re-ran the actions and message
+            // view bodies on every presenter recomposition while the dialog was open
+            let actionRenderables = actions.Evaluate(context: context, options: 0)
+            let composableActions: kotlin.collections.List<Renderable> = actionRenderables.mapNotNull {
+                let stripped = $0.strip()
+                return stripped as? Button ?? stripped as? Link ?? stripped as? NavigationLink
+            }
+            let messageRenderables: kotlin.collections.List<Renderable> = message?.Evaluate(context: context, options: 0) ?? listOf()
+            let messageText = messageRenderables.mapNotNull {
+                $0.strip() as? Text
+            }.firstOrNull()
 
-        ModalBottomSheet(onDismissRequest: { isPresented.set(false) }, sheetState: sheetState, containerColor: androidx.compose.ui.graphics.Color.Transparent, dragHandle: nil, contentWindowInsets: { WindowInsets(0.dp, 0.dp, 0.dp, 0.dp) }) {
             // Add padding to always keep the sheet away from the top of the screen. It should tap to dismiss like the background
             let interactionSource = remember { MutableInteractionSource() }
-            Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: { isPresented.set(false) }))
+            Box(modifier: Modifier.fillMaxWidth().height(128.dp).clickable(interactionSource: interactionSource, indication: nil, onClick: onDismissRequest))
 
             let stateSaver = remember { ComposeStateSaver() }
             let scrollState = rememberScrollState()
