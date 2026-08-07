@@ -582,8 +582,11 @@ final class DisableScrollToDismissConnection : NestedScrollConnection {
             }
         }
     }
+    // Stable dismiss callback: a fresh closure per pass is an unstable Dialog argument
+    let currentIsPresented = rememberUpdatedState(isPresented)
+    let onDismissRequest: () -> Void = remember { { currentIsPresented.value.set(false) } }
     SkipAlertDialog(
-        onDismissRequest: { isPresented.set(false) },
+        onDismissRequest: onDismissRequest,
         neutralButtons: neutralButtonsList,
         confirmButton: {
             if let r = confirmRenderable {
