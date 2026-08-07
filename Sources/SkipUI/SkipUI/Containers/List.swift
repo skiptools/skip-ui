@@ -297,14 +297,49 @@ public final class List : View, Renderable {
             }
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
+            var itemKeyOccurrences = mutableMapOf<String, Int>()
+            var implicitPathComponents: [String] = []
+            var implicitSiblingOccurrences: [Int: Int] = [:]
+            let itemKey: (Renderable, Int) -> String = { renderable, level in
+                let identity = TagModifier.on(content: renderable, role: .id)?.value ?? TagModifier.on(content: renderable, role: .tag)?.value
+                let siblingOccurrence = implicitSiblingOccurrences[level] ?? 0
+                implicitSiblingOccurrences[level] = siblingOccurrence + 1
+                implicitSiblingOccurrences.keys.filter { $0 > level }.forEach {
+                    implicitSiblingOccurrences.removeValue(forKey: $0)
+                }
+                while implicitPathComponents.count > level {
+                    implicitPathComponents.removeLast()
+                }
+
+                let pathComponent: String
+                if let identity {
+                    pathComponent = "explicit:\(composeBundleString(for: identity))"
+                } else {
+                    pathComponent = "implicit:\(siblingOccurrence)"
+                }
+                implicitPathComponents.append(pathComponent)
+
+                let baseKey: String
+                if let identity {
+                    baseKey = "explicit-path:\(implicitPathComponents.joined(separator: "/"))"
+                } else {
+                    baseKey = "implicit-path:\(implicitPathComponents.joined(separator: "/"))"
+                }
+                let occurrence = itemKeyOccurrences[baseKey] ?? 0
+                itemKeyOccurrences[baseKey] = occurrence + 1
+                return "\(baseKey)#\(occurrence)"
+            }
+
+            var sectionIndex = -1
             var startItemIndex = hasHeader ? 1 : 0 // Header inset
             if isSearchable {
                 startItemIndex += 1 // Search field
             }
+
             itemCollector.value.initialize(
                 startItemIndex: startItemIndex,
                 item: { renderable, level in
-                    item {
+                    item(key: itemKey(renderable, level)) {
                         let itemModifier: Modifier = shouldAnimateItems() ? Modifier.animateItem() : Modifier
                         RenderItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling)
                     }
@@ -341,26 +376,36 @@ public final class List : View, Renderable {
                     }
                 },
                 sectionHeader: { content in
+                    sectionIndex += 1
+                    let currentSectionIndex = sectionIndex
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
                     let isTop = firstRenderable === headerRenderables.firstOrNull()
-                    for renderable in headerRenderables {
+                    for renderableIndex in 0..<headerRenderables.size {
+                        let renderable = headerRenderables[renderableIndex]
                         if styling.style == .plain {
                             stickyHeader { _ in
                                 RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
                             }
                         } else {
-                            item {
-                                RenderSectionHeader(content: renderable, context: itemContext, styling: styling, isTop: isTop)
+                            if !isTop && renderableIndex == 0 {
+                                item(key: "section-\(currentSectionIndex)-top-gap") {
+                                    RenderFooter(styling: styling, modifier: Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil), safeAreaHeight: 0.dp, hasBottomSection: true)
+                                }
+                            }
+                            item(key: "section-\(currentSectionIndex)-header-\(renderableIndex)") {
+                                RenderSectionHeader(content: renderable, context: itemContext, modifier: Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil), styling: styling, isTop: isTop)
                             }
                         }
                     }
                 },
                 sectionFooter: { content in
+                    let currentSectionIndex = sectionIndex
                     let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
-                    for renderable in footerRenderables {
-                        item {
-                            RenderSectionFooter(content: renderable, context: itemContext, styling: styling)
+                    for renderableIndex in 0..<footerRenderables.size {
+                        let renderable = footerRenderables[renderableIndex]
+                        item(key: "section-\(currentSectionIndex)-footer-\(renderableIndex)") {
+                            RenderSectionFooter(content: renderable, context: itemContext, modifier: Modifier.animateItem(fadeInSpec: nil, fadeOutSpec: nil), styling: styling)
                         }
                     }
                 }
@@ -1047,13 +1092,9 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, styling: ListStyling, isTop: Bool) {
-        if !isTop && styling.style != ListStyle.plain {
-            // Vertical padding
-            RenderFooter(styling: styling, safeAreaHeight: 0.dp, hasBottomSection: true)
-        }
+    @Composable private func RenderSectionHeader(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling, isTop: Bool) {
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier
+        let containerModifier = modifier
             .zIndex(Float(0.5))
             .background(backgroundColor)
             .then(context.modifier)
@@ -1063,7 +1104,7 @@ public final class List : View, Renderable {
         } else {
             contentModifier = contentModifier.padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
         }
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
+        Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.BottomCenter) {
             Column(modifier: Modifier.fillMaxWidth()) {
                 EnvironmentValues.shared.setValues {
                     $0.set_listSectionHeaderStyle(styling.style)
@@ -1078,7 +1119,7 @@ public final class List : View, Renderable {
         }
     }
 
-    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, styling: ListStyling) {
+    @Composable private func RenderSectionFooter(content: Renderable, context: ComposeContext, modifier: Modifier = Modifier, styling: ListStyling) {
         if styling.style == .plain {
             let footerContent: Renderable
             if let lazySectionFooter = content as? LazySectionFooter, !lazySectionFooter.content.any({ !$0.isSwiftUIEmptyView }) {
@@ -1087,15 +1128,15 @@ public final class List : View, Renderable {
             } else {
                 footerContent = content
             }
-            RenderItem(content: footerContent, level: 0, context: context, styling: styling, isItem: false)
+            RenderItem(content: footerContent, level: 0, context: context, modifier: modifier, styling: styling, isItem: false)
         } else {
             let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-            let modifier = Modifier.offset(y: -1.dp) // Cover last row's divider
+            let containerModifier = modifier.offset(y: -1.dp) // Cover last row's divider
                 .zIndex(Float(0.5))
                 .background(backgroundColor)
                 .then(context.modifier)
             let contentModifier = Modifier.fillMaxWidth().padding(horizontal: Self.horizontalItemInset.dp, vertical: Self.verticalItemInset.dp)
-            Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+            Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
                 Column(modifier: Modifier.fillMaxWidth().heightIn(min: 1.dp)) {
                     EnvironmentValues.shared.setValues {
                         $0.set_listSectionFooterStyle(styling.style)
@@ -1130,7 +1171,7 @@ public final class List : View, Renderable {
 
     /// - Warning: Only call for non-.plain styles or with a positive safe area height. This is distinct from having this function detect
     /// .plain and zero-height and return without rendering. That causes .plain style lists to have a weird rubber banding effect on overscroll.
-    @Composable private func RenderFooter(styling: ListStyling, safeAreaHeight: Dp, hasBottomSection: Bool) {
+    @Composable private func RenderFooter(styling: ListStyling, modifier: Modifier = Modifier, safeAreaHeight: Dp, hasBottomSection: Bool) {
         var height = safeAreaHeight
         var offset = 0.dp
         if styling.style != .plain {
@@ -1138,12 +1179,12 @@ public final class List : View, Renderable {
             offset = -1.dp // Cover last row's divider
         }
         let backgroundColor = BackgroundColor(styling: styling, isItem: false)
-        let modifier = Modifier.fillMaxWidth()
+        let containerModifier = modifier.fillMaxWidth()
             .height(height)
             .offset(y: offset)
             .zIndex(Float(0.5))
             .background(backgroundColor)
-        Box(modifier: modifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
+        Box(modifier: containerModifier, contentAlignment: androidx.compose.ui.Alignment.TopCenter) {
             if !hasBottomSection && styling.style != .plain {
                 RenderRoundedCorners(isTop: false, fill: backgroundColor)
             }
