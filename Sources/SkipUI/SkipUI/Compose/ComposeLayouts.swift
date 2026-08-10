@@ -169,6 +169,11 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
         return
     }
 
+    let effectiveBottomAdjacencyTolerancePx = max(
+        bottomAdjacencyTolerancePx,
+        safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom
+    )
+
     if !logTag.isEmpty {
         LaunchedEffect(logTag, expandInto.rawValue, checkEdges.rawValue) {
             Log.d("SkipUI.ISAL.\(logTag)", "init expandInto=\(expandInto) checkEdges=\(checkEdges) edgesState(initial)=\(checkEdges)")
@@ -221,7 +226,7 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
     } in: {
         Layout(modifier: modifier.onGloballyPositionedInWindow {
             let probeEdges = expandInto.union(checkEdges)
-            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges, bottomTolerancePx: bottomAdjacencyTolerancePx)
+            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges, bottomTolerancePx: effectiveBottomAdjacencyTolerancePx)
             if !logTag.isEmpty {
                 let previous = edgesState.value
                 if newEdges != previous {

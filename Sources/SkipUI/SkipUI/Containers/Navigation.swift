@@ -166,8 +166,7 @@ public struct NavigationStack : View, Renderable {
             // When we layout, only extend into safe areas that are due to system bars, not into any app chrome
             var ignoresSafeAreaEdges: Edge.Set = [.top, .bottom]
             ignoresSafeAreaEdges.formIntersection(safeArea?.absoluteSystemBarEdges ?? [])
-            let bottomAdjacencyTolerancePx = safeArea.map { max(Float(0.1), $0.presentationBoundsPx.bottom - $0.safeBoundsPx.bottom) } ?? Float(0.1)
-            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, bottomAdjacencyTolerancePx: bottomAdjacencyTolerancePx, logTag: "NavigationStack") { _, _ in
+            IgnoresSafeAreaLayout(expandInto: ignoresSafeAreaEdges, checkEdges: ignoresSafeAreaEdges, logTag: "NavigationStack") { _, _ in
                 ComposeContainer(modifier: context.modifier, fillWidth: true, fillHeight: true) { modifier in
                     let decoratorList = listOf(rememberSaveableStateHolderNavEntryDecorator<NavKey>())
                     let entryProvider = entryProvider {
