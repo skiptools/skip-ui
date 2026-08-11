@@ -88,7 +88,7 @@ final class LazySectionHeader: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
-        collector.sectionHeader(modified, LazyItemCollector.sectionID(from: modifiers))
+        collector.sectionHeader(modified, LazyItemCollector.sectionIdentity(from: modifiers))
     }
 }
 
@@ -106,7 +106,7 @@ final class LazySectionFooter: Renderable, LazyItemFactory {
 
     override func produceLazyItems(collector: LazyItemCollector, modifiers: kotlin.collections.List<ModifierProtocol>, level: Int) {
         let modified = content.map { ModifiedContent.apply(modifiers: modifiers, to: $0) }
-        collector.sectionFooter(modified, LazyItemCollector.sectionID(from: modifiers))
+        collector.sectionFooter(modified, LazyItemCollector.sectionIdentity(from: modifiers))
     }
 }
 
@@ -128,11 +128,20 @@ public final class LazyItemCollector {
     private(set) var objectBindingItems: (Binding<RandomAccessCollection<Any>>, (Any) -> AnyHashable?, EditActions, ((IndexSet) -> Void)?, ((IndexSet, Int) -> Void)?, Int, @Composable (Binding<RandomAccessCollection<Any>>, Int, ComposeContext) -> Renderable) -> Void = { _, _, _, _, _, _, _ in }
     private(set) var sectionHeader: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
     private(set) var sectionFooter: (kotlin.collections.List<Renderable>, Any?) -> Int = { _, _ in 0 }
-    private var collectedItemCount = 0
     private var currentSectionItemCount: Int? = nil
     private var startItemIndex = 0
 
+    /// Track emitted body items for the current section, excluding section header/footer chrome.
+    private func incrementCurrentSectionItemCount(by count: Int) {
+        if let countInSection = currentSectionItemCount {
+            currentSectionItemCount = countInSection + count
+        }
+    }
+
     /// Initialize the content factories.
+    ///
+    /// Section callbacks return the number of lazy items they actually emitted. `List` needs this because grouped
+    /// section chrome can emit extra lazy items, such as the gap before non-top sections.
     func initialize(
         startItemIndex: Int,
         item: (Renderable, Int) -> Void,
@@ -145,7 +154,6 @@ public final class LazyItemCollector {
         self.startItemIndex = startItemIndex
 
         content.removeAll()
-        collectedItemCount = 0
         currentSectionItemCount = nil
 
         self.item = { renderable, level in
@@ -155,30 +163,35 @@ public final class LazyItemCollector {
             }
             item(renderable, level)
             let id = TagModifier.on(content: renderable, role: .id)?.value
-            appendContent(.items(0, 1, { _ in id }, nil))
+            content.append(.items(0, 1, { _ in id }, nil))
+            incrementCurrentSectionItemCount(by: 1)
         }
         self.indexedItems = { range, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 _ = self.sectionHeader(listOf(), nil)
             }
             indexedItems(range, identifier, count, onDelete, onMove, level, factory)
-            appendContent(.items(range.start, range.endExclusive - range.start, identifier, onMove))
+            let itemCount = range.endExclusive - range.start
+            content.append(.items(range.start, itemCount, identifier, onMove))
+            incrementCurrentSectionItemCount(by: itemCount)
         }
         self.objectItems = { objects, identifier, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 _ = self.sectionHeader(listOf(), nil)
             }
             objectItems(objects, identifier, count, onDelete, onMove, level, factory)
-            appendContent(.objectItems(objects, identifier, onMove))
+            content.append(.objectItems(objects, identifier, onMove))
+            incrementCurrentSectionItemCount(by: objects.count)
         }
         self.objectBindingItems = { binding, identifier, editActions, onDelete, onMove, level, factory in
             if case .sectionFooter = content.last {
                 _ = self.sectionHeader(listOf(), nil)
             }
             objectBindingItems(binding, identifier, count, editActions, onDelete, onMove, level, factory)
-            appendContent(.objectBindingItems(binding, identifier, onMove))
+            content.append(.objectBindingItems(binding, identifier, onMove))
+            incrementCurrentSectionItemCount(by: binding.wrappedValue.count)
         }
-        self.sectionHeader = { renderables, sectionID in
+        self.sectionHeader = { renderables, sectionIdentity in
             // If this is a header after an item, add a section footer before it
             switch content.last {
             case .sectionFooter, nil:
@@ -186,60 +199,43 @@ public final class LazyItemCollector {
             default:
                 _ = self.sectionFooter(listOf(), nil)
             }
-            let renderedCount = max(1, sectionHeader(renderables, sectionID))
-            appendContent(.sectionHeader(renderedCount))
+            let renderedCount = max(1, sectionHeader(renderables, sectionIdentity))
+            content.append(.sectionHeader(renderedCount))
+            currentSectionItemCount = 0
             return renderedCount
         }
-        self.sectionFooter = { renderables, sectionID in
-            let renderedCount = max(1, sectionFooter(renderables, sectionID, currentSectionItemCount))
-            appendContent(.sectionFooter(renderedCount))
+        self.sectionFooter = { renderables, sectionIdentity in
+            let renderedCount = max(1, sectionFooter(renderables, sectionIdentity, currentSectionItemCount))
+            content.append(.sectionFooter(renderedCount))
+            currentSectionItemCount = nil
             return renderedCount
         }
     }
 
     /// Return the section identity supplied by an enclosing ForEach, if one exists.
-    static func sectionID(from modifiers: kotlin.collections.List<ModifierProtocol>) -> Any? {
+    static func sectionIdentity(from modifiers: kotlin.collections.List<ModifierProtocol>) -> Any? {
         for modifier in modifiers {
             if modifier.role == ModifierRole.tag, let tagModifier = modifier as? TagModifier {
                 return tagModifier.value
             }
         }
+
         return nil
     }
 
     /// The current number of content items.
     var count: Int {
-        return collectedItemCount
-    }
-
-    /// Append collected content while tracking total item count.
-    private func appendContent(_ contentEntry: Content) {
-        content.append(contentEntry)
-
-        switch contentEntry {
-        case .items(_, let count, _, _):
-            collectedItemCount = collectedItemCount + count
-            if let countInSection = currentSectionItemCount {
-                currentSectionItemCount = countInSection + count
+        var itemCount = 0
+        for content in self.content {
+            switch content {
+            case .items(_, let count, _, _): itemCount += count
+            case .objectItems(let objects, _, _): itemCount += objects.count
+            case .objectBindingItems(let binding, _, _): itemCount += binding.wrappedValue.count
+            case .sectionHeader(let count): itemCount += count
+            case .sectionFooter(let count): itemCount += count
             }
-        case .objectItems(let objects, _, _):
-            collectedItemCount = collectedItemCount + objects.count
-            if let countInSection = currentSectionItemCount {
-                currentSectionItemCount = countInSection + objects.count
-            }
-        case .objectBindingItems(let binding, _, _):
-            let count = binding.wrappedValue.count
-            collectedItemCount = collectedItemCount + count
-            if let countInSection = currentSectionItemCount {
-                currentSectionItemCount = countInSection + count
-            }
-        case .sectionHeader(let count):
-            currentSectionItemCount = 0
-            collectedItemCount = collectedItemCount + count
-        case .sectionFooter(let count):
-            currentSectionItemCount = nil
-            collectedItemCount = collectedItemCount + count
         }
+        return itemCount
     }
 
     /// If the current collected content ends with a section footer.

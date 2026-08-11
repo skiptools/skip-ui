@@ -264,10 +264,13 @@ public final class List : View, Renderable {
         // this must be done when the items are composed *prior* to any animated change. So by default we compose all items
         // with `animateItemPlacement`. If the entire List is recomposed without an animation in progress (e.g. an unanimated
         // data change), we recompose without animation, then after some time to complete the recompose we flip back to the
-        // animated state in anticipation of the next, potentially animated, update
+        // animated state in anticipation of the next, potentially animated, update.
         let forceUnanimatedItems = remember { mutableStateOf(false) }
+
+        // Section chrome has separate placement rules from rows: row inserts/deletes should animate, while
+        // initial/bulk section loads need their rounded bottom chrome to appear at the settled position.
         let sectionChromeAnimationState = remember { SectionChromeAnimationState() }
-        let sectionFooterPlacementReadyGeneration = remember { mutableStateOf(0) }
+        let sectionBottomPlacementInvalidation = remember { mutableStateOf(0) }
         if Animation.current(isAnimating: false) == nil {
             forceUnanimatedItems.value = true
             LaunchedEffect(System.currentTimeMillis()) {
@@ -277,13 +280,13 @@ public final class List : View, Renderable {
         } else {
             forceUnanimatedItems.value = false
         }
-        let isAnimatedUpdate = Animation.current(isAnimating: false) != nil
 
         let itemContext = context.content()
         /* Tracks which row currently has its swipe actions revealed. When one
            opens, all others observe this state and animate closed. Matches
            iOS list behavior of "only one row's swipe actions visible at once". */
         let activeSwipeKey = remember { mutableStateOf<String?>(nil) }
+
         // Combine contentPadding with contentMargins additively
         var contentPadding = EnvironmentValues.shared._contentPadding.asPaddingValues()
         if let contentMargins = EnvironmentValues.shared._contentMargins?.asComposePaddingValues(for: .automatic) {
@@ -292,9 +295,11 @@ public final class List : View, Renderable {
         let listRowSpacing = EnvironmentValues.shared._listRowSpacing
         let listVerticalArrangement = listRowSpacing != nil ? Arrangement.spacedBy(listRowSpacing!.dp) : Arrangement.Top
         LazyColumn(state: reorderableState.listState, modifier: modifier, contentPadding: contentPadding, verticalArrangement: listVerticalArrangement) {
+            // Intentionally invalidate the LazyColumn after a section bottom has seen one frame at its unanimated baseline
+            let _ = sectionBottomPlacementInvalidation.value
+
             // Read move trigger here so that a move will recompose list content
             let _ = moveTrigger.value
-            let _ = sectionFooterPlacementReadyGeneration.value
             let shouldAnimateItems: @Composable () -> Bool = {
                 // We disable animation to prevent filtered items from animating when they return
                 let animate = !forceUnanimatedItems.value && EnvironmentValues.shared._searchableState?.isSearching.value != true
@@ -303,11 +308,16 @@ public final class List : View, Renderable {
 
             // Initialize the factory context with closures that use the LazyListScope to generate items
             var itemKeyOccurrences = mutableMapOf<String, Int>()
-            var currentSectionFooterItemCounts: [String: Int] = [:]
+            var currentSectionBodyItemCounts: [String: Int] = [:]
             var implicitPathComponents: [String] = []
             var implicitSiblingOccurrences: [Int: Int] = [:]
+
+            // Build stable Compose keys for non-ForEach renderables. Explicit IDs/tags become path
+            // components, while untagged siblings get occurrence-based components so nested content
+            // does not accidentally reuse another item's placement animation state.
             let itemKey: (Renderable, Int) -> String = { renderable, level in
-                let identity = TagModifier.on(content: renderable, role: .id)?.value ?? TagModifier.on(content: renderable, role: .tag)?.value
+                let identity = TagModifier.on(content: renderable, role: .id)?.value
+                    ?? TagModifier.on(content: renderable, role: .tag)?.value
                 let siblingOccurrence = implicitSiblingOccurrences[level] ?? 0
                 implicitSiblingOccurrences[level] = siblingOccurrence + 1
                 implicitSiblingOccurrences.keys.filter { $0 > level }.forEach {
@@ -331,6 +341,7 @@ public final class List : View, Renderable {
                 } else {
                     baseKey = "implicit-path:\(implicitPathComponents.joined(separator: "/"))"
                 }
+
                 let occurrence = itemKeyOccurrences[baseKey] ?? 0
                 itemKeyOccurrences[baseKey] = occurrence + 1
                 return "\(baseKey)#\(occurrence)"
@@ -381,10 +392,10 @@ public final class List : View, Renderable {
                         RenderEditableItem(content: renderable, level: level, context: itemContext, modifier: itemModifier, styling: styling, objectsBinding: objectsBinding, key: keyValue, index: index, editActions: editActions, onDelete: onDelete, onMove: onMove, reorderableState: reorderableState, activeSwipeKey: activeSwipeKey)
                     }
                 },
-                sectionHeader: { content, sectionID in
+                sectionHeader: { content, sectionIdentity in
                     sectionIndex += 1
                     let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionID, fallbackIndex: currentSectionIndex)
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
                     let headerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let firstRenderable = (renderables.firstOrNull() as? LazySectionHeader)?.content.firstOrNull()
                     let isTop = firstRenderable === headerRenderables.firstOrNull()
@@ -397,6 +408,8 @@ public final class List : View, Renderable {
                             }
                         } else {
                             if !isTop && renderableIndex == 0 {
+                                // Keep the inter-section gap as its own lazy item so Compose can place it independently
+                                // from the header content. Rendering it inside RenderSectionHeader makes the chrome jump.
                                 item(key: "section-\(sectionKey)-top-gap") {
                                     let itemModifier: Modifier
                                     if itemCollector.value.hasActiveMove {
@@ -408,6 +421,7 @@ public final class List : View, Renderable {
                                 }
                                 renderedCount = renderedCount + 1
                             }
+
                             item(key: "section-\(sectionKey)-header-\(renderableIndex)") {
                                 let itemModifier: Modifier
                                 if itemCollector.value.hasActiveMove {
@@ -422,31 +436,36 @@ public final class List : View, Renderable {
                     }
                     return renderedCount
                 },
-                sectionFooter: { content, sectionID, sectionItemCount in
+                sectionFooter: { content, sectionIdentity, sectionItemCount in
                     let currentSectionIndex = sectionIndex
-                    let sectionKey = Self.sectionKey(for: sectionID, fallbackIndex: currentSectionIndex)
+                    let sectionKey = Self.sectionKey(for: sectionIdentity, fallbackIndex: currentSectionIndex)
                     let footerRenderables = content.size == 0 ? listOf(EmptyView()) : content
                     let currentSectionItemCount = sectionItemCount ?? 0
-                    currentSectionFooterItemCounts[sectionKey] = currentSectionItemCount
+                    currentSectionBodyItemCounts[sectionKey] = currentSectionItemCount
+
                     let shouldAnimateFooterPlacement: Bool
-                    if let previousSectionItemCount = sectionChromeAnimationState.sectionFooterItemCounts[sectionKey], sectionChromeAnimationState.sectionFooterPlacementReady[sectionKey] == true {
+                    if let previousSectionItemCount = sectionChromeAnimationState.sectionBodyItemCounts[sectionKey], sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] == true {
                         let countDelta = currentSectionItemCount > previousSectionItemCount ? currentSectionItemCount - previousSectionItemCount : previousSectionItemCount - currentSectionItemCount
                         shouldAnimateFooterPlacement = countDelta <= 1
                     } else {
                         shouldAnimateFooterPlacement = false
                     }
+
                     if !shouldAnimateFooterPlacement {
-                        sectionChromeAnimationState.sectionFooterPlacementReady[sectionKey] = false
-                        if sectionChromeAnimationState.sectionFooterPlacementPending[sectionKey] != true {
-                            sectionChromeAnimationState.sectionFooterPlacementPending[sectionKey] = true
+                        // First/bulk layouts establish their footer baseline without placement animation. The next
+                        // frame enables normal placement animation for small changes such as DisclosureGroup toggles.
+                        sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = false
+                        if sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] != true {
+                            sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = true
                             coroutineScope.launch {
                                 // SKIP INSERT: withFrameNanos { _ -> }
-                                sectionChromeAnimationState.sectionFooterPlacementReady[sectionKey] = true
-                                sectionChromeAnimationState.sectionFooterPlacementPending[sectionKey] = false
-                                sectionFooterPlacementReadyGeneration.value = sectionFooterPlacementReadyGeneration.value + 1
+                                sectionChromeAnimationState.sectionBottomPlacementReady[sectionKey] = true
+                                sectionChromeAnimationState.sectionBottomPlacementPending[sectionKey] = false
+                                sectionBottomPlacementInvalidation.value = sectionBottomPlacementInvalidation.value + 1
                             }
                         }
                     }
+
                     var renderedCount = 0
                     for renderableIndex in 0..<footerRenderables.size {
                         let renderable = footerRenderables[renderableIndex]
@@ -485,7 +504,9 @@ public final class List : View, Renderable {
                     itemCollector.value.item(renderable, 0)
                 }
             }
-            sectionChromeAnimationState.sectionFooterItemCounts = currentSectionFooterItemCounts
+
+            sectionChromeAnimationState.sectionBodyItemCounts = currentSectionBodyItemCounts
+
             let currentListItemCount = itemCollector.value.count
             let previousListItemCount = sectionChromeAnimationState.listItemCount
             let shouldAnimateListFooterPlacement: Bool
@@ -495,7 +516,9 @@ public final class List : View, Renderable {
             } else {
                 shouldAnimateListFooterPlacement = false
             }
+
             sectionChromeAnimationState.listItemCount = currentListItemCount
+
             let hasBottomSection = itemCollector.value.endsWithSectionFooter
             if hasFooter {
                 item(key: "list-footer") {
@@ -513,17 +536,23 @@ public final class List : View, Renderable {
         }
     }
 
-    private static func sectionKey(for sectionID: Any?, fallbackIndex: Int) -> String {
-        guard let sectionID else {
+    /// Build a stable key for section chrome animation state.
+    private static func sectionKey(for sectionIdentity: Any?, fallbackIndex: Int) -> String {
+        guard let sectionIdentity else {
+            // Sections without an explicit identity can only be tracked by their rendered order.
             return "index-\(fallbackIndex)"
         }
-        return "id-\(composeBundleString(for: sectionID))"
+
+        // Prefer explicit Section/ForEach identity so chrome animation state follows the section
+        // across insertions and deletions instead of sticking to a numeric position.
+        return "id-\(composeBundleString(for: sectionIdentity))"
     }
 
+    /// Tracks section chrome placement separately from row animation state.
     private final class SectionChromeAnimationState {
-        var sectionFooterItemCounts: [String: Int] = [:]
-        var sectionFooterPlacementReady: [String: Bool] = [:]
-        var sectionFooterPlacementPending: [String: Bool] = [:]
+        var sectionBodyItemCounts: [String: Int] = [:]
+        var sectionBottomPlacementReady: [String: Bool] = [:]
+        var sectionBottomPlacementPending: [String: Bool] = [:]
         var listItemCount: Int? = nil
     }
 
