@@ -2118,6 +2118,7 @@ Support levels:
               <summary><code>.searchable</code> (<a href="https://skip.dev/docs/components/searchable/">example</a>)</summary>
               <ul>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: Text? = nil) -> some View</code></li>
+                <li><code>func searchable(text: Binding&lt;String>, isPresented: Binding&lt;Bool>, prompt: Text? = nil) -> some View</code></li>
                 <li><code>func searchable(text: Binding&lt;String>, prompt: String) -> some View</code></li>
               </ul>
           </details>      
