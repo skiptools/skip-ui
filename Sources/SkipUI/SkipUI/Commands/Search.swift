@@ -34,7 +34,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 #endif
@@ -144,8 +146,17 @@ let searchFieldHeight = 56.0
         }
     }
     let keyboardActions = KeyboardActions(submitState)
+    let currentText = state.text.wrappedValue
+    let defaultTextFieldValue = TextFieldValue(text: currentText, selection: TextRange(currentText.count))
+    let textFieldValue = remember { mutableStateOf(defaultTextFieldValue) }
+    var currentTextFieldValue = textFieldValue.value
+    if currentTextFieldValue.text != currentText {
+        currentTextFieldValue = defaultTextFieldValue
+    }
     LaunchedEffect(isPresented) {
         if isPresented {
+            let presentedText = state.text.wrappedValue
+            textFieldValue.value = TextFieldValue(text: presentedText, selection: TextRange(presentedText.count))
             state.isSearching.value = true
             focusRequester.requestFocus()
         } else if state.isPresented != nil {
@@ -155,8 +166,9 @@ let searchFieldHeight = 56.0
     }
     Row(horizontalArrangement: Arrangement.spacedBy(8.dp), verticalAlignment: androidx.compose.ui.Alignment.CenterVertically, modifier: context.modifier) {
         let isFocused = remember { mutableStateOf(false) }
-        OutlinedTextField(value: state.text.wrappedValue, onValueChange: {
-            state.text.wrappedValue = $0
+        OutlinedTextField(value: currentTextFieldValue, onValueChange: {
+            textFieldValue.value = $0
+            state.text.wrappedValue = $0.text
         }, modifier: Modifier.weight(Float(1.0)).semantics { testTagsAsResourceId = true }.testTag("skip_ui_automation_search_field").focusRequester(focusRequester).onFocusChanged {
             if $0.isFocused {
                 state.isSearching.value = true
