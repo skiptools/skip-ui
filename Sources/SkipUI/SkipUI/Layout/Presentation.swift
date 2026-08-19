@@ -127,6 +127,20 @@ private let AlertDialogMaxWidth: Dp = 560.dp
             
             let verticalSizeClass = EnvironmentValues.shared.verticalSizeClass
             let isEdgeToEdge = EnvironmentValues.shared._isEdgeToEdge == true
+            // Height of the soft keyboard, or 0 when it is closed.
+            //
+            // The sheet itself cannot react to the IME: `contentWindowInsets` is zeroed just above,
+            // and `PresentationRoot` only applies `imePadding()` when `.bottom` survives in
+            // `systemBarEdges` — which it does not for a non-edge-to-edge detent sheet (see the
+            // `remove(.bottom)` below). The result was that a `.medium` sheet kept its content
+            // pinned to the bottom half of the screen while the keyboard covered that same half,
+            // leaving too little room to show the field being typed into.
+            //
+            // Rather than pad the content (which only squeezes it inside a fixed-height sheet and
+            // clips it), shift the whole content area up: shrink the top spacer by the IME height
+            // and grow the bottom spacer by the same amount. The content area keeps its exact
+            // height and simply translates clear of the keyboard.
+            let imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
             let sheetDepth = EnvironmentValues.shared._sheetDepth
             var systemBarEdges: Edge.Set = isFullScreen ? .all : [.top, .bottom]
 
@@ -162,9 +176,13 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                     inset = topBarHeight + (24 * sheetDepth).dp + 44.dp
                 }
 
-                topInset.value = inset
+                // Lift the sheet by the keyboard height (0 when closed, so the resting layout is
+                // unchanged). `topInset` also drives the sheet's rounded-top clip shape, so it has
+                // to track the adjusted value or the clip would detach from the visible top edge.
+                let detentInset = max(0.dp, inset - imeBottom)
+                topInset.value = detentInset
                 // Draw the drag handle and the presentation root content area below it
-                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset - handleHeight - handlePadding))
+                androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(max(0.dp, detentInset - handleHeight - handlePadding)))
                 Row(modifier: Modifier.fillMaxWidth(), horizontalArrangement: Arrangement.Center) {
                     // Honor `presentationDragIndicator(.hidden)` by suppressing the capsule while
                     // preserving its vertical footprint so the content does not shift.
@@ -210,8 +228,12 @@ private let AlertDialogMaxWidth: Dp = 560.dp
                 }
             }
             if !isEdgeToEdge {
-                // Move the presentation root content area above the bottom bar
-                let inset = max(0.dp, WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+                // Move the presentation root content area above the bottom bar — and, when the
+                // keyboard is open, above the keyboard. This previously subtracted the IME height
+                // from the system-bar inset, which clamps to 0 as soon as the keyboard appears and
+                // so let the content run underneath it. Taking the max instead keeps the old
+                // resting behaviour (IME closed => system bars) and clears the keyboard when open.
+                let inset = max(WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(), imeBottom)
                 androidx.compose.foundation.layout.Spacer(modifier: Modifier.height(inset))
             }
         }
