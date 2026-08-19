@@ -4,6 +4,9 @@ import SwiftUI
 import XCTest
 import OSLog
 import Foundation
+#if SKIP
+import androidx.compose.ui.text.font.FontWeight
+#endif
 
 final class TextTests: XCSnapshotTestCase {
 
@@ -82,6 +85,20 @@ final class TextTests: XCSnapshotTestCase {
         XCTAssertEqual(size.height, 18.0)
         #elseif os(macOS)
         XCTAssertEqual(size.height, 14.0)
+        #endif
+    }
+
+    /// iOS draws `.subheadline` at the regular weight, not a title's medium weight.
+    func testSubheadlineIsRegularWeight() throws {
+        #if !SKIP
+        throw XCTSkip("Checks the Material typography token behind the font")
+        #else
+        var weight: FontWeight? = nil
+        composeRule.setContent {
+            weight = Font.subheadline.fontImpl().fontWeight
+        }
+        composeRule.waitForIdle()
+        XCTAssertEqual(FontWeight.Normal, weight)
         #endif
     }
 
