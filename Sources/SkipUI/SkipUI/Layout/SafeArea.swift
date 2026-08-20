@@ -1,10 +1,7 @@
 // Copyright 2023–2026 Skip
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
-#if SKIP
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.geometry.Rect
-#elseif canImport(CoreGraphics)
+#if canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 #endif
 
@@ -19,56 +16,6 @@ public struct SafeAreaRegions : OptionSet {
     public static let keyboard = SafeAreaRegions(rawValue: 2)
     public static let all = SafeAreaRegions(rawValue: 3)
 }
-
-#if SKIP
-import androidx.compose.ui.geometry.Rect
-
-/// Track safe area.
-struct SafeArea: Equatable, CustomStringConvertible {
-    /// Total bounds of presentation root.
-    let presentationBoundsPx: Rect
-
-    /// Safe bounds of presentation root.
-    let safeBoundsPx: Rect
-
-    /// The edges whose safe area is solely due to system bars.
-    let absoluteSystemBarEdges: Edge.Set
-
-    init(presentation: Rect, safe: Rect, absoluteSystemBars: Edge.Set = []) {
-        self.presentationBoundsPx = presentation
-        self.safeBoundsPx = safe
-        self.absoluteSystemBarEdges = absoluteSystemBars
-    }
-
-    /// Update the safe area.
-    @Composable func insetting(_ edge: Edge, to value: Float) -> SafeArea {
-        guard value > Float(0.0) else {
-            return self
-        }
-        var systemBarEdges = absoluteSystemBarEdges
-        var (safeLeft, safeTop, safeRight, safeBottom) = safeBoundsPx
-        switch edge {
-        case .top:
-            safeTop = value
-            systemBarEdges.remove(.top)
-        case .bottom:
-            safeBottom = value
-            systemBarEdges.remove(.bottom)
-        case .leading:
-            safeLeft = value
-            systemBarEdges.remove(.leading)
-        case .trailing:
-            safeRight = value
-            systemBarEdges.remove(.trailing)
-        }
-        return SafeArea(presentation: presentationBoundsPx, safe: Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight), absoluteSystemBars: systemBarEdges)
-    }
-    
-    var description: String {
-        "SafeArea(presentationBoundsPx: \(presentationBoundsPx), safeBoundsPx: \(safeBoundsPx), absoluteSystemBarEdges: \(absoluteSystemBarEdges))"
-    }
-}
-#endif
 
 extension View {
     @available(*, unavailable)

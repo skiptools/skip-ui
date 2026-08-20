@@ -11,6 +11,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 #endif
 
 // SKIP @bridge
@@ -29,7 +30,7 @@ public struct GeometryReader : View, Renderable {
             rememberedGlobalFramePx.value = $0
         }) {
             if let globalFramePx = rememberedGlobalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current, safeArea: EnvironmentValues.shared._safeArea)
+                let proxy = GeometryProxy(globalFramePx: globalFramePx, density: LocalDensity.current, contentWindowInsets: EnvironmentValues.shared._contentWindowInsets, layoutDirection: LocalLayoutDirection.current)
                 content(proxy).Compose(context.content())
             }
         }

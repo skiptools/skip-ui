@@ -3050,12 +3050,12 @@ SkipUI fully supports SwiftUI's various layout mechanisms, including `HStack`, `
 - Expanding elements such as `Spacer` or `.frame(maxWidth: .infinity)` within nested `HStacks` or `VStacks` may measure differently. Try un-nesting stacks to get more SwiftUI-like layout.
 - Views with `.frame(maxWidth:)` or `.frame(maxHeight:)` set to explicit values larger than the parent's actual size may expand beyond the parent container's bounds on Android. To work around this, use a `GeometryReader` to compute the parent's size and set an explicit `.frame(width:)` or `.frame(height:)` instead of `maxWidth` or `maxHeight`. See [Issue #339](https://github.com/skiptools/skip-ui/issues/339).
 
-Note: if your app was developed under an earlier version of Skip and it relies on nuances of older layout behavior, you can apply the Android-only `.layoutImplementationVersion()` modifier. Set this modifier on a `View` hierarchy to simulate the previous behavior:
+Note: if your app was developed under an earlier version of Skip and it relies on nuances of older layout behavior, you can apply the Android-only `.layoutImplementationVersion()` modifier. Set this modifier on a `View` hierarchy to simulate the previous behavior. The current default is `3` (`NavigationStack` uses a Scaffold-style `SubcomposeLayout` for top/bottom bars). Use `2` for the previous `NavigationStack` Box overlay layout, or `0`/`1` for older stack spacing behavior:
 
 ```swift
 SomeRootView()
     #if os(Android)
-    .layoutImplementationVersion(0)
+    .layoutImplementationVersion(2)
     #endif
 ```
 

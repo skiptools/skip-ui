@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: MPL-2.0
 #if !SKIP_BRIDGE
 #if SKIP
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 #elseif canImport(CoreGraphics)
 import struct CoreGraphics.CGFloat
 import struct CoreGraphics.CGRect
@@ -15,7 +17,8 @@ public struct GeometryProxy {
     #if SKIP
     let globalFramePx: Rect
     let density: Density
-    let safeArea: SafeArea?
+    let contentWindowInsets: WindowInsets
+    let layoutDirection: LayoutDirection
     #endif
 
     public var size: CGSize {
@@ -47,17 +50,17 @@ public struct GeometryProxy {
 
     public var safeAreaInsets: EdgeInsets {
         #if SKIP
-        guard let safeArea = safeArea else {
-            return EdgeInsets()
-        }
+        let top = contentWindowInsets.getTop(density)
+        let left = contentWindowInsets.getLeft(density, layoutDirection)
+        let bottom = contentWindowInsets.getBottom(density)
+        let right = contentWindowInsets.getRight(density, layoutDirection)
+        let isRTL = layoutDirection == LayoutDirection.Rtl
         return with(density) {
-            let presentation = safeArea.presentationBoundsPx
-            let safe = safeArea.safeBoundsPx
             return EdgeInsets(
-                top: Double((safe.top - presentation.top).toDp().value),
-                leading: Double((safe.left - presentation.left).toDp().value),
-                bottom: Double((presentation.bottom - safe.bottom).toDp().value),
-                trailing: Double((presentation.right - safe.right).toDp().value)
+                top: Double(Float(top).toDp().value),
+                leading: Double(Float(isRTL ? right : left).toDp().value),
+                bottom: Double(Float(bottom).toDp().value),
+                trailing: Double(Float(isRTL ? left : right).toDp().value)
             )
         }
         #else

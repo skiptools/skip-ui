@@ -1013,7 +1013,7 @@ extension View {
             let density = LocalDensity.current
 
             if let rect = globalFramePx.value {
-                let proxy = GeometryProxy(globalFramePx: rect, density: density, safeArea: EnvironmentValues.shared._safeArea)
+                let proxy = GeometryProxy(globalFramePx: rect, density: density, contentWindowInsets: EnvironmentValues.shared._contentWindowInsets, layoutDirection: LocalLayoutDirection.current)
                 let newValue = transform(proxy)
                 let oldValue = previousValue.value as? T
                 if oldValue == nil || oldValue != newValue {

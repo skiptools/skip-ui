@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Constraints
@@ -160,14 +161,6 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
 ///     passed to the given closure.
 /// - Parameter logTag: When non-empty, emits Android ``Log`` lines with tag `SkipUI.ISAL.<logTag>` (e.g. filter logcat `SkipUI.ISAL.List`).
 @Composable func IgnoresSafeAreaLayout(expandInto: Edge.Set, checkEdges: Edge.Set = [], modifier: Modifier = Modifier, logTag: String = "", target: @Composable (IntRect, Edge.Set) -> Void) {
-    guard let safeArea = EnvironmentValues.shared._safeArea else {
-        if !logTag.isEmpty {
-            Log.d("SkipUI.ISAL.\(logTag)", "no SafeArea in environment; skipping expansion")
-        }
-        target(IntRect.Zero, [])
-        return
-    }
-
     if !logTag.isEmpty {
         LaunchedEffect(logTag, expandInto.rawValue, checkEdges.rawValue) {
             Log.d("SkipUI.ISAL.\(logTag)", "init expandInto=\(expandInto) checkEdges=\(checkEdges) edgesState(initial)=\(checkEdges)")
@@ -179,48 +172,54 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
     // state to our output to ensure we aren't re-calling the target block when output hasn't changed
     let edgesState = remember { mutableStateOf(checkEdges) }
     let edges = edgesState.value
+    let insets = edgeInsets(from: EnvironmentValues.shared._contentWindowInsets)
+    let density = LocalDensity.current
+    let topInsetPx = with(density) { insets.top.dp.roundToPx() }
+    let bottomInsetPx = with(density) { insets.bottom.dp.roundToPx() }
+    let leadingInsetPx = with(density) { insets.leading.dp.roundToPx() }
+    let trailingInsetPx = with(density) { insets.trailing.dp.roundToPx() }
     var expansionTop = 0
     if expandInto.contains(Edge.Set.top) && edges.contains(Edge.Set.top) {
-        expansionTop = Int(safeArea.safeBoundsPx.top - safeArea.presentationBoundsPx.top)
+        expansionTop = topInsetPx
     }
     var expansionBottom = 0
     if expandInto.contains(Edge.Set.bottom) && edges.contains(Edge.Set.bottom) {
-        expansionBottom = Int(safeArea.presentationBoundsPx.bottom - safeArea.safeBoundsPx.bottom)
+        expansionBottom = bottomInsetPx
     }
     var expansionLeft = 0
     var expansionRight = 0
     let isRTL = LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     if isRTL {
         if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
-            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            expansionRight = leadingInsetPx
         }
         if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
-            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            expansionLeft = trailingInsetPx
         }
     } else {
         if expandInto.contains(Edge.Set.leading) && edges.contains(Edge.Set.leading) {
-            expansionLeft = Int(safeArea.safeBoundsPx.left - safeArea.presentationBoundsPx.left)
+            expansionLeft = leadingInsetPx
         }
         if expandInto.contains(Edge.Set.trailing) && edges.contains(Edge.Set.trailing) {
-            expansionRight = Int(safeArea.presentationBoundsPx.right - safeArea.safeBoundsPx.right)
+            expansionRight = trailingInsetPx
         }
     }
 
-    var (safeLeft, safeTop, safeRight, safeBottom) = safeArea.safeBoundsPx
-    safeLeft -= expansionLeft
-    safeTop -= expansionTop
-    safeRight += expansionRight
-    safeBottom += expansionBottom
-
-    let contentSafeBounds = Rect(top: safeTop, left: safeLeft, bottom: safeBottom, right: safeRight)
-    let contentSafeArea = SafeArea(presentation: safeArea.presentationBoundsPx, safe: contentSafeBounds, absoluteSystemBars: safeArea.absoluteSystemBarEdges)
+    let contentInsets = contentWindowInsets(
+        top: expansionTop > 0 ? 0.dp : insets.top.dp,
+        leading: (isRTL ? expansionRight : expansionLeft) > 0 ? 0.dp : insets.leading.dp,
+        bottom: expansionBottom > 0 ? 0.dp : insets.bottom.dp,
+        trailing: (isRTL ? expansionLeft : expansionRight) > 0 ? 0.dp : insets.trailing.dp
+    )
     EnvironmentValues.shared.setValues {
-        $0.set_safeArea(contentSafeArea)
+        $0.set_contentWindowInsets(contentInsets)
         return ComposeResult.ok
     } in: {
-        Layout(modifier: modifier.onGloballyPositionedInWindow {
+        Layout(modifier: modifier.onGloballyPositioned { coordinates in
             let probeEdges = expandInto.union(checkEdges)
-            let newEdges = adjacentSafeAreaEdges(bounds: $0, safeArea: safeArea, isRTL: isRTL, checkEdges: probeEdges)
+            let bounds = coordinates.boundsInWindow()
+            let parentBounds = coordinates.parentLayoutCoordinates?.boundsInWindow() ?? bounds
+            let newEdges = adjacentSafeAreaEdges(bounds: bounds, parentBounds: parentBounds, isRTL: isRTL, checkEdges: probeEdges)
             if !logTag.isEmpty {
                 let previous = edgesState.value
                 if newEdges != previous {
@@ -255,26 +254,26 @@ private func flexibleLayoutFloat(_ value: CGFloat?) -> Float? {
     }
 }
 
-private func adjacentSafeAreaEdges(bounds: Rect, safeArea: SafeArea, isRTL: Bool, checkEdges: Edge.Set) -> Edge.Set {
+private func adjacentSafeAreaEdges(bounds: Rect, parentBounds: Rect, isRTL: Bool, checkEdges: Edge.Set) -> Edge.Set {
     var edges: Edge.Set = []
-    if checkEdges.contains(Edge.Set.top), bounds.top <= safeArea.safeBoundsPx.top + 0.1 {
+    if checkEdges.contains(Edge.Set.top), bounds.top <= parentBounds.top + 0.1 {
         edges.insert(Edge.Set.top)
     }
-    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= safeArea.safeBoundsPx.bottom - 0.1 {
+    if checkEdges.contains(Edge.Set.bottom), bounds.bottom >= parentBounds.bottom - 0.1 {
         edges.insert(Edge.Set.bottom)
     }
     if isRTL {
-        if checkEdges.contains(Edge.Set.leading), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+        if checkEdges.contains(Edge.Set.leading), bounds.right >= parentBounds.right - 0.1 {
             edges.insert(Edge.Set.leading)
         }
-        if checkEdges.contains(Edge.Set.trailing), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+        if checkEdges.contains(Edge.Set.trailing), bounds.left <= parentBounds.left + 0.1 {
             edges.insert(Edge.Set.trailing)
         }
     } else {
-        if checkEdges.contains(Edge.Set.leading), bounds.left <= safeArea.safeBoundsPx.left + 0.1 {
+        if checkEdges.contains(Edge.Set.leading), bounds.left <= parentBounds.left + 0.1 {
             edges.insert(Edge.Set.leading)
         }
-        if checkEdges.contains(Edge.Set.trailing), bounds.right >= safeArea.safeBoundsPx.right - 0.1 {
+        if checkEdges.contains(Edge.Set.trailing), bounds.right >= parentBounds.right - 0.1 {
             edges.insert(Edge.Set.trailing)
         }
     }
